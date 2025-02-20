@@ -5,10 +5,10 @@ from django.utils.functional import cached_property
 # from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
-from fairdm_geo.location.utils import bbox_for_dataset
 from licensing.fields import LicenseField
 from shortuuid.django_fields import ShortUUIDField
 
+from fairdm.contrib.location.utils import bbox_for_dataset
 from fairdm.utils.choices import Visibility
 
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles

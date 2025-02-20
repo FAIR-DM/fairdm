@@ -1,0 +1,6 @@
+{% load partials fairdm %}
+<c-plugin>
+{% for sample in object.samples.all %}
+  {% include sample.get_template_name with obj=sample %}
+{% endfor %}
+</c-plugin>

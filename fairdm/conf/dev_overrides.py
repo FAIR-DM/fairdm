@@ -126,14 +126,14 @@ LOGGING = {
     },
 }
 
-EARTH_SCIENCE_X_COORD = {
+FAIRDM_X_COORD = {
     "decimal_places": 5,
     "max_digits": None,
 }
 
-EARTH_SCIENCE_Y_COORD = {
+FAIRDM_Y_COORD = {
     "decimal_places": 5,
     "max_digits": None,
 }
 
-EARTH_SCIENCE_CRS = "EPSG:4326"
+FAIRDM_CRS = "EPSG:4326"

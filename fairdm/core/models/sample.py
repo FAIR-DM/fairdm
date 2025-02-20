@@ -58,7 +58,7 @@ class Sample(PolymorphicModel, BaseModel):
     )
 
     location = models.ForeignKey(
-        "location.Point",
+        "fairdm_location.Point",
         verbose_name=_("location"),
         help_text=_("The location of the sample."),
         # related_name="samples",

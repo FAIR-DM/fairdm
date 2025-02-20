@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
-from polymorphic_treebeard.forms import movepolynodeform_factory
 
 from fairdm.contrib.contributors.models import Contribution, Person
 from fairdm.forms import ImageCroppingWidget
@@ -175,9 +174,9 @@ class DatasetForm(BaseForm):
         return instance
 
 
-SampleFormMixin = movepolynodeform_factory(
-    Sample, exclude=["created", "modified", "keywords", "options", "path", "numchild"]
-)
+# SampleFormMixin = movepolynodeform_factory(
+#     Sample, exclude=["created", "modified", "keywords", "options", "path", "numchild"]
+# )
 
 
 class SampleForm(forms.ModelForm):
