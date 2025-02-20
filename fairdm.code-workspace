@@ -1,0 +1,32 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+	],
+	"settings": {
+		"cSpell.enabled": false
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "echo",
+				"type": "shell",
+				"command": "echo Hello"
+			}
+		]
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-python.black-formatter",
+			"batisteo.vscode-django",
+			"ms-azuretools.vscode-docker",
+			"ms-python.isort",
+			"ms-python.vscode-pylance",
+			"charliermarsh.ruff",
+			"matangover.mypy"
+		]
+	}
+}
