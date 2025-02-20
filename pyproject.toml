@@ -91,16 +91,16 @@ pyyaml = "^6.0"
 redis = "^4.5.2"
 tldextract = "^3.4.0"
 whitenoise = "^6.4.0"
-django-content-license = {git = "https://github.com/FairDM/django-content-license"}
+django-content-license = {git = "https://github.com/SamuelJennings/django-content-license"}
 django-easy-icons = {git = "https://github.com/SamuelJennings/django-easy-icons"}
-django-research-vocabs = {git = "https://github.com/FairDM/django-research-vocabs"}
+django-research-vocabs = {git = "https://github.com/SamuelJennings/django-research-vocabs"}
 django-account-management = {git = "https://github.com/SamuelJennings/django-account-management"}
 django-polymorphic-treebeard = {git = "https://github.com/SamuelJennings/django-polymorphic-treebeard"}
 django-jsonfield-toolkit = {git = "https://github.com/SamuelJennings/django-jsonfield-toolkit"}
 django-setup-tools = {git = "https://github.com/SamuelJennings/django-setup-tools"}
 shortuuid = "^1.0.13"
 django-cotton = "^1.5.2"
-django-literature = {git = "https://github.com/FairDM/django-literature"}
+django-literature = {git = "https://github.com/SamuelJennings/django-literature"}
 django-widget-tweaks = "^1.5.0"
 tablib = {extras = ["all"], version = "^3.7.0"}
 rest-pandas = "^1.1.0"
