@@ -23,6 +23,7 @@ urlpatterns = [
     path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.generic.urls")),
+    path("", include("fairdm.contrib.location.urls")),
     path("", include("fairdm.utils.urls")),
     path("api/", include("fairdm.contrib.api.urls")),
     path("vocabularies/", include("research_vocabs.urls")),
