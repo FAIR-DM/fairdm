@@ -19,14 +19,17 @@ FAIRDM_ALLOWED_IDENTIFIERS = {
 }
 
 
-FAIRDM_LOCATION = {
-    "x": {
-        "decimal_places": 6,
-    },
-    "y": {
-        "decimal_places": 6,
-    },
+FAIRDM_X_COORD = {
+    "decimal_places": 5,
+    "max_digits": None,
 }
+
+FAIRDM_Y_COORD = {
+    "decimal_places": 5,
+    "max_digits": None,
+}
+
+FAIRDM_CRS = "EPSG:4326"
 
 
 FAIRDM_DATASET = {

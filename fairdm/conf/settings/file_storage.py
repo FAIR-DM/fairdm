@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
+import logging
 
 env = globals()["env"]
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = globals()["BASE_DIR"]
 SITE_DOMAIN = globals()["SITE_DOMAIN"]
@@ -60,40 +63,49 @@ COMPRESS_FILTERS = {
 # ------------------------
 COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
 
-S3_BUCKET_NAME = env("S3_BUCKET_NAME")
-S3_CUSTOM_DOMAIN = f"media.{SITE_DOMAIN}/{S3_BUCKET_NAME}"
-S3_ACCESS_KEY = env("S3_BUCKET_NAME") or env("DJANGO_SUPERUSER_EMAIL")
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
-S3_SETTINGS = {
-    "access_key": S3_ACCESS_KEY,
-    "secret_key": env("S3_SECRET_ACCESS_KEY"),
-    "bucket_name": S3_BUCKET_NAME,
-    "custom_domain": S3_CUSTOM_DOMAIN,
-    "endpoint_url": "http://minio:9000",
-    # "endpoint_url": f"media.{SITE_NAME}:9000",
-    "object_parameters": {
-        "CacheControl": "max-age=86400",
-    },
-    "region_name": env("S3_REGION_NAME"),
-    # "url_protocol": "https:",
-}
-
-
 STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            # "location": "public",
-            "default_acl": "public-read",
-            **S3_SETTINGS,
-        },
-    },
     "staticfiles": {
         # using whitenosie.storage.CompressedManifestStaticFilesStorage is more problematic than it's worth
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
+
+if all(
+    [
+        env("S3_ACCESS_KEY_ID"),
+        env("S3_SECRET_ACCESS_KEY"),
+        env("S3_BUCKET_NAME"),
+    ]
+):
+    logger.info("Media storage: Using S3")
+    # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+    STORAGES["default"] = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "access_key": env("S3_ACCESS_KEY_ID"),
+                "secret_key": env("S3_SECRET_ACCESS_KEY"),
+                "bucket_name": env("S3_BUCKET_NAME"),
+                "custom_domain": f"media.{SITE_DOMAIN}/{env('S3_BUCKET_NAME')}",
+                "endpoint_url": "http://minio:9000",
+                "object_parameters": {
+                    "CacheControl": "max-age=86400",
+                },
+                "region_name": env("S3_REGION_NAME"),
+                # "url_protocol": "https:",
+            },
+        },
+    }
+
+else:
+    logger.info("Media storage: files stored locally")
+    STORAGES["default"] = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "LOCATION": str(BASE_DIR / "media"),
+        },
+    }
 
 # THUMBNAIL_DEFAULT_STORAGE = STORAGES["default"]
 

@@ -1,7 +1,12 @@
+import logging
+
 env = globals()["env"]
 
+logger = logging.getLogger(__name__)
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#caches
-if env("DJANGO_CACHE"):
+if env("DJANGO_CACHE") and env("REDIS_URL"):
+    logging.info("Cache Configuration: Redis")
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
@@ -22,19 +27,33 @@ if env("DJANGO_CACHE"):
             },
         },
     }
+elif env("DJANGO_CACHE"):
+    logging.info("Cache Configuration: LocMemCache")
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "default-cache",
+        },
+        "select2": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "select2-cache",
+        },
+        "vocabularies": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "vocabularies-cache",
+        },
+    }
+
 else:
+    logging.info("Cache Configuration: DummyCache")
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-            "LOCATION": "",
-        },
-        "collectfasta": {
-            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-            "LOCATION": "",
+            "LOCATION": "default-cache",
         },
         "select2": {
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-            "LOCATION": "",
+            "LOCATION": "select2-cache",
         },
     }
 

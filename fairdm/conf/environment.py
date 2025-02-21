@@ -11,6 +11,7 @@ env = Env(
     # DJANGO
     DJANGO_ADMIN_URL=(str, "admin/"),
     DJANGO_SUPERUSER_EMAIL=(str, "super.user@example.com"),
+    DJANGO_SUPERUSER_PASSWORD=(str, "admin"),
     DJANGO_ALLOW_SIGNUP=(bool, False),
     DJANGO_ALLOWED_HOSTS=(list, []),
     DJANGO_CACHE=(bool, True),
@@ -21,6 +22,7 @@ env = Env(
     DJANGO_SITE_ID=(int, 1),
     DJANGO_SITE_NAME=(str, "FairDM Demo"),
     DJANGO_TIME_ZONE=(str, "UTC"),
+    DJANGO_ROOT_URLCONF=(str, "config.urls"),
     # SECURITY
     DJANGO_SECURE_SSL_REDIRECT=(bool, True),
     DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, True),
@@ -28,8 +30,9 @@ env = Env(
     DJANGO_SECURE_CONTENT_TYPE_NOSNIFF=(bool, True),
     DJANGO_INSECURE=(bool, False),
     # DATABASE
-    POSTGRES_DB=(str, "postgres"),
-    POSTGRES_PASSWORD=(str, "postgres"),
+    DATABASE_URL=(str, ""),
+    POSTGRES_DB=(str, ""),
+    POSTGRES_PASSWORD=(str, ""),
     POSTGRES_USER=(str, "postgres"),
     POSTGRES_HOST=(str, "postgres"),
     POSTGRES_PORT=(int, 5432),
@@ -44,10 +47,11 @@ env = Env(
     S3_ENDPOINT_URL=(str, "https://media.localhost:9000"),
     S3_REGION_NAME=(str, "us-east-1"),
     S3_BUCKET_NAME=(str, "media"),
-    S3_ACCESS_KEY_ID=(str, "minio"),
-    S3_SECRET_ACCESS_KEY=(str, "minio123"),
+    S3_ACCESS_KEY_ID=(str, ""),
+    S3_SECRET_ACCESS_KEY=(str, ""),
     # MISCELLANEOUS
-    REDIS_URL=(str, "redis://redis:6379/0"),
+    REDIS_URL=(str, ""),
+    # REDIS_URL=(str, "redis://redis:6379/0"),
     USE_DOCKER=(bool, False),
     SHOW_DEBUG_TOOLBAR=(bool, False),
     LOCKDOWN_PASSWORDS=(list, []),
