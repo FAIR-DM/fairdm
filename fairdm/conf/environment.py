@@ -24,11 +24,8 @@ env = Env(
     DJANGO_TIME_ZONE=(str, "UTC"),
     DJANGO_ROOT_URLCONF=(str, "config.urls"),
     # SECURITY
-    DJANGO_SECURE_SSL_REDIRECT=(bool, True),
-    DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, True),
-    DJANGO_SECURE_HSTS_PRELOAD=(bool, True),
-    DJANGO_SECURE_CONTENT_TYPE_NOSNIFF=(bool, True),
-    DJANGO_INSECURE=(bool, False),
+    DJANGO_SECURE=(bool, True),
+    DJANGO_SECURE_HSTS_SECONDS=(int, 60),
     # DATABASE
     DATABASE_URL=(str, ""),
     POSTGRES_DB=(str, ""),
