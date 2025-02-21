@@ -46,10 +46,13 @@
               {% include "generic/milestone.html#table" with object_list=object.dates.all %}
             </c-layout.sidebar-section>
             <c-layout.sidebar-section id="keywordsSection"
-                                      heading="{% trans "Keywords" %}"
-                                      :visible="object.keywords.exists">
+                                      heading="{% trans "Keywords" %}">
               <c-slot name="actions">
-                {% comment %} <c-bs5.button class="text-success" href="#" data-bs-toggle="modal" data-bs-target="#keywordsModal" icon="edit" /> {% endcomment %}
+                <c-bs5.button class="text-success"
+                              href="#"
+                              data-bs-toggle="modal"
+                              data-bs-target="#keywordsModal"
+                              icon="edit" />
               </c-slot>
               {% include "generic/keywords.html#table" with object_list=object.keywords.all tags=object.tags.all %}
             </c-layout.sidebar-section>
@@ -64,3 +67,4 @@
     </main>
   </c-layout.application>
 </c-layout.standard>
+Rift Basin
