@@ -27,7 +27,7 @@ if env("DJANGO_SECURE"):
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
     # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
-    SECURE_PROXY_SSL_HEADER = True
+    SECURE_PROXY_SSL_HEADER = env("DJANGO_SECURE_PROXY_SSL_HEADER")
 
     # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-secure
     SESSION_COOKIE_SECURE = True
