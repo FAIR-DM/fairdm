@@ -1,5 +1,5 @@
 minio/
-**/migrations/*
+example/**/migrations/*
 !**/migrations/__init__.py
 test.*
 .vocabularies-cache
