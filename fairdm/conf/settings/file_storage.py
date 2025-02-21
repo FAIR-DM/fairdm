@@ -81,30 +81,26 @@ if all(
     logger.info("Media storage: Using S3")
     # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
     STORAGES["default"] = {
-        "default": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-            "OPTIONS": {
-                "access_key": env("S3_ACCESS_KEY_ID"),
-                "secret_key": env("S3_SECRET_ACCESS_KEY"),
-                "bucket_name": env("S3_BUCKET_NAME"),
-                "custom_domain": f"media.{SITE_DOMAIN}/{env('S3_BUCKET_NAME')}",
-                "endpoint_url": "http://minio:9000",
-                "object_parameters": {
-                    "CacheControl": "max-age=86400",
-                },
-                "region_name": env("S3_REGION_NAME"),
-                # "url_protocol": "https:",
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": env("S3_ACCESS_KEY_ID"),
+            "secret_key": env("S3_SECRET_ACCESS_KEY"),
+            "bucket_name": env("S3_BUCKET_NAME"),
+            "custom_domain": f"media.{SITE_DOMAIN}/{env('S3_BUCKET_NAME')}",
+            "endpoint_url": "http://minio:9000",
+            "object_parameters": {
+                "CacheControl": "max-age=86400",
             },
+            "region_name": env("S3_REGION_NAME"),
+            # "url_protocol": "https:",
         },
     }
 
 else:
     logger.info("Media storage: files stored locally")
     STORAGES["default"] = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-            "LOCATION": str(BASE_DIR / "media"),
-        },
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "LOCATION": str(BASE_DIR / "media"),
     }
 
 # THUMBNAIL_DEFAULT_STORAGE = STORAGES["default"]
