@@ -14,33 +14,25 @@ AWS_USE_SSL = False
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SECURE_SSL_REDIRECT = False
-DATABASES = {
-    "default": {
-        "ATOMIC_REQUESTS": True,
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-        "CONN_MAX_AGE": 60,
-    }
-}
 
 
-STORAGES["default"] = {
-    "BACKEND": "django.core.files.storage.FileSystemStorage",
-}
+# STORAGES["default"] = {
+#     "BACKEND": "django.core.files.storage.FileSystemStorage",
+# }
 
 THUMBNAIL_DEFAULT_STORAGE = "easy_thumbnails.storage.ThumbnailFileSystemStorage"
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-        "LOCATION": "",
-    },
-    "select2": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "",
-    },
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+#         # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+#         "LOCATION": "",
+#     },
+#     "select2": {
+#         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+#         "LOCATION": "",
+#     },
+# }
 
 
 CACHES["vocabularies"] = {
