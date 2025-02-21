@@ -125,15 +125,3 @@ LOGGING = {
         },
     },
 }
-
-FAIRDM_X_COORD = {
-    "decimal_places": 5,
-    "max_digits": None,
-}
-
-FAIRDM_Y_COORD = {
-    "decimal_places": 5,
-    "max_digits": None,
-}
-
-FAIRDM_CRS = "EPSG:4326"
