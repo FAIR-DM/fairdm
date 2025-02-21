@@ -1,18 +1,25 @@
-{% comment %} {% extends "fairdm/layout/full_screen_form.html" %} {% endcomment %}
-{% block page_title %}
-  {% trans "Lockdown Enabled" %}
-{% endblock %}
+{% load i18n static widget_tweaks %}
 
-{% block content %}
-  <p>{% trans "This community is only accesible to staff members." %}</p>
-  <form id="form" method='post'>
-    {% csrf_token %}
-    {{ form.as_p }}
-  </form>
-{% endblock %}
-
-{% block footer %}
-  <button class="btn btn-lg btn-primary"
-          form="form"
-          type="submit">{% trans "Submit" %}</button>
-{% endblock %}
+<c-base>
+  <c-layout.standard :site_navigation="False">
+    <div class="container flex-grow-1 vstack justify-content-center align-items-center">
+      <img class="mb-3"
+           src="{% static "img/brand/logo.svg" %}"
+           alt=""
+           style="max-height:120px"
+           height="120"
+           width="auto" />
+      <h1 class="fs-3">{% trans "Lockdown Enabled" %}</h1>
+      <p>{% trans "This site has been locked down to authorized users only." %}</p>
+      <form id="form" method='post' class="text-center w-50">
+        {% csrf_token %}
+        <div class="form-floating mb-3">
+          {% trans "Enter Password" as label %}
+          {% render_field form.password class="form-control" placeholder=label %}
+          <label for="{{ form.password.id_for_label }}">{{ label }}</label>
+        </div>
+        <button class="btn btn-lg btn-primary" type="submit">{% trans "Submit" %}</button>
+      </form>
+    </div>
+  </c-layout.standard>
+</c-base>
