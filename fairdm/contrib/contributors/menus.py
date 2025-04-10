@@ -37,6 +37,7 @@ AccountMenu.insert(
 
 FloatingAccountMenu.insert(
     [
+        MenuItem(_("Home"), view_name="home", icon="home"),
         MenuItem(_("Profile"), url=get_contributor_url, icon="user"),
         MenuItem(_("Manage Account"), view_name="account-management", icon="activity"),
         MenuItem(_("Recent Activity"), view_name="contributor-profile", icon="activity"),
