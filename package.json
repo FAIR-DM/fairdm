@@ -64,13 +64,14 @@
   },
   "scripts": {
     "dev": "webpack serve --config assets/webpack/dev.config.js",
-    "build": "webpack --config assets/webpack/prod.config.js"
+    "build": "webpack --config assets/webpack/prod.config.js",
+    "build-css": "sass --load-path=node_modules fairdm/static/pst/styles/pydata-sphinx-theme.scss pst/styles/pydata-sphinx-theme.css"
   },
   "dependencies": {
     "@alpinejs/mask": "^3.14.3",
     "@alpinejs/morph": "^3.14.7",
     "@alpinejs/persist": "^3.14.3",
-    "@fortawesome/fontawesome-free": "^6.7.1",
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "@types/alpinejs__morph": "^3.13.4",
     "alpinejs": "^3.14.3",
     "datatables.net": "^2.0.3",

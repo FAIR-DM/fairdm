@@ -20,6 +20,7 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3.11",
 ]
+
 [tool.poetry.dependencies]
 python = "^3.11"
 celery = "^5.4.0"
@@ -99,7 +100,7 @@ django-polymorphic-treebeard = {git = "https://github.com/SamuelJennings/django-
 django-jsonfield-toolkit = {git = "https://github.com/SamuelJennings/django-jsonfield-toolkit"}
 django-setup-tools = {git = "https://github.com/SamuelJennings/django-setup-tools"}
 shortuuid = "^1.0.13"
-django-cotton = "^1.5.2"
+django-cotton = ">=2.1"
 django-literature = {git = "https://github.com/SamuelJennings/django-literature"}
 django-widget-tweaks = "^1.5.0"
 tablib = {extras = ["all"], version = "^3.7.0"}
@@ -110,6 +111,7 @@ django-pwa = "^2.0.1"
 django-pandas = "^0.6.7"
 django-ordered-model = "^3.7.4"
 django-taggit = "^6.1.0"
+django-waffle = "^4.2.0"
 
 
 
@@ -120,10 +122,9 @@ pandas = "^2.2.2"
 django-better-admin-arrayfield = "^1.4.2"
 snakeviz = "^2.2.2"
 
-
-
 [tool.poetry.group.docs.dependencies]
-geoluminate-docs = {git = "https://github.com/FAIR-DM/fairdm-docs"}
+fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs", extras = ["pydata-sphinx-theme"]}
+toml = "^0.10.2"
 
 [build-system]
 requires = ["poetry-core"]
