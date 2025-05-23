@@ -122,6 +122,8 @@ def update_deps(c):
         "django-research-vocabs",
         "django-setup-tools",
         "django-flex-menus",
+        "django-render-fields",
+        "cotton-bs5",
     ]
 
     c.run(f"poetry update {' '.join(packages)}")

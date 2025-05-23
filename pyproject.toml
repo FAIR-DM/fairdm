@@ -113,6 +113,8 @@ django-ordered-model = "^3.7.4"
 django-taggit = "^6.1.0"
 django-waffle = "^4.2.0"
 django-addanother = "^2.2.2"
+cotton-bs5 = {git = "https://github.com/SamuelJennings/cotton-bs5"}
+django-render-fields = {git = "https://github.com/SamuelJennings/django-render-fields"}
 
 
 

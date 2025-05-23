@@ -2105,6 +2105,21 @@ redis = ">=3,<4.0.0 || >4.0.0,<4.0.1 || >4.0.1"
 hiredis = ["redis[hiredis] (>=3,!=4.0.0,!=4.0.1)"]
 
 [[package]]
+name = "django-render-fields"
+version = "0.0.1"
+description = "A Django app to declaratively layout model information using admin-style fieldsets. Easily organize and render model fields in customizable groups with a simple render_fieldsets template tag — perfect for flexible, maintainable detail views."
+optional = false
+python-versions = ">=3.10,<4.0"
+files = []
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/SamuelJennings/django-render-fields"
+reference = "HEAD"
+resolved_reference = "d32adb729a7b34077f6e6131f4e15463a7234edb"
+
+[[package]]
 name = "django-research-vocabs"
 version = "0.1.0"
 description = "Utilize RDF-based vocabularies as choices for your django model and form fields"
@@ -6474,4 +6489,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3aed4c278b5f15499d35cf77655d814ae910200e478d15806f2a4a1d626350a3"
+content-hash = "d1373158095cda5c221b66fcb5fb96d833273139c4d5bc63a13d65bd6acb96d3"
