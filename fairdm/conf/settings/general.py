@@ -37,6 +37,7 @@ MESSAGE_TAGS = {
     messages.ERROR: "error alert-danger",
 }
 
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -91,9 +92,6 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
     "lockdown.middleware.LockdownMiddleware",
 ]
-
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "/media/"
 
 
 # for django debug toolbar
@@ -157,109 +155,10 @@ DJANGO_SETUP_TOOLS = {
     },
 }
 
-COTTON_DIR = "components"
-
-
-EASY_ICONS = {
-    # the function that will be used to get the icon based on user settings
-    "default_renderer": "provider",
-    # default attributes applied to all icons
-    "attrs": {
-        # "height": "1em",
-        # "fill": "currentColor",
-    },
-    # maps aliases to icon names
-    "aliases": {
-        "administration": "fas fa-toolbox",
-        "activity": "activity.svg",
-        "angle-left": "fas fa-angle-left",
-        "angle-right": "fas fa-angle-right",
-        "angles-left": "fas fa-angle-double-left",
-        "angles-right": "fas fa-angle-double-right",
-        "api": "fas fa-code",
-        "arrow-left": "fas fa-arrow-left",
-        "arrow-right": "fas fa-arrow-right",
-        "arrow-up": "fas fa-arrow-up",
-        "arrow-down": "fas fa-arrow-down",
-        "back": "fas fa-arrow-left",
-        "cancel": "fas fa-times",
-        "chart": "fas fa-chart-bar",
-        "close": "fas fa-times",
-        "circle-half": "fas fa-circle-half-stroke",
-        "comments": "fas fa-comments",
-        "community": "fas fa-users",
-        "contributors": "fas fa-user-friends",
-        "dataset": "fas fa-folder",
-        "delete": "fas fa-trash",
-        "download": "fas fa-download",
-        "download-zip": "fas fa-file-zipper",
-        "download-xml": "filetype-xml.svg",
-        "edit": "fas fa-edit",
-        "email": "fas fa-envelope",
-        "expand": "fas fa-expand",
-        "ellipsis": "fas fa-ellipsis-v",
-        # "facebook": "facebook.svg",
-        "filter": "fas fa-filter",
-        "globe": "fas fa-globe",
-        "grid": "grid.svg",
-        "home": "fas fa-home",
-        "identifier": "fas fa-fingerprint",
-        "image": "fas fa-image",
-        "images": "fas fa-images",
-        "info": "fas fa-info-circle",
-        "invite": "fas fa-envelope",
-        "linkedin": "fab fa-linkedin",
-        "literature": "fas fa-book",
-        "login": "fas fa-sign-in-alt",
-        "logout": "fas fa-sign-out-alt",
-        "location": "fas fa-map-marker-alt",
-        "map": "fas fa-map-marked-alt",
-        "measurement": "fas fa-ruler",
-        "measurements": "fas fa-ruler-combined",
-        "menu": "fas fa-bars",
-        "moon": "fas fa-moon",
-        "orcid": "orcid/authenticated.svg",
-        "orcid_unauthenticated": "orcid/unauthenticated.svg",
-        "ORCID": "orcid/authenticated.svg",
-        "organisation": "fas fa-building",
-        "organization": "fas fa-building",
-        "overview": "fas fa-book-open",
-        "person": "fas fa-user",
-        "plus": "fas fa-plus",
-        "preferences": "fas fa-sliders",
-        "project": "fas fa-layer-group",
-        "ror": "ror.svg",
-        "ROR": "ror.svg",
-        "rotate": "fas fa-sync-alt",
-        "sample": "fas fa-database",
-        "save": "fas fa-save",
-        "search": "fas fa-search",
-        "send": "fas fa-paper-plane",
-        "share": "fas fa-share",
-        "spinner": "spinner.svg",
-        "star-outline": "far fa-star",
-        "star-solid": "fas fa-star",
-        "sun": "fas fa-sun",
-        "table": "fas fa-table",
-        # "upload": "fas fa-upload",
-        "upload": "fas fa-cloud-arrow-up",
-        "user-circle": "fas fa-user-circle",
-        "user": "fas fa-user",
-        "vocabularies": "fas fa-book-open",
-        "whatsapp": "fab fa-whatsapp",
-        "x_twitter": "fab fa-twitter",
-        # django-account-management
-        "password_change": "fas fa-key",
-        "mfa": "fas fa-lock",
-        "link": "fas fa-link",
-        "gear": "fas fa-cog",
-        "sessions": "fas fa-user-clock",
-        "site_admin": "fas fa-user-cog",
-    },
-}
-
 
 FEATURE_FLAGS = {
     "ALLOW_DISCUSSIONS": env("FAIRDM_ALLOW_DISCUSSIONS"),
     "SHOW_DATA_TABLES": env("FAIRDM_SHOW_DATA_TABLES"),
 }
+
+DAC_FLOATING_MENU = "fairdm/menus/user_offcanvas.html"

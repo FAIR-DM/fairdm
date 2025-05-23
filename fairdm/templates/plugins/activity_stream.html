@@ -1,10 +1,13 @@
 {% load activity_tags partials %}
 
-<c-plugin layout="page">
+<c-layouts.plugin>
+  <c-bd.sections.main.intro title="{{ view.title }}" />
   {% activity_stream 'any' base_object %}
-  {% for action in stream %}
-    <c-activity.action_compact :action="action" />
-  {% empty %}
-    <c-text.empty />
-  {% endfor %}
-</c-plugin>
+  <div class="vstack gap-2 py-2">
+    {% for action in stream %}
+      <c-activity.action_compact :action="action" />
+    {% empty %}
+      <c-text.empty />
+    {% endfor %}
+  </div>
+</c-layouts.plugin>

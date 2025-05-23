@@ -1,0 +1,48 @@
+<c-layouts.plugin>
+  <c-slot name="actions">
+    <c-components.button icon="share"
+                         text="{% trans "Share" %}"
+                         data-bs-toggle="modal"
+                         data-bs-target="#shareModal" />
+    <c-components.button icon="email" text="{% trans "Contact" %}" />
+    {% if user_can_edit %}
+      <c-components.link icon="edit"
+                         text="{% trans "Edit" %}"
+                         href="{% url "description-formset" uuid=object.uuid %}" />
+    {% endif %}
+  </c-slot>
+  <c-pst.components.section id="name">
+    <div class="me-3" style="width: 300px;">
+      <c-widgets.avatar for="organization" />
+    </div>
+    <div class="mb-3">
+      <c-text.heading text="{{ object.name }}" level="1" compact />
+      <c-contributor.person.identifier />
+      <c-contributor.person.affiliations />
+      {% comment %} <c-contributor.socials /> {% endcomment %}
+    </div>
+    <div class="hstack gap-2 mb-3">
+      <c-components.badge style="secondary"
+                          label="{% trans "Date added" %}"
+                          message="{% trans "This profile was first added to the portal on this date." %}"
+                          value="{{ object.added|date }}" />
+      <c-components.badge style="secondary"
+                          label="{% trans "Members" %}"
+                          message="{% trans "The number of members associated with this organization." %}"
+                          value="{{ object.members.count }}" />
+      <c-components.badge style="success"
+                          label="{% trans "Active" %}"
+                          message="{% trans "This contributor is an active member of this online community." %}"
+                          :visible="object.owner" />
+    </div>
+    {% if object.profile %}{{ object.profile|linebreaks }}{% endif %}
+    <c-pst.components.section id="members">
+      <c-text.heading level="2" text="{% trans "Members" %}" />
+      <c-sections.object-list cols="4"
+                              gap="2"
+                              :object_list="object.members.all"
+                              card_component="contributor.card.person_alt" />
+    </c-pst.components.section>
+  </c-pst.components.section>
+</c-layouts.plugin>
+<c-modals.share />

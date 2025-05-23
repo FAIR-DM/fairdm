@@ -5,138 +5,97 @@ from flex_menu import Menu, MenuItem
 from literature.models import LiteratureItem
 
 from fairdm.contrib.contributors.models import Contributor
-from fairdm.core.models import Dataset, Project, Sample
-from fairdm.utils.utils import feature_is_enabled
+from fairdm.core.models import Project
+from fairdm.registry import registry
+
+
+def get_sample_menu_items():
+    """Get sample menu items based on the sample type."""
+
+    sample_menu_items = [
+        MenuItem(
+            name=sample_type["verbose_name_plural"],
+            view_name="data-table",
+            label=sample_type["verbose_name_plural"],
+            params={
+                "type": sample_type["full_name"],
+            },
+        )
+        for sample_type in registry.samples
+    ]
+    return sample_menu_items
+
+
+def get_measurement_menu_items():
+    """Get measurement menu items based on the measurement type."""
+
+    measurement_menu_items = [
+        MenuItem(
+            name=measurement_type["verbose_name_plural"],
+            view_name="data-table",
+            label=measurement_type["verbose_name_plural"],
+            params={
+                "type": measurement_type["full_name"],
+            },
+        )
+        for measurement_type in registry.measurements
+    ]
+    return measurement_menu_items
+
 
 DatabaseMenu = Menu(
     "DatabaseMenu",
     label=_("Database"),
-    root_template="fairdm/menus/database/root.html",
+    root_template="fairdm/menus/site_navigation.html",
     template="fairdm/menus/database/menu.html",
     children=[
-        Menu(
-            "DatabaseExploreMenu",
-            label=_("Explore"),
-            root_template="fairdm/menus/database/root.html",
-            template="fairdm/menus/database/menu.html",
-            children=[
-                MenuItem(
-                    _("Projects"),
-                    view_name="project-list",
-                    icon="project",
-                    count=Project.objects.count,
-                    description=_(
-                        "Discover planned, active, and historic research projects shared by our community members."
-                    ),
-                ),
-                MenuItem(
-                    _("Datasets"),
-                    view_name="dataset-list",
-                    icon="dataset",
-                    count=Dataset.objects.count,
-                    description=_(
-                        "Browse quality-controlled datasets that meet the high standards required by our community."
-                    ),
-                ),
-                MenuItem(
-                    _("Data Collections"),
-                    view_name="data-table",
-                    check=feature_is_enabled("SHOW_DATA_TABLES"),
-                    icon="sample",
-                    count=Sample.objects.count,
-                    description=_(
-                        "Explore tabular data collections for all sample and measurement types collected by this portal."
-                    ),
-                ),
-                MenuItem(
-                    _("Literature"),
-                    view_name="reference-list",
-                    icon="literature",
-                    count=LiteratureItem.objects.count,
-                    description=_("Explore related published and unpublished literature relevant to this portal."),
-                ),
-            ],
-        ),
-        Menu(
-            "DatabaseMoreMenu",
-            label=_("More"),
-            root_template="fairdm/menus/database/root.html",
-            template="fairdm/menus/database/menu.html",
-            children=[
-                MenuItem(
-                    _("Contributors"),
-                    view_name="contributor-list",
-                    icon="contributors",
-                    count=Contributor.objects.count,
-                    description=_(
-                        "Search active, inactive and past contributors who have contributed to the growth of our database and online community. Discover like-minded professionals, establish new connections, and collaborate together on future projects."
-                    ),
-                ),
-                MenuItem(
-                    _("API"),
-                    view_name="api:swagger-ui",
-                    icon="api",
-                    description=_(
-                        "View the API documentation and learn how to interact programatically with this portal."
-                    ),
-                ),
-            ],
-        ),
-    ],
-)
-
-ProjectMenu = Menu(
-    "ProjectMenu",
-    label=_("Project"),
-    root_template="fairdm/menus/detail/root.html",
-    children=[
         MenuItem(
-            _("Overview"),
-            view_name="project-detail",
-            icon="overview",
-            template="fairdm/menus/detail/menu.html",
+            _("Home"),
+            view_name="home",
+            icon="home",
         ),
-    ],
-)
-
-DatasetMenu = Menu(
-    "DatasetMenu",
-    label=_("Dataset"),
-    root_template="fairdm/menus/detail/root.html",
-    children=[
         MenuItem(
-            _("Overview"),
-            icon="overview",
-            view_name="dataset-detail",
-            template="fairdm/menus/detail/menu.html",
+            _("Projects"),
+            view_name="project-list",
+            icon="project",
+            count=Project.objects.count,
+            description=_("Discover planned, active, and historic research projects shared by our community members."),
         ),
-    ],
-)
-
-SampleMenu = Menu(
-    "SampleMenu",
-    label=_("Sample"),
-    root_template="fairdm/menus/detail/root.html",
-    children=[
         MenuItem(
-            _("Overview"),
-            view_name="sample-detail",
-            icon="overview",
-            template="fairdm/menus/detail/menu.html",
+            _("Data"),
+            view_name="data",
+            icon="dataset",
+            description=_(
+                "Browse datasets that meet the data and metadata quality standards required by our community."
+            ),
         ),
-    ],
-)
-
-ContributorMenu = Menu(
-    "ContributorMenu",
-    label=_("Contributor"),
-    root_template="fairdm/menus/detail/root.html",
-    children=[
+        # MenuItem(
+        #     _("Data Collections"),
+        #     view_name="data-table",
+        #     icon="sample",
+        #     description=_("View database entries in tabular format by sample or measurement type."),
+        # ),
         MenuItem(
-            _("Overview"),
-            view_name="contributor-detail",
-            icon="overview",
-            template="fairdm/menus/detail/menu.html",
+            _("Contributors"),
+            view_name="contributor-list",
+            icon="contributors",
+            count=Contributor.objects.count,
+            description=_(
+                "Find a person or organization that has directly or indirectly contributed to this data portal."
+            ),
+        ),
+        MenuItem(
+            _("Literature"),
+            view_name="reference-list",
+            icon="literature",
+            count=LiteratureItem.objects.count,
+            description=_("Explore related published and unpublished literature relevant to this portal."),
+        ),
+        MenuItem(
+            _("API Documentation"),
+            view_name="api:swagger-ui",
+            icon="api",
+            description=_("View the API documentation and learn how to interact programatically with this portal."),
         ),
     ],
 )

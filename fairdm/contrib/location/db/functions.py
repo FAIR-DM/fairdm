@@ -6,7 +6,7 @@ from django.db.models.functions import Cast, JSONObject
 def AsGeoFeature(*args):
     return JSONObject(
         type=Value("Feature"),
-        id=F("pk"),
+        id=F("uuid"),
         geometry=Cast(AsGeoJSON("geom"), output_field=JSONField()),
         properties=JSONObject(**{p: F(p) for p in args}),
     )

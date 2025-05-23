@@ -1,0 +1,18 @@
+{% load static %}
+
+<c-vars title icon="theme_icon" />
+{% comment %} :header_start="{% icon icon class="fa-lg fs-3 me-2" %}" {% endcomment %}
+<c-bs5.modal fade centered :attrs="attrs">
+  <c-bs5.modal.header :title="title">
+    <c-slot name="header_start">
+      <img src="{% static "img/brand/icon.svg" %}"
+           alt=""
+           style="height: 1.2lh"
+           class="me-2" />
+    </c-slot>
+  </c-bs5.modal.header>
+  <c-bs5.modal.body>
+    {{ slot }}
+  </c-bs5.modal.body>
+  {{ footer }}
+</c-bs5.modal>

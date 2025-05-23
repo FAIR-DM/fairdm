@@ -107,12 +107,14 @@ class FairDMDescriptions(VocabularyBuilder):
 
     Objectives = Concept(
         prefLabel=_("Objectives"),
-        definition=_("The goals of the research project."),
+        definition=_(
+            "The overarching goals of the research project. This includes the main questions or scientific hypotheses being addressed."
+        ),
     )
 
     ExpectedOutput = Concept(
         prefLabel=_("Expected Output"),
-        definition=_("The anticipated results of the research project."),
+        definition=_("The expected research data outputs (i.e. the expected datasets to come from this project)."),
     )
 
     Conclusions = Concept(
@@ -545,9 +547,9 @@ class FairDMRoles(VocabularyBuilder):
                 ordered=True,
                 members=[
                     "Creator",
-                    "Contributor",
-                    "Publisher",
-                    "RightsHolder",
+                    "ProjectLeader",
+                    "ProjectMember",
+                    "ProjectManager",
                     "ContactPerson",
                     "Other",
                 ],

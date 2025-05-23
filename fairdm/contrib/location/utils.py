@@ -11,8 +11,8 @@ from django.db.models import F, Max, Min
 def serialize_dataset_samples(self, dataset):
     qs = dataset.samples.annotate(geom=F("location__point"))  # noqa: F841
     # serializer = SampleGeojsonSerializer(qs, many=True)
-    # return {str(dataset.pk): json.dumps(serializer.data)}
-    return {str(dataset.pk): json.dumps([])}
+    # return {str(dataset.uuid): json.dumps(serializer.data)}
+    return {str(dataset.uuid): json.dumps([])}
 
 
 def get_sites_within(location, radius=25):
@@ -20,10 +20,22 @@ def get_sites_within(location, radius=25):
     qs = Point.objects.filter(point__distance_lt=(location.point, Distance(km=radius)))  # noqa: F841
 
 
-def bbox_for_dataset(dataset):
+def locations_for_dataset(dataset):
+    """Get all locations for a dataset"""
     from .models import Point
 
-    bounds = Point.objects.filter(samples__dataset=dataset).aggregate(
+    # Get all points related to the dataset
+    return Point.objects.filter(samples__dataset=dataset)
+
+    # # Serialize the points to GeoJSON
+    # serializer = SampleGeojsonSerializer(points, many=True)
+    # return json.dumps(serializer.data)
+
+
+def bbox_for_dataset(dataset):
+    point_qs = locations_for_dataset(dataset)
+
+    bounds = point_qs.aggregate(
         min_x=Min("x"),
         max_x=Max("x"),
         min_y=Min("y"),

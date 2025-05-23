@@ -1,0 +1,11 @@
+<c-vars dropdown_class class menu_class />
+<div class="dropdown {{ dropdown_class }}">
+  <c-components.button class="dropdown-toggle {{ class }} "
+                       type="button"
+                       aria-expanded="false"
+                       data-bs-toggle="dropdown"
+                       :attrs="attrs" />
+  <ul class="dropdown-menu {{ menu_class }}">
+    {{ slot }}
+  </ul>
+</div>

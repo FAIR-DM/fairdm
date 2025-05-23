@@ -111,7 +111,7 @@ class Model(models.Model, metaclass=FairDM):
         abstract = True
 
     def get_absolute_url(self):
-        return reverse(f"{self._meta.model_name}-detail", kwargs={"pk": self.pk})
+        return reverse(f"{self._meta.model_name}-detail", kwargs={"uuid": self.uuid})
 
 
 __all__ = [

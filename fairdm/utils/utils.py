@@ -7,6 +7,22 @@ from django.utils.text import slugify
 
 from fairdm.contrib import CORE_MAPPING
 
+DOCUMENTATION_BASE_URL = "https://fairdm.readthedocs.io/en/latest/user-guide/"
+DOCUMENTATION_BASE_URL = "http://localhost:5000/user-guide/"
+
+
+def user_guide(name):
+    """
+    Returns the documentation URL for a given name.
+
+    Args:
+        name (str): The name of the documentation section.
+
+    Returns:
+        str: The URL to the documentation section.
+    """
+    return f"{DOCUMENTATION_BASE_URL}{name}.html"
+
 
 def get_setting(name, key):
     """Return a setting from the Django settings module."""
@@ -109,27 +125,37 @@ def inherited_choices_factory(name, *args):
     return models.TextChoices(f"{name}Choices", cls_attrs)
 
 
-def get_model_class(pk):
-    """Return a model class from a primary key."""
-    return apps.get_model(CORE_MAPPING[pk[0]])
+def get_model_class(uuid: str):
+    """Return a model class from a given UUID."""
+    return apps.get_model(CORE_MAPPING[uuid[0]])
 
 
-def get_core_object_or_none(pk):
-    """Accepts a shortuuid primary key (as assigned to core data models) and returns the object or None."""
-    model = get_model_class(pk)
-    return model, model.objects.filter(pk=pk).first()
+def get_core_object_or_none(uuid: str) -> tuple:
+    """
+    Retrieves the model class and the object instance matching the given UUID. If no instance is found,
+    it returns None.
+
+    Args:
+        uuid (str): The UUID of the object to retrieve.
+
+    Returns:
+        tuple: A tuple containing the model class and the first object instance with the specified UUID,
+               or None if no such object exists.
+    """
+    model = get_model_class(uuid)
+    return model, model.objects.filter(uuid=uuid).first()
 
 
-def get_core_object_or_404(pk):
+def get_core_object_or_404(uuid: str):
     """Accepts a shortuuid primary key (as assigned to core data models) and returns the object or raises a 404."""
-    model = get_model_class(pk)
-    return get_object_or_404(model, pk=pk)
+    model = get_model_class(uuid)
+    return get_object_or_404(model, uuid=uuid)
 
 
 def default_image_path(instance, filename):
     """Generates file paths for images."""
     model_name = slugify(instance._meta.verbose_name_plural)
-    return f"{model_name}/{instance.pk}/{filename}"
+    return f"{model_name}/{instance.uuid}/{filename}"
 
 
 def convert_to_crispy_layout(fieldsets):

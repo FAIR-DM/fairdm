@@ -15,8 +15,6 @@ STATIC_ROOT = COMPRESS_ROOT = str(BASE_DIR / "static")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = COMPRESS_URL = "/static/"
 
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = str(BASE_DIR / "media")
 
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 if os.path.exists(str(BASE_DIR / "assets")):
@@ -33,24 +31,22 @@ STATICFILES_FINDERS = [
 ]
 
 
-# WHITENOISE
-# ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/dev/ref/settings/#media-root
+MEDIA_ROOT = str(BASE_DIR / "media")
+
+# https://docs.djangoproject.com/en/dev/ref/settings/#media-url
+MEDIA_URL = "/media/"
+
+# ======= WHITENOISE =================================
 WHITENOISE_MANIFEST_STRICT = False
 
 
-# django-compressor
-# ------------------------------------------------------------------------------
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_ENABLED
+# ======= Django Compressor ========================
+# https://django-compressor.readthedocs.io/en/latest/settings/
+
 COMPRESS_ENABLED = True
-
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_STORAGE
 COMPRESS_STORAGE = "compressor.storage.GzipCompressorFileStorage"
-# COMPRESS_STORAGE = "compressor.storage.CompressorFileStorage"
-
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_OFFLINE
 COMPRESS_OFFLINE = True  # Offline compression is required when using Whitenoise
-
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_FILTERS
 COMPRESS_FILTERS = {
     "css": [
         "compressor.filters.css_default.CssAbsoluteFilter",
@@ -58,10 +54,10 @@ COMPRESS_FILTERS = {
     ],
     "js": ["compressor.filters.jsmin.JSMinFilter"],
 }
+COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
 
 # STATIC
 # ------------------------
-COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
 
 STORAGES = {
     "staticfiles": {
@@ -112,3 +108,6 @@ WEBPACK_LOADER = {
         "STATS_FILE": Path(__file__).parent / "webpack-stats.prod.json",
     },
 }
+
+# 1MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+  {# The data-cfasync attribute disables CloudFlare's Rocket loader so that #}
+  {# mode/theme are correctly set before the browser renders the page. #}
+  {# https://github.com/pydata/pydata-sphinx-theme/pull/1045 #}
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+          crossorigin="anonymous"></script>
+  {{ theme_options|json_script:"theme-options-data" }}
+  <script>
+    const DOCUMENTATION_OPTIONS = JSON.parse(
+      document.getElementById("theme-options-data").textContent
+    );
+  </script>
+  {% comment %} (function() {
+      const theme = localStorage.getItem('_x_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-bs-theme', JSON.parse(theme));
+  })(); {% endcomment %}
+  <script data-cfasync="false">
+    var theme = localStorage.getItem("theme") || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.dataset.mode = theme;
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.setAttribute('data-bs-theme', theme);
+  </script>
+  {% comment %} this give us a css class that will be invisible only if js is disabled {% endcomment %}
+  <noscript>
+    <style>
+      .pst-js-only {
+        display: none !important;
+      }
+    </style>
+  </noscript>
+{% endblock css %}
+
+{% block body %}
+  <body data-default-mode="{{ default_mode }}"
+        {{ attrs }}>
+    <c-pst.components.skip-link />
+    <div id="pst-scroll-pixel-helper"></div>
+    <div class="bd-sidebar"></div>
+    {# the scroll to top button #}
+    <c-pst.components.back-to-top />
+    {# A search field pop-up that will only show when the search button is clicked #}
+    <c-pst.components.search-dialog />
+    {% comment %} <c-pst.sections.announcement /> {% endcomment %}
+    <c-sections.header />
+    {% comment %} <c-navigation.mobile /> {% endcomment %}
+    <c-pst.sections.container class="position-relative"
+                              hx-indicator="#pageLoadingIndicator">
+      <c-components.spinner id="pageLoadingIndicator"
+                            class="position-absolute top-0 end-0 m-3" />
+      <c-sections.alerts />
+      {{ slot }}
+    </c-pst.sections.container>
+    {# Scripts placed at the end of the page to cut down on time to first content #}
+    {% block scripts_end %}
+      {% comment %} {{ _webpack.body_post() }} {% endcomment %}
+    {% endblock scripts_end %}
+
+    {# Footer #}
+    {% comment %} <footer class="bd-footer">
+      {% include "cotton/pst/sections/footer.html" %}
+    </footer> {% endcomment %}
+    {% if user.is_authenticated %}
+      <c-dac.sections.user-sidebar />
+      {% comment %} {% include "account_management/sidebar.html" %} {% endcomment %}
+    {% endif %}
+  </body>
+{% endblock body %}

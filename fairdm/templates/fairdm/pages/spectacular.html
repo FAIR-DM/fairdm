@@ -1,12 +1,12 @@
 {% load sekizai_tags static compress %}
 
-<c-layout.standard>
+<c-layouts.article>
   <c-slot name="head">
     <link rel="stylesheet" href="{{ swagger_ui_css }}" />
   </c-slot>
-  <c-layout.page :hr="False">
+  <c-layouts.page :hr="False">
     <div id="swagger-ui"></div>
-  </c-layout.page>
+  </c-layouts.page>
   <script src="{{ swagger_ui_bundle }}"></script>
   <script src="{{ swagger_ui_standalone }}"></script>
   {% if script_url %}
@@ -16,4 +16,4 @@
   <script>{% include template_name_js %}</script>
     {# djlint:on #}
   {% endif %}
-</c-layout.standard>
+</c-layouts.article>

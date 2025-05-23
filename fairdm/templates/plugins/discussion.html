@@ -1,33 +1,42 @@
 {% load comments comments_xtd fairdm partials %}
 
-<c-plugin layout="page">
-  {% if not request.user.is_authenticated %}
-    <div class="alert alert-info" role="alert">
-      {% trans "Contributing to discussions on this site requires an active account. Join our community today and let us know what you think about this " %}{{ verbose_name }}
+{% if base_object.polymorphic_model_marker %}
+  {% get_comment_count for base_object as comment_count %}
+{% else %}
+  {% get_comment_count for base_object as comment_count %}
+{% endif %}
+<c-layouts.plugin>
+  <c-bd.sections.main.intro title="{{ view.title }}">
+    <c-bd.button.action icon="{% icon "plus" %}"
+                        text="{% trans "Add comment" %}"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#commentFormCollapse"
+                        :visible="True" />
+  </c-bd.sections.main.intro>
+  <div class="collapse" id="commentFormCollapse">
+    <div class="card">
+      <div class="card-body">{% render_comment_form for base_object %}</div>
     </div>
-  {% else %}
-    <div class="hstack justify-content-center py-3">
-      <div class="card w-75">
-        <div class="card-body">{% render_comment_form for base_object %}</div>
-      </div>
-    </div>
-  {% endif %}
-  {% if base_object.polymorphic_model_marker %}
-    {% get_comment_count for base_object as comment_count %}
-  {% else %}
-    {% get_comment_count for base_object as comment_count %}
-  {% endif %}
-  {% comment %} <div class="text-center">
-      {{ comment_count }} comment{{ comment_count|pluralize }}
-      ha{{ comment_count|pluralize:"s,ve" }} been posted.
-  </div> {% endcomment %}
+  </div>
   {% if comment_count %}
-    <div class="comments py-3">
-      {% render_xtdcomment_tree for base_object allow_flagging allow_feedback %}
-      {% comment %} {% if base_object.polymorphic_model_marker %} {% endcomment %}
-      {% comment %} {% render_xtdcomment_tree for base_object allow_flagging %} {% endcomment %}
-      {% comment %} {% else %} {% endcomment %}
-      {% comment %} {% endif %} {% endcomment %}
-    </div>
+    <div class="comments py-3">{% render_xtdcomment_tree for base_object allow_flagging allow_feedback %}</div>
   {% endif %}
-</c-plugin>
+  <c-slot name="secondary_sidebar_content">
+    {% comment %} <c-sections.sidebar.right id="pst-secondary-sidebar" title=""> {% endcomment %}
+    {% comment %} {% if not request.user.is_authenticated %}
+        <div class="sidebar-secondary-item">
+          {% url "account_signup" as signup_url %}
+          {% blocktrans %}
+          Contributing to discussions requires an active account. <a href="{{ signup_url }}">Join our community today</a> and start contributing!
+          {% endblocktrans %}
+        </div>
+      {% endif %}
+      <div class="sidebar-secondary-item">
+        {% blocktrans %}
+        Please make yourself familiar with our <a href="{{ community_guidelines_url }}">community guidelines</a> before commenting.
+        {% endblocktrans %}
+      </div>
+    <div class="sidebar-secondary-item">{{ comment_count }} comment{{ comment_count|pluralize }}</div> {% endcomment %}
+    {% comment %} </c-sections.sidebar.right> {% endcomment %}
+  </c-slot>
+</c-layouts.plugin>

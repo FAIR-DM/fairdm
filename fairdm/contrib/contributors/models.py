@@ -1,3 +1,4 @@
+import json
 import random
 
 from django.apps import apps
@@ -9,22 +10,20 @@ from django.db import models
 from django.db.models import Count
 from django.templatetags.static import static
 from django.urls import reverse
-
-# from rest_framework.authtoken.models import Token
+from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
 from jsonfield_toolkit.models import ArrayField
+from model_utils import FieldTracker
 from ordered_model.models import OrderedModel
 from polymorphic.models import PolymorphicModel
 from research_vocabs.models import AbstractConcept
 from shortuuid.django_fields import ShortUUIDField
 
-from fairdm.core.models.abstract import AbstractIdentifier
+from fairdm.core.abstract import AbstractIdentifier
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
-
-# from django.db.models.fields.files import FieldFile
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
@@ -41,14 +40,11 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     for proper attribution and formal publication of datasets. The fields are designed to align with the DataCite
     Contributor schema."""
 
-    DEFAULT_IDENTIFIER = "ORCID"
-
-    id = ShortUUIDField(
+    uuid = ShortUUIDField(
         editable=False,
         unique=True,
         prefix="c",
         verbose_name="UUID",
-        primary_key=True,
     )
 
     image = ThumbnailerImageField(
@@ -74,12 +70,6 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     )
 
     profile = models.TextField(_("profile"), null=True, blank=True)
-    # identifiers = GenericRelation("generic.Identifier")
-    # interests = TaggableConcepts(
-    #     verbose_name=_("research interests"),
-    #     help_text=_("A list of research interests for the contributor."),
-    #     blank=True,
-    # )
 
     links = ArrayField(
         base_field=models.URLField(),
@@ -99,10 +89,46 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         default=list,
     )
 
-    class Meta:
+    last_synced = models.DateField(
+        verbose_name=_("last synced"),
+        help_text=_("The last time the contributor was synced with the external provider (e.g. ORCID, ROR)."),
+        editable=False,
+        null=True,
+        blank=True,
+        default=None,
+    )
+
+    synced_data = models.JSONField(
+        verbose_name=_("synced data"),
+        help_text=_("A JSON representation of the contributor's data from the external provider."),
+        editable=False,
+        null=True,
+        blank=True,
+        default=dict,
+    )
+
+    added = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Date added"),
+        help_text=_("The date and time this record was added to the database."),
+    )
+    modified = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_("Last modified"),
+        help_text=_("The date and time this record was last modified."),
+    )
+
+    tracker = FieldTracker()
+
+    class Meta:  # type: ignore
         ordering = ["name"]
         verbose_name = _("contributor")
         verbose_name_plural = _("contributors")
+
+    def save(self, *args, **kwargs):
+        if self.tracker.has_changed("synced_data"):
+            self.last_synced = timezone.now().date()
+        super().save(*args, **kwargs)
 
     @staticmethod
     def base_class():
@@ -113,10 +139,10 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("contributor-detail", kwargs={"pk": self.pk})
+        return reverse("contributor-overview", kwargs={"uuid": self.uuid})
 
     def get_update_url(self):
-        return reverse("contributor-update", kwargs={"pk": self.pk})
+        return reverse("contributor-update", kwargs={"uuid": self.uuid})
 
     def get_identifier_icon(self):
         return icon(self.DEFAULT_IDENTIFIER)
@@ -137,27 +163,31 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     @property
     def projects(self):
-        Project = apps.get_model("fairdm_core.Project")
+        Project = apps.get_model("project.Project")
         return Project.objects.filter(contributors__contributor=self)
 
     @property
     def datasets(self):
-        Dataset = apps.get_model("fairdm_core.Dataset")
+        Dataset = apps.get_model("dataset.Dataset")
         return Dataset.objects.filter(contributors__contributor=self)
 
     @property
     def samples(self):
-        Sample = apps.get_model("fairdm_core.Sample")
+        Sample = apps.get_model("sample.Sample")
         return Sample.objects.filter(contributors__contributor=self)
 
     @property
     def measurements(self):
-        Measurement = apps.get_model("fairdm_core.Measurement")
+        Measurement = apps.get_model("measurement.Measurement")
         return Measurement.objects.filter(contributors__contributor=self)
 
     def add_to(self, obj, roles=[]):
         """Adds the contributor to a project, dataset, sample or measurement."""
-
+        c = Contribution.objects.get_or_create(
+            contributor=self,
+            content_type=ContentType.objects.get_for_model(obj),
+            object_id=obj.id,
+        )
         try:
             c = Contribution.objects.get(contributor=self, object_id=obj.id)
         except Contribution.DoesNotExist:
@@ -175,6 +205,16 @@ class Person(AbstractUser, Contributor):
 
     objects = UserManager()  # type: ignore[var-annotated]
 
+    # Override the default AbstractUser date_joined, and is_active fields to default to None. We manually set these fields on user sign up so we know which profiles are active community members and which are not.
+    date_joined = models.DateTimeField(_("date joined"), null=True, blank=True, default=None)
+    is_active = models.BooleanField(
+        _("active"),
+        default=False,
+        help_text=_(
+            "Designates whether this user should be treated as active. Unselect this instead of deleting accounts."
+        ),
+    )
+
     # null is allowed for the email field, as a Person object/User account can be created by someone else. E.g. when
     # adding a new contributor to a database entry.
     # The email field is not stored in this case, as we don't have permission from the email owner.
@@ -184,13 +224,12 @@ class Person(AbstractUser, Contributor):
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     username = Contributor.__str__
-    # polymorphic_primary_key_name = "id"
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.pk and not self.name:
+        if not self.uuid and not self.name:
             self.name = f"{self.first_name} {self.last_name}"
         super().save(*args, **kwargs)
 
@@ -203,11 +242,25 @@ class Person(AbstractUser, Contributor):
         qs = self.socialaccount_set.filter(provider=provider)  # type: ignore[attr-defined]
         return qs.get() if qs else None
 
-    def default_affiliation(self):
-        """Returns the default affiliation for the contributor. TODO: make this a foreign key to an organization model."""
-        if self.user:
-            return self.user.organizations_organization.first()
-        return None
+    def primary_affiliation(self):
+        """
+        Returns the default (primary) affiliation for the contributor.
+
+        This method queries the contributor's organization memberships, selecting the related organization,
+        and returns the first OrganizationMember object where `is_primary` is True. If no primary affiliation
+        exists, returns None.
+
+        Returns:
+            OrganizationMember or None: The primary organization membership of the contributor, or None if not set.
+        """
+        return self.organization_memberships.select_related("organization").filter(is_primary=True).first()
+
+    def current_affiliations(self):
+        """
+        Returns a queryset of OrganizationMember objects representing the contributor's current affiliations.
+        The queryset is optimized with select_related to include related Organization data.
+        """
+        return self.organization_memberships.select_related("organization").filter(is_current=True)
 
     def location(self):
         """Returns the location of the contributor. TODO: make this a foreign key to a location model."""
@@ -215,7 +268,7 @@ class Person(AbstractUser, Contributor):
         return self.organization.location
 
     def get_absolute_url(self):
-        return reverse("contributor-detail", kwargs={"pk": self.pk})
+        return reverse("contributor-overview", kwargs={"uuid": self.uuid})
 
     @property
     def given(self):
@@ -227,13 +280,6 @@ class Person(AbstractUser, Contributor):
         """Alias for self.last_name."""
         return self.last_name
 
-    def orcid_data(self):
-        """Returns ORCID data for the user if available."""
-        orcid = self.get_provider("orcid")
-        if orcid:
-            return orcid.extra_data
-        return None
-
     @property
     def orcid_is_authenticated(self):
         return self.get_provider("orcid") is not None
@@ -242,6 +288,15 @@ class Person(AbstractUser, Contributor):
         if self.orcid_is_authenticated:
             return "orcid"
         return "orcid_unauthenticated"
+
+    @classmethod
+    def from_orcid(self, data, person=None):
+        """Create a person from ORCID data."""
+        from .utils import contributor_from_orcid_data
+
+        person = contributor_from_orcid_data(data, person)
+
+        return person
 
 
 class OrganizationMember(models.Model):
@@ -268,6 +323,7 @@ class OrganizationMember(models.Model):
         verbose_name=_("organization"),
         help_text=_("The organization that the person is a member of."),
     )
+
     type = models.IntegerField(
         _("type"),
         choices=MembershipType,
@@ -275,21 +331,17 @@ class OrganizationMember(models.Model):
         help_text=_("The type of membership that the person has with the organization"),
     )
 
-    # is_preferred = models.BooleanField(
-    #     _("is preferred"),
-    #     default=False,
-    #     null=True,
-    #     blank=True,
-    #     help_text=_("The preferred affiliation when publishing."),
-    # )
+    is_primary = models.BooleanField(
+        _("primary organization"),
+        default=False,
+        help_text=_("Denotes whether this is the primary affiliation of the contributor."),
+    )
 
-    # is_current = models.BooleanField(
-    #     _("is current"),
-    #     default=False,
-    #     null=True,
-    #     blank=True,
-    #     help_text=_("Whether the person is currently a member of the organization."),
-    # )
+    is_current = models.BooleanField(
+        _("is current"),
+        default=True,
+        help_text=_("Denotes whether this is a current affiliation of the contributor."),
+    )
 
     class Meta:
         verbose_name = _("affiliation")
@@ -324,6 +376,24 @@ class Organization(Contributor):
         null=True,
     )
 
+    lat = models.DecimalField(
+        max_digits=7,
+        decimal_places=5,
+        verbose_name=_("latitude"),
+        help_text=_("The latitude of the organization."),
+        null=True,
+        blank=True,
+    )
+
+    lon = models.DecimalField(
+        max_digits=8,
+        decimal_places=5,
+        verbose_name=_("longitude"),
+        help_text=_("The longitude of the organization."),
+        null=True,
+        blank=True,
+    )
+
     city = models.CharField(
         max_length=255,
         verbose_name=_("city"),
@@ -340,19 +410,17 @@ class Organization(Contributor):
         blank=True,
     )
 
-    ror = models.JSONField(
-        verbose_name=_("Research Organization Registry"),
-        help_text=_("A JSON object containing information about the organization from the ROR API."),
-        null=True,
-        blank=True,
-    )
-
     class Meta:
         verbose_name = _("organization")
         verbose_name_plural = _("organizations")
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # from .utils import contributor_from_ror_data
+        # contributor_from_ror_data(self.synced_data, self)
+        super().save(*args, **kwargs)
 
     @classmethod
     def from_ror(self, data):
@@ -363,6 +431,40 @@ class Organization(Contributor):
 
     def icon(self):
         return "ror"
+
+    def get_memberships(self):
+        """
+        Returns a queryset of all memberships related to this instance, with related 'person' objects fetched efficiently using select_related.
+
+        Returns:
+            QuerySet: A queryset of Membership objects associated with this instance, with related Person objects prefetched.
+        """
+        return self.memberships.select_related("person").all()
+
+    def owner(self):
+        """Returns the owners of the organization."""
+        if memberships := self.get_memberships().filter(type=OrganizationMember.MembershipType.OWNER).first():
+            return memberships.person
+        return None
+
+    def as_geojson(self):
+        """Returns the organization as a GeoJSON object."""
+        return json.dumps(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [self.lon, self.lat],
+                },
+                "properties": {
+                    "name": self.name,
+                    "description": self.profile,
+                    "icon": self.icon(),
+                    "url": self.get_absolute_url(),
+                },
+            },
+            default=float,
+        )
 
 
 class Contribution(OrderedModel):
@@ -436,7 +538,7 @@ class Contribution(OrderedModel):
     def get_update_url(self):
         related_name = self.object._meta.model_name
         letter = related_name[0]
-        return reverse("contribution-update", kwargs={"pk": self.object.pk, "model": letter})
+        return reverse("contribution-update", kwargs={"uuid": self.object.uuid, "model": letter})
 
     def profile_to_data(self):
         """Converts the profile to a JSON object."""
@@ -451,7 +553,7 @@ class Contribution(OrderedModel):
         if ORCID:
             data["ORCID"] = ORCID.identifier
 
-        affiliation = self.profile.default_affiliation()
+        affiliation = self.profile.primary_affiliation()
         if affiliation:
             data["affiliation"] = affiliation
 
@@ -485,12 +587,12 @@ def forwards():
     user_email_field = getattr(settings, "ACCOUNT_USER_MODEL_EMAIL_FIELD", "email")
 
     def get_users_with_multiple_primary_email():
-        user_pks = []
+        user_uuids = []
         for email_address_dict in (
             EmailAddress.objects.filter(primary=True).values("user").annotate(Count("user")).filter(user__count__gt=1)
         ):
-            user_pks.append(email_address_dict["user"])
-        return User.objects.filter(pk__in=user_pks)
+            user_uuids.append(email_address_dict["user"])
+        return User.objects.filter(uuid__in=user_uuids)
 
     def unset_extra_primary_emails(user):
         qs = EmailAddress.objects.filter(user=user, primary=True)
@@ -503,7 +605,7 @@ def forwards():
                 if address.email.lower() == getattr(user, user_email_field, "").lower():
                     primary_email_address = address
                     break
-        qs.exclude(pk=primary_email_address.pk).update(primary=False)
+        qs.exclude(uuid=primary_email_address.uuid).update(primary=False)
 
     for user in get_users_with_multiple_primary_email().iterator():
         unset_extra_primary_emails(user)

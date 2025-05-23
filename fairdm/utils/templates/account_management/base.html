@@ -11,11 +11,6 @@
   <link rel="icon"
         type="image/svg+xml"
         href="{% static "img/brand/icon.svg" %}" />
-  {% compress css file fairdm %}
-    <link rel="stylesheet"
-          type="text/x-scss"
-          href="{% static "scss/stylesheet.scss" %}" />
-  {% endcompress %}
   {% render_bundle "project" "css" "FAIRDM" %}
   {% compress js file fairdm %}
     {% render_bundle "project" "js" "FAIRDM" attrs="defer" %}

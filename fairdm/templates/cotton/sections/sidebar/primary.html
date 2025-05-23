@@ -1,0 +1,6 @@
+<c-vars :visible="True" />
+{% if visible %}
+  <c-pst.sections.sidebar :header="title" :attrs="attrs">
+    {{ slot }}
+  </c-pst.sections.sidebar>
+{% endif %}

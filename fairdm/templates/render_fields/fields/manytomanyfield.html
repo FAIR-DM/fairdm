@@ -1,0 +1,10 @@
+{% for obj in value.all %}
+  <a tabindex="0"
+     type="button"
+     data-bs-toggle="popover"
+     data-bs-title="{{ obj.vocabulary }}"
+     data-bs-html="true"
+     data-bs-content="<h1 class='fs-6 fw-bold'>{{ obj.label|capfirst }}</h1>{{ obj.as_concept.definition }} <a href='{{ obj.uri }}' target='_blank'>{{ obj.uri }}</a>"
+     data-bs-trigger="focus"
+     class="badge rounded-pill text-bg-primary text-decoration-none">{{ obj.label|capfirst }}</a>
+{% endfor %}

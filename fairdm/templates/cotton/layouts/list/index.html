@@ -1,0 +1,26 @@
+{% load crispy_forms_tags %}
+
+<c-vars sidebar_id="filterSidebar" />
+<c-layouts.article hx-target="this"
+                   hx-swap="outerHTML"
+                   hx-push-url
+                   x-data="{'isfiltered': false, 'filterCount': {{ filter_count }}, 'totalCount': 7}">
+  <c-slot name="sidebar_primary">
+    <c-layouts.list.filter visible_gt="lg" :attrs="sidebar_primary" />
+  </c-slot>
+  <c-text.heading level="1" text="{{ title }}">
+    <c-components.button icon="info"
+                         text="{% trans "About" %}"
+                         data-bs-toggle="modal"
+                         data-bs-target="#projectListDescriptionModal"
+                         aria-controls="projectListDescriptionModal" />
+    <c-components.button icon="filter"
+                         class="d-lg-none"
+                         text="{% trans "Filter" %}"
+                         data-bs-toggle="offcanvas"
+                         data-bs-target="#{{ sidebar_id }}"
+                         aria-controls="{{ sidebar_id }}" />
+  </c-text.heading>
+  <c-sections.object-list :attrs="attrs" />
+</c-layouts.article>
+{% comment %} <c-fdm.modals.project-list /> {% endcomment %}

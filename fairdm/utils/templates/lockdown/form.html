@@ -1,7 +1,7 @@
 {% load i18n static widget_tweaks %}
 
 <c-base>
-  <c-layout.standard :site_navigation="False">
+  <c-layouts.article :site_navigation="False">
     <div class="container flex-grow-1 vstack justify-content-center align-items-center">
       <img class="mb-3"
            src="{% static "img/brand/logo.svg" %}"
@@ -21,5 +21,5 @@
         <button class="btn btn-lg btn-primary" type="submit">{% trans "Submit" %}</button>
       </form>
     </div>
-  </c-layout.standard>
+  </c-layouts.article>
 </c-base>

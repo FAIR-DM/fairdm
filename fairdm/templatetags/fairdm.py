@@ -7,8 +7,6 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from quantityfield import settings as qsettings
 
-from fairdm.registry import registry
-
 register = template.Library()
 ureg = qsettings.DJANGO_PINT_UNIT_REGISTER
 ureg.default_format = ".2f~P"
@@ -35,86 +33,11 @@ def unit(unit):
 
 
 @register.simple_tag
-def get_registry_info(arg):
-    if isinstance(arg, type) and issubclass(arg, models.Model):  # Model class
-        model_class = arg
+def get_registry_info(model_or_qs):
+    if isinstance(model_or_qs, models.QuerySet):  # QuerySet
+        return model_or_qs.model.config
 
-    elif isinstance(arg, models.QuerySet):  # QuerySet
-        model_class = arg.model
-    elif isinstance(arg, models.Model):  # Model instance
-        model_class = arg._meta.model
-    else:
-        raise TypeError("Argument must be a Django model class, queryset, or model instance.")
-
-    return registry.get_model(model_class)
-
-
-# @register.simple_tag
-# def render_field(obj, fname):
-#     """Takes an object and a single field and renders it using the correct template based on the field type."""
-#     FMAP = {
-#         models.ForeignKey: "components/fields/relation.html",
-#     }
-#     field = obj._meta.get_field(fname)
-#     value = getattr(obj, fname)
-#     # if field.choices:
-#     # return getattr(obj, f"get_{fname}_display")()
-#     if field.one_to_many:
-#         return render_to_string("components/fields/one_to_many.html", {"field": field, "value": value.all()})
-#     if field.is_relation:
-#         return render_to_string("components/fields/relation.html", {"field": field, "value": value})
-#     if field.is_quantity:
-#         return f"{value:~H}"
-#     return value
-
-
-@register.simple_tag
-def render_field(obj, fname):
-    """Takes an object and a single field and renders it using the correct template based on the field type."""
-
-    templates = ["fieldsets/fields/default.html"]
-
-    try:
-        field = obj._meta.get_field(fname)
-        field_type = field.__class__.__name__.lower()
-        templates = [f"fieldsets/fields/{field_type}.html", *templates]
-    except FieldDoesNotExist:
-        field = None
-
-    value = getattr(obj, fname)
-
-    choice_label = None
-    if field and field.choices:
-        choice_label = dict(field.choices).get(value)
-
-    return render_to_string(
-        templates,
-        {
-            "field": field,
-            "value": value,
-            "choice_label": choice_label,
-        },
-    )
-
-
-@register.inclusion_tag("fieldsets/fieldset.html")
-def render_fieldsets(obj, fieldsets):
-    """Renders a list of fieldsets for the given object."""
-
-    return {
-        "object": obj,
-        "fieldsets": fieldsets,
-    }
-
-
-@register.inclusion_tag("fieldsets/row.html")
-def render_row(obj, row):
-    if isinstance(row, str):
-        row = [row]
-    return {
-        "fields": row,
-        "object": obj,
-    }
+    return model_or_qs.config
 
 
 @register.simple_tag
@@ -145,7 +68,7 @@ def get_fields(obj, fields):
 
 @register.simple_tag
 def edit_url(obj, fields=None):
-    url = reverse(f"{obj._meta.model_name}-update", kwargs={"pk": obj.pk})  # Adjust the URL name as needed
+    url = reverse(f"{obj._meta.model_name}-update", kwargs={"uuid": obj.uuid})  # Adjust the URL name as needed
     if fields:
         return f"{url}?fields={','.join(fields)}"
     return url

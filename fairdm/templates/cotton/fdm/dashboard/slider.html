@@ -1,0 +1,36 @@
+<c-vars id />
+<div class="custom-slider-wrapper hstack justify-content-center pb-3 w-100 container"
+     style="height: 425px">
+  <div id="{{ id }}-prev"
+       class="swiper-button-prev position-static me-2"></div>
+  <div id="{{ id }}" class="swiper mySwiper row-cols-3">
+    <div class="swiper-wrapper col">{{ slot }}</div>
+  </div>
+  <div id="{{ id }}-next"
+       class="swiper-button-next position-static ms-2"></div>
+  <div class="swiper-pagination mt-2"></div>
+</div>
+<script>
+  var swiper = new Swiper("#{{ id }}", {
+    slidesPerView: "auto",
+    spaceBetween: 10,
+    navigation: {
+      nextEl: "#{{ id }}-next",
+      prevEl: "#{{ id }}-prev",
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true,
+    },
+    breakpoints: {
+      640: {
+        slidesPerView: "auto",
+        spaceBetween: 10,
+      },
+      768: {
+        slidesPerView: "auto",
+        spaceBetween: 10,
+      },
+    },
+  });
+</script>

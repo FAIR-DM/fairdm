@@ -1,17 +1,20 @@
 {% load crispy_forms_tags partials %}
 
 {% with base_object as object %}
-  <c-plugin layout="page" title="{{ view.title }}">
+  <c-layouts.plugin layout="page" title="{{ view.title }}">
     <c-slot name="actions">
-      <c-bs5.button class="btn btn-primary btn-sm"
-                    text="{% trans "New" %}"
-                    icon="plus"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createModal" />
+      <c-components.button class="btn btn-primary btn-sm"
+                           text="{% trans "New" %}"
+                           icon="plus"
+                           data-bs-toggle="modal"
+                           data-bs-target="#createModal" />
     </c-slot>
-    <c-card-list :object_list="object_list"
-                 :template="object_template" />
-  </c-plugin>
+    <c-bs5.grid cols="1">
+      {% for obj in object_list %}
+        {% include object_template %}
+      {% endfor %}
+    </c-bs5.grid>
+  </c-layouts.plugin>
 {% endwith %}
 {% comment %} <div id="bodyEnd" hx-swap-oob="true">
   {% for form in forms %}

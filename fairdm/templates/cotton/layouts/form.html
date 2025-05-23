@@ -1,0 +1,13 @@
+{% if not view.is_popup %}
+  <c-layouts.article>
+    <c-layouts.page class="col-12 col-md-9 col-lg-8 col-xl-6">
+      {{ slot }}
+    </c-layouts.page>
+  </c-layouts.article>
+{% else %}
+  {% comment %} <c-layouts.base> {% endcomment %}
+  <c-layouts.page class="col-12 col-md-9 col-lg-8 col-xl-6">
+    {{ slot }}
+  </c-layouts.page>
+  {% comment %} </c-layouts.base> {% endcomment %}
+{% endif %}

@@ -1,0 +1,5 @@
+<c-components.card.style2 title="{{ obj }}"
+                          view_details_text="{% trans "View dataset" %}"
+                          :obj="obj"
+                          :preview="obj.descriptions.first"
+                          :contributors="obj.contributors.all" />

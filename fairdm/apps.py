@@ -10,15 +10,15 @@ class FairDMConfig(AppConfig):
         # patch django-filters to not use crispy forms. should be safe to remove on the
         # next release of fairdm
 
-        autodiscover_modules("plugins")
         autodiscover_modules("config")
+        autodiscover_modules("plugins")
 
         from django_filters import compat
 
         compat.is_crispy = lambda: False
 
         self.update_drf_field_mapping()
-
+        self.populate_data_collection_menu()
         return super().ready()
 
     def update_drf_field_mapping(self):
@@ -58,3 +58,17 @@ class FairDMConfig(AppConfig):
                 models.PositiveIntegerQuantityField: QuantityField,
             }
         )
+
+    def populate_data_collection_menu(self):
+        """
+        Populates the data collection menu with sample types and their respective views.
+        This function is called during the `FairDMConfig.ready` method.
+        """
+        # from fairdm.menus import DatabaseMenu, get_measurement_menu_items, get_sample_menu_items
+
+        # DatabaseMenu.insert(
+        #     [*get_sample_menu_items(), *get_measurement_menu_items()],
+        #     position=2,
+        # )
+
+        # print(DatabaseMenu.get("DataCollectionsMenu").children)

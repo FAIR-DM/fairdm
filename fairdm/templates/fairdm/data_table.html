@@ -6,7 +6,7 @@
 <div class="overflow-hidden vstack h-100"
      hx-target="this"
      hx-swap="outerHTML"
-     :hx-vals="JSON.stringify({'dataset': '{{ dataset.pk }}'})"
+     :hx-vals="JSON.stringify({'dataset': '{{ dataset.uuid }}'})"
      :class="{'position-fixed vh-100 top-0 start-0 w-100': isFullscreen}"
      x-data="{'isFullscreen': false, submit() { htmx.trigger(this.$refs.filter, 'submit'); }, 'num_pages': {{ table.paginator.num_pages }}, 'page': {{ table.page.number }}, 'page_size': {{ table.paginator.per_page }}, 'total_objects': {{ total_object_count }}, 'sampleType': '{{ current_type }}' }">
   <c-page-nav>
@@ -15,30 +15,22 @@
          type="button"
          data-bs-toggle="offcanvas"
          data-bs-target="#dataInfoOffcanvas">{% icon "info" %}</a>
-      <select name="type"
-              form="filterForm"
-              id="typeSelect"
-              hx-get="{{ request.path }}"
-              hx-trigger="change"
-              hx-push-url="true"
-              class="form-select w-auto">
+      {% comment %} <select name="type" form="filterForm" id="typeSelect" hx-get="{{ request.path }}" hx-trigger="change" hx-push-url="true" class="form-select w-auto">
         <optgroup label="Samples">
           {% for item in registry.samples %}
-            <option value="{{ item.full_name }}"
-                    {% if request.GET.type == item.full_name %}selected{% endif %}>
+            <option value="{{ item.full_name }}" {% if request.GET.type == item.full_name %}selected{% endif %}>
               {{ item.verbose_name_plural }}
             </option>
           {% endfor %}
         </optgroup>
         <optgroup label="Measurements">
           {% for item in registry.measurements %}
-            <option value="{{ item.full_name }}"
-                    {% if request.GET.type == item.full_name %}selected{% endif %}>
+            <option value="{{ item.full_name }}" {% if request.GET.type == item.full_name %}selected{% endif %}>
               {{ item.verbose_name_plural }}
             </option>
           {% endfor %}
         </optgroup>
-      </select>
+      </select> {% endcomment %}
     {% endblock toolbar_start %}
 
     {% trans "Search by name" as placeholder %}
@@ -47,17 +39,17 @@
         {% render_field filter.form.name form="filterForm" type="search" class="form-control" placeholder=placeholder  @input.debounce="submit" %}
       </div>
     {% endif %}
-    <c-button.group class="ms-auto">
+    <c-components.button.group class="ms-auto">
       {% if user_can_edit %}
-        <c-bs5.button class="btn btn-sm btn-outline-primary"
-                      href="{{ create_view_url }}"
-                      hx-get="{{ create_view_url }}"
-                      icon="plus"
-                      :visible="user_can_edit" />
-        <c-bs5.button class="btn btn-sm btn-outline-primary"
-                      href="{% url "dataset-import-view" pk=dataset.pk %}{% querystring %}"
-                      icon="upload"
-                      :visible="user_can_edit" />
+        <c-components.button class="btn btn-sm btn-outline-primary"
+                             href="{{ create_view_url }}"
+                             hx-get="{{ create_view_url }}"
+                             icon="plus"
+                             :visible="user_can_edit" />
+        <c-components.button class="btn btn-sm btn-outline-primary"
+                             href="{% url "dataset-import-view" uuid=dataset.uuid %}{% querystring %}"
+                             icon="upload"
+                             :visible="user_can_edit" />
       {% endif %}
       <c-bs5.dropdown button_class="btn-sm btn-outline-primary"
                       button_text="{% icon 'download' %}">
@@ -71,10 +63,10 @@
               @click="isFullscreen = !isFullscreen"
               :class="{'btn-outline-primary': !isFullscreen, 'btn-outline-secondary': isFullscreen}"
               type="button">{% icon "expand" %}</button>
-    </c-button.group>
+    </c-components.button.group>
   </c-page-nav>
   {% render_table table %}
-  <c-spinner id="tableIndicator" class="fs-1" centered />
+  <c-components.spinner id="tableIndicator" class="fs-1" centered />
   <c-bs5.modal id="filterModal"
                dialog_class="modal-xl"
                title="{% trans "Sample filter" %}">
@@ -119,7 +111,10 @@
 {% if request.htmx %}
   {% partial table %}
 {% else %}
-  <c-layout.standard>
+  <c-layouts.application>
+    <c-slot name="primary_sidebar_contents">
+      <c-data-collections.sidebar />
+    </c-slot>
     {% partial table %}
-  </c-layout.standard>
+  </c-layouts.application>
 {% endif %}

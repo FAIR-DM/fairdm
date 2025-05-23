@@ -2,11 +2,10 @@ from account_management.menus import AccountMenu, FloatingAccountMenu
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from flex_menu import Menu, MenuItem
-from flex_menu.utils import user_is_anonymous, user_is_authenticated
 
 
 def get_contributor_url(request):
-    return reverse_lazy("contributor-detail", args=[request.user.id])
+    return reverse_lazy("contributor-overview", args=[request.user.uuid])
 
 
 AccountMenu.insert(
@@ -37,13 +36,8 @@ AccountMenu.insert(
 
 FloatingAccountMenu.insert(
     [
-        MenuItem(_("Home"), view_name="home", icon="home"),
         MenuItem(_("Profile"), url=get_contributor_url, icon="user"),
-        MenuItem(_("Manage Account"), view_name="account-management", icon="activity"),
-        MenuItem(_("Recent Activity"), view_name="contributor-profile", icon="activity"),
-        MenuItem(_("Database Admin"), view_name="admin:index", icon="administration"),
-        MenuItem(_("Log in"), view_name="account_login", icon="login", check=user_is_anonymous),
-        MenuItem(_("Log out"), view_name="account_logout", icon="logout", check=user_is_authenticated),
+        MenuItem(_("Portal Administration"), view_name="admin:index", icon="administration"),
     ],
     position=0,
 )

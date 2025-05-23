@@ -1,10 +1,46 @@
-{% extends "fairdm/object_detail.html" %}
-{% load static fairdm sekizai_tags activity_tags easy_icons %}
-
-{% block sidebar_image %}
-  <div class="d-flex justify-content-center">
-    <c-avatar :image="base_object.image"
-              class="w-50"
-              icon="person" />
-  </div>
-{% endblock sidebar_image %}
+<c-layouts.plugin>
+  <c-slot name="actions">
+    <c-components.button icon="share"
+                         text="{% trans "Share" %}"
+                         data-bs-toggle="modal"
+                         data-bs-target="#shareModal" />
+    <c-components.button icon="email" text="{% trans "Contact" %}" />
+    {% if user_can_edit %}
+      <c-components.link icon="edit"
+                         text="{% trans "Edit" %}"
+                         href="{% url "description-formset" uuid=object.uuid %}" />
+    {% endif %}
+  </c-slot>
+  <c-pst.components.section id="name">
+    <div class="hstack mb-3">
+      <div class="h-100 me-3" style="min-width: 200px;">
+        <c-widgets.avatar circle />
+      </div>
+      <div>
+        <c-text.heading text="{{ object.name }}" level="1" compact />
+        <c-contributor.person.identifier />
+        <div>
+          <c-contributor.person.affiliation :org="object.primary_affiliation.organization"
+                                            show_location />
+        </div>
+        {% comment %} <c-contributor.socials /> {% endcomment %}
+      </div>
+    </div>
+    <div class="hstack gap-2 mb-3">
+      <c-components.badge style="secondary"
+                          label="{% trans "Date added" %}"
+                          message="{% trans "This profile was first added to the portal on this date." %}"
+                          value="{{ object.added|date }}" />
+      <c-components.badge style="success"
+                          label="{% trans "Active" %}"
+                          message="{% trans "This person is an active member of this online community." %}"
+                          :visible="object.date_joined" />
+      <c-components.badge style="primary"
+                          label="{% trans "Administrator" %}"
+                          message="{% trans "This person is an administrator of this portal." %}"
+                          :visible="object.is_staff" />
+    </div>
+    {% if object.profile %}{{ object.profile|linebreaks }}{% endif %}
+  </c-pst.components.section>
+</c-layouts.plugin>
+<c-modals.share />

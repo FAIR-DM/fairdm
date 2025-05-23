@@ -1,0 +1,19 @@
+{% load fairdm contributor_tags easy_icons %}
+
+{% with obj as contributor %}
+  <c-bs5.card class="overflow-hidden h-100">
+    <div class="card-img-top ratio ratio-1x1">
+      <c-widgets.avatar :contributor="obj" only />
+    </div>
+    <c-bs5.card.body class="border-top"
+                     stretched_link="{{ obj.get_absolute_url }}">
+      <h5 class="card-title fs-6">
+        <c-contributor.person.identifier hide_url />
+        {{ obj }}
+      </h5>
+      <c-widgets.follow :object="obj"
+                        class="border-0 position-absolute top-0 end-0 fs-6 z-2"
+                        :show_text="False" />
+    </c-bs5.card.body>
+  </c-bs5.card>
+{% endwith %}

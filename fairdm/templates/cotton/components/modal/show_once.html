@@ -1,0 +1,10 @@
+<c-components.modal x-ref="modal"
+                    x-data="{ {{ id }}: $persist(false) }"
+                    x-init="if (!{{ id }}) new bootstrap.Modal($refs.modal).show()"
+                    @shown-bs-modal.dot="{{ id }} = true">
+  {{ slot }}
+  <c-components.link href="{{ learn_more }}"
+                     style="primary"
+                     icon="documentation"
+                     text="{% trans "Learn more" %}" />
+</c-components.modal>

@@ -34,8 +34,8 @@ class CustomIndexDashboard(Dashboard):
             modules.ModelList(
                 title="FairDM",
                 models=[
-                    "fairdm.core.models.project.Project",
-                    "fairdm.core.models.dataset.Dataset",
+                    "fairdm.core.project.models.Project",
+                    "fairdm.core.dataset.models.Dataset",
                 ],
             )
         )

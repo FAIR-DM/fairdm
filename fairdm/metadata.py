@@ -154,6 +154,9 @@ class ModelConfig:
             return import_string(class_or_path)
         return class_or_path
 
+    def get_flat_fields(self):
+        return flatten(self.get_fields())
+
     def get_fields(self):
         if not self.fields:
             return []

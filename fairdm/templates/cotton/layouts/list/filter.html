@@ -1,0 +1,35 @@
+{% load crispy_forms_tags %}
+
+<c-sections.sidebar.primary id="filterSidebar"
+                            x-data
+                            class="p-md-3 border-end d-flex flex-column"
+                            title="{% trans "Filter by" %}"
+                            hx-target="main"
+                            hx-select="main"
+                            :attrs="attrs"
+                            only>
+  <form id="filterForm"
+        x-ref="filterForm"
+        action="{{ request.path }}"
+        hx-get="{{ request.path }}"
+        method="get">
+    {{ filter.form|crispy }}
+  </form>
+  <c-slot name="footer">
+    <c-components.link text="{% trans "Clear all" %}"
+                       style="secondary"
+                       icon="cancel"
+                       @click="$refs.filterForm.reset();"
+                       hx-get="{% url 'dataset-list' %}"
+                       data-bs-dismiss="offcanvas"
+                       data-bs-target="#filterSidebar" />
+    <c-components.button text="{% trans "Apply filters" %}"
+                         icon="arrow-right"
+                         icon_position="end"
+                         style="primary"
+                         type="submit"
+                         form="filterForm"
+                         data-bs-dismiss="offcanvas"
+                         data-bs-target="#filterSidebar" />
+  </c-slot>
+</c-sections.sidebar.primary>

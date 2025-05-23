@@ -26,7 +26,7 @@ class OrgRORCreateView(MetadataMixin, LoginRequiredMixin, CreateView):
     form_class = RORForm
 
     def get_success_url(self):
-        return reverse("organization-detail", kwargs={"pk": self.object.pk})
+        return reverse("organization-detail", kwargs={"uuid": self.object.uuid})
 
     def form_valid(self, form):
         data = form.cleaned_data["data"]

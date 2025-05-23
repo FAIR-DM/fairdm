@@ -1,0 +1,46 @@
+th {
+    white-space: nowrap;
+  }
+.fairdm-table {
+    --stripe-color: rgba(0, 0, 0, 0.03); /* Solid stripe color */
+    --stripe-transparent: transparent; /* Transparent stripe */
+    --stripe-width: 25px; /* Width and height of stripes */
+    @extend .bg-light;
+  
+    background: linear-gradient(
+      45deg,
+      var(--stripe-color) 25%,
+      var(--stripe-transparent) 25%,
+      var(--stripe-transparent) 50%,
+      var(--stripe-color) 50%,
+      var(--stripe-color) 75%,
+      var(--stripe-transparent) 75%,
+      var(--stripe-transparent)
+    );
+    background-size: var(--stripe-width) var(--stripe-width);
+  
+    table {
+      @extend .table-striped;
+      @extend .table-sm;
+      @extend .table-hover;
+      margin: 0 !important;
+  
+      thead {
+        position: sticky;
+        top: 0;
+      }
+      tbody {
+        td {
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+  
+  // DARK THEME OVERRIDES
+  html[data-bs-theme="dark"] {
+    .fairdm-table {
+      @extend .bg-dark;
+    }
+  }
+  

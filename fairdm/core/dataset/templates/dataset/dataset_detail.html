@@ -1,0 +1,27 @@
+<c-layouts.plugin>
+  <c-components.image class="ratio ratio-21x9 {{ image_class }}"
+                      :image="object.image"
+                      alt="{{ object }}"
+                      width="100%"
+                      height="100%" />
+  <c-pst.components.section id="dataset-title"
+                            class="mt-4"
+                            title="{{ object.title }}"
+                            level="1">
+    <c-contributor.names class="fs-6 text-secondary mt-1 mb-3"
+                         :contributors="object.contributors.all"
+                         role="Creator" />
+    <c-sections.info-block class="mb-3">
+      <c-render-fields.fieldsets :fieldsets="fieldsets" />
+    </c-sections.info-block>
+    {% for description in object.get_descriptions_in_order %}
+      <c-pst.components.section id="dataset-{{ description.type }}"
+                                level="2"
+                                title="{{ description.get_type_display }}">
+        {{ description.value|linebreaks }}
+      </c-pst.components.section>
+    {% empty %}
+      <c-text.empty />
+    {% endfor %}
+  </c-pst.components.section>
+</c-layouts.plugin>

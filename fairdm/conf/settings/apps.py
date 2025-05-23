@@ -20,11 +20,14 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     # FAIRDM
     "fairdm",
+    "fairdm.core.project",
+    "fairdm.core.dataset",
+    "fairdm.core.sample",
+    "fairdm.core.measurement",
     "fairdm.contrib.generic",
     "fairdm.contrib.contributors",
     "fairdm.contrib.import_export",
     "fairdm.contrib.location",
-    "fairdm.core",
     "fairdm.utils",
     "fairdm.contrib.identity",
     "actstream",
@@ -62,6 +65,7 @@ INSTALLED_APPS = [
     "django_bleach",  # for sanitizing html input
     # "django_celery_beat",  # celery based task manager
     "django_cotton.apps.SimpleAppConfig",
+    "cotton_bs5",
     "django_extensions",
     "django_setup_tools",
     "django_tables2",
@@ -99,5 +103,7 @@ INSTALLED_APPS = [
     "ordered_model",
     "taggit",
     "import_export",
+    "render_fields",
+    "django_addanother",
     *FAIRDM_APPS,
 ]

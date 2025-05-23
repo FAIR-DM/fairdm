@@ -1,0 +1,11 @@
+<c-vars id visible_gt />
+<c-bs5.offcanvas id="{{ id }}"
+                 breakpoint="{{ visible_gt }}"
+                 :attrs="attrs">
+  <c-bs5.offcanvas.header title="{{ title }}" id="{{ id }}" only />
+  <c-bs5.offcanvas.body class="flex-column">
+    <h1 class="fs-5 d-none d-{{ visible_gt }}-block">{{ title }}</h1>
+    {{ slot }}
+  </c-bs5.offcanvas.body>
+  {% if footer %}<div class="d-flex justify-content-end gap-2">{{ footer }}</div>{% endif %}
+</c-bs5.offcanvas>

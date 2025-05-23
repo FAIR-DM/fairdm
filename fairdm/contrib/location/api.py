@@ -1,11 +1,12 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from rest_framework.response import Response
+from rest_framework_gis.serializers import GeoFeatureModelSerializer, GeometrySerializerMethodField
+
 from fairdm.api.serializers import BaseSerializerMixin
 from fairdm.api.utils import DjangoFilterBackend
 from fairdm.api.viewsets import BaseViewSet
 from fairdm.contrib.samples.models import Sample
-from rest_framework.response import Response
-from rest_framework_gis.serializers import GeoFeatureModelSerializer, GeometrySerializerMethodField
 
 from .serializers import GeoFeatureSerializer
 
@@ -19,8 +20,8 @@ class SampleGeojsonSerializer(BaseSerializerMixin, GeoFeatureModelSerializer):
     class Meta:
         model = Sample
         geo_field = "geom"
-        id_field = "pk"
-        fields = ["pk", "title", "geom"]
+        id_field = "uuid"
+        fields = ["uuid", "title", "geom"]
 
 
 class GeoJsonViewset(BaseViewSet):
@@ -40,7 +41,7 @@ class GeoJsonViewset(BaseViewSet):
         """Overriding the default docstring"""
         instance = self.get_object()
         if self.is_geojson():
-            instance = self.get_queryset().filter(pk=self.get_object().pk)
+            instance = self.get_queryset().filter(uuid=self.get_object().uuid)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 

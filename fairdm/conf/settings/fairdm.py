@@ -37,4 +37,14 @@ FAIRDM_DATASET = {
         "fairdm_geo.vocabularies.cgi.geosciml.SimpleLithology",
         "fairdm_geo.vocabularies.stratigraphy.GeologicalTimescale",
     ],
+    "detail": {
+        "info_block_fields": {
+            None: {
+                "fields": [("project", "reference"), "added", "license", "keywords", "dates"],
+            },
+        },
+    },
 }
+
+
+FAIRDM_DEFAULT_LICENSE = "CC BY 4.0"

@@ -1,0 +1,5 @@
+<c-components.card.style2 title="{{ obj }}"
+                          view_details_text="{% trans "View project" %}"
+                          :obj="obj"
+                          :preview="obj.descriptions.first"
+                          :contributors="obj.contributions.all" />

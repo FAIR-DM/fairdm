@@ -3,27 +3,28 @@ from django.utils.translation import gettext as _
 from django_filters import FilterSet
 
 from fairdm import plugins
+from fairdm.core.plugins import ActivityPlugin, DatasetPlugin, OverviewPlugin, ProjectPlugin
+from fairdm.plugins import GenericPlugin
 from fairdm.views import FairDMListView
 
-from .forms.organization import RORForm
 from .models import Contribution
 
+plugins.contributor.explore(
+    OverviewPlugin,
+    ProjectPlugin,
+    DatasetPlugin,
+    ActivityPlugin,
+)
 
-@plugins.register(to=["project", "dataset", "sample"])
-class ContributorsPlugin(FairDMListView):
+
+class ContributorsPlugin(GenericPlugin, FairDMListView):
     template_name = "contributors/contribution_list.html"
-    object_template = "contributors/contribution_card.html"
     model = Contribution
     filterset_fields = ["contributor__name"]
     icon = "contributors"
     title = name = _("Contributors")
-    ncols = 5
-    forms = [RORForm]
-    modals = [
-        "modals.add_contributor",
-        "modals.add_ror",
-        "modals.add_orcid",
-    ]
+    grid_config = {"cols": 1, "gap": 2, "responsive": {"sm": 2, "md": 4}}
+    card = "contributor.card.contribution"
 
     def get_filterset_class(self):
         return FilterSet
@@ -33,9 +34,5 @@ class ContributorsPlugin(FairDMListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["forms"] = {
-            "add_contributor_form": RORForm(),
-        }
         context["object"] = self.base_object
-        context["modals"] = self.modals
         return context

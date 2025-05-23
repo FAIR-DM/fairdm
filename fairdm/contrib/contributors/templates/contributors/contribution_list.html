@@ -1,25 +1,30 @@
 {% load crispy_forms_tags partials %}
 
-<c-plugin layout="page" title="{{ view.title }}">
-  <c-slot name="actions">
-    {% block actions %}
-      <c-button.group>
-        <c-bs5.button class="btn btn-sm btn-primary"
-                      data-bs-toggle="modal"
-                      data-bs-target="#contributorModal"
-                      icon="plus"
-                      text="{% trans "Add" %}"
-                      :visible="user_can_edit" />
-      </c-button.group>
-    {% endblock actions %}
-
-  </c-slot>
-  <c-card-list class="row-cols-5"
-               gap="1"
-               id="contributorList"
-               :object_list="object_list"
-               :template="object_template" />
-</c-plugin>
+<c-layouts.plugin>
+  <c-text.heading level="1" text="{% trans "Contributors" %}">
+    <c-components.button icon="plus"
+                         text="{% trans "Add person" %}"
+                         data-bs-toggle="modal"
+                         data-bs-target="#contributorModal"
+                         :visible="user_can_edit" />
+    <c-components.button icon="plus"
+                         text="{% trans "Add organization" %}"
+                         data-bs-toggle="modal"
+                         data-bs-target="#RORModal"
+                         :visible="user_can_edit" />
+  </c-text.heading>
+  {% comment %} <c-slot name="actions">
+    <c-components.button icon="plus" text="{% trans "Add person" %}" data-bs-toggle="modal" data-bs-target="#contributorModal" :visible="user_can_edit" />
+    <c-components.button icon="plus" text="{% trans "Add organization" %}" data-bs-toggle="modal" data-bs-target="#RORModal" :visible="user_can_edit" />
+  </c-slot> {% endcomment %}
+  <c-sections.object-list :attrs="grid_config"
+                          card_component="contributor.card.contribution" />
+  {% comment %} <c-bs5.grid cols="1" gap="1" :responsive="{'md': 2}">
+    {% for obj in object_list %}
+      <div class="col">{% include "contributors/contributor_card.html" with obj=obj.contributor %}</div>
+    {% endfor %}
+  </c-bs5.grid> {% endcomment %}
+</c-layouts.plugin>
 <div>
   {% for modal in modals %}<c-component :is="modal" />{% endfor %}
 </div>

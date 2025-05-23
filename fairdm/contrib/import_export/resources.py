@@ -18,7 +18,7 @@ class BaseFairDMResource(ModelResource):
         return row.get("delete") == "1"
 
     def before_import_row(self, row, **kwargs):
-        row["dataset"] = self.dataset.pk
+        row["dataset"] = self.dataset.uuid
         return super().before_import_row(row, **kwargs)
 
     def get_import_order(self):
@@ -72,7 +72,7 @@ class SampleWidget(ForeignKeyWidget):
         # if the value looks like a shortuuid and startswith "s"
         # e.g. snu96wFe33UFqnYBFnZDbUn
         if value and value.startswith("s") and len(value) == 23:
-            return self.model.objects.filter(pk=value).first()
+            return self.model.objects.filter(uuid=value).first()
 
         elif value:
             return self.model.objects.filter(name=value, dataset=row["dataset"]).first()

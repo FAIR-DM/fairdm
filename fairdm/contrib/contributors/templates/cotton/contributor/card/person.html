@@ -1,0 +1,25 @@
+{% load fairdm contributor_tags easy_icons %}
+
+{% with obj as contributor %}
+  <c-bs5.card class="h-100">
+    <c-bs5.card.body>
+      <div class="row">
+        <div class="col-3">
+          <c-widgets.avatar :contributor="obj" only />
+        </div>
+        <div class="col d-flex flex-column justify-content-center">
+          <h2 class="fs-6 mb-0">{{ obj }}</h2>
+          <c-contributor.person.identifier />
+          <c-contributor.person.affiliations />
+          <div class="mt-2">
+            <c-components.link href="{{ obj.get_absolute_url }}"
+                               text="View profile"
+                               icon="arrow-right"
+                               icon_position="end" />
+            <c-widgets.follow :object="obj" class="border-0" />
+          </div>
+        </div>
+      </div>
+    </c-bs5.card.body>
+  </c-bs5.card>
+{% endwith %}

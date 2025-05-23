@@ -1,0 +1,15 @@
+
+
+aside {
+  
+    @include media-breakpoint-up(lg) {
+
+      max-width: 760px;
+      margin-inline: auto;
+    }
+}
+
+.bd-title {
+    @extend .lead;
+    @extend .fs-3;
+}

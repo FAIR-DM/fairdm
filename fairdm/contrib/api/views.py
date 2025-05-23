@@ -14,7 +14,7 @@ from .serializers import AuthoritySerializer, DatabaseSerializer
 
 
 class DatasetSamplesView(PandasView):
-    """Returns a list of all samples associated with a dataset. This view is intended to be used in conjunction with the /api/v1/dataset/{pk}/samples/ endpoint to provide a more detailed view of the samples associated with a dataset."""
+    """Returns a list of all samples associated with a dataset. This view is intended to be used in conjunction with the /api/v1/dataset/{uuid}/samples/ endpoint to provide a more detailed view of the samples associated with a dataset."""
 
     def get(self, request, *args, **kwargs):
         return Response({})

@@ -39,14 +39,14 @@
               <a class="dropdown-item"
                  data-bs-toggle="modal"
                  data-bs-target="#formModal"
-                 hx-get="{% url "contribution-update" pk=object.pk contribution_pk=obj.pk %}"
+                 hx-get="{% url "contribution-update" uuid=object.uuid contribution_uuid=obj.uuid %}"
                  hx-target="#formModal .modal-body"
                  hx-vals='{"fields": "roles"}'
                  hx-push-url="false">{% trans "Edit" %}</a>
             </li>
             <li>
               <a class="dropdown-item"
-                 href="{% url "contribution-delete" pk=object.pk contribution_pk=obj.pk %}">{% trans "Remove" %}</a>
+                 href="{% url "contribution-delete" uuid=object.uuid contribution_uuid=obj.uuid %}">{% trans "Remove" %}</a>
             </li>
           </ul>
         </div>
@@ -54,7 +54,7 @@
           {% if contributor.user %}
             <div class="card-subtitle">
               {% icon "organization" %}
-              {{ contributor.default_affiliation }}
+              {{ contributor.primary_affiliation }}
             </div>
           {% endif %}
           <div class="card-subtitle">

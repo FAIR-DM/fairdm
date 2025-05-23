@@ -1,0 +1,32 @@
+<c-vars image_src
+        image_fit="cover"
+        title
+        description
+        action
+        action_text />
+{% comment %} <div class="col"> {% endcomment %}
+<div class="swiper-slide">
+  <c-bs5.card class="overflow-hidden h-100">
+    <div class="card-img-top ratio ratio-16x9">
+      <img src="{{ image_src }}"
+           class="object-fit-{{ image_fit }} "
+           alt="{{ image_alt }}" />
+    </div>
+    <c-bs5.card.body class="border-top">
+      <h5 class="card-title">{{ title }}</h5>
+      <p class="card-text">{{ description }}</p>
+    </c-bs5.card.body>
+    <c-bs5.card.footer>
+      {% if footer %}
+        {{ footer }}
+      {% else %}
+        <c-components.link href="{{ action }}"
+                           style="primary"
+                           size="md"
+                           text="{{ action_text }}"
+                           icon="arrow-right"
+                           icon_position="end" />
+      {% endif %}
+    </c-bs5.card.footer>
+  </c-bs5.card>
+</div>

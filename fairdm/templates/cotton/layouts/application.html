@@ -1,0 +1,21 @@
+<style>
+  main.application {
+    height: calc(100vh - var(--pst-header-height));
+    max-height: calc(100vh - var(--pst-header-height));
+    overflow: hidden;
+  }
+
+  main.application .bd-content .bd-article-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  main.application .bd-content .bd-article-container .bd-article {
+    padding: 0;
+    flex-grow: 1;
+  }
+</style>
+<c-layouts.article main_class="application {{ main_class }}">
+  {{ slot }}
+</c-layouts.article>

@@ -8,8 +8,8 @@ from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelF
 from fairdm.core.models import Measurement
 from fairdm.utils.utils import get_subclasses
 
+from .dataset.models import DatasetDate, DatasetDescription
 from .models import Dataset, Project, Sample
-from .models.dataset import DatasetDate, DatasetDescription
 
 
 class DescriptionInline(admin.StackedInline):
@@ -26,11 +26,11 @@ class DateInline(admin.StackedInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    search_fields = ("pk", "name")
+    search_fields = ("uuid", "name")
     list_display = (
         "name",
         "status",
-        "created",
+        "added",
     )
     fieldsets = (
         (
@@ -60,8 +60,8 @@ class ProjectAdmin(admin.ModelAdmin):
 @admin.register(Dataset)
 class DatasetAdmin(admin.ModelAdmin):
     inlines = [DescriptionInline, DateInline]
-    search_fields = ("pk", "name")
-    list_display = ("name", "created", "modified")
+    search_fields = ("uuid", "name")
+    list_display = ("name", "added", "modified")
     fieldsets = ((None, {"fields": ("name", "project", "image", "reference", "visibility", "tags")}),)
     formfield_overrides = {
         models.ManyToManyField: {"widget": Select2MultipleWidget},
@@ -75,7 +75,7 @@ class BaseSampleAdmin(PolymorphicParentModelAdmin):
     base_model = Sample
     # child_models = [m["class"] for m in registry.samples]
     child_models = get_subclasses(Sample)
-    list_display = ["sample_type", "name", "created"]
+    list_display = ["sample_type", "name", "added"]
     exclude = ["options"]
     list_filter = (PolymorphicChildModelFilter,)
 

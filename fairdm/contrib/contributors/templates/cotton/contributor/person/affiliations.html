@@ -1,0 +1,6 @@
+<c-vars :show_location="False" />
+<div>
+   {% for org in contributor.affiliations.all %}
+      <c-contributor.person.affiliation :org="org" :show_location="show_location" />
+   {% endfor %}
+</div>

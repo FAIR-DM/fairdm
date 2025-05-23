@@ -8,23 +8,80 @@ from fairdm.utils.utils import get_model_class
 
 
 class FairDMBaseMixin(MetadataMixin):
-    modals = []
+    """
+    A mixin class providing common context and sidebar configuration for views.
+    Attributes:
+        sidebar_primary (dict): Configuration object for the primary sidebar.
+        sidebar_secondary (dict): Configuration object for the secondary sidebar.
+    Methods:
+        get_context_data(**kwargs):
+            Extends the context data with user edit permissions and sidebar configurations.
+        get_sidebar_primary():
+            Returns the configuration for the primary sidebar.
+        get_sidebar_secondary():
+            Returns the configuration for the secondary sidebar.
+        user_can_edit():
+            Determines if the current user has edit permissions. Returns False by default.
+        get_meta_title(context):
+            Sets the page title in the context and returns a formatted meta title string.
+    """
+
+    sidebar_primary = {}
+    # Config object provided to the primary sidebar
+
+    sidebar_secondary = {}
+    # Config object provided to the secondary sidebar
+
+    about = None
+    # Optional about text for the page
+
+    learn_more = None
+    # Optional link to a user guide or documentation (use fairdm.utils.utils.user_guide to generate the link)
+
+    # def dispatch(self, request, *args, **kwargs):
+    #     self.object = self.get_object()
+    #     if (isinstance(self.check, bool) and not self.check) or (
+    #         callable(self.check) and self.check(request, self.object)
+    #     ):
+    #         raise PermissionDenied(_("You do not have permission to view this page."))
+    #     return super().dispatch(request, *args, **kwargs)
+
+    @staticmethod
+    def check(request, *args, **kwargs):
+        return True
+
+    def get_object(self):
+        return None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["modals"] = self.get_modals()
         context["user_can_edit"] = self.user_can_edit()
+        context["sidebar_primary"] = self.get_sidebar_primary()
+        context["sidebar_secondary"] = self.get_sidebar_secondary()
+        context["about"] = self.get_about()
+        context["learn_more"] = self.get_learn_more()
         return context
 
-    def get_modals(self):
-        return self.modals
+    def get_about(self):
+        if isinstance(self.about, list):
+            return self.about
+        return [self.about]
+
+    def get_learn_more(self):
+        return self.learn_more
+
+    def get_sidebar_primary(self):
+        return self.sidebar_primary
+
+    def get_sidebar_secondary(self):
+        return self.sidebar_secondary
 
     def user_can_edit(self):
         return False
 
     def get_meta_title(self, context):
-        return f"{Database.get_solo().safe_translation_getter('name')}"
-        # return f"{} · {Database.get_solo().safe_translation_getter('name')}"
+        context["title"] = self.title
+        return f"{self.title} - {Database.get_solo().safe_translation_getter('name')}"
 
 
 class RelatedObjectMixin:
@@ -32,7 +89,7 @@ class RelatedObjectMixin:
 
     This mixin is primarily used in plugins but can be applied to other views where a related object needs to be
     fetched based on a URL parameter. The related object is retrieved using the URL parameter specified by
-    `base_object_url_kwarg` (defaults to `base_pk`). The related object is then added to the context with additional
+    `base_object_url_kwarg` (defaults to `base_uuid`). The related object is then added to the context with additional
     useful information about the related model.
 
     Example:
@@ -41,7 +98,7 @@ class RelatedObjectMixin:
                 return self.base_object.samples.all()
     """
 
-    base_object_url_kwarg = "base_pk"
+    base_object_url_kwarg = "uuid"
 
     def get_related_model(self):
         """Retrieve the related model class.
@@ -59,9 +116,9 @@ class RelatedObjectMixin:
 
         If the related model is polymorphic, the method fetches a non-polymorphic version of the object.
         """
-        pk = self.kwargs.get(self.base_object_url_kwarg)
+        uuid = self.kwargs.get(self.base_object_url_kwarg)
         self.related_class = self.get_related_model()
-        return get_object_or_404(self.related_class, pk=pk)
+        return get_object_or_404(self.related_class, uuid=uuid)
 
     def get_context_data(self, **kwargs):
         """Add the related object and related model information to the context.

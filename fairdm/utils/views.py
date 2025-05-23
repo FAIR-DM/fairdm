@@ -12,8 +12,6 @@ from django_contact_form.views import ContactFormView
 from literature.models import LiteratureItem
 
 from fairdm.contrib import CORE_MAPPING
-from fairdm.core.forms import DatasetForm, ProjectForm
-from fairdm.registry import registry
 from fairdm.views import FairDMListView
 
 from .filters import LiteratureFilterset
@@ -24,14 +22,11 @@ class ReferenceListView(FairDMListView):
     model = LiteratureItem
     paginate_by = 20
     filterset_class = LiteratureFilterset
-    template_name = "fairdm/object_list.html"
-    # def get_template_names(self):
-    #     return ["fairdm/object_list.html"]
 
 
-def follow_unfollow(request, pk):
-    model_class = apps.get_model(CORE_MAPPING[pk[0]])
-    instance = get_object_or_404(model_class, pk=pk)
+def follow_unfollow(request, uuid):
+    model_class = apps.get_model(CORE_MAPPING[uuid[0]])
+    instance = get_object_or_404(model_class, uuid=uuid)
     is_following = Follow.objects.is_following(request.user, instance)
 
     if is_following:
@@ -46,7 +41,7 @@ class GenericContactForm(LoginRequiredMixin, ContactFormView):
 
     def get_object(self, queryset=None):
         model_class = apps.get_model(CORE_MAPPING[self.kwargs["object_type"]])
-        return model_class.objects.get(pk=self.kwargs["pk"])
+        return model_class.objects.get(uuid=self.kwargs["uuid"])
 
     @property
     def recipient_list(self):
@@ -73,34 +68,24 @@ class DirectoryView(RedirectView):
     permanent = True
 
     def get_redirect_url(self, *args, **kwargs):
-        pk = self.kwargs["uuid"]
-        model = apps.get_model(CORE_MAPPING[pk[0]])
-        obj = get_object_or_404(model, pk=pk)
+        uuid = self.kwargs["uuid"]
+        model = apps.get_model(CORE_MAPPING[uuid[0]])
+        obj = get_object_or_404(model, uuid=uuid)
         return obj.get_absolute_url()
 
 
 class HomeView(TemplateView):
     template_name = "fairdm/pages/home.html"
-    authenticated_template = "dashboard.html"
+    # authenticated_template = "dashboard.html"
 
-    def get_template_names(self):
-        if self.request.user.is_authenticated:
-            return self.authenticated_template
-        return super().get_template_names()
+    # def get_template_names(self):
+    # if self.request.user.is_authenticated:
+    # return self.authenticated_template
+    # return super().get_template_names()
 
-    def authenticated_context(self, context, **kwargs):
-        context["forms"] = {
-            "project": ProjectForm(),
-            "dataset": DatasetForm(),
-        }
-        return context
-
-    def anonymous_context(self, context, **kwargs):
-        context["registry"] = registry
-        return context
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            return self.authenticated_context(context, **kwargs)
-        return self.anonymous_context(context, **kwargs)
+    # def get_context_data(self, **kwargs):
+    # context = super().get_context_data(**kwargs)
+    # context["menu"] = self.menu
+    # if self.request.user.is_authenticated:
+    # return self.authenticated_context(context, **kwargs)
+    # return self.anonymous_context(context, **kwargs)

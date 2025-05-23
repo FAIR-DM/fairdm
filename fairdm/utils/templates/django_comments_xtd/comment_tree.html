@@ -21,13 +21,13 @@
           {% if allow_flagging and request.user in item.flagged %}
             <i class="bi bi-flag text-danger" title="{% trans 'comment flagged' %}"></i>
           {% elif allow_flagging %}
-            <a class="text-decoration-none" href="{% url 'comments-flag' item.comment.pk %}">
+            <a class="text-decoration-none" href="{% url 'comments-flag' item.comment.uuid %}">
               <i class="bi bi-flag" title="{% trans 'flag comment' %}"></i>
             </a>
           {% endif %}
           {% if perms.comments.can_moderate %}
             {% if allow_flagging %}<span class="text-muted">&bull;</span>{% endif %}
-            <a class="text-decoration-none" href="{% url 'comments-delete' item.comment.pk %}"><i class="bi bi-trash" title="{% trans 'remove comment' %}"></i></a>
+            <a class="text-decoration-none" href="{% url 'comments-delete' item.comment.uuid %}"><i class="bi bi-trash" title="{% trans 'remove comment' %}"></i></a>
           {% endif %}
         {% endif %}
       </div>

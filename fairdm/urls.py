@@ -5,10 +5,11 @@ from django.contrib import admin
 from django.contrib.admin import site
 from django.urls import include, path, re_path
 from django.views import defaults as default_views
+from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 
 from fairdm.core.utils import UUID_RE_PATTERN
-from fairdm.utils.views import DirectoryView, HomeView
+from fairdm.utils.views import DirectoryView
 
 # from .admin import admin_measurement_view
 # register all adminactions
@@ -18,11 +19,11 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path(r"jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("django-literature/", include("literature.urls")),
-    path("", HomeView.as_view(), name="home"),
+    path("", TemplateView.as_view(template_name="fairdm/pages/home.html"), name="home"),
+    path("data/", TemplateView.as_view(template_name="fairdm/data.html"), name="data"),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
-    path("", include("fairdm.contrib.generic.urls")),
     path("", include("fairdm.contrib.location.urls")),
     path("", include("fairdm.utils.urls")),
     path("api/", include("fairdm.contrib.api.urls")),

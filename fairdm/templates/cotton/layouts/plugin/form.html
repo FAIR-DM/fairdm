@@ -1,0 +1,29 @@
+{% load crispy_forms_tags %}
+
+<c-layouts.plugin>
+  {{ form.media.css }}
+  {% if title %}<c-text.heading text="{{ title }}" compact class="mb-3" />{% endif %}
+  {% if meta.description %}
+    <c-sections.info-block class="mb-3">
+      <p>{{ meta.description }}</p>
+      {% if learn_more %}
+        <c-components.link href="{{ learn_more }}"
+                           style="primary"
+                           target="_blank"
+                           text="{% trans "Learn more" %}"
+                           icon="literature" />
+      {% endif %}
+    </c-sections.info-block>
+  {% endif %}
+  {% if view.help_text %}{{ view.help_text }}{% endif %}
+  <form method="post"
+        {% if form.is_multipart %}enctype="multipart/form-data"{% endif %}>
+    {% csrf_token %}
+    {{ form|crispy }}
+    {{ formset|crispy }}
+    {% comment %} Note: will probably need to work on inline formset styling {% endcomment %}
+    {% for inline_form in inlines %}{{ inline_form|crispy }}{% endfor %}
+    <button type="submit" class="btn btn-primary">{% trans "Save & Continue" %}</button>
+  </form>
+  {{ form.media.js }}
+</c-layouts.plugin>

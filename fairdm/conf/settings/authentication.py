@@ -9,14 +9,15 @@ env = globals()["env"]
 
 DEBUG = env("DJANGO_DEBUG")
 
+# ========== Django ==========
 
-ACCOUNT_ALLOW_REGISTRATION = env("DJANGO_ALLOW_SIGNUP")
+AUTH_USER_MODEL = "contributors.Person"
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "account_login"
 
-# PASSWORDS
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#password-hashers
+
+# https://docs.djangoproject.com/en/dev/topics/auth/passwords/#using-argon2-with-django
 PASSWORD_HASHERS = [
-    # https://docs.djangoproject.com/en/dev/topics/auth/passwords/#using-argon2-with-django
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
@@ -32,61 +33,48 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
-AUTH_USER_MODEL = "contributors.Person"
-""""""
-
-# https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = "/"
-""""""
-
-# https://docs.djangoproject.com/en/dev/ref/settings/#login-url
-LOGIN_URL = "account_login"
-""""""
-
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-"""Users are identified by email instead of username"""
-
-ACCOUNT_EMAIL_REQUIRED = True
-""""""
-
-ACCOUNT_USERNAME_REQUIRED = False
-"""We don't use usernames so this is False"""
-
-
-ACCOUNT_LOGOUT_ON_GET = True
-"""Skip confirm logout screen"""
-
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-"""Email authentication is mandatory"""
-
-ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
-""""""
-
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-"""Email verification is mandatory"""
-
-# After signing up
-# ACCOUNT_SIGNUP_REDIRECT_URL = "/"
-# """"""
-
-# After clicking email confirmation link, user is logged in and redirected
-# to home? page
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-""""""
-
-ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-"""Log new user in after confirming email"""
-
-ACCOUNT_MAX_EMAIL_ADDRESSES = 4
-""""""
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
-""""""
+
+
+# ========== Django Allauth Account ==========
+
+ACCOUNT_ADAPTER = "invitations.models.InvitationsAdapter"
+ACCOUNT_ALLOW_REGISTRATION = env("DJANGO_ALLOW_SIGNUP")
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGOUT_ON_GET = False
+ACCOUNT_MAX_EMAIL_ADDRESSES = 4
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_SIGNUP_FORM_CLASS = "fairdm.contrib.contributors.forms.person.SignupExtraForm"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
+# ========== Django Allauth Social Account ==========
+
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_PROVIDERS = {
+    "orcid": {
+        "BASE_DOMAIN": "orcid.org" if not DEBUG else "sandbox.orcid.org",
+        "MEMBER_API": False,
+    }
+}
+
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+SOCIALACCOUNT_ADAPTER = "fairdm.contrib.contributors.adapters.SocialAccountAdapter"
+
+
+# ========== Django Invitations ==========
+# https://django-invitations.readthedocs.io/en/latest/configuration.html
+
+INVITATIONS_INVITATION_ONLY = True
+
 
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 # ACCOUNT_FORMS = {
@@ -106,38 +94,3 @@ AUTHENTICATION_BACKENDS = [
 #     "signup": "fairdm.contrib.users.forms.SocialSignupForm",
 # }
 # """"""
-
-SOCIALACCOUNT_AUTO_SIGNUP = False
-""""""
-
-SOCIALACCOUNT_PROVIDERS = {
-    "orcid": {
-        "BASE_DOMAIN": "orcid.org" if not DEBUG else "sandbox.orcid.org",
-        "MEMBER_API": False,
-    }
-}
-""""""
-
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = "fairdm.contrib.contributors.adapters.SocialAccountAdapter"
-
-
-ACCOUNT_SIGNUP_FORM_CLASS = "fairdm.contrib.contributors.forms.person.SignupExtraForm"
-
-
-# DJANGO-INVITATIONS SETTINGS
-# https://django-invitations.readthedocs.io/en/latest/configuration.html
-
-# ADAPTER FOR DJANGO-INVITATION TO USE DJANGO-ALLAUTH
-ACCOUNT_ADAPTER = "invitations.models.InvitationsAdapter"
-""""""
-
-INVITATIONS_INVITATION_ONLY = True
-""""""
-
-# DJANGO-ORGANISATIONS SETTINGS
-INVITATION_BACKEND = "organizations.backends.defaults.InvitationBackend"
-""""""
-
-REGISTRATION_BACKEND = "organizations.backends.defaults.RegistrationBackend"
-""""""

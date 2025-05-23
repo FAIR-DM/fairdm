@@ -7,10 +7,12 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget
 from image_uploader_widget.widgets import ImageUploaderWidget
+from import_export.admin import ImportExportModelAdmin
 from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelFilter, PolymorphicParentModelAdmin
 
 # from django_select2.forms import Select2AdminMixin
 from .models import Contributor, Organization, OrganizationMember, Person
+from .resources import PersonResource
 
 
 class AccountEmailInline(admin.TabularInline):
@@ -33,7 +35,8 @@ class ContributorInline(admin.StackedInline):
 
 class AffiliationInline(admin.StackedInline):
     model = OrganizationMember
-    fields = [("organization", "type")]
+    fields = [("organization", "type", "is_primary", "is_current")]
+    extra = 0
 
 
 # class OrganizationInline(admin.StackedInline):
@@ -59,20 +62,19 @@ class ContributorAdmin(PolymorphicParentModelAdmin):
 
 
 @admin.register(Person)
-class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin):
+class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, ImportExportModelAdmin):
     base_model = Contributor
     show_in_index = True
-
+    resource_classes = [PersonResource]
+    skip_import_confirm = True
     inlines = [AccountEmailInline, AffiliationInline]
     list_display = [
         "first_name",
         "last_name",
         "email",
-        # "is_superuser",
         "is_staff",
         "is_active",
         "last_login",
-        "date_joined",
     ]
     list_filter = ("is_staff", "is_superuser", "is_active", "groups")
     exclude = ("username",)
@@ -89,6 +91,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin):
         # },
         # models.JSONField: {"widget": FlatJSONWidget},
     }
+    readonly_fields = ["synced_data", "last_synced"]
     # fieldsets for modifying user
     fieldsets = (
         (
@@ -102,6 +105,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin):
                     # "alternative_names",
                     # "links",
                     "profile",
+                    "last_synced",
                 )
             },
         ),
@@ -142,7 +146,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin):
         ),
     )
 
-    search_fields = ("email",)
+    search_fields = ("email", "id", "name")
     ordering = ("last_name",)
 
 
@@ -150,7 +154,23 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin):
 class OrganizationAdmin(PolymorphicChildModelAdmin):
     base_model = Contributor
     show_in_index = True
-    list_display = ["name"]
+    list_display = ["name", "city", "country", "lat", "lon"]
     search_fields = ["name"]
-    readonly_fields = ["ror"]
+    readonly_fields = ["synced_data", "last_synced"]
     exclude = ("alternative_names",)
+
+    def get_readonly_fields(self, request, obj: Organization | None = None):
+        if obj and obj.synced_data:
+            return [
+                "name",
+                "alternative_names",
+                "lang",
+                "links",
+                "lat",
+                "lon",
+                "city",
+                "country",
+                *self.readonly_fields,
+            ]
+
+        return self.readonly_fields

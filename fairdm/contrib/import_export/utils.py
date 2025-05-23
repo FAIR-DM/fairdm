@@ -7,8 +7,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from import_export.formats.base_formats import DEFAULT_FORMATS
 
-from fairdm.registry import registry
-
 
 def get_formats():
     """Returns the available formats."""
@@ -46,8 +44,7 @@ def build_metadata(dataset, request):
 def build_export_for_datatype(dataset, queryset, fmt="csv"):
     """Create an export for a given dataset and datatype that can be included in a ZIP file."""
     model = queryset.model
-    config = registry.get_model(model)
-    resource = config["config"].get_resource_class()(dataset=dataset)
+    resource = model.config.get_resource_class()(dataset=dataset)
     # fmt = get_export_formats()[1]()
     tablib_dataset = resource.export(queryset=queryset)
     return tablib_dataset.export(fmt)

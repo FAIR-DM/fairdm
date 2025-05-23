@@ -1,0 +1,10 @@
+<c-components.dropdown btn_class="nav-link"
+                       menu_class="dropdown-menu-end"
+                       icon="plus">
+  <c-components.dropdown.item href="{% url "project-create" %}"
+                              icon="project"
+                              text="{% trans "Project" %}" />
+  <c-components.dropdown.item href="{% url "dataset-create" %}"
+                              icon="dataset"
+                              text="{% trans "Dataset" %}" />
+</c-components.dropdown>

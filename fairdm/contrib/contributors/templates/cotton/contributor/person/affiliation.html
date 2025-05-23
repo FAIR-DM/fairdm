@@ -1,0 +1,7 @@
+<c-vars :show_location="False" />
+<a class="link-underline-secondary link-underline-opacity-0 link-underline-opacity-75-hover text-muted"
+   href="{{ org.get_absolute_url }}">{% icon "organization" %}
+  {# djlint:off #}
+         {{ org }}{% if org.city and show_location %}, {{ org.city }}{% endif %}{% if org.country and show_location%}, {{ org.country }}{% endif %}
+  {# djlint:on #}
+</a>

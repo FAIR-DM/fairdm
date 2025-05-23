@@ -22,7 +22,7 @@ class ContributorProjectViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         contributions = Contributor.objects.filter(
-            profile=self.kwargs["contributor_pk"],
+            profile=self.kwargs["contributor_uuid"],
             content_type__model="project",
         )
         return self.queryset.filter(contributors__in=contributions)
@@ -35,7 +35,7 @@ class ContributorDatasetViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         contributions = Contributor.objects.filter(
-            profile=self.kwargs["contributor_pk"],
+            profile=self.kwargs["contributor_uuid"],
             content_type__model="dataset",
         )
         return self.queryset.filter(contributors__in=contributions)

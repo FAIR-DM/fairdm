@@ -1,12 +1,11 @@
-{% extends "fairdm/object_list.html" %}
-{% block description %}
-  The people and organisations listed here have contributed in some way to a dataset that has passed our internal review process and been included in the {{ identity.database.name }}.
-{% endblock description %}
-
-{% block card_list %}
-  <c-card-list class="row-cols-5"
-               gap="1"
-               id="contributorList"
-               :object_list="object_list"
-               :template="object_template" />
-{% endblock card_list %}
+<c-layouts.list title="{% trans "Contributors" %}"
+                cols="2"
+                gap="2">
+  {% comment %} <c-text.heading text="{{ object_verbose_name_plural }}" /> {% endcomment %}
+  {% comment %} {% if paginator.num_pages > 1 %}<c-components.paginator />{% endif %}
+  <c-bs5.grid cols="1" gap="1" :responsive="{'md': 2}" id="itemList">
+    {% for obj in object_list %}
+      <div class="col">{% include object_template %}</div>
+    {% endfor %}
+  </c-bs5.grid> {% endcomment %}
+</c-layouts.list>

@@ -41,12 +41,12 @@
     </a>
   {% endif %}
   {% comment %} {% if not obj.review %}
-    <a href="{% url "review-accept-literature" pk=obj.pk %}" class="btn btn-sm btn-success me-1 z-2">
+    <a href="{% url "review-accept-literature" uuid=obj.uuid %}" class="btn btn-sm btn-success me-1 z-2">
       {% icon "review" %}
       {% trans "Begin Review" %}
     </a>
 {% else %} {% endcomment %}
-  {% comment %} <a href="{% url "dataset-detail" pk=obj.review.dataset.pk %}" class="btn btn-sm btn-success z-2">
+  {% comment %} <a href="{% url "dataset-detail" uuid=obj.review.dataset.uuid %}" class="btn btn-sm btn-success z-2">
     {% icon "dataset" class="me-1" %}
     {% trans "View Dataset" %}
   </a> {% endcomment %}

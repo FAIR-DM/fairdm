@@ -1,0 +1,9 @@
+<div class="mb-3">
+  <div class="fw-semibold">
+    <span data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          data-bs-title="{{ help_text }}">{{ label|title }}</span>
+  </div>
+  {% comment %} THERE IS AN ISSUE USING FIRST OF WITH TEMPERATURE VALUES  {% endcomment %}
+  <div>{% include field_template %}</div>
+</div>

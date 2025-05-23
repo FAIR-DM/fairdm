@@ -59,7 +59,8 @@ else:
 
 # Tell select2 which cache configuration to use:
 SELECT2_CACHE_BACKEND = "select2"
-
+SELECT2_THEME = "bootstrap-5"
+# SELECT2_CSS = "fairdm/css/select2-bootstrap5.css"
 COLLECTFASTA_CACHE = "collectfasta"
 
 COLLECTFASTA_THREADS = 8

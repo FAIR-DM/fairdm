@@ -14,7 +14,7 @@ class BaseTable(tables.Table):
         return icon("location")
 
     def value_dataset(self, value):
-        return value.pk
+        return value.uuid
 
     def before_render(self, request):
         """

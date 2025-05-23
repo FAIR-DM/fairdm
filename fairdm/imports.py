@@ -100,7 +100,7 @@ class FairDMBaseImporter:
         cprow.setdefault("_position", self.get_default_child_position(model))
 
         if cprow.get("parent"):
-            cprow["_ref_node_id"] = cprow["parent"].pk
+            cprow["_ref_node_id"] = cprow["parent"].uuid
 
         form = form_class(data=cprow)
         if form.is_valid():

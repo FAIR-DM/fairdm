@@ -1,0 +1,12 @@
+{% load static %}
+
+{% if user.is_authenticated %}
+  <c-fdm.dashboard.card image_src="{% static "img/brand/fairdm.svg" %}"
+                        image_fit="contain"
+                        image_alt="..."
+                        title="{% trans "FairDM Framework" %}"
+                        description="{% trans "Learn about the FairDM Framework and how portals like this one are created." %}"
+                        action="https://fairdm.com"
+                        action_text="{% trans "Learn more" %}">
+  </c-fdm.dashboard.card>
+{% endif %}

@@ -13,15 +13,15 @@
   {{ obj.item.abstract|truncatewords_html:75 }}
   <c-slot name="footer">
     {% if obj.datasets %}
-      <c-bs5.button href="{{ obj.datasets.get_absolute_url }}"
-                    icon="dataset"
-                    text="{% trans "View Dataset" %}" />
+      <c-components.button href="{{ obj.datasets.get_absolute_url }}"
+                           icon="dataset"
+                           text="{% trans "View Dataset" %}" />
     {% endif %}
     {% if obj.item.URL %}
-      <c-bs5.button href="{{ obj.item.URL }}"
-                    icon="globe"
-                    variant="primary"
-                    text="{% trans "Read online" %}" />
+      <c-components.button href="{{ obj.item.URL }}"
+                           icon="globe"
+                           variant="primary"
+                           text="{% trans "Read online" %}" />
     {% endif %}
     {% block footer %}
     {% endblock footer %}

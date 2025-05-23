@@ -29,7 +29,7 @@ class AddContributionView(RelatedObjectMixin, LoginRequiredMixin, FormView):
         elif data["id"].startswith("https://ror.org/"):
             contributor = utils.contributor_from_ror_data(data)
         else:
-            contributor = Contributor.objects.get(pk=data["id"]).get_real_instance()
+            contributor = Contributor.objects.get(uuid=data["id"]).get_real_instance()
 
         # contribution = Contribution(contributor=contributor)
         contribution = self.base_object.add_contributor(contributor, with_roles=["ProjectMember"])

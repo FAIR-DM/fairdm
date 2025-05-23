@@ -1,0 +1,31 @@
+<c-vars :visible="True" />
+{% if visible %}
+  <style>
+    @media (min-width: 768px) {
+      .sidebar-secondary {
+        width: var(--pst-sidebar-secondary);
+        min-width: var(--pst-sidebar-secondary);
+      }
+    }
+  </style>
+  <div class="sidebar-secondary offcanvas-md offcanvas-end">
+    <div class="offcanvas-header d-flex p-2">
+      {% if title %}
+        <h5 class="offcanvas-title mt-0"
+            id="offcanvasDarkLabel">{{ title }}</h5>
+      {% endif %}
+      <button type="button"
+              class="btn-close d-md-none"
+              data-bs-dismiss="offcanvasDark"
+              aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body flex-grow-1 flex-column p-2 overflow-y-auto">
+      {% if title %}
+        <h5 class="offcanvas-title mt-0"
+            id="offcanvasDarkLabel">{{ title }}</h5>
+      {% endif %}
+      {{ slot }}
+    </div>
+    <div class="offcanvas-footer">{{ footer }}</div>
+  </div>
+{% endif %}

@@ -1,0 +1,21 @@
+{% load static %}
+
+{% if not user.is_authenticated %}
+  <c-fdm.dashboard.card image_src="{% static "img/community.jpg" %}"
+                        image_alt="..."
+                        title="{% trans "Join the community" %}"
+                        description="{% trans "Connect with fellow researchers, stay informed about the latest developments in heat flow science, and contribute to a growing, collaborative global resource." %}"
+                        action="{% url "account_signup" %}"
+                        action_text="{% trans "Get started" %}">
+    <c-slot name="footer">
+      <c-components.link href="{% url "account_login" %}"
+                         size="md"
+                         style="primary"
+                         text="{% trans "Login" %}" />
+      <c-components.link href="{% url "account_signup" %}"
+                         size="md"
+                         style="secondary"
+                         text="{% trans "Register" %}" />
+    </c-slot>
+  </c-fdm.dashboard.card>
+{% endif %}

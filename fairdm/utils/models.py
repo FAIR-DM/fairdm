@@ -7,4 +7,4 @@ from fairdm.utils.utils import get_inheritance_chain
 class PolymorphicMixin(ShowFieldType):
     @classonlymethod
     def get_inheritance_chain(cls):
-        return get_inheritance_chain(cls, cls.base_class())
+        return get_inheritance_chain(cls, cls.type_of)

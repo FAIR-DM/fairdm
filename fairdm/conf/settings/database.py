@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 # to allow customization (e.g. managed databases). If neither DATABASE_URL or any POSTGRES_* vars are set, FairDM will
 # default to SQLite.
 if env("DATABASE_URL"):
-    logging.info(f"Database: {env('DATABASE_URL')}")
+    logger.info(f"Database: {env('DATABASE_URL')}")
     DATABASES = {
         "default": env.db(),
     }
 
 elif env("POSTGRES_DB"):
-    logging.info("Database: PostgreSQL via POSTGRES_* vars")
+    logger.info("Database: PostgreSQL via POSTGRES_* vars")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -34,7 +34,7 @@ elif env("POSTGRES_DB"):
     }
 
 else:
-    logging.info("Database: SQLite")
+    logger.info("Database: SQLite")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

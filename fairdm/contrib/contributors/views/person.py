@@ -5,7 +5,6 @@ from django.views.generic import TemplateView
 from formset.views import EditCollectionView
 from meta.views import MetadataMixin
 
-from fairdm.menus import ContributorMenu
 from fairdm.views import BaseCRUDView
 
 from ..filters import ContributorFilter
@@ -16,8 +15,8 @@ from ..models import Contributor, Person
 class ContributorCRUDView(BaseCRUDView):
     model = Contributor
     form_class = UserProfileForm
-    menu = ContributorMenu
     ncols = 5
+
     filterset_class = ContributorFilter
 
     def user_can_edit(self):
@@ -28,7 +27,6 @@ class ContributorCRUDView(BaseCRUDView):
 class PersonCRUDView(BaseCRUDView):
     model = Person
     form_class = UserProfileForm
-    menu = ContributorMenu
     ncols = 5
     filterset_class = ContributorFilter
 

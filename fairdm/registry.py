@@ -6,7 +6,7 @@ from django.contrib import admin
 
 class FairDMRegistry:
     """
-    A registry to manage and retrieve all model classes that subclass fairdm.core.models.sample.Sample and fairdm.core.models.measurement.Measurement along with associated metadata.
+    A registry to manage and retrieve all model classes that subclass fairdm.core.sample.models.Sample and fairdm.core.measurement.models.Measurement along with associated metadata.
 
     This class allows models to be registered with associated metadata and categorized
     by type. It provides methods for retrieving models based on their app label and
@@ -75,20 +75,20 @@ class FairDMRegistry:
         # config = self.get_config(model_class, config)
         self.register_actstream(model_class)
         self.register_admin(model_class)
-        mtype = getattr(model_class, "base_class", None)
+        mtype = getattr(model_class, "type_of", None)
         if mtype is not None:
-            mtype = mtype().__name__.lower()
+            mtype = mtype.__name__.lower()
         item = {
             "app_label": model_class._meta.app_label,
-            "model": model_class._meta.model_name,
-            "full_name": f"{model_class._meta.app_label}.{model_class._meta.model_name}",
             "class": model_class,
-            "path": f"{model_class.__module__}.{model_class.__name__}",
-            "verbose_name": model_class._meta.verbose_name,
-            "verbose_name_plural": model_class._meta.verbose_name_plural,
             "config": config(model_class),
-            # "metadata": model_class._fairdm.meta,
+            "full_name": f"{model_class._meta.app_label}.{model_class._meta.model_name}",
+            "model": model_class._meta.model_name,
+            "path": f"{model_class.__module__}.{model_class.__name__}",
             "type": mtype,
+            "verbose_name_plural": model_class._meta.verbose_name_plural,
+            "verbose_name": model_class._meta.verbose_name,
+            # "metadata": model_class._fairdm.meta,
         }
         self._registry[model_class] = item
         self.all.append(item)

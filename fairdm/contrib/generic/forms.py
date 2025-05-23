@@ -1,13 +1,14 @@
 from crispy_forms.helper import FormHelper
 from django import forms
 from django.forms import BaseFormSet, BaseInlineFormSet
+from django.forms.models import BaseInlineFormSet
 from django.utils.module_loading import import_string
 from django_select2.forms import Select2MultipleWidget, Select2TagWidget
 from extra_views import InlineFormSetFactory
 from research_vocabs.forms import MultiConceptField, TaggableConceptFormMixin
 
 from fairdm.core.models import Dataset
-from fairdm.core.models.sample import SampleDescription
+from fairdm.core.sample.models import SampleDescription
 from fairdm.forms import PartialDateField
 from fairdm.utils.utils import get_setting
 
@@ -153,7 +154,6 @@ class KeywordForm(TaggableConceptFormMixin, forms.ModelForm):
             self.base_fields[vocab_class.__name__] = MultiConceptField(
                 vocabulary=vocab_class, widget=Select2MultipleWidget, required=False
             )
-        x = 8
         # self._meta.fields = fields + self._meta.fields
 
 
@@ -203,6 +203,20 @@ class DescriptionForm(TypeVocabularyFormMixin):
 
 
 class DescriptionInline(InlineFormSetFactory):
+    form_class = DescriptionForm
+    formset_class = CoreInlineFormset
+
+    def __init__(self, parent_model, request, instance, view_kwargs=None, view=None):
+        self.model = parent_model._meta.get_field("descriptions").related_model
+        super().__init__(parent_model, request, instance, view_kwargs=None, view=None)
+
+    def construct_formset(self):
+        formset = super().construct_formset()
+        formset.helper.form_id = "description-form-collection"
+        return formset
+
+
+class Description2Inline(BaseInlineFormSet):
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
 

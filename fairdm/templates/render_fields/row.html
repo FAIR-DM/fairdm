@@ -1,0 +1,7 @@
+{% load render_fields %}
+
+<div class="row">
+  {% for field in fields %}
+    <div class="col-md me-5">{% render_field object field %}</div>
+  {% endfor %}
+</div>

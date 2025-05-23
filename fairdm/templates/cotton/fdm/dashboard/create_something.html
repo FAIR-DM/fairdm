@@ -1,0 +1,23 @@
+{% load static %}
+
+{% if user.is_authenticated %}
+  <c-fdm.dashboard.card image_src="{% static "img/stock/create.jpg" %}"
+                        image_alt="..."
+                        title="{% trans "Create something" %}"
+                        description="{% trans "Start a new project or dataset within the portal." %}"
+                        action="{% url "project-list" %}"
+                        action_text="{% trans "Let's go" %}">
+    <c-slot name="footer">
+      <c-components.link href="{% url "project-create" %}"
+                         size="md"
+                         icon="project"
+                         style="primary"
+                         text="{% trans "Project" %}" />
+      <c-components.link href="{% url "dataset-create" %}"
+                         size="md"
+                         icon="dataset"
+                         style="secondary"
+                         text="{% trans "Dataset" %}" />
+    </c-slot>
+  </c-fdm.dashboard.card>
+{% endif %}

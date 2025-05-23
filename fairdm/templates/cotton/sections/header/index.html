@@ -1,0 +1,83 @@
+{% load flex_menu %}
+
+<c-vars remove_sidebar_secondary="False"
+        secondary_sidebar_items="False"
+        :collapse_after="4"
+        id="pst-header" />
+<header id="{{ id }}"
+        class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+  {# Header for the site navigation #}
+  <div class="bd-header__inner bd-page-width">
+    <button class="pst-navbar-icon sidebar-toggle primary-toggle"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#headerMobile"
+            aria-label="{% trans "Site navigation" %}">
+      <span class="fa-solid fa-bars"></span>
+    </button>
+    <c-pst.components.navbar.start />
+    <div class="navbar-header-items">
+      {% process_menu "DatabaseMenu" as menu %}
+      <div class="navbar-header-items__center flex-grow-1">
+        <nav>
+          <ul class="bd-navbar-elements navbar-nav">
+            {% for item in menu %}
+              {% if item.visible and forloop.counter0 < collapse_after %}
+                <c-pst.components.navbar.nav-item :current="item.active"
+                                                  href="{{ item.url }}"
+                                                  text="{{ item.label }}" />
+              {% endif %}
+            {% endfor %}
+            {% comment %} Handle overflow as dropdown {% endcomment %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle"
+                 href="#"
+                 role="button"
+                 data-bs-toggle="dropdown"
+                 aria-expanded="false">More</a>
+              <ul class="dropdown-menu">
+                {% for item in menu %}
+                  {% if item.visible and forloop.counter0 >= collapse_after %}
+                    <c-bs5.dropdown.item :active="item.active"
+                                         href="{{ item.url }}"
+                                         text="{{ item.label }}" />
+                  {% endif %}
+                {% endfor %}
+                <li>
+                  <hr class="dropdown-divider" />
+                </li>
+                <li>
+                  <h6 class="dropdown-header">{% trans "External Links" %}</h6>
+                </li>
+                {% for item in theme_options.external_links %}
+                  <c-bs5.dropdown.item class="nav-link nav-external"
+                                       href="{{ item.url }}"
+                                       text="{{ item.name }}" />
+                {% endfor %}
+                <c-bs5.dropdown.item class="nav-link nav-external"
+                                     href="https://fairdm.com/"
+                                     text="FairDM Framework" />
+              </ul>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      {% comment %} <c-pst.components.navbar.center class="flex-grow-1" /> {% endcomment %}
+      <c-pst.components.navbar.end>
+        <c-pst.components.search-button-field />
+      </c-pst.components.navbar.end>
+    </div>
+    {# A search button to show up only on mobile #}
+    {% for navbar_item in theme_options.navbar_persistent %}
+      <div class="navbar-persistent--mobile">
+        <c-component :is="navbar_item" />
+      </div>
+    {% endfor %}
+    {% if not remove_sidebar_secondary and secondary_sidebar_items %}
+      <button class="pst-navbar-icon sidebar-toggle secondary-toggle"
+              aria-label="{% trans "On this page" %}">
+        <span class="fa-solid fa-outdent"></span>
+      </button>
+    {% endif %}
+  </div>
+</header>
+<c-sections.header.mobile />

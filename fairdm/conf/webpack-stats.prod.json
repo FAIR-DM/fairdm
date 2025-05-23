@@ -461,50 +461,10 @@
       "path": "..\\bs5\\vendor\\_rfs.scss",
       "publicPath": "/static/bundles/../bs5/vendor/_rfs.scss"
     },
-    "05fdd87be89f7f8f0a1e.ttf": {
-      "name": "05fdd87be89f7f8f0a1e.ttf",
-      "path": "05fdd87be89f7f8f0a1e.ttf",
-      "publicPath": "/static/bundles/05fdd87be89f7f8f0a1e.ttf"
-    },
-    "26b80c8830bebf340211.ttf": {
-      "name": "26b80c8830bebf340211.ttf",
-      "path": "26b80c8830bebf340211.ttf",
-      "publicPath": "/static/bundles/26b80c8830bebf340211.ttf"
-    },
-    "4f6a2dabee9c092d09b9.woff2": {
-      "name": "4f6a2dabee9c092d09b9.woff2",
-      "path": "4f6a2dabee9c092d09b9.woff2",
-      "publicPath": "/static/bundles/4f6a2dabee9c092d09b9.woff2"
-    },
-    "83a538a018a9e44b023a.woff2": {
-      "name": "83a538a018a9e44b023a.woff2",
-      "path": "83a538a018a9e44b023a.woff2",
-      "publicPath": "/static/bundles/83a538a018a9e44b023a.woff2"
-    },
-    "ad1782c70927ebc5bc87.ttf": {
-      "name": "ad1782c70927ebc5bc87.ttf",
-      "path": "ad1782c70927ebc5bc87.ttf",
-      "publicPath": "/static/bundles/ad1782c70927ebc5bc87.ttf"
-    },
-    "c3ea317a0f10f201597f.woff2": {
-      "name": "c3ea317a0f10f201597f.woff2",
-      "path": "c3ea317a0f10f201597f.woff2",
-      "publicPath": "/static/bundles/c3ea317a0f10f201597f.woff2"
-    },
-    "css/project.c0ff14c021441bd4f288.css": {
-      "name": "css/project.c0ff14c021441bd4f288.css",
-      "path": "css\\project.c0ff14c021441bd4f288.css",
-      "publicPath": "/static/bundles/css/project.c0ff14c021441bd4f288.css"
-    },
-    "fa86b3c85e77abbd2ebd.ttf": {
-      "name": "fa86b3c85e77abbd2ebd.ttf",
-      "path": "fa86b3c85e77abbd2ebd.ttf",
-      "publicPath": "/static/bundles/fa86b3c85e77abbd2ebd.ttf"
-    },
-    "fdbb558523a380307689.woff2": {
-      "name": "fdbb558523a380307689.woff2",
-      "path": "fdbb558523a380307689.woff2",
-      "publicPath": "/static/bundles/fdbb558523a380307689.woff2"
+    "css/project.b5133f1d8878984ba01b.css": {
+      "name": "css/project.b5133f1d8878984ba01b.css",
+      "path": "css\\project.b5133f1d8878984ba01b.css",
+      "publicPath": "/static/bundles/css/project.b5133f1d8878984ba01b.css"
     },
     "js/popper.js": {
       "name": "js/popper.js",
@@ -520,6 +480,46 @@
       "name": "js/project.js.LICENSE.txt",
       "path": "js\\project.js.LICENSE.txt",
       "publicPath": "/static/bundles/js/project.js.LICENSE.txt"
+    },
+    "webfonts/fa-brands-400.ttf": {
+      "name": "webfonts/fa-brands-400.ttf",
+      "path": "webfonts\\fa-brands-400.ttf",
+      "publicPath": "/static/bundles/webfonts/fa-brands-400.ttf"
+    },
+    "webfonts/fa-brands-400.woff2": {
+      "name": "webfonts/fa-brands-400.woff2",
+      "path": "webfonts\\fa-brands-400.woff2",
+      "publicPath": "/static/bundles/webfonts/fa-brands-400.woff2"
+    },
+    "webfonts/fa-regular-400.ttf": {
+      "name": "webfonts/fa-regular-400.ttf",
+      "path": "webfonts\\fa-regular-400.ttf",
+      "publicPath": "/static/bundles/webfonts/fa-regular-400.ttf"
+    },
+    "webfonts/fa-regular-400.woff2": {
+      "name": "webfonts/fa-regular-400.woff2",
+      "path": "webfonts\\fa-regular-400.woff2",
+      "publicPath": "/static/bundles/webfonts/fa-regular-400.woff2"
+    },
+    "webfonts/fa-solid-900.ttf": {
+      "name": "webfonts/fa-solid-900.ttf",
+      "path": "webfonts\\fa-solid-900.ttf",
+      "publicPath": "/static/bundles/webfonts/fa-solid-900.ttf"
+    },
+    "webfonts/fa-solid-900.woff2": {
+      "name": "webfonts/fa-solid-900.woff2",
+      "path": "webfonts\\fa-solid-900.woff2",
+      "publicPath": "/static/bundles/webfonts/fa-solid-900.woff2"
+    },
+    "webfonts/fa-v4compatibility.ttf": {
+      "name": "webfonts/fa-v4compatibility.ttf",
+      "path": "webfonts\\fa-v4compatibility.ttf",
+      "publicPath": "/static/bundles/webfonts/fa-v4compatibility.ttf"
+    },
+    "webfonts/fa-v4compatibility.woff2": {
+      "name": "webfonts/fa-v4compatibility.woff2",
+      "path": "webfonts\\fa-v4compatibility.woff2",
+      "publicPath": "/static/bundles/webfonts/fa-v4compatibility.woff2"
     }
   },
   "chunks": {
@@ -528,7 +528,7 @@
     ],
     "project": [
       "js/project.js",
-      "css/project.c0ff14c021441bd4f288.css"
+      "css/project.b5133f1d8878984ba01b.css"
     ]
   },
   "publicPath": "/static/bundles/"

@@ -1,12 +1,16 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
+from django.templatetags.static import static
+from django.utils.translation import gettext as _
 from django.views.generic.detail import SingleObjectMixin
 from django_contact_form.views import ContactFormView
 
-from fairdm.views import BaseCRUDView
+from fairdm.utils.utils import user_guide
+from fairdm.views import BaseCRUDView, FairDMListView
 
+from ..filters import ContributorFilter
 from ..forms.forms import ContributionForm
-from ..models import Contributor
+from ..models import Contributor, Person
 
 
 class ContributorContactView(LoginRequiredMixin, SingleObjectMixin, ContactFormView):
@@ -27,9 +31,36 @@ class ContributorContactView(LoginRequiredMixin, SingleObjectMixin, ContactFormV
 
 class ContributionCRUDView(BaseCRUDView):
     form_class = ContributionForm
-    lookup_url_kwarg = "contribution_pk"
+    lookup_url_kwarg = "contribution_uuid"
 
     def get_form(self, data=None, files=None, **kwargs):
         form = super().get_form(data, files, **kwargs)
         form.fields["roles"].widget.choices = self.model.CONTRIBUTOR_ROLES().choices
         return form
+
+
+class ContributorListView(FairDMListView):
+    """List view for contributions."""
+
+    model = Contributor
+    title = _("Contributors")
+    grid_config = {"cols": 1, "gap": 2, "responsive": {"md": 2}}
+    # description = _(
+    #     "Discover past, present and future research projects shared by our community to see what other are working on."
+    # )
+    # about = [
+    #     _(
+    #         "A research project serves as a container for multiple datasets that share common metadata, such as funding sources, project descriptions, contributors, and institutional affiliations. This page presents publicly listed research projects contributed by community members, allowing you to explore what others are working on."
+    #     ),
+    #     _(
+    #         "Search and filter projects by topic, field, or format. Each project may contain multiple datasets, which can be accessed individually."
+    #     ),
+    # ]
+    learn_more = user_guide("project")
+    image = static("img/stock/contributors.jpg")
+    filterset_class = ContributorFilter
+    card = "contributor.card.person"
+    paginate_by = 20
+
+    def get_queryset(self):
+        return self.model.objects.instance_of(Person).prefetch_related("affiliations", "identifiers")

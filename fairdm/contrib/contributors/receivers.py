@@ -15,18 +15,11 @@ def create_profile(request, user, **kwargs):
 
     # if the user signed up with orcid, it will be available on the user object
     # we can use it to see if a profile is already associated with the user
-    if data := user.orcid_data():
-        logger.info(f"Found a profile matching the provided ORCID for {user.username}")
-        # TODO
-        # 1. check identifiers table for a matching orcid
-        # 2. if there is a match, find the associated profile and update it with the user
-    else:
-        # no orcid provided, create a new profile and associate it with the user
-        pass
-    # profile, created = Contributor.objects.get_or_create(user=user, defaults={"name": user.get_full_name()})
-    # print(profile, created)
-    # if created:
-    #     logger.info(f"Created new profile for {user.username}")
+
+    if orcid := user.get_provider("orcid"):
+        # copies the extra data from the orcid provider to the user object
+        user.synced_data = orcid.extra_data
+        user.save()
 
 
 # @receiver(post_save, sender=User)

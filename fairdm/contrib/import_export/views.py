@@ -14,6 +14,7 @@ from meta.views import MetadataMixin
 
 from fairdm.contrib.import_export.utils import build_metadata
 from fairdm.core.models import Dataset
+from fairdm.plugins import GenericPlugin
 from fairdm.registry import registry
 from fairdm.utils.view_mixins import HTMXMixin
 
@@ -31,7 +32,8 @@ class BaseImportExportView(BaseDetailView, FormView):
     model = Dataset
     form_class = None
     success_url = None
-    template_name = "import_export/import.html"
+    # template_name = "import_export/import.html"
+    template_name = "cotton/layouts/plugin/form.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
@@ -53,8 +55,7 @@ class BaseImportExportView(BaseDetailView, FormView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_resource(self):
-        config = registry.get_model(self.resource_model)
-        return config["config"].get_resource_class()(dataset=self.get_object())
+        return self.resource_model.config.get_resource_class()(dataset=self.get_object())
 
     def get_resource_model(self):
         """
@@ -101,7 +102,11 @@ class BaseImportExportView(BaseDetailView, FormView):
         return render(self.request, self.template_name, {"form": form})
 
 
-class DataImportView(MetadataMixin, BaseImportExportView):
+# @plugins.dataset.actions()
+class DataImportView(GenericPlugin, BaseImportExportView):
+    name = _("Import Data")
+    menu = "Actions"
+    icon = "import"
     form_class = ImportForm
 
     def form_valid(self, form):
@@ -138,8 +143,12 @@ class DataImportView(MetadataMixin, BaseImportExportView):
         return _("Import") + " " + self.get_resource_model()._meta.verbose_name_plural
 
 
+# @plugins.dataset.actions()
 @method_decorator(require_POST, name="dispatch")
-class DataExportView(VirtualDownloadView, BaseImportExportView):
+class DataExportView(GenericPlugin, VirtualDownloadView, BaseImportExportView):
+    menu = "Actions"
+    name = _("Export dataset")
+    icon = "download"
     form_class = ExportForm
 
     def get_file(self):
@@ -211,7 +220,7 @@ class DatasetUpload(HTMXMixin, MetadataMixin, FormView):
     def process_import(self, dataset, import_file):
         # importer = HeatFlowParentImporter(import_file, dataset)
         # errors = importer.process_import()
-        # dataset = Dataset.objects.get(pk=pk)
+        # dataset = Dataset.objects.get(uuid=uuid)
         # import_file = self.request.FILES["docfile"]
         # importer = HeatFlowParentImporter(import_file, dataset)
         # errors = importer.process_import()
@@ -226,6 +235,3 @@ class DatasetUpload(HTMXMixin, MetadataMixin, FormView):
     def form_valid(self, form):
         result = self.process_import(self.dataset, form.cleaned_data["docfile"])
         return super().form_valid(form)
-
-
-# 'Traceback (most recent call last):\n  File "c:\\Users\\jennings\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\global-heat-flow-database-GuOryC2t-py3.11\\Lib\\site-packages\\import_export\\resources.py", line 748, in import_row\n    self.import_instance(instance, row, **kwargs)\n  File "c:\\Users\\jennings\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\global-heat-flow-database-GuOryC2t-py3.11\\Lib\\site-packages\\import_export\\resources.py", line 480, in import_instance\n    self.import_field(field, instance, row, **kwargs)\n  File "c:\\Users\\jennings\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\global-heat-flow-database-GuOryC2t-py3.11\\Lib\\site-packages\\import_export\\resources.py", line 432, in import_field\n    field.save(instance, row, is_m2m, **kwargs)\n  File "c:\\Users\\jennings\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\global-heat-flow-database-GuOryC2t-py3.11\\Lib\\site-packages\\import_export\\fields.py", line 136, in save\n    setattr(instance, attrs[-1], cleaned)\nAttributeError: \'NoneType\' object has no attribute \'sample\'\n'

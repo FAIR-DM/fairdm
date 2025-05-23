@@ -1,0 +1,7 @@
+<c-vars icon text />
+<c-pst.sidebar.primary.list-item href="{{ href }}" :attrs="attrs">
+  <c-slot name="text">
+    {% icon icon style="min-width: 24px;" %}
+    <span>{{ text }}</span>
+  </c-slot>
+</c-pst.sidebar.primary.list-item>
