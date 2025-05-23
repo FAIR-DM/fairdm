@@ -112,6 +112,7 @@ django-pandas = "^0.6.7"
 django-ordered-model = "^3.7.4"
 django-taggit = "^6.1.0"
 django-waffle = "^4.2.0"
+django-addanother = "^2.2.2"
 
 
 
@@ -125,6 +126,7 @@ snakeviz = "^2.2.2"
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs", extras = ["pydata-sphinx-theme"]}
 toml = "^0.10.2"
+sphinxcontrib-bibtex = "^2.6.3"
 
 [build-system]
 requires = ["poetry-core"]
