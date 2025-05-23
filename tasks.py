@@ -65,14 +65,6 @@ def bump(c, rule="patch"):
 
 
 @task
-def live_docs(c):
-    """
-    Build the documentation and open it in a live browser
-    """
-    c.run("sphinx-autobuild -b html --host 0.0.0.0 --port 9000 --watch . -c . . _build/html")
-
-
-@task
 def dumpdata(c):
     c.run(
         "docker compose -f local.yml run django python manage.py dumpdata users organizations contributors projects"
@@ -105,13 +97,14 @@ def savedemo(c):
 
 
 @task
-def docs(c):
+def docs(c, live=False):
     """
-    Build the documentation and open it in the browser
+    Build the documentation
     """
-    # c.run("sphinx-apidoc -M -T -o docs/ project/schemas/* **/migrations/* -e --force -d 2")
-    c.run("sphinx-build -E -b html docs docs/_build")
-    # c.run("docker compose -f local.yml up docs")
+    if live:
+        c.run("sphinx-autobuild -b html --watch docs -c docs docs docs/_build/html --open-browser --port 5000")
+    else:
+        c.run("sphinx-build -E -b html docs docs/_build")
 
 
 @task
