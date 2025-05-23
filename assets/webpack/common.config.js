@@ -61,13 +61,20 @@ module.exports = {
             loader: 'postcss-loader',
             options: {
               postcssOptions: {
-                plugins: ['postcss-preset-env', 'autoprefixer', 'pixrem'],
+                plugins: ['postcss-preset-env'],
               },
             },
           },
           'sass-loader',
         ],
       },
+      {
+        test: /\.(woff(2)?|ttf|eot|svg)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'webfonts/[name][ext]',
+        },
+      }
     ],
   },
   resolve: {
