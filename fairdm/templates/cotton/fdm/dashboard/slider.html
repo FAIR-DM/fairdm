@@ -3,7 +3,8 @@
      style="height: 425px">
   <div id="{{ id }}-prev"
        class="swiper-button-prev position-static me-2"></div>
-  <div id="{{ id }}" class="swiper mySwiper row-cols-3">
+  <div id="{{ id }}"
+       class="swiper mySwiper row-cols-1 row-cols-md-3">
     <div class="swiper-wrapper col">{{ slot }}</div>
   </div>
   <div id="{{ id }}-next"
@@ -22,15 +23,16 @@
       el: ".swiper-pagination",
       clickable: true,
     },
-    breakpoints: {
-      640: {
-        slidesPerView: "auto",
-        spaceBetween: 10,
-      },
-      768: {
-        slidesPerView: "auto",
-        spaceBetween: 10,
-      },
-    },
+
   });
 </script>
+{% comment %} breakpoints: {
+640: {
+slidesPerView: "auto",
+spaceBetween: 10,
+},
+768: {
+slidesPerView: "auto",
+spaceBetween: 10,
+},
+}, {% endcomment %}

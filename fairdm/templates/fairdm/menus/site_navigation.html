@@ -1,6 +1,6 @@
 {% load easy_icons %}
 
-<c-vars :collapse_after="4" />
+<c-vars :collapse_after="{{ theme_options.header_links_before_dropdown }}" />
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     {% for item in menu %}

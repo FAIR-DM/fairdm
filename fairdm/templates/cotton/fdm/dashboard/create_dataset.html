@@ -1,11 +1,9 @@
 {% load static %}
 
-{% if user.is_authenticated %}
-  <c-fdm.dashboard.card image_src="{% static "img/stock/dataset.jpg" %}"
-                        image_alt="..."
-                        title="{% trans "Create a dataset" %}"
-                        description="{% trans "Store metadata, add contributors and attach to a research project. Upload data now or wait until you're ready to share." %}"
-                        action="{% url "dataset-create" %}"
-                        action_text="{% trans "Get started" %}">
-  </c-fdm.dashboard.card>
-{% endif %}
+<c-fdm.dashboard.card image_src="{% static "img/stock/dataset.jpg" %}"
+                      image_alt="..."
+                      title="{% trans "Create a dataset" %}"
+                      description="{% trans "Store metadata, add contributors and attach to a research project. Upload data now or wait until you're ready to share." %}"
+                      action="{% url "dataset-create" %}"
+                      action_text="{% trans "Get started" %}">
+</c-fdm.dashboard.card>
