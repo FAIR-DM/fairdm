@@ -27,7 +27,7 @@ if env("DJANGO_SECURE"):
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
     # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
-    SECURE_PROXY_SSL_HEADER = env("DJANGO_SECURE_PROXY_SSL_HEADER")
+    SECURE_PROXY_SSL_HEADER = env("DJANGO_SECURE_PROXY_SSL_HEADER", default=None)
 
     # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-secure
     SESSION_COOKIE_SECURE = True
@@ -39,7 +39,7 @@ if env("DJANGO_SECURE"):
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
     # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
-    SECURE_HSTS_PRELOAD = env("DJANGO_SECURE_HSTS_SECONDS")
+    SECURE_HSTS_PRELOAD = env("DJANGO_SECURE_HSTS_SECONDS", default=0)
 
     # https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
     # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
