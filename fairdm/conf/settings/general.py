@@ -18,6 +18,7 @@ ADMIN_URL = f"{env('DJANGO_ADMIN_URL')}"
 ADMINS = [("Super User", env("DJANGO_SUPERUSER_EMAIL"))]
 # ADMINS = [(admin["name"], admin["email"]) for admin in FAIRDM["application"]["developers"]]
 ALLOWED_HOSTS = [env("DJANGO_SITE_DOMAIN")] + env("DJANGO_ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = [f"https://{domain}" for domain in globals().get("ALLOWED_HOSTS", [])]
 MANAGERS = ADMINS
 ROOT_URLCONF = env("DJANGO_ROOT_URLCONF")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
