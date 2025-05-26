@@ -1116,6 +1116,20 @@ files = [
 docs = ["markdown-include", "mdx-gh-links (>=0.4)", "mkdocs (>=1.6.1)", "mkdocs-awesome-pages-plugin (>=2.9.3)", "mkdocs-material (>=9.5.36)", "mkdocstrings-python"]
 
 [[package]]
+name = "django-admin-site-search"
+version = "1.1.0"
+description = "A search (cmd+k) modal, for the Django admin UI, that searches your entire site."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "django_admin_site_search-1.1.0-py3-none-any.whl", hash = "sha256:fee2318007f87ca2e996d10ead82aa11bdb1858caa7aa23758a164bcc2b0eab3"},
+    {file = "django_admin_site_search-1.1.0.tar.gz", hash = "sha256:86bd0c2a132ae0db353c29eb3eebe9ca92e9208db09f43ee99b30aaba03a4cf4"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+
+[[package]]
 name = "django-admin-sortable2"
 version = "2.2.4"
 description = "Generic drag-and-drop sorting for the List, the Stacked- and the Tabular-Inlines Views in the Django Admin"
@@ -2204,6 +2218,17 @@ type = "git"
 url = "https://github.com/SamuelJennings/django-setup-tools"
 reference = "HEAD"
 resolved_reference = "c6b5e92130304997c548507221b7ad0727656ed7"
+
+[[package]]
+name = "django-smuggler"
+version = "1.0.4"
+description = "Pluggable application for Django that helps you to import/export fixtures via the administration interface"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "django-smuggler-1.0.4.tar.gz", hash = "sha256:e53b02bdc48c94012950d5fa4e4b30bc4259e62fc986d22b9d571de1a45dcc80"},
+    {file = "django_smuggler-1.0.4-py2.py3-none-any.whl", hash = "sha256:49db0724d8b8ffb84e93581f12d363d4113f1b9ef07c74c1cdd63f8752397b8c"},
+]
 
 [[package]]
 name = "django-social-share"
@@ -6489,4 +6514,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "ff40bdc27fca74a80f5c09d9a7da88e3f3ec65cb825cb4c8d78232d6f33be4ed"
+content-hash = "da47462208bf8d0022a249b4d7c07af0349bf76ff5e9419b438966218d3acd9d"

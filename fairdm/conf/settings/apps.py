@@ -1,14 +1,18 @@
 INSTALLED_APPS = [
     # Admin apps
-    # "adminactions",
+    "adminactions",
+    "admin_site_search",
+    "smuggler",  # for importing data into the admin
     "admin_extra_buttons",
     # "modeltranslation",
+    "fairdm.contrib.admin.apps.FairDMAdminConfig",
     "admin_tools",
     "admin_tools.theming",
     "admin_tools.menu",
     "admin_tools.dashboard",
     # DJANGO CORE
-    "django.contrib.admin",
+    "fairdm.contrib.admin.apps.FairDMAdminSite",
+    # "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

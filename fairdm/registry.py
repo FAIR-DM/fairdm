@@ -99,7 +99,7 @@ class FairDMRegistry:
         actstream_registry.register(model_class)
 
     def register_admin(self, model_class):
-        from .admin import SampleAdmin
+        from fairdm.contrib.admin.admin import SampleAdmin
 
         with suppress(admin.sites.AlreadyRegistered):
             admin.site.register(model_class, SampleAdmin)

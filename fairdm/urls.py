@@ -1,7 +1,6 @@
 import adminactions.actions as actions
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.contrib.admin import site
 from django.urls import include, path, re_path
 from django.views import defaults as default_views
@@ -16,7 +15,7 @@ from fairdm.utils.views import DirectoryView
 actions.add_to_site(site)
 
 urlpatterns = [
-    path(settings.ADMIN_URL, admin.site.urls),
+    path("", include("fairdm.contrib.admin.urls")),
     path(r"jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("django-literature/", include("literature.urls")),
     path("", TemplateView.as_view(template_name="fairdm/pages/home.html"), name="home"),
