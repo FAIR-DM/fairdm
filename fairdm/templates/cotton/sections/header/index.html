@@ -61,17 +61,16 @@
           </ul>
         </nav>
       </div>
-      {% comment %} <c-pst.components.navbar.center class="flex-grow-1" /> {% endcomment %}
       <c-pst.components.navbar.end>
-        <c-pst.components.search-button-field />
+        <c-sections.header.search />
       </c-pst.components.navbar.end>
     </div>
     {# A search button to show up only on mobile #}
-    {% for navbar_item in theme_options.navbar_persistent %}
+    {% comment %} {% for navbar_item in theme_options.navbar_persistent %}
       <div class="navbar-persistent--mobile">
         <c-component :is="navbar_item" />
       </div>
-    {% endfor %}
+    {% endfor %} {% endcomment %}
     {% if not remove_sidebar_secondary and secondary_sidebar_items %}
       <button class="pst-navbar-icon sidebar-toggle secondary-toggle"
               aria-label="{% trans "On this page" %}">
