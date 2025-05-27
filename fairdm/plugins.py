@@ -170,7 +170,7 @@ class PluginRegistry:
             url_base = f"{slug}/" if slug else ""
             view_name = f"{registry_name}-{plugin_name}"  # e.g. dataset-overview
             self.attach_menu(plugin, view_name, category=category)
-            urls.append(path(url_base, plugin.as_view(menu=self.public_menu), name=view_name))
+            urls.append(path(url_base, plugin.as_view(menu=self.manage_menu), name=view_name))
         return urls
 
 
