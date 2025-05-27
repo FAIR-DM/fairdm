@@ -1,8 +1,10 @@
 <c-vars container_class="bd-article-container" />
 <c-layouts.base>
-  {% if sidebar_primary %}
+  {% if sidebar_primary and sidebar_primary.items %}
     <c-component :is="sidebar_primary.component"
                  :attrs="sidebar_primary" />
+  {% elif sidebar_primary %}
+    <c-sections.sidebar.primary class="invisible" />
   {% endif %}
   <c-pst.sections.main class="{{ main_class }}">
     <div class="bd-content {{ content_class }}">
@@ -18,10 +20,12 @@
           {{ article_footer }}
         </c-pst.sections.article.footer>
       </div>
-      {% if sidebar_secondary %}
+      {% if sidebar_secondary and sidebar_secondary.items %}
         <c-component :is="sidebar_secondary.component"
                      :attrs="sidebar_secondary"
                      only />
+      {% elif sidebar_secondary %}
+        <c-sections.sidebar.secondary class="invisible" />
       {% endif %}
     </div>
     <c-pst.sections.footer-content />
