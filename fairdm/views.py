@@ -11,7 +11,7 @@ from neapolitan.views import CRUDView
 
 from fairdm.contrib.contributors.utils import current_user_has_role
 from fairdm.contrib.identity.models import Database
-from fairdm.utils.view_mixins import FairDMBaseMixin, HTMXMixin
+from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, HTMXMixin
 
 
 @method_decorator(login_required, name="show_form")
@@ -157,7 +157,13 @@ class FairDMDetailView(FairDMBaseMixin, DetailView):
         return f"{value} · {title}"
 
 
-class FairDMCreateView(LoginRequiredMixin, FairDMBaseMixin, CreatePopupMixin, CreateView):
+class FairDMCreateView(
+    LoginRequiredMixin,
+    FairDMBaseMixin,
+    FairDMModelFormMixin,
+    CreatePopupMixin,
+    CreateView,
+):
     """
     The base class for creating objects within the FairDM framework.
     """

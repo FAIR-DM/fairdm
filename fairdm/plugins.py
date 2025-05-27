@@ -1,4 +1,3 @@
-from django import forms
 from django.db.models.base import Model as Model
 from django.urls import path
 from django.utils.text import slugify
@@ -6,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
 from flex_menu import Menu, MenuItem
 
-from fairdm.utils.view_mixins import FairDMBaseMixin, RelatedObjectMixin
+from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, RelatedObjectMixin
 
 EXPLORE = _("Explore")
 ACTIONS = _("Actions")
@@ -65,10 +64,8 @@ class GenericPlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
         return f"{self.title} - {self.base_object}"
 
 
-class ModelFormPlugin(GenericPlugin):
+class ModelFormPlugin(FairDMModelFormMixin, GenericPlugin):
     menu = None
-    form_class = None
-    fields = None
 
     @property
     def model(self):
@@ -85,21 +82,6 @@ class ModelFormPlugin(GenericPlugin):
                 "cotton/layouts/plugin/form.html",
             ]
         return super().get_template_names()
-
-    def get_form_class(self, form_class=None):
-        """Return an instance of the form to be used in this view."""
-        model = self.form_class._meta.model or self.model
-        if self.fields and self.form_class:
-            return forms.modelform_factory(
-                self.model,
-                form=self.form_class,
-                fields=self.fields,
-            )
-        elif self.form_class:
-            return self.form_class
-        elif getattr(self.base_object, "config", None):
-            return self.base_object.config.get_form_class()
-        return super().get_form_class(form_class)
 
     def get_object(self, queryset=None):
         return self.base_object

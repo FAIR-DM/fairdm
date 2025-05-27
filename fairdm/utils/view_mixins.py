@@ -1,5 +1,6 @@
 from functools import cached_property
 
+from django import forms
 from django.shortcuts import get_object_or_404
 from meta.views import MetadataMixin
 
@@ -82,6 +83,37 @@ class FairDMBaseMixin(MetadataMixin):
     def get_meta_title(self, context):
         context["title"] = self.title
         return f"{self.title} - {Database.get_solo().safe_translation_getter('name')}"
+
+
+class FairDMModelFormMixin:
+    """
+    A mixin class to provide dynamic form class generation for Django model forms.
+    Attributes:
+        model (Model): The Django model associated with the form.
+        form_class (Form): The base form class to use for form generation.
+        fields (list or tuple): The fields to include in the generated form.
+    Methods:
+        get_form_class():
+            Returns a form class for the associated model. If both `fields` and `form_class` are set,
+            it uses `forms.modelform_factory` to create a form class with the specified fields and base form.
+            If the `base_object` has a `config` attribute with a `get_form_class` method (e.g. registered samples/measurements), it delegates form class
+            retrieval to that method. Otherwise, it falls back to the superclass implementation.
+    """
+
+    model = None
+    form_class = None
+    fields = None
+
+    def get_form_class(self):
+        if self.fields and self.form_class:
+            return forms.modelform_factory(
+                self.model,
+                form=self.form_class,
+                fields=self.fields,
+            )
+        elif getattr(self.base_object, "config", None):
+            return self.base_object.config.get_form_class()
+        return super().get_form_class()
 
 
 class RelatedObjectMixin:
