@@ -3,17 +3,47 @@ from django.utils.translation import gettext as _
 from django_filters import FilterSet
 
 from fairdm import plugins
-from fairdm.core.plugins import ActivityPlugin, DatasetPlugin, OverviewPlugin, ProjectPlugin
+from fairdm.core.plugins import (
+    ActivityPlugin,
+    ContactPlugin,
+    DatasetPlugin,
+    ManageBaseObjectPlugin,
+    OverviewPlugin,
+    ProjectPlugin,
+    SharePlugin,
+)
 from fairdm.views import FairDMListView
 
+from .forms.person import UserProfileForm
 from .models import Contribution
 
+
+@plugins.contributor.register()
+class Overview(OverviewPlugin):
+    title = False
+    description = _(
+        "This overview provides a summary of the contributors involved in the project, dataset, or activity. It includes key information about each contributor, such as their roles, contributions, and affiliations."
+    )
+    menu_item = {
+        "name": _("Overview"),
+        "icon": "user-circle",
+    }
+
+
 plugins.contributor.register(
-    OverviewPlugin,
     ProjectPlugin,
     DatasetPlugin,
     ActivityPlugin,
+    ContactPlugin,
+    SharePlugin,
 )
+
+
+@plugins.contributor.register()
+class Profile(ManageBaseObjectPlugin):
+    title = _("Profile")
+    form_class = UserProfileForm
+    fields = ["image", "name", "lang", "profile"]
 
 
 class ContributorsPlugin(plugins.Explore, FairDMListView):
