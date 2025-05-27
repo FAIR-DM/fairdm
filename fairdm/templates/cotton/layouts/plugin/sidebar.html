@@ -1,6 +1,7 @@
 {% load flex_menu %}
 
-<c-pst.sections.sidebar id="pst-primary-sidebar" :attrs="attrs">
+<c-vars title="" />
+<c-sections.sidebar.primary :attrs="attrs">
   {% if base_object %}
     {% render_menu menu uuid=base_object.uuid %}
   {% else %}
