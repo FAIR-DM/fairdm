@@ -66,6 +66,10 @@ class GenericPlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
 
 class ModelFormPlugin(FairDMModelFormMixin, GenericPlugin):
     menu = None
+    sidebar_primary = {
+        "component": "layouts.plugin.management-sidebar",
+        "collapsible": False,
+    }
 
     @property
     def model(self):
@@ -154,12 +158,12 @@ class PluginRegistry:
     def get_urls(self):
         """Returns all URL patterns for explore, actions, and manage plugins."""
         urls = []
-        urls.extend(self._get_urls(EXPLORE))
-        urls.extend(self._get_urls(ACTIONS))
-        urls.extend(self._get_urls(MANAGE))
+        urls.extend(self._get_urls(EXPLORE, menu=self.public_menu))
+        urls.extend(self._get_urls(ACTIONS, menu=self.public_menu))
+        urls.extend(self._get_urls(MANAGE, menu=self.manage_menu))
         return urls
 
-    def _get_urls(self, category):
+    def _get_urls(self, category, menu):
         """Returns all URL patterns for a given plugin list."""
         urls = []
         plugin_list = self.plugins[category]
@@ -170,7 +174,7 @@ class PluginRegistry:
             url_base = f"{slug}/" if slug else ""
             view_name = f"{registry_name}-{plugin_name}"  # e.g. dataset-overview
             self.attach_menu(plugin, view_name, category=category)
-            urls.append(path(url_base, plugin.as_view(menu=self.manage_menu), name=view_name))
+            urls.append(path(url_base, plugin.as_view(menu=menu), name=view_name))
         return urls
 
 
