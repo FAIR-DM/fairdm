@@ -1,9 +1,13 @@
 {% load static partials crispy_forms_tags %}
 
-<c-layouts.form>
+<c-layouts.form sidebar_primary sidebar_secondary>
   {{ form.media.css }}
-  {% if title %}<c-text.title title="{{ title }}" hr />{% endif %}
-  {% if view.help_text %}{{ view.help_text }}{% endif %}
+  <c-text.heading text="{{ title }}" />
+  {% if view.help_text %}
+    <c-sections.info-block class="mb-3">
+      {{ view.help_text }}
+    </c-sections.info-block>
+  {% endif %}
   <form method="post"
         {% if request.htmx.target %}hx-target="#{{ request.htmx.target }}"{% endif %}>
     {% csrf_token %}
