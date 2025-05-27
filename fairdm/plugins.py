@@ -60,6 +60,7 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
 
 class BaseFormPlugin(FairDMModelFormMixin, BasePlugin):
     menu = None
+    sidebar_secondary = True
 
     @property
     def model(self):
@@ -68,10 +69,10 @@ class BaseFormPlugin(FairDMModelFormMixin, BasePlugin):
     def get_template_names(self):
         if self.template_name is not None:
             return [self.template_name]
-
-        if self.model is not None and self.template_name_suffix is not None:
+        cname = self.__class__.__name__.lower()
+        if self.model is not None:
             return [
-                f"{self.model._meta.app_label}/{self.model._meta.object_name.lower()}{self.template_name_suffix}.html",
+                f"{self.model._meta.app_label}/{self.model._meta.object_name.lower()}{cname}.html",
                 # "fairdm_core/sample{self.template_name_suffix}.html",
                 "cotton/layouts/plugin/form.html",
             ]
