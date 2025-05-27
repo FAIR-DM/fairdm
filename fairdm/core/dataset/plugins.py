@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
@@ -7,7 +6,6 @@ from fairdm.contrib.contributors.plugins import ContributorsPlugin
 from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
 from fairdm.contrib.generic.views import UpdateCoreObjectBasicInfo
 from fairdm.core.plugins import ActivityPlugin, DiscussionPlugin, ManageBaseObjectPlugin, OverviewPlugin
-from fairdm.plugins import ModelFormPlugin
 from fairdm.utils.utils import user_guide
 
 from ..plugins import DataTablePlugin
@@ -21,7 +19,7 @@ class Overview(OverviewPlugin):
     fieldsets = DATASET_SETTINGS.get("detail", {}).get("info_block_fields", None)
 
 
-plugins.dataset.explore(
+plugins.dataset.register(
     Overview,
     ContributorsPlugin,
     DataTablePlugin,
@@ -31,7 +29,7 @@ plugins.dataset.explore(
 
 
 # ======== Management Plugins ======== #
-@plugins.dataset.actions()
+@plugins.dataset.register()
 class ManageDatasetPlugin(ManageBaseObjectPlugin):
     description = _(
         "Configure the dataset's metadata, including project, reference, license, and visibility. This is essential for ensuring that the dataset is properly categorized and accessible to the right audience."
@@ -41,13 +39,16 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
     fields = ["image", "project", "reference", "license", "visibility"]
 
 
-class UpdateBasicInformation(ModelFormPlugin, UpdateCoreObjectBasicInfo):
-    title = name = _("Basic Information")
+class UpdateBasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
+    title = _("Basic Information")
+    menu_item = {
+        "name": _("Basic Information"),
+        "icon": "info",
+    }
     description = _(
         "Descriptions provide additional context and information about the dataset, enhancing its discoverability and usability. By adding descriptions, you can help users understand the dataset's content, purpose, and any specific considerations they should be aware of when using it."
     )
     learn_more = user_guide("dataset/basic-information")
-    icon = "gear"
     form_class = DatasetForm
     fields = ["name"]
 
@@ -66,8 +67,7 @@ class EditDates(KeyDatesPlugin):
     inline_model = DatasetDate
 
 
-plugins.dataset.manage(
-    ManageDatasetPlugin,
+plugins.dataset.register(
     UpdateBasicInformation,
     KeywordsPlugin,
     EditDates,

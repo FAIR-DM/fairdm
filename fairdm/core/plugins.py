@@ -1,10 +1,10 @@
-import flex_menu
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
 from django.views.generic.base import TemplateView
 from render_fields.views import FieldsetsMixin
 
-from fairdm.plugins import GenericPlugin, ModelFormPlugin
+from fairdm import plugins
+from fairdm.core.filters import DatasetFilter, ProjectFilter
 from fairdm.utils.utils import feature_is_enabled
 from fairdm.views import FairDMListView
 
@@ -12,27 +12,35 @@ from .models import Dataset, Project
 from .views import DataTableView
 
 
-class DiscussionPlugin(GenericPlugin, TemplateView):
+class DiscussionPlugin(plugins.Explore, TemplateView):
     title = name = _("Discussion")
+    menu_item = {
+        "name": _("Discussion"),
+        "icon": "comments",
+    }
     menu_check = feature_is_enabled("ALLOW_DISCUSSIONS")
     icon = "comments"
     template_name = "plugins/discussion.html"
 
 
-class ActivityPlugin(GenericPlugin, TemplateView):
-    name = _("Activity")
+class ActivityPlugin(plugins.Explore, TemplateView):
     title = _("Recent Activity")
-    icon = "activity"
+    menu_item = {
+        "name": _("Activity"),
+        "icon": "activity",
+    }
     template_name = "plugins/activity_stream.html"
 
 
-class Images(GenericPlugin, TemplateView):
-    name = _("Images")
-    icon = "images"
+class Images(plugins.Explore, TemplateView):
+    menu_item = {
+        "name": _("Images"),
+        "icon": "images",
+    }
     template_name = "plugins/images.html"
 
 
-class OverviewPlugin(GenericPlugin, FieldsetsMixin, DetailView):
+class OverviewPlugin(plugins.Explore, FieldsetsMixin, DetailView):
     """
     A plugin for displaying an overview of a project or dataset.
 
@@ -45,9 +53,12 @@ class OverviewPlugin(GenericPlugin, FieldsetsMixin, DetailView):
     Note: this probably needs to be optimized to select related objects.
     """
 
+    title = _("Overview")
+    menu_item = {
+        "name": _("Overview"),
+        "icon": "overview",
+    }
     slug = ""
-    title = name = _("Overview")
-    icon = "overview"
 
     @property
     def model(self):
@@ -71,21 +82,24 @@ class OverviewPlugin(GenericPlugin, FieldsetsMixin, DetailView):
         return super().get_template_names()
 
 
-class ManageBaseObjectPlugin(ModelFormPlugin, UpdateView):
-    title = name = _("Configure")
-    icon = "gear"
+class ManageBaseObjectPlugin(plugins.Management, UpdateView):
+    title = _("Configure")
+    menu_item = {
+        "name": _("Configure"),
+        "icon": "gear",
+    }
 
     @staticmethod
     def check(request, instance, **kwargs):
         return request.user.is_superuser
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["menu"] = flex_menu.root[self.related_class.__name__]["Manage"]
-        return context
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context["menu"] = flex_menu.root[self.related_class.__name__]["Manage"]
+    #     return context
 
 
-class ProjectPlugin(GenericPlugin, FairDMListView):
+class ProjectPlugin(plugins.Explore, FairDMListView):
     """
     A plugin for displaying and filtering a list of projects related to a contributor.
 
@@ -101,31 +115,44 @@ class ProjectPlugin(GenericPlugin, FairDMListView):
     Note: This plugin requires a model method `projects` to retrieve the a Project queryset from the related object.
     """
 
-    title = name = _("Projects")
-    icon = "project"
+    title = _("Projects")
     model = Project
+    filterset_class = ProjectFilter
+    menu_item = {
+        "name": _("Projects"),
+        "icon": "project",
+    }
     card = "project.card"
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.projects.all()
 
 
-class DatasetPlugin(GenericPlugin, FairDMListView):
+class DatasetPlugin(plugins.Explore, FairDMListView):
     """
     A plugin for displaying and filtering datasets related to another entry in the database.
     """
 
-    title = name = _("Datasets")
-    icon = "dataset"
+    title = _("Datasets")
     model = Dataset
+    filterset_class = DatasetFilter
+    menu_item = {
+        "name": _("Datasets"),
+        "icon": "dataset",
+    }
     card = "dataset.card"
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.datasets.all()
 
 
-class DataTablePlugin(GenericPlugin, DataTableView):
-    title = name = _("Data")
+class DataTablePlugin(plugins.Explore, DataTableView):
+    title = _("Data")
+    menu_item = {
+        "name": _("Data"),
+        "icon": "data",
+    }
+    template_name = "plugins/data_table.html"
     menu_check = feature_is_enabled("SHOW_DATA_TABLES")
     icon = "sample"
     extra_context = {

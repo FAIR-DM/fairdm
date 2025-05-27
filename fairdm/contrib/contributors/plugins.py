@@ -4,12 +4,11 @@ from django_filters import FilterSet
 
 from fairdm import plugins
 from fairdm.core.plugins import ActivityPlugin, DatasetPlugin, OverviewPlugin, ProjectPlugin
-from fairdm.plugins import GenericPlugin
 from fairdm.views import FairDMListView
 
 from .models import Contribution
 
-plugins.contributor.explore(
+plugins.contributor.register(
     OverviewPlugin,
     ProjectPlugin,
     DatasetPlugin,
@@ -17,12 +16,15 @@ plugins.contributor.explore(
 )
 
 
-class ContributorsPlugin(GenericPlugin, FairDMListView):
+class ContributorsPlugin(plugins.Explore, FairDMListView):
     template_name = "contributors/contribution_list.html"
     model = Contribution
     filterset_fields = ["contributor__name"]
-    icon = "contributors"
-    title = name = _("Contributors")
+    menu_item = {
+        "name": _("Contributors"),
+        "icon": "contributors",
+    }
+    title = _("Contributors")
     grid_config = {"cols": 1, "gap": 2, "responsive": {"sm": 2, "md": 4}}
     card = "contributor.card.contribution"
 
