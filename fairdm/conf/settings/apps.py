@@ -109,5 +109,6 @@ INSTALLED_APPS = [
     "import_export",
     "render_fields",
     "django_addanother",
+    "waffle",
     *FAIRDM_APPS,
 ]
