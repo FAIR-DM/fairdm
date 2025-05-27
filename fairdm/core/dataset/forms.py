@@ -15,7 +15,7 @@ DEFAULT_LICENSE = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
 class DatasetForm(BaseForm):
     name = forms.CharField(
         label=_("Name"),
-        help_text=_("What is the name of this dataset?"),
+        help_text=_("Give your dataset a descriptive name that reflects its purpose and content."),
         required=True,
     )
     image = forms.ImageField(
@@ -35,11 +35,16 @@ class DatasetForm(BaseForm):
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(),
         label=_("Project"),
-        help_text=_("What project does this dataset belong to?"),
+        help_text=_("Does this dataset belong to a research project? If so, select the project here."),
         required=False,
     )
     license = forms.ModelChoiceField(
         queryset=License.objects.all(),
+    )
+    doi = forms.CharField(
+        label=_("DOI"),
+        help_text=_("If this dataset already has a DOI, you can enter it here."),
+        required=False,
     )
 
     class Meta:

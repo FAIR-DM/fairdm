@@ -11,6 +11,12 @@ from .models import Dataset
 class DatasetCreateView(FairDMCreateView):
     model = Dataset
     form_class = DatasetForm
+    title = _("Create a Dataset")
+    help_text = _(
+        "Create a new dataset to share with the community. Upload existing data or get started designing your next dataset from scratch."
+    )
+    learn_more = user_guide("datasets")
+    fields = ["image", "project", "name", "license"]
 
     def form_valid(self, form):
         response = super().form_valid(form)

@@ -11,6 +11,10 @@ from .forms import ProjectForm
 class ProjectCreateView(FairDMCreateView):
     model = Project
     form_class = ProjectForm
+    title = _("Create a Project")
+    help_text = _(
+        "Create a new research project to share with the community. Projects are a great way to group multiple datasets and organize your research."
+    )
 
     def form_valid(self, form):
         response = super().form_valid(form)
