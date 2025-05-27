@@ -63,7 +63,6 @@ FAIRDM_CONFIG = {
         "pst.components.navbar-icon-links",
         "dac.sections.user-sidebar.toggle",
     ],
-    "navbar_persistent": ["pst.components.search-button-field"],
     # "primary_sidebar_end": ["custom-template", "sidebar-ethical-ads"],
     # "article_footer_items": ["test", "test"],
     # "content_footer_items": ["test", "test"],
