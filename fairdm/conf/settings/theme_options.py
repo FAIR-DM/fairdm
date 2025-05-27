@@ -52,9 +52,17 @@ FAIRDM_CONFIG = {
         "image_light": "img/brand/fairdm.svg",
     },
     "announcement": "",
-    "navbar_start": ["pst.components.navbar-logo"],
-    "navbar_center": ["pst.components.navbar-nav"],
-    "navbar_end": ["pst.components.theme-switcher", "pst.components.navbar-icon-links", "dac.sections.user-sidebar"],
+    "navbar_start": [
+        "pst.components.navbar-logo",
+    ],
+    "navbar_center": [
+        "pst.components.navbar-nav",
+    ],
+    "navbar_end": [
+        "pst.components.theme-switcher",
+        "pst.components.navbar-icon-links",
+        "dac.sections.user-sidebar.toggle",
+    ],
     "navbar_persistent": ["pst.components.search-button-field"],
     # "primary_sidebar_end": ["custom-template", "sidebar-ethical-ads"],
     # "article_footer_items": ["test", "test"],
