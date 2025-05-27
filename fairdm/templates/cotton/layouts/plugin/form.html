@@ -4,7 +4,7 @@
   {{ form.media.css }}
   {% if title %}<c-text.heading text="{{ title }}" compact class="mb-3" />{% endif %}
   {% if meta.description %}
-    <c-sections.info-block class="mb-3">
+    <c-sections.info-block>
       <p>{{ meta.description }}</p>
       {% if learn_more %}
         <c-components.link href="{{ learn_more }}"
