@@ -5,8 +5,10 @@ from flex_menu import Menu, MenuItem
 
 
 def get_contributor_url(request):
-    return reverse_lazy("contributor-overview", args=[request.user.id])
-    # doesn't work because AnonymousUser doesn't have an uuid
+    if request.user.is_authenticated:
+        # Use the user's UUID for authenticated users
+        return reverse_lazy("contributor-overview", args=[request.user.uuid])
+    return "/"
 
 
 AccountMenu.insert(
