@@ -60,11 +60,6 @@ class BaseModel(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-    @classproperty
-    def config(cls):
-        """Gets the FairDM configuration object for a class or instance from the registry."""
-        return registry.get_model(cls)["config"]
-
     @property
     def title(self):
         return self.name
@@ -136,6 +131,11 @@ class BasePolymorphicModel(ShowFieldType, PolymorphicModel, BaseModel):
     def get_absolute_url(self):
         type_of = self.type_of.__name__.lower()
         return reverse(f"{type_of}-overview", kwargs={"uuid": self.uuid})
+
+    @classproperty
+    def config(cls):
+        """Gets the FairDM configuration object for a class or instance from the registry."""
+        return registry.get_model(cls)["config"]
 
     class Meta:
         abstract = True
