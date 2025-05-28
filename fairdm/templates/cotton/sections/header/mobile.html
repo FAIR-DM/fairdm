@@ -18,7 +18,7 @@
                                   style="--pst-header-height: 6rem" />
     <c-pst.components.search-button-field class="justify-content-center mx-auto w-75 mb-4" />
     <c-components.menu>
-      {% process_menu "DatabaseMenu" as site_menu %}
+      {% process_menu "SiteNavigation" as site_menu %}
       <c-components.menu.group text="{% trans "Site navigation" %}" />
       {% for item in site_menu %}
         <c-bs5.navbar.link-item href="{{ item.url }}" text="{{ item.name }}">
