@@ -64,11 +64,11 @@ class FairDMConfig(AppConfig):
         Populates the data collection menu with sample types and their respective views.
         This function is called during the `FairDMConfig.ready` method.
         """
-        # from fairdm.menus import DatabaseMenu, get_measurement_menu_items, get_sample_menu_items
+        # from fairdm.menus import SiteNavigation, get_measurement_menu_items, get_sample_menu_items
 
-        # DatabaseMenu.insert(
+        # SiteNavigation.insert(
         #     [*get_sample_menu_items(), *get_measurement_menu_items()],
         #     position=2,
         # )
 
-        # print(DatabaseMenu.get("DataCollectionsMenu").children)
+        # print(SiteNavigation.get("DataCollectionsMenu").children)

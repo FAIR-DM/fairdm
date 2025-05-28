@@ -43,8 +43,8 @@ def get_measurement_menu_items():
     return measurement_menu_items
 
 
-DatabaseMenu = Menu(
-    "DatabaseMenu",
+SiteNavigation = Menu(
+    "SiteNavigation",
     label=_("Database"),
     root_template="fairdm/menus/site_navigation.html",
     template="fairdm/menus/database/menu.html",
