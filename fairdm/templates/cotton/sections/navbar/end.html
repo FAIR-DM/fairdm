@@ -1,0 +1,21 @@
+<style>
+  html .pst-navbar-icon::before {
+    content: unset;
+  }
+</style>
+<c-pst.components.navbar.end>
+  <c-sections.navbar.search />
+  <div class="navbar-item hstack gap-3">
+    <c-pst.components.theme-switcher />
+    {% if theme_options.documentation_url %}
+      <c-sections.navbar.icon-link href="{{ theme_options.documentation_url }}"
+                                   text="{% trans "Portal Documentation" %}"
+                                   icon="documentation" />
+    {% endif %}
+    {% if theme_options.repository_url %}
+      <c-sections.navbar.icon-link href="{{ theme_options.repository_url }}"
+                                   text="{% trans "GitHub Repository" %}"
+                                   icon="github" />
+    {% endif %}
+  </div>
+</c-pst.components.navbar.end>

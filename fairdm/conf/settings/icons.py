@@ -42,6 +42,7 @@ EASY_ICONS = {
         "ellipsis": "fas fa-ellipsis-v",
         # "facebook": "facebook.svg",
         "filter": "fas fa-filter",
+        "github": "fab fa-github",
         "globe": "fas fa-globe",
         "grid": "grid.svg",
         "home": "fas fa-home",

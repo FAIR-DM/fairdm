@@ -1,0 +1,45 @@
+<c-vars :collapse_after="theme_options.header_links_before_dropdown" />
+<div class="navbar-header-items__center flex-grow-1">
+  <nav>
+    <ul class="bd-navbar-elements navbar-nav">
+      {% for item in menu %}
+        {% if item.visible and forloop.counter0 < collapse_after %}
+          <c-pst.components.navbar.nav-item :current="item.active"
+                                            href="{{ item.url }}"
+                                            text="{{ item.label }}" />
+        {% endif %}
+      {% endfor %}
+      {% comment %} Handle overflow as dropdown {% endcomment %}
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle"
+           href="#"
+           role="button"
+           data-bs-toggle="dropdown"
+           aria-expanded="false">More</a>
+        <ul class="dropdown-menu">
+          {% for item in menu %}
+            {% if item.visible and forloop.counter0 >= collapse_after %}
+              <c-bs5.dropdown.item :active="item.active"
+                                   href="{{ item.url }}"
+                                   text="{{ item.label }}" />
+            {% endif %}
+          {% endfor %}
+          <li>
+            <hr class="dropdown-divider" />
+          </li>
+          <li>
+            <h6 class="dropdown-header">{% trans "External Links" %}</h6>
+          </li>
+          {% for item in theme_options.external_links %}
+            <c-bs5.dropdown.item class="nav-link nav-external"
+                                 href="{{ item.url }}"
+                                 text="{{ item.name }}" />
+          {% endfor %}
+          <c-bs5.dropdown.item class="nav-link nav-external"
+                               href="https://fairdm.com/"
+                               text="FairDM Framework" />
+        </ul>
+      </li>
+    </ul>
+  </nav>
+</div>
