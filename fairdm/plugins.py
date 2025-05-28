@@ -57,6 +57,20 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
         context["title"] = self.title
         return f"{self.title} - {self.base_object}"
 
+    @classmethod
+    def get_slug(cls):
+        return cls.slug or slugify(cls.menu_item.get("name") or cls.__name__)
+
+    @classmethod
+    def get_view_name(cls, registry_name):
+        return f"{slugify(registry_name)}-{cls.get_slug()}"
+
+    @classmethod
+    def get_urls(cls, registry_name, menu):
+        view_name = cls.get_view_name(registry_name)
+        url_base = f"{cls.get_slug()}/"
+        return [path(url_base, cls.as_view(menu=menu), name=view_name)], view_name
+
 
 class BaseFormPlugin(FairDMModelFormMixin, BasePlugin):
     menu = None
@@ -176,19 +190,28 @@ class PluginRegistry:
         return urls
 
     def _get_urls(self, category, menu):
-        """Returns all URL patterns for a given plugin list."""
         urls = []
         plugin_list = self.plugins[category]
         for plugin in plugin_list:
-            plugin_name = plugin.menu_item.get("name", False) or plugin.__class__.__name__.lower()
-            plugin_slug = slugify(plugin_name)  # e.g. "overview" for class Overview(BasePlugin):
-            registry_name = slugify(self.name)
-            slug = plugin_slug if plugin.slug is None else plugin.slug
-            url_base = f"{slug}/" if slug else ""
-            view_name = f"{registry_name}-{plugin_slug}"  # e.g. dataset-overview
-            self.attach_menu(plugin, view_name)
-            urls.append(path(url_base, plugin.as_view(menu=menu), name=view_name))
+            plugin_urls, main_view_name = plugin.get_urls(self.name, menu)
+            self.attach_menu(plugin, main_view_name)
+            urls.extend(plugin_urls)
         return urls
+
+    # def _get_urls(self, category, menu):
+    #     """Returns all URL patterns for a given plugin list."""
+    #     urls = []
+    #     plugin_list = self.plugins[category]
+    #     for plugin in plugin_list:
+    #         plugin_name = plugin.menu_item.get("name", False) or plugin.__class__.__name__.lower()
+    #         plugin_slug = slugify(plugin_name)  # e.g. "overview" for class Overview(BasePlugin):
+    #         registry_name = slugify(self.name)
+    #         slug = plugin_slug if plugin.slug is None else plugin.slug
+    #         url_base = f"{slug}/" if slug else ""
+    #         view_name = f"{registry_name}-{plugin_slug}"  # e.g. dataset-overview
+    #         self.attach_menu(plugin, view_name)
+    #         urls.append(path(url_base, plugin.as_view(menu=menu), name=view_name))
+    #     return urls
 
 
 dataset = PluginRegistry(name="Dataset")
