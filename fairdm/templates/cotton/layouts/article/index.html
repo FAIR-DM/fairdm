@@ -7,11 +7,12 @@
     <c-sections.sidebar.primary class="invisible" />
   {% endif %}
   <c-pst.sections.main class="{{ main_class }}">
+    {{ article_header }}
     <div class="bd-content {{ content_class }}">
       <div class="{{ container_class }}">
-        <c-layouts.article.header>
-          {{ actions }}
-        </c-layouts.article.header>
+        {% comment %} <c-layouts.article.header>
+          {{ article_header }}
+        </c-layouts.article.header> {% endcomment %}
         <c-pst.components.searchbox />
         <c-pst.sections.article>
           {{ slot }}

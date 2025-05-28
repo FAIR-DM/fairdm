@@ -1,10 +1,9 @@
 <c-bs5.card class="fdm-card border-0">
   <c-bs5.card.body class="pb-2 ">
     {% if obj.image %}
-      <img class="rounded-2 ms-3 mb-3 float-end"
+      <img class="rounded-2 ms-3 mb-3 col-md-5 float-end"
            src="{{ obj.image.url }}"
-           alt=""
-           width="30%" />
+           alt="" />
     {% endif %}
     <h2 class="card-title fs-5 text-truncate">{{ title }}</h2>
     <c-contributor.names class="card-lead fs-6 text-secondary mb-1"
@@ -22,7 +21,7 @@
                        href="{{ obj.get_absolute_url }}"
                        text="{{ view_details_text }}" />
     <c-components.link icon="comments"
-                       href="{% url "dataset-discussion" uuid=obj.uuid %}"
+                       href="{% url "dataset:discussion" uuid=obj.uuid %}"
                        text="{% trans "Comments" %}" />
     <c-widgets.follow :object="obj" :user="request.user" show_text />
     <c-widgets.share />

@@ -139,7 +139,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("contributor-overview", kwargs={"uuid": self.uuid})
+        return reverse("contributor:overview", kwargs={"uuid": self.uuid})
 
     def get_update_url(self):
         return reverse("contributor-update", kwargs={"uuid": self.uuid})
@@ -206,12 +206,12 @@ class Person(AbstractUser, Contributor):
     objects = UserManager()  # type: ignore[var-annotated]
 
     # Override the default AbstractUser date_joined, and is_active fields to default to None. We manually set these fields on user sign up so we know which profiles are active community members and which are not.
-    date_joined = models.DateTimeField(_("date joined"), null=True, blank=True, default=None)
-    is_active = models.BooleanField(
-        _("active"),
-        default=False,
+    member_since = models.DateTimeField(_("member since"), null=True, blank=True, default=None)
+    is_member = models.BooleanField(
+        _("member"),
+        default=True,
         help_text=_(
-            "Designates whether this user should be treated as active. Unselect this instead of deleting accounts."
+            "Designates whether this user is an active member of the community or has been added by another process. "
         ),
     )
 
@@ -268,7 +268,7 @@ class Person(AbstractUser, Contributor):
         return self.organization.location
 
     def get_absolute_url(self):
-        return reverse("contributor-overview", kwargs={"uuid": self.uuid})
+        return reverse("contributor:overview", kwargs={"uuid": self.uuid})
 
     @property
     def given(self):
@@ -297,6 +297,28 @@ class Person(AbstractUser, Contributor):
         person = contributor_from_orcid_data(data, person)
 
         return person
+
+    def as_geojson(self):
+        """Returns the organization as a GeoJSON object."""
+        aff = self.primary_affiliation()
+        if aff:
+            org = aff.organization
+            return json.dumps(
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [org.lon, org.lat],
+                    },
+                    "properties": {
+                        "name": self.name,
+                        "description": self.profile,
+                        "icon": self.icon(),
+                        "url": self.get_absolute_url(),
+                    },
+                },
+                default=float,
+            )
 
 
 class OrganizationMember(models.Model):

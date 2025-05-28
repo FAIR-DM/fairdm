@@ -2,16 +2,17 @@
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
-from django.views.generic import FormView, UpdateView
+from django.views.generic import UpdateView
 
 from fairdm.utils.view_mixins import RelatedObjectMixin
+from fairdm.views import FairDMCreateView
 
 from .. import utils
 from ..forms.forms import RemoteContributionForm
 from ..models import Contribution, Contributor
 
 
-class AddContributionView(RelatedObjectMixin, LoginRequiredMixin, FormView):
+class ContributionCreateView(RelatedObjectMixin, FairDMCreateView):
     """Adds a new Contribution to a Project, Dataset, Sample or Measurement. Used with htmx requests predominantly from
     the Contribution Plugin on detail pages.
 
@@ -22,6 +23,11 @@ class AddContributionView(RelatedObjectMixin, LoginRequiredMixin, FormView):
 
     form_class = RemoteContributionForm
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["base_object"] = self.base_object
+        return context
+
     def form_valid(self, form):
         data = form.cleaned_data["data"]
         if data.get("orcid-identifier"):
@@ -31,12 +37,8 @@ class AddContributionView(RelatedObjectMixin, LoginRequiredMixin, FormView):
         else:
             contributor = Contributor.objects.get(uuid=data["id"]).get_real_instance()
 
-        # contribution = Contribution(contributor=contributor)
         contribution = self.base_object.add_contributor(contributor, with_roles=["ProjectMember"])
         return render(self.request, "contributors/contribution.html", {"contributor": contribution})
-
-    # def form_invalid(self, form):
-    #     return render(self.request, "contributors/contribution.html#error", {"object": c})
 
 
 class EditContributionView(LoginRequiredMixin, UpdateView):

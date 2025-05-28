@@ -1,9 +1,9 @@
-<c-vars card_component />
+<c-vars card />
 {% if paginator.num_pages > 1 %}<c-components.paginator />{% endif %}
 <c-bs5.grid cols="1" id="itemList" :attrs="attrs">
   {% for obj in object_list %}
     <div class="col">
-      <c-component :is="card_component" />
+      <c-component :is="card" />
     </div>
   {% endfor %}
 </c-bs5.grid>

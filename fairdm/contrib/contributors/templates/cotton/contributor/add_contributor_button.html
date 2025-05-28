@@ -1,0 +1,6 @@
+<c-components.link href="{% url "contribution-create" uuid=base_object.uuid %}?for=person"
+                   icon="plus"
+                   text="{% trans "Person" %}" />
+<c-components.link href="{% url "contribution-create" uuid=base_object.uuid %}?for=organization"
+                   icon="plus"
+                   text="{% trans "Organization" %}" />

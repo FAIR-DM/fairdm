@@ -7,7 +7,7 @@ from flex_menu import Menu, MenuItem
 def get_contributor_url(request):
     if request.user.is_authenticated:
         # Use the user's UUID for authenticated users
-        return reverse_lazy("contributor-overview", args=[request.user.uuid])
+        return reverse_lazy("contributor:overview", args=[request.user.uuid])
     return "/"
 
 

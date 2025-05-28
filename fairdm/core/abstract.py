@@ -65,7 +65,7 @@ class BaseModel(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse(f"{self._meta.model_name}-overview", kwargs={"uuid": self.uuid})
+        return reverse(f"{self._meta.model_name}:overview", kwargs={"uuid": self.uuid})
 
     def get_api_url(self):
         return reverse(f"api:{self._meta.model_name}-detail", kwargs={"uuid": self.uuid})

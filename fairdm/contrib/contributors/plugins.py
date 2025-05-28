@@ -1,4 +1,4 @@
-from django.db.models.base import Model as Model
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django_filters import FilterSet
 
@@ -47,15 +47,22 @@ class Profile(ManageBaseObjectPlugin):
 
 
 class ContributorsPlugin(plugins.Explore, FairDMListView):
-    template_name = "contributors/contribution_list.html"
+    # template_name = "contributors/contribution_list.html"
     model = Contribution
+    title = _("Contributors")
     filterset_fields = ["contributor__name"]
     menu_item = {
         "name": _("Contributors"),
         "icon": "contributors",
     }
-    title = _("Contributors")
-    grid_config = {"cols": 1, "gap": 2, "responsive": {"sm": 2, "md": 4}}
+    grid_config = {
+        "cols": 1,
+        "gap": 2,
+        "responsive": {"sm": 2, "md": 4},
+    }
+    actions = [
+        "contributor.add-contributor-button",
+    ]
     card = "contributor.card.contribution"
 
     def get_filterset_class(self):
@@ -66,5 +73,21 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["object"] = self.base_object
+        # context["object"] = self.base_object
+        context["create_url"] = (
+            self.get_create_url()
+            + f"?{self.base_object.__class__.__name__.lower()}={self.base_object.id}&next={self.request.path}"
+        )
         return context
+
+    def get_create_url(self):
+        """
+        Returns the URL for creating a new dataset.
+        """
+        return reverse("contribution-create", kwargs={"uuid": self.base_object.uuid})
+
+    # @classmethod
+    # def get_urls(cls, menu):
+    #     urls, view_name = super().get_urls(registry_name, menu)
+    #     urls.extend([path("edit/", cls.as_view(menu=menu), name=f"{view_name}-edit")])
+    #     return urls, view_name

@@ -1,10 +1,14 @@
 <c-vars id />
-<div class="custom-slider-wrapper position-relative hstack justify-content-center pb-3 w-100 container">
+{% comment %} <style>
+   .swiper-wrapper {
+     height: auto !important;
+   }
+ </style> {% endcomment %}
+<div class="custom-slider-wrapper position-relative hstack justify-content-center pb-3 w-100">
   <div id="{{ id }}-prev"
        class="swiper-button-prev position-static me-2"></div>
-  <div id="{{ id }}"
-       class="swiper mySwiper row-cols-1 row-cols-md-3">
-    <div class="swiper-wrapper col">{{ slot }}</div>
+  <div id="{{ id }}" class="swiper mySwiper ">
+    <div class="swiper-wrapper row-cols-1 row-cols-md-3">{{ slot }}</div>
   </div>
   <div id="{{ id }}-next"
        class="swiper-button-next position-static ms-2"></div>
@@ -14,7 +18,6 @@
 <script>
   var swiper = new Swiper("#{{ id }}", {
     slidesPerView: "auto",
-    spaceBetween: 10,
     navigation: {
       nextEl: "#{{ id }}-next",
       prevEl: "#{{ id }}-prev",

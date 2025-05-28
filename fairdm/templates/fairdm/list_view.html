@@ -17,6 +17,7 @@
   </div> {% endcomment %}
   {% comment %} text="{{ object_verbose_name_plural|title }}" {% endcomment %}
   <c-text.heading level="1" text="{{ title }}">
+    {% for action in actions %}<c-component :is="action" />{% endfor %}
     {% if about %}
       <c-components.button icon="info"
                            text="{% trans "About" %}"
@@ -31,7 +32,7 @@
                          data-bs-target="#{{ sidebar_id }}"
                          aria-controls="{{ sidebar_id }}" />
   </c-text.heading>
-  <c-sections.object-list :attrs="grid_config" card_component="{{ card }}" />
+  <c-sections.object-list :attrs="grid_config" card="{{ card }}" />
 </c-layouts.article>
 {% if about %}
   <c-components.modal.show-once id="{{ info_modal_id }}"

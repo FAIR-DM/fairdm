@@ -42,6 +42,7 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
     menu_item = {}
     menu = None
     slug = None  # slug for the URL, if not set, it will be derived from the class name
+    path = ""  # slug for the URL, if not set, it will be derived from the class name
     icon = None
     check = True
     learn_more = ""
@@ -58,18 +59,14 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
         return f"{self.title} - {self.base_object}"
 
     @classmethod
-    def get_slug(cls):
-        return cls.slug or slugify(cls.menu_item.get("name") or cls.__name__)
+    def get_path(cls):
+        return cls.path or slugify(cls.menu_item.get("name") or cls.__name__)
 
     @classmethod
-    def get_view_name(cls, registry_name):
-        return f"{slugify(registry_name)}-{cls.get_slug()}"
-
-    @classmethod
-    def get_urls(cls, registry_name, menu):
-        view_name = cls.get_view_name(registry_name)
-        url_base = f"{cls.get_slug()}/"
-        return [path(url_base, cls.as_view(menu=menu), name=view_name)], view_name
+    def get_urls(cls, menu):
+        view_name = f"{cls.get_path()}"
+        subpath = f"{cls.get_path()}"
+        return [path(subpath + "/", cls.as_view(menu=menu), name=subpath)], subpath
 
 
 class BaseFormPlugin(FairDMModelFormMixin, BasePlugin):
@@ -145,7 +142,7 @@ class PluginRegistry:
                             name=_(f"Manage {name}"),
                             icon="gear",
                             check=check_has_edit_permission,
-                            view_name=f"{name.lower()}-configure",
+                            view_name=f"{name.lower()}:configure",
                         )
                     ],
                 ),
@@ -172,7 +169,7 @@ class PluginRegistry:
     def attach_menu(self, plugin, view_name):
         menu_item = MenuItem(
             **plugin.menu_item,
-            view_name=view_name,
+            view_name=f"{self.name.lower()}:{view_name}",
             check=plugin.check,
         )
 
@@ -193,7 +190,7 @@ class PluginRegistry:
         urls = []
         plugin_list = self.plugins[category]
         for plugin in plugin_list:
-            plugin_urls, main_view_name = plugin.get_urls(self.name, menu)
+            plugin_urls, main_view_name = plugin.get_urls(menu)
             self.attach_menu(plugin, main_view_name)
             urls.extend(plugin_urls)
         return urls

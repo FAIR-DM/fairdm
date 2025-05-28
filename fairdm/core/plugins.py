@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
 from django.views.generic.base import TemplateView
@@ -6,11 +7,10 @@ from django_contact_form.views import ContactFormView
 from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
-from fairdm.core.filters import DatasetFilter, ProjectFilter
 from fairdm.utils.utils import feature_is_enabled
-from fairdm.views import FairDMListView
 
-from .models import Dataset, Project
+from .dataset.views import DatasetListView
+from .project.views import ProjectListView
 from .views import DataTableView
 
 
@@ -117,13 +117,8 @@ class ManageBaseObjectPlugin(plugins.Management, UpdateView):
     def check(request, instance, **kwargs):
         return request.user.is_superuser
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context["menu"] = flex_menu.root[self.related_class.__name__]["Manage"]
-    #     return context
 
-
-class ProjectPlugin(plugins.Explore, FairDMListView):
+class ProjectPlugin(plugins.Explore, ProjectListView):
     """
     A plugin for displaying and filtering a list of projects related to a contributor.
 
@@ -139,35 +134,42 @@ class ProjectPlugin(plugins.Explore, FairDMListView):
     Note: This plugin requires a model method `projects` to retrieve the a Project queryset from the related object.
     """
 
-    title = _("Projects")
-    model = Project
-    filterset_class = ProjectFilter
     menu_item = {
         "name": _("Projects"),
         "icon": "project",
     }
-    card = "project.card"
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.projects.all()
 
 
-class DatasetPlugin(plugins.Explore, FairDMListView):
+class DatasetPlugin(plugins.Explore, DatasetListView):
     """
     A plugin for displaying and filtering datasets related to another entry in the database.
     """
 
-    title = _("Datasets")
-    model = Dataset
-    filterset_class = DatasetFilter
     menu_item = {
         "name": _("Datasets"),
         "icon": "dataset",
     }
-    card = "dataset.card"
+    actions = ["dataset.create-button"]
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.datasets.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["create_url"] = (
+            self.get_create_url()
+            + f"?{self.base_object.__class__.__name__.lower()}={self.base_object.id}&next={self.request.path}"
+        )
+        return context
+
+    def get_create_url(self):
+        """
+        Returns the URL for creating a new dataset.
+        """
+        return reverse("dataset-create")
 
 
 class DataTablePlugin(plugins.Explore, DataTableView):
