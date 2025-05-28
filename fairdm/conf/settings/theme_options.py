@@ -19,6 +19,7 @@ FAIRDM_CONFIG = {
             "fdm.dashboard.fairdm-framework",
         ],
     },
+    "welcome_message": "Welcome to FairDM!",
     "external_links": [
         {
             "url": "https://fairdm.com/",
