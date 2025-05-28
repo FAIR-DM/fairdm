@@ -1,6 +1,7 @@
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
+from fairdm.core.filters import DatasetFilter
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
@@ -26,6 +27,7 @@ class DatasetCreateView(FairDMCreateView):
 
 class DatasetListView(FairDMListView):
     model = Dataset
+    filterset_class = DatasetFilter
     title = _("Datasets")
     image = static("img/stock/dataset.jpg")
     description = _(
