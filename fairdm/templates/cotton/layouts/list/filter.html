@@ -20,7 +20,7 @@
                        style="secondary"
                        icon="cancel"
                        @click="$refs.filterForm.reset();"
-                       hx-get="{% url 'dataset-list' %}"
+                       hx-get="{{ request.path }}"
                        data-bs-dismiss="offcanvas"
                        data-bs-target="#filterSidebar" />
     <c-components.button text="{% trans "Apply filters" %}"
