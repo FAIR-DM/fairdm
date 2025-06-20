@@ -1,4 +1,6 @@
 import flex_menu
+from django import urls
+from django.apps import apps
 from django.db.models.base import Model as Model
 from django.urls import path
 from django.utils.text import slugify
@@ -6,6 +8,12 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
 
 from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, RelatedObjectMixin
+
+
+def reverse(model, view_name, *args, **kwargs):
+    namespace = model._meta.model_name.lower()
+    kwargs.update({"uuid": model.uuid})  # Ensure the UUID is included in the kwargs
+    return urls.reverse(f"{namespace}:{view_name}", args=args, kwargs=kwargs)
 
 
 class Menu(flex_menu.Menu):
@@ -22,34 +30,66 @@ class MenuItem(flex_menu.MenuItem):
 
 class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateResponseMixin):
     """
-    A generic plugin base class providing menu integration and context data enrichment.
+    BasePlugin is an abstract base class for creating plugin components within the FairDM framework.
     Attributes:
-        menu (str): The default menu category for the plugin. (e.g., "Explore", "Actions")
-        menu_item (dict): A dictionary defining the menu item properties.
-        check (bool): Flag indicating if the menu should be checked/active.
-        learn_more (str): Optional additional information or help text.
-    Methods:
-        get_context_data(**kwargs):
-            Extends the context data with menu name and 'learn more' information.
+        base_model (type): The base model associated with the plugin.
+        type (str): The type identifier for the plugin.
+        sidebar_primary (dict): Configuration for the primary sidebar component.
+        sidebar_secondary (bool): Flag to show/hide the secondary sidebar (default: False).
+        menu_item (dict): Configuration for the menu item.
+        menu (Any): The menu associated with the plugin.
+        name (str): The display name of the plugin.
+        path (str): The URL path for the plugin.
+        icon (str): The icon associated with the plugin.
+        check (bool): Flag to enable/disable plugin checks (default: True).
+        learn_more (str): Additional information or help text for the plugin.
     """
 
+    base_model = None
     type = None
-    sidebar_primary = {
-        "component": "layouts.plugin.sidebar",
-        "collapsible": False,
+    sections = {
+        "sidebar_primary": "layouts.plugin.sidebar",
+        "sidebar_secondary": False,
+        "header": "layouts.plugin.header",
+        "title": "text.title",
     }
-    sidebar_secondary = False  # hide the seconday sidebar by default
+
+    header_config = {
+        "actions": [
+            "layouts.plugin.components.share",
+            # "components.actions.contact",
+        ],
+    }
+
+    # sidebar_secondary_component = False  # hide the seconday sidebar by default
     menu_item = {}
     menu = None
-    slug = None  # slug for the URL, if not set, it will be derived from the class name
-    path = ""  # slug for the URL, if not set, it will be derived from the class name
+    name = None
+    path = None
     icon = None
     check = True
     learn_more = ""
 
+    @classmethod
+    def get_name(cls):
+        return cls.name or slugify(cls.__name__)
+
+    @classmethod
+    def get_path(cls):
+        if cls.path == "":
+            return cls.path
+        elif cls.path is None:
+            return cls.get_name() + "/"
+        return cls.path.rstrip("/") + "/"
+
+    @classmethod
+    def get_urls(cls, **kwargs):
+        url_path = cls.get_path()
+        name = cls.get_name()
+        return [path(url_path, cls.as_view(**kwargs), name=name)], name
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # context["menu_name"] = self.related_class.__name__ + "Menu"
         context["menu"] = self.menu
         context["learn_more"] = self.learn_more
         return context
@@ -58,20 +98,13 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
         context["title"] = self.title
         return f"{self.title} - {self.base_object}"
 
-    @classmethod
-    def get_path(cls):
-        return cls.path or slugify(cls.menu_item.get("name") or cls.__name__)
 
-    @classmethod
-    def get_urls(cls, menu):
-        view_name = f"{cls.get_path()}"
-        subpath = f"{cls.get_path()}"
-        return [path(subpath + "/", cls.as_view(menu=menu), name=subpath)], subpath
-
-
-class BaseFormPlugin(FairDMModelFormMixin, BasePlugin):
+class BaseFormPlugin(BasePlugin, FairDMModelFormMixin):
     menu = None
-    sidebar_secondary = True
+    template_name = "fairdm/form_view.html"
+    sections = {
+        "sidebar_secondary": "sections.sidebar.empty",
+    }
 
     @property
     def model(self):
@@ -85,7 +118,7 @@ class BaseFormPlugin(FairDMModelFormMixin, BasePlugin):
             return [
                 f"{self.model._meta.app_label}/{self.model._meta.object_name.lower()}{cname}.html",
                 # "fairdm_core/sample{self.template_name_suffix}.html",
-                "cotton/layouts/plugin/form.html",
+                "fairdm/form_view.html",
             ]
         return super().get_template_names()
 
@@ -106,9 +139,8 @@ class Action(BaseFormPlugin):
 
 class Management(BaseFormPlugin):
     type = _("Management")
-    sidebar_primary = {
-        "component": "layouts.plugin.management-sidebar",
-        "collapsible": False,
+    sections = {
+        "sidebar_primary": "layouts.plugin.management-sidebar",
     }
 
 
@@ -122,9 +154,16 @@ def check_has_edit_permission(request, instance, **kwargs):
 
 
 class PluginRegistry:
-    def __init__(self, name=""):
-        self.name = name
-        self.menu = Menu(name=name)
+    def __init__(self, model: Model | str, **kwargs):
+        if isinstance(model, str):
+            self.model = apps.get_model(model)
+        else:
+            self.model = model
+
+        self.name = self.model._meta.model_name
+        self.verbose_name = self.model._meta.verbose_name
+        self.kwargs = kwargs
+        self.menu = Menu(name=self.name)
         self.plugins = {
             Explore.type: [],
             Action.type: [],
@@ -139,10 +178,10 @@ class PluginRegistry:
                     Action.type,
                     children=[
                         MenuItem(
-                            name=_(f"Manage {name}"),
+                            name=_(f"Manage {self.verbose_name}"),
                             icon="gear",
                             check=check_has_edit_permission,
-                            view_name=f"{name.lower()}:configure",
+                            view_name=f"{self.name}:configure",
                         )
                     ],
                 ),
@@ -152,7 +191,7 @@ class PluginRegistry:
         self.manage_menu = SubMenu("Manage")
         self.menu.extend([self.public_menu, self.manage_menu])
 
-    def register(self, *views):
+    def register(self, *views) -> None:
         # If used as a decorator: @register(category="explore")
         if not views:
 
@@ -165,6 +204,12 @@ class PluginRegistry:
         # Used directly: register(View1, View2, category="explore")
         for view_class in views:
             self.plugins[view_class.type].append(view_class)
+
+    def unregister(self, view):
+        """Unregisters a plugin from the registry."""
+        for category in self.plugins:
+            if view in self.plugins[category]:
+                self.plugins[category].remove(view)
 
     def attach_menu(self, plugin, view_name):
         menu_item = MenuItem(
@@ -190,33 +235,23 @@ class PluginRegistry:
         urls = []
         plugin_list = self.plugins[category]
         for plugin in plugin_list:
-            plugin_urls, main_view_name = plugin.get_urls(menu)
+            plugin_urls, main_view_name = plugin.get_urls(base_model=self.model, menu=menu, **self.kwargs)
             self.attach_menu(plugin, main_view_name)
             urls.extend(plugin_urls)
         return urls
 
-    # def _get_urls(self, category, menu):
-    #     """Returns all URL patterns for a given plugin list."""
-    #     urls = []
-    #     plugin_list = self.plugins[category]
-    #     for plugin in plugin_list:
-    #         plugin_name = plugin.menu_item.get("name", False) or plugin.__class__.__name__.lower()
-    #         plugin_slug = slugify(plugin_name)  # e.g. "overview" for class Overview(BasePlugin):
-    #         registry_name = slugify(self.name)
-    #         slug = plugin_slug if plugin.slug is None else plugin.slug
-    #         url_base = f"{slug}/" if slug else ""
-    #         view_name = f"{registry_name}-{plugin_slug}"  # e.g. dataset-overview
-    #         self.attach_menu(plugin, view_name)
-    #         urls.append(path(url_base, plugin.as_view(menu=menu), name=view_name))
-    #     return urls
 
-
-dataset = PluginRegistry(name="Dataset")
-project = PluginRegistry(name="Project")
-sample = PluginRegistry(name="Sample")
-location = PluginRegistry(name="Location")
-contributor = PluginRegistry(name="Contributor")
-measurement = PluginRegistry(name="Measurement")
+dataset = PluginRegistry(model="dataset.Dataset")
+project = PluginRegistry(model="project.Project")
+sample = PluginRegistry(model="sample.Sample")
+location = PluginRegistry(model="fairdm_location.Point")
+contributor = PluginRegistry(
+    model="contributors.Contributor",
+    sections={
+        "header": "contributor.plugin.header",
+    },
+)
+measurement = PluginRegistry(model="measurement.Measurement")
 
 
 def register(to, **kwargs):
