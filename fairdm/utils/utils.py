@@ -1,4 +1,4 @@
-from crispy_forms.layout import Column, Fieldset, Layout, Row
+from crispy_forms.layout import HTML, Column, Fieldset, Layout, Row
 from django.apps import apps
 from django.conf import settings
 from django.db import models
@@ -158,7 +158,7 @@ def default_image_path(instance, filename):
     return f"{model_name}/{instance.uuid}/{filename}"
 
 
-def convert_to_crispy_layout(fieldsets):
+def fieldsets_to_crispy_layout(fieldsets):
     """
     Convert Django fieldsets into a crispy-forms Layout.
 
@@ -180,7 +180,7 @@ def convert_to_crispy_layout(fieldsets):
         >>>     ("Personal Info", {"fields": ["first_name", "last_name"]}),
         >>>     ("Contact", {"fields": [("email", "phone")]}),
         >>> ]
-        >>> convert_to_crispy_layout(fieldsets)
+        >>> fieldsets_to_crispy_layout(fieldsets)
         Layout(
             Fieldset("Personal Info", "first_name", "last_name"),
             Fieldset("Contact", Row(Column("email"), Column("phone")))
@@ -189,21 +189,41 @@ def convert_to_crispy_layout(fieldsets):
     crispy_layout = []
 
     for legend, options in fieldsets:
-        fields = options.get("fields", [])
+        layout = [legend]  # Stores fields formatted as Row/Column structures
+        help_text = options.pop("help_text", None)
+        if help_text:
+            layout.append(HTML(f"<p class='help-text'>{help_text}</p>"))
 
-        layout = []  # Stores fields formatted as Row/Column structures
-
-        for field in fields:
-            if isinstance(field, (tuple, list)):  # If a tuple/list, group them in a Row
-                inner_row = [Column(f) for f in field]  # Wrap each field in a Column
-                layout.append(Row(*inner_row))  # Create a Row with the Columns
-            else:
-                layout.append(field)  # Add a standalone field
+        fields = options.pop("fields", [])
+        layout.extend(fields_to_crispy_layout(fields))
+        # for field in fields:
+        #     if isinstance(field, (tuple, list)):  # If a tuple/list, group them in a Row
+        #         inner_row = [Column(f) for f in field]  # Wrap each field in a Column
+        #         layout.append(Row(*inner_row))  # Create a Row with the Columns
+        #     else:
+        #         layout.append(field)  # Add a standalone field
 
         # Wrap fields in a Fieldset (with or without a legend)
-        crispy_layout.append(Fieldset(legend or None, *layout))
+        crispy_layout.append(Fieldset(*layout, **options))
 
     return Layout(*crispy_layout)
+
+
+def fields_to_crispy_layout(fields):
+    """
+    Convert a flat list of fields or tuples/lists of fields into crispy-forms layout.
+
+    - Single field names are added directly.
+    - Tuples/lists of field names are wrapped in Columns inside a Row.
+    """
+    layout = []
+    for field in fields:
+        if isinstance(field, (tuple, list)):
+            columns = [Column(f) for f in field]
+            layout.append(Row(*columns))
+        else:
+            layout.append(field)
+    return Layout(*layout)
 
 
 def fairdm_fieldsets_to_django(fieldsets):
