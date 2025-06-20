@@ -26,20 +26,6 @@
         {% comment %} <c-contributor.socials /> {% endcomment %}
       </div>
     </div>
-    <div class="hstack gap-2 mb-3">
-      <c-components.badge style="secondary"
-                          label="{% trans "Date added" %}"
-                          message="{% trans "This profile was first added to the portal on this date." %}"
-                          value="{{ object.added|date }}" />
-      <c-components.badge style="success"
-                          label="{% trans "Active" %}"
-                          message="{% trans "This person is an active member of this online community." %}"
-                          :visible="object.date_joined" />
-      <c-components.badge style="primary"
-                          label="{% trans "Administrator" %}"
-                          message="{% trans "This person is an administrator of this portal." %}"
-                          :visible="object.is_staff" />
-    </div>
     {% if object.profile %}{{ object.profile|linebreaks }}{% endif %}
   </c-pst.components.section>
 </c-layouts.plugin>

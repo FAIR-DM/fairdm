@@ -5,15 +5,24 @@
     <div class="card-img-top ratio ratio-1x1">
       <c-widgets.avatar :contributor="obj" only />
     </div>
-    <c-bs5.card.body class="border-top"
-                     stretched_link="{{ obj.get_absolute_url }}">
+    <c-bs5.card.body class="border-top">
       <h5 class="card-title fs-6">
         <c-contributor.person.identifier hide_url />
-        {{ obj }}
+        {{ contributor }}
       </h5>
       <c-widgets.follow :object="obj"
                         class="border-0 position-absolute top-0 end-0 fs-6 z-2"
                         :show_text="False" />
+      <a href="{{ obj.get_absolute_url }}"
+         class="stretched-link"
+         data-bs-toggle="modal"
+         data-bs-target="#edit-contributor-modal"></a>
+      {% comment %} <a href="" class="stretched-link" data-bs-toggle="modal" data-bs-target="#edit-contributor-modal"></a> {% endcomment %}
     </c-bs5.card.body>
+    {% if actions %}
+      <c-bs5.card.footer class="z-3">
+        {{ actions }}
+      </c-bs5.card.footer>
+    {% endif %}
   </c-bs5.card>
 {% endwith %}

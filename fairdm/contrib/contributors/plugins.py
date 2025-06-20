@@ -1,4 +1,4 @@
-from django.urls import reverse
+from django.urls import include, path
 from django.utils.translation import gettext as _
 from django_filters import FilterSet
 
@@ -14,11 +14,19 @@ from fairdm.core.plugins import (
 )
 from fairdm.views import FairDMListView
 
+from .forms.contribution import QuickAddContributionForm
 from .forms.person import UserProfileForm
 from .models import Contribution
+from .views.contribution import (
+    AddContributorFromOrcidView,
+    ContributionCreateView,
+    ContributionRemoveView,
+    ContributionUpdateView,
+    ContributorQuickAddView,
+)
 
 
-@plugins.contributor.register()
+@plugins.contributor.register
 class Overview(OverviewPlugin):
     title = False
     description = _(
@@ -39,7 +47,7 @@ plugins.contributor.register(
 )
 
 
-@plugins.contributor.register()
+@plugins.contributor.register
 class Profile(ManageBaseObjectPlugin):
     title = _("Profile")
     form_class = UserProfileForm
@@ -47,9 +55,16 @@ class Profile(ManageBaseObjectPlugin):
 
 
 class ContributorsPlugin(plugins.Explore, FairDMListView):
-    # template_name = "contributors/contribution_list.html"
     model = Contribution
+    name = "contributors"
     title = _("Contributors")
+    title_config = {
+        "text": _("Contributors"),
+        "actions": [
+            "contributor.quick-add",
+            # "components.actions.list-filter",
+        ],
+    }
     filterset_fields = ["contributor__name"]
     menu_item = {
         "name": _("Contributors"),
@@ -59,11 +74,18 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
         "cols": 1,
         "gap": 2,
         "responsive": {"sm": 2, "md": 4},
+        "card": "contributor.card.contribution",
     }
-    actions = [
-        "contributor.add-contributor-button",
-    ]
-    card = "contributor.card.contribution"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        quick_add_form = QuickAddContributionForm()
+        quick_add_form.helper.form_action = plugins.reverse(self.base_object, "contributors-quick-add")
+        context["quick_add_form"] = quick_add_form
+        context["modals"] = [
+            "contributor.modals.edit-contribution",
+        ]
+        return context
 
     def get_filterset_class(self):
         return FilterSet
@@ -71,23 +93,32 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
     def get_queryset(self, *args, **kwargs):
         return self.base_object.contributors.all()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # context["object"] = self.base_object
-        context["create_url"] = (
-            self.get_create_url()
-            + f"?{self.base_object.__class__.__name__.lower()}={self.base_object.id}&next={self.request.path}"
-        )
-        return context
+    @classmethod
+    def get_suburls(cls, **kwargs):
+        base_model = kwargs.get("base_model")
+        menu = kwargs.get("menu")
+        return [
+            path("quick-add/", ContributorQuickAddView.as_view(base_model=base_model), name="contributors-quick-add"),
+            path("create/", ContributionCreateView.as_view(base_model=base_model), name="contributors-create"),
+            path(
+                "add-from-orcid/",
+                AddContributorFromOrcidView.as_view(base_model=base_model),
+                name="contributors-add-from-orcid",
+            ),
+            path(
+                "<pk>/edit/",
+                ContributionUpdateView.as_view(base_model=base_model, menu=menu),
+                name="contributor-update",
+            ),
+            path(
+                "<pk>/remove/",
+                ContributionRemoveView.as_view(base_model=base_model),
+                name="contributor-remove",
+            ),
+        ]
 
-    def get_create_url(self):
-        """
-        Returns the URL for creating a new dataset.
-        """
-        return reverse("contribution-create", kwargs={"uuid": self.base_object.uuid})
-
-    # @classmethod
-    # def get_urls(cls, menu):
-    #     urls, view_name = super().get_urls(registry_name, menu)
-    #     urls.extend([path("edit/", cls.as_view(menu=menu), name=f"{view_name}-edit")])
-    #     return urls, view_name
+    @classmethod
+    def get_urls(cls, **kwargs):
+        urls, view_name = super().get_urls(**kwargs)
+        urls.append(path(view_name + "/", include(cls.get_suburls(**kwargs))))
+        return urls, view_name

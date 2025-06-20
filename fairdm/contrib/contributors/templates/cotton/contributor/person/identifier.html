@@ -1,6 +1,6 @@
 {% if contributor.get_default_identifier %}
    <a class="link-underline-secondary link-underline-opacity-0 link-underline-opacity-75-hover text-muted"
       href="{{ contributor.get_default_identifier.get_absolute_url }}">{% icon contributor.icon height="1em" %}
-      <span {% if hide_url %}class="visually-hidden"{% endif %}>{{ contributor.get_default_identifier.get_absolute_url }}</span>
+      <span {% if hide_url %}class="visually-hidden"{% endif %}>{{ contributor.get_default_identifier.value }}</span>
    </a>
 {% endif %}

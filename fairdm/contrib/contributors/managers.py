@@ -1,9 +1,10 @@
 from django.contrib.auth.models import BaseUserManager
 from django.db import models
-from polymorphic.managers import PolymorphicManager
+
+from fairdm.db.models import PrefetchPolymorphicManager
 
 
-class UserManager(BaseUserManager, PolymorphicManager):
+class UserManager(BaseUserManager, PrefetchPolymorphicManager):
     """Define a model manager for User model with no username field."""
 
     use_in_migrations = False
@@ -29,6 +30,14 @@ class UserManager(BaseUserManager, PolymorphicManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(email, password, **extra_fields)
+
+
+class MemberManager(UserManager):
+    """Custom manager for the Member model."""
+
+    def get_queryset(self):
+        """Return a queryset that includes only active members."""
+        return super().get_queryset().filter(is_member=True)
 
 
 class ContributionManager(models.QuerySet):

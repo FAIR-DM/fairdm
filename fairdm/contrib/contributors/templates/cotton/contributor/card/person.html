@@ -16,7 +16,8 @@
                                text="View profile"
                                icon="arrow-right"
                                icon_position="end" />
-            <c-widgets.follow :object="obj" class="border-0" />
+            {% if person.is_followed %}Followed{% endif %}
+            {% comment %} <c-widgets.follow :object="obj" class="border-0" /> {% endcomment %}
           </div>
         </div>
       </div>

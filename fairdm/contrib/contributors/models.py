@@ -6,28 +6,32 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
 from django.db.models import Count
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_str
+from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
 from jsonfield_toolkit.models import ArrayField
 from model_utils import FieldTracker
 from ordered_model.models import OrderedModel
-from polymorphic.models import PolymorphicModel
+from research_vocabs.fields import ConceptManyToManyField
 from research_vocabs.models import AbstractConcept
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.core.abstract import AbstractIdentifier
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
+from fairdm.db import models
+
+# from polymorphic.models import PolymorphicModel
+from fairdm.db.models import PolymorphicModel
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
-from .managers import UserManager
+from .managers import MemberManager, UserManager
 
 
 def contributor_permissions_default():
@@ -155,6 +159,11 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             return self.image.url
         return static("img/brand/icon.svg")
 
+    @classproperty
+    def type_of(cls):
+        # this is required for many of the class methods in PolymorphicMixin
+        return Contributor
+
     def type(self):
         return self.polymorphic_ctype.model
         # if hasattr(self, "person", None):
@@ -229,8 +238,8 @@ class Person(AbstractUser, Contributor):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.uuid and not self.name:
-            self.name = f"{self.first_name} {self.last_name}"
+        if not self.name:
+            self.name = f"{self.first_name} {self.last_name}".strip()
         super().save(*args, **kwargs)
 
     def clean(self):
@@ -319,6 +328,15 @@ class Person(AbstractUser, Contributor):
                 },
                 default=float,
             )
+
+
+class Member(Person):
+    objects = MemberManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = _("community member")
+        verbose_name_plural = _("community members")
 
 
 class OrganizationMember(models.Model):
@@ -507,12 +525,18 @@ class Contribution(OrderedModel):
         on_delete=models.SET_NULL,
     )
 
-    roles = models.JSONField(
+    # roles = models.JSONField(
+    #     verbose_name=_("roles"),
+    #     help_text=_("Assigned roles for this contributor."),
+    #     default=list,
+    #     null=True,
+    #     blank=True,
+    # )
+
+    roles = ConceptManyToManyField(
+        vocabulary=FairDMRoles,
         verbose_name=_("roles"),
-        help_text=_("Assigned roles for this contributor."),
-        default=list,
-        null=True,
-        blank=True,
+        help_text=_("The roles assigned to the contributor for this contribution."),
     )
 
     # we can't rely on the contributor field to store necessary information, as the profile may have changed or been deleted, therefore we need to store the contributor's name and other details at the time of publication
@@ -534,6 +558,30 @@ class Contribution(OrderedModel):
         verbose_name_plural = _("contributors")
         unique_together = ("content_type", "object_id", "contributor")
         ordering = ["object_id", "order"]
+
+    def save(self, *args, **kwargs):
+        if self.contributor.type_of == Person:
+            if self.contributor.is_superuser and settings.DEBUG is False:
+                # disallow superusers from being contributors
+                raise ValueError(
+                    _(
+                        "Superusers cannot be contributors. Please remove the superuser status or use a different account."
+                    )
+                )
+
+        # if not self.pk:
+        #     # If this is a new contribution, we need to store the contributor's profile data
+        #     if self.contributor:
+        #         self.store = {
+        #             "name": self.contributor.name,
+        #             "given": self.contributor.given or None,
+        #             "family": self.contributor.family or None,
+        #         }
+        #         # Store ORCID if available
+        #         orcid = self.contributor.get_default_identifier()
+        #         if orcid:
+        #             self.store["ORCID"] = orcid.identifier
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return force_str(self.contributor)
@@ -591,6 +639,7 @@ class Contribution(OrderedModel):
 
 class ContributorRole(AbstractConcept):
     vocabulary_name = None
+    vocabulary = None
     _vocabulary = FairDMRoles()
 
     class Meta:

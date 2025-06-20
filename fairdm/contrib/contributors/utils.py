@@ -4,15 +4,31 @@ import warnings
 from datetime import timedelta
 
 import requests
+from benedict import benedict
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import CharField, F, Q, Value
 from django.utils import timezone
 from easy_thumbnails.files import get_thumbnailer
+from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.models import ContributorIdentifier
 
 from .models import Contributor, Organization, Person
+
+
+def get_contributor_roles():
+    """
+    Returns a queryset of roles for a given contributor on a specific object.
+
+    Args:
+        contributor (Contributor): A Contributor object.
+        obj (Project, Dataset, Sample): A database object containing a list of contributors.
+
+    Returns:
+        QuerySet: A queryset of roles for the contributor on the object.
+    """
+    return Concept.objects.filter(vocabulary__name="fairdm-roles")
 
 
 def dictget(data, path, default=""):
@@ -197,6 +213,42 @@ def user_network(contributor):
     return json.dumps(vis_js)
 
 
+def update_or_create_contribution(contributor, obj, roles=None):
+    """
+    Adds a contributor to the given object with specified roles.
+
+    Behavior:
+    - If the contributor already exists on the object and roles are provided, the roles are updated and the Contribution
+      object is returned.
+    - If the contributor already exists on the object and roles *are not* provided, the existing roles are retained and
+      the Contribution object is returned unchanged.
+    - If the contributor does not already exist on the object and roles are provided, a new Contribution object is created
+      with the provided roles and returned.
+    - If the contributor does not already exist on the object and roles are not provided, a new Contribution object is
+      created with the object's DEFAULT_ROLES and returned.
+
+    Args:
+        contributor: The contributor instance to add.
+        obj: The object to which the contributor is being added. Must have a 'contributors' manager and 'DEFAULT_ROLES' attribute.
+        roles (optional): The roles to assign to the contributor. If not provided, uses obj.DEFAULT_ROLES.
+
+    Returns:
+        tuple: (contribution, created)
+            contribution: The contribution instance.
+            created (bool): True if a new contribution was created, False if it already existed.
+    """
+    contribution, created = obj.contributors.get_or_create(
+        contributor=contributor,
+    )
+    roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
+    if not roles:
+        roles = obj.DEFAULT_ROLES
+
+    contribution.roles.add(*roles_qs.filter(name__in=roles))
+
+    return contribution, created
+
+
 # def related_contributions(self):
 #     """Returns a queryset of all contributions related to datasets contributed to by the current contributor."""
 
@@ -227,20 +279,22 @@ def contributor_from_orcid_data(data, person: Person | None = None) -> Person:
         - The ContributorIdentifier for ORCID is updated or created to link to the person.
         - External identifiers from ORCID are not currently processed (see commented code).
     """
-    orcid = dictget(data, ["orcid-identifier", "path"])
+
+    orcid = data.get("orcid-idenfitier.path")
     person = person or Person()
 
     with transaction.atomic():
         person.synced_data = data
-        person.name = dictget(data, ["person", "name", "credit-name", "value"])
-        person.first_name = dictget(data, ["person", "name", "given-names", "value"])
-        person.last_name = dictget(data, ["person", "name", "family-name", "value"])
-        person.profile = dictget(data, ["person", "biography", "content"])
+        # person.name = dictget(data, ["person", "name", "credit-name", "value"])
+        person.name = data.get("person.name.credit-name.value")
+        person.first_name = data.get("person.name.given-names.value")
+        person.last_name = data.get("person.name.family-name.value")
+        person.profile = data.get("person.biography.content")
 
-        if other_names := dictget(data, ["person", "other-names", "other-name"]):
+        if other_names := data.get("person.other-names.other-name", []):
             person.alternative_names = [name["content"] for name in other_names]
 
-        if links := dictget(data, ["person", "researcher-urls", "researcher-url"]):
+        if links := data.get("person.researcher-urls.researcher-url", []):
             person.links = [link["url"]["value"] for link in links]
 
         person.save()
@@ -287,7 +341,8 @@ def fetch_orcid_data_from_api(orcid_id):
         elif 500 <= response.status_code < 600:
             warnings.warn(f"Server error {response.status_code} from ROR API.")
         response.raise_for_status()
-        data = response.json()
+        # see https://github.com/fabiocaccamo/python-benedict
+        data = benedict(response.json())
     except requests.RequestException as e:
         raise Exception(f"Failed to fetch ORCID {orcid_id}: {e}")
 
