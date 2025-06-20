@@ -141,7 +141,6 @@ DJANGO_SETUP_TOOLS = {
         "always_run": [
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
-            ("compress",),
             "django_setup_tools.scripts.sync_site_id",
         ],
     },
@@ -152,6 +151,15 @@ DJANGO_SETUP_TOOLS = {
         ],
         "always_run": [
             "django_setup_tools.scripts.some_extra_func",
+        ],
+    },
+    "production": {
+        "merge": True,  # merge with the default commands
+        "on_initial": [
+            ("loaddata", "myapp"),
+        ],
+        "always_run": [
+            ("compress",),
         ],
     },
 }
