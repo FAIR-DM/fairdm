@@ -62,6 +62,7 @@ EASY_ICONS = {
         "measurement": "fas fa-ruler",
         "measurements": "fas fa-ruler-combined",
         "menu": "fas fa-bars",
+        "missing_image": "missing_image.svg",
         "moon": "fas fa-moon",
         "orcid": "orcid/authenticated.svg",
         "orcid_unauthenticated": "orcid/unauthenticated.svg",
