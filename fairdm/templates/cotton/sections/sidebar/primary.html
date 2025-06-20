@@ -1,6 +1,10 @@
-<c-vars :visible="True" />
-{% if visible %}
-  <c-pst.sections.sidebar :header="title" :attrs="attrs">
-    {{ slot }}
-  </c-pst.sections.sidebar>
-{% endif %}
+<style>
+  .sidebar-primary {
+    background-color: var(--pst-color-background);
+    font-size: var(--pst-sidebar-font-size);
+  }
+</style>
+<c-sections.sidebar class="sidebar-primary border-end"
+                    :visible="visible">
+  {{ slot }}
+</c-sections.sidebar>

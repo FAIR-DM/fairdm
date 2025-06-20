@@ -1,0 +1,18 @@
+{% load social_share %}
+
+<c-components.button icon="share"
+                     text="{% trans "Share" %}"
+                     data-bs-toggle="modal"
+                     data-bs-target="#shareModal" />
+<c-components.modal id="shareModal"
+                    title="{% trans "Share this page" %}">
+  <div class="d-grid gap-2">
+    {% with class as "btn btn-lg btn-primary" %}
+      {% send_email fairdm.database.name object request.path %}
+      {% post_to_twitter object.summary|default:"" request.path %}
+      {% post_to_linkedin request.path %}
+      {% comment %} {% post_to_facebook request.path %} {% endcomment %}
+      {% post_to_whatsapp request.path %}
+    {% endwith %}
+  </div>
+</c-components.modal>

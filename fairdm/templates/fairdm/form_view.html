@@ -1,0 +1,7 @@
+{% extends "fairdm/base.html" %}
+{% block content %}
+  <c-layouts.standard>
+    {% if sections.title %}{% endif %}
+    <c-component :attrs="sections.form" />
+  </c-layouts.standard>
+{% endblock content %}

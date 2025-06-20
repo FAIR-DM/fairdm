@@ -1,11 +1,12 @@
-<c-vars style="article" />
-<c-component is="layouts.{{ style }}"
-             :article_header="article_header"
-             :article_footer="footer">
-  <c-slot name="article_header">
-    <div class="container border-bottom py-1 text-muted">
-      {% icon "project" %} {{ object.verbose_name }}: {{ object }}
-    </div>
-  </c-slot>
-  {{ slot }}
-</c-component>
+{% extends "fairdm/base.html" %}
+{% block content %}
+  <c-layouts.standard>
+    <c-slot name="article_header">
+      <div class="container border-bottom py-1 text-muted">
+        {% icon base_object.icon %} {{ base_object.verbose_name|capfirst }}: {{ base_object }}
+      </div>
+    </c-slot>
+    <c-text.heading level="1" text="{{ page_title }}" />
+    {{ slot }}
+  </c-layouts.standard>
+{% endblock content %}

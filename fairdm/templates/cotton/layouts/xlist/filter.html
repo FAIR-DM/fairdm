@@ -1,17 +1,15 @@
 {% load crispy_forms_tags %}
 
-<c-sections.sidebar.primary id="filterSidebar"
-                            x-data
-                            class="p-md-3 border-end d-flex flex-column"
-                            title="{% trans "Filter by" %}"
-                            hx-target="main"
-                            hx-select="main"
-                            :attrs="attrs"
-                            only>
+<c-sections.sidebar id="filterSidebar"
+                    x-data
+                    hx-target="#table-wrapper"
+                    :attrs="attrs">
   <form id="filterForm"
         x-ref="filterForm"
         action="{{ request.path }}"
         hx-get="{{ request.path }}"
+        hx-target="main"
+        hx-select="main"
         method="get">
     {{ filter.form|crispy }}
   </form>
@@ -32,4 +30,4 @@
                          data-bs-dismiss="offcanvas"
                          data-bs-target="#filterSidebar" />
   </c-slot>
-</c-sections.sidebar.primary>
+</c-sections.sidebar>

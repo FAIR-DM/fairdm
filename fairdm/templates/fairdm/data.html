@@ -1,22 +1,25 @@
+{% extends "fairdm/base.html" %}
 {% load static %}
 
-<c-layouts.article>
-  <c-bs5.grid cols="1" :responsive="{'md': '2'}">
-    <div class="col">
-      <c-fdm.dashboard.card image_src="{% static "img/dataset_list.png" %}"
-                            image_alt="..."
-                            title="{% trans "Find a dataset" %}"
-                            description="{% trans "Browse, filter, and view detailed information on individual datasets. Each dataset is available for download as a discrete package, making it easy to access the data you need for your research." %}"
-                            action="{% url "dataset-list" %}"
-                            action_text="{% trans "Get started" %}" />
-    </div>
-    <div class="col">
-      <c-fdm.dashboard.card image_src="{% static "img/collections.png" %}"
-                            image_alt="..."
-                            title="{% trans "Data collections" %}"
-                            description="{% trans "Explore curated, tabular datasets of a specific data type compiled across multiple sources. These collections provide an efficient way to analyze and download consistent data spanning many individual datasets." %}"
-                            action="{% url "data-table" %}"
-                            action_text="{% trans "Get started" %}" />
-    </div>
-  </c-bs5.grid>
-</c-layouts.article>
+{% block content %}
+  <c-layouts.standard>
+    <c-bs5.grid cols="1" :responsive="{'md': '2'}">
+      <div class="col">
+        <c-fdm.dashboard.card image_src="{% static "img/dataset_list.png" %}"
+                              image_alt="..."
+                              title="{% trans "Find a dataset" %}"
+                              description="{% trans "Browse, filter, and view detailed information on individual datasets. Each dataset is available for download as a discrete package, making it easy to access the data you need for your research." %}"
+                              action="{% url "dataset-list" %}"
+                              action_text="{% trans "Get started" %}" />
+      </div>
+      <div class="col">
+        <c-fdm.dashboard.card image_src="{% static "img/collections.png" %}"
+                              image_alt="..."
+                              title="{% trans "Data collections" %}"
+                              description="{% trans "Explore curated, tabular datasets of a specific data type compiled across multiple sources. These collections provide an efficient way to analyze and download consistent data spanning many individual datasets." %}"
+                              action="{% url "data-collections" %}"
+                              action_text="{% trans "Get started" %}" />
+      </div>
+    </c-bs5.grid>
+  </c-layouts.standard>
+{% endblock content %}
