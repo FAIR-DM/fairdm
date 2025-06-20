@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedIdentityField, HyperlinkedModelSerializer, ModelSerializer
 
 from fairdm.contrib.identity.models import Authority, Database
+from fairdm.contrib.location.models import Point
 from fairdm.models import Dataset, Project, Sample
 
 from .utils import BaseSerializerMixin
@@ -60,15 +61,22 @@ class DatasetSerializer(BaseSerializerMixin, HyperlinkedModelSerializer):
         return obj.sample_types
 
 
-class SampleSerializer(FlexFieldsSerializerMixin, BaseSerializerMixin, HyperlinkedModelSerializer):
-    web = HyperlinkedIdentityField(view_name="sample-detail")
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Point
+        fields = ["x", "y"]
+
+
+class SampleSerializer(FlexFieldsSerializerMixin, ModelSerializer):
+    # web = HyperlinkedIdentityField(view_name="sample-detail")
+    location = LocationSerializer(many=False, read_only=True)
 
     class Meta:
         model = Sample
-        fields = ["name", "depth", "web"]
+        exclude = ["id", "options"]
 
 
-class MeasurementSerializer(BaseSerializerMixin, serializers.ModelSerializer):
+class MeasurementSerializer(FlexFieldsSerializerMixin, ModelSerializer):
     sample = SampleSerializer(
         fields=[
             "type",
@@ -80,11 +88,7 @@ class MeasurementSerializer(BaseSerializerMixin, serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = "__all__"
-        # extra_kwargs = {
-        #     "details": {"lookup_field": "uuid"},
-        #     "sample": {"lookup_field": "uuid"},
-        # }
+        fields = ["sample", "name"]
 
 
 class DatabaseSerializer(TranslatableModelSerializer):

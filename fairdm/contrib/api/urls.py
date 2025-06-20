@@ -1,7 +1,6 @@
-# from django.shortcuts import redirect
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_nested import routers
+from rest_framework import routers
 
 from . import viewsets
 from .views import IdentitityAPIView, MeasurementMetadataView, TOSView
@@ -10,8 +9,17 @@ from .views import IdentitityAPIView, MeasurementMetadataView, TOSView
 router = routers.SimpleRouter()
 router.register("project", viewsets.ProjectViewset)
 router.register("dataset", viewsets.DatasetViewset)
-router.register("sample", viewsets.SampleViewset)
 
+for viewset in viewsets.sample_viewsets:
+    router.register(
+        f"samples/{viewset.queryset.model._meta.model_name}",
+        viewset,
+    )
+for viewset in viewsets.measurement_viewsets:
+    router.register(
+        f"measurements/{viewset.queryset.model._meta.model_name}",
+        viewset,
+    )
 
 app_name = "api"
 urlpatterns = [
