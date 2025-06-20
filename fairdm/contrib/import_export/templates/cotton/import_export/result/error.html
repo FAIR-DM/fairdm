@@ -1,0 +1,15 @@
+<li class="import-error-li">
+  <div class="import-error-display-message">{% trans "Line" %} {{ line }} - {{ error.error }}</div>
+  <pre>
+    {
+    {% for key, value in error.row.items %}
+        "{{ key }}": "{{ value }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    }
+  </pre>
+  {% if user.is_superuser %}
+    <strong>{% trans "Traceback" %}:</strong>
+    <p>*This information is only available to superusers.</p>
+    <pre>{{ error.traceback|linebreaks }}</pre>
+  {% endif %}
+</li>

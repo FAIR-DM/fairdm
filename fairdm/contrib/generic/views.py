@@ -75,7 +75,6 @@ class UpdateDatesView(BaseFormsetView):
 class UpdateCoreObjectBasicInfo(UpdateWithInlinesView):
     """Presents a form to update the name and descriptions of a Project, Dataset, Sample or Measurment."""
 
-    template_name = "cotton/layouts/plugin/form.html"
     inlines = [DescriptionInline]
 
     def get_context_data(self, **kwargs):

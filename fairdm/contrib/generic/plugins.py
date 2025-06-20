@@ -25,7 +25,6 @@ class DescriptionsPlugin(plugins.Management, InlineFormSetView):
     learn_more = "https://fairdm.readthedocs.io/en/latest/user-guide/descriptions.html"
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
-    template_name = "cotton/layouts/plugin/form.html"
 
 
 class KeyDatesPlugin(plugins.Management, InlineFormSetView):
@@ -37,4 +36,3 @@ class KeyDatesPlugin(plugins.Management, InlineFormSetView):
     learn_more = "https://fairdm.readthedocs.io/en/latest/user-guide/dates.html"
     form_class = DateForm
     formset_class = CoreInlineFormset
-    template_name = "cotton/layouts/plugin/form.html"

@@ -1,9 +1,7 @@
 from io import StringIO
 
 from django import forms
-from django.contrib import messages
 from django.core.files.base import ContentFile
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -37,6 +35,7 @@ class BaseImportExportView(FormView):
         context["export_formats"] = self.export_formats
         context["import_formats"] = self.import_formats
         context["data_type"] = self.get_resource_model()._meta.verbose_name_plural
+        context["result"] = kwargs.get("result")
         return context
 
     @property
@@ -94,13 +93,22 @@ class BaseImportExportView(FormView):
             raise ValueError(f"Unsupported file format: {extension}")
         return fmt(encoding=self.from_encoding)
 
+    def result_has_errors(self, result, form):
+        context = self.get_context_data(form=form, result=result)
+        context["about"] = [
+            _(
+                "The import process encountered errors. Please review the details below and correct any issues in your data file before reuploading."
+            )
+        ]
+        return self.render_to_response(context)
+
     def form_invalid(self, form):
-        # Override to handle invalid form submission
-        return render(self.request, self.template_name, {"form": form})
+        return super().form_invalid(form)
 
 
 @plugins.dataset.register()
 class DataImportView(plugins.Action, BaseImportExportView):
+    name = "import"
     title = _("Import Data")
     description = _(
         "The data import workflow allows you to upload existing data files in spreadsheet format which are then processed and integrated into the current dataset. To ensure smooth operation, your data are expected to conform to a predetermined template. To download the template, select your data type below and click the 'Download Template' button. After filling in the template, you can upload it here to import your data."
@@ -111,17 +119,19 @@ class DataImportView(plugins.Action, BaseImportExportView):
         "icon": "import",
     }
     form_class = ImportForm
+    template_name = "import_export/import.html"
 
     def form_valid(self, form):
         file = form.cleaned_data["file"]
         result = self.handle_import(file)
 
         if (result and result.has_errors()) or result.has_validation_errors():
-            messages.error(self.request, "There were errors in the import.")
-            raise ValueError(result.errors)
-        else:
-            messages.success(self.request, "Data imported successfully.")
-        # raise ValueError("Data imported successfully.")
+            return self.result_has_errors(result, form)
+            # self.messages.error("There were errors in the import.")
+        #     # raise ValueError(result.errors)
+        # else:
+        #     self.messages.success("Data imported successfully.")
+
         return super().form_valid(form)
 
     # @method_decorator(require_POST)
@@ -141,9 +151,6 @@ class DataImportView(plugins.Action, BaseImportExportView):
 
     def get_success_url(self):
         return self.get_object().get_absolute_url()
-
-    # def get_meta_title(self, context):
-    #     return _("Import") + " " + self.get_resource_model()._meta.verbose_name_plural
 
 
 @method_decorator(require_POST, name="dispatch")

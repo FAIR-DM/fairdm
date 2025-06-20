@@ -9,10 +9,12 @@ from .models import Point
 @plugins.location.register()
 class PointOverview(plugins.Explore, UpdateView):
     model = Point
-    template_name = "fairdm/plugins/overview.html"
+    sections = {
+        "sidebar_primary": False,
+        "sidebar_secondary": False,
+        "header": False,
+    }
     menu_item = {
         "name": "Overview",
         "icon": "location",
     }
-    # base_template = "location/location_detail.html"
-    # template_name = "fairdm/plugins/map.html"
