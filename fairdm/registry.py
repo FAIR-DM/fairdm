@@ -2,6 +2,7 @@ from contextlib import suppress
 
 from django.apps import apps
 from django.contrib import admin
+from django.utils.text import slugify
 
 
 class FairDMRegistry:
@@ -78,16 +79,20 @@ class FairDMRegistry:
         mtype = getattr(model_class, "type_of", None)
         if mtype is not None:
             mtype = mtype.__name__.lower()
+
+        opts = model_class._meta
         item = {
-            "app_label": model_class._meta.app_label,
+            "app_label": opts.app_label,
             "class": model_class,
             "config": config(model_class),
-            "full_name": f"{model_class._meta.app_label}.{model_class._meta.model_name}",
-            "model": model_class._meta.model_name,
+            "full_name": f"{opts.app_label}.{opts.model_name}",
+            "model": opts.model_name,
             "path": f"{model_class.__module__}.{model_class.__name__}",
             "type": mtype,
-            "verbose_name_plural": model_class._meta.verbose_name_plural,
-            "verbose_name": model_class._meta.verbose_name,
+            "verbose_name": opts.verbose_name,
+            "verbose_name_plural": opts.verbose_name_plural,
+            "slug": slugify(opts.verbose_name),
+            "slug_plural": slugify(opts.verbose_name_plural),
             # "metadata": model_class._fairdm.meta,
         }
         self._registry[model_class] = item
