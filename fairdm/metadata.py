@@ -137,6 +137,26 @@ class ModelConfig:
     def __init__(self, model_class: type[Any]):
         self.model = model_class
 
+    @property
+    def verbose_name(self) -> str:
+        """
+        Returns the verbose name of the model.
+
+        Returns:
+            str: The verbose name of the model.
+        """
+        return self.model._meta.verbose_name
+
+    @property
+    def verbose_name_plural(self) -> str:
+        """
+        Returns the verbose name plural of the model.
+
+        Returns:
+            str: The verbose name plural of the model.
+        """
+        return self.model._meta.verbose_name_plural
+
     def _get_class(self, class_or_path: str | type[Any]) -> type[Any]:
         """
         Resolves a class reference from a string path or returns the class itself.
@@ -208,9 +228,11 @@ class ModelConfig:
         Returns:
             Type[ModelSerializer]: A ModelSerializer subclass.
         """
+        from fairdm.contrib.api.serializers import SampleSerializer
+
         return factories.serializer_factory(
             self.model,
-            serializer_class=self._get_class(self.serializer_class),
+            SampleSerializer,
             **self.serializer_kwargs,
         )
 
