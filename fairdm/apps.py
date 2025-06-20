@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 from django.utils.module_loading import autodiscover_modules
+from django.utils.translation import gettext_lazy as _
 
 
 class FairDMConfig(AppConfig):
@@ -34,7 +35,7 @@ class FairDMConfig(AppConfig):
 
         from rest_framework.serializers import ModelSerializer
 
-        from fairdm.contrib.api.fields import QuantityField
+        from fairdm.contrib.api import fields
         from fairdm.db import models
 
         # if settings.GIS_ENABLED:
@@ -51,11 +52,11 @@ class FairDMConfig(AppConfig):
         # however, we will need to update this if we want to support non-readonly models
         ModelSerializer.serializer_field_mapping.update(
             {
-                models.QuantityField: QuantityField,
-                models.DecimalQuantityField: QuantityField,
-                models.IntegerQuantityField: QuantityField,
-                models.BigIntegerQuantityField: QuantityField,
-                models.PositiveIntegerQuantityField: QuantityField,
+                models.QuantityField: fields.QuantityField,
+                models.DecimalQuantityField: fields.QuantityDecimalField,
+                models.IntegerQuantityField: fields.QuantityField,
+                models.BigIntegerQuantityField: fields.QuantityField,
+                models.PositiveIntegerQuantityField: fields.QuantityField,
             }
         )
 
@@ -64,11 +65,13 @@ class FairDMConfig(AppConfig):
         Populates the data collection menu with sample types and their respective views.
         This function is called during the `FairDMConfig.ready` method.
         """
-        # from fairdm.menus import SiteNavigation, get_measurement_menu_items, get_sample_menu_items
+        from fairdm.menus import DropdownHeader, SiteNavigation, get_measurement_menu_items, get_sample_menu_items
 
-        # SiteNavigation.insert(
-        #     [*get_sample_menu_items(), *get_measurement_menu_items()],
-        #     position=2,
-        # )
+        SiteNavigation.get("Data").get("Data Collections").children = [
+            DropdownHeader(_("Sample Collections")),
+            *get_sample_menu_items(),
+            DropdownHeader(_("Measurement Collections")),
+            *get_measurement_menu_items(),
+        ]
 
         # print(SiteNavigation.get("DataCollectionsMenu").children)
