@@ -18,7 +18,7 @@ class SampleForm(forms.ModelForm):
 
         self.helper = FormHelper()
         self.helper.form_tag = False
-        # self.helper.layout = convert_to_crispy_layout(fieldsets)
+        # self.helper.layout = fieldsets_to_crispy_layout(fieldsets)
 
     # def save(self, commit=True):
     #     instance = super().save(commit=False)

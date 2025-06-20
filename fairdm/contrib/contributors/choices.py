@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from research_vocabs.builder.skos import Concept
-from research_vocabs.registry import vocab_registry
 from research_vocabs.vocabularies import VocabularyBuilder
 
 # ================== DATACITE ROLES ==================
@@ -92,7 +91,7 @@ class CREDiT(VocabularyBuilder):
         }
 
 
-vocab_registry.register(CREDiT())
+# vocab_registry.register(CREDiT())
 
 
 class PersonalIdentifiers(models.TextChoices):

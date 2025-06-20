@@ -11,7 +11,7 @@
     <c-contributor.names class="fs-6 text-secondary mt-1 mb-3"
                          :contributors="object.contributors.all"
                          role="Creator" />
-    <c-sections.info-block class="mb-3">
+    <c-sections.info-block>
       <c-render-fields.fieldsets :fieldsets="fieldsets" />
     </c-sections.info-block>
     {% for description in object.get_descriptions_in_order %}

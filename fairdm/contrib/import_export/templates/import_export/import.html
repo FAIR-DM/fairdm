@@ -1,33 +1,23 @@
 {% load crispy_forms_tags %}
 
-<c-layouts.plugin>
-  <c-text.heading level="1" text="{% trans "Import data" %}">
-    <c-bs5.dropdown id="import-export-dropdown">
-      <c-slot name="button">
-        <c-components.button class="dropdown-toggle"
-                             type="button"
-                             data-bs-toggle="dropdown"
-                             aria-expanded="false"
-                             style="secondary"
-                             text="{% trans "Get template" %}"
-                             icon="download" />
-      </c-slot>
-      <c-import-export.export-dropdown :formats="view.import_formats" :dataset="dataset" />
-    </c-bs5.dropdown>
-  </c-text.heading>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <c-components.button type="submit"
-                         style="primary"
-                         icon="upload"
-                         text="{% trans "Submit" %}" />
-  </form>
-  <c-slot name="sidebar_right">
-    <div class="sidebar-secondary-item">
-      <c-sections.sidebar.right id="pst-secondary-sidebar" title="Test">
-        {% trans "Please ensure that you are importing data using the correct template for this data type! To learn more about importing data into this portal, please see the documentation." %}
+<c-layouts.plugin.form>
+  {% if result.has_errors %}
+    <c-slot name="after_form">
+      <hr />
+      <div class="container">
+        <h2>{% translate "Errors" %}</h2>
+        <ul>
+          {% for error in result.base_errors %}
+            <li>
+              {{ error.error }}
+              <div class="traceback">{{ error.traceback|linebreaks }}</div>
+            </li>
+          {% endfor %}
+          {% for line, errors in result.row_errors %}
+            {% for error in errors %}<c-import-export.result.error />{% endfor %}
+          {% endfor %}
+        </ul>
       </div>
-    </c-sections.sidebar.right>
-  </c-slot>
-</c-layouts.plugin>
+    </c-slot>
+  {% endif %}
+</c-layouts.plugin.form>

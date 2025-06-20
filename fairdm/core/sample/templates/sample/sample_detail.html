@@ -1,13 +1,9 @@
 {% load partials render_fields %}
 
 <c-layouts.plugin>
-  <c-slot name="actions">
-    {% comment %} {% if user_can_edit %} {% endcomment %}
-    <c-components.link icon="edit"
-                       text="{% trans "Edit" %}"
-                       href="{% url "description-formset" uuid=object.uuid %}" />
-    {% comment %} {% endif %} {% endcomment %}
-  </c-slot>
+  {% comment %} <c-slot name="actions">
+    <c-components.link icon="edit" text="{% trans "Edit" %}" href="{% url "description-formset" uuid=object.uuid %}" />
+  </c-slot> {% endcomment %}
   <c-components.image class="ratio ratio-21x9 {{ image_class }}"
                       :image="object.image"
                       alt="{{ object }}"

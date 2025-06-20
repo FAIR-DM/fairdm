@@ -1,28 +1,25 @@
 from io import StringIO
 
 from django import forms
-from django.contrib import messages
 from django.core.files.base import ContentFile
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
-from django.views.generic.detail import BaseDetailView, SingleObjectMixin
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView
 from django_downloadview import VirtualDownloadView
-from meta.views import MetadataMixin
 
+from fairdm import plugins
 from fairdm.contrib.import_export.utils import build_metadata
 from fairdm.core.models import Dataset
-from fairdm.plugins import GenericPlugin
 from fairdm.registry import registry
-from fairdm.utils.view_mixins import HTMXMixin
+from fairdm.utils.utils import user_guide
 
 from .forms import ExportForm, ImportForm
 from .utils import DataPackage, get_export_formats, get_import_formats
 
 
-class BaseImportExportView(BaseDetailView, FormView):
+class BaseImportExportView(FormView):
     """
     A base view for importing and exporting data with django-import-export.
     Handles common functionality like file format detection and resource initialization.
@@ -32,14 +29,13 @@ class BaseImportExportView(BaseDetailView, FormView):
     model = Dataset
     form_class = None
     success_url = None
-    # template_name = "import_export/import.html"
-    template_name = "cotton/layouts/plugin/form.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context["export_formats"] = self.export_formats
         context["import_formats"] = self.import_formats
         context["data_type"] = self.get_resource_model()._meta.verbose_name_plural
+        context["result"] = kwargs.get("result")
         return context
 
     @property
@@ -97,28 +93,45 @@ class BaseImportExportView(BaseDetailView, FormView):
             raise ValueError(f"Unsupported file format: {extension}")
         return fmt(encoding=self.from_encoding)
 
+    def result_has_errors(self, result, form):
+        context = self.get_context_data(form=form, result=result)
+        context["about"] = [
+            _(
+                "The import process encountered errors. Please review the details below and correct any issues in your data file before reuploading."
+            )
+        ]
+        return self.render_to_response(context)
+
     def form_invalid(self, form):
-        # Override to handle invalid form submission
-        return render(self.request, self.template_name, {"form": form})
+        return super().form_invalid(form)
 
 
-# @plugins.dataset.actions()
-class DataImportView(GenericPlugin, BaseImportExportView):
-    name = _("Import Data")
-    menu = "Actions"
-    icon = "import"
+@plugins.dataset.register()
+class DataImportView(plugins.Action, BaseImportExportView):
+    name = "import"
+    title = _("Import Data")
+    description = _(
+        "The data import workflow allows you to upload existing data files in spreadsheet format which are then processed and integrated into the current dataset. To ensure smooth operation, your data are expected to conform to a predetermined template. To download the template, select your data type below and click the 'Download Template' button. After filling in the template, you can upload it here to import your data."
+    )
+    learn_more = user_guide("dataset/import")
+    menu_item = {
+        "name": _("Import Data"),
+        "icon": "import",
+    }
     form_class = ImportForm
+    template_name = "import_export/import.html"
 
     def form_valid(self, form):
         file = form.cleaned_data["file"]
         result = self.handle_import(file)
 
         if (result and result.has_errors()) or result.has_validation_errors():
-            messages.error(self.request, "There were errors in the import.")
-            raise ValueError(result.errors)
-        else:
-            messages.success(self.request, "Data imported successfully.")
-        # raise ValueError("Data imported successfully.")
+            return self.result_has_errors(result, form)
+            # self.messages.error("There were errors in the import.")
+        #     # raise ValueError(result.errors)
+        # else:
+        #     self.messages.success("Data imported successfully.")
+
         return super().form_valid(form)
 
     # @method_decorator(require_POST)
@@ -139,16 +152,13 @@ class DataImportView(GenericPlugin, BaseImportExportView):
     def get_success_url(self):
         return self.get_object().get_absolute_url()
 
-    def get_meta_title(self, context):
-        return _("Import") + " " + self.get_resource_model()._meta.verbose_name_plural
 
-
-# @plugins.dataset.actions()
 @method_decorator(require_POST, name="dispatch")
-class DataExportView(GenericPlugin, VirtualDownloadView, BaseImportExportView):
-    menu = "Actions"
-    name = _("Export dataset")
-    icon = "download"
+class DataExportView(plugins.Action, VirtualDownloadView, BaseImportExportView):
+    menu_item = {
+        "name": _("Export Data"),
+        "icon": "export",
+    }
     form_class = ExportForm
 
     def get_file(self):
@@ -208,30 +218,3 @@ class MetadataDownloadView(SingleObjectMixin, VirtualDownloadView):
 
 class UploadForm(forms.Form):
     docfile = forms.FileField(label="Select a file")
-
-
-class DatasetUpload(HTMXMixin, MetadataMixin, FormView):
-    title = _("Upload")
-    template_name = "fairdm/import.html"
-    template_name = "fairdm/object_form.html"
-    form_class = UploadForm
-    extra_context = {"title": _("Upload")}
-
-    def process_import(self, dataset, import_file):
-        # importer = HeatFlowParentImporter(import_file, dataset)
-        # errors = importer.process_import()
-        # dataset = Dataset.objects.get(uuid=uuid)
-        # import_file = self.request.FILES["docfile"]
-        # importer = HeatFlowParentImporter(import_file, dataset)
-        # errors = importer.process_import()
-        # if errors:
-        # context["errors"] = errors
-        # else:
-        # message user
-        # self.message_user(request, "Import successful")
-        # return redirect(admin_urlname(context["opts"], "changelist"))
-        return {}
-
-    def form_valid(self, form):
-        result = self.process_import(self.dataset, form.cleaned_data["docfile"])
-        return super().form_valid(form)

@@ -1,0 +1,9 @@
+<c-components.link href="{{ create_url }}"
+                   hx-select="main"
+                   hx-target="main"
+                   hx-swap="innerHTML"
+                   icon="plus"
+                   text="{% trans "Create new" %}" />
+{% comment %}
+                   hx-get="{{ create_url }}"
+{% endcomment %}

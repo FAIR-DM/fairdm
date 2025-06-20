@@ -1,28 +1,31 @@
+{% extends "fairdm/base.html" %}
 {% load static %}
 
-<link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<c-layouts.article>
-  <c-text.heading>
-    <c-slot name="text">
-      {% if user.is_authenticated %}
-        {% trans "Welcome" %} {{ user.first_name }}
-      {% else %}
-        {% trans "Welcome!" %}
-      {% endif %}
-    </c-slot>
-  </c-text.heading>
-  <c-text.heading level="2" text="{% trans "Explore" %}" />
-  <c-fdm.dashboard.slider id="explore">
-    {% for item in theme_options.home.explore %}<c-component :is="item" />{% endfor %}
-  </c-fdm.dashboard.slider>
-  <c-text.heading level="2" text="{% trans "Create" %}" />
-  <c-fdm.dashboard.slider id="create">
-    {% for item in theme_options.home.create %}<c-component :is="item" />{% endfor %}
-  </c-fdm.dashboard.slider>
-  <c-text.heading level="2" text="{% trans "More" %}" />
-  <c-fdm.dashboard.slider id="more">
-    {% for item in theme_options.home.more %}<c-component :is="item" />{% endfor %}
-  </c-fdm.dashboard.slider>
-</c-layouts.article>
+{% block css %}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+{% endblock css %}
+
+{% block content %}
+  <c-layouts.standard>
+    <c-text.heading text="{% trans "Welcome!" %}" />
+    {% if theme_options.welcome_message %}
+      <c-sections.info-block>
+        {{ theme_options.welcome_message }}
+      </c-sections.info-block>
+    {% endif %}
+    <c-text.heading level="2" text="{% trans "Explore" %}" />
+    <c-fdm.dashboard.slider id="explore">
+      {% for item in theme_options.home.explore %}<c-component :is="item" />{% endfor %}
+    </c-fdm.dashboard.slider>
+    <c-text.heading level="2" text="{% trans "Create" %}" />
+    <c-fdm.dashboard.slider id="create">
+      {% for item in theme_options.home.create %}<c-component :is="item" />{% endfor %}
+    </c-fdm.dashboard.slider>
+    <c-text.heading level="2" text="{% trans "More" %}" />
+    <c-fdm.dashboard.slider id="more">
+      {% for item in theme_options.home.more %}<c-component :is="item" />{% endfor %}
+    </c-fdm.dashboard.slider>
+  </c-layouts.standard>
+{% endblock content %}

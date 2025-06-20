@@ -732,7 +732,7 @@ files = []
 develop = false
 
 [package.dependencies]
-django-cotton = "^2.0.3"
+django-cotton = ">2.1"
 django-libsass = "^0.9"
 
 [package.extras]
@@ -742,7 +742,7 @@ django-compressor = ["django-compressor (>=4.5.1,<5.0.0)"]
 type = "git"
 url = "https://github.com/SamuelJennings/cotton-bs5"
 reference = "HEAD"
-resolved_reference = "153e56d71fbaadd0e52c13126e49d9af020740cc"
+resolved_reference = "e192315f4e6869d930df3ea8f881eb18b430a24a"
 
 [[package]]
 name = "coverage"
@@ -1072,7 +1072,7 @@ stripe = "<12"
 type = "git"
 url = "https://github.com/SamuelJennings/django-account-management"
 reference = "HEAD"
-resolved_reference = "86b91a287e315adbc597f7c615c1968d43726f24"
+resolved_reference = "fea9ce13d36f4fffda1e76eb508a6a8ed457196f"
 
 [[package]]
 name = "django-activity-stream"
@@ -1215,6 +1215,39 @@ files = [
 django = "*"
 
 [[package]]
+name = "django-auto-prefetch"
+version = "1.12.0"
+description = "Automatically prefetch foreign key values as needed."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "django_auto_prefetch-1.12.0-py3-none-any.whl", hash = "sha256:7661fcea935681adb7123c7012b05ba844b61522764f537edc88339f8b4ccac9"},
+    {file = "django_auto_prefetch-1.12.0.tar.gz", hash = "sha256:93c0910cad757f7b3cc99e8b2fde4491c58d15f6964064617d3dd9e98bd12768"},
+]
+
+[package.dependencies]
+django = ">=4.2"
+
+[[package]]
+name = "django-autocomplete-light"
+version = "3.12.1"
+description = "Fresh autocompletes for Django"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django_autocomplete_light-3.12.1.tar.gz", hash = "sha256:50f7b83681feec6491c38e6114d7a4fe80f9e99a8cc6c8458a3e7bb137ad6b1d"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+
+[package.extras]
+genericm2m = ["django-generic-m2m"]
+gfk = ["django-querysetsequence (>=0.11)"]
+nested = ["django-nested-admin (>=3.0.21)"]
+tags = ["django-taggit"]
+
+[[package]]
 name = "django-better-admin-arrayfield"
 version = "1.4.2"
 description = "Better ArrayField widget for admin"
@@ -1239,6 +1272,20 @@ files = [
 [package.dependencies]
 bleach = {version = ">=5,<6", extras = ["css"]}
 Django = ">=3.2"
+
+[[package]]
+name = "django-braces"
+version = "1.17.0"
+description = "Reusable, generic mixins for Django"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django_braces-1.17.0-py3-none-any.whl", hash = "sha256:18c9fe889bc673bddee6110f23a8c57fefe99663c8c683a7c2ac4f8f8743674d"},
+    {file = "django_braces-1.17.0.tar.gz", hash = "sha256:3a6fe630d3d91fef0711bfe1088d14af00c245559f79f6298040ed2b2f757337"},
+]
+
+[package.dependencies]
+Django = ">=2.2"
 
 [[package]]
 name = "django-celery-beat"
@@ -1404,13 +1451,13 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-cotton"
-version = "2.1.0"
+version = "2.1.2"
 description = "Bringing component based design to Django templates."
 optional = false
 python-versions = "<4,>=3.8"
 files = [
-    {file = "django_cotton-2.1.0-py3-none-any.whl", hash = "sha256:0c32055a4fdee9351f75cd1294c39ab363263edbe787ed32d7e6145dbdf14aa6"},
-    {file = "django_cotton-2.1.0.tar.gz", hash = "sha256:7d4420a3b2a53e5f07b087aaaa667bced851c5002f8f8c8c3a4f7cd9cfaea732"},
+    {file = "django_cotton-2.1.2-py3-none-any.whl", hash = "sha256:8492cb7cfe881455a1b9dfaaaec2d1943494a1d3d2e2066ac7da6ce31afceef3"},
+    {file = "django_cotton-2.1.2.tar.gz", hash = "sha256:ad467f725239bf43004dad87dfc70f95c08d96efde4166d4bfb815e7cb72c56f"},
 ]
 
 [package.dependencies]
@@ -1819,6 +1866,20 @@ django-compressor = ">=1.3"
 libsass = ">=0.7.0,<1"
 
 [[package]]
+name = "django-lifecycle"
+version = "1.2.4"
+description = "Declarative model lifecycle hooks."
+optional = false
+python-versions = "*"
+files = [
+    {file = "django_lifecycle-1.2.4-py3-none-any.whl", hash = "sha256:b54aea17b50de45adb5c90a06eea0171afa0d547682f51990dffb578b82fc658"},
+    {file = "django_lifecycle-1.2.4.tar.gz", hash = "sha256:b37add8a95d0e85f9f97e652fac989cd5914cddb2380d933b6568f80238ab61e"},
+]
+
+[package.dependencies]
+Django = ">=3.2"
+
+[[package]]
 name = "django-literature"
 version = "0.1.7"
 description = "A scientific literature management tool for Django"
@@ -1853,7 +1914,7 @@ python-dateutil = "^2.8.2"
 type = "git"
 url = "https://github.com/SamuelJennings/django-literature"
 reference = "HEAD"
-resolved_reference = "a1df58f3e516fe2aced3a36cb4e68a8389f4ce87"
+resolved_reference = "a5c2ae1ddb2d5501efad4e4965c16214dcbda139"
 
 [[package]]
 name = "django-lockdown"
@@ -2143,14 +2204,14 @@ files = []
 develop = false
 
 [package.dependencies]
-django = ">=3.2"
+django = ">=5"
 rdflib = "^7.0.0"
 
 [package.source]
 type = "git"
 url = "https://github.com/SamuelJennings/django-research-vocabs"
 reference = "HEAD"
-resolved_reference = "a7611e8c8d2b0529cad084e00d118750a989b4e5"
+resolved_reference = "0e8b04aca806eb89175350212483a9500e311af4"
 
 [[package]]
 name = "django-rest-polymorphic"
@@ -2817,6 +2878,7 @@ files = []
 develop = false
 
 [package.dependencies]
+markdown = "^3.8"
 myst-parser = ">=4.0"
 pydata-sphinx-theme = {version = ">=0.16.1", optional = true}
 sphinx = ">=8.1"
@@ -2825,6 +2887,8 @@ sphinx-autodoc2 = ">=0.5"
 sphinx-comments = ">=0.0.3"
 sphinx-copybutton = ">=0.5"
 sphinx-design = ">=0.6"
+sphinx-exec-code = "^0.16"
+sphinxcontrib-bibtex = "^2.6.3"
 sphinxext-opengraph = ">=0.9"
 
 [package.extras]
@@ -2835,7 +2899,7 @@ sphinx-book-theme = ["sphinx-book-theme (>1.1)"]
 type = "git"
 url = "https://github.com/FAIR-DM/fairdm-docs"
 reference = "HEAD"
-resolved_reference = "c9aaf9024f117098796da6463bd152dfe6183b52"
+resolved_reference = "ab57d70e7830aeae87c7aea0aa93eb7fad2911dd"
 
 [[package]]
 name = "faker"
@@ -3452,6 +3516,21 @@ htmlsoup = ["BeautifulSoup4"]
 source = ["Cython (>=3.0.11,<3.1.0)"]
 
 [[package]]
+name = "markdown"
+version = "3.8"
+description = "Python implementation of John Gruber's Markdown."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "markdown-3.8-py3-none-any.whl", hash = "sha256:794a929b79c5af141ef5ab0f2f642d0f7b1872981250230e72682346f7cc90dc"},
+    {file = "markdown-3.8.tar.gz", hash = "sha256:7df81e63f0df5c4b24b7d156eb81e4690595239b7d70937d0409f1b0de319c6f"},
+]
+
+[package.extras]
+docs = ["mdx_gh_links (>=0.2)", "mkdocs (>=1.6)", "mkdocs-gen-files", "mkdocs-literate-nav", "mkdocs-nature (>=0.6)", "mkdocs-section-index", "mkdocstrings[python]"]
+testing = ["coverage", "pyyaml"]
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
@@ -3688,6 +3767,30 @@ linkify = ["linkify-it-py (>=2.0,<3.0)"]
 rtd = ["ipython", "sphinx (>=7)", "sphinx-autodoc2 (>=0.5.0,<0.6.0)", "sphinx-book-theme (>=1.1,<2.0)", "sphinx-copybutton", "sphinx-design", "sphinx-pyscript", "sphinx-tippy (>=0.4.3)", "sphinx-togglebutton", "sphinxext-opengraph (>=0.9.0,<0.10.0)", "sphinxext-rediraffe (>=0.2.7,<0.3.0)"]
 testing = ["beautifulsoup4", "coverage[toml]", "defusedxml", "pygments (<2.19)", "pytest (>=8,<9)", "pytest-cov", "pytest-param-files (>=0.6.0,<0.7.0)", "pytest-regressions", "sphinx-pytest"]
 testing-docutils = ["pygments", "pytest (>=8,<9)", "pytest-param-files (>=0.6.0,<0.7.0)"]
+
+[[package]]
+name = "narwhals"
+version = "1.43.1"
+description = "Extremely lightweight compatibility layer between dataframe libraries"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "narwhals-1.43.1-py3-none-any.whl", hash = "sha256:1ee508fa4dc0e05aa5b88717ba11613d8d9ccf0dd1e48513d4a3afb237dba9f2"},
+    {file = "narwhals-1.43.1.tar.gz", hash = "sha256:6ff56d600da67a0a0980b83bd5577d076772fdba96474076ba4e76c920dbc1e5"},
+]
+
+[package.extras]
+cudf = ["cudf (>=24.10.0)"]
+dask = ["dask[dataframe] (>=2024.8)"]
+duckdb = ["duckdb (>=1.0)"]
+ibis = ["ibis-framework (>=6.0.0)", "packaging", "pyarrow-hotfix", "rich"]
+modin = ["modin"]
+pandas = ["pandas (>=1.1.3)"]
+polars = ["polars (>=0.20.3)"]
+pyarrow = ["pyarrow (>=11.0.0)"]
+pyspark = ["pyspark (>=3.5.0)"]
+pyspark-connect = ["pyspark[connect] (>=3.5.0)"]
+sqlframe = ["sqlframe (>=3.22.0)"]
 
 [[package]]
 name = "neapolitan"
@@ -4235,6 +4338,26 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=8.3.2)", "pytest-
 type = ["mypy (>=1.11.2)"]
 
 [[package]]
+name = "plotly"
+version = "6.1.2"
+description = "An open-source interactive data visualization library for Python"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "plotly-6.1.2-py3-none-any.whl", hash = "sha256:f1548a8ed9158d59e03d7fed548c7db5549f3130d9ae19293c8638c202648f6d"},
+    {file = "plotly-6.1.2.tar.gz", hash = "sha256:4fdaa228926ba3e3a213f4d1713287e69dcad1a7e66cf2025bd7d7026d5014b4"},
+]
+
+[package.dependencies]
+narwhals = ">=1.15.1"
+packaging = "*"
+
+[package.extras]
+dev = ["black (==25.1.0)"]
+express = ["numpy"]
+kaleido = ["kaleido (==1.0.0rc13)"]
+
+[[package]]
 name = "pluggy"
 version = "1.5.0"
 description = "plugin and hook calling mechanisms for python"
@@ -4751,6 +4874,33 @@ files = [
 requests = "*"
 
 [[package]]
+name = "python-benedict"
+version = "0.34.1"
+description = "python-benedict is a dict subclass with keylist/keypath/keyattr support, normalized I/O operations (base64, csv, ini, json, pickle, plist, query-string, toml, xls, xml, yaml) and many utilities... for humans, obviously."
+optional = false
+python-versions = "*"
+files = [
+    {file = "python_benedict-0.34.1-py3-none-any.whl", hash = "sha256:f09711ca2d8e716ca40440f1e26dfa3ccff15e08f1baa88de594fbba799cf87a"},
+    {file = "python_benedict-0.34.1.tar.gz", hash = "sha256:0a81784c826c8983c485bb647ed5e6c8fad139c3921ea1844b21e41da0ff0dc0"},
+]
+
+[package.dependencies]
+python-fsutil = ">=0.9.3,<1.0.0"
+python-slugify = ">=7.0.0,<9.0.0"
+requests = ">=2.26.0,<3.0.0"
+
+[package.extras]
+all = ["python-benedict[io,parse,s3]"]
+html = ["beautifulsoup4 (>=4.12.0,<5.0.0)", "python-benedict[xml]"]
+io = ["python-benedict[html,toml,xls,xml,yaml]"]
+parse = ["ftfy (>=6.0.0,<7.0.0)", "mailchecker (>=4.1.0,<7.0.0)", "phonenumbers (>=8.12.0,<9.0.0)", "python-dateutil (>=2.8.0,<3.0.0)"]
+s3 = ["boto3 (>=1.24.89,<2.0.0)"]
+toml = ["toml (>=0.10.2,<1.0.0)"]
+xls = ["openpyxl (>=3.0.0,<4.0.0)", "xlrd (>=2.0.0,<3.0.0)"]
+xml = ["xmltodict (>=0.12.0,<1.0.0)"]
+yaml = ["pyyaml (>=6.0,<7.0)"]
+
+[[package]]
 name = "python-crontab"
 version = "3.2.0"
 description = "Python Crontab API"
@@ -4781,6 +4931,34 @@ files = [
 
 [package.dependencies]
 six = ">=1.5"
+
+[[package]]
+name = "python-fsutil"
+version = "0.15.0"
+description = "high-level file-system operations for lazy devs."
+optional = false
+python-versions = "*"
+files = [
+    {file = "python_fsutil-0.15.0-py3-none-any.whl", hash = "sha256:8ae31def522916e35caf67723b8526fe6e5fcc1e160ea2dc23c845567708ca6e"},
+    {file = "python_fsutil-0.15.0.tar.gz", hash = "sha256:b51d8ab7ee218314480ea251fff7fef513be4fbccfe72a5af4ff2954f8a4a2c4"},
+]
+
+[[package]]
+name = "python-slugify"
+version = "8.0.4"
+description = "A Python slugify application that also handles Unicode"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "python-slugify-8.0.4.tar.gz", hash = "sha256:59202371d1d05b54a9e7720c5e038f928f45daaffe41dd10822f3907b937c856"},
+    {file = "python_slugify-8.0.4-py2.py3-none-any.whl", hash = "sha256:276540b79961052b66b7d116620b36518847f52d5fd9e3a70164fc8c50faa6b8"},
+]
+
+[package.dependencies]
+text-unidecode = ">=1.3"
+
+[package.extras]
+unidecode = ["Unidecode (>=1.1.1)"]
 
 [[package]]
 name = "pytz"
@@ -5390,6 +5568,63 @@ botocore = ">=1.36.0,<2.0a.0"
 crt = ["botocore[crt] (>=1.36.0,<2.0a.0)"]
 
 [[package]]
+name = "sentry-sdk"
+version = "2.30.0"
+description = "Python client for Sentry (https://sentry.io)"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "sentry_sdk-2.30.0-py2.py3-none-any.whl", hash = "sha256:59391db1550662f746ea09b483806a631c3ae38d6340804a1a4c0605044f6877"},
+    {file = "sentry_sdk-2.30.0.tar.gz", hash = "sha256:436369b02afef7430efb10300a344fb61a11fe6db41c2b11f41ee037d2dd7f45"},
+]
+
+[package.dependencies]
+certifi = "*"
+django = {version = ">=1.8", optional = true, markers = "extra == \"django\""}
+urllib3 = ">=1.26.11"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.5)"]
+anthropic = ["anthropic (>=0.16)"]
+arq = ["arq (>=0.23)"]
+asyncpg = ["asyncpg (>=0.23)"]
+beam = ["apache-beam (>=2.12)"]
+bottle = ["bottle (>=0.12.13)"]
+celery = ["celery (>=3)"]
+celery-redbeat = ["celery-redbeat (>=2)"]
+chalice = ["chalice (>=1.16.0)"]
+clickhouse-driver = ["clickhouse-driver (>=0.2.0)"]
+django = ["django (>=1.8)"]
+falcon = ["falcon (>=1.4)"]
+fastapi = ["fastapi (>=0.79.0)"]
+flask = ["blinker (>=1.1)", "flask (>=0.11)", "markupsafe"]
+grpcio = ["grpcio (>=1.21.1)", "protobuf (>=3.8.0)"]
+http2 = ["httpcore[http2] (==1.*)"]
+httpx = ["httpx (>=0.16.0)"]
+huey = ["huey (>=2)"]
+huggingface-hub = ["huggingface_hub (>=0.22)"]
+langchain = ["langchain (>=0.0.210)"]
+launchdarkly = ["launchdarkly-server-sdk (>=9.8.0)"]
+litestar = ["litestar (>=2.0.0)"]
+loguru = ["loguru (>=0.5)"]
+openai = ["openai (>=1.0.0)", "tiktoken (>=0.3.0)"]
+openfeature = ["openfeature-sdk (>=0.7.1)"]
+opentelemetry = ["opentelemetry-distro (>=0.35b0)"]
+opentelemetry-experimental = ["opentelemetry-distro"]
+pure-eval = ["asttokens", "executing", "pure_eval"]
+pymongo = ["pymongo (>=3.1)"]
+pyspark = ["pyspark (>=2.4.4)"]
+quart = ["blinker (>=1.1)", "quart (>=0.16.1)"]
+rq = ["rq (>=0.6)"]
+sanic = ["sanic (>=0.8)"]
+sqlalchemy = ["sqlalchemy (>=1.2)"]
+starlette = ["starlette (>=0.19.1)"]
+starlite = ["starlite (>=1.48)"]
+statsig = ["statsig (>=0.55.3)"]
+tornado = ["tornado (>=6)"]
+unleash = ["UnleashClient (>=6.0.1)"]
+
+[[package]]
 name = "setuptools"
 version = "75.8.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -5617,6 +5852,17 @@ theme-im = ["sphinx-immaterial (>=0.12.2,<0.13.0)"]
 theme-pydata = ["pydata-sphinx-theme (>=0.15.2,<0.16.0)"]
 theme-rtd = ["sphinx-rtd-theme (>=2.0,<3.0)"]
 theme-sbt = ["sphinx-book-theme (>=1.1,<2.0)"]
+
+[[package]]
+name = "sphinx-exec-code"
+version = "0.16"
+description = "Execute code blocks in Sphinx and display the output"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sphinx_exec_code-0.16-py3-none-any.whl", hash = "sha256:b5cd4f8d2d4b929d522e14ccf30ac569f8864a9c241e91cb93fc8324abdd9c52"},
+    {file = "sphinx_exec_code-0.16.tar.gz", hash = "sha256:51458982dc7a152802dfac9786af656c7fe35206203452d9f6322cac45534b32"},
+]
 
 [[package]]
 name = "sphinxcontrib-applehelp"
@@ -5873,6 +6119,17 @@ files = [
 
 [package.extras]
 tests = ["pytest", "pytest-cov"]
+
+[[package]]
+name = "text-unidecode"
+version = "1.3"
+description = "The most basic Text::Unidecode port"
+optional = false
+python-versions = "*"
+files = [
+    {file = "text-unidecode-1.3.tar.gz", hash = "sha256:bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93"},
+    {file = "text_unidecode-1.3-py2.py3-none-any.whl", hash = "sha256:1311f10e8b895935241623731c2ba64f4c455287888b18189350b67134a822e8"},
+]
 
 [[package]]
 name = "tinycss2"
@@ -6514,4 +6771,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "da47462208bf8d0022a249b4d7c07af0349bf76ff5e9419b438966218d3acd9d"
+content-hash = "e26d60fc3c8f9d3ba73d315a268618057550eee260874824c0c1fea0b43458fb"

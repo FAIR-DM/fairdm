@@ -1,7 +1,6 @@
 {% load static %}
 
 <c-vars title icon="theme_icon" />
-{% comment %} :header_start="{% icon icon class="fa-lg fs-3 me-2" %}" {% endcomment %}
 <c-bs5.modal fade centered :attrs="attrs">
   <c-bs5.modal.header :title="title">
     <c-slot name="header_start">

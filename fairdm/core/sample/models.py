@@ -1,5 +1,4 @@
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
 from django.utils.functional import classproperty
 
 # from rest_framework.authtoken.models import Token
@@ -7,15 +6,13 @@ from django.utils.translation import gettext_lazy as _
 from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
 
+from fairdm.db import models
+
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BasePolymorphicModel
 from ..choices import SampleStatus
-from ..managers import PolymorphicManager
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 
 
-# WARNING: PolymorphicModel must always be listed first in the inheritance list to ensure
-# proper polymorphic behavior across relations and queries.
-# SEE: https://github.com/jazzband/django-polymorphic/issues/437#issuecomment-677638021
 class Sample(BasePolymorphicModel):
     """A sample is a physical or digital object that is part of a dataset."""
 
@@ -23,8 +20,6 @@ class Sample(BasePolymorphicModel):
     DATE_TYPES = FairDMDates.from_collection("Sample")
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Sample")
     # IDENTIFIER_TYPES = choices.DataCiteIdentifiers
-
-    objects = PolymorphicManager()
 
     dataset = models.ForeignKey(
         "dataset.Dataset",
@@ -67,7 +62,6 @@ class Sample(BasePolymorphicModel):
 
     # GENERIC RELATIONS
     contributors = GenericRelation("contributors.Contribution")
-    # RELATIONS
 
     class Meta:
         verbose_name = _("sample")
@@ -75,12 +69,8 @@ class Sample(BasePolymorphicModel):
         ordering = ["added"]
         default_related_name = "samples"
 
-    # class FairDM:
-    #     description = "A sample is a physical or digital object that is part of a dataset."
-    #     filterset_class = "fairdm.core.filters.SampleFilter"
-    #     form_class = "fairdm.core.forms.SampleForm"
-    #     table_class = "fairdm.core.tables.SampleTable"
-    #     resource_class = "fairdm.contrib.import_export.resources.SampleResource"
+    def __str__(self):
+        return f"{self.name}"
 
     @classproperty
     def type_of(self):
@@ -128,3 +118,5 @@ class SampleRelation(models.Model):
         related_name="related_to",
         on_delete=models.CASCADE,
     )
+    added = None
+    modified = None

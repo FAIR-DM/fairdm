@@ -2,13 +2,14 @@ from allauth.account.models import EmailAddress
 from client_side_image_cropping import DcsicAdminMixin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.db import models
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget
 from image_uploader_widget.widgets import ImageUploaderWidget
 from import_export.admin import ImportExportModelAdmin
 from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelFilter, PolymorphicParentModelAdmin
+
+from fairdm.db import models
 
 # from django_select2.forms import Select2AdminMixin
 from .models import Contributor, Organization, OrganizationMember, Person
@@ -74,7 +75,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, Impo
         "email",
         "is_staff",
         "is_active",
-        "last_login",
+        "is_member",
     ]
     list_filter = ("is_staff", "is_superuser", "is_active", "groups")
     exclude = ("username",)

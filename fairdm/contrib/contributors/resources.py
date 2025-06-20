@@ -44,5 +44,8 @@ class PersonResource(resources.ModelResource):
         # Allows reuse of instance created during before_import_row
         if orcid := row.get("orcid"):
             person, created = update_or_create_from_orcid(orcid, id=row.get("id"))
+            if created:
+                # If the person was created during this import process, they are not a member yet
+                person.is_member = False
             return person
         return super().get_instance(instance_loader, row)

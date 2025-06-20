@@ -26,7 +26,6 @@ urlpatterns = [
     path("", include("fairdm.contrib.location.urls")),
     path("", include("fairdm.utils.urls")),
     path("api/", include("fairdm.contrib.api.urls")),
-    path("vocabularies/", include("research_vocabs.urls")),
     path("account/", include("account_management.urls")),
     path("account/", include("allauth.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),

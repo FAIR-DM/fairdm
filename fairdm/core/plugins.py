@@ -1,38 +1,92 @@
-import flex_menu
+import waffle
+from django.http import Http404
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
 from django.views.generic.base import TemplateView
+from django_contact_form.forms import ContactForm
+from django_contact_form.views import ContactFormView
 from render_fields.views import FieldsetsMixin
 
-from fairdm.plugins import GenericPlugin, ModelFormPlugin
+from fairdm import plugins
 from fairdm.utils.utils import feature_is_enabled
 from fairdm.views import FairDMListView
 
-from .models import Dataset, Project
+from .dataset.views import DatasetListView
+from .project.views import ProjectListView
 from .views import DataTableView
 
 
-class DiscussionPlugin(GenericPlugin, TemplateView):
-    title = name = _("Discussion")
-    menu_check = feature_is_enabled("ALLOW_DISCUSSIONS")
+class DiscussionPlugin(plugins.Explore, TemplateView):
+    name = "discussion"
+    title = _("Discussion")
+    menu_item = {
+        "name": _("Discussion"),
+        "icon": "comments",
+    }
     icon = "comments"
     template_name = "plugins/discussion.html"
 
+    sidebar_secondary_config = {"visible": True}  # Hide the secondary sidebar by default
 
-class ActivityPlugin(GenericPlugin, TemplateView):
-    name = _("Activity")
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Override dispatch to check if the discussion plugin is enabled.
+        """
+        if not self.check(request, self.base_object, **kwargs):
+            raise Http404(_("This plugin has not been enabled."))
+        return super().dispatch(request, *args, **kwargs)
+
+    @staticmethod
+    def check(request, instance, **kwargs):
+        """
+        Check if the user has permission to view the discussion plugin.
+        This can be overridden in subclasses to implement custom logic.
+        """
+        return waffle.switch_is_active("allow_discussions")
+
+
+class ActivityPlugin(plugins.Explore, FairDMListView):
     title = _("Recent Activity")
-    icon = "activity"
-    template_name = "plugins/activity_stream.html"
+    menu_item = {
+        "name": _("Activity"),
+        "icon": "activity",
+    }
+    filterset_class = None
+    grid_config = {"card": "activity.action_compact"}
+    # template_name = "plugins/activity_stream.html"
 
 
-class Images(GenericPlugin, TemplateView):
-    name = _("Images")
-    icon = "images"
+class ContactPlugin(plugins.Action, ContactFormView):
+    title = _("Contact")
+    form_class = ContactForm
+    # description = _("Contact the project or dataset owner for inquiries or support.")
+    description = _("I'm not functioning at the moment.")
+    menu_item = {
+        "name": _("Contact"),
+        "icon": "email",
+    }
+
+
+class SharePlugin(plugins.Action, TemplateView):
+    title = _("Spread the word")
+    description = _("Share this project or dataset with others via social media or email.")
+    menu_item = {
+        "name": _("Share"),
+        "icon": "share",
+    }
+    template_name = "plugins/share.html"
+
+
+class Images(plugins.Explore, TemplateView):
+    menu_item = {
+        "name": _("Images"),
+        "icon": "images",
+    }
     template_name = "plugins/images.html"
 
 
-class OverviewPlugin(GenericPlugin, FieldsetsMixin, DetailView):
+class OverviewPlugin(plugins.Explore, FieldsetsMixin, DetailView):
     """
     A plugin for displaying an overview of a project or dataset.
 
@@ -45,13 +99,20 @@ class OverviewPlugin(GenericPlugin, FieldsetsMixin, DetailView):
     Note: this probably needs to be optimized to select related objects.
     """
 
-    slug = ""
-    title = name = _("Overview")
-    icon = "overview"
+    title = _("Overview")
+    menu_item = {
+        "name": _("Overview"),
+        "icon": "overview",
+    }
+    path = ""
 
     @property
     def model(self):
         return self.base_object.__class__
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
     def get_object(self, queryset=None):
         return self.base_object
@@ -60,32 +121,32 @@ class OverviewPlugin(GenericPlugin, FieldsetsMixin, DetailView):
         if self.template_name is not None:
             return [self.template_name]
         opts = self.model._meta
-        if self.model is not None and self.template_name_suffix is not None:
-            templates = [
-                f"{opts.app_label}/{opts.object_name.lower()}{self.template_name_suffix}.html",
-                # "fairdm_core/sample_detail.html",
-                f"fairdm/object{self.template_name_suffix}.html",
-            ]
-            print(templates)
-            return templates
-        return super().get_template_names()
+        templates = [f"{opts.app_label}/{opts.object_name.lower()}{self.template_name_suffix}.html"]
+        if hasattr(self.model, "type_of"):
+            poly_opts = self.model.type_of._meta
+            templates += [f"{poly_opts.app_label}/{poly_opts.object_name.lower()}{self.template_name_suffix}.html"]
+
+        templates += [
+            f"fairdm/object{self.template_name_suffix}.html",
+        ]
+        return templates
+        # return super().get_template_names()
 
 
-class ManageBaseObjectPlugin(ModelFormPlugin, UpdateView):
-    title = name = _("Configure")
-    icon = "gear"
+class ManageBaseObjectPlugin(plugins.Management, UpdateView):
+    name = "configure"
+    title = _("Configure")
+    menu_item = {
+        "name": _("Configure"),
+        "icon": "gear",
+    }
 
     @staticmethod
     def check(request, instance, **kwargs):
         return request.user.is_superuser
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["menu"] = flex_menu.root[self.related_class.__name__]["Manage"]
-        return context
 
-
-class ProjectPlugin(GenericPlugin, FairDMListView):
+class ProjectPlugin(plugins.Explore, ProjectListView):
     """
     A plugin for displaying and filtering a list of projects related to a contributor.
 
@@ -101,37 +162,53 @@ class ProjectPlugin(GenericPlugin, FairDMListView):
     Note: This plugin requires a model method `projects` to retrieve the a Project queryset from the related object.
     """
 
-    title = name = _("Projects")
-    icon = "project"
-    model = Project
-    card = "project.card"
+    menu_item = {
+        "name": _("Projects"),
+        "icon": "project",
+    }
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.projects.all()
 
 
-class DatasetPlugin(GenericPlugin, FairDMListView):
+class DatasetPlugin(plugins.Explore, DatasetListView):
     """
     A plugin for displaying and filtering datasets related to another entry in the database.
     """
 
-    title = name = _("Datasets")
-    icon = "dataset"
-    model = Dataset
-    card = "dataset.card"
+    menu_item = {
+        "name": _("Datasets"),
+        "icon": "dataset",
+    }
+    actions = ["dataset.create-button"]
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.datasets.all()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["create_url"] = (
+            self.get_create_url()
+            + f"?{self.base_object.__class__.__name__.lower()}={self.base_object.id}&next={self.request.path}"
+        )
+        return context
 
-class DataTablePlugin(GenericPlugin, DataTableView):
-    title = name = _("Data")
+    def get_create_url(self):
+        """
+        Returns the URL for creating a new dataset.
+        """
+        return reverse("dataset-create")
+
+
+class DataTablePlugin(plugins.Explore, DataTableView):
+    title = _("Data")
+    sections = {"header": "datatable.header"}
+    menu_item = {
+        "name": _("Data"),
+        "icon": "table",
+    }
     menu_check = feature_is_enabled("SHOW_DATA_TABLES")
     icon = "sample"
-    extra_context = {
-        # DANGER: REMOVE ME
-        "can_add": True,
-    }
 
     def get_queryset(self, *args, **kwargs):
         # return self.base_object.samples.instance_of(self.model)

@@ -1,5 +1,4 @@
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
 from django.utils.functional import cached_property
 
 # from rest_framework.authtoken.models import Token
@@ -9,6 +8,7 @@ from licensing.fields import LicenseField
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.contrib.location.utils import bbox_for_dataset
+from fairdm.db import models
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
@@ -46,6 +46,8 @@ class Dataset(BaseModel):
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Dataset")
     # IDENTIFIER_TYPES = choices.DataCiteIdentifiers
     VISIBILITY_CHOICES = Visibility
+    DEFAULT_ROLES = ["ProjectMember"]
+    # DEFAULT_ROLES = FairDMRoles.from_collection("Dataset").get_concept("ProjectMember")
 
     objects = DatasetQuerySet.as_manager()
 

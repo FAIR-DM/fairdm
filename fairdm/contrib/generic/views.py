@@ -3,7 +3,6 @@ from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 from extra_views import ModelFormSetView, UpdateWithInlinesView
 
-from fairdm.registry import registry
 from fairdm.utils.utils import get_core_object_or_404
 
 from .forms import CoreFormset, DateForm, DescriptionInline
@@ -76,7 +75,6 @@ class UpdateDatesView(BaseFormsetView):
 class UpdateCoreObjectBasicInfo(UpdateWithInlinesView):
     """Presents a form to update the name and descriptions of a Project, Dataset, Sample or Measurment."""
 
-    template_name = "cotton/layouts/plugin/form.html"
     inlines = [DescriptionInline]
 
     def get_context_data(self, **kwargs):
@@ -90,6 +88,4 @@ class UpdateCoreObjectBasicInfo(UpdateWithInlinesView):
         self.model = obj.__class__
         return obj
 
-    def get_form_class(self):
-        """Return the form class to use."""
-        return registry.get_model(self.model)["config"].get_form_class()
+    # return registry.get_model(self.model)["config"].get_form_class()

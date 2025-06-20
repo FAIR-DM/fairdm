@@ -1,0 +1,32 @@
+{% load crispy_forms_tags fairdm %}
+
+<c-components.button text="{% trans "Add" %}"
+                     icon="plus"
+                     data-bs-toggle="modal"
+                     data-bs-target="#quick-add-contribution-modal" />
+<c-components.modal id="quick-add-contribution-modal"
+                    title="{% trans "Add contributors" %}">
+  <p>
+    {% plugin_url "contributors-create" as quick_add_view %}
+    {% blocktrans %}
+      Quickly add one or more contributors to the current page. Can't find who you're looking for? <a href="{{ quick_add_view }}">Add someone new here.</a>
+    {% endblocktrans %}
+  </p>
+  {% crispy quick_add_form %}
+  <c-slot name="footer">
+    <c-bs5.modal.footer>
+      <c-components.button type="submit"
+                           size="md"
+                           style="primary"
+                           form="{{ quick_add_form.helper.form_id }}"
+                           text="{% trans "Add contributors" %}" />
+    </c-bs5.modal.footer>
+  </c-slot>
+</c-components.modal>
+<script>
+  $(function() {
+    $('.modal .django-select2').djangoSelect2({
+      dropdownParent: $("#quick-add-contribution-modal"),
+    });
+  });
+</script>

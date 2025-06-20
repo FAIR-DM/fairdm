@@ -12,7 +12,19 @@ class QuantityJSONField(serializers.FloatField):
         return ureg.Quantity(data["magnitude"], data["unit"])
 
 
-class QuantityField(serializers.FloatField):
+class QuantityFieldMixin:
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
+    def to_representation(self, value):
+        return value.magnitude
+
+
+class QuantityField(QuantityFieldMixin, serializers.FloatField):
+    pass
+
+
+class QuantityDecimalField(QuantityFieldMixin, serializers.DecimalField):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 

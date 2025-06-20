@@ -1,11 +1,11 @@
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
 
 # from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
 
+from fairdm.db import models
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel

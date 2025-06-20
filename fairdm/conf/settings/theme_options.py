@@ -19,6 +19,7 @@ FAIRDM_CONFIG = {
             "fdm.dashboard.fairdm-framework",
         ],
     },
+    "welcome_message": "Welcome to FairDM!",
     "external_links": [
         {
             "url": "https://fairdm.com/",
@@ -52,10 +53,17 @@ FAIRDM_CONFIG = {
         "image_light": "img/brand/fairdm.svg",
     },
     "announcement": "",
-    "navbar_start": ["pst.components.navbar-logo"],
-    "navbar_center": ["pst.components.navbar-nav"],
-    "navbar_end": ["pst.components.theme-switcher", "pst.components.navbar-icon-links", "dac.sections.user-sidebar"],
-    "navbar_persistent": ["pst.components.search-button-field"],
+    "navbar_start": [
+        "pst.components.navbar-logo",
+    ],
+    "navbar_center": [
+        "pst.components.navbar-nav",
+    ],
+    "navbar_end": [
+        "pst.components.theme-switcher",
+        "pst.components.navbar-icon-links",
+        "dac.sections.user-sidebar.toggle",
+    ],
     # "primary_sidebar_end": ["custom-template", "sidebar-ethical-ads"],
     # "article_footer_items": ["test", "test"],
     # "content_footer_items": ["test", "test"],

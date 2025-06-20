@@ -75,8 +75,9 @@ LIBSASS_SOURCEMAPS = True
 
 DEBUG_TOOLBAR_CONFIG = {
     # "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
-    "SHOW_TEMPLATE_CONTEXT": True,
+    "SHOW_TEMPLATE_CONTEXT": False,  # CAREFUL: this can cause huge memory usage
     "ROOT_TAG_EXTRA_ATTRS": "hx-preserve",
+    "SKIP_TEMPLATE_PREFIXES": ("cotton/",),
 }
 
 

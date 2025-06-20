@@ -1,44 +1,26 @@
-from functools import cached_property
-
+from django.urls import path
+from django.views.generic import RedirectView
 from django_tables2.views import SingleTableMixin
 
 from fairdm.contrib.import_export.utils import export_choices
+from fairdm.layouts import ApplicationLayout
 from fairdm.registry import registry
 from fairdm.views import FairDMListView
 
 
-class DataTableView(SingleTableMixin, FairDMListView):
+class DataTableView(ApplicationLayout, SingleTableMixin, FairDMListView):
     export_formats = ["csv", "xls", "xlsx", "json", "latex", "ods", "tsv", "yaml"]
     template_name_suffix = "_table"
     template_name = "fairdm/data_table.html"
+    sections = {
+        "header": "datatable.header",
+    }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
         context["export_choices"] = export_choices
         return context
-
-    def get_card(self):
-        return False
-
-    @cached_property
-    def model(self):
-        self.dtype = self.request.GET.get("type")
-
-        if not self.dtype:
-            # Default to the first registered model if no type is provided
-            if not registry.all:
-                raise ValueError("No models are registered in the FairDMRegistry.")
-            self.meta = registry.samples[0]
-            self.dtype = f"{self.meta['app_label']}.{self.meta['model']}"  # Ensures dtype is still assigned
-        else:
-            # Retrieve the model metadata from the registry
-            result = registry.get(*self.dtype.split("."))
-            if not result:
-                raise ValueError(f"This data type is not supported: {self.dtype}")
-            self.meta = result[0]
-
-        return self.meta["class"]
 
     def get_table_class(self):
         """
@@ -81,3 +63,37 @@ class DataTableView(SingleTableMixin, FairDMListView):
     def get_content_type(self, file):
         """Define the MIME type for the ZIP file."""
         return "text/csv"
+
+    @classmethod
+    def get_urls(cls):
+        """
+        Return the URLs for the table view.
+        """
+        urls = []
+        for item in registry.all:
+            urls.append(
+                path(
+                    f"{item['type']}s/{item['slug']}/",
+                    cls.as_view(model=item["class"]),
+                    name=f"{item['slug']}-collection",
+                )
+            )
+        return urls
+
+
+class CollectionRedirectView(RedirectView):
+    """
+    Redirects to the first registered collection.
+    This is useful for the default view when no specific collection is requested.
+    """
+
+    permanent = False
+
+    def get_redirect_url(self, *args, **kwargs):
+        """
+        Redirect to the first registered collection.
+        """
+        if not registry.samples or not registry.measurements:
+            return "/"
+        first_collection = registry.samples[0]
+        return f"/{first_collection['type']}s/{first_collection['slug']}/"

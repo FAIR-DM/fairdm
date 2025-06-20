@@ -22,6 +22,7 @@ class ReferenceListView(FairDMListView):
     model = LiteratureItem
     paginate_by = 20
     filterset_class = LiteratureFilterset
+    card = "literature.card"  # cotton/literature/card.html
 
 
 def follow_unfollow(request, uuid):

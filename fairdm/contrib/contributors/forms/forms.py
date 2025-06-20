@@ -146,7 +146,11 @@ class IdentifierForm(forms.ModelForm):
         self.fields["scheme"].choices = scheme_choices
 
 
-class RemoteContributionForm(forms.Form):
+class RemoteContributionForm(forms.ModelForm):
     """A form used to accept data from a remote source (ORCID, ROR) in JSON format."""
 
     data = forms.JSONField()
+
+    class Meta:
+        model = Contribution
+        fields = ["data"]

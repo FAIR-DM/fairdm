@@ -10,6 +10,8 @@ INSTALLED_APPS = [
     "admin_tools.theming",
     "admin_tools.menu",
     "admin_tools.dashboard",
+    "dal",
+    "dal_select2",
     # DJANGO CORE
     "fairdm.contrib.admin.apps.FairDMAdminSite",
     # "django.contrib.admin",
@@ -109,5 +111,6 @@ INSTALLED_APPS = [
     "import_export",
     "render_fields",
     "django_addanother",
+    "waffle",
     *FAIRDM_APPS,
 ]

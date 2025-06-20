@@ -1,21 +1,20 @@
-<c-pst.sections.sidebar class="offcanvas-md offcanvas-start w-auto"
-                        style="min-width: 230px">
+<c-sections.sidebar.primary id="tableMenu" hide_below="xl">
   <nav class="bd-docs-nav bd-links">
     <div class="bd-toc-item navbar-nav">
-      <c-pst.sidebar.primary.heading text="{% trans "Sample types" %}" />
+      <c-pst.sidebar.primary.heading text="{% trans "Sample collections" %}" />
       <c-pst.sidebar.primary.list>
         {% for item in registry.samples %}
-          <c-pst.sidebar.primary.list-item href="?{{ item.full_name }}"
+          <c-pst.sidebar.primary.list-item href="{{ item.model.get_collection_url }}"
                                            text="{{ item.verbose_name_plural }}" />
         {% endfor %}
       </c-pst.sidebar.primary.list>
-      <c-pst.sidebar.primary.heading text="{% trans "Measurement types" %}" />
+      <c-pst.sidebar.primary.heading text="{% trans "Measurement collections" %}" />
       <c-pst.sidebar.primary.list>
         {% for item in registry.measurements %}
-          <c-pst.sidebar.primary.list-item href="?{{ item.full_name }}"
+          <c-pst.sidebar.primary.list-item href="{{ item.model.get_collection_url }}"
                                            text="{{ item.verbose_name_plural }}" />
         {% endfor %}
       </c-pst.sidebar.primary.list>
     </div>
   </nav>
-</c-pst.sections.sidebar>
+</c-sections.sidebar.primary>

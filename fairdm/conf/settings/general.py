@@ -163,3 +163,8 @@ FEATURE_FLAGS = {
 }
 
 DAC_FLOATING_MENU = "fairdm/menus/user_offcanvas.html"
+
+
+SHELL_PLUS_MODEL_ALIASES = {
+    "waffle": {"Sample": "waffle_sample"},
+}

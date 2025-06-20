@@ -1,18 +1,12 @@
 {% load comments comments_xtd fairdm partials %}
 
-{% if base_object.polymorphic_model_marker %}
-  {% get_comment_count for base_object as comment_count %}
-{% else %}
-  {% get_comment_count for base_object as comment_count %}
-{% endif %}
-<c-layouts.plugin>
-  <c-bd.sections.main.intro title="{{ view.title }}">
-    <c-bd.button.action icon="{% icon "plus" %}"
-                        text="{% trans "Add comment" %}"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#commentFormCollapse"
-                        :visible="True" />
-  </c-bd.sections.main.intro>
+{% get_comment_count for base_object as comment_count %}
+<c-layouts.plugin page_title="Discussion">
+  <c-components.button icon="plus"
+                       class="mb-3"
+                       text="{% trans "Add comment" %}"
+                       data-bs-toggle="collapse"
+                       data-bs-target="#commentFormCollapse" />
   <div class="collapse" id="commentFormCollapse">
     <div class="card">
       <div class="card-body">{% render_comment_form for base_object %}</div>
@@ -21,22 +15,4 @@
   {% if comment_count %}
     <div class="comments py-3">{% render_xtdcomment_tree for base_object allow_flagging allow_feedback %}</div>
   {% endif %}
-  <c-slot name="secondary_sidebar_content">
-    {% comment %} <c-sections.sidebar.right id="pst-secondary-sidebar" title=""> {% endcomment %}
-    {% comment %} {% if not request.user.is_authenticated %}
-        <div class="sidebar-secondary-item">
-          {% url "account_signup" as signup_url %}
-          {% blocktrans %}
-          Contributing to discussions requires an active account. <a href="{{ signup_url }}">Join our community today</a> and start contributing!
-          {% endblocktrans %}
-        </div>
-      {% endif %}
-      <div class="sidebar-secondary-item">
-        {% blocktrans %}
-        Please make yourself familiar with our <a href="{{ community_guidelines_url }}">community guidelines</a> before commenting.
-        {% endblocktrans %}
-      </div>
-    <div class="sidebar-secondary-item">{{ comment_count }} comment{{ comment_count|pluralize }}</div> {% endcomment %}
-    {% comment %} </c-sections.sidebar.right> {% endcomment %}
-  </c-slot>
 </c-layouts.plugin>

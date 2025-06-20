@@ -1,1 +1,13 @@
-<c-contributor.card.person_alt :obj="obj.contributor" />
+{% load fairdm %}
+
+<c-contributor.card.person_alt :obj="obj.contributor">
+  {% if user.is_superuser %}
+    <c-slot name="actions">
+      <c-components.link href="{% plugin_url "contributor-update" pk=obj.pk %}"
+                         text="{% trans "Edit" %}" />
+      <c-components.link href="{% plugin_url "contributor-remove" pk=obj.pk %}"
+                         style="outline-danger"
+                         text="{% trans "Remove" %}" />
+    </c-slot>
+  {% endif %}
+</c-contributor.card.person_alt>

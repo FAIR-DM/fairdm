@@ -8,7 +8,8 @@ from rest_pandas import PandasMixin
 
 from fairdm.contrib.api.access_policies import CoreAccessPolicy
 from fairdm.contrib.api.utils import api_doc
-from fairdm.models import Dataset, Project, Sample
+from fairdm.models import Dataset, Measurement, Project, Sample
+from fairdm.registry import registry
 
 from . import serializers
 from .serializers import DatasetSerializer, ProjectSerializer, SampleSerializer
@@ -68,26 +69,65 @@ class DatasetViewset(ReadOnlyModelViewSet):
 class SampleViewset(PandasMixin, ReadOnlyModelViewSet):
     # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [PandasCSVRenderer]
     serializer_class = SampleSerializer
-
+    lookup_field = "uuid"
     queryset = (
         Sample.objects.prefetch_related("contributors", "keywords").select_related("dataset", "dataset__project").all()
     )
 
+
+class MeasurementViewset(ReadOnlyModelViewSet):
+    serializer_class = serializers.MeasurementSerializer
+    queryset = Measurement.objects.all()
+
     def get_serializer_class(self):
-        return super().get_serializer_class()
+        serializer = self.serializer_class
+        serializer.Meta.model = self.queryset.model
+        return serializer
 
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+
+def sample_viewset_factory(sample_type):
+    """Factory function to create a SampleViewset for a specific sample type."""
+    config = sample_type["config"]
+    viewset_class = type(
+        sample_type["class"].__name__,
+        (SampleViewset,),
+        {"queryset": sample_type["class"].objects.all(), "serializer_class": config.get_serializer_class()},
+    )
+    return viewset_class
 
 
-def MeasurementViewset(model):
-    class MeasurementViewset(ReadOnlyModelViewSet):
-        queryset = model.objects.all()
-        serializer_class = serializers.MeasurementSerializer
+def measurement_viewset_factory(measurement_type):
+    """Factory function to create a MeasurementViewset for a specific measurement type."""
+    config = measurement_type["config"]
+    viewset_class = type(
+        measurement_type["class"].__name__,
+        (MeasurementViewset,),
+        {"queryset": measurement_type["class"].objects.all(), "serializer_class": config.get_serializer_class()},
+    )
+    return viewset_class
 
-        def get_serializer_class(self):
-            serializer = self.serializer_class
-            serializer.Meta.model = self.queryset.model
-            return serializer
 
-    return MeasurementViewset
+sample_viewsets = []
+for sample_type in registry.samples:
+    sample_viewsets.append(sample_viewset_factory(sample_type))
+
+measurement_viewsets = []
+for measurement_type in registry.measurements:
+    measurement_viewsets.append(
+        measurement_viewset_factory(measurement_type)
+    )  # Create a viewset for each measurement type
+
+
+# @extend_schema_view(
+#     list=extend_schema(description=api_doc(measurement.Measurement, "list")),
+# )
+# class MeasurementViewset(ReadOnlyModelViewSet):
+#     """A viewset for the Measurement model, which is used to store measurements taken on samples."""
+
+#     queryset = measurement.Measurement.objects.all()
+#     serializer_class = serializers.MeasurementSerializer
+
+#     def get_serializer_class(self):
+#         serializer = self.serializer_class
+#         serializer.Meta.model = self.queryset.model
+#         return serializer

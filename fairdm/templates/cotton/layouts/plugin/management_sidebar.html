@@ -1,0 +1,15 @@
+{% load flex_menu i18n %}
+
+<c-vars title="" />
+<c-sections.sidebar.primary :attrs="attrs">
+  <c-components.link href="{{ object.get_absolute_url }}"
+                     text="{% trans "Back" %}"
+                     icon="arrow-left"
+                     class="mb-3" />
+  <h6 class="mb-2">{% trans "Manage object" %}</h6>
+  {% if base_object %}
+    {% render_menu menu uuid=base_object.uuid %}
+  {% else %}
+    {% render_menu menu_name uuid=object.uuid %}
+  {% endif %}
+</c-pst.sections.sidebar>

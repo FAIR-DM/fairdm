@@ -4,7 +4,7 @@ from django.db import models
 from partial_date import PartialDateField as BasePartialDateField
 from quantityfield import fields
 
-from fairdm.forms import PartialDateFormField
+from fairdm.forms import PartialDateField
 
 
 class BigIntegerQuantityField(fields.BigIntegerQuantityField):
@@ -45,6 +45,6 @@ class QuantityField(fields.QuantityField):
 class PartialDateField(BasePartialDateField):
     def formfield(self, **kwargs):
         # Specify the form field to use for this model field
-        defaults = {"form_class": PartialDateFormField}
+        defaults = {"form_class": PartialDateField}
         defaults.update(kwargs)
         return super().formfield(**defaults)

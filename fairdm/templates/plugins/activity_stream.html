@@ -1,7 +1,6 @@
 {% load activity_tags partials %}
 
 <c-layouts.plugin>
-  <c-bd.sections.main.intro title="{{ view.title }}" />
   {% activity_stream 'any' base_object %}
   <div class="vstack gap-2 py-2">
     {% for action in stream %}

@@ -1,0 +1,6 @@
+{% load crispy_forms_tags %}
+
+<c-components.form x-data="{contributor: ''}">
+  {{ form|crispy }}
+  <button type="submit" class="btn btn-primary">{% trans "Save & Continue" %}</button>
+</c-components.form>

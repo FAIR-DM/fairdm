@@ -9,4 +9,8 @@ class FairDMDatasetConfig(AppConfig):
     verbose_name_plural = _("Dataset")
 
     def ready(self) -> None:
+        # Register models for actstream
+        from actstream import registry
+
+        registry.register(self.get_model("Dataset"))
         return super().ready()

@@ -28,7 +28,7 @@ class OrganizationSerializer(NestedHyperlinkedModelSerializer):
 
 
 class ContributorSerializer(NestedHyperlinkedModelSerializer):
-    # web_url = serializers.HyperlinkedIdentityField(view_name="contributor-overview")
+    # web_url = serializers.HyperlinkedIdentityField(view_name="contributor:overview")
     identifiers = IdentifierSerializer(many=True)
 
     class Meta:

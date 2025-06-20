@@ -1,0 +1,53 @@
+{% load flex_menu %}
+
+<style>
+  .offcanvas .search-button__default-text {
+    display: block;
+  }
+</style>
+<div class="offcanvas offcanvas-start"
+     tabindex="-1"
+     id="headerMobile"
+     aria-labelledby="offcanvasLabel">
+  <div class="offcanvas-body vstack">
+    <button type="button"
+            class="btn-close position-absolute top-0 end-0 p-3"
+            data-bs-dismiss="offcanvas"
+            aria-label="{% trans "Close" %}"></button>
+    <c-pst.components.navbar-logo class="justify-content-center"
+                                  style="--pst-header-height: 6rem" />
+    <c-sections.navbar.search class="justify-content-center mx-auto w-75 mb-4" />
+    <c-components.menu>
+      <c-components.menu.group text="{% trans "Site navigation" %}">
+        {% for item in menu %}
+          <c-bs5.navbar.link-item href="{{ item.url }}" text="{{ item.name }}">
+            <c-slot name="before_text">
+              {% icon item.icon class="me-2" style="min-width:25px;" %}
+            </c-slot>
+          </c-bs5.navbar.link-item>
+        {% endfor %}
+      </c-components.menu.group>
+      <c-components.menu.group text="{% trans "External links" %}">
+        {% if theme_options.documentation_url %}
+          <c-bs5.navbar.link-item href="{{ theme_options.documentation_url }}"
+                                  text="{% trans "Portal Documentation" %}"
+                                  class="nav-external" />
+        {% endif %}
+        {% if theme_options.repository_url %}
+          <c-bs5.navbar.link-item href="{{ theme_options.repository_url }}"
+                                  text="{% trans "GitHub Repository" %}"
+                                  class="nav-external" />
+        {% endif %}
+        <c-components.menu.group text="{% trans "External links" %}" />
+        {% for item in theme_options.external_links %}
+          <c-bs5.navbar.link-item href="{{ item.url }}"
+                                  text="{{ item.name }}"
+                                  class="nav-external" />
+        {% endfor %}
+        <c-bs5.navbar.link-item href="https://fairdm.com/"
+                                text="FairDM Framework"
+                                class="nav-external" />
+      </c-components.menu.group>
+    </c-components.menu>
+  </div>
+</div>

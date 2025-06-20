@@ -1,3 +1,4 @@
+from dal import autocomplete
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
 from django.templatetags.static import static
@@ -5,12 +6,13 @@ from django.utils.translation import gettext as _
 from django.views.generic.detail import SingleObjectMixin
 from django_contact_form.views import ContactFormView
 
+from fairdm.core.vocabularies import FairDMRoles
 from fairdm.utils.utils import user_guide
 from fairdm.views import BaseCRUDView, FairDMListView
 
 from ..filters import ContributorFilter
 from ..forms.forms import ContributionForm
-from ..models import Contributor, Person
+from ..models import Contributor, Organization, Person
 
 
 class ContributorContactView(LoginRequiredMixin, SingleObjectMixin, ContactFormView):
@@ -44,7 +46,13 @@ class ContributorListView(FairDMListView):
 
     model = Contributor
     title = _("Contributors")
-    grid_config = {"cols": 1, "gap": 2, "responsive": {"md": 2}}
+
+    grid_config = {
+        "cols": 1,
+        "gap": 2,
+        "responsive": {"md": 2},
+        "card": "contributor.card.person",
+    }
     # description = _(
     #     "Discover past, present and future research projects shared by our community to see what other are working on."
     # )
@@ -59,8 +67,61 @@ class ContributorListView(FairDMListView):
     learn_more = user_guide("project")
     image = static("img/stock/contributors.jpg")
     filterset_class = ContributorFilter
-    card = "contributor.card.person"
+
     paginate_by = 20
 
     def get_queryset(self):
         return self.model.objects.instance_of(Person).prefetch_related("affiliations", "identifiers")
+
+
+class PersonAutocomplete(LoginRequiredMixin, autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Person.objects.prefetch_related("organization_memberships__organization")
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+
+        return qs
+
+    # def get_result_label(self, result):
+    #     name = result.name
+    #     affiliation = result.organization_memberships.filter(is_primary=True).first().organization
+    #     return f"{name}, {affiliation}"
+
+
+class OrganizationAutocomplete(LoginRequiredMixin, autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Organization.objects.all()
+
+        person = self.forwarded.get("contributor", None)
+        if person:
+            # prefetch = Prefetch(
+            #     "memberships", queryset=OrganizationMember.objects.filter(person=person), to_attr="person_membership"
+            # )
+
+            # qs = qs.filter(members__id=person).prefetch_related(prefetch)
+            qs = qs.filter(members__id=person)
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+        return qs
+
+    # def get_result_label(self, result):
+    #     name = result.name
+    #     membership = result.person_membership[0]
+    #     if membership.is_primary:
+    #         name += "<span class='badge badge-primary'>Primary</span>"
+    #     if membership.is_current:
+    #         name += "<span class='badge badge-success'>Current</span>"
+    #     return mark_safe(name)
+
+
+class ContributorRolesAutocomplete(LoginRequiredMixin, autocomplete.Select2ListView):
+    def get_list(self):
+        collection = self.forwarded.get("collection", None)
+        if collection:
+            return FairDMRoles.from_collection(collection).values
+
+    # def get_result_label(self, result):
+    #     label = f"<strong>{result.label()}</strong>"
+    #     description = f"<p>{result.definition()}</p>"
+    #     return mark_safe(f"{label}{description}")

@@ -44,42 +44,8 @@ class DatasetFilter(BaseListFilter):
         }
 
 
-# class PolyFilter(BaseListFilter):
-# type_choices = None
-
-# @property
-# def qs(self):
-#     qs = super().qs
-#     if not self.request or not self.request.GET.get("type"):
-#         return qs
-
-#     poly_subclass_name = self.request.GET.get("type")
-#     model_class = apps.get_model(poly_subclass_name)
-#     return qs.instance_of(model_class)
-
-# def __init__(self, data=None, *args, **kwargs):
-#     # if filterset is bound, use initial values as defaults
-#     if data is not None:
-#         # get a mutable copy of the QueryDict
-#         data = data.copy()
-#         if not data.get("type"):
-#             data["type"] = self.type_choices[0][0]
-
-#     super().__init__(data, *args, **kwargs)
-
-# def filter_type(self, queryset, name, value):
-#     model_class = apps.get_model(value)
-#     return queryset.instance_of(model_class)
-
-
 class SampleFilter(BaseListFilter):
-    # type = df.ChoiceFilter(
-    #     method="filter_type",
-    #     choices=type_choices,
-    #     required=True,
-    #     empty_label=None,
-    # )
-    name = df.CharFilter(lookup_expr="icontains")
+    name = df.CharFilter(lookup_expr="icontains", widget=forms.TextInput(attrs={"placeholder": _("Search...")}))
 
     class Meta:
         model = Sample
@@ -87,14 +53,7 @@ class SampleFilter(BaseListFilter):
 
 
 class MeasurementFilter(BaseListFilter):
-    name = df.CharFilter(lookup_expr="icontains")
-
-    # type = df.ChoiceFilter(
-    #     method="filter_type",
-    #     choices=type_choices,
-    #     required=True,
-    #     empty_label=None,
-    # )
+    name = df.CharFilter(lookup_expr="icontains", widget=forms.TextInput(attrs={"placeholder": _("Search...")}))
 
     class Meta:
         fields = ["name"]

@@ -1,0 +1,5 @@
+{% for item in menu %}
+  {% if item.visible %}
+    {% include item.template %}
+  {% endif %}
+{% endfor %}

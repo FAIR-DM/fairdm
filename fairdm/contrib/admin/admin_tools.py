@@ -163,6 +163,11 @@ class CustomAppIndexDashboard(AppIndexDashboard):
         return super().init_with_context(context)
 
 
+# class LoadDataMenu(items.MenuItem):
+
+#     def init_with_context(self, context):
+
+
 class CustomMenu(Menu):
     """
     Custom Menu for fairdm admin site.
@@ -172,6 +177,7 @@ class CustomMenu(Menu):
         super().__init__(**kwargs)
         self.children += [
             items.MenuItem(_("Dashboard"), reverse("admin:index")),
+            items.MenuItem(_("Load data"), reverse("load-data")),
             # items.Bookmarks(),
             items.AppList(
                 _("Add-ons"),
@@ -207,7 +213,7 @@ class CustomMenu(Menu):
             #         items.MenuItem(_("Organization manager"), reverse("admin:datasets_dataset_changelist")),
             #     ],
             # ),
-        ]
+        ]  # type: ignore
 
     def init_with_context(self, context):
         """

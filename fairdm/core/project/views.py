@@ -1,6 +1,7 @@
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
+from fairdm.core.filters import ProjectFilter
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
@@ -11,6 +12,10 @@ from .forms import ProjectForm
 class ProjectCreateView(FairDMCreateView):
     model = Project
     form_class = ProjectForm
+    title = _("Create a Project")
+    help_text = _(
+        "Create a new research project to share with the community. Projects are a great way to group multiple datasets and organize your research."
+    )
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -20,6 +25,7 @@ class ProjectCreateView(FairDMCreateView):
 
 class ProjectListView(FairDMListView):
     model = Project
+    filterset_class = ProjectFilter
     title = _("Projects")
     description = _(
         "Discover past, present and future research projects shared by our community to see what other are working on."

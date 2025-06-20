@@ -4,8 +4,9 @@ from django.db import models
 
 # import flatattrs
 from django.template.loader import render_to_string
-from django.urls import reverse
 from quantityfield import settings as qsettings
+
+from fairdm import plugins
 
 register = template.Library()
 ureg = qsettings.DJANGO_PINT_UNIT_REGISTER
@@ -86,3 +87,11 @@ def avatar_url(contributor, **kwargs):
         return contributor.image.url
     else:
         return render_to_string("icons/user.svg")
+
+
+@register.simple_tag(takes_context=True)
+def plugin_url(context, view_name, *args, **kwargs):
+    """
+    Returns a URL for a plugin view, using the base_object's model name as the namespace.
+    """
+    return plugins.reverse(context.get("non_polymorphic_object"), view_name, *args, **kwargs)

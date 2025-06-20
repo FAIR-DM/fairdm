@@ -1,9 +1,10 @@
-<c-vars level="1" text compact />
+<c-vars level="1" text />
 {# djlint:off #}
-<div class="bd-intro pt-2 {% if not compact %}ps-lg-1 mb-3{% endif %}">
+{% if text %}
+<div class="pt-2">
   <div class="d-md-flex flex-md-row-reverse align-items-center justify-content-between">
-    <div class="{% if not compact %}mb-3{% endif %} mb-md-0 d-flex text-nowrap gap-1">{{ slot }}</div>
-    {% if text %}<h{{ level }} {{ attrs }} class="{% if compact %}mb-0{% endif %}">{{ text }}
+    <div class="d-flex gap-1 mb-3 mb-md-0">{{ slot }}</div>
+    {% if text %}<h{{ level }} class="text-nowrap {{ class }}" {{ attrs }}>{{ text }}
       {% if id %}
       <a class="headerlink"
       href="#{{ id }}"
@@ -14,4 +15,5 @@
   {% if lead %}<p class="bd-lead">{{ lead }}</p>{% endif %}
   {% if hr %}<hr />{% endif %}
 </div>
+{% endif %}
 {# djlint:on #}

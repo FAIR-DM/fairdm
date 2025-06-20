@@ -1,0 +1,18 @@
+{% load fairdm %}
+
+<c-components.dropdown text="{% trans "Add contributor" %}">
+  <li>
+    <h6 class="dropdown-header">{% trans "Add person" %}</h6>
+  </li>
+  <c-components.dropdown.item href="{% plugin_url "contributors-create" %}"
+                              text="{% trans "Add existing" %}" />
+  <c-components.dropdown.item data-bs-toggle="modal"
+                              data-bs-target="#orcidModal"
+                              text="{% trans "From ORCID" %}" />
+  <li>
+    <h6 class="dropdown-header">{% trans "Add organization" %}</h6>
+  </li>
+  <c-components.dropdown.item href="{% plugin_url "contributors-create" %}"
+                              text="{% trans "Organization" %}" />
+</c-components.dropdown>
+<c-modals.add-orcid />

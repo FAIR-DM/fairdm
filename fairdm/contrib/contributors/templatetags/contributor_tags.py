@@ -14,7 +14,8 @@ def by_role(contributions, roles=None):
         return contributions
     if isinstance(roles, str):
         roles = roles.split(",")
-    return [c for c in contributions if any(role in c.roles for role in roles)]
+    return contributions.filter(roles__name__in=roles)
+    # return [c for c in contributions if any(role in c.roles for role in roles)]
 
 
 @register.filter
@@ -24,4 +25,5 @@ def has_role(contribution, roles=None):
         return contribution
     if isinstance(roles, str):
         roles = roles.split(",")
-    return any(role in contribution.roles for role in roles)
+    return contribution.roles.filter(name__in=roles).exists()
+    # return any(role in contribution.roles for role in roles)

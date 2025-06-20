@@ -1,44 +1,31 @@
-{% load crispy_forms_tags %}
-
-<c-vars sidebar_id="filterSidebar"
-        info_modal_id="infoModal" />
-<c-layouts.article hx-target="this"
-                   hx-swap="outerHTML"
-                   hx-push-url
-                   x-data="{'isfiltered': false, 'filterCount': {{ filter_count }}, 'totalCount': 7}"
-                   title="{% trans "Dataset" %}">
-  {% comment %} <c-slot name="sidebar_primary">
-    <c-layouts.list.filter visible_gt="lg" :attrs="sidebar_primary" />
-  </c-slot> {% endcomment %}
-  {% comment %} <div x-show="isfiltered" x-cloak x-transition:enter="transition ease-out duration-300" class="text-muted mb-1">
-    {% blocktrans %}
-        Found <span x-text="filterCount"></span> matching entries.
-        {% endblocktrans %}
-  </div> {% endcomment %}
-  {% comment %} text="{{ object_verbose_name_plural|title }}" {% endcomment %}
-  <c-text.heading level="1" text="{{ title }}">
-    {% if about %}
-      <c-components.button icon="info"
-                           text="{% trans "About" %}"
-                           data-bs-toggle="modal"
-                           data-bs-target="#{{ info_modal_id }}"
-                           aria-controls="{{ info_modal_id }}" />
-    {% endif %}
+{% extends "fairdm/base.html" %}
+{% block content %}
+  <style>
+    .line-clamp {
+      --line-clamp-n: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: var(--line-clamp-n);
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+  <c-layouts.standard>
+    {% if sections.title %}<c-component :attrs="sections.title" />{% endif %}
+    {% comment %} {% if about %}
+        <c-components.button icon="info" text="{% trans "About" %}" data-bs-toggle="modal" data-bs-target="#{{ info_modal_id }}" aria-controls="{{ info_modal_id }}" />
+      {% endif %}
     <c-components.button icon="filter"
                          class="d-lg-none"
                          text="{% trans "Filter" %}"
                          data-bs-toggle="offcanvas"
                          data-bs-target="#{{ sidebar_id }}"
-                         aria-controls="{{ sidebar_id }}" />
-  </c-text.heading>
-  <c-sections.object-list :attrs="grid_config" card_component="{{ card }}" />
-</c-layouts.article>
-{% if about %}
-  <c-components.modal.show-once id="{{ info_modal_id }}"
-                                title="{% trans "About" %} {{ title }}"
-                                learn_more="{{ learn_more }}"
-                                only>
-    {% comment %} <img src="{{ image }}" alt="" /> {% endcomment %}
-    {% for text_content in about %}<p>{{ text_content }}</p>{% endfor %}
-  </c-components.modal.show-once>
-{% endif %}
+                         aria-controls="{{ sidebar_id }}" /> {% endcomment %}
+    <c-component :attrs="sections.grid" />
+  </c-layouts.standard>
+  {% comment %} {% if about %}
+    <c-components.modal.show-once id="{{ info_modal_id }}" title="{% trans "About" %} {{ title }}" learn_more="{{ learn_more }}" only>
+      {% for text_content in about %}<p>{{ text_content }}</p>{% endfor %}
+    </c-components.modal.show-once>
+  {% endif %} {% endcomment %}
+  {% for modal in modals %}<c-component :is="modal" />{% endfor %}
+{% endblock content %}

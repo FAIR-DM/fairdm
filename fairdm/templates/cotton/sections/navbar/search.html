@@ -1,0 +1,5 @@
+{% load waffle_tags %}
+
+{% switch  "navbar_show_search_form" %}
+<c-pst.components.search-button-field :attrs="attrs" />
+{% endswitch %}

@@ -1,15 +1,18 @@
 <c-bs5.card class="fdm-card border-0">
   <c-bs5.card.body class="pb-2 ">
-    {% if obj.image %}
-      <img class="rounded-2 ms-3 mb-3 float-end"
-           src="{{ obj.image.url }}"
-           alt=""
-           width="30%" />
-    {% endif %}
-    <h2 class="card-title fs-5 text-truncate">{{ title }}</h2>
+    <div class="bg-secondary-subtle text-secondary rounded-2 ms-2 mb-2 col-md-4 float-end overflow-hidden">
+      {% if obj.image %}
+        <img src="{{ obj.image.url }}" alt="" />
+      {% else %}
+        {% icon "missing_image" %}
+      {% endif %}
+    </div>
+    <h2 class="card-title fs-5 line-clamp"
+        style="--line-clamp-n: 2">{{ title }}</h2>
     <c-contributor.names class="card-lead fs-6 text-secondary mb-1"
                          style="--line-clamp-n: 2"
-                         :contributors="obj.contributors.all" />
+                         :contributors="obj.contributors.all"
+                         role="Creator" />
     {% if preview %}
       <p class="card-text preview">{{ preview.value|truncatewords_html:100 }}</p>
     {% else %}
@@ -18,13 +21,19 @@
   </c-bs5.card.body>
   <c-bs5.card.footer class="border-0 bg-body hstack gap-1 align-items-stretch">
     <c-components.link icon="arrow-right"
+                       class="border-0"
                        icon_position="end"
                        href="{{ obj.get_absolute_url }}"
                        text="{{ view_details_text }}" />
     <c-components.link icon="comments"
-                       href="{% url "dataset-discussion" uuid=obj.uuid %}"
+                       class="border-0"
+                       href="{% url "dataset:discussion" uuid=obj.uuid %}"
                        text="{% trans "Comments" %}" />
-    <c-widgets.follow :object="obj" :user="request.user" show_text />
-    <c-widgets.share />
+    <c-widgets.follow :object="obj"
+                      :user="request.user"
+                      show_text
+                      class="border-0" />
+    <c-widgets.share class="border-0" />
   </c-bs5.card.footer>
 </c-card>
+<hr />

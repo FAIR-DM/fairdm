@@ -1,17 +1,16 @@
 from django import forms
 from django.utils.translation import gettext as _
 
-from fairdm.forms import ImageCroppingWidget
+from fairdm.forms import ImageCroppingWidget, ModelForm
 
-from ..forms import BaseForm
 from .models import Project
 
 
-class ProjectForm(BaseForm):
+class ProjectForm(ModelForm):
     image = forms.ImageField(
         widget=ImageCroppingWidget(
             width=1200,
-            height=int(1200 * 9 / 21),
+            height=int(1200 * 9 / 16),
             empty_text=_("Select cover image"),
             config={
                 "enableOrientation": True,
