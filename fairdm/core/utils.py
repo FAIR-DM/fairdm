@@ -6,6 +6,14 @@ UUID_RE_PATTERN = r"^(?P<uuid>[pdsmea-zA-Z0-9_-]{22})/$"
 """A regex the matches the uuid of a core data object (project, sample, measurement, etc.) and captures it in a named group 'uuid'."""
 
 
+def get_non_polymorphic_instance(obj):
+    if not hasattr(obj, "polymorphic_model_marker"):
+        return obj
+
+    base_class = obj.type_of
+    return base_class.objects.non_polymorphic().get(pk=obj.pk)
+
+
 def model_class_inheritance_to_fieldsets(obj_or_class):
     klass = obj_or_class if isinstance(obj_or_class, type) else obj_or_class.__class__
     declared_fields = {

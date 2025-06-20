@@ -4,15 +4,14 @@ from django.utils.translation import gettext as _
 from licensing.models import License
 
 from fairdm.core.models import Project
-from fairdm.forms import ImageCroppingWidget
+from fairdm.forms import ImageCroppingWidget, ModelForm
 
-from ..forms import BaseForm
 from .models import Dataset
 
 DEFAULT_LICENSE = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
 
 
-class DatasetForm(BaseForm):
+class DatasetForm(ModelForm):
     name = forms.CharField(
         label=_("Name"),
         help_text=_("Give your dataset a descriptive name that reflects its purpose and content."),
@@ -59,7 +58,3 @@ class DatasetForm(BaseForm):
         self.request = request
         if self.request and self.fields.get("project"):
             self.fields["project"].queryset = self.request.user.projects.all()
-
-
-class BasicInfoForm(BaseForm):
-    pass

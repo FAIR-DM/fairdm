@@ -1,3 +1,5 @@
+import waffle
+from django.http import Http404
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
@@ -8,6 +10,7 @@ from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
 from fairdm.utils.utils import feature_is_enabled
+from fairdm.views import FairDMListView
 
 from .dataset.views import DatasetListView
 from .project.views import ProjectListView
@@ -15,29 +18,48 @@ from .views import DataTableView
 
 
 class DiscussionPlugin(plugins.Explore, TemplateView):
-    title = name = _("Discussion")
+    name = "discussion"
+    title = _("Discussion")
     menu_item = {
         "name": _("Discussion"),
         "icon": "comments",
     }
-    menu_check = feature_is_enabled("ALLOW_DISCUSSIONS")
     icon = "comments"
     template_name = "plugins/discussion.html"
 
+    sidebar_secondary_config = {"visible": True}  # Hide the secondary sidebar by default
 
-class ActivityPlugin(plugins.Explore, TemplateView):
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Override dispatch to check if the discussion plugin is enabled.
+        """
+        if not self.check(request, self.base_object, **kwargs):
+            raise Http404(_("This plugin has not been enabled."))
+        return super().dispatch(request, *args, **kwargs)
+
+    @staticmethod
+    def check(request, instance, **kwargs):
+        """
+        Check if the user has permission to view the discussion plugin.
+        This can be overridden in subclasses to implement custom logic.
+        """
+        return waffle.switch_is_active("allow_discussions")
+
+
+class ActivityPlugin(plugins.Explore, FairDMListView):
     title = _("Recent Activity")
     menu_item = {
         "name": _("Activity"),
         "icon": "activity",
     }
-    template_name = "plugins/activity_stream.html"
+    filterset_class = None
+    grid_config = {"card": "activity.action_compact"}
+    # template_name = "plugins/activity_stream.html"
 
 
 class ContactPlugin(plugins.Action, ContactFormView):
     title = _("Contact")
     form_class = ContactForm
-    template_name = "cotton/layouts/plugin/form.html"
     # description = _("Contact the project or dataset owner for inquiries or support.")
     description = _("I'm not functioning at the moment.")
     menu_item = {
@@ -82,11 +104,15 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, DetailView):
         "name": _("Overview"),
         "icon": "overview",
     }
-    slug = ""
+    path = ""
 
     @property
     def model(self):
         return self.base_object.__class__
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
     def get_object(self, queryset=None):
         return self.base_object
@@ -95,18 +121,20 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, DetailView):
         if self.template_name is not None:
             return [self.template_name]
         opts = self.model._meta
-        if self.model is not None and self.template_name_suffix is not None:
-            templates = [
-                f"{opts.app_label}/{opts.object_name.lower()}{self.template_name_suffix}.html",
-                # "fairdm_core/sample_detail.html",
-                f"fairdm/object{self.template_name_suffix}.html",
-            ]
-            print(templates)
-            return templates
-        return super().get_template_names()
+        templates = [f"{opts.app_label}/{opts.object_name.lower()}{self.template_name_suffix}.html"]
+        if hasattr(self.model, "type_of"):
+            poly_opts = self.model.type_of._meta
+            templates += [f"{poly_opts.app_label}/{poly_opts.object_name.lower()}{self.template_name_suffix}.html"]
+
+        templates += [
+            f"fairdm/object{self.template_name_suffix}.html",
+        ]
+        return templates
+        # return super().get_template_names()
 
 
 class ManageBaseObjectPlugin(plugins.Management, UpdateView):
+    name = "configure"
     title = _("Configure")
     menu_item = {
         "name": _("Configure"),
@@ -174,17 +202,13 @@ class DatasetPlugin(plugins.Explore, DatasetListView):
 
 class DataTablePlugin(plugins.Explore, DataTableView):
     title = _("Data")
+    sections = {"header": "datatable.header"}
     menu_item = {
         "name": _("Data"),
         "icon": "table",
     }
-    template_name = "plugins/data_table.html"
     menu_check = feature_is_enabled("SHOW_DATA_TABLES")
     icon = "sample"
-    extra_context = {
-        # DANGER: REMOVE ME
-        "can_add": True,
-    }
 
     def get_queryset(self, *args, **kwargs):
         # return self.base_object.samples.instance_of(self.model)

@@ -1,11 +1,12 @@
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
 from django.utils.functional import classproperty
 
 # from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
+
+from fairdm.db import models
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BasePolymorphicModel
 from ..managers import PolymorphicManager
@@ -60,7 +61,7 @@ class Measurement(BasePolymorphicModel):
         table_class = "fairdm.core.tables.MeasurementTable"
 
     def __str__(self):
-        return f"{self.value}"
+        return f"{self.name}"
 
     @classproperty
     def type_of(self):

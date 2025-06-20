@@ -14,7 +14,6 @@ from .models import Project, ProjectDate
 
 class Overview(OverviewPlugin):
     fieldsets = []
-    slug = ""
 
 
 plugins.project.register(
@@ -39,6 +38,7 @@ class Configure(ManageBaseObjectPlugin):
 
 @plugins.project.register()
 class BasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
+    name = "basic-information"
     title = _("Basic Information")
     menu_item = {
         "name": _("Basic Information"),
