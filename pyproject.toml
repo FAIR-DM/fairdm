@@ -118,6 +118,13 @@ django-flex-menus = {git = "https://github.com/SamuelJennings/django-flex-menus"
 django-account-management = {git = "https://github.com/SamuelJennings/django-account-management"}
 django-smuggler = "^1.0.4"
 django-admin-site-search = "^1.1.0"
+django-autocomplete-light = "^3.12.1"
+django-braces = "^1.17.0"
+python-benedict = "^0.34.1"
+django-auto-prefetch = "^1.12.0"
+django-lifecycle = "^1.2.4"
+plotly = "^6.1.2"
+sentry-sdk = {extras = ["django"], version = "^2.30.0"}
 
 
 
