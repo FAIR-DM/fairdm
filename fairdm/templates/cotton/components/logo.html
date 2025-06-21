@@ -1,0 +1,17 @@
+{% load static %}
+
+<c-vars href="/" theme_logo="logo.svg" :is_logo="True" />
+<a class="logo {{ class }}"
+   href="{{ href }}"
+   {{ attrs }}>
+  {% if is_logo %}
+    <img src="{% static theme_options.logo.image_light %}"
+         class="logo__image only-light"
+         alt="{{ theme_options.logo.text }}" />
+    <img src="{% static theme_options.logo.image_dark %}"
+         class="logo__image only-dark"
+         alt="{{ theme_options.logo.text }}" />
+  {% else %}
+    <p class="title logo__title">{{ title }}</p>
+  {% endif %}
+</a>

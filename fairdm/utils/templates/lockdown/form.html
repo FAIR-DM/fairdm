@@ -1,14 +1,13 @@
+{% extends "base.html" %}
 {% load i18n static widget_tweaks %}
 
-<c-base>
-  <c-layouts.article :site_navigation="False">
-    <div class="container flex-grow-1 vstack justify-content-center align-items-center">
-      <img class="mb-3"
-           src="{% static "img/brand/logo.svg" %}"
-           alt=""
-           style="max-height:120px"
-           height="120"
-           width="auto" />
+{% block body %}
+  <c-layouts.standard>
+    <div class="container flex-grow-1 vstack justify-content-center align-items-center vh-100">
+      <c-pst.components.navbar-logo style="max-height:120px;
+                                           height:120px"
+                                    height="120"
+                                    width="auto" />
       <h1 class="fs-3">{% trans "Lockdown Enabled" %}</h1>
       <p>{% trans "This site has been locked down to authorized users only." %}</p>
       <form id="form" method='post' class="text-center w-50">
@@ -21,5 +20,5 @@
         <button class="btn btn-lg btn-primary" type="submit">{% trans "Submit" %}</button>
       </form>
     </div>
-  </c-layouts.article>
-</c-base>
+  </c-layouts.standard>
+{% endblock body %}

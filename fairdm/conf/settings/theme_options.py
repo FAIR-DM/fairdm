@@ -25,27 +25,13 @@ FAIRDM_CONFIG = {
             "url": "https://fairdm.com/",
             "name": "FairDM Website",
         },
-        # {
-        #     "url": "https://numfocus.org/",
-        #     "name": "NumFocus",
-        # },
-        # {
-        #     "url": "https://numfocus.org/donate",
-        #     "name": "Donate to NumFocus",
-        # },
     ],
-    "header_links_before_dropdown": 4,
     "icon_links": [
         {
             "name": "GitHub",
             "url": "https://github.com/FAIR-DM/fairdm",
             "icon": "fa-brands fa-github fa-lg",
         },
-        # {
-        #     "name": "Login",
-        #     "url": "/account/login/",
-        #     "icon": "fa-solid fa-right-to-bracket fa-lg",
-        # },
     ],
     "logo": {
         "text": "FairDM",
@@ -53,17 +39,17 @@ FAIRDM_CONFIG = {
         "image_light": "img/brand/fairdm.svg",
     },
     "announcement": "",
-    "navbar_start": [
-        "pst.components.navbar-logo",
-    ],
-    "navbar_center": [
-        "pst.components.navbar-nav",
-    ],
-    "navbar_end": [
-        "pst.components.theme-switcher",
-        "pst.components.navbar-icon-links",
-        "dac.sections.user-sidebar.toggle",
-    ],
+    # "navbar_start": [
+    #     "pst.components.navbar-logo",
+    # ],
+    # "navbar_center": [
+    #     "pst.components.navbar-nav",
+    # ],
+    # "navbar_end": [
+    #     "pst.components.theme-switcher",
+    #     "pst.components.navbar-icon-links",
+    #     "dac.sections.user-sidebar.toggle",
+    # ],
     # "primary_sidebar_end": ["custom-template", "sidebar-ethical-ads"],
     # "article_footer_items": ["test", "test"],
     # "content_footer_items": ["test", "test"],
@@ -78,8 +64,8 @@ FAIRDM_CONFIG = {
     #     "version_match": version_match,
     # },
     "back_to_top_button": True,
-    "search_bar": False,
-    "search_as_you_type": False,
+    # "search_bar": False,
+    # "search_as_you_type": False,
 }
 
 html_sidebars = {
