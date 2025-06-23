@@ -742,7 +742,7 @@ django-compressor = ["django-compressor (>=4.5.1,<5.0.0)"]
 type = "git"
 url = "https://github.com/SamuelJennings/cotton-bs5"
 reference = "HEAD"
-resolved_reference = "e192315f4e6869d930df3ea8f881eb18b430a24a"
+resolved_reference = "ea0f0038efa439c351c95a76152019b8cc758252"
 
 [[package]]
 name = "coverage"
@@ -1072,7 +1072,7 @@ stripe = "<12"
 type = "git"
 url = "https://github.com/SamuelJennings/django-account-management"
 reference = "HEAD"
-resolved_reference = "fea9ce13d36f4fffda1e76eb508a6a8ed457196f"
+resolved_reference = "6c0817e7a8de7977bc676aa2ee4d201cd647f8d3"
 
 [[package]]
 name = "django-activity-stream"

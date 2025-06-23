@@ -43,8 +43,9 @@ AUTHENTICATION_BACKENDS = [
 
 # ========== Django Allauth Account ==========
 
-ACCOUNT_ADAPTER = "invitations.models.InvitationsAdapter"
-ACCOUNT_ALLOW_REGISTRATION = env("DJANGO_ALLOW_SIGNUP")
+ACCOUNT_ADAPTER = "fairdm.contrib.contributors.adapters.AccountAdapter"
+# ACCOUNT_ALLOW_REGISTRATION = env("DJANGO_ALLOW_SIGNUP")
+ACCOUNT_ALLOW_REGISTRATION = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
@@ -73,24 +74,22 @@ SOCIALACCOUNT_ADAPTER = "fairdm.contrib.contributors.adapters.SocialAccountAdapt
 # ========== Django Invitations ==========
 # https://django-invitations.readthedocs.io/en/latest/configuration.html
 
-INVITATIONS_INVITATION_ONLY = True
-
+INVITATIONS_INVITATION_ONLY = False
+INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
 
 # https://django-allauth.readthedocs.io/en/latest/forms.html
-# ACCOUNT_FORMS = {
-#     "login": "fairdm.contrib.users.forms.LoginForm",
-#     # "signup": "fairdm.contrib.users.forms.SignUpForm",
-#     "add_email": "fairdm.contrib.users.forms.AddEmailForm",
-#     "change_password": "fairdm.contrib.users.forms.ChangePasswordForm",
-#     "set_password": "fairdm.contrib.users.forms.SetPasswordForm",
-#     "reset_password": "fairdm.contrib.users.forms.ResetPasswordForm",
-#     "reset_password_from_key": "fairdm.contrib.users.forms.ResetPasswordKeyForm",
-#     "disconnect": "allauth.socialaccount.forms.DisconnectForm",
-# }
-# """"""
+ACCOUNT_FORMS = {
+    "login": "fairdm.contrib.contributors.forms.account.LoginForm",
+    "signup": "fairdm.contrib.contributors.forms.account.SignupForm",
+    # "add_email": "fairdm.contrib.users.forms.AddEmailForm",
+    # "change_password": "fairdm.contrib.users.forms.ChangePasswordForm",
+    # "set_password": "fairdm.contrib.users.forms.SetPasswordForm",
+    # "reset_password": "fairdm.contrib.users.forms.ResetPasswordForm",
+    # "reset_password_from_key": "fairdm.contrib.users.forms.ResetPasswordKeyForm",
+    # "disconnect": "allauth.socialaccount.forms.DisconnectForm",
+}
 
-# SOCIALACCOUNT_FORMS = {
-#     "disconnect": "allauth.socialaccount.forms.DisconnectForm",
-#     "signup": "fairdm.contrib.users.forms.SocialSignupForm",
-# }
-# """"""
+SOCIALACCOUNT_FORMS = {
+    # "disconnect": "allauth.socialaccount.forms.DisconnectForm",
+    "signup": "fairdm.contrib.contributors.forms.account.SocialSignupForm",
+}
