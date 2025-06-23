@@ -1,3 +1,4 @@
+from crispy_forms.helper import FormHelper
 from django.contrib.auth.decorators import login_required
 from django.db.models.base import Model as Model
 from django.utils.decorators import method_decorator
@@ -80,7 +81,9 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         "sidebar_secondary": False,  # hide the secondary sidebar
         "header": False,
         "grid": "sections.object-list",
+        "title": "text.title",
     }
+
     sidebar_primary_config = {
         "breakpoint": "md",
         "header": {
@@ -91,6 +94,7 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         "cols": 1,
         "gap": 2,
         "card": "project.card",
+        "empty_message": _("No results found."),
     }
 
     def get_model(self):
@@ -104,7 +108,13 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         context["object_verbose_name_plural"] = self.get_model()._meta.verbose_name_plural
 
         # Required for sections.sidebar.form to work without modification
-        context["form"] = context["filter"].form
+        # Ensure the form method is set to GET
+        form = context["filter"].form
+        if not hasattr(form, "helper"):
+            form.helper = FormHelper()
+        form.helper.form_method = "get"
+        form.helper.form_id = "filter-form"
+        context["form"] = form
         return context
 
     def get_filterset_class(self):

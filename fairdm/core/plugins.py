@@ -4,8 +4,6 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
 from django.views.generic.base import TemplateView
-from django_contact_form.forms import ContactForm
-from django_contact_form.views import ContactFormView
 from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
@@ -55,27 +53,6 @@ class ActivityPlugin(plugins.Explore, FairDMListView):
     filterset_class = None
     grid_config = {"card": "activity.action_compact"}
     # template_name = "plugins/activity_stream.html"
-
-
-class ContactPlugin(plugins.Action, ContactFormView):
-    title = _("Contact")
-    form_class = ContactForm
-    # description = _("Contact the project or dataset owner for inquiries or support.")
-    description = _("I'm not functioning at the moment.")
-    menu_item = {
-        "name": _("Contact"),
-        "icon": "email",
-    }
-
-
-class SharePlugin(plugins.Action, TemplateView):
-    title = _("Spread the word")
-    description = _("Share this project or dataset with others via social media or email.")
-    menu_item = {
-        "name": _("Share"),
-        "icon": "share",
-    }
-    template_name = "plugins/share.html"
 
 
 class Images(plugins.Explore, TemplateView):

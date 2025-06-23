@@ -28,13 +28,13 @@ urlpatterns = [
                 path("portal-team/", PortalTeamView.as_view(), name="portal-team"),
                 path("active-members/", ActiveMemberListView.as_view(), name="active-member-list"),
                 path("contributors/", ContributorListView.as_view(), name="contributor-list"),
+                path("organizations/", OrganizationListView.as_view(), name="organization-list"),
             ]
         ),
     ),
     path("contributor/<str:uuid>/", include((plugins.contributor.get_urls(), "contributor"))),
     path("contributor/<str:uuid>/contact/", ContributorContactView.as_view(), name="contributor-contact"),
     path("organization/add/", OrganizationCreateView.as_view(), name="create"),
-    path("organization/list/", OrganizationListView.as_view(), name="list"),
     path("organization/add/ror/", OrgRORCreateView.as_view(), name="ror-create"),
     path("contributors/person-autocomplete/", PersonAutocomplete.as_view(), name="person-autocomplete"),
     path(

@@ -1,0 +1,13 @@
+<c-bs5.card class="overflow-hidden {{ obj.type }}">
+  <c-org.avatar :organization="obj" />
+  <div class="card-img-overlay pb-0" style="top: unset;">
+    <h5 class="card-title fs-6 mt-1 mb-3">{{ obj }}</h5>
+    {% if contributor.get_default_identifier %}
+      <span class="position-absolute top-0 start-0 ms-2 mt-1 z-1">
+        <c-contributor.icon :contributor="contributor" />
+      </span>
+    {% endif %}
+  </div>
+  <a href="{{ obj.get_absolute_url }}"
+     class="stretched-link"><span class="visually-hidden">{% trans "View profile" %}</span></a>
+</c-bs5.card>

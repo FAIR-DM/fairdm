@@ -5,12 +5,10 @@ from django_filters import FilterSet
 from fairdm import plugins
 from fairdm.core.plugins import (
     ActivityPlugin,
-    ContactPlugin,
     DatasetPlugin,
     ManageBaseObjectPlugin,
     OverviewPlugin,
     ProjectPlugin,
-    SharePlugin,
 )
 from fairdm.views import FairDMListView
 
@@ -28,7 +26,6 @@ from .views.contribution import (
 
 @plugins.contributor.register
 class Overview(OverviewPlugin):
-    title = False
     description = _(
         "This overview provides a summary of the contributors involved in the project, dataset, or activity. It includes key information about each contributor, such as their roles, contributions, and affiliations."
     )
@@ -36,14 +33,15 @@ class Overview(OverviewPlugin):
         "name": _("Overview"),
         "icon": "user-circle",
     }
+    sections = {
+        "title": False,
+    }
 
 
 plugins.contributor.register(
     ProjectPlugin,
     DatasetPlugin,
     ActivityPlugin,
-    ContactPlugin,
-    SharePlugin,
 )
 
 

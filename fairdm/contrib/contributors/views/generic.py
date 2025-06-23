@@ -46,7 +46,6 @@ class ContributorListView(FairDMListView):
 
     model = Contributor
     title = _("Contributors")
-
     grid_config = {
         "cols": 1,
         "gap": 2,

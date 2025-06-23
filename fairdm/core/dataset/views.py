@@ -39,6 +39,9 @@ class DatasetListView(FairDMListView):
     filterset_class = DatasetFilter
     title = _("Datasets")
     image = static("img/stock/dataset.jpg")
+    title_config = {
+        "text": _("Datasets"),
+    }
     description = _(
         "Search and filter thousands of open-access research datasets by topic, field, or format. Access high-quality "
         "data to support your research projects."

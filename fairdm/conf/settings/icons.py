@@ -69,6 +69,7 @@ EASY_ICONS = {
         "ORCID": "orcid/authenticated.svg",
         "organisation": "fas fa-building",
         "organization": "fas fa-building",
+        "organization_svg": "organization.svg",
         "overview": "fas fa-book-open",
         "person": "user.svg",
         "plus": "fas fa-plus",

@@ -26,7 +26,10 @@ class ProjectCreateView(FairDMCreateView):
 class ProjectListView(FairDMListView):
     model = Project
     filterset_class = ProjectFilter
-    title = _("Projects")
+    title = _("Research Projects")
+    title_config = {
+        "text": _("Research Projects"),
+    }
     description = _(
         "Discover past, present and future research projects shared by our community to see what other are working on."
     )

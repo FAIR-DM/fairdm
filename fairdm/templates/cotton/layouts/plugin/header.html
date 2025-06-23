@@ -1,5 +1,7 @@
 <c-layouts.header>
-  {% icon base_object.icon %} {{ base_object.verbose_name|capfirst }}: <span class="text-truncate">{{ base_object }}</span>
+  {% icon base_object.icon height="1lh" %}
+  {% if base_object.verbose_name %}{{ base_object.verbose_name|capfirst }}:{% endif %}
+  <span class="text-truncate">{{ base_object }}</span>
   <div class="ms-auto">
     {% for action in actions %}<c-component :is="action" />{% endfor %}
     <c-components.button data-bs-toggle="offcanvas"

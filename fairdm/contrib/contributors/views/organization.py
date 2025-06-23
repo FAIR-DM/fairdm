@@ -1,20 +1,28 @@
-# import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.generic import CreateView, ListView
 from meta.views import MetadataMixin
 
+from ..filters import OrganizationFilter
 from ..forms.organization import RORForm
 from ..models import Organization
+from .person import ContributorBaseListView
 
 
-class OrganizationListView(MetadataMixin, LoginRequiredMixin, ListView):
+class OrganizationListView(ContributorBaseListView):
     """List of organizations that the user is a member of."""
 
     model = Organization
-
-    def get_queryset(self):
-        return self.org_model.active.filter(users=self.request.user)
+    filterset_class = OrganizationFilter  # No filter for organizations
+    title = _("Organizations")
+    title_config = {
+        "text": _("All Organizations"),
+    }
+    grid_config = {
+        "responsive": {"md": 3},
+        "card": "contributor.card.organization",
+    }
 
 
 class OrgRORCreateView(MetadataMixin, LoginRequiredMixin, CreateView):

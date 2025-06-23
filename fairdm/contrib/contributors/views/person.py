@@ -11,14 +11,11 @@ from meta.views import MetadataMixin
 
 from fairdm.views import FairDMListView
 
-from ..filters import ContributorFilter
+from ..filters import PersonFilter
 from ..models import ContributorIdentifier, Person
 
 
-class ContributorListView(FairDMListView):
-    model = Person
-    title = _("All Contributors")
-    filterset_class = ContributorFilter
+class ContributorBaseListView(FairDMListView):
     sidebar_primary_config = {
         "title": _("Find someone"),
     }
@@ -28,6 +25,12 @@ class ContributorListView(FairDMListView):
         "responsive": {"md": 2},
         "card": "contributor.card.person",
     }
+
+
+class ContributorListView(ContributorBaseListView):
+    model = Person
+    title = _("All Contributors")
+    filterset_class = PersonFilter
 
     def get_queryset(self):
         # Step 1: Filter active non-superuser persons
@@ -79,11 +82,17 @@ class PortalTeamView(ContributorListView):
     title = _("Portal Team")
     queryset = Person.objects.filter(is_staff=True, is_superuser=False)
     sections = {"sidebar_primary": False}
+    title_config = {
+        "text": _("Portal Team"),
+    }
 
 
 class ActiveMemberListView(ContributorListView):
     title = _("Active Members")
     queryset = Person.objects.filter(is_active=True, is_superuser=False)
+    title_config = {
+        "text": _("Active Members"),
+    }
 
 
 class AccountEdit(MetadataMixin, LoginRequiredMixin, EditCollectionView):

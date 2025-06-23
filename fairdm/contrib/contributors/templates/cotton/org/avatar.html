@@ -1,0 +1,15 @@
+{% load easy_icons %}
+
+<c-vars icon="person" for="person" :circle="False" class />
+<div class="{{ class }}">
+  <div class="ratio bg-secondary-subtle text-light"
+       style="--bs-aspect-ratio: 66%"
+       {{ attrs }}>
+    {% if not contributor.image %}
+      {% icon "organization_svg" width="100%" height="unset" %}
+    {% else %}
+      <img src="{{ contributor.image.url }}"
+           class="object-fit-contain px-1" />
+    {% endif %}
+  </div>
+</div>
