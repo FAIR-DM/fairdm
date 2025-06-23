@@ -2281,17 +2281,6 @@ reference = "HEAD"
 resolved_reference = "c6b5e92130304997c548507221b7ad0727656ed7"
 
 [[package]]
-name = "django-smuggler"
-version = "1.0.4"
-description = "Pluggable application for Django that helps you to import/export fixtures via the administration interface"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "django-smuggler-1.0.4.tar.gz", hash = "sha256:e53b02bdc48c94012950d5fa4e4b30bc4259e62fc986d22b9d571de1a45dcc80"},
-    {file = "django_smuggler-1.0.4-py2.py3-none-any.whl", hash = "sha256:49db0724d8b8ffb84e93581f12d363d4113f1b9ef07c74c1cdd63f8752397b8c"},
-]
-
-[[package]]
 name = "django-social-share"
 version = "2.3.0"
 description = "Templatetags for 'tweet this' and 'share on facebook'"
@@ -6772,4 +6761,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "ca89c7ef3044020c5c35bb55ffd0814f55d2deeb5c8ac299c3d7f2c80f4b1bcc"
+content-hash = "2eba41b6084b1ee7752125d4e3afb3de29d600e0bf1ddd2d92a85205ca3da048"

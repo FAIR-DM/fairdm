@@ -177,7 +177,7 @@ class CustomMenu(Menu):
         super().__init__(**kwargs)
         self.children += [
             items.MenuItem(_("Dashboard"), reverse("admin:index")),
-            items.MenuItem(_("Load data"), reverse("load-data")),
+            items.MenuItem(_("Load data"), reverse("admin:upload_fixture")),
             # items.Bookmarks(),
             items.AppList(
                 _("Add-ons"),

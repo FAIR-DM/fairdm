@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+  <p>Warning: this upload will overwrite existing content with the same primary keys.</p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="{% trans "Submit" %}" />
+  </form>
+  <p>
+    <a href="{% url 'admin:index' %}">Back to admin</a>
+  </p>
+{% endblock %}
