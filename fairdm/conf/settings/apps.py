@@ -2,7 +2,6 @@ INSTALLED_APPS = [
     # Admin apps
     "adminactions",
     "admin_site_search",
-    "smuggler",  # for importing data into the admin
     "admin_extra_buttons",
     # "modeltranslation",
     "fairdm.contrib.admin.apps.FairDMAdminConfig",
