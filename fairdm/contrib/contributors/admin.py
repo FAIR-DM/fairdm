@@ -12,7 +12,7 @@ from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelF
 from fairdm.db import models
 
 # from django_select2.forms import Select2AdminMixin
-from .models import Contributor, Organization, OrganizationMember, Person
+from .models import Contributor, ContributorIdentifier, Organization, OrganizationMember, Person
 from .resources import PersonResource
 
 
@@ -37,6 +37,12 @@ class ContributorInline(admin.StackedInline):
 class AffiliationInline(admin.StackedInline):
     model = OrganizationMember
     fields = [("organization", "type", "is_primary", "is_current")]
+    extra = 0
+
+
+class IdentifierInline(admin.StackedInline):
+    model = ContributorIdentifier
+    fields = ["type", "value"]
     extra = 0
 
 
@@ -68,7 +74,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, Impo
     show_in_index = True
     resource_classes = [PersonResource]
     skip_import_confirm = True
-    inlines = [AccountEmailInline, AffiliationInline]
+    inlines = [AccountEmailInline, AffiliationInline, IdentifierInline]
     list_display = [
         "first_name",
         "last_name",
@@ -116,6 +122,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, Impo
                 "fields": (
                     "password",
                     "is_active",
+                    "is_member",
                     "is_staff",
                     "is_superuser",
                 )

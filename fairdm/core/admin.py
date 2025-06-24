@@ -9,7 +9,7 @@ from fairdm.core.models import Measurement
 from fairdm.utils.utils import get_subclasses
 
 from .dataset.models import DatasetDate, DatasetDescription
-from .models import Dataset, Project, Sample
+from .models import Project, Sample
 
 
 class DescriptionInline(admin.StackedInline):
@@ -55,19 +55,6 @@ class ProjectAdmin(admin.ModelAdmin):
             },
         ),
     )
-
-
-@admin.register(Dataset)
-class DatasetAdmin(admin.ModelAdmin):
-    inlines = [DescriptionInline, DateInline]
-    search_fields = ("uuid", "name")
-    list_display = ("name", "added", "modified")
-    fieldsets = ((None, {"fields": ("name", "project", "image", "reference", "visibility", "tags")}),)
-    formfield_overrides = {
-        models.ManyToManyField: {"widget": Select2MultipleWidget},
-        models.ForeignKey: {"widget": Select2Widget},
-        models.OneToOneField: {"widget": Select2Widget},
-    }
 
 
 @admin.register(Sample)
