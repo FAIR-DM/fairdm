@@ -20,6 +20,16 @@ def get_measurement_menu_items():
     return generate_menu_items(registry.measurements)
 
 
+def user_is_authenticated(request, instance, **kwargs):
+    """
+    Checks if the user associated with the given request is authenticated.
+
+    Returns:
+        bool: True if the user is authenticated, False otherwise.
+    """
+    return request.user.is_authenticated
+
+
 class NavLink(MenuItem):
     """A simple navigation link item."""
 
@@ -64,10 +74,17 @@ SiteNavigation = Menu(
     template="fairdm/menus/database/menu.html",
     children=[
         NavLink(_("Home"), view_name="home"),  # type: ignore
-        NavLink(
+        NavMenu(
             _("Projects"),
-            view_name="project-list",
             description=_("Discover planned, active, and historic research projects shared by our community members."),
+            children=[
+                SubMenuItem(
+                    _("Browse Projects"),
+                    view_name="project-list",
+                    icon="project",
+                ),
+                SubMenuItem(_("Create New"), view_name="project-create", check=user_is_authenticated),
+            ],
         ),
         NavMenu(
             _("Data"),
@@ -75,6 +92,7 @@ SiteNavigation = Menu(
                 "Browse datasets that meet the data and metadata quality standards required by our community."
             ),
             children=[
+                SubMenuItem(_("Create New"), view_name="dataset-create", check=user_is_authenticated),
                 DropdownHeader(_("Explore")),
                 SubMenuItem(
                     _("Browse Datasets"),
@@ -117,8 +135,6 @@ SiteNavigation = Menu(
         ),
         NavMenu(
             _("More"),
-            show_toggle=True,
-            dropdown_button_class="dropdown-item",
             children=[
                 SubMenuItem(
                     _("Literature"),
