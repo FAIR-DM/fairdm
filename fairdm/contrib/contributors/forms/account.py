@@ -70,7 +70,7 @@ class SocialSignupForm(social_forms.SignupForm):
         self.helper.form_action = "socialaccount_signup"
         self.helper.form_id = "social-signup-form"
         self.helper.layout = Layout(
-            Field("email", type="hidden"),
+            Field("email"),
             "name",
             Row(
                 Column(

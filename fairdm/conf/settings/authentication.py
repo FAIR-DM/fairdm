@@ -59,11 +59,13 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 # ========== Django Allauth Social Account ==========
 
-SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_PROVIDERS = {
     "orcid": {
         "BASE_DOMAIN": "orcid.org" if not DEBUG else "sandbox.orcid.org",
         "MEMBER_API": False,
+        # "EMAIL_AUTHENTICATION": True,
+        # "VERIFIED_EMAIL": True,
     }
 }
 

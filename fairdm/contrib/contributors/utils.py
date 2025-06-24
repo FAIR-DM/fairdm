@@ -262,7 +262,7 @@ def update_or_create_contribution(contributor, obj, roles=None):
 # ======== ORCID related utilities ========
 
 
-def contributor_from_orcid_data(data, person: Person | None = None) -> Person:
+def contributor_from_orcid_data(data, person: Person | None = None, save=True) -> Person:
     """
     Creates or updates a Person instance from ORCID API data.
     This function extracts relevant fields from the provided ORCID data dictionary and populates a Person model instance.
@@ -279,28 +279,28 @@ def contributor_from_orcid_data(data, person: Person | None = None) -> Person:
         - The ContributorIdentifier for ORCID is updated or created to link to the person.
         - External identifiers from ORCID are not currently processed (see commented code).
     """
-
-    orcid = data.get("orcid-idenfitier.path")
+    if not isinstance(data, benedict):
+        data = benedict(data)
+    orcid = data.get("orcid-identifier.path")
     person = person or Person()
+    person.synced_data = data
+    # person.name = dictget(data, ["person", "name", "credit-name", "value"])
+    person.name = data.get("person.name.credit-name.value")
+    person.first_name = data.get("person.name.given-names.value")
+    person.last_name = data.get("person.name.family-name.value")
+    person.profile = data.get("person.biography.content")
 
-    with transaction.atomic():
-        person.synced_data = data
-        # person.name = dictget(data, ["person", "name", "credit-name", "value"])
-        person.name = data.get("person.name.credit-name.value")
-        person.first_name = data.get("person.name.given-names.value")
-        person.last_name = data.get("person.name.family-name.value")
-        person.profile = data.get("person.biography.content")
+    if other_names := data.get("person.other-names.other-name", []):
+        person.alternative_names = [name["content"] for name in other_names]
 
-        if other_names := data.get("person.other-names.other-name", []):
-            person.alternative_names = [name["content"] for name in other_names]
+    if links := data.get("person.researcher-urls.researcher-url", []):
+        person.links = [link["url"]["value"] for link in links]
 
-        if links := data.get("person.researcher-urls.researcher-url", []):
-            person.links = [link["url"]["value"] for link in links]
-
-        person.save()
-
-        # WARNING: I don't like this. We shouldn't update the identifier with a new person object if it already exists.
-        ContributorIdentifier.objects.update_or_create(type="ORCID", value=orcid, defaults={"related": person})
+    if save:
+        with transaction.atomic():
+            person.save()
+            # WARNING: I don't like this. We shouldn't update the identifier with a new person object if it already exists.
+            ContributorIdentifier.objects.update_or_create(type="ORCID", value=orcid, defaults={"related": person})
 
         # NOTE: need to work out the format for external-identifiers in ORCID
 
