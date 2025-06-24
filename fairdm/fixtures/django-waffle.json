@@ -1,0 +1,35 @@
+[
+  {
+    "model": "waffle.switch",
+    "pk": 1,
+    "fields": {
+      "name": "navbar_show_search_form",
+      "active": true,
+      "note": "",
+      "created": "2025-06-23T20:02:40.112Z",
+      "modified": "2025-06-24T07:59:59.614Z"
+    }
+  },
+  {
+    "model": "waffle.switch",
+    "pk": 2,
+    "fields": {
+      "name": "allow_discussions",
+      "active": true,
+      "note": "",
+      "created": "2025-06-23T21:33:16.535Z",
+      "modified": "2025-06-24T07:59:59.604Z"
+    }
+  },
+  {
+    "model": "waffle.switch",
+    "pk": 3,
+    "fields": {
+      "name": "allow_signup",
+      "active": true,
+      "note": "",
+      "created": "2025-06-24T07:53:17.451Z",
+      "modified": "2025-06-24T07:59:24.623Z"
+    }
+  }
+]

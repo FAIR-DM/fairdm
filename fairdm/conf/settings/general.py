@@ -137,10 +137,12 @@ DJANGO_SETUP_TOOLS = {
                 env("DJANGO_SUPERUSER_LASTNAME", default="User"),
             ),
             ("loaddata", "creativecommons"),
+            ("loaddata", "django-waffle"),
         ],
         "always_run": [
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
+            ("loaddata", "groups"),
             ("compress",),
             "django_setup_tools.scripts.sync_site_id",
         ],
