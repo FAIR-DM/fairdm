@@ -4,7 +4,6 @@
         description
         action
         action_text />
-{% comment %} <div class="col"> {% endcomment %}
 <div class="swiper-slide">
   <c-bs5.card class="overflow-hidden h-100">
     <div class="card-img-top ratio ratio-16x9">
@@ -16,17 +15,6 @@
       <h5 class="card-title">{{ title }}</h5>
       <p class="card-text">{{ description }}</p>
     </c-bs5.card.body>
-    <c-bs5.card.footer>
-      {% if footer %}
-        {{ footer }}
-      {% else %}
-        <c-components.link href="{{ action }}"
-                           style="primary"
-                           size="md"
-                           text="{{ action_text }}"
-                           icon="arrow-right"
-                           icon_position="end" />
-      {% endif %}
-    </c-bs5.card.footer>
+    <a href="{{ action }}" class="stretched-link"></a>
   </c-bs5.card>
 </div>
