@@ -121,6 +121,9 @@ class FairDMModelFormMixin(
     help_text = None
     form_component = "components.form.default"
     template_name = "fairdm/form_view.html"
+    sections = {
+        "title": "text.title",
+    }
 
     def get_context_data(self, **kwargs):
         """Add the form class to the context if it is set."""

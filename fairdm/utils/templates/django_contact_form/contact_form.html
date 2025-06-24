@@ -1,12 +1,16 @@
+{% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-<c-layouts.form title="{% trans "Contact Us" %}">
-  <p>{% trans "Reach out to us by submitting the form below." %}</p>
-  <form method="post">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <c-components.button class="btn btn-primary"
-                         text="{% trans "Send message" %}"
-                         icon="send" />
-  </form>
-</c-layouts.form>
+{% block content %}
+  <c-layouts.standard :layout="{'content_class': 'col-12 col-md-9'}">
+    <c-text.title text="{% trans "Contact Us" %}" />
+    <p>{% trans "Reach out to us by submitting the form below." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <c-components.button class="btn btn-primary"
+                           text="{% trans "Send message" %}"
+                           icon="send" />
+    </form>
+  </c-layouts.standard>
+{% endblock content %}

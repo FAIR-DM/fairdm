@@ -119,7 +119,10 @@ class DataImportView(plugins.Action, BaseImportExportView):
         "icon": "import",
     }
     form_class = ImportForm
-    template_name = "import_export/import.html"
+    # template_name = "import_export/import.html"
+    title_config = {
+        "text": _("Import Data"),
+    }
 
     def form_valid(self, form):
         file = form.cleaned_data["file"]

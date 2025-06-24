@@ -1,6 +1,6 @@
 {% load crispy_forms_tags %}
 
-<c-layouts.plugin.form>
+<c-layouts.plugin>
   {% if result.has_errors %}
     <c-slot name="after_form">
       <hr />
@@ -20,4 +20,4 @@
       </div>
     </c-slot>
   {% endif %}
-</c-layouts.plugin.form>
+</c-layouts.plugin>
