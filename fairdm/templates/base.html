@@ -61,7 +61,7 @@
       </noscript>
     {% endblock head %}
 
-    {% render_block "css" %}
+    {% comment %} {% render_block "css" %} {% endcomment %}
     {% block css %}
     {% endblock css %}
 
@@ -168,5 +168,5 @@
     </body>
   {% endblock body %}
 
-  {% render_block "js" %}
+  {% comment %} {% render_block "js" %} {% endcomment %}
 </html>

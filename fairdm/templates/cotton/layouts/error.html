@@ -1,7 +1,7 @@
 {% load meta fairdm static %}
 
-<c-layouts.article style="application">
-  <div class="container flex-grow-1 vstack justify-content-center align-items-center">
+<c-layouts.standard :layout="{'content_class': 'h-100'}">
+  <div class="container flex-grow-1 h-100 vstack justify-content-center align-items-center {{ class }}">
     <img class="mb-3"
          src="{% static "img/brand/logo.svg" %}"
          alt=""
@@ -9,6 +9,6 @@
          height="120"
          width="auto" />
     <h1>{{ title }}</h1>
-    <p>{{ message }}</p>
+    {{ message }}
   </div>
-</c-layouts.article>
+</c-layouts.standard>

@@ -1,2 +1,7 @@
-<c-layouts.error title="{% trans "Internal Server Error!" %}"
-                 message="{% trans "Looks like something went wrong on our side. We've already logged the error and are looking into solutions. If the problem persists, please reach out to us." %}" />
+{% extends "base.html" %}
+{% block css %}
+{% endblock css %}
+
+{% block body %}
+  <c-layouts.error title="{% trans "Internal Server Error!" %}" {% endcomment %} {% comment %} message="{% trans "Something went wrong on our side and we are already looking for solutions. If the problem persists, please reach out to us." %}" />
+{% endblock body %}

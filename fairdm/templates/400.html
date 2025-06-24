@@ -1,2 +1,5 @@
-<c-layouts.error title="{% trans "Bad Request" %}"
-                 message="{% trans "Something unexpected happened with that request. Please try again in a few minutes. If the problem persists, please contact us." %}" />
+{% extends "fairdm/base.html" %}
+{% block content %}
+  <c-layouts.error title="{% trans "Bad Request" %}"
+                   message="{% trans "Something unexpected happened with that request. Please try again in a few minutes. If the problem persists, please contact us." %}" />
+{% endblock content %}
