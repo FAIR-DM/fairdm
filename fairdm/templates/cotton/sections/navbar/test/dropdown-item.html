@@ -1,3 +1,5 @@
-<c-bs5.dropdown.item :active="item.active"
-                     href="{{ item.url }}"
-                     text="{{ item.label }}" />
+{% if item.visible %}
+  <c-bs5.dropdown.item :active="item.active"
+                       href="{{ item.url }}"
+                       text="{{ item.label }}" />
+{% endif %}
