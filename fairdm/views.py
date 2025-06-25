@@ -127,9 +127,6 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         context["image"] = self.image
         return super().get_meta_image(context)
 
-    def get_card(self):
-        return self.card
-
 
 class FairDMDetailView(FairDMBaseMixin, DetailView):
     model = None

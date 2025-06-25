@@ -65,7 +65,6 @@
     {% block css %}
     {% endblock css %}
 
-    {% comment %} <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" /> {% endcomment %}
     {# djlint:off #}
     <style>  
       html {
@@ -133,10 +132,11 @@
       .navbar-header-items__center .dropdown-toggle::after {
         display: none;
       }
-
-      {% comment %} a:visited {
-        color: unset  
-} {% endcomment %}
+    .card-hover-shadow:hover {
+      -webkit-box-shadow: var(--bs-box-shadow-sm) !important;
+      box-shadow: var(--bs-box-shadow-sm) !important;
+      transition: box-shadow 0.3s ease;
+    }
 </style>
     {# djlint:on #}
   </head>
