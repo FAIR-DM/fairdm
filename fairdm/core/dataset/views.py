@@ -15,10 +15,19 @@ class DatasetCreateView(FairDMCreateView):
     model = Dataset
     form_class = DatasetForm
     title = _("Create a Dataset")
-    help_text = _(
-        "Create a new dataset to share with the community. Upload existing data or get started designing your next dataset from scratch."
-    )
-    learn_more = user_guide("datasets")
+    heading_config = {
+        "title": _("Create a dataset"),
+        "description": _(
+            "Datasets are the foundation of FAIR research data, and the metadata they contain are key to making data Findable, Accessible, Interoperable, and Reusable. Use the form below to quickly create a new dataset. After creation, you can upload data, add contributors, enrich your descriptions, and include advanced metadata to support discovery and reuse."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("datasets"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     fields = ["image", "project", "name", "license"]
 
     def get_initial(self) -> dict[str, Any]:

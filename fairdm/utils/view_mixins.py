@@ -2,11 +2,13 @@ from functools import cached_property
 
 from braces.views import MessageMixin
 from django import forms
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.urls import path
+from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView, View
+from django.views.generic.edit import ProcessFormView
 from django_addanother.views import CreatePopupMixin
 from meta.views import MetadataMixin
 
@@ -95,11 +97,12 @@ class FairDMFormViewMixin(FormLayout):
         return super().get_success_url()
 
 
+@method_decorator(login_required, name="post")
 class FairDMModelFormMixin(
     FairDMFormViewMixin,
-    LoginRequiredMixin,
     FairDMBaseMixin,
     CreatePopupMixin,
+    ProcessFormView,
 ):
     """
     A mixin class to provide dynamic form class generation for Django model forms.
@@ -125,11 +128,18 @@ class FairDMModelFormMixin(
         "title": "text.title",
     }
 
+    def get_template(self, template_name=None):
+        """Return the template to be used for rendering the view."""
+        if template_name is None:
+            template_name = self.template_name
+        return super().get_template(template_name)
+
     def get_context_data(self, **kwargs):
         """Add the form class to the context if it is set."""
         context = super().get_context_data(**kwargs)
         context["help_text"] = self.get_help_text()
         context["form_component"] = self.get_form_component()
+        context["form_visible"] = self.request.user.is_authenticated
         return context
 
     def get_form_component(self):

@@ -87,5 +87,5 @@ class HomeView(FairDMBaseMixin, TemplateView):
     sections = {
         "sidebar_primary": False,
         "header": False,
-        "footer": "pst.sections.footer-content",
+        "footer": "sections.footers.sponsors",
     }

@@ -57,6 +57,7 @@ EASY_ICONS = {
         "login": "fas fa-sign-in-alt",
         "logout": "fas fa-sign-out-alt",
         "location": "fas fa-map-marker-alt",
+        "lock": "fas fa-lock",
         "manage_account": "fas fa-user-cog",
         "map": "fas fa-map-marked-alt",
         "measurement": "fas fa-ruler",

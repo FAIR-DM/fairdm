@@ -155,6 +155,10 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
     The base class for creating objects within the FairDM framework.
     """
 
+    def get_template_names(self):
+        templates = super().get_template_names()
+        return templates
+
 
 class FairDMUpdateView(FairDMModelFormMixin, UpdateView):
     """

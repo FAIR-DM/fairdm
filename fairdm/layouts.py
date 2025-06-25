@@ -13,6 +13,7 @@ class BaseLayout(CottonBS5ComponentMixin):
         "sidebar_primary": "sections.sidebar.primary",
         "sidebar_secondary": "sections.sidebar.secondary",
         "header": "layouts.header",
+        "heading": "sections.heading",
     }
     sidebar_primary_config = {
         "breakpoint": "md",
@@ -25,6 +26,14 @@ class BaseLayout(CottonBS5ComponentMixin):
         "breakpoint": "md",
         "class": "border-start",
         "width": "15rem",
+    }
+
+
+class PageLayout(BaseLayout):
+    """Base class for page layouts"""
+
+    sections = {
+        "heading": "sections.heading",
     }
 
 
@@ -42,7 +51,7 @@ class ApplicationLayout(BaseLayout):
     }
 
 
-class FormLayout(BaseLayout):
+class FormLayout(PageLayout):
     """Base class for form layouts"""
 
     sections = {

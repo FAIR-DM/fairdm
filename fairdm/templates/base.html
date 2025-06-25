@@ -165,6 +165,10 @@
       {% endblock scripts_end %}
 
       {# Footer #}
+      {% block footer %}
+        {% if sections.footer %}<c-component :attrs="sections.footer" />{% endif %}
+      {% endblock footer %}
+
       {% comment %} <footer class="bd-footer">
       {% include "cotton/pst/sections/footer.html" %}
       </footer> {% endcomment %}

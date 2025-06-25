@@ -1,7 +1,17 @@
 {% extends "fairdm/base.html" %}
+{% url "account_login" as login_url %}
+{% url "account_signup" as signup_url %}
 {% block content %}
   <c-layouts.standard>
-    {% if sections.title %}<c-component :attrs="sections.title" />{% endif %}
-    <c-component :attrs="sections.form" />
+    {% if sections.title %}<c-component :attrs="sections.heading" />{% endif %}
+    {% if form_visible %}
+      <c-component :attrs="sections.form" />
+    {% else %}
+      <c-bs5.alert>
+        {% blocktrans %}
+      Only authenticated users may perform this action. <a href="{{ login_url }}">Login</a> or <a href="{{ signup_url }}">create an account</a> now to get started.
+      {% endblocktrans %}
+      </c-bs5.alert>
+    {% endif %}
   </c-layouts.standard>
 {% endblock content %}
