@@ -10,12 +10,10 @@
 
 {% block content %}
   <c-layouts.standard>
-    <c-text.heading text="{% trans "Welcome!" %}" />
-    {% if theme_options.welcome_message %}
-      <c-sections.info-block>
-        {{ theme_options.welcome_message }}
-      </c-sections.info-block>
-    {% endif %}
+    {% block title %}
+      <c-text.title text="{{ config.site_name }}" />
+    {% endblock title %}
+
     <c-text.heading level="2" text="{% trans "Explore" %}" />
     <c-fdm.dashboard.slider id="explore">
       {% for item in theme_options.home.explore %}<c-component :is="item" />{% endfor %}
@@ -30,3 +28,31 @@
     </c-fdm.dashboard.slider>
   </c-layouts.standard>
 {% endblock content %}
+
+{% block footer %}
+  <c-sections.footer class="text-center">
+    <h2>{% trans "Credits" %}</h2>
+    <p>
+      {% trans "This reasearch data portal was established with the support of the following organizations in order to advance research infrastructure and data sharing for the benefit of the scientific research community." %}
+    </p>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-5 align-items-center">
+      {% for sponsor in theme_options.sponsors %}
+        <div class="col">
+          <a href="{{ sponsor.url }}">
+            <img src="{% static sponsor.image %}"
+                 class="object-fit-cover"
+                 height="auto"
+                 width="auto"
+                 title="{{ sponsor.name }}" />
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="d-flex justify-content-center gap-3 mb-1 mt-5">
+      {% block footer_links %}
+        <a href="https://fairdm.com">{% trans "FairDM Framework" %}</a>
+      {% endblock footer_links %}
+
+    </div>
+  </c-sections.footer>
+{% endblock footer %}
