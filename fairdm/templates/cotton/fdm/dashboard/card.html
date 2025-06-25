@@ -15,6 +15,8 @@
       <h5 class="card-title">{{ title }}</h5>
       <p class="card-text">{{ description }}</p>
     </c-bs5.card.body>
-    <a href="{{ action }}" class="stretched-link"></a>
+    <a href="{{ action }}"
+       {% if external %}target="_blank"{% endif %}
+       class="stretched-link"></a>
   </c-bs5.card>
 </div>

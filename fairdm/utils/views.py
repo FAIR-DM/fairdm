@@ -12,6 +12,7 @@ from django_contact_form.views import ContactFormView
 from literature.models import LiteratureItem
 
 from fairdm.contrib import CORE_MAPPING
+from fairdm.utils.view_mixins import FairDMBaseMixin
 from fairdm.views import FairDMListView
 
 from .filters import LiteratureFilterset
@@ -80,18 +81,11 @@ class DirectoryView(RedirectView):
         return obj.get_absolute_url()
 
 
-class HomeView(TemplateView):
+class HomeView(FairDMBaseMixin, TemplateView):
+    title = _("Home")
     template_name = "fairdm/pages/home.html"
-    # authenticated_template = "dashboard.html"
-
-    # def get_template_names(self):
-    # if self.request.user.is_authenticated:
-    # return self.authenticated_template
-    # return super().get_template_names()
-
-    # def get_context_data(self, **kwargs):
-    # context = super().get_context_data(**kwargs)
-    # context["menu"] = self.menu
-    # if self.request.user.is_authenticated:
-    # return self.authenticated_context(context, **kwargs)
-    # return self.anonymous_context(context, **kwargs)
+    sections = {
+        "sidebar_primary": False,
+        "header": False,
+        "footer": "pst.sections.footer-content",
+    }
