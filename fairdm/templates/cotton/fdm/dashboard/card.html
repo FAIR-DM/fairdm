@@ -3,6 +3,7 @@
         title
         description
         action
+        badge
         action_text />
 <div class="swiper-slide">
   <c-bs5.card class="card-hover-shadow overflow-hidden h-100">
@@ -18,5 +19,8 @@
     <a href="{{ action }}"
        {% if external %}target="_blank"{% endif %}
        class="stretched-link"></a>
+    {% if badge %}
+      <span class="position-absolute top-0 start-0 ms-2">{% icon badge %}</span>
+    {% endif %}
   </c-bs5.card>
 </div>
