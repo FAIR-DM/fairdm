@@ -1,13 +1,13 @@
 import waffle
 from django.http import Http404
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
 from django.views.generic.base import TemplateView
 from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
-from fairdm.utils.utils import feature_is_enabled
+from fairdm.registry import registry
 from fairdm.views import FairDMListView
 
 from .dataset.views import DatasetListView
@@ -184,8 +184,6 @@ class DataTablePlugin(plugins.Explore, DataTableView):
         "name": _("Data"),
         "icon": "table",
     }
-    menu_check = feature_is_enabled("SHOW_DATA_TABLES")
-    icon = "sample"
 
     def get_queryset(self, *args, **kwargs):
         # return self.base_object.samples.instance_of(self.model)
@@ -197,3 +195,21 @@ class DataTablePlugin(plugins.Explore, DataTableView):
         return super().get_queryset(*args, **kwargs)
 
         # return self.model.objects.filter(dataset=self.base_object)
+
+    @classmethod
+    def get_urls(cls, **kwargs):
+        """
+        Return the URLs for the table view.
+        """
+        urls = []
+        for item in [*registry.samples, *registry.measurements]:
+            urls.append(
+                path(
+                    f"{item['type']}s/{item['slug']}/",
+                    cls.as_view(model=item["class"], **kwargs),
+                    name=f"{item['slug']}-collection",
+                )
+            )
+        first = registry.samples[0]
+
+        return urls, f"{first['slug']}-collection"

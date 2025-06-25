@@ -65,16 +65,16 @@ class DataTableView(ApplicationLayout, SingleTableMixin, FairDMListView):
         return "text/csv"
 
     @classmethod
-    def get_urls(cls):
+    def get_urls(cls, **kwargs):
         """
         Return the URLs for the table view.
         """
         urls = []
-        for item in registry.all:
+        for item in [*registry.samples, *registry.measurements]:
             urls.append(
                 path(
                     f"{item['type']}s/{item['slug']}/",
-                    cls.as_view(model=item["class"]),
+                    cls.as_view(model=item["class"], **kwargs),
                     name=f"{item['slug']}-collection",
                 )
             )
