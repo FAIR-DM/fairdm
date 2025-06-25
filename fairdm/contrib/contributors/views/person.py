@@ -26,6 +26,9 @@ class ContributorBaseListView(FairDMListView):
         "card": "contributor.card.person",
     }
 
+    def get_queryset(self):
+        return super().get_queryset().filter(is_superuser=False)
+
 
 class ContributorListView(ContributorBaseListView):
     model = Person
