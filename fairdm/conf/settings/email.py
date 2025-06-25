@@ -1,10 +1,31 @@
+from unittest.mock import DEFAULT
+
+from h11 import SERVER
+
+
 env = globals()["env"]
 
+
+site_name = env("DJANGO_SITE_NAME", default=None)
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
-DEFAULT_FROM_EMAIL = f"noreply@{env('DJANGO_SITE_DOMAIN')}"
+if env("DJANGO_DEFAULT_FROM_EMAIL", default=None):
+    from_email = env("DJANGO_DEFAULT_FROM_EMAIL")
+else:
+    from_email = f"noreply@{env('DJANGO_SITE_DOMAIN')}"
+
+DEFAULT_FROM_EMAIL = f"{site_name} <{from_email}>"
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
-SERVER_EMAIL = f"server@{env('DJANGO_SITE_DOMAIN')}"
+if env("DJANGO_SERVER_EMAIL", default=None):
+    server_email = env("DJANGO_SERVER_EMAIL")
+else:
+    # This is the email address that error messages come from.
+    # It should be a valid email address on your server.
+    # If you don't set this, Django will use DEFAULT_FROM_EMAIL.
+    server_email = f"server@{env('DJANGO_SITE_DOMAIN')}"
+
+SERVER_EMAIL = f"{site_name} Server <{server_email}>"
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-host
 EMAIL_HOST = env("EMAIL_HOST")
