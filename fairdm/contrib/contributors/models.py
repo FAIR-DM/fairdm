@@ -31,7 +31,7 @@ from fairdm.db.models import PolymorphicModel
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
-from .managers import MemberManager, UserManager
+from .managers import UserManager
 
 
 def contributor_permissions_default():
@@ -214,16 +214,6 @@ class Person(AbstractUser, Contributor):
 
     objects = UserManager()  # type: ignore[var-annotated]
 
-    # Override the default AbstractUser date_joined, and is_active fields to default to None. We manually set these fields on user sign up so we know which profiles are active community members and which are not.
-    member_since = models.DateTimeField(_("member since"), null=True, blank=True, default=None)
-    is_member = models.BooleanField(
-        _("member"),
-        default=True,
-        help_text=_(
-            "Designates whether this user is an active member of the community or has been added by another process. "
-        ),
-    )
-
     # null is allowed for the email field, as a Person object/User account can be created by someone else. E.g. when
     # adding a new contributor to a database entry.
     # The email field is not stored in this case, as we don't have permission from the email owner.
@@ -328,15 +318,6 @@ class Person(AbstractUser, Contributor):
                 },
                 default=float,
             )
-
-
-class Member(Person):
-    objects = MemberManager()
-
-    class Meta:
-        proxy = True
-        verbose_name = _("community member")
-        verbose_name_plural = _("community members")
 
 
 class OrganizationMember(models.Model):

@@ -81,7 +81,6 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, Impo
         "email",
         "is_staff",
         "is_active",
-        "is_member",
     ]
     list_filter = ("is_staff", "is_superuser", "is_active", "groups")
     exclude = ("username",)
@@ -122,7 +121,6 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, Impo
                 "fields": (
                     "password",
                     "is_active",
-                    "is_member",
                     "is_staff",
                     "is_superuser",
                 )

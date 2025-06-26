@@ -32,14 +32,6 @@ class UserManager(BaseUserManager, PrefetchPolymorphicManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class MemberManager(UserManager):
-    """Custom manager for the Member model."""
-
-    def get_queryset(self):
-        """Return a queryset that includes only active members."""
-        return super().get_queryset().filter(is_member=True)
-
-
 class ContributionManager(models.QuerySet):
     def by_role(self, role):
         """Returns all contributions with the given role"""

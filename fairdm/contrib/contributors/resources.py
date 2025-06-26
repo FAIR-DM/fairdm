@@ -45,7 +45,7 @@ class PersonResource(resources.ModelResource):
         if orcid := row.get("orcid"):
             person, created = update_or_create_from_orcid(orcid, id=row.get("id"))
             if created:
-                # If the person was created during this import process, they are not a member yet
-                person.is_member = False
+                # If the person was created during this import process, they should not be considered active
+                person.is_active = False
             return person
         return super().get_instance(instance_loader, row)
