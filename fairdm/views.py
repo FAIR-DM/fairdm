@@ -97,6 +97,22 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         "empty_message": _("No results found."),
     }
 
+    def get(self, request, *args, **kwargs):
+        """Override the get method of the FilterView to allow views to not specify a filterset_class."""
+        filterset_class = self.get_filterset_class()
+        if filterset_class is None:
+            self.filterset = None
+            self.object_list = self.get_queryset()
+        else:
+            self.filterset = self.get_filterset(filterset_class)
+            if not self.filterset.is_bound or self.filterset.is_valid() or not self.get_strict():
+                self.object_list = self.filterset.qs
+            else:
+                self.object_list = self.filterset.queryset.none()
+
+        context = self.get_context_data(filter=self.filterset, object_list=self.object_list)
+        return self.render_to_response(context)
+
     def get_model(self):
         return self.model or self.queryset.model
 
@@ -121,7 +137,8 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         if self.filterset_class is not None:
             # If a filterset class is explicitly set, use it.
             return self.filterset_class
-        return self.model.config.get_filterset_class()
+        elif hasattr(self.model, "config"):
+            return self.model.config.get_filterset_class()
 
     def get_meta_image(self, context=None):
         context["image"] = self.image
