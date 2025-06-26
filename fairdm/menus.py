@@ -20,6 +20,16 @@ def get_measurement_menu_items():
     return generate_menu_items(registry.measurements)
 
 
+def user_is_staff(request, instance, **kwargs):
+    """
+    Checks if the user associated with the given request is authenticated.
+
+    Returns:
+        bool: True if the user is authenticated, False otherwise.
+    """
+    return request.user.is_staff
+
+
 def user_is_authenticated(request, instance, **kwargs):
     """
     Checks if the user associated with the given request is authenticated.

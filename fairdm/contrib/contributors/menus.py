@@ -3,6 +3,8 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from flex_menu import Menu, MenuItem
 
+from fairdm.menus import user_is_staff
+
 
 def get_contributor_url(request):
     if request.user.is_authenticated:
@@ -40,7 +42,7 @@ AccountMenu.insert(
 FloatingAccountMenu.insert(
     [
         MenuItem(_("Profile"), url=get_contributor_url, icon="user"),
-        MenuItem(_("Portal Administration"), view_name="admin:index", icon="administration"),
+        MenuItem(_("Portal Administration"), check=user_is_staff, view_name="admin:index", icon="administration"),
     ],
     position=0,
 )
