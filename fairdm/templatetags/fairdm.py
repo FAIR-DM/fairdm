@@ -1,3 +1,5 @@
+import re
+
 from django import template
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
@@ -95,3 +97,31 @@ def plugin_url(context, view_name, *args, **kwargs):
     Returns a URL for a plugin view, using the base_object's model name as the namespace.
     """
     return plugins.reverse(context.get("non_polymorphic_object"), view_name, *args, **kwargs)
+
+
+@register.filter
+def normalize_doi(doi):
+    """
+    Normalize any DOI input to a full https://doi.org/ URL.
+
+    Examples:
+        - "10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
+        - "doi:10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
+        - "https://doi.org/10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
+
+    Returns None if input does not look like a valid DOI.
+    """
+    if not doi:
+        return None
+
+    # Strip whitespace and lowercase DOI scheme
+    doi = doi.strip()
+
+    # Remove common prefixes
+    doi = re.sub(r"^(doi:|DOI:|https?://(dx\.)?doi\.org/)", "", doi, flags=re.IGNORECASE)
+
+    # Check for valid DOI pattern
+    if not re.match(r"^10\.\d{4,9}/\S+$", doi):
+        return None
+
+    return f"https://doi.org/{doi}"
