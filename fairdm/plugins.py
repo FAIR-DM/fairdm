@@ -53,7 +53,9 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
         "header": "layouts.plugin.header",
         "title": "text.title",
     }
-
+    sidebar_primary_config = {
+        "header": {},
+    }
     header_config = {
         "actions": [
             "layouts.plugin.components.share",
