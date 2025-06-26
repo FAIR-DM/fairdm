@@ -22,7 +22,21 @@ class DatasetAdmin(admin.ModelAdmin):
     # inlines = [DescriptionInline, DateInline]
     search_fields = ("uuid", "name")
     list_display = ("name", "added", "modified")
-    fieldsets = ((None, {"fields": ("name", "project", "image", "reference", "visibility", "tags")}),)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "project",
+                    "image",
+                    "reference",
+                    "visibility",
+                    "tags",
+                )
+            },
+        ),
+    )
     formfield_overrides = {
         models.ManyToManyField: {"widget": Select2MultipleWidget},
         models.ForeignKey: {"widget": Select2Widget},
