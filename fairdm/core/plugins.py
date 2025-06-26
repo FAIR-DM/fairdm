@@ -8,7 +8,6 @@ from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
 from fairdm.registry import registry
-from fairdm.views import FairDMListView
 
 from .dataset.views import DatasetListView
 from .project.views import ProjectListView
@@ -44,15 +43,17 @@ class DiscussionPlugin(plugins.Explore, TemplateView):
         return waffle.switch_is_active("allow_discussions")
 
 
-class ActivityPlugin(plugins.Explore, FairDMListView):
+class ActivityPlugin(plugins.Explore, TemplateView):
     title = _("Recent Activity")
     menu_item = {
         "name": _("Activity"),
         "icon": "activity",
     }
-    filterset_class = None
+    title_config = {
+        "text": _("Recent Activity"),
+    }
     grid_config = {"card": "activity.action_compact"}
-    # template_name = "plugins/activity_stream.html"
+    template_name = "plugins/activity_stream.html"
 
 
 class Images(plugins.Explore, TemplateView):
