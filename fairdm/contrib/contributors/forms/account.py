@@ -1,4 +1,5 @@
 from allauth.account import forms as account_forms
+from allauth.account.utils import filter_users_by_email
 from allauth.socialaccount import forms as social_forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Column, Field, Layout, Row, Submit
@@ -84,3 +85,15 @@ class SocialSignupForm(social_forms.SignupForm):
             ),
             Submit("submit", "Confirm Details", css_class="btn btn-primary w-100"),
         )
+
+    def try_save(self, request):
+        """Our signup form will allow orcid signups to claim inactive accounts regardless of email address conflict."""
+        # NOTE: this exists only to bypass the default try_save method IF the sociallogin is for ORCID and the account
+        # is not marked as inactive (default for user-added contributors).
+        if self.account_already_exists and self.sociallogin.account.provider == "orcid":
+            existing = filter_users_by_email(self.cleaned_data["email"])
+            if existing and not existing[0].is_active:
+                self.instance = existing[0]
+                user = self.save(request)
+                return user, None
+        return super().try_save(request)

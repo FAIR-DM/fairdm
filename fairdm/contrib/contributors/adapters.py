@@ -1,13 +1,15 @@
 import waffle
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.signals import user_signed_up
+from allauth.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.internal.flows.signup import redirect_to_signup
 from django.conf import settings
 from django.http import HttpRequest
 
+# from allauth.socialaccount.models import SocialLogin
 from fairdm.contrib.contributors.models import ContributorIdentifier
-
-from .utils import contributor_from_orcid_data
+from fairdm.contrib.contributors.utils import contributor_from_orcid_data
 
 
 def is_provider(name, sociallogin):
@@ -44,33 +46,60 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             "name": getattr(sociallogin.user, "name", ""),
         }
 
-    def pre_social_login(self, request, sociallogin):
-        pass
+    def get_db_user_by_orcid(self, orcid_id):
+        """
+        Retrieve a user from the database by their ORCID ID.
+        """
+        existing = ContributorIdentifier.objects.filter(value=orcid_id, type="ORCID").first()
+        if existing:
+            return existing.related
 
-    def populate_user(self, request, sociallogin, data):
-        user = super().populate_user(request, sociallogin, data)
+    def pre_social_login(self, request, sociallogin):
         if is_provider("orcid", sociallogin):
-            user = contributor_from_orcid_data(sociallogin.account.extra_data, user, save=False)
-        user.is_member = True  # Ensure user is marked as a member
-        return user
+            orcid_id = sociallogin.account.uid
+            if existing_user := self.get_db_user_by_orcid(orcid_id):
+                if existing_user.is_active:
+                    # If the existing user is already active, we simply connect the orcid account and log them in.
+                    # Note: It's unclear in what scenario an active user can have an ORCID id in their identifiers
+                    # without having signed up with it, but this is a safeguard.
+                    # Normal flow for active users
+                    sociallogin.user = existing_user
+                    sociallogin.connect(request, existing_user)
+                # link the existing user to the social login
+                # This prevents Allauth send a "Account Already Exists" email
+                else:
+                    raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin))
+
+                # message = (
+                #     f"User with ORCID {orcid_id} already exists. "
+                #     "Logging in with existing user."
+                # )
+                # 1a)
 
     def save_user(self, request, sociallogin, form=None):
         if is_provider("orcid", sociallogin):
             orcid_id = sociallogin.account.uid
-
-            # If the ORCID ID already exists in the database, we associate the incoming user with that ID.
-            orcid_exists = ContributorIdentifier.objects.filter(value=orcid_id, type="orcid").first()
-            if orcid_exists:
-                sociallogin.user = orcid_exists.related
+            if existing_user := self.get_db_user_by_orcid(orcid_id):
+                existing_user.is_active = True  # Mark the existing user as active
+                # swap out existing data for incoming data from confirmation form (it exists on the sociallogin.user)
+                # we don't need to save as the remaining flow will do that for us
+                sociallogin.user = existing_user
 
             user = super().save_user(request, sociallogin, form=form)
-
-            # The following must be done after the user is saved to ensure the user instance has a pk
-            if not orcid_exists:
+            if not existing_user:
+                # The following must be done after the user is saved to ensure the user instance has a pk
                 # create the new ContributorIdentifier relation
                 user.identifiers.create(
                     value=orcid_id,
-                    type="orcid",
+                    type="ORCID",
                 )
+            return user
 
+        return super().save_user(request, sociallogin, form=form)
+
+    def populate_user(self, request, sociallogin, data):
+        # This method will help populate the user with data from the social login.
+        user = super().populate_user(request, sociallogin, data)
+        if is_provider("orcid", sociallogin):
+            user = contributor_from_orcid_data(sociallogin.account.extra_data, user, save=False)
         return user
