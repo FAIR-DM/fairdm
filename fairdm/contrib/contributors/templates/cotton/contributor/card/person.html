@@ -2,23 +2,25 @@
 
 {% with obj as contributor %}
   <c-bs5.card class="h-100">
-    <c-bs5.card.body>
+    <c-bs5.card.body class="p-2">
       <div class="row">
-        <div class="col-3">
-          <c-widgets.avatar :contributor="obj" only />
+        <div class="col-3 d-flex flex-column gap-2">
+          <c-widgets.avatar class="overflow-hidden rounded"
+                            :contributor="obj"
+                            only />
+          <c-components.link href="{{ obj.get_absolute_url }}"
+                             text="{% trans "Profile" %}"
+                             icon="arrow-right"
+                             icon_position="end" />
         </div>
-        <div class="col d-flex flex-column justify-content-center">
+        <div class="col py-1 d-flex flex-column">
           <h2 class="fs-6 mb-0">{{ obj }}</h2>
           <c-contributor.person.identifier />
           <c-contributor.person.affiliations />
-          <div class="mt-2">
-            <c-components.link href="{{ obj.get_absolute_url }}"
-                               text="View profile"
-                               icon="arrow-right"
-                               icon_position="end" />
+          {% comment %} <div class="mt-2">
             {% if person.is_followed %}Followed{% endif %}
-            {% comment %} <c-widgets.follow :object="obj" class="border-0" /> {% endcomment %}
-          </div>
+            <c-widgets.follow :object="obj" class="border-0" />
+          </div> {% endcomment %}
         </div>
       </div>
     </c-bs5.card.body>

@@ -16,6 +16,44 @@ from ..filters import PersonFilter
 from ..models import ContributorIdentifier, Person
 
 
+class PortalTeamView(FairDMTemplateView):
+    title = _("Portal Team")
+    template_name = "fairdm/pages/portal_team.html"
+    title_config = {
+        "text": _("Portal Team"),
+    }
+    groups = {
+        "Custodians": _("Custodians"),
+        "Administrators": _("Administrators"),
+        "Developers": _("Developers"),
+        "reviewers": _("Reviewers"),
+    }
+    slider_breakpoints = {
+        0: {"slidesPerView": 1, "spaceBetween": 10},
+        768: {"slidesPerView": 4, "spaceBetween": 10},
+    }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        group_qs = (
+            Group.objects.filter(name__in=self.groups.keys())
+            .annotate(user_count=Count("user"))
+            .filter(user_count__gt=0)
+            .prefetch_related("user_set")
+        )
+
+        # Map by internal name (untranslated)
+        group_dict = {group.name: group for group in group_qs}
+
+        # Ordered list of (translated name, group)
+        ordered_groups = [
+            {"label": self.groups[name], "group": group_dict[name]} for name in self.groups if name in group_dict
+        ]
+        context["groups"] = ordered_groups
+        return context
+
+
 class ContributorBaseListView(FairDMListView):
     sidebar_primary_config = {
         "title": _("Find someone"),
@@ -35,6 +73,10 @@ class ContributorListView(ContributorBaseListView):
     model = Person
     title = _("All Contributors")
     filterset_class = PersonFilter
+    queryset = Person.objects.filter(is_superuser=False)
+    title_config = {
+        "text": _("Personal Contributors"),
+    }
 
     def get_queryset(self):
         # Step 1: Filter active non-superuser persons
@@ -79,44 +121,6 @@ class ContributorListView(ContributorBaseListView):
             for person in queryset:
                 person.is_followed = False
 
-        return context
-
-
-class PortalTeamView(FairDMTemplateView):
-    title = _("Portal Team")
-    template_name = "fairdm/pages/portal_team.html"
-    title_config = {
-        "text": _("Portal Team"),
-    }
-    groups = {
-        "Custodians": _("Custodians"),
-        "Administrators": _("Administrators"),
-        "Developers": _("Developers"),
-        "reviewers": _("Reviewers"),
-    }
-    slider_breakpoints = {
-        0: {"slidesPerView": 1, "spaceBetween": 10},
-        768: {"slidesPerView": 4, "spaceBetween": 10},
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        group_qs = (
-            Group.objects.filter(name__in=self.groups.keys())
-            .annotate(user_count=Count("user"))
-            .filter(user_count__gt=0)
-            .prefetch_related("user_set")
-        )
-
-        # Map by internal name (untranslated)
-        group_dict = {group.name: group for group in group_qs}
-
-        # Ordered list of (translated name, group)
-        ordered_groups = [
-            {"label": self.groups[name], "group": group_dict[name]} for name in self.groups if name in group_dict
-        ]
-        context["groups"] = ordered_groups
         return context
 
 
