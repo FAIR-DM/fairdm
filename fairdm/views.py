@@ -172,6 +172,23 @@ class FairDMDeleteView(FairDMModelFormMixin, DeleteView):
     """
 
 
+class FairDMTemplateView(FairDMBaseMixin, TemplateView):
+    """
+    The base class for template views within the FairDM framework.
+    """
+
+    template_name = "fairdm/template_view.html"
+    sections = {
+        "sidebar_primary": False,
+        "sidebar_secondary": False,
+        "footer": False,
+        "header": False,
+    }
+    layout = {
+        "container_class": "container-lg",
+    }
+
+
 class FairDMCRUDView(CRUDViewMixin):
     view_classes = {
         "list": FairDMListView,

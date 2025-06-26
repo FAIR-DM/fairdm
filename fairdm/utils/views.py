@@ -6,14 +6,12 @@ from django.db.models.base import Model as Model
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
-from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from django_contact_form.views import ContactFormView
 from literature.models import LiteratureItem
 
 from fairdm.contrib import CORE_MAPPING
-from fairdm.utils.view_mixins import FairDMBaseMixin
-from fairdm.views import FairDMListView
+from fairdm.views import FairDMListView, FairDMTemplateView
 
 from .filters import LiteratureFilterset
 
@@ -81,11 +79,10 @@ class DirectoryView(RedirectView):
         return obj.get_absolute_url()
 
 
-class HomeView(FairDMBaseMixin, TemplateView):
+class HomeView(FairDMTemplateView):
     title = _("Home")
     template_name = "fairdm/pages/home.html"
-    sections = {
-        "sidebar_primary": False,
-        "header": False,
-        "footer": "sections.footers.sponsors",
+    slider_breakpoints = {
+        0: {"slidesPerView": 1, "spaceBetween": 10},
+        768: {"slidesPerView": 3, "spaceBetween": 10},
     }
