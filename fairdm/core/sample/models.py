@@ -10,6 +10,7 @@ from fairdm.db import models
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BasePolymorphicModel
 from ..choices import SampleStatus
+from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 
 
@@ -68,6 +69,9 @@ class Sample(BasePolymorphicModel):
         verbose_name_plural = _("samples")
         ordering = ["added"]
         default_related_name = "samples"
+        permissions = [
+            *CORE_PERMISSIONS,
+        ]
 
     def __str__(self):
         return f"{self.name}"

@@ -125,3 +125,20 @@ def normalize_doi(doi):
         return None
 
     return f"https://doi.org/{doi}"
+
+
+@register.simple_tag
+def user_has_object_permissions(user, obj, permissions):
+    """
+    Check if the user has the specified permissions on the object.
+
+    :param user: The user to check permissions for.
+    :param obj: The object to check permissions on.
+    :param permissions: A list of permission names to check.
+    :return: True if the user has all specified permissions, False otherwise.
+    """
+    for perm in permissions.split(","):
+        perm = perm.strip()
+        perm = perm.format(model_name=obj._meta.model_name)
+        if user.has_perm(perm, obj):
+            return True

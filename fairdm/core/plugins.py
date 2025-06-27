@@ -119,10 +119,6 @@ class ManageBaseObjectPlugin(plugins.Management, UpdateView):
         "icon": "gear",
     }
 
-    @staticmethod
-    def check(request, instance, **kwargs):
-        return request.user.is_superuser
-
 
 class ProjectPlugin(plugins.Explore, ProjectListView):
     """
@@ -158,7 +154,7 @@ class DatasetPlugin(plugins.Explore, DatasetListView):
         "name": _("Datasets"),
         "icon": "dataset",
     }
-    actions = ["dataset.create-button"]
+    # actions = ["dataset.create-button"]
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.datasets.all()

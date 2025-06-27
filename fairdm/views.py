@@ -1,3 +1,4 @@
+from actstream import action
 from crispy_forms.helper import FormHelper
 from django.contrib.auth.decorators import login_required
 from django.db.models.base import Model as Model
@@ -10,6 +11,7 @@ from neapolitan.views import CRUDView
 
 from fairdm.contrib.contributors.utils import current_user_has_role
 from fairdm.contrib.identity.models import Database
+from fairdm.utils.permissions import assign_all_model_perms
 from fairdm.utils.view_mixins import CRUDView as CRUDViewMixin
 from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, HTMXMixin
 
@@ -175,6 +177,17 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
     def get_template_names(self):
         templates = super().get_template_names()
         return templates
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        assign_all_model_perms(self.request.user, self.object)
+        action.send(
+            self.request.user,
+            verb="created",
+            target=self.object,
+            description=_("Created a new {}: {}").format(self.object._meta.verbose_name, str(self.object)),
+        )
+        return response
 
 
 class FairDMUpdateView(FairDMModelFormMixin, UpdateView):

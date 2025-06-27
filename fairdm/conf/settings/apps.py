@@ -111,5 +111,6 @@ INSTALLED_APPS = [
     "render_fields",
     "django_addanother",
     "waffle",
+    "guardian",  # for object level permissions
     *FAIRDM_APPS,
 ]

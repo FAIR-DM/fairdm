@@ -20,24 +20,18 @@ AccountMenu.insert(
             label=_("Profile"),
             children=[
                 MenuItem(_("Edit Profile"), view_name="contributor-profile", icon="user"),
-                MenuItem(_("Preferences"), view_name="contributor-identifiers", icon="preferences"),
-                MenuItem(_("Identifiers"), view_name="contributor-identifiers", icon="identifier"),
-                MenuItem(_("Affiliations"), view_name="contributor-affiliations", icon="organization"),
-            ],
-        ),
-        Menu(
-            "ActivityMenu",
-            label=_("Activity"),
-            children=[
-                MenuItem(_("Recent Activity"), view_name="home", icon="activity"),
-                MenuItem(_("Following"), view_name="home", icon="star-solid"),
-                MenuItem(_("Followed by"), view_name="home", icon="identifier"),
+                # MenuItem(_("Preferences"), view_name="contributor-identifiers", icon="preferences"),
+                # MenuItem(_("Identifiers"), view_name="contributor-identifiers", icon="identifier"),
+                # MenuItem(_("Affiliations"), view_name="contributor-affiliations", icon="organization"),
             ],
         ),
     ],
     position=0,
 )
 
+# Remove the Activity menu if it exists
+# NOTE: Add this back later when the views are properly implemented
+AccountMenu.pop("Activity")
 
 FloatingAccountMenu.insert(
     [
