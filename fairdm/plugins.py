@@ -163,6 +163,9 @@ class Management(BaseFormPlugin):
 
     check = check_has_edit_permission
 
+    def get_success_url(self):
+        return self.request.path  # Redirect to the same page after saving changes
+
 
 class PluginRegistry:
     def __init__(self, model: Model | str, **kwargs):

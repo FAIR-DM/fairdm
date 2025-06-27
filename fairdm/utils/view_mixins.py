@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404
 from django.urls import path
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView, View
-from django.views.generic.edit import ProcessFormView
 from django_addanother.views import CreatePopupMixin
 from meta.views import MetadataMixin
 
@@ -102,7 +101,6 @@ class FairDMModelFormMixin(
     FairDMFormViewMixin,
     FairDMBaseMixin,
     CreatePopupMixin,
-    ProcessFormView,
 ):
     """
     A mixin class to provide dynamic form class generation for Django model forms.
@@ -127,6 +125,10 @@ class FairDMModelFormMixin(
     sections = {
         "title": "text.title",
     }
+
+    def post(self, request, *args, **kwargs):
+        """This is here so the method_decorator works correctly."""
+        return super().post(request, *args, **kwargs)
 
     def get_template(self, template_name=None):
         """Return the template to be used for rendering the view."""
