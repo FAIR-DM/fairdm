@@ -1,4 +1,4 @@
-<c-vars id />
+<c-vars id :breakpoints="view.slider_breakpoints" />
 <style>
   .swiper {
     padding: 20px 0;
@@ -15,7 +15,9 @@
   <div class="swiper-button-prev"></div>
   <div class="swiper-button-next"></div>
 </div>
+{# djlint:off #}
 <script>
+  
   var swiper = new Swiper("#{{ id }}", {
     spaceBetween: 16,
     pagination: {
@@ -26,15 +28,7 @@
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev'
     },
-    breakpoints: {
-      0: {
-        slidesPerView: 1,
-        spaceBetween: 10,
-      },
-      768: {
-        slidesPerView: 3,
-        spaceBetween: 10,
-      },
-    },
+    breakpoints: {{ breakpoints|safe }}
   });
 </script>
+{# djlint:on #}

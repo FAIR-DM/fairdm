@@ -10,6 +10,7 @@ from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
 from ..choices import ProjectStatus
+from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 
 
@@ -33,6 +34,7 @@ class Project(BaseModel):
     is the top level model in the FairDM schema hierarchy and all datasets, samples,
     and measurements should relate back to a project."""
 
+    DEFAULT_ROLES = ["ProjectMember"]
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Project")
     DATE_TYPES = FairDMDates.from_collection("Project")
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Project")
@@ -87,6 +89,9 @@ class Project(BaseModel):
         verbose_name_plural = _("projects")
         default_related_name = "projects"
         ordering = ["-modified"]
+        permissions = [
+            *CORE_PERMISSIONS,
+        ]
 
 
 class ProjectDescription(AbstractDescription):

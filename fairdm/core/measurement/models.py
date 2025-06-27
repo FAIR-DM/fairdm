@@ -10,6 +10,7 @@ from fairdm.db import models
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BasePolymorphicModel
 from ..managers import PolymorphicManager
+from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 
 
@@ -54,6 +55,9 @@ class Measurement(BasePolymorphicModel):
         verbose_name_plural = _("measurements")
         ordering = ["-modified"]
         default_related_name = "measurements"
+        permissions = [
+            *CORE_PERMISSIONS,
+        ]
 
     class FairDM:
         description = "A measurement is a record of a specific observation or calculation made on a sample."

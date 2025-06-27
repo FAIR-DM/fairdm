@@ -9,7 +9,7 @@ from fairdm.core.models import Measurement
 from fairdm.utils.utils import get_subclasses
 
 from .dataset.models import DatasetDate, DatasetDescription
-from .models import Project, Sample
+from .models import Sample
 
 
 class DescriptionInline(admin.StackedInline):
@@ -22,39 +22,6 @@ class DateInline(admin.StackedInline):
     model = DatasetDate
     extra = 0
     max_num = 6
-
-
-@admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
-    search_fields = ("uuid", "name")
-    list_display = (
-        "name",
-        "status",
-        "added",
-    )
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    "image",
-                    "name",
-                    "status",
-                    # "description",
-                )
-            },
-        ),
-        (
-            "Details",
-            {
-                "fields": (
-                    "owner",
-                    "visibility",
-                    "keywords",
-                )
-            },
-        ),
-    )
 
 
 @admin.register(Sample)

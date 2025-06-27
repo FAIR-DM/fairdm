@@ -1,18 +1,57 @@
 from actstream.models import Follow
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
 from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from formset.views import EditCollectionView
 from meta.views import MetadataMixin
 
-from fairdm.views import FairDMListView
+from fairdm.views import FairDMListView, FairDMTemplateView
 
 from ..filters import PersonFilter
 from ..models import ContributorIdentifier, Person
+
+
+class PortalTeamView(FairDMTemplateView):
+    title = _("Portal Team")
+    template_name = "fairdm/pages/portal_team.html"
+    title_config = {
+        "text": _("Portal Team"),
+    }
+    groups = {
+        "Custodians": _("Custodians"),
+        "Administrators": _("Administrators"),
+        "Developers": _("Developers"),
+        "reviewers": _("Reviewers"),
+    }
+    slider_breakpoints = {
+        0: {"slidesPerView": 1, "spaceBetween": 10},
+        768: {"slidesPerView": 4, "spaceBetween": 10},
+    }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        group_qs = (
+            Group.objects.filter(name__in=self.groups.keys())
+            .annotate(user_count=Count("user"))
+            .filter(user_count__gt=0)
+            .prefetch_related("user_set")
+        )
+
+        # Map by internal name (untranslated)
+        group_dict = {group.name: group for group in group_qs}
+
+        # Ordered list of (translated name, group)
+        ordered_groups = [
+            {"label": self.groups[name], "group": group_dict[name]} for name in self.groups if name in group_dict
+        ]
+        context["groups"] = ordered_groups
+        return context
 
 
 class ContributorBaseListView(FairDMListView):
@@ -34,6 +73,10 @@ class ContributorListView(ContributorBaseListView):
     model = Person
     title = _("All Contributors")
     filterset_class = PersonFilter
+    queryset = Person.objects.filter(is_superuser=False)
+    title_config = {
+        "text": _("Personal Contributors"),
+    }
 
     def get_queryset(self):
         # Step 1: Filter active non-superuser persons
@@ -79,15 +122,6 @@ class ContributorListView(ContributorBaseListView):
                 person.is_followed = False
 
         return context
-
-
-class PortalTeamView(ContributorListView):
-    title = _("Portal Team")
-    queryset = Person.objects.filter(is_staff=True, is_superuser=False)
-    sections = {"sidebar_primary": False}
-    title_config = {
-        "text": _("Portal Team"),
-    }
 
 
 class ActiveMemberListView(ContributorListView):

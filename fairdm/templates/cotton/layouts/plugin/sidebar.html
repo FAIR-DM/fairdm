@@ -3,8 +3,8 @@
 <c-vars title="" is />
 <c-sections.sidebar.primary id="objectNavigation" :attrs="attrs">
   {% if base_object %}
-    {% render_menu menu uuid=base_object.uuid %}
+    {% render_menu menu uuid=base_object.uuid instance=base_object %}
   {% else %}
-    {% render_menu menu_name uuid=object.uuid %}
+    {% render_menu menu_name uuid=object.uuid instance=object %}
   {% endif %}
 </c-sections.sidebar.primary>

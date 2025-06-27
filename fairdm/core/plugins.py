@@ -8,7 +8,6 @@ from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
 from fairdm.registry import registry
-from fairdm.views import FairDMListView
 
 from .dataset.views import DatasetListView
 from .project.views import ProjectListView
@@ -44,15 +43,17 @@ class DiscussionPlugin(plugins.Explore, TemplateView):
         return waffle.switch_is_active("allow_discussions")
 
 
-class ActivityPlugin(plugins.Explore, FairDMListView):
+class ActivityPlugin(plugins.Explore, TemplateView):
     title = _("Recent Activity")
     menu_item = {
         "name": _("Activity"),
         "icon": "activity",
     }
-    filterset_class = None
+    title_config = {
+        "text": _("Recent Activity"),
+    }
     grid_config = {"card": "activity.action_compact"}
-    # template_name = "plugins/activity_stream.html"
+    template_name = "plugins/activity_stream.html"
 
 
 class Images(plugins.Explore, TemplateView):
@@ -118,10 +119,6 @@ class ManageBaseObjectPlugin(plugins.Management, UpdateView):
         "icon": "gear",
     }
 
-    @staticmethod
-    def check(request, instance, **kwargs):
-        return request.user.is_superuser
-
 
 class ProjectPlugin(plugins.Explore, ProjectListView):
     """
@@ -157,7 +154,7 @@ class DatasetPlugin(plugins.Explore, DatasetListView):
         "name": _("Datasets"),
         "icon": "dataset",
     }
-    actions = ["dataset.create-button"]
+    # actions = ["dataset.create-button"]
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.datasets.all()

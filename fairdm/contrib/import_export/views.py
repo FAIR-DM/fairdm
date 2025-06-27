@@ -124,6 +124,10 @@ class DataImportView(plugins.Action, BaseImportExportView):
         "text": _("Import Data"),
     }
 
+    @staticmethod
+    def check(request, instance, **kwargs):
+        return request.user.has_perm("import_data", instance)
+
     def form_valid(self, form):
         file = form.cleaned_data["file"]
         result = self.handle_import(file)

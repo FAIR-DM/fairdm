@@ -1,4 +1,4 @@
-{% extends "account_management/base.html" %}
+{% extends "fairdm/base.html" %}
 {% load static meta sekizai_tags fairdm compress easy_icons django_htmx %}
 {% load render_bundle from webpack_loader %}
 
@@ -29,3 +29,9 @@
           integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
           crossorigin="anonymous"></script>
 {% endblock head %}
+
+{% block main %}
+  {% block content %}
+    {{ block.super }}
+  {% endblock content %}
+{% endblock main %}

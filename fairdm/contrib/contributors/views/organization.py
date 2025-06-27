@@ -4,13 +4,14 @@ from django.utils.translation import gettext as _
 from django.views.generic import CreateView, ListView
 from meta.views import MetadataMixin
 
+from fairdm.views import FairDMListView
+
 from ..filters import OrganizationFilter
 from ..forms.organization import RORForm
 from ..models import Organization
-from .person import ContributorBaseListView
 
 
-class OrganizationListView(ContributorBaseListView):
+class OrganizationListView(FairDMListView):
     """List of organizations that the user is a member of."""
 
     model = Organization

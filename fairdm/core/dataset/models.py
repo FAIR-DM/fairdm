@@ -12,6 +12,7 @@ from fairdm.db import models
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
+from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 
 
@@ -111,6 +112,10 @@ class Dataset(BaseModel):
         verbose_name_plural = _("datasets")
         default_related_name = "datasets"
         ordering = ["modified"]
+        permissions = [
+            *CORE_PERMISSIONS,
+            ("import_data", "Can import data into dataset"),
+        ]
 
     @property
     def measurements(self):

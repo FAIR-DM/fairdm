@@ -742,7 +742,7 @@ django-compressor = ["django-compressor (>=4.5.1,<5.0.0)"]
 type = "git"
 url = "https://github.com/SamuelJennings/cotton-bs5"
 reference = "HEAD"
-resolved_reference = "1d763a2527d362485723d2242e776bf148e56a14"
+resolved_reference = "3b986eff1669415084964697910e59c4ea01e2d6"
 
 [[package]]
 name = "coverage"
@@ -1072,7 +1072,7 @@ stripe = "<12"
 type = "git"
 url = "https://github.com/SamuelJennings/django-account-management"
 reference = "HEAD"
-resolved_reference = "4a693e98e862f6f5baf7ee786262b05caf85ad12"
+resolved_reference = "7b59f3112eafd7f4ae5be72bbd6d574ce86f44b5"
 
 [[package]]
 name = "django-activity-stream"
@@ -1695,6 +1695,20 @@ files = [
 
 [package.dependencies]
 django = ">=4.2"
+
+[[package]]
+name = "django-guardian"
+version = "3.0.3"
+description = "Per object permissions for Django"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "django_guardian-3.0.3-py3-none-any.whl", hash = "sha256:d2164cea9f03c369d7ade21802710f3ab23ca6734bcc7dfcfb385906783916c7"},
+    {file = "django_guardian-3.0.3.tar.gz", hash = "sha256:4e59eab4d836da5a027cf0c176d14bc2a4e22cbbdf753159a03946c08c8a196d"},
+]
+
+[package.dependencies]
+django = ">=3.2"
 
 [[package]]
 name = "django-htmx"
@@ -6761,4 +6775,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "a79838305620581d8907d3ad459de501d1006a1c4c6cc81b21ea8149c4505072"
+content-hash = "33938767c50c8ae42c3c7d623691cc232129b1049500f2de6b00ebb458426765"

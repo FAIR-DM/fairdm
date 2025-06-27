@@ -29,7 +29,7 @@ plugins.dataset.register(
 
 
 # ======== Management Plugins ======== #
-@plugins.dataset.register()
+@plugins.dataset.register
 class ManageDatasetPlugin(ManageBaseObjectPlugin):
     description = _(
         "Configure the dataset's metadata, including project, reference, license, and visibility. This is essential for ensuring that the dataset is properly categorized and accessible to the right audience."

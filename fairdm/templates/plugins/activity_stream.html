@@ -1,12 +1,18 @@
-{% load activity_tags partials %}
+{% extends "fairdm/base.html" %}
+{% load activity_tags %}
 
-<c-layouts.plugin>
-  {% activity_stream 'any' base_object %}
-  <div class="vstack gap-2 py-2">
-    {% for action in stream %}
-      <c-activity.action_compact :action="action" />
-    {% empty %}
-      <c-text.empty />
-    {% endfor %}
-  </div>
-</c-layouts.plugin>
+{% block content %}
+  <c-layouts.standard>
+    <div class="pb-5">
+      {% if sections.title %}<c-component :attrs="sections.title" />{% endif %}
+      {% activity_stream 'any' base_object %}
+      <div class="vstack gap-2 py-2">
+        {% for action in stream %}
+          <c-activity.action_compact :action="action" />
+        {% empty %}
+          <c-text.empty />
+        {% endfor %}
+      </div>
+    </div>
+  </c-layouts.standard>
+{% endblock content %}

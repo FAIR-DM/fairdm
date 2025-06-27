@@ -10,17 +10,19 @@
     }
   </style>
   <c-layouts.standard>
-    {% if sections.title %}<c-component :attrs="sections.title" />{% endif %}
-    {% comment %} {% if about %}
+    <div class="pb-5">
+      {% if sections.title %}<c-component :attrs="sections.title" />{% endif %}
+      {% comment %} {% if about %}
         <c-components.button icon="info" text="{% trans "About" %}" data-bs-toggle="modal" data-bs-target="#{{ info_modal_id }}" aria-controls="{{ info_modal_id }}" />
       {% endif %}
-    <c-components.button icon="filter"
-                         class="d-lg-none"
-                         text="{% trans "Filter" %}"
-                         data-bs-toggle="offcanvas"
-                         data-bs-target="#{{ sidebar_id }}"
-                         aria-controls="{{ sidebar_id }}" /> {% endcomment %}
-    <c-component :attrs="sections.grid" />
+      <c-components.button icon="filter"
+                           class="d-lg-none"
+                           text="{% trans "Filter" %}"
+                           data-bs-toggle="offcanvas"
+                           data-bs-target="#{{ sidebar_id }}"
+                           aria-controls="{{ sidebar_id }}" /> {% endcomment %}
+      <c-component :attrs="sections.grid" />
+    </div>
   </c-layouts.standard>
   {% comment %} {% if about %}
     <c-components.modal.show-once id="{{ info_modal_id }}" title="{% trans "About" %} {{ title }}" learn_more="{{ learn_more }}" only>

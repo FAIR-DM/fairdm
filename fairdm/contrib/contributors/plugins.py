@@ -33,6 +33,7 @@ class Overview(OverviewPlugin):
         "name": _("Overview"),
         "icon": "user-circle",
     }
+
     sections = {
         "title": False,
     }
@@ -45,11 +46,18 @@ plugins.contributor.register(
 )
 
 
+# @plugins.contributor.register
+# class ContributorDatasets(DatasetPlugin):
+#     pass
+
+
 @plugins.contributor.register
 class Profile(ManageBaseObjectPlugin):
     title = _("Profile")
     form_class = UserProfileForm
-    fields = ["image", "name", "lang", "profile"]
+    # sections = {
+    #     "sidebar_secondary": False,
+    # }
 
 
 class ContributorsPlugin(plugins.Explore, FairDMListView):

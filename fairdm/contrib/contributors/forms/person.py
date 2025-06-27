@@ -1,12 +1,10 @@
-from client_side_image_cropping import ClientsideCroppingWidget
+# from client_side_image_cropping import ClientsideCroppingWidget
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Column, Layout, Row, Submit
+from crispy_forms.layout import Column, Layout, Row
 from django import forms
 from django.contrib.auth import get_user_model
 from django.forms.models import ModelForm
 from django.utils.translation import gettext as _
-
-from fairdm.utils.choices import iso_639_1_languages
 
 User = get_user_model()
 
@@ -35,26 +33,29 @@ class BaseUserForm(ModelForm):
 
 
 class UserProfileForm(forms.ModelForm):
-    image = forms.ImageField(
-        widget=ClientsideCroppingWidget(
-            width=300,
-            height=300,
-            preview_width="100%",
-            preview_height="100%",
-            file_name="profile.jpg",
-        ),
-        required=False,
-        label=False,
-    )
-    lang = forms.ChoiceField(
-        choices=iso_639_1_languages,
-        initial="en",
-        # widget=Selectize(),
-        help_text=_("Preferred display language for this site (where possible)."),
-        label=_("Language"),
-    )
+    # image = forms.ImageField(
+    #     widget=ClientsideCroppingWidget(
+    #         width=300,
+    #         height=300,
+    #         preview_width="100%",
+    #         preview_height="auto",
+    #         file_name="profile.jpg",
+    #     ),
+    #     required=False,
+    #     label=False,
+    # )
+    # lang = forms.ChoiceField(
+    #     choices=iso_639_1_languages,
+    #     initial="en",
+    #     # widget=Selectize(),
+    #     help_text=_("Preferred display language for this site (where possible)."),
+    #     label=_("Language"),
+    # )
 
-    name = forms.CharField(help_text=_("Your name as it will appear on this site."))
+    name = forms.CharField(
+        label=_("Publishing name"),
+        help_text=_("Your full name as you wish it to appear on formal research documents."),
+    )
 
     # hopefully this can be removed when this issue is solved: https://github.com/koendewit/django-client-side-image-cropping/issues/15
     class Media:
@@ -72,21 +73,29 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = "__all__"
-        fields = ["image", "lang", "first_name", "last_name", "email", "name"]
+        fields = ["name", "first_name", "last_name", "profile"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Row(
-                Column("name", "first_name", "last_name", css_class="col-md-8"),
-                Column("image"),
-                css_class="gx-5",
+                # Column(
+                #     "image",
+                #     css_class="col-md-4",
+                # ),
+                Column(
+                    "name",
+                    Row(Column("first_name"), Column("last_name")),
+                    "profile",
+                    # "lang",
+                    # "email",
+                    # css_class="col-md-8",
+                ),
+                css_class="gx-4 flex-md-row-reverse",
             ),
-            "lang",
-            "email",
-            ButtonHolder(Submit("submit", "Save")),
         )
+        self.helper.form_id = "user-profile-form"
 
 
 # class CodeOfConductForm()

@@ -1,3 +1,4 @@
+from actstream import action
 from crispy_forms.helper import FormHelper
 from django.contrib.auth.decorators import login_required
 from django.db.models.base import Model as Model
@@ -10,6 +11,7 @@ from neapolitan.views import CRUDView
 
 from fairdm.contrib.contributors.utils import current_user_has_role
 from fairdm.contrib.identity.models import Database
+from fairdm.utils.permissions import assign_all_model_perms
 from fairdm.utils.view_mixins import CRUDView as CRUDViewMixin
 from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, HTMXMixin
 
@@ -97,6 +99,22 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         "empty_message": _("No results found."),
     }
 
+    def get(self, request, *args, **kwargs):
+        """Override the get method of the FilterView to allow views to not specify a filterset_class."""
+        filterset_class = self.get_filterset_class()
+        if filterset_class is None:
+            self.filterset = None
+            self.object_list = self.get_queryset()
+        else:
+            self.filterset = self.get_filterset(filterset_class)
+            if not self.filterset.is_bound or self.filterset.is_valid() or not self.get_strict():
+                self.object_list = self.filterset.qs
+            else:
+                self.object_list = self.filterset.queryset.none()
+
+        context = self.get_context_data(filter=self.filterset, object_list=self.object_list)
+        return self.render_to_response(context)
+
     def get_model(self):
         return self.model or self.queryset.model
 
@@ -121,7 +139,8 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         if self.filterset_class is not None:
             # If a filterset class is explicitly set, use it.
             return self.filterset_class
-        return self.model.config.get_filterset_class()
+        elif hasattr(self.model, "config"):
+            return self.model.config.get_filterset_class()
 
     def get_meta_image(self, context=None):
         context["image"] = self.image
@@ -159,6 +178,17 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
         templates = super().get_template_names()
         return templates
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        assign_all_model_perms(self.request.user, self.object)
+        action.send(
+            self.request.user,
+            verb="created",
+            target=self.object,
+            description=_("Created a new {}: {}").format(self.object._meta.verbose_name, str(self.object)),
+        )
+        return response
+
 
 class FairDMUpdateView(FairDMModelFormMixin, UpdateView):
     """
@@ -170,6 +200,23 @@ class FairDMDeleteView(FairDMModelFormMixin, DeleteView):
     """
     The base class for deleting objects within the FairDM framework.
     """
+
+
+class FairDMTemplateView(FairDMBaseMixin, TemplateView):
+    """
+    The base class for template views within the FairDM framework.
+    """
+
+    template_name = "fairdm/template_view.html"
+    sections = {
+        "sidebar_primary": False,
+        "sidebar_secondary": False,
+        "footer": False,
+        "header": False,
+    }
+    layout = {
+        "container_class": "container-lg",
+    }
 
 
 class FairDMCRUDView(CRUDViewMixin):

@@ -5,9 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget
-from image_uploader_widget.widgets import ImageUploaderWidget
 from import_export.admin import ImportExportModelAdmin
-from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelFilter, PolymorphicParentModelAdmin
 
 from fairdm.db import models
 
@@ -52,24 +50,8 @@ class IdentifierInline(admin.StackedInline):
 #     extra = 0
 
 
-@admin.register(Contributor)
-class ContributorAdmin(PolymorphicParentModelAdmin):
-    base_model = Contributor
-    child_models = (Contributor, Person, Organization)
-    list_display = ["_name", "profile"]
-    search_fields = ["name"]
-    list_filter = (PolymorphicChildModelFilter,)
-
-    formfield_overrides = {
-        models.ImageField: {"widget": ImageUploaderWidget},
-    }
-
-    def _name(self, obj):
-        return obj.name or "-"
-
-
 @admin.register(Person)
-class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, ImportExportModelAdmin):
+class UserAdmin(BaseUserAdmin, DcsicAdminMixin, ImportExportModelAdmin):
     base_model = Contributor
     show_in_index = True
     resource_classes = [PersonResource]
@@ -82,7 +64,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, Impo
         "is_staff",
         "is_active",
     ]
-    list_filter = ("is_staff", "is_superuser", "is_active", "groups")
+    list_filter = ("is_staff", "is_superuser", "is_active", "groups", "affiliations")
     exclude = ("username",)
     formfield_overrides = {
         models.ManyToManyField: {"widget": Select2MultipleWidget},
@@ -157,7 +139,7 @@ class UserAdmin(BaseUserAdmin, PolymorphicChildModelAdmin, DcsicAdminMixin, Impo
 
 
 @admin.register(Organization)
-class OrganizationAdmin(PolymorphicChildModelAdmin):
+class OrganizationAdmin(admin.ModelAdmin):
     base_model = Contributor
     show_in_index = True
     list_display = ["name", "city", "country", "lat", "lon"]

@@ -10,6 +10,22 @@ from django.views.generic.detail import SingleObjectTemplateResponseMixin
 from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, RelatedObjectMixin
 
 
+def check_has_edit_permission(request, instance, **kwargs):
+    """
+    Check if the user has permission to edit the object.
+    This is a placeholder function and should be replaced with actual permission logic.
+    """
+    if request.user.is_superuser:
+        return True
+
+    if request.user == instance:
+        return True
+
+    if instance:
+        perm = f"change_{instance._meta.model_name}"
+        return request.user.has_perm(perm, instance)
+
+
 def reverse(model, view_name, *args, **kwargs):
     namespace = model._meta.model_name.lower()
     kwargs.update({"uuid": model.uuid})  # Ensure the UUID is included in the kwargs
@@ -53,7 +69,9 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
         "header": "layouts.plugin.header",
         "title": "text.title",
     }
-
+    sidebar_primary_config = {
+        "header": {},
+    }
     header_config = {
         "actions": [
             "layouts.plugin.components.share",
@@ -143,14 +161,7 @@ class Management(BaseFormPlugin):
         "sidebar_primary": "layouts.plugin.management-sidebar",
     }
 
-
-def check_has_edit_permission(request, instance, **kwargs):
-    """
-    Check if the user has permission to edit the object.
-    This is a placeholder function and should be replaced with actual permission logic.
-    """
-    return request.user.is_superuser
-    # return request.user.is_authenticated and request.user.has_perm("change_object", obj=instance)
+    check = check_has_edit_permission
 
 
 class PluginRegistry:

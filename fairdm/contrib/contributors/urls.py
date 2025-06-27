@@ -3,7 +3,7 @@ from django.urls import include, path
 from fairdm import plugins
 
 from .views import ContributorContactView
-from .views.edit import UpdateAffiliations, UpdateIdentifiers, UpdateProfile
+from .views.account import UpdateAffiliations, UpdateIdentifiers, UpdateProfile
 from .views.generic import (
     ContributorRolesAutocomplete,
     OrganizationAutocomplete,

@@ -1,9 +1,13 @@
-from .models import Sample
-
 # UUID_RE_PATTERN = r"^(?P<uuid>[[pdsme][a-zA-Z0-9_-]{22})/$"
 
 UUID_RE_PATTERN = r"^(?P<uuid>[pdsmea-zA-Z0-9_-]{22})/$"
 """A regex the matches the uuid of a core data object (project, sample, measurement, etc.) and captures it in a named group 'uuid'."""
+
+CORE_PERMISSIONS = [
+    ("add_contributor", "Can add contributors"),
+    ("modify_contributor", "Can modify contributors"),
+    ("modify_metadata", "Can modify metadata"),
+]
 
 
 def get_non_polymorphic_instance(obj):
@@ -15,6 +19,8 @@ def get_non_polymorphic_instance(obj):
 
 
 def model_class_inheritance_to_fieldsets(obj_or_class):
+    from .models import Sample
+
     klass = obj_or_class if isinstance(obj_or_class, type) else obj_or_class.__class__
     declared_fields = {
         "id",

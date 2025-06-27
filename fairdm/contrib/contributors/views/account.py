@@ -1,3 +1,6 @@
+"""A collection of views for managing user accounts and profiles."""
+
+from braces.views import FormMessagesMixin
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django.contrib.auth import get_user_model
@@ -10,6 +13,7 @@ from meta.views import MetadataMixin
 
 from ..forms.forms import UserIdentifierForm
 from ..forms.person import UserProfileForm
+from ..models import ContributorIdentifier
 
 helper = FormHelper()
 helper.add_input(Submit("submit", "Save"))
@@ -25,13 +29,32 @@ class Base(MetadataMixin, LoginRequiredMixin, UpdateView):
         return self.request.user
 
 
-class UpdateProfile(Base):
+class UpdateProfile(FormMessagesMixin, Base):
     title = _("Edit Profile")
     description = _("The following information is publicly available to all visitors of this portal.")
     form_class = UserProfileForm
+    form_invalid_message = _(
+        "There was an error updating your profile. Please check the form for errors and try again."
+    )
+    form_valid_message = _("Your profile has been updated successfully.")
 
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER", reverse_lazy("account-management"))  # Fallback to a default URL
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["sections"] = {
+            # holds the account center menu
+            "sidebar_primary": {
+                "is": "dac.sidebar",
+                "breakpoint": "md",
+                "class": "border-end",
+                "header": {
+                    "title": _("Account Center"),
+                },
+            },
+        }
+        return context
 
 
 class UpdateAffiliations(Base):
@@ -43,7 +66,7 @@ class UpdateAffiliations(Base):
 class UpdateIdentifiers(MetadataMixin, InlineFormSetView):
     title = _("Persistent Identifiers")
     model = get_user_model()
-    # inline_model = Identifier
+    inline_model = ContributorIdentifier
     form_class = UserIdentifierForm
     template_name = "user/settings/base.html"
     success_url = reverse_lazy("contributor-identifiers")
@@ -54,5 +77,9 @@ class UpdateIdentifiers(MetadataMixin, InlineFormSetView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        helper = FormHelper()
+        helper.add_input(Submit("submit", "Save"))
+        helper.render_required_fields = True
+        helper.template = "bootstrap5/table_inline_formset.html"
         context["helper"] = helper
         return context

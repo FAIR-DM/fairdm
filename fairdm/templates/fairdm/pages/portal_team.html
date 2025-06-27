@@ -1,0 +1,30 @@
+{% extends "fairdm/base.html" %}
+{% load static %}
+
+{% block css %}
+  {{ block.super }}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+{% endblock css %}
+
+{% block content %}
+  <c-layouts.standard>
+    {% block title %}
+      <c-text.title text="{% trans "Portal Team" %}" />
+    {% endblock title %}
+
+    {% for entry in groups %}
+      <c-text.heading level="2" text="{{ entry.label }}" />
+      <c-fdm.dashboard.slider id="{{ entry.label|slugify }}">
+        {% for user in entry.group.user_set.all %}
+          <div class="swiper-slide">
+            <c-contributor.card.person-alt :obj="user" />
+          </div>
+        {% empty %}
+          <li>{% trans "No users in this group." %}</li>
+        {% endfor %}
+      </c-fdm.dashboard.slider>
+    {% endfor %}
+  </c-layouts.standard>
+{% endblock content %}
