@@ -111,7 +111,9 @@ class ContributorListView(ContributorBaseListView):
         if user.is_authenticated:
             followed_ids = set(
                 Follow.objects.filter(
-                    content_type=self.person_ct, user=user, object_id__in=queryset.values_list("pk", flat=True)
+                    content_type=self.person_ct,
+                    user=user,
+                    object_id__in=[str(pk) for pk in queryset.values_list("pk", flat=True)],
                 ).values_list("object_id", flat=True)
             )
 
