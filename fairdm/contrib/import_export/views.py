@@ -1,5 +1,6 @@
 from io import StringIO
 
+from braces.views import MessageMixin
 from django import forms
 from django.core.files.base import ContentFile
 from django.utils.decorators import method_decorator
@@ -19,7 +20,7 @@ from .forms import ExportForm, ImportForm
 from .utils import DataPackage, get_export_formats, get_import_formats
 
 
-class BaseImportExportView(FormView):
+class BaseImportExportView(MessageMixin, FormView):
     """
     A base view for importing and exporting data with django-import-export.
     Handles common functionality like file format detection and resource initialization.
@@ -119,7 +120,7 @@ class DataImportView(plugins.Action, BaseImportExportView):
         "icon": "import",
     }
     form_class = ImportForm
-    # template_name = "import_export/import.html"
+    template_name = "import_export/import.html"
     title_config = {
         "text": _("Import Data"),
     }
@@ -133,11 +134,11 @@ class DataImportView(plugins.Action, BaseImportExportView):
         result = self.handle_import(file)
 
         if (result and result.has_errors()) or result.has_validation_errors():
+            self.messages.error("There were errors in the import.")
+            #     # raise ValueError(result.errors) # DEBUG ONLY
             return self.result_has_errors(result, form)
-            # self.messages.error("There were errors in the import.")
-        #     # raise ValueError(result.errors)
-        # else:
-        #     self.messages.success("Data imported successfully.")
+        else:
+            self.messages.success("Data imported successfully.")
 
         return super().form_valid(form)
 

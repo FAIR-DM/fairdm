@@ -144,6 +144,7 @@ DJANGO_SETUP_TOOLS = {
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
             ("loaddata", "groups"),
+            ("preload",),  # used to preload vocabulary concepts (django-research-vocabs)
             ("compress",),
             "django_setup_tools.scripts.sync_site_id",
         ],

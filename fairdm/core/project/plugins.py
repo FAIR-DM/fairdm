@@ -26,7 +26,7 @@ plugins.project.register(
 
 
 # ======== Management Plugins ======== #
-@plugins.project.register()
+@plugins.project.register
 class Configure(ManageBaseObjectPlugin):
     description = _(
         "Configure the dataset's metadata, including project, reference, license, and visibility. This is essential for ensuring that the dataset is properly categorized and accessible to the right audience."
@@ -36,7 +36,7 @@ class Configure(ManageBaseObjectPlugin):
     fields = ["image", "owner", "visibility"]
 
 
-@plugins.project.register()
+@plugins.project.register
 class BasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
     name = "basic-information"
     title = _("Basic Information")
@@ -52,14 +52,14 @@ class BasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
     fields = ["name"]
 
 
-@plugins.project.register()
+@plugins.project.register
 class Keywords(KeywordsPlugin):
     description = _(
         "Providing keywords for your dataset enhances its discoverability, making it easier for others to find and understand the dataset through search engines and data catalogs. Keywords offer a quick summary of the dataset's content, helping users assess its relevance for their own research or application without needing to read through full documentation."
     )
 
 
-@plugins.project.register()
+@plugins.project.register
 class KeyDates(KeyDatesPlugin):
     description = _(
         "Providing key dates enhances transparency, usability, and trust. These temporal markers help users understand the timeframe the data covers, assess its relevance for time-sensitive analyses, and determine how current or historic the dataset is. Clear documentation of data availability and collection periods also supports reproducibility and proper citation, enabling users to contextualize findings and align datasets from different sources."

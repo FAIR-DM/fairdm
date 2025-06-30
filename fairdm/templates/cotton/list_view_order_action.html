@@ -1,0 +1,4 @@
+{% load crispy_forms_tags widget_tweaks %}
+
+{{ filter.form.o|as_crispy_field }}
+{% comment %} {% render_field filter.form.o form=filter.form.helper.form_id %} {% endcomment %}

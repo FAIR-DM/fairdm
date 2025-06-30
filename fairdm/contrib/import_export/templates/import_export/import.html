@@ -1,23 +1,22 @@
 {% load crispy_forms_tags %}
 
 <c-layouts.plugin>
+  <c-components.form.default />
   {% if result.has_errors %}
-    <c-slot name="after_form">
-      <hr />
-      <div class="container">
-        <h2>{% translate "Errors" %}</h2>
-        <ul>
-          {% for error in result.base_errors %}
-            <li>
-              {{ error.error }}
-              <div class="traceback">{{ error.traceback|linebreaks }}</div>
-            </li>
-          {% endfor %}
-          {% for line, errors in result.row_errors %}
-            {% for error in errors %}<c-import-export.result.error />{% endfor %}
-          {% endfor %}
-        </ul>
-      </div>
-    </c-slot>
+    <hr />
+    <div class="container">
+      <h2>{% translate "Errors" %}</h2>
+      <ul>
+        {% for error in result.base_errors %}
+          <li>
+            {{ error.error }}
+            <div class="traceback">{{ error.traceback|linebreaks }}</div>
+          </li>
+        {% endfor %}
+        {% for line, errors in result.row_errors %}
+          {% for error in errors %}<c-import-export.result.error />{% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
   {% endif %}
 </c-layouts.plugin>

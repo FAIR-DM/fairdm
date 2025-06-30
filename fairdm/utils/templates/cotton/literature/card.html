@@ -1,7 +1,11 @@
-{% load fairdm %}
+{% load fairdm literature %}
 
 <c-bs5.card class="fdm-card border-0">
   <c-bs5.card.body class="pb-2">
+    <div class="card-lead fs-6 text-secondary mb-1">
+      {% if obj.item|csl_field:"container-title" %}{{ obj.item|csl_field:"container-title" }},{% endif %}
+      {{ obj.issued }}
+    </div>
     <h2 class="card-title fs-5 text-truncate">{{ obj.title }}</h2>
     <div class="card-lead fs-6 text-secondary mb-1">
       {% for author in obj.item.author %}
@@ -19,6 +23,7 @@
     {% endif %}
   </c-bs5.card.body>
   <c-bs5.card.footer class="border-0 bg-body hstack gap-1 align-items-stretch">
+    {{ footer_start }}
     {% if obj.review.dataset %}
       <c-components.link icon="arrow-right"
                          icon_position="end"

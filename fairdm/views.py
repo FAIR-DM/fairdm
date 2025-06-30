@@ -85,7 +85,11 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         "grid": "sections.object-list",
         "title": "text.title",
     }
-
+    # title_config = {
+    #     "actions": [
+    #         "list-view-order-action",
+    #     ],
+    # }
     sidebar_primary_config = {
         "breakpoint": "md",
         "header": {
@@ -132,6 +136,9 @@ class FairDMListView(FairDMBaseMixin, FilterView):
             form.helper = FormHelper()
         form.helper.form_method = "get"
         form.helper.form_id = "filter-form"
+        # form.helper.render_unmentioned_fields = False
+        # form.helper.layout = Layout(Field("o", type="hidden", form="filter-form"))
+        form.helper.render_unmentioned_fields = False
         context["form"] = form
         return context
 

@@ -51,6 +51,9 @@ class DatasetListView(FairDMListView):
     title_config = {
         "text": _("Datasets"),
     }
+    grid_config = {
+        "card": "dataset.card",
+    }
     description = _(
         "Search and filter thousands of open-access research datasets by topic, field, or format. Access high-quality "
         "data to support your research projects."
@@ -61,7 +64,6 @@ class DatasetListView(FairDMListView):
         "standards set by this community. Use the search and filter options to find datasets relevant to your research needs."
     )
     learn_more = user_guide("datasets")
-    card = "dataset.card"  # cotton/dataset/card.html
 
     def get_queryset(self):
         return Dataset.objects.with_contributors()
