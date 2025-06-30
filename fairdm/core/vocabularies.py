@@ -71,7 +71,7 @@ class FairDMDescriptions(VocabularyBuilder):
     Abstract = Concept(
         prefLabel=_("Abstract"),
         definition=_(
-            "An abstract is a brief, high-level summary that describes the dataset’s purpose, scope, key content, and relevance. It provides an overview of what the dataset contains and why it is important, helping potential users assess its applicability to their research."
+            "An abstract is a brief, high-level summary that describes purpose, scope, key content, and relevance. It provides an overview of importance and relevance, helping readers assess its applicability to their own research."
         ),
     )
 
