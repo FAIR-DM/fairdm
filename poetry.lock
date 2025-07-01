@@ -742,7 +742,7 @@ django-compressor = ["django-compressor (>=4.5.1,<5.0.0)"]
 type = "git"
 url = "https://github.com/SamuelJennings/cotton-bs5"
 reference = "HEAD"
-resolved_reference = "3b986eff1669415084964697910e59c4ea01e2d6"
+resolved_reference = "dc70587e9d8ccc7175628cfa07cda93d2c322b35"
 
 [[package]]
 name = "coverage"
