@@ -16,7 +16,6 @@ from .forms.contribution import QuickAddContributionForm
 from .forms.person import UserProfileForm
 from .models import Contribution
 from .views.contribution import (
-    AddContributorFromOrcidView,
     ContributionCreateView,
     ContributionRemoveView,
     ContributionUpdateView,
@@ -55,9 +54,6 @@ plugins.contributor.register(
 class Profile(ManageBaseObjectPlugin):
     title = _("Profile")
     form_class = UserProfileForm
-    # sections = {
-    #     "sidebar_secondary": False,
-    # }
 
 
 class ContributorsPlugin(plugins.Explore, FairDMListView):
@@ -86,7 +82,12 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         quick_add_form = QuickAddContributionForm()
-        quick_add_form.helper.form_action = plugins.reverse(self.base_object, "contributors-quick-add")
+        if context.get("non_polymorphic_object"):
+            quick_add_form.helper.form_action = plugins.reverse(
+                context["non_polymorphic_object"], "contributors-quick-add"
+            )
+        else:
+            quick_add_form.helper.form_action = plugins.reverse(self.base_object, "contributors-quick-add")
         context["quick_add_form"] = quick_add_form
         context["modals"] = [
             "contributor.modals.edit-contribution",
@@ -106,11 +107,6 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
         return [
             path("quick-add/", ContributorQuickAddView.as_view(base_model=base_model), name="contributors-quick-add"),
             path("create/", ContributionCreateView.as_view(base_model=base_model), name="contributors-create"),
-            path(
-                "add-from-orcid/",
-                AddContributorFromOrcidView.as_view(base_model=base_model),
-                name="contributors-add-from-orcid",
-            ),
             path(
                 "<pk>/edit/",
                 ContributionUpdateView.as_view(base_model=base_model, menu=menu),

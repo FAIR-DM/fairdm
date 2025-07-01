@@ -9,7 +9,7 @@ from .views.generic import (
     OrganizationAutocomplete,
     PersonAutocomplete,
 )
-from .views.organization import OrganizationCreateView, OrganizationListView, OrgRORCreateView
+from .views.organization import OrganizationCreateView, OrganizationListView
 from .views.person import ActiveMemberListView, ContributorListView, PortalTeamView
 
 account = [
@@ -34,8 +34,7 @@ urlpatterns = [
     ),
     path("contributor/<str:uuid>/", include((plugins.contributor.get_urls(), "contributor"))),
     path("contributor/<str:uuid>/contact/", ContributorContactView.as_view(), name="contributor-contact"),
-    path("organization/add/", OrganizationCreateView.as_view(), name="create"),
-    path("organization/add/ror/", OrgRORCreateView.as_view(), name="ror-create"),
+    path("organization/new/", OrganizationCreateView.as_view(), name="organization-add"),
     path("contributors/person-autocomplete/", PersonAutocomplete.as_view(), name="person-autocomplete"),
     path(
         "contributors/organization-autocomplete/", OrganizationAutocomplete.as_view(), name="organization-autocomplete"

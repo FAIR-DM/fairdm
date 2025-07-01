@@ -103,11 +103,6 @@ class ContributionForm(forms.ModelForm):
             "roles": Select2MultipleWidget,
         }
 
-    # def is_valid(self):
-    #     is_valid = super().is_valid()
-    #     print(self.errors)
-    #     return is_valid
-
 
 class ContributorForm(forms.ModelForm):
     image = forms.ImageField(
@@ -141,13 +136,3 @@ class IdentifierForm(forms.ModelForm):
     def __init__(self, scheme_choices, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["scheme"].choices = scheme_choices
-
-
-class RemoteContributionForm(forms.ModelForm):
-    """A form used to accept data from a remote source (ORCID, ROR) in JSON format."""
-
-    data = forms.JSONField()
-
-    class Meta:
-        model = Contribution
-        fields = ["data"]

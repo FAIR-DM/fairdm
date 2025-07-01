@@ -10,9 +10,6 @@ class ContributorsConfig(AppConfig):
     def ready(self):
         from actstream import registry
 
-        import fairdm.contrib.contributors.receivers  # noqa
-
-        # registry.register(self.get_model("Contributor"))
         registry.register(self.get_model("Person"))
         registry.register(self.get_model("Organization"))
         return super().ready()

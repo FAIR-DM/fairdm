@@ -96,6 +96,3 @@ class UserProfileForm(forms.ModelForm):
             ),
         )
         self.helper.form_id = "user-profile-form"
-
-
-# class CodeOfConductForm()

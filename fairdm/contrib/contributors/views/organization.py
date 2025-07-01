@@ -1,13 +1,9 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, ListView
-from meta.views import MetadataMixin
 
-from fairdm.views import FairDMListView
+from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..filters import OrganizationFilter
-from ..forms.organization import RORForm
+from ..forms.organization import OrganizationCreateForm
 from ..models import Organization
 
 
@@ -26,50 +22,18 @@ class OrganizationListView(FairDMListView):
     }
 
 
-class OrgRORCreateView(MetadataMixin, LoginRequiredMixin, CreateView):
-    """Create a new organization using the RORForm."""
-
-    model = Organization
-    template_name = "organizations/organization_form.html"
-    success_url = "/"
-    form_class = RORForm
-
-    def get_success_url(self):
-        return reverse("organization-detail", kwargs={"uuid": self.object.uuid})
-
-    def form_valid(self, form):
-        data = form.cleaned_data["data"]
-        # if data["orcid-identifier"]:
-        #     c = contributor_from_orcid(data)
-        # elif data["id"].startswith("https://ror.org/"):
-        #     c = contributor_from_ror(data)
-        # # Organization.from_ror(form.cleaned_data["data"])
-        # return HttpResponseRedirect(self.get_success_url())
-        # return HttpResponseRedirect(self.get_success_url())
-
-    def form_invalid(self, form):
-        return self.render_to_response(self.get_context_data(form=form))
-
-
-class OrganizationCreateView(MetadataMixin, LoginRequiredMixin, CreateView):
+class OrganizationCreateView(FairDMCreateView):
     """Create a new organization."""
 
-    template_name = "organizations/organization_form.html"
-    success_url = "/"
-    form_class = RORForm
+    heading_config = {
+        "title": _("Create Organization"),
+        "description": _(
+            "This data import workflow allows you to upload an existing dataset formatted according to the latest specifications of the Global Heat Flow Database. "
+        ),
+    }
+    form_class = OrganizationCreateForm
 
-
-class OrganizationUserListView(MetadataMixin, ListView):
-    """List of users in an organization."""
-
-    org_model = Organization
-
-    def get(self, request, *args, **kwargs):
-        self.organization = self.get_organization()
-        self.object_list = self.organization.organization_users.all()
-        context = self.get_context_data(
-            object_list=self.object_list,
-            organization_users=self.object_list,
-            organization=self.organization,
-        )
-        return self.render_to_response(context)
+    def form_valid(self, form):
+        """Handle form submission."""
+        response = super().form_valid(form)
+        return response
