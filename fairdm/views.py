@@ -187,6 +187,7 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        # This shouldn't be here by default.
         assign_all_model_perms(self.request.user, self.object)
         action.send(
             self.request.user,

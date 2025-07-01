@@ -56,4 +56,4 @@ class ProjectListView(FairDMListView):
     card = "project.card"  # cotton/project/card.html
 
     def get_queryset(self):
-        return Project.objects.with_contributors()
+        return Project.objects.get_visible().with_contributors()

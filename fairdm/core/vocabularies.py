@@ -187,7 +187,7 @@ class FairDMDescriptions(VocabularyBuilder):
                     "Background",
                     "Objectives",
                     "ExpectedOutput",
-                    "Methods",
+                    # "Methods",
                     "Conclusions",
                     "Other",
                 ],
