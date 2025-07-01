@@ -168,7 +168,11 @@ class Management(BaseFormPlugin):
     sections = {
         "sidebar_primary": "layouts.plugin.management-sidebar",
     }
-
+    form_config = {
+        "submit_button": {
+            "text": _("Update"),
+        },
+    }
     check = check_has_edit_permission
 
     def get_success_url(self):
