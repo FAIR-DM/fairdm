@@ -112,5 +112,6 @@ INSTALLED_APPS = [
     "django_addanother",
     "waffle",
     "guardian",  # for object level permissions
+    "django_countries",
     *FAIRDM_APPS,
 ]

@@ -1,4 +1,5 @@
 from cotton_bs5.views import CottonBS5ComponentMixin
+from django.utils.translation import gettext as _
 
 
 class BaseLayout(CottonBS5ComponentMixin):
@@ -59,6 +60,13 @@ class FormLayout(PageLayout):
         "sidebar_secondary": "sections.sidebar.empty",  # hide the secondary sidebar
         "form": "components.form.default",
         "header": False,
+    }
+    form_config = {
+        "actions": True,
+        "submit_button": {
+            "text": _("Save changes"),
+            "style": "primary",
+        },
     }
     # sidebar_primary_config = {
     #     "breakpoint": "md",

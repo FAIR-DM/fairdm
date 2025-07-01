@@ -22,7 +22,7 @@ FAIRDM_CONFIG = {
     "welcome_message": "Welcome to FairDM!",
     "external_links": [
         {
-            "url": "https://fairdm.com/",
+            "url": "https://fairdm.org/",
             "name": "FairDM Website",
         },
     ],

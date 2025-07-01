@@ -13,8 +13,7 @@ from fairdm.utils.view_mixins import RelatedObjectMixin
 from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMUpdateView
 
 from .. import utils
-from ..forms.contribution import AddExistingPersonForm, QuickAddContributionForm, UpdateContributionForm
-from ..forms.forms import RemoteContributionForm
+from ..forms.contribution import PersonCreateForm, QuickAddContributionForm, UpdateContributionForm
 from ..models import Contribution
 
 
@@ -72,64 +71,25 @@ class ContributionCreateView(BaseContributionView, FairDMCreateView):
 
     """
 
-    form_class = AddExistingPersonForm
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["base_object"] = self.base_object
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["base_object"] = self.base_object
-        return context
+    form_class = PersonCreateForm
 
     def form_valid(self, form):
-        data = form.cleaned_data
-        contribution, created = utils.update_or_create_contribution(
-            data.get("contributor"), self.base_object, roles=data.get("roles", [])
+        response = super().form_valid(form)
+
+        self.base_object.add_contributor(
+            self.object,
+            with_roles=self.base_object.DEFAULT_ROLES,
         )
-        if created:
-            self.messages.info("Succesfully added new contributor to the project.")
 
-        affiliation, created = utils.update_or_create_contribution(
-            data.get("affiliation"), self.base_object, roles=["ProjectMember"]
-        )
-        if created:
-            self.messages.info("Succesfully added new affiliation to the project.")
+        self.messages.info("Succesfully added contributor.")
 
-        return HttpResponseRedirect(self.get_success_url())
+        return response
 
-        # return render(self.request, "contributors/contribution.html", {"contributor": contribution})
+    # return render(self.request, "contributors/contribution.html", {"contributor": contribution})
 
-    def get_success_url(self):
-        """Redirect to the detail page of the base object."""
-        return self.base_object.get_absolute_url()
-
-
-class AddContributorFromOrcidView(BaseContributionView, FairDMCreateView):
-    """View to add a contributor from an ORCID identifier."""
-
-    form_class = RemoteContributionForm
-    form_component = "contributor.forms.existing-contributor"
-
-    def form_valid(self, form):
-        data = form.cleaned_data["data"]
-        orcid = data.get("orcid-identifier", {}).get("path")
-        contributor, contributor_created = utils.get_or_create_from_orcid(orcid)
-        contribution, created = utils.update_or_create_contribution(contributor, self.base_object)
-        return HttpResponseRedirect(self.get_success_url())
-
-    def get_info_block(self):
-        """Return an info block for the view."""
-        return {
-            "title": _("Add Contributor from ORCID"),
-            "description": _(
-                "You can add a contributor by providing their ORCID identifier. "
-                "This will automatically fetch their details and create a contribution."
-            ),
-            "icon": static("fairdm/contrib/contributors/images/orcid.svg"),
-        }
+    # def get_success_url(self):
+    # """Redirect to the detail page of the base object."""
+    # return self.base_object.get_absolute_url()
 
 
 class ContributionUpdateView(plugins.BasePlugin, FairDMUpdateView):

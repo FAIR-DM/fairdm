@@ -200,7 +200,11 @@ class RelatedObjectMixin:
         If the related model is polymorphic, the method fetches a non-polymorphic version of the object.
         """
         uuid = self.kwargs.get(self.base_object_url_kwarg)
-        return get_object_or_404(self.base_model, uuid=uuid)
+        obj = get_object_or_404(self.base_model, uuid=uuid)
+        if hasattr(obj, "polymorphic_model_marker"):
+            # If the object is polymorphic, get the non-polymorphic instance
+            self.non_polymorphic = get_non_polymorphic_instance(obj)
+        return obj
 
     def get_context_data(self, **kwargs):
         """Add the related object and related model information to the context.

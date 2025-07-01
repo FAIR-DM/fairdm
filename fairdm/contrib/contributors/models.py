@@ -13,6 +13,8 @@ from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
+from django_lifecycle import AFTER_CREATE, hook
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
 from jsonfield_toolkit.models import ArrayField
@@ -289,13 +291,11 @@ class Person(AbstractUser, Contributor):
         return "orcid_unauthenticated"
 
     @classmethod
-    def from_orcid(self, data, person=None):
+    def from_orcid(cls, orcid_id):
         """Create a person from ORCID data."""
-        from .utils import contributor_from_orcid_data
+        from .utils import update_or_create_from_orcid
 
-        person = contributor_from_orcid_data(data, person)
-
-        return person
+        return update_or_create_from_orcid(orcid_id)
 
     def as_geojson(self):
         """Returns the organization as a GeoJSON object."""
@@ -423,8 +423,8 @@ class Organization(Contributor):
         blank=True,
     )
 
-    country = models.CharField(
-        max_length=255,
+    country = CountryField(
+        blank_label=_("(Select a country)"),
         verbose_name=_("country"),
         help_text=_("The country where the organization is based."),
         null=True,
@@ -438,17 +438,18 @@ class Organization(Contributor):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        # from .utils import contributor_from_ror_data
-        # contributor_from_ror_data(self.synced_data, self)
-        super().save(*args, **kwargs)
+    @hook(AFTER_CREATE)
+    def update_identifier(self):
+        if self.synced_data:
+            ror = self.synced_data.get("id")
+            self.identifiers.add(type="ROR", value=ror)
 
     @classmethod
-    def from_ror(self, data):
+    def from_ror(self, ror, commit=True):
         """Create an organization from a ROR ID."""
-        from .utils import contributor_from_ror_data
+        from .utils import update_or_create_from_ror
 
-        contributor_from_ror_data(data)
+        return update_or_create_from_ror(ror, commit)
 
     def icon(self):
         return "ror"

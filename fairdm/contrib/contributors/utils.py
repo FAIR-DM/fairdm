@@ -419,7 +419,7 @@ def clean_ror(ror_id_or_link):
     return ror_id_or_link
 
 
-def contributor_from_ror_data(data, org: Organization | None = None) -> Organization:
+def contributor_from_ror_data(data, org: Organization | None = None, save=True) -> Organization:
     """
     Creates or updates an Organization instance from ROR (Research Organization Registry) data.
     This function extracts relevant organization information from the provided ROR data dictionary,
@@ -436,26 +436,25 @@ def contributor_from_ror_data(data, org: Organization | None = None) -> Organiza
 
     # if an org is explicitly passed, use it, otherwise try to find an existing org by ROR ID, otherwise create a new org instance
     org = org or Organization()
+    org.synced_data = data
+    org.name = dictget(data, ["name"])
+    org.alternative_names = dictget(data, ["aliases"]) + dictget(data, ["acronyms"], [])
+    org.city = dictget(data, ["addresses", 0, "city"])
+    org.country = dictget(data, ["country", "country_name"])
+    if lat := dictget(data, ["addresses", 0, "lat"]):
+        org.lat = decimal.Decimal(str(lat))
+    if lon := dictget(data, ["addresses", 0, "lng"]):
+        org.lon = decimal.Decimal(str(lon))
 
-    with transaction.atomic():
-        org.synced_data = data
-        org.name = dictget(data, ["name"])
-        org.alternative_names = dictget(data, ["aliases"]) + dictget(data, ["acronyms"], [])
-        org.city = dictget(data, ["addresses", 0, "city"])
-        org.country = dictget(data, ["country", "country_name"])
-        if lat := dictget(data, ["addresses", 0, "lat"]):
-            org.lat = decimal.Decimal(str(lat))
-        if lon := dictget(data, ["addresses", 0, "lng"]):
-            org.lon = decimal.Decimal(str(lon))
+    links = dictget(data, ["links"])
+    if wiki_url := dictget(data, ["wikipedia_url"]):
+        links.append(wiki_url)
+    if links:
+        org.links = links
 
-        links = dictget(data, ["links"])
-        if wiki_url := dictget(data, ["wikipedia_url"]):
-            links.append(wiki_url)
-        if links:
-            org.links = links
-
+    if save:
         org.save()
-        ContributorIdentifier.objects.update_or_create(type="ROR", value=ror_id, defaults={"related": org})
+        # ContributorIdentifier.objects.update_or_create(type="ROR", value=ror_id, defaults={"related": org})
 
         # identifiers = dictget(data, ["external_ids"], [])
         # for id_type, content in identifiers.items():
@@ -469,8 +468,8 @@ def contributor_from_ror_data(data, org: Organization | None = None) -> Organiza
         #         defaults={"content_object": org},
         #     )
 
-    tags = dictget(data, ["types"], [])
-    address = dictget(data, ["addresses", 0])
+    # tags = dictget(data, ["types"], [])
+    # address = dictget(data, ["addresses", 0])
 
     return org
 

@@ -37,13 +37,10 @@ class Configure(ManageBaseObjectPlugin):
 
 
 @plugins.project.register
-class BasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
+class BasicInformation(UpdateCoreObjectBasicInfo):
     name = "basic-information"
     title = _("Basic Information")
-    menu_item = {
-        "name": _("Basic Information"),
-        "icon": "info",
-    }
+
     description = _(
         "Descriptions provide additional context and information about the dataset, enhancing its discoverability and usability. By adding descriptions, you can help users understand the dataset's content, purpose, and any specific considerations they should be aware of when using it."
     )

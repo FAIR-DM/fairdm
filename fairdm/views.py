@@ -181,12 +181,19 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
     The base class for creating objects within the FairDM framework.
     """
 
+    form_config = {
+        "submit_button": {
+            "text": _("Save and Enter"),
+        },
+    }
+
     def get_template_names(self):
         templates = super().get_template_names()
         return templates
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        # This shouldn't be here by default.
         assign_all_model_perms(self.request.user, self.object)
         action.send(
             self.request.user,

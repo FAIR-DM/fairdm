@@ -26,6 +26,14 @@ def check_has_edit_permission(request, instance, **kwargs):
         return request.user.has_perm(perm, instance)
 
 
+def sample_check_has_edit_permission(request, instance, **kwargs):
+    """
+    Check if the user has permission to edit the sample object.
+    This is a placeholder function and should be replaced with actual permission logic.
+    """
+    return True
+
+
 def reverse(model, view_name, *args, **kwargs):
     namespace = model._meta.model_name.lower()
     kwargs.update({"uuid": model.uuid})  # Ensure the UUID is included in the kwargs
@@ -160,7 +168,11 @@ class Management(BaseFormPlugin):
     sections = {
         "sidebar_primary": "layouts.plugin.management-sidebar",
     }
-
+    form_config = {
+        "submit_button": {
+            "text": _("Update"),
+        },
+    }
     check = check_has_edit_permission
 
     def get_success_url(self):
@@ -168,7 +180,7 @@ class Management(BaseFormPlugin):
 
 
 class PluginRegistry:
-    def __init__(self, model: Model | str, **kwargs):
+    def __init__(self, model: Model | str, management_check=None, **kwargs):
         if isinstance(model, str):
             self.model = apps.get_model(model)
         else:
@@ -176,6 +188,7 @@ class PluginRegistry:
 
         self.name = self.model._meta.model_name
         self.verbose_name = self.model._meta.verbose_name
+        self.management_check = management_check or check_has_edit_permission
         self.kwargs = kwargs
         self.menu = Menu(name=self.name)
         self.plugins = {
@@ -194,7 +207,7 @@ class PluginRegistry:
                         MenuItem(
                             name=_(f"Manage {self.verbose_name}"),
                             icon="gear",
-                            check=check_has_edit_permission,
+                            check=self.management_check,
                             view_name=f"{self.name}:configure",
                         )
                     ],
@@ -257,7 +270,7 @@ class PluginRegistry:
 
 dataset = PluginRegistry(model="dataset.Dataset")
 project = PluginRegistry(model="project.Project")
-sample = PluginRegistry(model="sample.Sample")
+sample = PluginRegistry(model="sample.Sample", management_check=sample_check_has_edit_permission)
 location = PluginRegistry(model="fairdm_location.Point")
 contributor = PluginRegistry(
     model="contributors.Contributor",

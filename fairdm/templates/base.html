@@ -146,23 +146,22 @@
   {% block body %}
     <body data-default-mode="{{ default_mode }}"
           {{ attrs }}>
-      <c-pst.components.skip-link />
-      <div id="pst-scroll-pixel-helper"></div>
-      <div class="bd-sidebar"></div>
-      {# the scroll to top button #}
-      <c-pst.components.back-to-top />
-      {# A search field pop-up that will only show when the search button is clicked #}
-      <c-pst.components.search-dialog />
-      {% comment %} <c-pst.sections.announcement /> {% endcomment %}
-      <c-sections.navbar />
-      {% comment %} <c-navigation.mobile /> {% endcomment %}
-      <c-pst.sections.container class="position-relative"
-                                hx-indicator="#pageLoadingIndicator">
-        {% comment %} <c-components.spinner id="pageLoadingIndicator" class="position-absolute top-0 end-0 m-3" /> {% endcomment %}
-        {% block content %}
-        {% endblock content %}
+      {% if not view.is_popup %}
+        <c-pst.components.skip-link />
+        <div id="pst-scroll-pixel-helper"></div>
+        <div class="bd-sidebar"></div>
+        {# the scroll to top button #}
+        <c-pst.components.back-to-top />
+        {# A search field pop-up that will only show when the search button is clicked #}
+        <c-pst.components.search-dialog />
+        {% comment %} <c-pst.sections.announcement /> {% endcomment %}
+        <c-sections.navbar />
+        {% comment %} <c-navigation.mobile /> {% endcomment %}
+      {% endif %}
+      {% comment %} <c-components.spinner id="pageLoadingIndicator" class="position-absolute top-0 end-0 m-3" /> {% endcomment %}
+      {% block content %}
+      {% endblock content %}
 
-      </c-pst.sections.container>
       {# Scripts placed at the end of the page to cut down on time to first content #}
       {% block scripts_end %}
       {% endblock scripts_end %}

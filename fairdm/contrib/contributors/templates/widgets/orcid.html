@@ -1,0 +1,77 @@
+{% load static easy_icons i18n %}
+
+<c-vars id="orcid" icon="orcid" />
+<script>
+  var events = ['alpine:init', 'htmx:afterSwap'];
+  events.forEach(event => {
+    document.addEventListener(event, () => {
+      Alpine.data("orcidwidget", () => ({
+        endpoint: "https://pub.orcid.org/v3.0/",
+        query: '',
+        match: null,
+        error: null,
+
+        async fetchData() {
+          if (this.query.length < 19) {
+            if (this.query.length === 0) {
+              this.match = null
+            }
+            return
+          }
+          this.error = null
+          const url = this.endpoint + encodeURIComponent(this.query);
+
+          try {
+            const response = await fetch(url, {
+              headers: {
+                'Accept': 'application/json'
+              },
+            })
+
+            if (!response.ok) {
+              throw new Error('Error fetching from remote source')
+            }
+            const data = await response.json()
+
+            // utilize declared function to extract data from response
+            this.match = data;
+
+            // this.$nextTick(() => {
+            //  htmx.process("#{{ id }}Modal .result-list");
+            // });
+          } catch (error) {
+            this.error = error.message
+            this.match = null
+          }
+        },
+      }))
+    });
+  });
+</script>
+<div x-data="orcidwidget">
+  <input type="search"
+         name="{{ widget.name }}"
+         {% include "django/forms/widgets/attrs.html" %}
+         x-model="query"
+         x-mask="9999-9999-9999-999*"
+         @input.debounce.500ms="fetchData"
+         placeholder="0000-0000-0000-0000" />
+  <!-- Error message if request fails -->
+  <p x-show="error" class="error" x-text="error"></p>
+  <div class="mt-3"
+       x-show="match"
+       :class="{'show': match}">
+    <div class="fs-5">
+      <span x-text="match.person.name['given-names'].value"></span>
+      <span x-text="match.person.name['family-name'].value"></span>
+    </div>
+    {% icon "orcid" height="1em" %}
+    <a :href="match['orcid-identifier'].uri"
+       x-text="match['orcid-identifier'].path"></a>
+    <div>
+      {% icon "organization" height="1em" %}
+      <span x-text="match['activities-summary'].employments['affiliation-group'][0]['summaries'][0]['employment-summary'].organization.name">
+      </span>
+    </div>
+  </div>
+</div>

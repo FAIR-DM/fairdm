@@ -11,6 +11,10 @@ from fairdm.utils.utils import user_guide
 from ..plugins import OverviewPlugin
 
 
+def check_has_edit_permission(request, instance, **kwargs):
+    return True
+
+
 class Overview(OverviewPlugin):
     fieldsets = []
 
@@ -22,9 +26,18 @@ plugins.sample.register(
 )
 
 
+class SampleManagementMixin:
+    """
+    SampleManagementMixin is a mixin class that provides management functionality for sample objects.
+    It includes methods for managing sample metadata, configuration, and other related tasks.
+    """
+
+    check = check_has_edit_permission
+
+
 # ======== Management Plugins ======== #
-@plugins.sample.register()
-class Configure(ManageBaseObjectPlugin):
+@plugins.sample.register
+class Configure(SampleManagementMixin, ManageBaseObjectPlugin):
     description = _(
         "Configure the dataset's metadata, including project, reference, license, and visibility. This is essential for ensuring that the dataset is properly categorized and accessible to the right audience."
     )
@@ -32,14 +45,10 @@ class Configure(ManageBaseObjectPlugin):
     fields = ["image", "name"]
 
 
-@plugins.sample.register()
-class BasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
+@plugins.sample.register
+class BasicInformation(SampleManagementMixin, UpdateCoreObjectBasicInfo):
     name = "basic-information"
     title = _("Basic Information")
-    menu_item = {
-        "name": _("Basic Information"),
-        "icon": "info",
-    }
     description = _(
         "Descriptions provide additional context and information about the dataset, enhancing its discoverability and usability. By adding descriptions, you can help users understand the dataset's content, purpose, and any specific considerations they should be aware of when using it."
     )
@@ -47,15 +56,15 @@ class BasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
     fields = ["name"]
 
 
-@plugins.sample.register()
-class Keywords(KeywordsPlugin):
+@plugins.sample.register
+class Keywords(SampleManagementMixin, KeywordsPlugin):
     description = _(
         "Providing keywords for your dataset enhances its discoverability, making it easier for others to find and understand the dataset through search engines and data catalogs. Keywords offer a quick summary of the dataset's content, helping users assess its relevance for their own research or application without needing to read through full documentation."
     )
 
 
-@plugins.sample.register()
-class KeyDates(KeyDatesPlugin):
+@plugins.sample.register
+class KeyDates(SampleManagementMixin, KeyDatesPlugin):
     description = _(
         "Providing key dates enhances transparency, usability, and trust. These temporal markers help users understand the timeframe the data covers, assess its relevance for time-sensitive analyses, and determine how current or historic the dataset is. Clear documentation of data availability and collection periods also supports reproducibility and proper citation, enabling users to contextualize findings and align datasets from different sources."
     )

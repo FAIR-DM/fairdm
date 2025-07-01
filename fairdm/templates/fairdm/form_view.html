@@ -3,7 +3,7 @@
 {% url "account_signup" as signup_url %}
 {% block content %}
   <c-layouts.standard>
-    {% if sections.title %}<c-component :attrs="sections.heading" />{% endif %}
+    {% if sections.heading %}<c-component :attrs="sections.heading" />{% endif %}
     {% if form_visible %}
       <c-component :attrs="sections.form" />
     {% else %}

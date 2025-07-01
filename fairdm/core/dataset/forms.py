@@ -14,7 +14,7 @@ DEFAULT_LICENSE = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
 class DatasetForm(ModelForm):
     name = forms.CharField(
         label=_("Name"),
-        help_text=_("Give your dataset a descriptive name that reflects its purpose and content."),
+        help_text=_("The name of your dataset should be descriptive and reflect it's purpose and content."),
         required=True,
     )
     image = forms.ImageField(
