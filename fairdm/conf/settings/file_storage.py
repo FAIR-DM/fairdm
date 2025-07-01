@@ -64,6 +64,10 @@ STORAGES = {
         # using whitenosie.storage.CompressedManifestStaticFilesStorage is more problematic than it's worth
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "LOCATION": str(BASE_DIR / "media"),
+    },
 }
 
 
@@ -78,27 +82,16 @@ if all(
     # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
     STORAGES["default"] = {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "access_key": env("S3_ACCESS_KEY_ID"),
-            "secret_key": env("S3_SECRET_ACCESS_KEY"),
-            "bucket_name": env("S3_BUCKET_NAME"),
-            "custom_domain": f"media.{SITE_DOMAIN}/{env('S3_BUCKET_NAME')}",
-            "endpoint_url": "http://minio:9000",
-            "object_parameters": {
-                "CacheControl": "max-age=86400",
-            },
-            "region_name": env("S3_REGION_NAME"),
-            # "url_protocol": "https:",
-        },
     }
 
-else:
-    logger.info("Media storage: files stored locally")
-    STORAGES["default"] = {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "LOCATION": str(BASE_DIR / "media"),
-    }
+# STORAGES
+# ------------------------------------------------------------------------------
+AWS_ACCESS_KEY_ID = env("S3_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("S3_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env("S3_BUCKET_NAME")
+AWS_S3_REGION_NAME = env("S3_REGION_NAME")
 
+# AWS_ACCESS_KEY_ID = env("S3_ACCESS_KEY_ID")
 # THUMBNAIL_DEFAULT_STORAGE = STORAGES["default"]
 
 

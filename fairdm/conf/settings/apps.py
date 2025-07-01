@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     # "django.contrib.gis",
     "django.contrib.humanize",
+    "django_cleanup.apps.CleanupConfig",
     # FAIRDM
     "fairdm",
     "fairdm.core.project",
