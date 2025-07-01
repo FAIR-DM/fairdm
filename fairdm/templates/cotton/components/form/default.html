@@ -5,4 +5,12 @@
 {% else %}
   {% crispy formset %}
 {% endif %}
-<c-components.form.actions />
+{% if actions %}<c-components.form.actions :attrs="submit_button" />{% endif %}
+{% comment %} The following script ensures that select2 widgets are re-initialized with the correct width if they are within a bootstrap tab. {% endcomment %}
+<script>
+  $(function() {
+    $('[data-bs-toggle="tab"]').on("shown.bs.tab", function(e) {
+      $(".django-select2").djangoSelect2();
+    })
+  });
+</script>

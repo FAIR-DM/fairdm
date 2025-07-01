@@ -22,11 +22,19 @@ class ProjectForm(ModelForm):
         required=False,
         label=False,
     )
-    name = forms.CharField(label=_("Project name"), help_text=_("Give your new project a name"))
+    name = forms.CharField(
+        label=_("Project name"),
+        help_text=_("Provide the name of your project."),
+    )
+    visibility = forms.ChoiceField(
+        label=_("Visibility"),
+        choices=Project.VISIBILITY.choices,
+        help_text=_("Should this project be visible to the public?"),
+    )
     status = forms.ChoiceField(
         label=_("Current status"),
         choices=Project.STATUS_CHOICES.choices,
-        help_text=_("In which stage of it's lifecycle is this project?"),
+        help_text=_("In what phase of it's lifecycle is this project?"),
     )
 
     class Meta:
@@ -34,5 +42,6 @@ class ProjectForm(ModelForm):
         fields = [
             "image",
             "name",
+            "visibility",
             "status",
         ]
