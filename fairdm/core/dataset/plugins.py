@@ -39,19 +39,11 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
     fields = ["image", "project", "reference", "license", "visibility"]
 
 
-class UpdateBasicInformation(plugins.Management, UpdateCoreObjectBasicInfo):
+class UpdateBasicInformation(UpdateCoreObjectBasicInfo):
     title = _("Basic Information")
-    menu_item = {
-        "name": _("Basic Information"),
-        "icon": "info",
-    }
     description = _(
         "Descriptions provide additional context and information about the dataset, enhancing its discoverability and usability. By adding descriptions, you can help users understand the dataset's content, purpose, and any specific considerations they should be aware of when using it."
     )
-    sections = {
-        "form": "components.form.form-with-inlines",
-    }
-
     learn_more = user_guide("dataset/basic-information")
     form_class = DatasetForm
     fields = ["name"]

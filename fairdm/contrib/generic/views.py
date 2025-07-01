@@ -3,6 +3,7 @@ from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 from extra_views import ModelFormSetView, UpdateWithInlinesView
 
+from fairdm import plugins
 from fairdm.utils.utils import get_core_object_or_404
 
 from .forms import CoreFormset, DateForm, DescriptionInline
@@ -72,9 +73,16 @@ class UpdateDatesView(BaseFormsetView):
         return response
 
 
-class UpdateCoreObjectBasicInfo(UpdateWithInlinesView):
+class UpdateCoreObjectBasicInfo(plugins.Management, UpdateWithInlinesView):
     """Presents a form to update the name and descriptions of a Project, Dataset, Sample or Measurment."""
 
+    menu_item = {
+        "name": _("Basic Information"),
+        "icon": "info",
+    }
+    sections = {
+        "form": "components.form.form-with-inlines",
+    }
     inlines = [DescriptionInline]
 
     def get_context_data(self, **kwargs):
@@ -82,10 +90,3 @@ class UpdateCoreObjectBasicInfo(UpdateWithInlinesView):
         context["menu_name"] = "DatasetMenu"
         context["object"] = self.get_object()
         return context
-
-    def get_object(self):
-        obj = get_core_object_or_404(self.kwargs.get("uuid"))
-        self.model = obj.__class__
-        return obj
-
-    # return registry.get_model(self.model)["config"].get_form_class()

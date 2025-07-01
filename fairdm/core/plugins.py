@@ -2,7 +2,7 @@ import waffle
 from django.http import Http404
 from django.urls import path, reverse
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView, UpdateView
+from django.views.generic import UpdateView
 from django.views.generic.base import TemplateView
 from render_fields.views import FieldsetsMixin
 
@@ -64,7 +64,7 @@ class Images(plugins.Explore, TemplateView):
     template_name = "plugins/images.html"
 
 
-class OverviewPlugin(plugins.Explore, FieldsetsMixin, DetailView):
+class OverviewPlugin(plugins.Explore, FieldsetsMixin, TemplateView):
     """
     A plugin for displaying an overview of a project or dataset.
 
@@ -82,6 +82,7 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, DetailView):
         "name": _("Overview"),
         "icon": "overview",
     }
+    sections = {"heading": False}
     path = ""
 
     @property
@@ -90,10 +91,8 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["object"] = self.base_object
         return context
-
-    def get_object(self, queryset=None):
-        return self.base_object
 
     def get_template_names(self):
         if self.template_name is not None:
