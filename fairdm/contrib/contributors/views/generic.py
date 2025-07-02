@@ -75,7 +75,7 @@ class ContributorListView(FairDMListView):
 
 class PersonAutocomplete(LoginRequiredMixin, autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        qs = Person.objects.prefetch_related("organization_memberships__organization")
+        qs = Person.contributors.prefetch_related("organization_memberships__organization")
         if self.q:
             qs = qs.filter(name__icontains=self.q)
 

@@ -32,6 +32,32 @@ class UserManager(BaseUserManager, PrefetchPolymorphicManager):
         return self._create_user(email, password, **extra_fields)
 
 
+class PersonalContributorsQuerySet(models.QuerySet):
+    def all(self):
+        """A queryset of all contributors, excluding superusers the django-guardian anonymous user."""
+        return self.exclude(is_superuser=True).exclude(email="AnonymousUser")
+
+    def active(self):
+        """A queryset of all active contributors."""
+        return self.all().filter(is_active=True)
+
+
+class PersonalContributorsManager(models.Manager):
+    """A manager for the PersonalContributor model."""
+
+    def get_queryset(self):
+        """Return a queryset of all contributors."""
+        return PersonalContributorsQuerySet(self.model, using=self._db).all()
+
+    def all(self):
+        """Return all contributors."""
+        return self.get_queryset().all()
+
+    def active(self):
+        """Return all active contributors."""
+        return self.get_queryset().active()
+
+
 class ContributionManager(models.QuerySet):
     def by_role(self, role):
         """Returns all contributions with the given role"""
