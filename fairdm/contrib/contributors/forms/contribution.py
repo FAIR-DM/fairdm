@@ -217,7 +217,7 @@ class UpdateContributionForm(ContributionBaseForm):
     """Form to update an existing contribution."""
 
     affiliation = forms.ModelChoiceField(
-        queryset=Person.objects.none(),  # This will be populated dynamically
+        queryset=Person.contributors.none(),  # This will be populated dynamically
         required=False,
         label="Affiliation",
         help_text="Select an appropriate affiliation for this contributor.",
@@ -253,7 +253,7 @@ class AddContributorForm(ContributionBaseForm):
     """Form to add a new contributor."""
 
     contributor = forms.ModelChoiceField(
-        queryset=Person.objects.all(),
+        queryset=Person.contributors.all(),
         required=True,
         label="Contributor",
         help_text="Select an existing contributor to add.",

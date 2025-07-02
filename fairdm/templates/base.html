@@ -159,9 +159,12 @@
         {% comment %} <c-navigation.mobile /> {% endcomment %}
       {% endif %}
       {% comment %} <c-components.spinner id="pageLoadingIndicator" class="position-absolute top-0 end-0 m-3" /> {% endcomment %}
-      {% block content %}
-      {% endblock content %}
+      <c-pst.sections.container class="position-relative"
+                                hx-indicator="#pageLoadingIndicator">
+        {% block content %}
+        {% endblock content %}
 
+      </c-pst.sections.container>
       {# Scripts placed at the end of the page to cut down on time to first content #}
       {% block scripts_end %}
       {% endblock scripts_end %}

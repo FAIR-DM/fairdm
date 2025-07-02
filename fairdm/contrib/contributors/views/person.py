@@ -73,7 +73,7 @@ class ContributorListView(ContributorBaseListView):
     model = Person
     title = _("All Contributors")
     filterset_class = PersonFilter
-    queryset = Person.objects.filter(is_superuser=False)
+    queryset = Person.contributors.all()
     title_config = {
         "text": _("Personal Contributors"),
     }
@@ -128,7 +128,7 @@ class ContributorListView(ContributorBaseListView):
 
 class ActiveMemberListView(ContributorListView):
     title = _("Active Members")
-    queryset = Person.objects.filter(is_active=True, is_superuser=False)
+    queryset = Person.contributors.filter(is_active=True)
     title_config = {
         "text": _("Active Members"),
     }

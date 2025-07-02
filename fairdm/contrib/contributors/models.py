@@ -33,7 +33,7 @@ from fairdm.db.models import PolymorphicModel
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
-from .managers import UserManager
+from .managers import PersonalContributorsManager, UserManager
 
 
 def contributor_permissions_default():
@@ -215,6 +215,7 @@ class Person(AbstractUser, Contributor):
     DEFAULT_IDENTIFIER = "ORCID"
 
     objects = UserManager()  # type: ignore[var-annotated]
+    contributors = PersonalContributorsManager()  # type: ignore[var-annotated]
 
     # null is allowed for the email field, as a Person object/User account can be created by someone else. E.g. when
     # adding a new contributor to a database entry.
