@@ -41,11 +41,10 @@ env = Env(
     EMAIL_USE_TLS=(bool, True),
     EMAIL_BACKEND=(str, "django.core.mail.backends.smtp.EmailBackend"),
     # STORAGE
-    # S3_ENDPOINT_URL=(str, "https://media.localhost:9000"),
-    # S3_REGION_NAME=(str, "us-east-1"),
-    # S3_BUCKET_NAME=(str, "media"),
-    # S3_ACCESS_KEY_ID=(str, ""),
-    # S3_SECRET_ACCESS_KEY=(str, ""),
+    S3_REGION_NAME=(str, ""),
+    S3_BUCKET_NAME=(str, ""),
+    S3_ACCESS_KEY_ID=(str, ""),
+    S3_SECRET_ACCESS_KEY=(str, ""),
     # MISCELLANEOUS
     REDIS_URL=(str, ""),
     # REDIS_URL=(str, "redis://redis:6379/0"),
