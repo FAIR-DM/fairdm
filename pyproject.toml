@@ -2,7 +2,7 @@
 name = "fairdm"
 version = "2025.0"
 description = ""
-authors = ["Sam Jennings <samuel.scott.jennings@gmail.com>"]
+authors = ["Samuel Jennings"]
 license = "MIT"
 readme = "README.md"
 include = [
