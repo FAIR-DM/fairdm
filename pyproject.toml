@@ -125,6 +125,7 @@ django-lifecycle = "^1.2.4"
 plotly = "^6.1.2"
 sentry-sdk = {extras = ["django"], version = "^2.30.0"}
 django-guardian = "^3.0.3"
+django-countries = "^7.6.1"
 
 
 
