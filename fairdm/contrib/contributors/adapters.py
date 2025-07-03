@@ -1,7 +1,7 @@
 import waffle
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.signals import user_signed_up
-from allauth.exceptions import ImmediateHttpResponse
+from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.internal.flows.signup import redirect_to_signup
 from django.conf import settings
