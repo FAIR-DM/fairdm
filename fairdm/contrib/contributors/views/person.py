@@ -23,10 +23,10 @@ class PortalTeamView(FairDMTemplateView):
         "text": _("Portal Team"),
     }
     groups = {
-        "Custodians": _("Custodians"),
-        "Administrators": _("Administrators"),
+        "Portal Administrators": _("Portal Administrators"),
+        "Data Administrators": _("Data Administrators"),
         "Developers": _("Developers"),
-        "reviewers": _("Reviewers"),
+        "Reviewers": _("Reviewers"),
     }
     slider_breakpoints = {
         0: {"slidesPerView": 1, "spaceBetween": 10},
