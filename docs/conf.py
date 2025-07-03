@@ -1,3 +1,4 @@
+import html
 import os
 import sys
 from pathlib import Path
@@ -76,3 +77,10 @@ extensions = [
     "myst_parser",
     # "sphinx_tippy",
 ]
+
+epub_theme = html_theme
+epub_title = "FairDM Documentation"
+epub_author = "FAIR-DM"
+epub_publisher = "FAIR-DM"
+epub_copyright = "2023, FAIR-DM"
+
