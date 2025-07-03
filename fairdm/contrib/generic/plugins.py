@@ -12,7 +12,6 @@ class KeywordsPlugin(plugins.Management, UpdateView):
         "name": _("Keywords"),
         "icon": "keywords",
     }
-    learn_more = "https://fairdm.readthedocs.io/en/latest/user-guide/keywords.html"
     form_class = KeywordForm
 
 
@@ -22,7 +21,6 @@ class DescriptionsPlugin(plugins.Management, InlineFormSetView):
         "name": _("Descriptions"),
         "icon": "description",
     }
-    learn_more = "https://fairdm.readthedocs.io/en/latest/user-guide/descriptions.html"
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
 
@@ -33,6 +31,5 @@ class KeyDatesPlugin(plugins.Management, InlineFormSetView):
         "name": _("Key Dates"),
         "icon": "calendar",
     }
-    learn_more = "https://fairdm.readthedocs.io/en/latest/user-guide/dates.html"
     form_class = DateForm
     formset_class = CoreInlineFormset

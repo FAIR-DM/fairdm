@@ -76,6 +76,8 @@ class UpdateDatesView(BaseFormsetView):
 class UpdateCoreObjectBasicInfo(plugins.Management, UpdateWithInlinesView):
     """Presents a form to update the name and descriptions of a Project, Dataset, Sample or Measurment."""
 
+    name = "basic-information"
+    title = _("Basic Information")
     menu_item = {
         "name": _("Basic Information"),
         "icon": "info",

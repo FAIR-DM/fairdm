@@ -142,6 +142,19 @@ class FairDMModelFormMixin(
         context["help_text"] = self.get_help_text()
         context["form_component"] = self.get_form_component()
         context["form_visible"] = self.request.user.is_authenticated
+
+        # I consider this a temporary solution to ensure that the form has a helper
+        # form = context.get("form")
+        # if form and not hasattr(form, "helper"):
+        #     form.helper = FormHelper()
+        #     if not hasattr(form.helper, "form_id"):
+        #         form.helper.form_id = "form"
+
+        # formset = context.get("formset")
+        # if formset and not hasattr(formset, "helper"):
+        #     formset.helper = FormHelper()
+        #     formset.helper.form_id = "formset"
+
         return context
 
     def get_form_component(self):
