@@ -67,11 +67,3 @@ class DatasetListView(FairDMListView):
 
     def get_queryset(self):
         return Dataset.objects.with_contributors()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        for obj in context["object_list"]:
-            print(obj.name)
-            print(obj.project)
-
-        return context

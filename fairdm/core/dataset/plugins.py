@@ -5,7 +5,13 @@ from fairdm import plugins
 from fairdm.contrib.contributors.plugins import ContributorsPlugin
 from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
 from fairdm.contrib.generic.views import UpdateCoreObjectBasicInfo
-from fairdm.core.plugins import ActivityPlugin, DiscussionPlugin, ManageBaseObjectPlugin, OverviewPlugin
+from fairdm.core.plugins import (
+    ActivityPlugin,
+    DeleteObjectPlugin,
+    DiscussionPlugin,
+    ManageBaseObjectPlugin,
+    OverviewPlugin,
+)
 from fairdm.utils.utils import user_guide
 
 from ..plugins import DataTablePlugin
@@ -31,34 +37,87 @@ plugins.dataset.register(
 # ======== Management Plugins ======== #
 @plugins.dataset.register
 class ManageDatasetPlugin(ManageBaseObjectPlugin):
-    description = _(
-        "Configure the dataset's metadata, including project, reference, license, and visibility. This is essential for ensuring that the dataset is properly categorized and accessible to the right audience."
-    )
-    learn_more = user_guide("dataset/configure")
+    heading_config = {
+        "title": _("Configure Dataset"),
+        "description": _(
+            "Configure your dataset's metadata to ensure it's properly categorized and accessible to the right audience."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("dataset/configure"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     form_class = DatasetForm
     fields = ["image", "project", "reference", "license", "visibility"]
 
 
+class DeleteDatasetPlugin(DeleteObjectPlugin):
+    heading_config = {
+        "title": _("Delete Dataset"),
+        "description": _(
+            "Deleting a dataset is a permanent action that removes it from the system. Please see the documentation by clicking the link below to understand what happens when a dataset is deleted."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("dataset/delete"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
+
+
 class UpdateBasicInformation(UpdateCoreObjectBasicInfo):
-    title = _("Basic Information")
-    description = _(
-        "Descriptions provide additional context and information about the dataset, enhancing its discoverability and usability. By adding descriptions, you can help users understand the dataset's content, purpose, and any specific considerations they should be aware of when using it."
-    )
-    learn_more = user_guide("dataset/basic-information")
+    heading_config = {
+        "title": _("Basic Information"),
+        "description": _(
+            "Provide key details about your dataset, including its name and key descriptions. This information is essential for conveying the dataset's purpose and scope, helping users quickly understand its relevance."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("dataset/basic-information"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     form_class = DatasetForm
     fields = ["name"]
 
 
 class DatasetKeywordsPlugin(KeywordsPlugin):
-    description = _(
-        "Providing keywords for your dataset enhances its discoverability, making it easier for others to find and understand the dataset through search engines and data catalogs. Keywords offer a quick summary of the dataset's content, helping users assess its relevance for their own research or application without needing to read through full documentation."
-    )
+    heading_config = {
+        "title": _("Keywords"),
+        "description": _(
+            "Keywords enhance your dataset's visibility in search engines and catalogs by summarizing its content. They help others quickly evaluate its relevance without reading the full documentation."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("dataset/keywords"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
 
 
 class EditDates(KeyDatesPlugin):
-    description = _(
-        "Providing key dates enhances transparency, usability, and trust. These temporal markers help users understand the timeframe the data covers, assess its relevance for time-sensitive analyses, and determine how current or historic the dataset is. Clear documentation of data availability and collection periods also supports reproducibility and proper citation, enabling users to contextualize findings and align datasets from different sources."
-    )
+    heading_config = {
+        "title": _("Key Dates"),
+        "description": _(
+            "Entering key dates helps track important milestones and timelines, supporting effective dataset management and giving others insight into the dataset's history and progress."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("dataset/key-dates"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     model = Dataset
     inline_model = DatasetDate
 
@@ -67,4 +126,5 @@ plugins.dataset.register(
     UpdateBasicInformation,
     KeywordsPlugin,
     EditDates,
+    DeleteDatasetPlugin,
 )

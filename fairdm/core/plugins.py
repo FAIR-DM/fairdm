@@ -1,17 +1,37 @@
 import waffle
+from django import forms
 from django.http import Http404
 from django.urls import path, reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import UpdateView
 from django.views.generic.base import TemplateView
 from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
+from fairdm.forms import Form
 from fairdm.registry import registry
+from fairdm.views import FairDMDeleteView
 
 from .dataset.views import DatasetListView
 from .project.views import ProjectListView
 from .views import DataTableView
+
+
+class DeleteForm(Form):
+    confirm = forms.BooleanField(
+        label=_("I confirm that I want to delete this dataset"),
+        required=True,
+        help_text=_("This action cannot be undone."),
+    )
+
+    def clean_confirm(self):
+        if not self.cleaned_data.get("confirm"):
+            raise forms.ValidationError(_("You must confirm the deletion."))
+        return self.cleaned_data["confirm"]
+
+    class Meta:
+        fields = ["confirm"]
 
 
 class DiscussionPlugin(plugins.Explore, TemplateView):
@@ -117,6 +137,28 @@ class ManageBaseObjectPlugin(plugins.Management, UpdateView):
         "name": _("Configure"),
         "icon": "gear",
     }
+
+
+class DeleteObjectPlugin(plugins.Management, FairDMDeleteView):
+    name = "delete"
+    title = _("Delete")
+    menu_item = {
+        "name": _("Delete"),
+        "icon": "trash",
+    }
+    form_config = {
+        "submit_button": {
+            "text": _("Delete"),
+            "class": "btn-danger btn-lg",
+        },
+    }
+    form_class = DeleteForm
+
+    def get_success_url(self):
+        self.messages.info(
+            _("Successfully deleted {object}.").format(object=self.base_object),
+        )
+        return self.request.user.get_absolute_url()
 
 
 class ProjectPlugin(plugins.Explore, ProjectListView):

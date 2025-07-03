@@ -5,7 +5,14 @@ from fairdm import plugins
 from fairdm.contrib.contributors.plugins import ContributorsPlugin
 from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
 from fairdm.contrib.generic.views import UpdateCoreObjectBasicInfo
-from fairdm.core.plugins import ActivityPlugin, DatasetPlugin, DiscussionPlugin, ManageBaseObjectPlugin, OverviewPlugin
+from fairdm.core.plugins import (
+    ActivityPlugin,
+    DatasetPlugin,
+    DeleteObjectPlugin,
+    DiscussionPlugin,
+    ManageBaseObjectPlugin,
+    OverviewPlugin,
+)
 from fairdm.utils.utils import user_guide
 
 from .forms import ProjectForm
@@ -28,38 +35,91 @@ plugins.project.register(
 # ======== Management Plugins ======== #
 @plugins.project.register
 class Configure(ManageBaseObjectPlugin):
-    description = _(
-        "Configure the dataset's metadata, including project, reference, license, and visibility. This is essential for ensuring that the dataset is properly categorized and accessible to the right audience."
-    )
-    learn_more = user_guide("project/configure")
+    heading_config = {
+        "title": _("Configure Project"),
+        "description": _(
+            "Set up your project's metadata, including its name, a cover image, funding, and visibility settings. This helps ensure your project is accurately categorized and reaches the appropriate audience."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("project/configure"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     form_class = ProjectForm
     fields = ["image", "owner", "visibility"]
 
 
 @plugins.project.register
 class BasicInformation(UpdateCoreObjectBasicInfo):
-    name = "basic-information"
-    title = _("Basic Information")
-
-    description = _(
-        "Descriptions provide additional context and information about the dataset, enhancing its discoverability and usability. By adding descriptions, you can help users understand the dataset's content, purpose, and any specific considerations they should be aware of when using it."
-    )
-    learn_more = user_guide("dataset/basic-information")
+    heading_config = {
+        "title": _("Basic Information"),
+        "description": _(
+            "Provide key details about your project, including its name and key descriptions. This information is essential for conveying the project's purpose and scope, helping users quickly understand its relevance."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("project/basic-information"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     form_class = ProjectForm
     fields = ["name"]
 
 
 @plugins.project.register
 class Keywords(KeywordsPlugin):
-    description = _(
-        "Providing keywords for your dataset enhances its discoverability, making it easier for others to find and understand the dataset through search engines and data catalogs. Keywords offer a quick summary of the dataset's content, helping users assess its relevance for their own research or application without needing to read through full documentation."
-    )
+    heading_config = {
+        "title": _("Keywords"),
+        "description": _(
+            "Adding keywords improves your project's visibility in search engines and data catalogs. They offer a quick summary of the content, helping others assess its relevance without reading the full documentation."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("project/keywords"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
 
 
 @plugins.project.register
 class KeyDates(KeyDatesPlugin):
-    description = _(
-        "Providing key dates enhances transparency, usability, and trust. These temporal markers help users understand the timeframe the data covers, assess its relevance for time-sensitive analyses, and determine how current or historic the dataset is. Clear documentation of data availability and collection periods also supports reproducibility and proper citation, enabling users to contextualize findings and align datasets from different sources."
-    )
+    name = "key-dates"
+    heading_config = {
+        "title": _("Key Dates"),
+        "description": _(
+            "Entering key dates helps track important milestones and timelines, supporting effective project management and giving others insight into the project's history and progress."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("project/key-dates"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     model = Project
     inline_model = ProjectDate
+
+
+@plugins.project.register
+class DeleteProjectPlugin(DeleteObjectPlugin):
+    heading_config = {
+        "title": _("Delete Project"),
+        "description": _(
+            "Deleting a project is a permanent action that removes it from the system. Please see the documentation by clicking the link below to understand what happens when a project is deleted."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("project/delete"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
