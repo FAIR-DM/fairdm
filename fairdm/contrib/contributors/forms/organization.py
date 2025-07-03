@@ -19,19 +19,7 @@ ADD_MANUALLY_HELP_TEXT = _(
 ADD_FROM_ROR_HELP_TEXT = _("Search for an organization using the Research Organization Registry (ROR).")
 
 
-class OrganizationCreateForm(ModelForm):
-    """Form to create a new contributor from ORCID or manually from form data."""
-
-    from_ror = forms.CharField(
-        label="ROR ID",
-        required=False,
-        widget=RORWidget(
-            attrs={
-                "data-placeholder": _("Search for an organization..."),
-                "data-minimum-input-length": 3,
-            }
-        ),
-    )
+class OrgMixin:
     name = forms.CharField(
         required=False,
         help_text=_("This is how the organization will be displayed within the portal and on any published materials."),
@@ -52,6 +40,21 @@ class OrganizationCreateForm(ModelForm):
         label=_("Country"),
         help_text=_("The country where the organization is based."),
         widget=Select2Widget,
+    )
+
+
+class OrganizationCreateForm(OrgMixin, ModelForm):
+    """Form to create a new contributor from ORCID or manually from form data."""
+
+    from_ror = forms.CharField(
+        label="ROR ID",
+        required=False,
+        widget=RORWidget(
+            attrs={
+                "data-placeholder": _("Search for an organization..."),
+                "data-minimum-input-length": 3,
+            }
+        ),
     )
 
     class Meta:
@@ -136,3 +139,45 @@ class OrganizationCreateForm(ModelForm):
                 self.instance, created = Organization.from_ror(ror_id, commit=commit)
                 return self.instance
         return super().save(commit)
+
+
+class OrganizationProfileForm(OrgMixin, ModelForm):
+    """Form to edit an existing organization profile."""
+
+    # image = forms.ImageField(
+    #     widget=ClientsideCroppingWidget(
+    #         width=600,
+    #         height=400,
+    #         preview_width="100%",
+    #         preview_height="auto",
+    #         file_name="logo.jpg",
+    #     ),
+    #     required=False,
+    #     label=False,
+    # )
+
+    # hopefully this can be removed when this issue is solved: https://github.com/koendewit/django-client-side-image-cropping/issues/15
+
+    class Meta:
+        model = Organization
+        fields = ["image", "name", "country", "lat", "lon", "profile"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = Layout(
+            Row(
+                Column(
+                    "image",
+                    css_class="col-md-4",
+                ),
+                Column(
+                    "name",
+                    "country",
+                    Row(Column("lat"), Column("lon")),
+                    "profile",
+                    # css_class="col-md-8",
+                ),
+                css_class="gx-4 flex-md-row-reverse",
+            ),
+        )
+        self.helper.form_id = "user-profile-form"

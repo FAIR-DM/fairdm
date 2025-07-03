@@ -5,7 +5,6 @@ from fairdm import plugins
 from .views import ContributorContactView
 from .views.account import UpdateAffiliations, UpdateIdentifiers, UpdateProfile
 from .views.generic import (
-    ContributorRolesAutocomplete,
     OrganizationAutocomplete,
     PersonAutocomplete,
 )
@@ -39,5 +38,4 @@ urlpatterns = [
     path(
         "contributors/organization-autocomplete/", OrganizationAutocomplete.as_view(), name="organization-autocomplete"
     ),
-    path("contributors/roles-autocomplete/", ContributorRolesAutocomplete.as_view(), name="roles-autocomplete"),
 ]

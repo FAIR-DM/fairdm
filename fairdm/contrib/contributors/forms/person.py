@@ -1,10 +1,10 @@
-# from client_side_image_cropping import ClientsideCroppingWidget
-from crispy_forms.helper import FormHelper
+from client_side_image_cropping import ClientsideCroppingWidget
 from crispy_forms.layout import Column, Layout, Row
 from django import forms
 from django.contrib.auth import get_user_model
-from django.forms.models import ModelForm
 from django.utils.translation import gettext as _
+
+from fairdm.forms import ModelForm
 
 User = get_user_model()
 
@@ -32,18 +32,18 @@ class BaseUserForm(ModelForm):
         fields = ["first_name", "last_name", "email"]
 
 
-class UserProfileForm(forms.ModelForm):
-    # image = forms.ImageField(
-    #     widget=ClientsideCroppingWidget(
-    #         width=300,
-    #         height=300,
-    #         preview_width="100%",
-    #         preview_height="auto",
-    #         file_name="profile.jpg",
-    #     ),
-    #     required=False,
-    #     label=False,
-    # )
+class UserProfileForm(ModelForm):
+    image = forms.ImageField(
+        widget=ClientsideCroppingWidget(
+            width=300,
+            height=300,
+            preview_width="100%",
+            preview_height="auto",
+            file_name="profile.jpg",
+        ),
+        required=False,
+        label=False,
+    )
     # lang = forms.ChoiceField(
     #     choices=iso_639_1_languages,
     #     initial="en",
@@ -73,17 +73,16 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = "__all__"
-        fields = ["name", "first_name", "last_name", "profile"]
+        fields = ["image", "name", "first_name", "last_name", "profile"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
         self.helper.layout = Layout(
             Row(
-                # Column(
-                #     "image",
-                #     css_class="col-md-4",
-                # ),
+                Column(
+                    "image",
+                    css_class="col-md-4",
+                ),
                 Column(
                     "name",
                     Row(Column("first_name"), Column("last_name")),

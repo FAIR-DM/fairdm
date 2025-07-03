@@ -6,7 +6,6 @@ from django.utils.translation import gettext as _
 from django.views.generic.detail import SingleObjectMixin
 from django_contact_form.views import ContactFormView
 
-from fairdm.core.vocabularies import FairDMRoles
 from fairdm.utils.utils import user_guide
 from fairdm.views import BaseCRUDView, FairDMListView
 
@@ -112,15 +111,3 @@ class OrganizationAutocomplete(LoginRequiredMixin, autocomplete.Select2QuerySetV
     #     if membership.is_current:
     #         name += "<span class='badge badge-success'>Current</span>"
     #     return mark_safe(name)
-
-
-class ContributorRolesAutocomplete(LoginRequiredMixin, autocomplete.Select2ListView):
-    def get_list(self):
-        collection = self.forwarded.get("collection", None)
-        if collection:
-            return FairDMRoles.from_collection(collection).values
-
-    # def get_result_label(self, result):
-    #     label = f"<strong>{result.label()}</strong>"
-    #     description = f"<p>{result.definition()}</p>"
-    #     return mark_safe(f"{label}{description}")

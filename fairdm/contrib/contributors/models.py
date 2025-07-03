@@ -14,14 +14,15 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, hook
+from django_lifecycle import AFTER_CREATE, AFTER_UPDATE, BEFORE_CREATE, hook
+from django_lifecycle.conditions import WhenFieldHasChanged
+from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
 from jsonfield_toolkit.models import ArrayField
 from model_utils import FieldTracker
 from ordered_model.models import OrderedModel
 from research_vocabs.fields import ConceptManyToManyField
-from research_vocabs.models import AbstractConcept
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.core.abstract import AbstractIdentifier
@@ -58,6 +59,11 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         blank=True,
         null=True,
         upload_to=default_image_path,
+        help_text=_("A profile image for the contributor. This is displayed in the contributor's profile."),
+        resize_source={
+            "size": (1200,),
+            "format": "WEBP",
+        },
     )
 
     name = models.CharField(
@@ -113,6 +119,15 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         default=dict,
     )
 
+    # TODO: calculate weight based on contributions, profile completion and linked identifiers
+    weight = models.FloatField(
+        _("weight"),
+        help_text=_(
+            "A weighting factor to determine sort order of contributors in public lists based on their contributions, completion of profile and linking of external identifiers."
+        ),
+        default=1.0,
+        editable=False,
+    )
     added = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("Date added"),
@@ -490,7 +505,7 @@ class Organization(Contributor):
         )
 
 
-class Contribution(OrderedModel):
+class Contribution(LifecycleModelMixin, OrderedModel):
     """A contributor is a person or organisation that has contributed to the project or
     dataset. This model is based on the Datacite schema for contributors."""
 
@@ -508,32 +523,20 @@ class Contribution(OrderedModel):
         on_delete=models.SET_NULL,
     )
 
-    # roles = models.JSONField(
-    #     verbose_name=_("roles"),
-    #     help_text=_("Assigned roles for this contributor."),
-    #     default=list,
-    #     null=True,
-    #     blank=True,
-    # )
-
     roles = ConceptManyToManyField(
         vocabulary=FairDMRoles,
         verbose_name=_("roles"),
         help_text=_("The roles assigned to the contributor for this contribution."),
     )
 
-    # we can't rely on the contributor field to store necessary information, as the profile may have changed or been deleted, therefore we need to store the contributor's name and other details at the time of publication
-    store = models.JSONField(
-        _("contributor"),
-        help_text=_("A JSON representation of the contributor profile at the time of publication"),
-        default=dict,
-    )
-
-    # holds the permissions for each contributor, e.g. whether they can edit the object
-    permissions = models.JSONField(
-        _("permissions"),
-        help_text=_("A JSON representation of the contributor's permissions at the time of publication"),
-        default=contributor_permissions_default,
+    affiliation = models.ForeignKey(
+        "contributors.Organization",
+        verbose_name=_("affiliation"),
+        help_text=_("The organization that the contributor is affiliated with for this contribution."),
+        related_name="+",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,  # Prevent deletion of the Organization if there are contributions associated with it
     )
 
     class Meta:
@@ -572,17 +575,28 @@ class Contribution(OrderedModel):
     def __repr__(self):
         return f"<{self.contributor}: {self.roles}>"
 
-    def add_roles(self, roles: list):
-        """Adds a role to the contributor."""
+    @hook(BEFORE_CREATE)
+    def set_default_affiliation(self):
+        """Set the default affiliation for the contributor if it is not already set."""
+        if not self.affiliation and self.contributor.__class__ == Person:  # noqa: SIM102
+            # Set the users primary_affiliation as default
+            if org := self.contributor.organization_memberships.filter(is_primary=True).first():
+                self.affiliation = org.organization
 
-        self.roles += roles
-        self.roles = sorted(set(self.roles))
-        self.save()
+    @hook(AFTER_CREATE)
+    @hook(AFTER_UPDATE, condition=WhenFieldHasChanged("affiliation", has_changed=True))
+    def update_affiliation(self):
+        """After an object is created or updated, ensure that the affiliation is also properly linked to the object.
 
-    def verbose_roles(self):
-        """Returns a human-readable list of roles for the contributor."""
-        roles_dict = dict(self.ROLES_VOCAB.choices)
-        return [roles_dict.get(role) for role in self.roles]
+        TODO: Remove old affiliation if it is no longer associated with the object.
+        """
+        if self.affiliation is not None:
+            # create a new contribution object for the organization if it doesn't exist
+            obj, created = Contribution.objects.get_or_create(
+                contributor=self.affiliation,
+                content_type=ContentType.objects.get_for_model(self.content_object),
+                object_id=self.content_object.pk,
+            )
 
     def get_absolute_url(self):
         """Returns the absolute url of the contributor's profile."""
@@ -618,16 +632,6 @@ class Contribution(OrderedModel):
 
     def icon(self):
         return "ror"
-
-
-class ContributorRole(AbstractConcept):
-    vocabulary_name = None
-    vocabulary = None
-    _vocabulary = FairDMRoles()
-
-    class Meta:
-        verbose_name = _("role")
-        verbose_name_plural = _("roles")
 
 
 class ContributorIdentifier(AbstractIdentifier):

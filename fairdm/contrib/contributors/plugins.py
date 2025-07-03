@@ -13,8 +13,9 @@ from fairdm.core.plugins import (
 from fairdm.views import FairDMListView
 
 from .forms.contribution import QuickAddContributionForm
+from .forms.organization import OrganizationProfileForm
 from .forms.person import UserProfileForm
-from .models import Contribution
+from .models import Contribution, Organization, Person
 from .views.contribution import (
     ContributionCreateView,
     ContributionRemoveView,
@@ -54,6 +55,17 @@ plugins.contributor.register(
 class Profile(ManageBaseObjectPlugin):
     title = _("Profile")
     form_class = UserProfileForm
+    sections = {
+        "sidebar_secondary": False,
+    }
+
+    def get_form_class(self):
+        if self.base_object.__class__ == Person:
+            # If the base object is a Person, use the UserProfileForm
+            return UserProfileForm
+        elif self.base_object.__class__ == Organization:
+            # If the base object is an Organization, use the OrganizationProfileForm
+            return OrganizationProfileForm
 
 
 class ContributorsPlugin(plugins.Explore, FairDMListView):

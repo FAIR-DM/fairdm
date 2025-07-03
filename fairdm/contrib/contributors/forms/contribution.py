@@ -1,12 +1,12 @@
 from crispy_forms.bootstrap import StrictButton, Tab, TabHolder
 from crispy_forms.layout import HTML, Column, Div, Layout, Row
-from dal import autocomplete
 from django import forms
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django_addanother.widgets import AddAnotherWidgetWrapper
-from django_select2.forms import ModelSelect2Widget
+from django_select2.forms import ModelSelect2Widget, Select2MultipleWidget
+from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.models import Contribution, Contributor, Organization, Person
 from fairdm.forms import Form, ModelForm
@@ -27,30 +27,6 @@ ADD_FROM_ORCID_HELP_TEXT = [
 ]
 
 p_joiner = "</p><p class='text-muted'>"
-
-
-class BaseFormMixin:
-    def __init__(self, *args, **kwargs):
-        self.base_object = kwargs.pop("base_object", None)
-        super().__init__(*args, **kwargs)
-
-
-class ContributionBaseForm(BaseFormMixin, forms.ModelForm):
-    roles = forms.MultipleChoiceField(
-        choices=[],
-        required=False,
-        help_text="Select roles for the contributor.",
-        widget=autocomplete.Select2Multiple(
-            attrs={
-                "placeholder": "Click or type to select roles...",
-                "data-theme": "bootstrap5",
-            },
-        ),
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["roles"].choices = self.base_object.CONTRIBUTOR_ROLES.choices
 
 
 class PersonCreateForm(ModelForm):
@@ -213,23 +189,37 @@ class PersonCreateForm(ModelForm):
         return self.instance
 
 
-class UpdateContributionForm(ContributionBaseForm):
+class UpdateContributionForm(ModelForm):
     """Form to update an existing contribution."""
 
+    roles = forms.ModelMultipleChoiceField(
+        queryset=Concept.objects.none(),
+        help_text="Select roles for the contributor.",
+        widget=Select2MultipleWidget,
+    )
+
     affiliation = forms.ModelChoiceField(
-        queryset=Person.contributors.none(),  # This will be populated dynamically
+        queryset=Person.contributors.all(),  # This will be populated dynamically
         required=False,
-        label="Affiliation",
-        help_text="Select an appropriate affiliation for this contributor.",
+        label=_("Affiliation"),
+        help_text=_(
+            "Select the contributor's affiliation for this entry. You may choose a past affiliation if relevant. The organization will be properly credited."
+        ),
     )
 
     class Meta:
         model = Contribution
-        fields = ["roles"]
+        fields = ["roles", "affiliation"]
 
     def __init__(self, *args, **kwargs):
+        self.base_object = kwargs.pop("base_object", None)
         super().__init__(*args, **kwargs)
         self.fields["affiliation"].queryset = self.instance.contributor.affiliations.all()
+        roles_qs = Concept.get_for_vocabulary(Contribution.roles_vocab.__class__).filter(
+            name__in=self.base_object.CONTRIBUTOR_ROLES.values
+        )
+        self.fields["roles"].queryset = roles_qs
+        self.fields["roles"].choices = roles_qs.values_list("id", "label")
 
 
 class QuickAddContributionForm(Form):
@@ -247,25 +237,3 @@ class QuickAddContributionForm(Form):
 
     class Meta:
         fields = ["contributors"]
-
-
-class AddContributorForm(ContributionBaseForm):
-    """Form to add a new contributor."""
-
-    contributor = forms.ModelChoiceField(
-        queryset=Person.contributors.all(),
-        required=True,
-        label="Contributor",
-        help_text="Select an existing contributor to add.",
-        widget=autocomplete.ModelSelect2(
-            url="person-autocomplete",
-            attrs={
-                "data-minimum-input-length": 3,
-                "data-theme": "bootstrap5",
-            },
-        ),
-    )
-
-    class Meta:
-        model = Contribution
-        fields = ["contributor", "roles"]

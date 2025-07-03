@@ -109,6 +109,10 @@ class ContributionUpdateView(plugins.BasePlugin, FairDMUpdateView):
         help_text = f"<p>You are currently editing the role of this contributor within the context of:<p><p class='fw-semibold'>{self.base_object}.</p>"
         return mark_safe(help_text)
 
+    def get_success_url(self):
+        """Redirect to the detail page of the base object."""
+        return plugins.reverse(self.base_object, "contributors")
+
 
 class ContributionRemoveView(BaseContributionView, FairDMDeleteView):
     model = Contribution

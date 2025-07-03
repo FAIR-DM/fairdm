@@ -4,7 +4,7 @@ from crispy_forms.layout import Layout, Submit
 from django import forms
 from django.utils.translation import gettext as _
 from django_select2.forms import Select2MultipleWidget, Select2Widget
-from formset.widgets import Selectize, UploadedFileInput
+from formset.widgets import UploadedFileInput
 
 from fairdm.utils.choices import iso_639_1_languages
 
@@ -57,35 +57,6 @@ class UserProfileForm(forms.ModelForm):
             "lang",
             "profile",
         ]
-
-
-class AddContributorForm(forms.ModelForm):
-    """A form that can be used by a user to add details for a new contributor."""
-
-    lang = forms.ChoiceField(
-        choices=iso_639_1_languages,
-        initial="en",
-        widget=Selectize(),
-    )
-
-    class Meta:
-        model = Contributor
-        fields = [
-            "image",
-            "name",
-            "lang",
-            "profile",
-        ]
-
-        widgets = {
-            "image": UploadedFileInput,
-            # "profile": RichTextarea,
-        }
-
-    def clean(self):
-        cleaned_data = super().clean()
-        cleaned_data["interests"] += cleaned_data["status"]
-        return cleaned_data
 
 
 class ContributionForm(forms.ModelForm):
