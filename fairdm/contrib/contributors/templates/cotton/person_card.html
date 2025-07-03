@@ -4,8 +4,7 @@
         data-bs-toggle="tooltip"
         data-bs-html="true"
         data-bs-placement="bottom"
-        data-bs-custom-class="text-start"
-        data-bs-title="<strong>Roles:</strong><br><ul><li>{{ contribution.verbose_roles|join:'</li><li>' }}</li></ul>">{% icon "info" %}</span>
+        data-bs-custom-class="text-start">{% icon "info" %}</span>
   {% if contributor.get_default_identifier %}
     <span class="position-absolute top-0 start-0 ms-2 mt-1 z-1">
       <c-contributor.icon :contributor="contributor" />

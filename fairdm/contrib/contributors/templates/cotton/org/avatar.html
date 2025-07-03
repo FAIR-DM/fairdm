@@ -1,12 +1,12 @@
 {% load easy_icons %}
 
-<c-vars icon="person" for="person" :circle="False" class />
+<c-vars aspect_ratio="66%" class />
 <div class="{{ class }}">
-  <div class="ratio bg-secondary-subtle text-light"
-       style="--bs-aspect-ratio: 66%"
+  <div class="{% if aspect_ratio %}ratio{% endif %} "
+       {% if aspect_ratio %}style="--bs-aspect-ratio: {{ aspect_ratio }}"{% endif %}
        {{ attrs }}>
     {% if not contributor.image %}
-      {% icon "organization_svg" width="100%" height="unset" %}
+      {% icon "organization_svg" width="100%" height="unset" class="bg-secondary-subtle text-light" %}
     {% else %}
       <img src="{{ contributor.image.url }}"
            class="object-fit-contain px-1" />
