@@ -61,7 +61,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         upload_to=default_image_path,
         help_text=_("A profile image for the contributor. This is displayed in the contributor's profile."),
         resize_source={
-            "size": (1200,),
+            "size": (1200, 1200),
             "format": "WEBP",
         },
     )

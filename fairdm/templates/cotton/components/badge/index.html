@@ -1,8 +1,7 @@
 <c-vars style="primary" :visible="True" />
 {% if visible %}
   <div class="rounded-3 border hstack overflow-hidden"
-       data-bs-toggle="tooltip"
-       data-bs-title="{{ message }}">
+       {% if message %}data-bs-toggle="tooltip" data-bs-title="{{ message }}"{% endif %}>
     <span class="text-bg-{{ style }} px-2">{{ label }}</span>
     {% if value %}<span class="px-2">{{ value }}</span>{% endif %}
   </div>

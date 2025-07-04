@@ -30,6 +30,7 @@ class BaseImportExportView(MessageMixin, FormView):
     model = Dataset
     form_class = None
     success_url = None
+    import_kwargs = {}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
@@ -37,6 +38,9 @@ class BaseImportExportView(MessageMixin, FormView):
         context["import_formats"] = self.import_formats
         context["data_type"] = self.get_resource_model()._meta.verbose_name_plural
         context["result"] = kwargs.get("result")
+        context["import_error_display"] = ["message"]
+        if self.request.user.is_superuser:
+            context["import_error_display"].extend(["row", "traceback"])
         return context
 
     @property
@@ -106,6 +110,13 @@ class BaseImportExportView(MessageMixin, FormView):
     def form_invalid(self, form):
         return super().form_invalid(form)
 
+    def get_import_kwargs(self):
+        """
+        Returns a dictionary of keyword arguments for the import process.
+        This can be overridden in subclasses to customize the import behavior.
+        """
+        return self.import_kwargs.copy()
+
 
 @plugins.dataset.register()
 class DataImportView(plugins.Action, BaseImportExportView):
@@ -123,6 +134,12 @@ class DataImportView(plugins.Action, BaseImportExportView):
     template_name = "import_export/import.html"
     title_config = {
         "text": _("Import Data"),
+    }
+
+    import_kwargs = {
+        "dry_run": False,
+        "raise_errors": False,
+        "rollback_on_validation_errors": True,
     }
 
     @staticmethod
@@ -155,7 +172,8 @@ class DataImportView(plugins.Action, BaseImportExportView):
         file_content = file.read()  # Decode bytes to string
 
         dataset = input_format.create_dataset(file_content)
-        return resource.import_data(dataset, dry_run=False)
+        print(self.get_import_kwargs())
+        return resource.import_data(dataset, **self.get_import_kwargs())
 
     def get_success_url(self):
         return self.get_object().get_absolute_url()

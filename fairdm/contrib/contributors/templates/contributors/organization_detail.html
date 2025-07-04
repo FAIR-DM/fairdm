@@ -1,4 +1,5 @@
 <c-layouts.plugin>
+  {% comment %} NEED TO SET A MAX HEIGHT HERE {% endcomment %}
   <c-org.avatar :aspect_ratio="False" class="py-3" />
   <div class="mb-3">
     <c-text.heading text="{{ object.name }}" level="1" compact />
@@ -12,12 +13,18 @@
                         value="{{ object.added|date }}" />
     <c-components.badge style="secondary"
                         label="{% trans "Members" %}"
-                        message="{% trans "The number of members associated with this organization." %}"
+                        message="{% trans "The number of community members associated with this organization." %}"
                         value="{{ object.members.count }}" />
+    {% comment %} THIS NEEDS A BETTER METHOD FOR DETERMINING VISIBILITY {% endcomment %}
     <c-components.badge style="success"
                         label="{% trans "Active" %}"
                         message="{% trans "This contributor is an active member of this online community." %}"
                         :visible="object.owner" />
+    {% for data_type, count in contributions_by_type.items %}
+      <c-components.badge style="secondary"
+                          label="{% trans data_type %}"
+                          value="{{ count }}" />
+    {% endfor %}
   </div>
   {% if object.profile %}{{ object.profile|linebreaks }}{% endif %}
   <c-pst.components.section id="members" title="">

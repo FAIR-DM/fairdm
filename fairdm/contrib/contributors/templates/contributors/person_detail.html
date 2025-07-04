@@ -11,22 +11,20 @@
                          href="{% url "description-formset" uuid=object.uuid %}" />
     {% endif %}
   </c-slot>
-  <c-pst.components.section id="name">
-    <div class="hstack mb-3">
-      <div class="h-100 me-3" style="min-width: 200px;">
-        <c-widgets.avatar circle />
-      </div>
-      <div>
-        <c-text.heading text="{{ object.name }}" level="1" compact />
-        <c-contributor.person.identifier />
-        <div>
-          <c-contributor.person.affiliation :org="object.primary_affiliation.organization"
-                                            show_location />
-        </div>
-        {% comment %} <c-contributor.socials /> {% endcomment %}
-      </div>
+  <div class="hstack mb-3">
+    <div class="h-100 me-3" style="min-width: 200px;">
+      <c-widgets.avatar circle />
     </div>
-    {% if object.profile %}{{ object.profile|linebreaks }}{% endif %}
-  </c-pst.components.section>
+    <div>
+      <c-text.heading text="{{ object.name }}" level="1" compact />
+      <c-contributor.person.identifier />
+      <div>
+        <c-contributor.person.affiliation :org="object.primary_affiliation.organization"
+                                          show_location />
+      </div>
+      {% comment %} <c-contributor.socials /> {% endcomment %}
+    </div>
+  </div>
+  {% if object.profile %}{{ object.profile|linebreaks }}{% endif %}
 </c-layouts.plugin>
 <c-modals.share />
