@@ -75,6 +75,11 @@ class ContributionCreateView(BaseContributionView, FairDMCreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
 
+        # Users created through this view are not active by default.
+        # Being active requires having an account and loggin in.
+        self.object.is_active = False
+        self.object.save()
+
         self.base_object.add_contributor(
             self.object,
             with_roles=self.base_object.DEFAULT_ROLES,
@@ -83,6 +88,12 @@ class ContributionCreateView(BaseContributionView, FairDMCreateView):
         self.messages.info("Succesfully added contributor.")
 
         return response
+
+    def assign_permissions(self):
+        # assigning full permissions is the default for FairDMCreateView (perhaps needs to be reviewed)
+        # overriding this method to prevent that
+        # Need to think about what permissions they get by default. Perhaps depends on the role?
+        pass
 
     # return render(self.request, "contributors/contribution.html", {"contributor": contribution})
 
