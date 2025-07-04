@@ -4,14 +4,13 @@ from django.http import Http404
 from django.urls import path, reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import UpdateView
 from django.views.generic.base import TemplateView
 from render_fields.views import FieldsetsMixin
 
 from fairdm import plugins
 from fairdm.forms import Form
 from fairdm.registry import registry
-from fairdm.views import FairDMDeleteView
+from fairdm.views import FairDMDeleteView, FairDMUpdateView
 
 from .dataset.views import DatasetListView
 from .project.views import ProjectListView
@@ -130,7 +129,7 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, TemplateView):
         # return super().get_template_names()
 
 
-class ManageBaseObjectPlugin(plugins.Management, UpdateView):
+class ManageBaseObjectPlugin(plugins.Management, FairDMUpdateView):
     name = "configure"
     title = _("Configure")
     menu_item = {

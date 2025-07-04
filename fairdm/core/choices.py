@@ -125,7 +125,7 @@ class DatasetDescriptions(VocabularyBuilder):
     class Meta:
         name = "dataset-descriptions"
         prefix = "GEOL"
-        namespace = "https://www.fairdm.net/vocabularies/"
+        namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("Dataset Description Types"),
             "skos:definition": _("Description types for the purpose of metadata archival of datasets."),
@@ -214,7 +214,7 @@ class DataciteContributorRoles(VocabularyBuilder):
     class Meta:
         name = "dataset-contributors"
         prefix = "Datacite"
-        namespace = "https://www.fairdm.net/vocabularies/"
+        namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("Datacite Contributor Roles"),
         }

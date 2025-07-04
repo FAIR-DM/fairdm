@@ -79,7 +79,7 @@ class UpdateBasicInformation(UpdateCoreObjectBasicInfo):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("dataset/basic-information"),
+                "url": user_guide("dataset/descriptions"),
                 "icon": "fa-solid fa-book",
             }
         ],

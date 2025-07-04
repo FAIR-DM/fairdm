@@ -60,7 +60,7 @@ class FairDMIdentifiers(VocabularyBuilder):
     class Meta:
         name = "fairdm-descriptions"
         prefix = "FAIRDM"
-        namespace = "https://www.fairdm.net/vocabularies/"
+        namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Identifiers"),
             "skos:definition": _("Identifiers for the purpose of metadata archival of research projects."),
@@ -171,7 +171,7 @@ class FairDMDescriptions(VocabularyBuilder):
     class Meta:
         name = "fairdm-descriptions"
         prefix = "FAIRDM"
-        namespace = "https://www.fairdm.net/vocabularies/"
+        namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Descriptions"),
             "skos:definition": _("Description types for the purpose of metadata archival of research projects."),
@@ -323,7 +323,7 @@ class FairDMDates(VocabularyBuilder):
     class Meta:
         name = "fairdm-dates"
         prefix = "FAIRDM"
-        namespace = "https://www.fairdm.net/vocabularies/"
+        namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Date Types"),
             "skos:definition": _("Important dates regarding archival of metadata related to project management."),
@@ -535,7 +535,7 @@ class FairDMRoles(VocabularyBuilder):
     class Meta:
         name = "fairdm-roles"
         prefix = "FAIRDM"
-        namespace = "https://www.fairdm.net/vocabularies/"
+        namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Roles"),
             "skos:definition": _("Roles for the purpose of metadata archival of research projects."),
