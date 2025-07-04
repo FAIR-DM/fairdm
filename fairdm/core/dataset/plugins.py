@@ -45,7 +45,7 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("dataset/configure"),
+                "href": user_guide("dataset/configure"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -63,7 +63,7 @@ class DeleteDatasetPlugin(DeleteObjectPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("dataset/delete"),
+                "href": user_guide("dataset/delete"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -79,7 +79,7 @@ class UpdateBasicInformation(UpdateCoreObjectBasicInfo):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("dataset/descriptions"),
+                "href": user_guide("dataset/descriptions"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -97,7 +97,7 @@ class DatasetKeywordsPlugin(KeywordsPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("dataset/keywords"),
+                "href": user_guide("dataset/keywords"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -113,7 +113,7 @@ class EditDates(KeyDatesPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("dataset/key-dates"),
+                "href": user_guide("dataset/key-dates"),
                 "icon": "fa-solid fa-book",
             }
         ],

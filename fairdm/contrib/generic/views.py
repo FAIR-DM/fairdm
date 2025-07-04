@@ -5,6 +5,7 @@ from extra_views import ModelFormSetView, UpdateWithInlinesView
 
 from fairdm import plugins
 from fairdm.utils.utils import get_core_object_or_404
+from fairdm.utils.view_mixins import FairDMModelFormMixin
 
 from .forms import CoreFormset, DateForm, DescriptionInline
 
@@ -73,7 +74,7 @@ class UpdateDatesView(BaseFormsetView):
         return response
 
 
-class UpdateCoreObjectBasicInfo(plugins.Management, UpdateWithInlinesView):
+class UpdateCoreObjectBasicInfo(plugins.Management, FairDMModelFormMixin, UpdateWithInlinesView):
     """Presents a form to update the name and descriptions of a Project, Dataset, Sample or Measurment."""
 
     name = "basic-information"
