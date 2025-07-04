@@ -1,3 +1,5 @@
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
 from django.urls import include, path
 from django.utils.translation import gettext as _
 from django_filters import FilterSet
@@ -37,6 +39,23 @@ class Overview(OverviewPlugin):
     sections = {
         "title": False,
     }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["contributions_by_type"] = self.get_contribution_counts()
+        return context
+
+    def get_contribution_counts(self):
+        """
+        Returns a dictionary of contribution counts by type for the base object.
+        """
+        contributions_by_type = self.base_object.contributions.values("content_type").annotate(count=Count("id"))
+        result = {}
+        for entry in contributions_by_type:
+            content_type = ContentType.objects.get(pk=entry["content_type"])
+            model_verbose_name = content_type.model_class()._meta.verbose_name_plural.title()
+            result[model_verbose_name] = entry["count"]
+        return result
 
 
 plugins.contributor.register(
