@@ -11,6 +11,7 @@ from neapolitan.views import CRUDView
 
 from fairdm.contrib.contributors.utils import current_user_has_role
 from fairdm.contrib.identity.models import Database
+from fairdm.forms import Form
 from fairdm.utils.permissions import assign_all_model_perms
 from fairdm.utils.view_mixins import CRUDView as CRUDViewMixin
 from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, HTMXMixin
@@ -216,10 +217,22 @@ class FairDMDeleteView(FairDMModelFormMixin, DeleteView):
     """
 
     template_name = "fairdm/form_view.html"
+    form_class = Form
+    form_config = {
+        "submit_button": {
+            "text": _("Confirm delete"),
+            "icon": "delete",
+            "class": "btn-danger",
+        },
+        # "cancel_button": {
+        #     "text": _("Cancel"),
+        #     "css_class": "btn-secondary",
+        # },
+    }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form_visible"] = True
+        context["form"] = self.form_class()
         # context["form"] = modelform_factory(self.model, fields=[])()
         # context["form"].helper = FormHelper()
         # context["form"].helper.form_id = "delete-form"

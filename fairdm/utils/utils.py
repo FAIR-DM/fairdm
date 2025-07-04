@@ -7,8 +7,8 @@ from django.utils.text import slugify
 
 from fairdm.contrib import CORE_MAPPING
 
-DOCUMENTATION_BASE_URL = "https://fairdm.readthedocs.io/en/latest/user-guide/"
-DOCUMENTATION_BASE_URL = "http://localhost:5000/user-guide/"
+DOCUMENTATION_BASE_URL = "https://www.fairdm.org/en/latest/user-guide/"
+# DOCUMENTATION_BASE_URL = "http://localhost:5000/user-guide/"
 
 
 def user_guide(name):

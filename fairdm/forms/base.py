@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Div
+from crispy_forms.layout import HTML, Div, Layout
 from django import forms
 from django.contrib.admin.utils import flatten, flatten_fieldsets
 from django.forms.forms import DeclarativeFieldsMetaclass
@@ -160,7 +160,12 @@ class FairDMFormMixin:
         elif fields := self._custom_conf.get("fields"):
             return fields_to_crispy_layout(fields)
 
-        return fields_to_crispy_layout(self._meta.fields)
+        if hasattr(self, "_meta") and hasattr(self._meta, "fields"):  # noqa: SIM102
+            # If _meta.fields is defined, use it
+            if isinstance(self._meta.fields, list | tuple):
+                return fields_to_crispy_layout(self._meta.fields)
+
+        return Layout()
 
     def get_help_text(self):
         """
