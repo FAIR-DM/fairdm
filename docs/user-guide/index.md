@@ -10,10 +10,11 @@ account_management/create_an_account
 
 ```{toctree}
 :maxdepth: 1
-:caption: Dataset Management
+:caption: Contributing
 
-dataset/create_a_dataset
-dataset/configure-dataset
-dataset/basic-information
+projects/index
+datasets/index
+samples/index
+measurements/index
 
 ```
