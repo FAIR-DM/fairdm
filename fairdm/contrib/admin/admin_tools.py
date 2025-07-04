@@ -122,7 +122,7 @@ class CustomIndexDashboard(Dashboard):
                 children=[
                     {
                         "title": _("FairDM documentation"),
-                        "url": "http://docs.fairdm.net/",
+                        "url": "http://docs.fairdm.org/",
                         "external": True,
                     },
                     {

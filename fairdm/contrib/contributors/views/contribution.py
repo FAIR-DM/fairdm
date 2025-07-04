@@ -1,7 +1,6 @@
 """Views that handle adding and editing contribution objects."""
 
 from braces.views import MessageMixin
-from django import forms
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -116,12 +115,13 @@ class ContributionUpdateView(plugins.BasePlugin, FairDMUpdateView):
 
 class ContributionRemoveView(BaseContributionView, FairDMDeleteView):
     model = Contribution
-    form_class = forms.Form
     title = _("Remove Contributor")
 
-    def get_help_text(self):
-        contribution = self.object.contributor.first_name
-        text = _(
-            "Are you sure you want to remove this contributor? They will no longer have access if visibility is set to private. Do you want to continue?"
-        )
-        return mark_safe(f"<p>{contribution}</p><p>{text}</p>")
+    def get_heading_config(self):
+        """Return the heading configuration for the view."""
+        return {
+            "title": _(f"Remove {self.object.contributor}"),
+            "description": _(
+                "Are you sure you want to remove this contributor? They will no longer have access if visibility is set to private. Do you want to continue?"
+            ),
+        }

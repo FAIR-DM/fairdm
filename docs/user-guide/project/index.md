@@ -1,4 +1,4 @@
-# Datasets
+# Projects
 
 The following guides will help you manage your account and profile on the platform. 
 

@@ -52,13 +52,14 @@ class ApplicationLayout(BaseLayout):
     }
 
 
-class FormLayout(PageLayout):
+class FormLayout(BaseLayout):
     """Base class for form layouts"""
 
     sections = {
         "sidebar_primary": "sections.sidebar.empty",
         "sidebar_secondary": "sections.sidebar.empty",  # hide the secondary sidebar
         "form": "components.form.default",
+        "heading": "sections.heading",
         "header": False,
     }
     form_config = {

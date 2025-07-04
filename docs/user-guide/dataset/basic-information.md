@@ -1,3 +1,0 @@
-# Updating basic information
-
-Coming soon...
