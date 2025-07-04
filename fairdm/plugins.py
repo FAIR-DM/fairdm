@@ -7,7 +7,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
 
-from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin, RelatedObjectMixin
+from fairdm.utils.view_mixins import FairDMBaseMixin, RelatedObjectMixin
 
 
 def check_has_edit_permission(request, instance, **kwargs):
@@ -128,7 +128,7 @@ class BasePlugin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespon
         return f"{self.title} - {self.base_object}"
 
 
-class BaseFormPlugin(BasePlugin, FairDMModelFormMixin):
+class BaseFormPlugin(BasePlugin):
     menu = None
     template_name = "fairdm/form_view.html"
     sections = {

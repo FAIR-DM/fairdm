@@ -119,7 +119,6 @@ class FairDMModelFormMixin(
     model = None
     form_class = None
     fields = None
-    help_text = None
     form_component = "components.form.default"
     template_name = "fairdm/form_view.html"
     sections = {
@@ -139,7 +138,6 @@ class FairDMModelFormMixin(
     def get_context_data(self, **kwargs):
         """Add the form class to the context if it is set."""
         context = super().get_context_data(**kwargs)
-        context["help_text"] = self.get_help_text()
         context["form_component"] = self.get_form_component()
         context["form_visible"] = self.request.user.is_authenticated
 
@@ -160,9 +158,6 @@ class FairDMModelFormMixin(
     def get_form_component(self):
         """Return the form component to be used in the template."""
         return self.form_component
-
-    def get_help_text(self):
-        return self.help_text
 
     def get_form_class(self):
         if self.form_class is None and getattr(self.base_object, "config", None):

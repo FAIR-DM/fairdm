@@ -210,13 +210,16 @@ class FairDMUpdateView(FairDMModelFormMixin, UpdateView):
     """
 
 
-class FairDMDeleteView(DeleteView):
+class FairDMDeleteView(FairDMModelFormMixin, DeleteView):
     """
     The base class for deleting objects within the FairDM framework.
     """
 
+    template_name = "fairdm/form_view.html"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["form_visible"] = True
         # context["form"] = modelform_factory(self.model, fields=[])()
         # context["form"].helper = FormHelper()
         # context["form"].helper.form_id = "delete-form"
