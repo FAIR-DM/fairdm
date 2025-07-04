@@ -194,8 +194,7 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        # This shouldn't be here by default.
-        assign_all_model_perms(self.request.user, self.object)
+        self.assign_permissions()
         action.send(
             self.request.user,
             verb="created",
@@ -203,6 +202,13 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
             description=_("Created a new {}: {}").format(self.object._meta.verbose_name, str(self.object)),
         )
         return response
+
+    def assign_permissions(self):
+        """
+        Assign permissions to the user after creating the object.
+        This method can be overridden in subclasses to customize permission assignment.
+        """
+        assign_all_model_perms(self.request.user, self.object)
 
 
 class FairDMUpdateView(FairDMModelFormMixin, UpdateView):
