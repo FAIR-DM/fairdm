@@ -1,26 +1,23 @@
 [
     {
         "model": "auth.group",
-        "pk": 3,
+        "pk": 1,
         "fields": {
-            "name": "Administrators",
-            "permissions": []
+            "name": "Portal Administrators"
         }
     },
     {
         "model": "auth.group",
         "pk": 2,
         "fields": {
-            "name": "Custodians",
-            "permissions": []
+            "name": "Database Administrators"
         }
     },
     {
         "model": "auth.group",
-        "pk": 4,
+        "pk": 3,
         "fields": {
-            "name": "Moderators",
-            "permissions": []
+            "name": "Developers"
         }
     }
 ]

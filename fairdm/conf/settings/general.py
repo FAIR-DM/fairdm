@@ -139,11 +139,11 @@ DJANGO_SETUP_TOOLS = {
             ),
             ("loaddata", "creativecommons"),
             ("loaddata", "django-waffle"),
+            ("loaddata", "groups"),
         ],
         "always_run": [
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
-            ("loaddata", "groups"),
             ("preload",),  # used to preload vocabulary concepts (django-research-vocabs)
             ("compress",),
             "django_setup_tools.scripts.sync_site_id",
