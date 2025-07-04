@@ -140,18 +140,17 @@ class KeywordForm(TaggableConceptFormMixin, forms.ModelForm):
         taggable_field_name = "keywords"
 
     def __init__(self, *args, **kwargs):
-        self.attach_vocabularies()
         super().__init__(*args, **kwargs)
 
         self.helper = FormHelper()
         self.helper.form_id = "keyword-form"
 
-    def attach_vocabularies(self):
+    def before_populate_concepts(self):
         vocabularies = get_setting("DATASET", "keyword_vocabularies")
         for vocab_str in vocabularies:
             vocab_class = import_string(vocab_str)
-            self.Meta.taggable_fields.append(vocab_class.__name__)
-            self.base_fields[vocab_class.__name__] = MultiConceptField(
+            self.taggable_fields.append(vocab_class.__name__)
+            self.fields[vocab_class.__name__] = MultiConceptField(
                 vocabulary=vocab_class, widget=Select2MultipleWidget, required=False
             )
         # self._meta.fields = fields + self._meta.fields
