@@ -1,3 +1,4 @@
+from crispy_forms.helper import FormHelper
 from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
 
@@ -37,3 +38,11 @@ class KeyDatesPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSetView
     }
     form_class = DateForm
     formset_class = CoreInlineFormset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get("formset", None)
+        form.helper = FormHelper()
+        form.helper.form_id = "key-dates-form"
+        context["form"] = form
+        return context
