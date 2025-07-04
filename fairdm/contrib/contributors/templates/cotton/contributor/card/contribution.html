@@ -1,7 +1,7 @@
-{% load fairdm %}
+{% load fairdm guardian_tags %}
 
 <c-contributor.card.person_alt :obj="obj.contributor">
-  {% if user.is_superuser %}
+  {% if can_modify_contributor %}
     <c-slot name="actions">
       <c-components.link href="{% plugin_url "contributor-update" pk=obj.pk %}"
                          text="{% trans "Edit" %}" />

@@ -1,5 +1,6 @@
 import json
 import random
+from functools import cached_property
 
 from django.apps import apps
 from django.conf import settings
@@ -14,7 +15,7 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, AFTER_UPDATE, BEFORE_CREATE, hook
+from django_lifecycle import AFTER_CREATE, AFTER_DELETE, AFTER_UPDATE, BEFORE_CREATE, hook
 from django_lifecycle.conditions import WhenFieldHasChanged
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
@@ -32,6 +33,7 @@ from fairdm.db import models
 # from polymorphic.models import PolymorphicModel
 from fairdm.db.models import PolymorphicModel
 from fairdm.utils.models import PolymorphicMixin
+from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
 from .managers import PersonalContributorsManager, UserManager
@@ -335,6 +337,11 @@ class Person(AbstractUser, Contributor):
                 default=float,
             )
 
+    @cached_property
+    def is_data_admin(self):
+        """Check if the contributor is a data administrator."""
+        return self.is_superuser or self.groups.filter(name="Data Administrators").exists()
+
 
 class OrganizationMember(models.Model):
     """A membership model that links a person to an organization."""
@@ -578,7 +585,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     @hook(BEFORE_CREATE)
     def set_default_affiliation(self):
         """Set the default affiliation for the contributor if it is not already set."""
-        if not self.affiliation and self.contributor.__class__ == Person:  # noqa: SIM102
+        if not self.affiliation and self.is_person():  # noqa: SIM102
             # Set the users primary_affiliation as default
             if org := self.contributor.organization_memberships.filter(is_primary=True).first():
                 self.affiliation = org.organization
@@ -597,6 +604,16 @@ class Contribution(LifecycleModelMixin, OrderedModel):
                 content_type=ContentType.objects.get_for_model(self.content_object),
                 object_id=self.content_object.pk,
             )
+
+    @hook(AFTER_DELETE)
+    def remove_user_perms(self):
+        """Remove all permissions for a user on this contribution."""
+        if self.is_person():
+            remove_all_model_perms(self.contributor, self.content_object)
+
+    def is_person(self):
+        """Check if the contributor is a person."""
+        return isinstance(self.contributor, Person)
 
     def get_absolute_url(self):
         """Returns the absolute url of the contributor's profile."""
