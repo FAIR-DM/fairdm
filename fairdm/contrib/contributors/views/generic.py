@@ -7,10 +7,9 @@ from django.views.generic.detail import SingleObjectMixin
 from django_contact_form.views import ContactFormView
 
 from fairdm.utils.utils import user_guide
-from fairdm.views import BaseCRUDView, FairDMListView
+from fairdm.views import FairDMListView
 
 from ..filters import ContributorFilter
-from ..forms.forms import ContributionForm
 from ..models import Contributor, Organization, Person
 
 
@@ -28,16 +27,6 @@ class ContributorContactView(LoginRequiredMixin, SingleObjectMixin, ContactFormV
     def recipient_list(self):
         email = [self.get_object().preferred_email]
         return email
-
-
-class ContributionCRUDView(BaseCRUDView):
-    form_class = ContributionForm
-    lookup_url_kwarg = "contribution_uuid"
-
-    def get_form(self, data=None, files=None, **kwargs):
-        form = super().get_form(data, files, **kwargs)
-        form.fields["roles"].widget.choices = self.model.CONTRIBUTOR_ROLES().choices
-        return form
 
 
 class ContributorListView(FairDMListView):

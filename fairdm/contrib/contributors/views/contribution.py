@@ -118,10 +118,15 @@ class ContributionRemoveView(BaseContributionView, FairDMDeleteView):
     model = Contribution
     form_class = forms.Form
     title = _("Remove Contributor")
-
-    def get_help_text(self):
-        contribution = self.object.contributor.first_name
-        text = _(
+    heading_config = {
+        "text": _("Remove Contributor"),
+        "description": _(
             "Are you sure you want to remove this contributor? They will no longer have access if visibility is set to private. Do you want to continue?"
+        ),
+    }
+
+    def get_heading_config(self):
+        """Return the heading configuration for the view."""
+        return self.heading_config.update(
+            {"text": _("Remove {contributor}").format(contributor=self.object.contributor)}
         )
-        return mark_safe(f"<p>{contribution}</p><p>{text}</p>")
