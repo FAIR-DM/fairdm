@@ -37,6 +37,11 @@ class DatasetCreateView(FairDMCreateView):
                 return {"project": int(project_id)}
         return super().get_initial()
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["request"] = self.request
+        return kwargs
+
     def form_valid(self, form):
         response = super().form_valid(form)
         self.object.add_contributor(self.request.user, with_roles=["Creator", "ProjectMember", "ContactPerson"])
