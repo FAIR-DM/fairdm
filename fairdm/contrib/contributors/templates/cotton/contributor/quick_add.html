@@ -1,7 +1,7 @@
 {% load crispy_forms_tags fairdm %}
 
-{% user_has_object_permissions user base_object "add_contributor" as has_perm %}
-{% if has_perm %}
+{% has_permission "add_contributor" as granted %}
+{% if granted %}
   <c-components.button text="{% trans "Add" %}"
                        icon="plus"
                        data-bs-toggle="modal"

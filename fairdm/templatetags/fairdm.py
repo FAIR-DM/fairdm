@@ -127,18 +127,31 @@ def normalize_doi(doi):
     return f"https://doi.org/{doi}"
 
 
-@register.simple_tag
-def user_has_object_permissions(user, obj, permissions):
+@register.filter
+def has_perms(permission_obj, perms):
     """
-    Check if the user has the specified permissions on the object.
+    Check if the user has the provided object permission or is a privileged user.
 
-    :param user: The user to check permissions for.
-    :param obj: The object to check permissions on.
-    :param permissions: A list of permission names to check.
-    :return: True if the user has all specified permissions, False otherwise.
     """
-    for perm in permissions.split(","):
-        perm = perm.strip()
-        perm = perm.format(model_name=obj._meta.model_name)
-        if user.has_perm(perm, obj):
-            return True
+    return any(perm in permission_obj for perm in perms.split(","))
+    # is_privileged = (
+    #     permission_obj.user.is_superuser or permission_obj.user.groups.filter(name="Data Administrators").exists()
+    # )
+    # return has_obj_perms or is_privileged
+
+
+@register.simple_tag(takes_context=True)
+def has_permission(context, perms):
+    """
+    Check if the user has the specified permission on the given object.
+    """
+    permission_obj = context.get("user_permissions", [])
+    if any(perm in permission_obj for perm in perms.split(",")):
+        return True
+    user = context.get("user", None)
+    if not user:
+        return False
+    if user.is_superuser:
+        return True
+    if user.groups.filter(name="Data Administrators").exists():
+        return True

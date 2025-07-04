@@ -8,6 +8,14 @@ from research_vocabs.vocabularies import VocabularyBuilder
 # https://schema.datacite.org/meta/kernel-4.3/doc/DataCite-MetadataKernel_v4.3.pdf
 
 
+class DefaultGroups(models.TextChoices):
+    """Default groups for contributors."""
+
+    PORTAL_ADMIN = "Portal Administrators", _("Portal Administrators")
+    DATA_ADMIN = "Data Administrators", _("Data Administrators")
+    DEVELOPERS = "Developers", _("Developers")
+
+
 class CREDiT(VocabularyBuilder):
     """A class for storing choices for CRediT roles on the Contribution model. Based on the
     CRediT Contributor Roles Taxonomy."""

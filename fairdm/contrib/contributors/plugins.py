@@ -3,6 +3,7 @@ from django.db.models import Count
 from django.urls import include, path
 from django.utils.translation import gettext as _
 from django_filters import FilterSet
+from guardian.shortcuts import get_perms
 
 from fairdm import plugins
 from fairdm.core.plugins import (
@@ -123,6 +124,11 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
         context["modals"] = [
             "contributor.modals.edit-contribution",
         ]
+
+        context["user_permissions"] = get_perms(self.request.user, self.base_object)
+        context["can_modify_contributor"] = (
+            "modify_contributor" in context["user_permissions"] or self.request.user.is_data_admin
+        )
         return context
 
     def get_filterset_class(self):

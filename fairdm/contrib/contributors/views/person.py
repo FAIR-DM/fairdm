@@ -12,6 +12,7 @@ from meta.views import MetadataMixin
 
 from fairdm.views import FairDMListView, FairDMTemplateView
 
+from ..choices import DefaultGroups
 from ..filters import PersonFilter
 from ..models import ContributorIdentifier, Person
 
@@ -23,9 +24,9 @@ class PortalTeamView(FairDMTemplateView):
         "text": _("Portal Team"),
     }
     groups = {
-        "Portal Administrators": _("Portal Administrators"),
-        "Data Administrators": _("Data Administrators"),
-        "Developers": _("Developers"),
+        DefaultGroups.PORTAL_ADMIN: _("Portal Administrators"),
+        DefaultGroups.DATA_ADMIN: _("Data Administrators"),
+        DefaultGroups.DEVELOPERS: _("Developers"),
         "Reviewers": _("Reviewers"),
     }
     slider_breakpoints = {
