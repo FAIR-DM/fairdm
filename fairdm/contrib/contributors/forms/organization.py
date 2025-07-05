@@ -42,6 +42,10 @@ class OrgMixin:
         widget=Select2Widget,
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].required = False
+
 
 class OrganizationCreateForm(OrgMixin, ModelForm):
     """Form to create a new contributor from ORCID or manually from form data."""
