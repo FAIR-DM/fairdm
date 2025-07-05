@@ -122,20 +122,28 @@ class BaseImportExportView(MessageMixin, FormView):
 class DataImportView(plugins.Action, BaseImportExportView):
     name = "import"
     title = _("Import Data")
-    description = _(
-        "The data import workflow allows you to upload existing data files in spreadsheet format which are then processed and integrated into the current dataset. To ensure smooth operation, your data are expected to conform to a predetermined template. To download the template, select your data type below and click the 'Download Template' button. After filling in the template, you can upload it here to import your data."
-    )
-    learn_more = user_guide("dataset/import")
+    heading_config = {
+        "title": _("Import Data"),
+        "description": _(
+            "The data import workflow allows you to upload existing data files in spreadsheet format which are then processed and integrated into the current dataset. To ensure smooth operation, your data are expected to conform to a predetermined template. To download the template, select your data type below and click the 'Download Template' button. After filling in the template, you can upload it here to import your data."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "href": user_guide("dataset/import"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
     menu_item = {
         "name": _("Import Data"),
         "icon": "import",
     }
+    sections = {
+        "components.form.default",
+    }
     form_class = ImportForm
     template_name = "import_export/import.html"
-    title_config = {
-        "text": _("Import Data"),
-    }
-
     import_kwargs = {
         "dry_run": False,
         "raise_errors": False,
