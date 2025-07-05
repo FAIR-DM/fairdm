@@ -152,7 +152,8 @@ class DataImportView(plugins.Action, BaseImportExportView):
 
     @staticmethod
     def check(request, instance, **kwargs):
-        return request.user.has_perm("import_data", instance)
+        user = request.user
+        return user.has_perm("import_data", instance) or user.is_data_admin
 
     def form_valid(self, form):
         file = form.cleaned_data["file"]
