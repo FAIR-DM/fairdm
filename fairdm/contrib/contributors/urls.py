@@ -4,12 +4,8 @@ from fairdm import plugins
 
 from .views import ContributorContactView
 from .views.account import UpdateAffiliations, UpdateIdentifiers, UpdateProfile
-from .views.generic import (
-    OrganizationAutocomplete,
-    PersonAutocomplete,
-)
 from .views.organization import OrganizationCreateView, OrganizationListView
-from .views.person import ActiveMemberListView, ContributorListView, PortalTeamView
+from .views.person import ActiveMemberListView, ContributorListView, PersonCreateView, PortalTeamView
 
 account = [
     path("profile/", UpdateProfile.as_view(), name="contributor-profile"),
@@ -28,14 +24,11 @@ urlpatterns = [
                 path("active-members/", ActiveMemberListView.as_view(), name="active-member-list"),
                 path("contributors/", ContributorListView.as_view(), name="contributor-list"),
                 path("organizations/", OrganizationListView.as_view(), name="organization-list"),
+                path("add-person/", PersonCreateView.as_view(), name="person-create"),
             ]
         ),
     ),
     path("contributor/<str:uuid>/", include((plugins.contributor.get_urls(), "contributor"))),
     path("contributor/<str:uuid>/contact/", ContributorContactView.as_view(), name="contributor-contact"),
     path("organization/new/", OrganizationCreateView.as_view(), name="organization-add"),
-    path("contributors/person-autocomplete/", PersonAutocomplete.as_view(), name="person-autocomplete"),
-    path(
-        "contributors/organization-autocomplete/", OrganizationAutocomplete.as_view(), name="organization-autocomplete"
-    ),
 ]

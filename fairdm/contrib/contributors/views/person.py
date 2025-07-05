@@ -10,10 +10,11 @@ from django.views.generic import TemplateView
 from formset.views import EditCollectionView
 from meta.views import MetadataMixin
 
-from fairdm.views import FairDMListView, FairDMTemplateView
+from fairdm.views import FairDMCreateView, FairDMListView, FairDMTemplateView
 
 from ..choices import DefaultGroups
 from ..filters import PersonFilter
+from ..forms.contribution import PersonCreateForm
 from ..models import ContributorIdentifier, Person
 
 
@@ -156,3 +157,25 @@ class TermsOfUse(MetadataMixin, LoginRequiredMixin, TemplateView):
 
     def get_object(self):
         return self.request.user
+
+
+class PersonCreateView(LoginRequiredMixin, FairDMCreateView):
+    form_class = PersonCreateForm
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Users created through this view are not active by default.
+        # Being active requires having an account and loggin in.
+        self.object.is_active = False
+        self.object.save()
+
+        self.messages.info("Succesfully added contributor.")
+
+        return response
+
+    def assign_permissions(self):
+        # assigning full permissions is the default for FairDMCreateView (perhaps needs to be reviewed)
+        # overriding this method to prevent that
+        # Need to think about what permissions they get by default. Perhaps depends on the role?
+        pass
