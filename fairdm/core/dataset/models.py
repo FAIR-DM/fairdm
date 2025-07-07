@@ -87,6 +87,7 @@ class Dataset(BaseModel):
     )
     reference = models.OneToOneField(
         "literature.LiteratureItem",
+        verbose_name=_("Data reference"),
         help_text=_("The data publication associated with this dataset."),
         null=True,
         blank=True,
