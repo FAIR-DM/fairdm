@@ -1,0 +1,9 @@
+{% comment %} THERE IS AN ISSUE USING FIRST OF WITH TEMPERATURE VALUES  {% endcomment %}
+{% if value.citation_key and value.get_doi %}
+  <a href="{{ value.get_doi }}">{{ value.get_doi }}</a>
+{% elif value.get_absolute_url %}
+  <a href="{{ value.get_absolute_url }}">{{ value }}</a>
+{% else %}
+  {% firstof choice_label value as result %}
+  {{ result|default:missing }}
+{% endif %}

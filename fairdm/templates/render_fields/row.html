@@ -1,7 +1,8 @@
-{% load render_fields %}
+{% load render_fields fairdm %}
 
 <div class="row">
   {% for field in fields %}
-    <div class="col-md me-5">{% render_field object field %}</div>
+    {% get_related_field object field as obj_field_pair %}
+    <div class="col-md me-5">{% render_field obj_field_pair.0 obj_field_pair.1 %}</div>
   {% endfor %}
 </div>

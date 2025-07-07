@@ -1,11 +1,10 @@
-import re
-
 from django import template
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 # import flatattrs
 from django.template.loader import render_to_string
+from literature.utils.generic import normalize_doi
 from quantityfield import settings as qsettings
 
 from fairdm import plugins
@@ -111,20 +110,10 @@ def normalize_doi(doi):
 
     Returns None if input does not look like a valid DOI.
     """
+
     if not doi:
         return None
-
-    # Strip whitespace and lowercase DOI scheme
-    doi = doi.strip()
-
-    # Remove common prefixes
-    doi = re.sub(r"^(doi:|DOI:|https?://(dx\.)?doi\.org/)", "", doi, flags=re.IGNORECASE)
-
-    # Check for valid DOI pattern
-    if not re.match(r"^10\.\d{4,9}/\S+$", doi):
-        return None
-
-    return f"https://doi.org/{doi}"
+    return normalize_doi(doi)
 
 
 @register.filter
@@ -155,3 +144,41 @@ def has_permission(context, perms):
         return True
     if user.groups.filter(name="Data Administrators").exists():
         return True
+
+
+@register.simple_tag
+def get_related_field(obj, field_name):
+    """
+    Drill down into an object's attributes using Django-style double-underscore notation.
+
+    Args:
+        obj: The root model instance.
+        attr_path: A string like "reference__publisher__name" (any depth).
+
+    Returns:
+        A tuple (intermediate_obj, value):
+            - intermediate_obj: the object just before the final attribute
+            - value: the final attribute value (or method result if callable)
+
+    Raises:
+        AttributeError if any part of the path is invalid
+    """
+    parts = field_name.split("__")
+    current = obj
+
+    for part in parts[:-1]:
+        current = getattr(current, part)
+        if current is None:
+            return None, None
+
+    final_attr = parts[-1]
+    final_obj = current
+
+    # try:
+    #     value = getattr(final_obj, final_attr)
+    #     if callable(value):
+    #         value = value()
+    # except AttributeError:
+    #     raise AttributeError(f"Failed to resolve final attribute: {final_attr} on {final_obj}")
+
+    return final_obj, final_attr
