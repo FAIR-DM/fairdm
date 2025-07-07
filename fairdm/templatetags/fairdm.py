@@ -4,7 +4,7 @@ from django.db import models
 
 # import flatattrs
 from django.template.loader import render_to_string
-from literature.utils.generic import normalize_doi
+from literature import utils
 from quantityfield import settings as qsettings
 
 from fairdm import plugins
@@ -113,7 +113,7 @@ def normalize_doi(doi):
 
     if not doi:
         return None
-    return normalize_doi(doi)
+    return utils.generic.normalize_doi(doi)
 
 
 @register.filter
