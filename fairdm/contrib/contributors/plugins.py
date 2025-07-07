@@ -137,7 +137,11 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
         return FilterSet
 
     def get_queryset(self, *args, **kwargs):
-        return self.base_object.contributors.all()
+        # restrict to contributors of type Person
+        person_type = ContentType.objects.get_for_model(Person)
+        return self.base_object.contributors.filter(contributor__polymorphic_ctype=person_type)
+        # show people and organizations
+        # return self.base_object.contributors.all()
 
     @classmethod
     def get_suburls(cls, **kwargs):
