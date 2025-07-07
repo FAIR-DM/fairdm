@@ -184,6 +184,15 @@ class ProjectPlugin(plugins.Explore, ProjectListView):
     def get_queryset(self, *args, **kwargs):
         return self.base_object.projects.all()
 
+    def get_heading_config(self):
+        """
+        Returns the heading configuration for the project list view.
+        """
+        return {
+            "description": _(f"The following projects are associated with {self.base_object}."),
+            "title_actions": ["project.create-button"],
+        }
+
 
 class DatasetPlugin(plugins.Explore, DatasetListView):
     """
@@ -212,6 +221,15 @@ class DatasetPlugin(plugins.Explore, DatasetListView):
         Returns the URL for creating a new dataset.
         """
         return reverse("dataset-create")
+
+    def get_heading_config(self):
+        """
+        Returns the heading configuration for the project list view.
+        """
+        return {
+            "description": _(f"The following datasets are associated with {self.base_object}."),
+            "title_actions": ["dataset.create-button"],
+        }
 
 
 class DataTablePlugin(plugins.Explore, DataTableView):
