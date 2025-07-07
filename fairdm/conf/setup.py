@@ -30,7 +30,7 @@ def setup(apps=[], base_dir=None):
             "__file__": os.path.realpath(__file__),
         }
     )
-    environ.Env.read_env(".env")
+    # environ.Env.read_env(".env")
 
     if DJANGO_ENV == "development":
         # print("Loading development settings")
