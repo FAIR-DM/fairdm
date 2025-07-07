@@ -37,23 +37,26 @@ class ProjectListView(FairDMListView):
     model = Project
     filterset_class = ProjectFilter
     title = _("Research Projects")
-    title_config = {
-        "text": _("Research Projects"),
-    }
     description = _(
         "Discover past, present and future research projects shared by our community to see what other are working on."
     )
-    about = [
-        _(
-            "A research project serves as a container for multiple datasets that share common metadata, such as funding sources, project descriptions, contributors, and institutional affiliations. This page presents publicly listed research projects contributed by community members, allowing you to explore what others are working on."
+    heading_config = {
+        "icon": "project",
+        "title": _("Research Projects"),
+        "description": _(
+            "A research project serves as a container for multiple datasets that share common metadata, such as funding sources, project descriptions, contributors, and institutional affiliations. This page presents publicly listed research projects contributed by community members, allowing you to explore what others community members are currently working on."
         ),
-        _(
-            "Search and filter projects by topic, field, or format. Each project may contain multiple datasets, which can be accessed individually."
-        ),
-    ]
-    learn_more = user_guide("project")
+        "links": [
+            {
+                "text": _("Learn More"),
+                "url": user_guide("project"),
+                "icon": "fa-solid fa-book",
+            },
+        ],
+    }
+
     image = static("img/stock/project.jpg")
-    card = "project.card"  # cotton/project/card.html
+    # card = "project.card"  # cotton/project/card.html
 
     def get_queryset(self):
         return Project.objects.get_visible().with_contributors()

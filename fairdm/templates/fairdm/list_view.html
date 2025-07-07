@@ -11,7 +11,8 @@
   </style>
   <c-layouts.standard>
     <div class="pb-5">
-      {% if sections.title %}<c-component :attrs="sections.title" />{% endif %}
+      {% if sections.heading %}<c-component :attrs="sections.heading" />{% endif %}
+      {% comment %} {% if sections.title %}<c-component :attrs="sections.title" />{% endif %} {% endcomment %}
       {% comment %} {% if about %}
         <c-components.button icon="info" text="{% trans "About" %}" data-bs-toggle="modal" data-bs-target="#{{ info_modal_id }}" aria-controls="{{ info_modal_id }}" />
       {% endif %}

@@ -53,8 +53,21 @@ class DatasetListView(FairDMListView):
     filterset_class = DatasetFilter
     title = _("Datasets")
     image = static("img/stock/dataset.jpg")
-    title_config = {
-        "text": _("Datasets"),
+    heading_config = {
+        "icon": "dataset",
+        "title": _("Datasets"),
+        "description": _(
+            "A dataset is a structured collection of data generated or compiled during the course of a research activity. "
+            "This page lists all publicly available datasets within the portal that adhere to the metadata and quality "
+            "standards set by this community. Use the search and filter options to find datasets relevant to your research needs."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "url": user_guide("datasets"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
     }
     grid_config = {
         "card": "dataset.card",
@@ -63,12 +76,6 @@ class DatasetListView(FairDMListView):
         "Search and filter thousands of open-access research datasets by topic, field, or format. Access high-quality "
         "data to support your research projects."
     )
-    about = _(
-        "A dataset is a structured collection of data generated or compiled during the course of a research activity. "
-        "This page lists all publicly available datasets within the portal that adhere to the metadata and quality "
-        "standards set by this community. Use the search and filter options to find datasets relevant to your research needs."
-    )
-    learn_more = user_guide("datasets")
 
     def get_queryset(self):
         return Dataset.objects.with_contributors()

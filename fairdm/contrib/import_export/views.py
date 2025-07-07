@@ -153,6 +153,8 @@ class DataImportView(plugins.Action, BaseImportExportView):
     @staticmethod
     def check(request, instance, **kwargs):
         user = request.user
+        if not user.is_authenticated:
+            return False
         return user.has_perm("import_data", instance) or user.is_data_admin
 
     def form_valid(self, form):

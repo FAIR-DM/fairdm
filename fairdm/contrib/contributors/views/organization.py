@@ -13,8 +13,13 @@ class OrganizationListView(FairDMListView):
     model = Organization
     filterset_class = OrganizationFilter  # No filter for organizations
     title = _("Organizations")
-    title_config = {
-        "text": _("All Organizations"),
+    heading_config = {
+        "icon": "organization",
+        "title": _("Organizations"),
+        "description": _(
+            "Organizations are entities that contribute to the Global Heat Flow Database. "
+            "This section lists all organizations that have contributed data or resources."
+        ),
     }
     grid_config = {
         "responsive": {"md": 3},

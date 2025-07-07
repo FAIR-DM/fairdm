@@ -440,7 +440,7 @@ def contributor_from_ror_data(data, org: Organization | None = None, save=True) 
     org.name = dictget(data, ["name"])
     org.alternative_names = dictget(data, ["aliases"]) + dictget(data, ["acronyms"], [])
     org.city = dictget(data, ["addresses", 0, "city"])
-    org.country = dictget(data, ["country", "country_name"])
+    org.country = dictget(data, ["country", "country_code"])
     if lat := dictget(data, ["addresses", 0, "lat"]):
         org.lat = decimal.Decimal(str(lat))
     if lon := dictget(data, ["addresses", 0, "lng"]):

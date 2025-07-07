@@ -84,13 +84,8 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         "sidebar_secondary": False,  # hide the secondary sidebar
         "header": False,
         "grid": "sections.object-list",
-        "title": "text.title",
+        "heading": "sections.heading",
     }
-    # title_config = {
-    #     "actions": [
-    #         "list-view-order-action",
-    #     ],
-    # }
     sidebar_primary_config = {
         "breakpoint": "md",
         "header": {

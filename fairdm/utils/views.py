@@ -21,8 +21,14 @@ class ReferenceListView(FairDMListView):
     model = LiteratureItem
     paginate_by = 20
     filterset_class = LiteratureFilterset
-    title_config = {
-        "text": _("References"),
+    heading_config = {
+        "icon": "literature",
+        "title": _("References"),
+        "description": _(
+            "This section lists all references that have been added to this portal. "
+            "You can search and filter references by type, author, title, and other metadata. "
+            "Each reference may include a DOI, publication date, and other relevant information to help you find and cite the literature effectively."
+        ),
     }
     grid_config = {
         "card": "literature.card",

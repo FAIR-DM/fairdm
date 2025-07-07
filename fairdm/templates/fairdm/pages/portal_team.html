@@ -10,8 +10,7 @@
 
 {% block content %}
   <c-layouts.standard>
-    <h1>{% trans "Portal Team" %}</h1>
-    {% comment %} <c-text.title text="{% trans "Portal Team" %}" /> {% endcomment %}
+    <c-sections.heading :attrs="view.heading_config" />
     {% for entry in groups %}
       <c-text.heading level="2" text="{{ entry.label }}" />
       <c-fdm.dashboard.slider id="{{ entry.label|slugify }}">

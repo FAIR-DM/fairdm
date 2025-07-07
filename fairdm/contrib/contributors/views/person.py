@@ -21,14 +21,19 @@ from ..models import ContributorIdentifier, Person
 class PortalTeamView(FairDMTemplateView):
     title = _("Portal Team")
     template_name = "fairdm/pages/portal_team.html"
-    title_config = {
-        "text": _("Portal Team"),
+    heading_config = {
+        "icon": "team",
+        "title": _("Portal Team"),
+        "description": _(
+            "The portal team is responsible for maintaining and developing this research portal. "
+            "This team ensures that the portal is user-friendly, up-to-date, and provides access to the latest data and resources. "
+            "The team consists of portal administrators, data administrators, and developers who work together to enhance the portal's functionality and user experience."
+        ),
     }
     groups = {
         DefaultGroups.PORTAL_ADMIN: _("Portal Administrators"),
         DefaultGroups.DATA_ADMIN: _("Data Administrators"),
         DefaultGroups.DEVELOPERS: _("Developers"),
-        "Reviewers": _("Reviewers"),
     }
     slider_breakpoints = {
         0: {"slidesPerView": 1, "spaceBetween": 10},
@@ -76,8 +81,13 @@ class ContributorListView(ContributorBaseListView):
     title = _("All Contributors")
     filterset_class = PersonFilter
     queryset = Person.contributors.all()
-    title_config = {
-        "text": _("Personal Contributors"),
+    heading_config = {
+        "icon": "contributors",
+        "title": _("Personal Contributors"),
+        "description": _(
+            "Contributors are individuals who have made contributions to data made public within this portal. "
+            "They may include researchers, developers, data curators, and other professionals who have played a key role in producing datasets."
+        ),
     }
 
     def get_queryset(self):
@@ -131,8 +141,13 @@ class ContributorListView(ContributorBaseListView):
 class ActiveMemberListView(ContributorListView):
     title = _("Active Members")
     queryset = Person.contributors.filter(is_active=True)
-    title_config = {
-        "text": _("Active Members"),
+    heading_config = {
+        "icon": "contributors",
+        "title": _("Active Members"),
+        "description": _(
+            "Active members are contributors who have created a personal account within the portal. "
+            "They are engaged with the community and may be involved in ongoing projects or discussions."
+        ),
     }
 
 

@@ -92,11 +92,12 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
     model = Contribution
     name = "contributors"
     title = _("Contributors")
-    title_config = {
-        "text": _("Contributors"),
-        "actions": [
+    heading_config = {
+        "icon": "contributors",
+        "title": _("Contributors"),
+        "description": _("The following individuals have made contributions towards this database entry. "),
+        "title_actions": [
             "contributor.quick-add",
-            # "components.actions.list-filter",
         ],
     }
     filterset_fields = ["contributor__name"]
@@ -126,9 +127,10 @@ class ContributorsPlugin(plugins.Explore, FairDMListView):
         ]
 
         context["user_permissions"] = get_perms(self.request.user, self.base_object)
-        context["can_modify_contributor"] = (
-            "modify_contributor" in context["user_permissions"] or self.request.user.is_data_admin
-        )
+        if self.request.user.is_authenticated:
+            context["can_modify_contributor"] = (
+                "modify_contributor" in context["user_permissions"] or self.request.user.is_data_admin
+            )
         return context
 
     def get_filterset_class(self):
