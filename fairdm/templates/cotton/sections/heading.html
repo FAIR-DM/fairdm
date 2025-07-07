@@ -1,6 +1,6 @@
 <c-vars :title_actions="[]" />
 <div class="page-heading pt-4 mb-3">
-  <c-text.title text="{{ title }}" :actions="{{ title_actions }}" />
+  <c-text.title text="{{ title }}" :actions="title_actions" />
   <p>{{ description }}</p>
   <div class="hstack">
     {% for link in links %}<c-components.link :attrs="link" />{% endfor %}

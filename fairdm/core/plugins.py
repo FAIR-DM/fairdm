@@ -181,6 +181,11 @@ class ProjectPlugin(plugins.Explore, ProjectListView):
         "icon": "project",
     }
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["create_url"] = reverse("project-create")
+        return context
+
     def get_queryset(self, *args, **kwargs):
         return self.base_object.projects.all()
 

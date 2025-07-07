@@ -6,6 +6,7 @@ from django.core.files.base import ContentFile
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from django.views.generic import FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView
 from django_downloadview import VirtualDownloadView
@@ -13,8 +14,10 @@ from django_downloadview import VirtualDownloadView
 from fairdm import plugins
 from fairdm.contrib.import_export.utils import build_metadata
 from fairdm.core.models import Dataset
+from fairdm.forms import Form
 from fairdm.registry import registry
 from fairdm.utils.utils import user_guide
+from fairdm.utils.view_mixins import FairDMModelFormMixin
 
 from .forms import ExportForm, ImportForm
 from .utils import DataPackage, get_export_formats, get_import_formats
@@ -190,6 +193,53 @@ class DataImportView(plugins.Action, BaseImportExportView):
         return self.get_object().get_absolute_url()
 
 
+@plugins.dataset.register()
+class DatasetPublishConfirm(plugins.Action, FairDMModelFormMixin, FormView):
+    name = "get-published"
+    title = _("Get Published")
+    heading_config = {
+        "title": _("Publish your dataset"),
+        "description": _(
+            "Get your dataset formally published and receive a DOI (Digital Object Identifier) for it. This process ensures that your dataset is discoverable and citable in the academic community."
+        ),
+        "links": [
+            {
+                "text": _("Learn more"),
+                "href": user_guide("dataset/get-published"),
+                "icon": "fa-solid fa-book",
+            }
+        ],
+    }
+    menu_item = {
+        "name": _("Publish Dataset"),
+        "icon": "fa-solid fa-file-export",
+    }
+    sections = {
+        "components.form.default",
+    }
+    form_class = Form
+    form_config = {
+        "submit_button": {
+            "text": _("Confirm submission"),
+            "icon": "fa-solid fa-file-export",
+            "class": "btn-success",
+            "size": "lg",
+        },
+    }
+
+    @staticmethod
+    def check(request, instance, **kwargs):
+        user = request.user
+        if not user.is_authenticated:
+            return False
+        return user.has_perm("can_publish", instance) or user.is_data_admin
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form_class()
+        return context
+
+
 @method_decorator(require_POST, name="dispatch")
 class DataExportView(plugins.Action, VirtualDownloadView, BaseImportExportView):
     menu_item = {
@@ -242,8 +292,7 @@ class DatasetPackageDownloadView(SingleObjectMixin, VirtualDownloadView):
         return "application/zip"
 
 
-class MetadataDownloadView(SingleObjectMixin, VirtualDownloadView):
-    model = Dataset
+class MetadataDownloadView(plugins.Action, VirtualDownloadView):
     template_name = "publishing/datacite44.xml"
 
     def get_file(self):

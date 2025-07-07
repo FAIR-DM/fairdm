@@ -23,7 +23,7 @@ class DatasetCreateView(FairDMCreateView):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("datasets"),
+                "href": user_guide("datasets"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -64,7 +64,7 @@ class DatasetListView(FairDMListView):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("datasets"),
+                "href": user_guide("datasets"),
                 "icon": "fa-solid fa-book",
             }
         ],

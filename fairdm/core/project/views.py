@@ -21,7 +21,7 @@ class ProjectCreateView(FairDMCreateView):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("project"),
+                "href": user_guide("project"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -49,7 +49,7 @@ class ProjectListView(FairDMListView):
         "links": [
             {
                 "text": _("Learn More"),
-                "url": user_guide("project"),
+                "href": user_guide("project"),
                 "icon": "fa-solid fa-book",
             },
         ],

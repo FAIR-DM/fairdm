@@ -43,7 +43,7 @@ class Configure(ManageBaseObjectPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("project/configure"),
+                "href": user_guide("project/configure"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -62,7 +62,7 @@ class BasicInformation(UpdateCoreObjectBasicInfo):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("project/basic-information"),
+                "href": user_guide("project/basic-information"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -81,7 +81,7 @@ class Keywords(KeywordsPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("project/keywords"),
+                "href": user_guide("project/keywords"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -99,7 +99,7 @@ class KeyDates(KeyDatesPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("project/key-dates"),
+                "href": user_guide("project/key-dates"),
                 "icon": "fa-solid fa-book",
             }
         ],
@@ -118,7 +118,7 @@ class DeleteProjectPlugin(DeleteObjectPlugin):
         "links": [
             {
                 "text": _("Learn more"),
-                "url": user_guide("project/delete"),
+                "href": user_guide("project/delete"),
                 "icon": "fa-solid fa-book",
             }
         ],
