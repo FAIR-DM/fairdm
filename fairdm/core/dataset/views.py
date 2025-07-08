@@ -78,4 +78,4 @@ class DatasetListView(FairDMListView):
     )
 
     def get_queryset(self):
-        return Dataset.objects.with_contributors()
+        return Dataset.objects.get_visible().with_contributors()

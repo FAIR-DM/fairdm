@@ -52,9 +52,9 @@ class DatasetForm(ModelForm):
 
     def __init__(self, request=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         if license := self.fields.get("license"):
             license.initial = License.objects.filter(name=DEFAULT_LICENSE).first()
         self.request = request
-        if self.request and self.fields.get("project"):
+
+        if self.request and self.request.user.is_authenticated and self.fields.get("project"):
             self.fields["project"].queryset = self.request.user.projects.all()
