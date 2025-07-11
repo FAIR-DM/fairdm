@@ -3,8 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
 from fairdm.contrib.contributors.plugins import ContributorsPlugin
-from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
-from fairdm.contrib.generic.views import UpdateCoreObjectBasicInfo
+from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
 from fairdm.core.plugins import (
     ActivityPlugin,
     DeleteObjectPlugin,
@@ -16,7 +15,7 @@ from fairdm.utils.utils import user_guide
 
 from ..plugins import DataTablePlugin
 from .forms import DatasetForm
-from .models import Dataset, DatasetDate
+from .models import Dataset, DatasetDate, DatasetDescription
 
 DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 
@@ -51,7 +50,7 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
         ],
     }
     form_class = DatasetForm
-    fields = ["image", "project", "reference", "license", "visibility"]
+    fields = ["image", "name", "project", "reference", "license", "visibility"]
 
 
 class DeleteDatasetPlugin(DeleteObjectPlugin):
@@ -70,9 +69,9 @@ class DeleteDatasetPlugin(DeleteObjectPlugin):
     }
 
 
-class UpdateBasicInformation(UpdateCoreObjectBasicInfo):
+class UpdateBasicInformation(DescriptionsPlugin):
     heading_config = {
-        "title": _("Basic Information"),
+        "title": _("Descriptions"),
         "description": _(
             "Provide key details about your dataset, including its name and key descriptions. This information is essential for conveying the dataset's purpose and scope, helping users quickly understand its relevance."
         ),
@@ -84,8 +83,13 @@ class UpdateBasicInformation(UpdateCoreObjectBasicInfo):
             }
         ],
     }
-    form_class = DatasetForm
-    fields = ["name"]
+    # sections = {
+    # "form": "components.form.form-with-inlines",
+    # }
+    # form_class = DatasetForm
+    # fields = ["name"]
+    model = Dataset
+    inline_model = DatasetDescription
 
 
 class DatasetKeywordsPlugin(KeywordsPlugin):

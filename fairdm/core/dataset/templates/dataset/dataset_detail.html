@@ -1,3 +1,5 @@
+{% load martortags %}
+
 <c-layouts.plugin>
   <c-components.image class="ratio ratio-21x9 {{ image_class }}"
                       :image="object.image"
@@ -18,7 +20,7 @@
       <c-pst.components.section id="dataset-{{ description.type }}"
                                 level="2"
                                 title="{{ description.get_type_display }}">
-        {{ description.value|linebreaks }}
+        {{ description.value|safe_markdown }}
       </c-pst.components.section>
     {% empty %}
       <c-text.empty />

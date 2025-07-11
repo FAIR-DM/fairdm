@@ -36,6 +36,7 @@ urlpatterns = [
     path("comments/", include("fluent_comments.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("comments/", include("django_comments_xtd.urls")),
+    path("martor/", include("martor.urls")),
     path("", include("pwa.urls")),  # MUST be an empty string as the URL prefix
     re_path(UUID_RE_PATTERN, DirectoryView.as_view(), name="directory"),
 ]

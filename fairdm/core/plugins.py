@@ -130,11 +130,14 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, TemplateView):
 
 
 class ManageBaseObjectPlugin(plugins.Management, FairDMUpdateView):
-    name = "configure"
-    title = _("Configure")
+    name = "basic"
+    title = _("Basic")
     menu_item = {
-        "name": _("Configure"),
+        "name": _("Basic"),
         "icon": "gear",
+    }
+    heading_config = {
+        "title": _("Basic Information"),
     }
 
 

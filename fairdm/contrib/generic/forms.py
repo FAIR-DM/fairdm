@@ -5,6 +5,7 @@ from django.forms.models import BaseInlineFormSet
 from django.utils.module_loading import import_string
 from django_select2.forms import Select2MultipleWidget, Select2TagWidget
 from extra_views import InlineFormSetFactory
+from martor.fields import MartorFormField
 from research_vocabs.forms import MultiConceptField, TaggableConceptFormMixin
 
 from fairdm.core.models import Dataset
@@ -180,21 +181,25 @@ class DescriptionForm(TypeVocabularyFormMixin):
         - The form dynamically sets the label and help text of "value" based on a vocabulary concept.
     """
 
-    value = forms.CharField(
+    value = MartorFormField(
         required=False,
         label=False,
-        widget=forms.Textarea(
-            attrs={
-                "rows": 5,
-                "x-data": "{}",
-                "x-ref": "textarea",
-                "x-init": "$nextTick(() => $refs.textarea.style.height = $refs.textarea.scrollHeight + 'px')",
-                "x-on:input": "$refs.textarea.style.height = 'auto'; $refs.textarea.style.height = $refs.textarea.scrollHeight + 'px';",
-                "style": "overflow: hidden; resize: none;",
-                "class": "w-100 form-control",
-            }
-        ),
     )
+    # value = forms.CharField(
+    #     required=False,
+    #     label=False,
+    #     widget=forms.Textarea(
+    #         attrs={
+    #             "rows": 5,
+    #             "x-data": "{}",
+    #             "x-ref": "textarea",
+    #             "x-init": "$nextTick(() => $refs.textarea.style.height = $refs.textarea.scrollHeight + 'px')",
+    #             "x-on:input": "$refs.textarea.style.height = 'auto'; $refs.textarea.style.height = $refs.textarea.scrollHeight + 'px';",
+    #             "style": "overflow: hidden; resize: none;",
+    #             "class": "w-100 form-control",
+    #         }
+    #     ),
+    # )
 
     class Meta:
         model = SampleDescription

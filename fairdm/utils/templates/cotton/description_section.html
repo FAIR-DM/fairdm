@@ -1,9 +1,9 @@
-{% load partials %}
+{% load partials martortags %}
 
 {% partialdef description %}
 <c-layouts.page-section :heading="False">
   <div class="fw-semibold">{{ description.get_type_display }}</div>
-  {{ description.value|linebreaks }}
+  {{ description.value|safe_markdown }}
 </c-layouts.page-section>
 {% endpartialdef description %}
 
