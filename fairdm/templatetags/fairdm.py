@@ -5,13 +5,42 @@ from django.db import models
 # import flatattrs
 from django.template.loader import render_to_string
 from literature import utils
+from pint.delegates.formatter.plain import PrettyFormatter
 from quantityfield import settings as qsettings
 
 from fairdm import plugins
 
 register = template.Library()
 ureg = qsettings.DJANGO_PINT_UNIT_REGISTER
-ureg.default_format = ".2f~P"
+# ureg.default_format = ".2f~P"
+
+
+class MyFormatter(PrettyFormatter):
+    default_format = ".2f~P"
+
+    def format_uncertainty(
+        self,
+        uncertainty,
+        unc_spec: str = "",
+        sort_func=None,
+        **babel_kwds,
+    ) -> str:
+        unc_spec = unc_spec.replace("~", "")
+        return format(uncertainty, unc_spec).replace("±", " ± ")
+
+    def format_measurement(
+        self,
+        measurement,
+        meas_spec="",
+        sort_func=None,
+        **babel_kwds,
+    ) -> str:
+        result = super().format_measurement(measurement, meas_spec, sort_func, **babel_kwds)
+        result = result.replace("(", "").replace(")", "")
+        return result
+
+
+ureg.formatter = MyFormatter(registry=ureg)
 
 
 @register.simple_tag(takes_context=True)

@@ -65,12 +65,23 @@ class Measurement(BasePolymorphicModel):
         table_class = "fairdm.core.tables.MeasurementTable"
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.get_value()}"
 
     @classproperty
     def type_of(self):
         # this is required for many of the class methods in PolymorphicMixin
         return Measurement
+
+    def get_value(self):
+        if self.uncertainty is not None:
+            return self.value.plus_minus(self.uncertainty)
+        return self.value
+
+    def print_value(self):
+        value = self.get_value()
+        if hasattr(value, "err"):
+            return f"{value.value} ± {value.err}"
+        return str(value)
 
     def get_absolute_url(self):
         return self.sample.get_absolute_url()
