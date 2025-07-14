@@ -1,0 +1,11 @@
+<div class="d-inline-flex">
+  {% for obj in value.all %}
+    <span>
+      {# djlint:off #}
+      {{ obj.label|capfirst }}{% if not forloop.last %};&nbsp;{% endif %}
+      {# djlint:on #}
+    </span>
+  {% empty %}
+    -
+  {% endfor %}
+</div>
