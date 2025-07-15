@@ -118,9 +118,10 @@ class Dataset(BaseModel):
             ("import_data", "Can import data into dataset"),
         ]
 
-    @property
-    def measurements(self):
-        return Measurement.objects.filter(sample__dataset=self)
+    @cached_property
+    def has_data(self):
+        """Check if the dataset has any samples or measurements."""
+        return self.samples.exists() or self.measurements.exists()
 
     @cached_property
     def bbox(self):
