@@ -222,8 +222,6 @@ class DatasetPublishConfirm(plugins.Action, FairDMModelFormMixin, FormView):
         "submit_button": {
             "text": _("Confirm submission"),
             "icon": "fa-solid fa-file-export",
-            "class": "btn-success",
-            "size": "lg",
         },
     }
 

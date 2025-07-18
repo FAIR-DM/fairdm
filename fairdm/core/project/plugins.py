@@ -3,8 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
 from fairdm.contrib.contributors.plugins import ContributorsPlugin
-from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
-from fairdm.contrib.generic.views import UpdateCoreObjectBasicInfo
+from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
 from fairdm.core.plugins import (
     ActivityPlugin,
     DatasetPlugin,
@@ -16,7 +15,7 @@ from fairdm.core.plugins import (
 from fairdm.utils.utils import user_guide
 
 from .forms import ProjectForm
-from .models import Project, ProjectDate
+from .models import Project, ProjectDate, ProjectDescription
 
 
 class Overview(OverviewPlugin):
@@ -49,13 +48,13 @@ class Configure(ManageBaseObjectPlugin):
         ],
     }
     form_class = ProjectForm
-    fields = ["image", "owner", "visibility"]
+    fields = ["image", "name", "owner", "visibility"]
 
 
 @plugins.project.register
-class BasicInformation(UpdateCoreObjectBasicInfo):
+class BasicInformation(DescriptionsPlugin):
     heading_config = {
-        "title": _("Basic Information"),
+        "title": _("Descriptions"),
         "description": _(
             "Provide key details about your project, including its name and key descriptions. This information is essential for conveying the project's purpose and scope, helping users quickly understand its relevance."
         ),
@@ -67,8 +66,8 @@ class BasicInformation(UpdateCoreObjectBasicInfo):
             }
         ],
     }
-    form_class = ProjectForm
-    fields = ["name"]
+    model = Project
+    inline_model = ProjectDescription
 
 
 @plugins.project.register

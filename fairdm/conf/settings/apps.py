@@ -114,5 +114,6 @@ INSTALLED_APPS = [
     "waffle",
     "guardian",  # for object level permissions
     "django_countries",
+    "martor",  # markdown editor
     *FAIRDM_APPS,
 ]

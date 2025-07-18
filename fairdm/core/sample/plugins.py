@@ -2,13 +2,12 @@ from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
 from fairdm.contrib.contributors.plugins import ContributorsPlugin
-from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
-from fairdm.contrib.generic.views import UpdateCoreObjectBasicInfo
+from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
 from fairdm.core.plugins import ActivityPlugin, ManageBaseObjectPlugin, OverviewPlugin
-from fairdm.core.sample.models import SampleDate
+from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.utils.utils import user_guide
 
-from ..plugins import OverviewPlugin
+from ..utils import documentation_link
 
 
 def check_has_edit_permission(request, instance, **kwargs):
@@ -38,34 +37,45 @@ class SampleManagementMixin:
 # ======== Management Plugins ======== #
 @plugins.sample.register
 class Configure(SampleManagementMixin, ManageBaseObjectPlugin):
-    description = _(
-        "Configure the dataset's metadata, including project, reference, license, and visibility. This is essential for ensuring that the dataset is properly categorized and accessible to the right audience."
-    )
-    learn_more = user_guide("sample/configure")
+    heading_config = {
+        "description": _(
+            "Provide descriptions of your sample to convey its purpose and scope. This information is essential for helping users quickly understand the sample's relevance and applicability to their research or applications."
+        ),
+        "links": [documentation_link("sample/basic-information")],
+    }
     fields = ["image", "name"]
 
 
 @plugins.sample.register
-class BasicInformation(SampleManagementMixin, UpdateCoreObjectBasicInfo):
+class Descriptions(SampleManagementMixin, DescriptionsPlugin):
     name = "basic-information"
     title = _("Basic Information")
-    description = _(
-        "Descriptions provide additional context and information about the dataset, enhancing its discoverability and usability. By adding descriptions, you can help users understand the dataset's content, purpose, and any specific considerations they should be aware of when using it."
-    )
+    heading_config = {
+        "description": _(
+            "Provide descriptions of your sample to convey its purpose and scope. This information is essential for helping users quickly understand the sample's relevance and applicability to their research or applications."
+        ),
+        "links": [documentation_link("sample/key-dates")],
+    }
     learn_more = user_guide("dataset/basic-information")
-    fields = ["name"]
+    inline_model = SampleDescription
 
 
 @plugins.sample.register
 class Keywords(SampleManagementMixin, KeywordsPlugin):
-    description = _(
-        "Providing keywords for your dataset enhances its discoverability, making it easier for others to find and understand the dataset through search engines and data catalogs. Keywords offer a quick summary of the dataset's content, helping users assess its relevance for their own research or application without needing to read through full documentation."
-    )
+    heading_config = {
+        "description": _(
+            "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
+        ),
+        "links": [documentation_link("sample/keywords")],
+    }
 
 
 @plugins.sample.register
 class KeyDates(SampleManagementMixin, KeyDatesPlugin):
-    description = _(
-        "Providing key dates enhances transparency, usability, and trust. These temporal markers help users understand the timeframe the data covers, assess its relevance for time-sensitive analyses, and determine how current or historic the dataset is. Clear documentation of data availability and collection periods also supports reproducibility and proper citation, enabling users to contextualize findings and align datasets from different sources."
-    )
+    heading_config = {
+        "description": _(
+            "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
+        ),
+        "links": [documentation_link("sample/key-dates")],
+    }
     inline_model = SampleDate

@@ -126,6 +126,9 @@ class BaseModel(models.Model):
         return self._meta.verbose_name_plural
 
 
+# WARNING: PolymorphicModel must always be listed first in the inheritance list to ensure
+# proper polymorphic behavior across relations and queries.
+# SEE: https://github.com/jazzband/django-polymorphic/issues/437#issuecomment-677638021
 class BasePolymorphicModel(PolymorphicModel, BaseModel):
     @classonlymethod
     def get_inheritance_chain(cls):

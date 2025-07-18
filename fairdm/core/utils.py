@@ -1,3 +1,7 @@
+from django.utils.translation import gettext as _
+
+from fairdm.utils.utils import user_guide
+
 # UUID_RE_PATTERN = r"^(?P<uuid>[[pdsme][a-zA-Z0-9_-]{22})/$"
 
 UUID_RE_PATTERN = r"^(?P<uuid>[pdsmea-zA-Z0-9_-]{22})/$"
@@ -8,6 +12,17 @@ CORE_PERMISSIONS = [
     ("modify_contributor", "Can modify contributors"),
     ("modify_metadata", "Can modify metadata"),
 ]
+
+
+def documentation_link(path):
+    """
+    Returns a URL to the documentation for the given path.
+    """
+    return {
+        "text": _("Learn more"),
+        "href": user_guide(path),
+        "icon": "fa-solid fa-book",
+    }
 
 
 def get_non_polymorphic_instance(obj):

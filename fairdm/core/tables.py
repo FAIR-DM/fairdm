@@ -1,6 +1,19 @@
 import django_tables2 as tables
+from django.core.exceptions import FieldDoesNotExist
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from easy_icons import icon
+from research_vocabs.fields import ConceptManyToManyField
+
+
+def render_concept_many_to_many(value):
+    """
+    Custom render function for ConceptManyToManyField to display concepts.
+    """
+    if not value:
+        return ""
+
+    return mark_safe(", ".join(f"<a href='{c.uri}'>{c.name}</a>" for c in value.all()))
 
 
 class BaseTable(tables.Table):
@@ -16,30 +29,23 @@ class BaseTable(tables.Table):
     def value_dataset(self, value):
         return value.uuid
 
-    def before_render(self, request):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.base_columns["id"].visible = False
+        self.update_concept_field_render_methods()
+
+    def update_concept_field_render_methods(self):
         """
-        A way to hook into the moment just before rendering the template.
-
-        Can be used to hide a column.
-
-        Arguments:
-            request: contains the `WGSIRequest` instance, containing a `user` attribute if
-                `.django.contrib.auth.middleware.AuthenticationMiddleware` is added to
-                your `MIDDLEWARE_CLASSES`.
-
-        Example::
-
-            class Table(tables.Table):
-                name = tables.Column(orderable=False)
-                country = tables.Column(orderable=False)
-
-                def before_render(self, request):
-                    if request.user.has_perm("foo.delete_bar"):
-                        self.columns.hide("country")
-                    else:
-                        self.columns.show("country")
+        Update the render methods for ConceptManyToManyField in the table.
+        This is called in the constructor to ensure all fields are set up correctly.
         """
-        return
+        for c in self.columns.columns.values():
+            try:
+                field = self._meta.model._meta.get_field(c.accessor)
+            except FieldDoesNotExist:
+                continue
+            if isinstance(field, ConceptManyToManyField):
+                c.render = render_concept_many_to_many
 
 
 class SampleTable(BaseTable):

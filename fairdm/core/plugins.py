@@ -75,14 +75,6 @@ class ActivityPlugin(plugins.Explore, TemplateView):
     template_name = "plugins/activity_stream.html"
 
 
-class Images(plugins.Explore, TemplateView):
-    menu_item = {
-        "name": _("Images"),
-        "icon": "images",
-    }
-    template_name = "plugins/images.html"
-
-
 class OverviewPlugin(plugins.Explore, FieldsetsMixin, TemplateView):
     """
     A plugin for displaying an overview of a project or dataset.
@@ -130,11 +122,14 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, TemplateView):
 
 
 class ManageBaseObjectPlugin(plugins.Management, FairDMUpdateView):
-    name = "configure"
-    title = _("Configure")
+    name = "basic-information"
+    title = _("Basic Information")
     menu_item = {
-        "name": _("Configure"),
+        "name": _("Basic Information"),
         "icon": "gear",
+    }
+    heading_config = {
+        "title": _("Basic Information"),
     }
 
 

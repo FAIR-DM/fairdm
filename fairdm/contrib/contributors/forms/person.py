@@ -3,6 +3,7 @@ from crispy_forms.layout import Column, Layout, Row
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
+from martor.fields import MartorFormField
 
 from fairdm.forms import ModelForm
 
@@ -55,6 +56,11 @@ class UserProfileForm(ModelForm):
     name = forms.CharField(
         label=_("Publishing name"),
         help_text=_("Your full name as you wish it to appear on formal research documents."),
+    )
+    profile = MartorFormField(
+        label=_("Profile"),
+        help_text=_("A short biography or description of yourself. This will be publicly visible."),
+        required=False,
     )
 
     # hopefully this can be removed when this issue is solved: https://github.com/koendewit/django-client-side-image-cropping/issues/15

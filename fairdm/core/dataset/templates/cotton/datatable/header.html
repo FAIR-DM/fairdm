@@ -1,7 +1,8 @@
-{% load crispy_forms_tags fairdm widget_tweaks static partials %}
+{% load crispy_forms_tags fairdm widget_tweaks static partials flex_menu %}
 
 <c-layouts.header :margin_bottom="False">
-  <h1 class="fs-6 mb-0">{{ object_verbose_name_plural }}</h1>
+  {% comment %} {% render_menu collection_menu %} {% endcomment %}
+  <c-datatable.collection-selector />
   <c-components.button.group class="ms-auto">
     {% if filter.form.name %}
       <div>

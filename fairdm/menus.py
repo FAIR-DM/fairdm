@@ -1,13 +1,35 @@
 """For information on how menus work, see django-flex-menu documentation: https://django-flex-menu.readthedocs.io/en/latest/"""
 
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from flex_menu import Menu, MenuItem
 
+from fairdm import plugins
 from fairdm.registry import registry
 
 
+def resolve_collection_view(view_name):
+    """
+    Resolve the collection view for the given instance.
+    This function is used to determine the view name for the collection of a specific type.
+    """
+
+    def func(request, instance=None, **kwargs):
+        if not instance:
+            return reverse(view_name)
+        return plugins.reverse(instance, view_name)
+
+    return func
+
+
 def generate_menu_items(items):
-    return [SubMenuItem(item["verbose_name_plural"], view_name=f"{item['slug']}-collection") for item in items]
+    return [
+        SubMenuItem(
+            item["verbose_name_plural"],
+            url=resolve_collection_view(f"{item['slug']}-collection"),
+        )
+        for item in items
+    ]
 
 
 def get_sample_menu_items():
@@ -49,6 +71,7 @@ class NavLink(MenuItem):
 class SubMenu(Menu):
     """A submenu that can contain other menu items."""
 
+    root_template = "cotton/sections/navbar/test/nav-dropdown.html"
     template = "cotton/sections/navbar/test/nav-dropdown.html"
     dropdown_class = "dropdown dropend"
     show_toggle = True
@@ -83,7 +106,7 @@ SiteNavigation = Menu(
     root_template="fairdm/menus/site_navigation.html",
     template="fairdm/menus/database/menu.html",
     children=[
-        NavLink(_("Home"), view_name="home"),  # type: ignore
+        # NavLink(_("Home"), view_name="home"),  # type: ignore
         NavMenu(
             _("Projects"),
             description=_("Discover planned, active, and historic research projects shared by our community members."),

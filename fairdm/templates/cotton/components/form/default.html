@@ -5,7 +5,7 @@
 {% else %}
   {% crispy formset %}
 {% endif %}
-{% if actions %}<c-components.form.actions :attrs="submit_button" />{% endif %}
+{% if actions %}<c-components.form.actions />{% endif %}
 {% comment %} The following script ensures that select2 widgets are re-initialized with the correct width if they are within a bootstrap tab. {% endcomment %}
 <script>
   $(function() {

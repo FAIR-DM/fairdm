@@ -4,6 +4,7 @@ from django_tables2.views import SingleTableMixin
 
 from fairdm.contrib.import_export.utils import export_choices
 from fairdm.layouts import ApplicationLayout
+from fairdm.menus import SiteNavigation
 from fairdm.registry import registry
 from fairdm.views import FairDMListView
 
@@ -19,6 +20,7 @@ class DataTableView(ApplicationLayout, SingleTableMixin, FairDMListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
+        context["collection_menu"] = SiteNavigation.get("Data Collections")
         context["export_choices"] = export_choices
         return context
 

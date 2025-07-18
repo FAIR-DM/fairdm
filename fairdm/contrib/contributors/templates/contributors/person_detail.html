@@ -1,3 +1,5 @@
+{% load martortags %}
+
 <c-layouts.plugin>
   <c-slot name="actions">
     <c-components.button icon="share"
@@ -25,6 +27,6 @@
       {% comment %} <c-contributor.socials /> {% endcomment %}
     </div>
   </div>
-  {% if object.profile %}{{ object.profile|linebreaks }}{% endif %}
+  {% if object.profile %}{{ object.profile|safe_markdown }}{% endif %}
 </c-layouts.plugin>
 <c-modals.share />

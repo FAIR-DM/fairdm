@@ -15,6 +15,9 @@ class KeywordsPlugin(plugins.Management, FairDMUpdateView):
         "name": _("Keywords"),
         "icon": "keywords",
     }
+    heading_config = {
+        "title": _("Keywords"),
+    }
     form_class = KeywordForm
 
 
@@ -25,8 +28,19 @@ class DescriptionsPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSet
         "name": _("Descriptions"),
         "icon": "description",
     }
+    heading_config = {
+        "title": _("Descriptions"),
+    }
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get("formset", None)
+        form.helper = FormHelper()
+        form.helper.form_id = "descriptions-form"
+        context["form"] = form
+        return context
 
 
 class KeyDatesPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSetView):
@@ -35,6 +49,9 @@ class KeyDatesPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSetView
     menu_item = {
         "name": _("Key Dates"),
         "icon": "calendar",
+    }
+    heading_config = {
+        "title": _("Key dates"),
     }
     form_class = DateForm
     formset_class = CoreInlineFormset

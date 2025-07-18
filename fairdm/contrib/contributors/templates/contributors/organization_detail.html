@@ -1,6 +1,8 @@
 <c-layouts.plugin>
-  {% comment %} NEED TO SET A MAX HEIGHT HERE {% endcomment %}
-  <c-org.avatar :aspect_ratio="False" class="py-3" />
+  <c-org.avatar :aspect_ratio="False"
+                class="py-3 object-fit-contain"
+                img_style="max-height: 200px"
+                :organization="base_object" />
   <div class="mb-3">
     <c-text.heading text="{{ object.name }}" level="1" compact />
     {% comment %} <c-contributor.person.identifier /> {% endcomment %}

@@ -1,15 +1,16 @@
 {% load easy_icons easy_thumbnails_tags %}
 
-<c-vars aspect_ratio="66%" class />
+<c-vars aspect_ratio="66%" class organization />
 <div class="{{ class }}">
   <div class="{% if aspect_ratio %}ratio{% endif %} "
        {% if aspect_ratio %}style="--bs-aspect-ratio: {{ aspect_ratio }}"{% endif %}
        {{ attrs }}>
-    {% if not contributor.image %}
+    {% if not organization.image %}
       {% icon "organization_svg" width="100%" height="unset" class="bg-secondary-subtle text-light" %}
     {% else %}
-      <img src="{{ contributor.image.url }}"
-           class="object-fit-contain px-1" />
+      <img src="{{ organization.image.url }}"
+           class="object-fit-contain px-1"
+           style="{{ img_style }}" />
     {% endif %}
   </div>
 </div>
