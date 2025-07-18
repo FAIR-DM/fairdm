@@ -1,0 +1,29 @@
+{% load fairdm %}
+
+<c-components.dropdown class="fs-6 fw-semibold border-0"
+                       text="{{ object_verbose_name_plural }}">
+  <c-bs5.dropdown.header text="{% trans "Sample Collections" %}" />
+  {% for obj in registry.samples %}
+    {% with obj.slug|add:"-collection" as view_name %}
+      {% if base_object %}
+        <c-components.dropdown.item text="{{ obj.verbose_name_plural }}"
+                                    href="{% plugin_url view_name %}" />
+      {% else %}
+        <c-components.dropdown.item text="{{ obj.verbose_name_plural }}"
+                                    href="{% url view_name %}" />
+      {% endif %}
+    {% endwith %}
+  {% endfor %}
+  <c-bs5.dropdown.header text="{% trans "Measurement Collections" %}" />
+  {% for obj in registry.measurements %}
+    {% with obj.slug|add:"-collection" as view_name %}
+      {% if base_object %}
+        <c-components.dropdown.item text="{{ obj.verbose_name_plural }}"
+                                    href="{% plugin_url view_name %}" />
+      {% else %}
+        <c-components.dropdown.item text="{{ obj.verbose_name_plural }}"
+                                    href="{% url view_name %}" />
+      {% endif %}
+    {% endwith %}
+  {% endfor %}
+</c-components.dropdown>
