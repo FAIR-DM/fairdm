@@ -26,7 +26,8 @@ def check_has_edit_permission(request, instance, **kwargs):
 
     if instance:
         perm = f"change_{instance._meta.model_name}"
-        return request.user.has_perm(perm, instance)
+        has_perm = request.user.has_perm(perm, instance)
+        return has_perm
 
 
 def sample_check_has_edit_permission(request, instance, **kwargs):
@@ -211,7 +212,7 @@ class PluginRegistry:
                             name=_(f"Manage {self.verbose_name}"),
                             icon="gear",
                             check=self.management_check,
-                            view_name=f"{self.name}:configure",
+                            view_name=f"{self.name}:basic-information",
                         )
                     ],
                 ),

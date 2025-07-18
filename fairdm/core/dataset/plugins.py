@@ -37,7 +37,6 @@ plugins.dataset.register(
 @plugins.dataset.register
 class ManageDatasetPlugin(ManageBaseObjectPlugin):
     heading_config = {
-        "title": _("Configure Dataset"),
         "description": _(
             "Configure your dataset's metadata to ensure it's properly categorized and accessible to the right audience."
         ),
@@ -69,7 +68,7 @@ class DeleteDatasetPlugin(DeleteObjectPlugin):
     }
 
 
-class UpdateBasicInformation(DescriptionsPlugin):
+class EditDescriptions(DescriptionsPlugin):
     heading_config = {
         "title": _("Descriptions"),
         "description": _(
@@ -83,16 +82,11 @@ class UpdateBasicInformation(DescriptionsPlugin):
             }
         ],
     }
-    # sections = {
-    # "form": "components.form.form-with-inlines",
-    # }
-    # form_class = DatasetForm
-    # fields = ["name"]
     model = Dataset
     inline_model = DatasetDescription
 
 
-class DatasetKeywordsPlugin(KeywordsPlugin):
+class EditKeywords(KeywordsPlugin):
     heading_config = {
         "title": _("Keywords"),
         "description": _(
@@ -127,8 +121,8 @@ class EditDates(KeyDatesPlugin):
 
 
 plugins.dataset.register(
-    UpdateBasicInformation,
-    KeywordsPlugin,
+    EditDescriptions,
+    EditKeywords,
     EditDates,
     DeleteDatasetPlugin,
 )

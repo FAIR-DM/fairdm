@@ -14,9 +14,6 @@ from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 
 
-# WARNING: PolymorphicModel must always be listed first in the inheritance list to ensure
-# proper polymorphic behavior across relations and queries.
-# SEE: https://github.com/jazzband/django-polymorphic/issues/437#issuecomment-677638021
 class Measurement(BasePolymorphicModel):
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Measurement")
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Measurement")
