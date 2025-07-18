@@ -1,11 +1,13 @@
 {% load martortags %}
 
 <c-layouts.plugin>
-  <c-components.image class="ratio ratio-21x9 {{ image_class }}"
-                      :image="object.image"
-                      alt="{{ object }}"
-                      width="100%"
-                      height="100%" />
+  {% if object.image %}
+    <c-components.image class="ratio ratio-21x9 {{ image_class }}"
+                        :image="object.image"
+                        alt="{{ object }}"
+                        width="100%"
+                        height="100%" />
+  {% endif %}
   <c-pst.components.section id="dataset-title"
                             class="mt-4"
                             title="{{ object.title }}"

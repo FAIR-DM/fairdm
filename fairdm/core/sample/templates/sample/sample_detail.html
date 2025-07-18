@@ -1,18 +1,18 @@
 {% load partials render_fields %}
 
-<c-layouts.plugin>
-  {% comment %} <c-slot name="actions">
-    <c-components.link icon="edit" text="{% trans "Edit" %}" href="{% url "description-formset" uuid=object.uuid %}" />
-  </c-slot> {% endcomment %}
-  <c-components.image class="ratio ratio-21x9 {{ image_class }}"
-                      :image="object.image"
-                      alt="{{ object }}"
-                      width="100%"
-                      height="100%" />
+<c-layouts.plugin content_class="pb-5">
+  {% if object.image %}
+    <c-components.image class="ratio ratio-21x9 {{ image_class }}"
+                        :image="object.image"
+                        alt="{{ object }}"
+                        width="100%"
+                        height="100%" />
+  {% endif %}
   <c-pst.components.section id="title"
                             class="mt-4"
-                            title="{{ object.verbose_name }}"
+                            title="{{ object }} - {{ object.verbose_name }}"
                             level="1">
+    <p>{{ object.config.description }}</p>
     {% render_fieldsets object object.config.get_fieldsets %}
   </c-pst.components.section>
   <hr style="--pst-color-border: var(--bs-gray-500);" />
@@ -21,9 +21,14 @@
                             level="2"
                             :visible="object.measurements.exists">
     <div class="mt-3">
-      {% for measurement in object.measurements.all %}
-        <div class="mb-3">{% include measurement.get_template_name with obj=measurement %}</div>
-      {% endfor %}
+      <c-bs5.accordion id="measurement">
+        {% for measurement in object.measurements.all %}
+          <c-bs5.accordion.item id="{{ measurement.uuid }}"
+                                label="{{ measurement.verbose_name }}: {{ measurement.get_value }}">
+            {% include measurement.get_template_name with obj=measurement %}
+          </c-bs5.accordion.item>
+        {% endfor %}
+      </c-bs5.accordion>
     </div>
   </c-pst.components.section>
 </c-layouts.plugin>
