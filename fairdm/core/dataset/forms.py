@@ -1,6 +1,9 @@
 from django import forms
 from django.conf import settings
+from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
+from django_addanother.widgets import AddAnotherWidgetWrapper
+from django_select2.forms import ModelSelect2Widget
 from licensing.models import License
 
 from fairdm.core.models import Project
@@ -14,7 +17,7 @@ DEFAULT_LICENSE = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
 class DatasetForm(ModelForm):
     name = forms.CharField(
         label=_("Name"),
-        help_text=_("The name of your dataset should be descriptive and reflect it's purpose and content."),
+        help_text=_("Give your dataset a name that is descriptive and reflects it's purpose and content."),
         required=True,
     )
     image = forms.ImageField(
@@ -34,11 +37,21 @@ class DatasetForm(ModelForm):
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(),
         label=_("Project"),
-        help_text=_("Does this dataset belong to a research project? If so, select the project here."),
+        help_text=_(
+            "If the dataset belongs to a specific research project, you can select it here. Use the plus icon to quickly create a new project."
+        ),
         required=False,
+        widget=AddAnotherWidgetWrapper(
+            ModelSelect2Widget(
+                search_fields=["name__icontains"],
+            ),
+            reverse_lazy("project-create"),
+        ),
     )
     license = forms.ModelChoiceField(
         queryset=License.objects.all(),
+        label=_("License"),
+        help_text=_("Select a license for this dataset. You may change this up until you publish the dataset."),
     )
     doi = forms.CharField(
         label=_("DOI"),

@@ -129,7 +129,9 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
 
     form_config = {
         "submit_button": {
-            "text": _("Save and Enter"),
+            "text": _("Create & enter"),
+            "icon": "arrow-right",
+            "icon_position": "end",
         },
     }
 
