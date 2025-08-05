@@ -3,12 +3,7 @@ INSTALLED_APPS = [
     "adminactions",
     "admin_site_search",
     "admin_extra_buttons",
-    # "modeltranslation",
     "fairdm.contrib.admin.apps.FairDMAdminConfig",
-    # "admin_tools",
-    # "admin_tools.theming",
-    # "admin_tools.menu",
-    # "admin_tools.dashboard",
     "dal",
     "dal_select2",
     # DJANGO CORE
@@ -42,7 +37,6 @@ INSTALLED_APPS = [
     "django_comments_xtd",
     "django_comments",
     "polymorphic",
-    "polymorphic_treebeard",
     "treebeard",
     "parler",
     # AUTHENTICATION AND USERS
@@ -64,13 +58,11 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "rest_framework",
     # UTILITIES
-    "django_better_admin_arrayfield",
-    "pwa",  # github.com/silviolleite/django-pwa
+    # "django_better_admin_arrayfield",
     "compressor",
     "dbbackup",
-    "django_bleach",  # for sanitizing html input
     # "django_celery_beat",  # celery based task manager
-    "django_cotton.apps.SimpleAppConfig",
+    "django_cotton",
     "cotton_bs5",
     "django_extensions",
     "django_setup_tools",
@@ -80,9 +72,7 @@ INSTALLED_APPS = [
     "flex_menu",
     "jsonfield_toolkit",
     "meta",  # for seo optimization
-    "neapolitan",
     "sekizai",
-    "template_partials.apps.SimpleAppConfig",
     # OTHERS
     "solo",  # singleton model for storing dynamic global variables in the DB
     "django_contact_form",  # for contact forms
@@ -98,13 +88,11 @@ INSTALLED_APPS = [
     "django_social_share",  # easy links to social sharing sites
     "django_htmx",
     "webpack_loader",
-    "imagekit",
     "literature",
     # ADMIN TOOLS
     "image_uploader_widget",
-    # "formset",
     "licensing",
-    "laboratory",
+    # "laboratory",
     "research_vocabs",
     "ordered_model",
     "taggit",

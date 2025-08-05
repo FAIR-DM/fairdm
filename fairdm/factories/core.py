@@ -5,7 +5,7 @@ from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyChoice
 from licensing.models import License
 
-from fairdm.models import Dataset, Measurement, Project, Sample
+from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.utils.choices import Visibility
 
 from .generic import Dates, Descriptions

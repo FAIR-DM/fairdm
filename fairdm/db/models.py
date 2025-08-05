@@ -7,7 +7,6 @@ from django.db.models import __all__ as django_models_all
 
 # from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext as _
-from django_bleach.models import BleachField as TextField
 from django_lifecycle import LifecycleModelMixin
 from polymorphic import managers
 from polymorphic.base import PolymorphicModelBase
@@ -165,7 +164,6 @@ __all__ = [
     "PositiveIntegerQuantityField",
     "QuantityField",
     "QuerySet",
-    "TextField",
     "FairDMBase",
     "PartialDateField",
 ]

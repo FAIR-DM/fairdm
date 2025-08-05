@@ -20,7 +20,6 @@ def fairdm(request):
             "database": Database.get_solo(),
             "authority": Authority.get_solo(),
         },
-        "features": settings.FEATURE_FLAGS,
         "theme_options": settings.FAIRDM_CONFIG,
     }
     context["json_config"] = json.dumps(context["config"])

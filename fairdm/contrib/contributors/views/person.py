@@ -7,7 +7,6 @@ from django.db.models import Count, Prefetch
 from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
-from formset.views import EditCollectionView
 from meta.views import MetadataMixin
 
 from fairdm.views import FairDMCreateView, FairDMListView, FairDMTemplateView
@@ -149,13 +148,6 @@ class ActiveMemberListView(ContributorListView):
             "They are engaged with the community and may be involved in ongoing projects or discussions."
         ),
     }
-
-
-class AccountEdit(MetadataMixin, LoginRequiredMixin, EditCollectionView):
-    template_name = "user/settings/base.html"
-
-    def get_object(self):
-        return self.request.user
 
 
 class CodeOfConduct(MetadataMixin, LoginRequiredMixin, TemplateView):

@@ -218,31 +218,6 @@ class RelatedObjectMixin:
         return context
 
 
-class HTMXMixin:
-    """
-    Modifies template selection to support HTMX requests by appending a fragment identifier.
-
-    This mixin depends on `django-template-partials` and requires the correct fragment to be
-    specified in the template for it to function properly.
-
-    If the request is an HTMX request, the mixin retrieves the `fragment` parameter from the
-    request's GET data (defaulting to `"plugin"`) and appends `#fragment` to each template name.
-    This enables rendering specific template sections instead of full templates.
-
-    When the request is not from HTMX, the mixin falls back to the standard template selection process.
-    """
-
-    htmx_fragment = "plugin"
-
-    def get_template_names(self, template_names=None):
-        if template_names is None:
-            template_names = super().get_template_names()
-        if self.request.htmx:
-            fragment = self.request.GET.get("fragment", self.htmx_fragment)
-            template_names = [f"{t}#{fragment}" for t in template_names]
-        return template_names
-
-
 class CRUDView(View):
     """Experimental class for generating CRUD views dynamically based on a model."""
 

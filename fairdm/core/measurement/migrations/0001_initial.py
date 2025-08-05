@@ -3,7 +3,7 @@
 import auto_prefetch
 import django.db.models.deletion
 import django.db.models.manager
-import django_bleach.models
+
 import django_lifecycle.mixins
 import easy_thumbnails.fields
 import fairdm.db.fields
@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                         max_length=50,
                     ),
                 ),
-                ("value", django_bleach.models.BleachField()),
+                ("value", models.TextField()),
             ],
             options={
                 "verbose_name": "description",

@@ -4,7 +4,6 @@ from crispy_forms.layout import Layout, Submit
 from django import forms
 from django.utils.translation import gettext as _
 from django_select2.forms import Select2MultipleWidget, Select2Widget
-from formset.widgets import UploadedFileInput
 
 from fairdm.utils.choices import iso_639_1_languages
 
@@ -77,11 +76,6 @@ class ContributionForm(forms.ModelForm):
 
 class ContributorForm(forms.ModelForm):
     image = forms.ImageField(
-        widget=UploadedFileInput(
-            attrs={
-                "max-size": 1024 * 1024,
-            }
-        ),
         help_text="Please do not upload files larger than 1MB",
         required=False,
     )

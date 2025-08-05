@@ -4,7 +4,7 @@ import auto_prefetch
 import django.db.models.deletion
 import django.db.models.manager
 import django.utils.timezone
-import django_bleach.models
+
 import django_lifecycle.mixins
 import easy_thumbnails.fields
 import fairdm.contrib.contributors.models
@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
                         verbose_name="alternative names",
                     ),
                 ),
-                ("profile", django_bleach.models.BleachField(blank=True, null=True)),
+                ("profile", models.TextField(blank=True, null=True)),
                 (
                     "links",
                     jsonfield_toolkit.models.ArrayField(

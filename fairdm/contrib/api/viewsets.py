@@ -8,7 +8,7 @@ from rest_pandas import PandasMixin
 
 from fairdm.contrib.api.access_policies import CoreAccessPolicy
 from fairdm.contrib.api.utils import api_doc
-from fairdm.models import Dataset, Measurement, Project, Sample
+from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.registry import registry
 
 from . import serializers

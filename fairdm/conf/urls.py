@@ -10,7 +10,6 @@ from django.views.i18n import JavaScriptCatalog
 from fairdm.core.utils import UUID_RE_PATTERN
 from fairdm.utils.views import DirectoryView, HomeView
 
-# from .admin import admin_measurement_view
 # register all adminactions
 actions.add_to_site(site)
 
@@ -32,12 +31,10 @@ urlpatterns = [
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
     path("activity/", include("actstream.urls")),
-    path("admin_tools/", include("admin_tools.urls")),
     path("comments/", include("fluent_comments.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("comments/", include("django_comments_xtd.urls")),
     path("martor/", include("martor.urls")),
-    path("", include("pwa.urls")),  # MUST be an empty string as the URL prefix
     re_path(UUID_RE_PATTERN, DirectoryView.as_view(), name="directory"),
 ]
 

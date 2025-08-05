@@ -36,6 +36,7 @@ def setup(apps=[], base_dir=None):
         # print("Loading development settings")
         # read any override config from the .env file
         environ.Env.read_env("stack.development.env")
+        environ.Env.read_env("stack.env")
         logger.warning("Using development settings")
         # env("DJANGO_INSECURE", default=True)
         # os.environ.setdefault("DJANGO_INSECURE", "True")

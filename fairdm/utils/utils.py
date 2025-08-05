@@ -1,7 +1,6 @@
 from crispy_forms.layout import HTML, Column, Fieldset, Layout, Row
 from django.apps import apps
 from django.conf import settings
-from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 
@@ -28,11 +27,6 @@ def get_setting(name, key):
     """Return a setting from the Django settings module."""
     settings_dict = getattr(settings, f"FAIRDM_{name}")
     return settings_dict.get(key)
-
-
-def feature_is_enabled(feature):
-    """Returns True if the given feature is enabled in settings.FEATURE_FLAGS."""
-    return settings.FEATURE_FLAGS.get(feature, False)
 
 
 def get_subclasses(model):
@@ -93,36 +87,6 @@ def get_inheritance_chain(model, base_model):
         if hasattr(base, "_meta") and issubclass(base, base_model):
             chain.append(base)
     return chain
-
-
-def choices_from_qs(qs, field):
-    """Return a list of choices from a queryset"""
-    return [(k, k) for k in (qs.order_by(field).values_list(field, flat=True).distinct())]
-
-
-def get_choices(model, field):
-    """Return a list of choices from a model"""
-
-    def func():
-        return [(k, k) for k in (model.objects.order_by(field).values_list(field, flat=True).distinct())]
-
-    return func
-
-
-def max_length_from_choices(choices):
-    """Return the max length from a list of choices"""
-    return max([len(choice[0]) for choice in choices])
-
-
-def inherited_choices_factory(name, *args):
-    """Create a TextChoices class from an XMLSchema element."""
-    cls_attrs = {}
-    for choice_class in args:
-        attrs = {a: getattr(choice_class, a) for a in vars(choice_class) if not a.startswith("_")}
-        for key, choice in attrs.items():
-            cls_attrs[key] = choice.value, choice.label
-
-    return models.TextChoices(f"{name}Choices", cls_attrs)
 
 
 def get_model_class(uuid: str):

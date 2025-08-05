@@ -1,7 +1,7 @@
 import pytest
 
+from fairdm.core.models import Sample
 from fairdm.factories import SampleFactory
-from fairdm.models import Sample
 
 
 @pytest.fixture

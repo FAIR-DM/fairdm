@@ -5,7 +5,7 @@ from rest_framework.serializers import HyperlinkedIdentityField, HyperlinkedMode
 
 from fairdm.contrib.identity.models import Authority, Database
 from fairdm.contrib.location.models import Point
-from fairdm.models import Dataset, Project, Sample
+from fairdm.core.models import Dataset, Project, Sample
 
 from .utils import BaseSerializerMixin
 

@@ -10,10 +10,6 @@
 
 {% block content %}
   <c-layouts.standard>
-    {% block title %}
-      <c-text.title text="{{ config.site_name }}" />
-    {% endblock title %}
-
     <c-text.heading level="2" text="{% trans "Explore" %}" />
     <c-fdm.dashboard.slider id="explore">
       {% for item in theme_options.home.explore %}<c-component :is="item" />{% endfor %}

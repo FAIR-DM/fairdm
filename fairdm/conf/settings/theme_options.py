@@ -11,7 +11,6 @@ FAIRDM_CONFIG = {
         "create": [
             "fdm.dashboard.create-project",
             "fdm.dashboard.create-dataset",
-            "fdm.dashboard.digitize",
         ],
         "more": [
             "fdm.dashboard.login-signup",
@@ -19,7 +18,6 @@ FAIRDM_CONFIG = {
             "fdm.dashboard.fairdm-framework",
         ],
     },
-    "welcome_message": "Welcome to FairDM!",
     "external_links": [
         {
             "url": "https://fairdm.org/",

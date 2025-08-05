@@ -7,7 +7,7 @@ fairdm.setup(
     ]
 )
 
-ROOT_URLCONF = "fairdm.urls"
+ROOT_URLCONF = "fairdm.conf.urls"
 
 # DEBUG_TOOLBAR_CONFIG = {
 #     # "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],

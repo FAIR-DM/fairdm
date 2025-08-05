@@ -60,23 +60,11 @@ TEMPLATES = [
             ],
             "builtins": [
                 "django.templatetags.i18n",
-                "django_cotton.templatetags.cotton",
                 "easy_icons.templatetags.easy_icons",
             ],
         },
     },
 ]
-# for django-template-partials to work alongside django-admin-tools (for some reason, wrap_loaders is not working)
-default_loaders = [
-    "admin_tools.template_loaders.Loader",
-    "django_cotton.cotton_loader.Loader",
-    "django.template.loaders.filesystem.Loader",
-    "django.template.loaders.app_directories.Loader",
-]
-cached_loaders = [("django.template.loaders.cached.Loader", default_loaders)]
-partial_loaders = [("template_partials.loader.Loader", cached_loaders)]
-
-TEMPLATES[0]["OPTIONS"]["loaders"] = partial_loaders
 
 
 MIDDLEWARE = [
@@ -166,11 +154,6 @@ DJANGO_SETUP_TOOLS = {
     },
 }
 
-
-FEATURE_FLAGS = {
-    "ALLOW_DISCUSSIONS": env("FAIRDM_ALLOW_DISCUSSIONS"),
-    "SHOW_DATA_TABLES": env("FAIRDM_SHOW_DATA_TABLES"),
-}
 
 # DAC_FLOATING_MENU = "fairdm/menus/user_offcanvas.html"
 
