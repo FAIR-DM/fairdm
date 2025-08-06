@@ -107,8 +107,13 @@ SPECTACULAR_SETTINGS = {
     "PREPROCESSING_HOOKS": ["fairdm.contrib.api.utils.public_api"],
 }  # type: ignore[var-annotated]
 
+
+SPECTACULAR_SETTINGS["SERVERS"] = []  # F405
+
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
 CORS_URLS_REGEX = r"^/api/.*$"
 
-
-SPECTACULAR_SETTINGS["SERVERS"] = []  # F405
+CORS_ALLOWED_ORIGINS = [
+    "https://cdnjs.cloudflare.com",
+    "https://cdn.jsdelivr.net",
+]

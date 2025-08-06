@@ -11,6 +11,7 @@ from fairdm.contrib.api.utils import api_doc
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.registry import registry
 
+# from django_comments_xtd.api
 from . import serializers
 from .serializers import DatasetSerializer, ProjectSerializer, SampleSerializer
 

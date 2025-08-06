@@ -23,6 +23,8 @@
       {% endcompress %}
       {% django_htmx_script %}
       {{ config|json_script:"database-identity" }}
+      <script type="text/javascript"
+              src="{% url 'javascript-catalog' %}"></script>
       <script src="{% static "js/multi-level-dropdown.js" %}"
               defer></script>
       {% comment %} <!-- Or for RTL support -->
