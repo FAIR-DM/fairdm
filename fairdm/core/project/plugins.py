@@ -8,7 +8,6 @@ from fairdm.core.plugins import (
     ActivityPlugin,
     DatasetPlugin,
     DeleteObjectPlugin,
-    DiscussionPlugin,
     ManageBaseObjectPlugin,
     OverviewPlugin,
 )
@@ -26,7 +25,6 @@ plugins.project.register(
     Overview,
     ContributorsPlugin,
     DatasetPlugin,
-    DiscussionPlugin,
     ActivityPlugin,
 )
 

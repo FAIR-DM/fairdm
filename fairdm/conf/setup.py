@@ -2,11 +2,31 @@ import inspect
 import logging
 import os
 from pathlib import Path
-
+import importlib.util
+import os
 import environ
 from split_settings.tools import include
 
 logger = logging.getLogger(__name__)
+
+
+def get_module_path(module_name: str) -> str:
+    """
+    Given a module name like 'myapp.utils.helpers', return the file system path
+    to the .py file.
+
+    Raises:
+        ModuleNotFoundError: if the module can't be found.
+        ValueError: if the module is a package (i.e. __init__.py).
+    """
+    spec = importlib.util.find_spec(module_name)
+    if spec is None or spec.origin is None:
+        raise ModuleNotFoundError(f"Module '{module_name}' not found")
+
+    if spec.submodule_search_locations:
+        raise ValueError(f"'{module_name}' is a package, not a module")
+
+    return os.path.abspath(spec.origin)
 
 
 def setup(apps=[], base_dir=None):

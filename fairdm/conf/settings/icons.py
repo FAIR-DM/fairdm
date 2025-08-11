@@ -25,7 +25,6 @@ EASY_ICONS = {
         "chart": "fas fa-chart-bar",
         "close": "fas fa-times",
         "circle-half": "fas fa-circle-half-stroke",
-        "comments": "fas fa-comments",
         "community": "fas fa-users",
         "contributors": "fas fa-user-friends",
         "dashboard": "dashboard.svg",

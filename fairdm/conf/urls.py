@@ -32,7 +32,6 @@ urlpatterns = [
     path("select2/", include("django_select2.urls")),
     path("activity/", include("actstream.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
-    path("comments/", include("django_comments_xtd.urls")),
     path("martor/", include("martor.urls")),
     re_path(UUID_RE_PATTERN, DirectoryView.as_view(), name="directory"),
 ]

@@ -200,10 +200,6 @@ class CustomMenu(Menu):
                     "fairdm.contrib.contributors.models.Organization",
                 ),
             ),
-            items.ModelList(
-                _("Comments"),
-                models=("django_comments_xtd.models.*",),
-            ),
             items.MenuItem(_("Reference Manager"), reverse("literature-list")),
             # items.AppList(_("Administration"), models=("django.contrib.*",)),
             # items.MenuItem(icon("invite"), reverse("admin:invitations_invitation_add")),
