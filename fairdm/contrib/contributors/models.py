@@ -141,8 +141,6 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         help_text=_("The date and time this record was last modified."),
     )
 
-    tracker = FieldTracker()
-
     class Meta:  # type: ignore
         ordering = ["name"]
         verbose_name = _("contributor")
@@ -243,6 +241,7 @@ class Person(AbstractUser, Contributor):
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     username = Contributor.__str__
+    tracker = FieldTracker()
 
     def __str__(self):
         return self.name
@@ -453,6 +452,8 @@ class Organization(Contributor):
         null=True,
         blank=True,
     )
+
+    tracker = FieldTracker()
 
     class Meta:
         verbose_name = _("organization")
