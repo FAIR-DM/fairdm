@@ -33,9 +33,6 @@ INSTALLED_APPS = [
     "fairdm.contrib.identity",
     "actstream",
     # "configuration",
-    # COMMENTING FRAMEWORK
-    "django_comments_xtd",
-    "django_comments",
     "polymorphic",
     "treebeard",
     "parler",

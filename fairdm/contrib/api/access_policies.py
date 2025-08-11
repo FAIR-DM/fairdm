@@ -7,13 +7,12 @@ class CoreAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["<safe_methods>"],
-            "principal": ["authenticated", "anonymous"],
+            "principal": ["anonymous"],
             "effect": "allow",
         },
         {
-            # "action": ["*"],
-            "action": ["<safe_methods>"],
-            "principal": ["admin", "staff", "group:Reviewer"],
+            "action": ["*"],
+            "principal": ["authenticated"],
             "effect": "allow",
         },
     ]

@@ -7,7 +7,7 @@ THUMBNAIL_SUBDIR = "thumbs"
 """"""
 
 THUMBNAIL_ALIASES = {
-    "contributors.Contributor": {
+    "contributors": {
         "thumb": {"size": (48, 48), "crop": False},
         "small": {"size": (150, 150), "crop": False},
         "medium": {"size": (600, 600), "crop": False},

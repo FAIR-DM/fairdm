@@ -44,7 +44,6 @@ django-downloadview = "^2.3.0"
 django-entangled = "^0.5.4"
 django-environ = "^0.10.0"
 django-filter = "^24.3"
-django-fluent-comments = {extras = ["threadedcomments"], version = "^3.0"}
 django-htmx = "^1.16.0"
 django-image-uploader-widget = "^0.5.0"
 django-import-export = "^4.0.3"
@@ -52,7 +51,6 @@ django-invitations = "^2.0.0"
 django-libsass = "^0.9"
 django-lockdown = "^4.0.0"
 django-meta = "^2.1.0"
-django-migration-zero = "^2.0.0"
 django-model-utils = "^4.3.1"
 django-organizations = "^2.1.0"
 django-parler = "^2.3"
@@ -97,11 +95,10 @@ django-widget-tweaks = "^1.5.0"
 tablib = {extras = ["all"], version = "^3.7.0"}
 rest-pandas = "^1.1.0"
 django-parler-rest = "^2.2"
-django-comments-xtd = {git = "https://github.com/danirus/django-comments-xtd"}
 django-pandas = "^0.6.7"
 django-ordered-model = "^3.7.4"
 django-taggit = "^6.1.0"
-django-waffle = "^4.2.0"
+django-waffle = "^5.0.0"
 django-addanother = "^2.2.2"
 cotton-bs5 = {git = "https://github.com/SamuelJennings/cotton-bs5"}
 django-render-fields = {git = "https://github.com/SamuelJennings/django-render-fields"}
@@ -295,8 +292,6 @@ disable_error_code = [
 
 [tool.django-stubs]
 django_settings_module = "tests.settings"
-
-
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"

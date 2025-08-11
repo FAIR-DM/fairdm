@@ -7,7 +7,6 @@ from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, K
 from fairdm.core.plugins import (
     ActivityPlugin,
     DeleteObjectPlugin,
-    DiscussionPlugin,
     ManageBaseObjectPlugin,
     OverviewPlugin,
 )
@@ -28,7 +27,6 @@ plugins.dataset.register(
     Overview,
     ContributorsPlugin,
     DataTablePlugin,
-    DiscussionPlugin,
     ActivityPlugin,
 )
 

@@ -1,5 +1,3 @@
-{% load waffle_tags %}
-
 <c-bs5.card class="fdm-card border-0">
   <c-bs5.card.body class="pb-2 ">
     <div class="bg-secondary-subtle text-secondary rounded-2 ms-2 mb-2 col-md-4 float-end overflow-hidden">
@@ -27,18 +25,11 @@
                        icon_position="end"
                        href="{{ obj.get_absolute_url }}"
                        text="{{ view_details_text }}" />
-    {% if waffle %}{% endif %}
-    {% switch "allow_discussions" %}
-    <c-components.link icon="comments"
-                       class="border-0"
-                       href="{% url "dataset:discussion" uuid=obj.uuid %}"
-                       text="{% trans "Comments" %}" />
-  {% endswitch %}
-  <c-widgets.follow :object="obj"
-                    :user="request.user"
-                    show_text
-                    class="border-0" />
-  {% comment %} <c-widgets.share class="border-0" /> {% endcomment %}
-</c-bs5.card.footer>
+    <c-widgets.follow :object="obj"
+                      :user="request.user"
+                      show_text
+                      class="border-0" />
+    {% comment %} <c-widgets.share class="border-0" /> {% endcomment %}
+  </c-bs5.card.footer>
 </c-card>
 <hr />

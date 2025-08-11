@@ -13,6 +13,8 @@ class ProjectCreateView(FairDMCreateView):
     model = Project
     form_class = ProjectForm
     title = _("Create a Project")
+    fields = ["name", "visibility", "status"]
+
     heading_config = {
         "title": _("Create a project"),
         "description": _(

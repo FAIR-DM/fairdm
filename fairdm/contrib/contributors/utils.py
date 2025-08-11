@@ -8,6 +8,7 @@ from benedict import benedict
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import CharField, F, Q, Value
+from django.templatetags.static import static
 from django.utils import timezone
 from easy_thumbnails.files import get_thumbnailer
 from research_vocabs.models import Concept
@@ -55,7 +56,7 @@ def get_contributor_avatar(contributor):
         str: The URL of the contributor's avatar.
     """
     if not contributor.image:
-        return None
+        return static("icons/user.svg")
 
     return get_thumbnailer(contributor.image)["thumb"].url
 

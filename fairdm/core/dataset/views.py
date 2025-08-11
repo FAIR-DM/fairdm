@@ -28,7 +28,7 @@ class DatasetCreateView(FairDMCreateView):
             }
         ],
     }
-    fields = ["image", "project", "name", "license"]
+    fields = ["name", "license", "project"]
 
     def get_initial(self) -> dict[str, Any]:
         if self.request.GET.get("project"):
