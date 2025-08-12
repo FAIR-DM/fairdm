@@ -2,12 +2,19 @@
 
 <c-contributor.card.person_alt :obj="obj.contributor">
   {% if can_modify_contributor %}
-    <c-slot name="actions">
-      <c-components.link href="{% plugin_url "contributor-update" pk=obj.pk %}"
-                         text="{% trans "Edit" %}" />
-      <c-components.link href="{% plugin_url "contributor-remove" pk=obj.pk %}"
-                         style="outline-danger"
-                         text="{% trans "Remove" %}" />
-    </c-slot>
+    <c-components.dropdown class="fs-6 fw-semibold border-0 z-2"
+                           dropdown_class="position-absolute top-0 start-0 z-2"
+                           text="{% icon "gear" %}"
+                           :show_toggle="False">
+      <c-components.dropdown.item href="{% plugin_url "contributor-update" pk=obj.pk %}"
+                                  hx-get="{% plugin_url "contributor-update" pk=obj.pk %}"
+                                  hx-target="main"
+                                  hx-select="main"
+                                  hx-push-url="true"
+                                  text="{% trans "Edit" %}" />
+      <c-components.dropdown.item href="{% plugin_url "contributor-remove" pk=obj.pk %}"
+                                  class="text-danger"
+                                  text="{% trans "Remove" %}" />
+    </c-components.dropdown>
   {% endif %}
 </c-contributor.card.person_alt>
