@@ -1,7 +1,6 @@
 {% load social_share %}
 
-<c-components.link href="http://www.linkedin.com/shareArticle?mini=true&url={{ linkedin_url }}"
-                   size="lg"
-                   icon="linkedin"
-                   target="_blank"
-                   text="{% trans "Post to LinkedIn" %}" />
+<c-components.dropdown.item href="http://www.linkedin.com/shareArticle?mini=true&url={{ linkedin_url }}"
+                            icon="linkedin"
+                            target="_blank"
+                            text="LinkedIn" />
