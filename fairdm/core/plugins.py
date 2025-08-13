@@ -225,6 +225,9 @@ class DataTablePlugin(plugins.Explore, DataTableView):
         """
         Return the URLs for the table view.
         """
+        if not registry.samples or not registry.measurements:
+            # In case there are no samples or measurements registered, return an empty list.
+            return [], None
         urls = []
         for item in [*registry.samples, *registry.measurements]:
             urls.append(
