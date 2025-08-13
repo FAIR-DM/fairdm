@@ -20,7 +20,6 @@ urlpatterns = [
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
     path("", include("fairdm.utils.urls")),
-    path("api/", include("fairdm.contrib.api.urls")),
     path("", include("dac.addons.urls")),
     path("account-center/", include("dac.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),

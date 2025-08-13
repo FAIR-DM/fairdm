@@ -49,13 +49,6 @@ INSTALLED_APPS = [
     "invitations",
     # DJANGO REST FRAMEWORK
     "corsheaders",
-    "dj_rest_auth.registration",
-    "dj_rest_auth",
-    "drf_auto_endpoint",
-    "drf_spectacular_sidecar",  # static files for drf_spectacular
-    "drf_spectacular",  # auto documentation of API
-    "rest_framework.authtoken",
-    "rest_framework",
     # UTILITIES
     # "django_better_admin_arrayfield",
     "compressor",
