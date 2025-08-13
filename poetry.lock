@@ -2640,6 +2640,21 @@ dev = ["Django", "Pillow", "SQLAlchemy", "coverage", "flake8", "isort", "mongoen
 doc = ["Sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
 
 [[package]]
+name = "fairdm-demo"
+version = "0.1.0"
+description = "FairDM demo portal"
+optional = false
+python-versions = "^3.11"
+files = []
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/FAIR-DM/demo-portal"
+reference = "HEAD"
+resolved_reference = "05a8b803cac04ae2f785e1e1cc4ce179b7bfd6a0"
+
+[[package]]
 name = "fairdm-dev-tools"
 version = "2025.1"
 description = "Tools to assist development of FairDM data portals"
@@ -6691,4 +6706,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "1bd365a71040f7c687a92fa41257f842632263eb05db80a423f0b7aa4fb04399"
+content-hash = "cf5b4829af9908d11fc2e7a892c87b2cd2c69e5c59993061abb5b05de2039e01"

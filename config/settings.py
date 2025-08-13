@@ -1,6 +1,6 @@
 import fairdm
 
-fairdm.setup(apps=["example"])
+fairdm.setup(apps=["fairdm_demo"])
 
 COMPRESS_ENABLED = True
 COMPRESS_OFFLINE = False
