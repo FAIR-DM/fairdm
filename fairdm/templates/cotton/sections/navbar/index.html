@@ -30,7 +30,11 @@
       <c-sections.navbar.centre :menu="menu" />
       <c-sections.navbar.end />
     </div>
-    <c-dac.widgets.auth-user-dropdown class="position-sm-absolute end-0 me-3 me-lg-0 ms-3" />
+    {% if user.is_authenticated %}
+      <c-dac.widgets.auth-user-dropdown class="position-sm-absolute end-0 me-3 me-lg-0 ms-3" />
+    {% else %}
+      <c-dac.widgets.login-button class="position-sm-absolute end-0 me-3 me-lg-0 ms-3 pst-navbar-icon" />
+    {% endif %}
   </div>
 </header>
 <c-sections.navbar.mobile :menu="menu" />
