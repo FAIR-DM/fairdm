@@ -36,7 +36,6 @@ django-cleanup = "^8.1.0"
 django-client-side-image-cropping = "^0.1.10"
 django-compressor = "^4.5.1"
 django-contact-form = "^2.1"
-django-cors-headers = "^3.14.0"
 django-crispy-forms = "^2.3"
 django-dbbackup = "^4.0.2"
 django-downloadview = "^2.3.0"
@@ -63,12 +62,6 @@ django-storages = {extras = ["boto3"], version = "^1.14.2"}
 django-tables2 = "^2.7.0"
 django-treebeard = "^4.7.1"
 django-webpack-loader = "^3.0.1"
-drf-access-policy = "^1.5.0"
-drf-flex-fields = "^1.0.2"
-drf-nested-routers = "^0.93.4"
-drf-orjson-renderer = "^1.7.1"
-drf-schema-adapter = "^3.0.6"
-drf-spectacular = {extras = ["sidecar"], version = "^0.26.1"}
 easy-thumbnails = "^2.10"
 flower = "^2.0.1"
 gunicorn = "^23.0.0"
@@ -325,7 +318,6 @@ ignore_transitive = [
 ]
 # deptry checks imports but doesn't detect apps in djangos installed_apps settings. These must be listed here to avoid dependency errors.
 ignore_obsolete = [
-        "dj-rest-auth",
         "django-adminactions",
         "django-celery-beat",
         "django-compressor",
