@@ -1,8 +1,3 @@
-from unittest.mock import DEFAULT
-
-from h11 import SERVER
-
-
 env = globals()["env"]
 
 
