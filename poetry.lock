@@ -1095,7 +1095,7 @@ django-flex-menus = {git = "https://github.com/SamuelJennings/django-flex-menus"
 type = "git"
 url = "https://github.com/SamuelJennings/django-accounts-center"
 reference = "HEAD"
-resolved_reference = "471db0a2610f235623e2ae4e92263c89fd86138f"
+resolved_reference = "559f016fb7be1c73136309296cf9ee9df1c07c55"
 
 [[package]]
 name = "django-activity-stream"
