@@ -102,6 +102,7 @@ django-countries = "^7.6.1"
 uncertainties = "^3.2.3"
 martor = "^1.7.11"
 django-accounts-center = {git = "https://github.com/SamuelJennings/django-accounts-center"}
+django-polymorphic = "^4.1.0"
 
 
 
