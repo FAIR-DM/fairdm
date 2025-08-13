@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     "treebeard",
     "parler",
     # AUTHENTICATION AND USERS
-    "account_management",
+    "dac.themes.bs5",
+    "dac",
+    "dac.addons.allauth",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -86,8 +88,6 @@ INSTALLED_APPS = [
     "django_htmx",
     "webpack_loader",
     "literature",
-    # ADMIN TOOLS
-    "image_uploader_widget",
     "licensing",
     # "laboratory",
     "research_vocabs",

@@ -56,7 +56,6 @@ TEMPLATES = [
                 "sekizai.context_processors.sekizai",
                 "django.template.context_processors.static",
                 "fairdm.utils.context_processors.fairdm",
-                "account_management.context_processors.account_context",
             ],
             "builtins": [
                 "django.templatetags.i18n",
@@ -153,9 +152,6 @@ DJANGO_SETUP_TOOLS = {
         ],
     },
 }
-
-
-# DAC_FLOATING_MENU = "fairdm/menus/user_offcanvas.html"
 
 
 SHELL_PLUS_MODEL_ALIASES = {

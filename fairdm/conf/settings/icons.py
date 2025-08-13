@@ -10,6 +10,7 @@ EASY_ICONS = {
     "aliases": {
         "administration": "fas fa-toolbox",
         "activity": "activity.svg",
+        "account_center": "fas fa-shield-halved",
         "angle-left": "fas fa-angle-left",
         "angle-right": "fas fa-angle-right",
         "angles-left": "fas fa-angle-double-left",
@@ -25,6 +26,7 @@ EASY_ICONS = {
         "chart": "fas fa-chart-bar",
         "close": "fas fa-times",
         "circle-half": "fas fa-circle-half-stroke",
+        "check_circle": "fas fa-check-circle",
         "community": "fas fa-users",
         "contributors": "fas fa-user-friends",
         "dashboard": "dashboard.svg",

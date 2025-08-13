@@ -45,7 +45,6 @@ django-entangled = "^0.5.4"
 django-environ = "^0.10.0"
 django-filter = "^24.3"
 django-htmx = "^1.16.0"
-django-image-uploader-widget = "^0.5.0"
 django-import-export = "^4.0.3"
 django-invitations = "^2.0.0"
 django-libsass = "^0.9"
@@ -103,7 +102,6 @@ django-addanother = "^2.2.2"
 cotton-bs5 = {git = "https://github.com/SamuelJennings/cotton-bs5"}
 django-render-fields = {git = "https://github.com/SamuelJennings/django-render-fields"}
 django-flex-menus = {git = "https://github.com/SamuelJennings/django-flex-menus"}
-django-account-management = {git = "https://github.com/SamuelJennings/django-account-management"}
 django-admin-site-search = "^1.1.0"
 django-autocomplete-light = "^3.12.1"
 django-braces = "^1.17.0"
