@@ -1,4 +1,3 @@
-# from adminactions import actions
 from django.apps import AppConfig
 from django.contrib.admin import apps
 

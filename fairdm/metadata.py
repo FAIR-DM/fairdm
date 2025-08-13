@@ -7,7 +7,6 @@ from django.utils.module_loading import import_string
 from django_filters import FilterSet
 from django_tables2 import Table, table_factory
 from import_export.resources import ModelResource
-from rest_framework.serializers import ModelSerializer
 
 from fairdm.utils import factories
 from fairdm.utils.utils import fairdm_fieldsets_to_django
@@ -114,7 +113,7 @@ class ModelConfig:
     resource_options = {}
     """When resource_class is None, the resource is generated automatically using fairdm.factories.model_resource_factory. Use this dictionary to supply Meta class options to the generated resource."""
 
-    serializer_class: type[ModelSerializer] = ModelSerializer
+    serializer_class: type[Any] = None
     """The ModelSerializer class or path to the ModelSerializer class."""
 
     serializer_kwargs: dict = {}
@@ -221,20 +220,20 @@ class ModelConfig:
             self.model, form=self._get_class(self.form_class), fields=fields, **self.form_options
         )
 
-    def get_serializer_class(self) -> type[ModelSerializer]:
-        """
-        Returns a dynamically generated ModelSerializer class for the model.
+    # def get_serializer_class(self) -> type[ModelSerializer]:
+    #     """
+    #     Returns a dynamically generated ModelSerializer class for the model.
 
-        Returns:
-            Type[ModelSerializer]: A ModelSerializer subclass.
-        """
-        from fairdm.contrib.api.serializers import SampleSerializer
+    #     Returns:
+    #         Type[ModelSerializer]: A ModelSerializer subclass.
+    #     """
+    #     from fairdm_api.serializers import SampleSerializer
 
-        return factories.serializer_factory(
-            self.model,
-            SampleSerializer,
-            **self.serializer_kwargs,
-        )
+    #     return factories.serializer_factory(
+    #         self.model,
+    #         SampleSerializer,
+    #         **self.serializer_kwargs,
+    #     )
 
     def get_table_class(self) -> type[Table]:
         """

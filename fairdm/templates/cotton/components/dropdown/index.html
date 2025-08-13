@@ -1,6 +1,9 @@
-<c-vars dropdown_class class menu_class />
+<c-vars dropdown_class
+        class
+        menu_class
+        :show_toggle="True" />
 <div class="dropdown {{ dropdown_class }}">
-  <c-components.button class="dropdown-toggle {{ class }} "
+  <c-components.button class="{% if show_toggle %}dropdown-toggle{% endif %} {{ class }} "
                        type="button"
                        aria-expanded="false"
                        data-bs-toggle="dropdown"

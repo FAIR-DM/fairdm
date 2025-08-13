@@ -1,0 +1,10 @@
+{% load dac %}
+
+<c-vars class />
+{% if user.image %}
+  <img src="{{ user.image.thumb.url }}"
+       class="{{ class }}"
+       {{ attrs }} />
+{% else %}
+  <c-icons.anon-user class="svg-inline--fa fa-lg {{ class }}" />
+{% endif %}

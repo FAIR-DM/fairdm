@@ -1,7 +1,5 @@
-import adminactions.actions as actions
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib.admin import site
 from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
@@ -9,10 +7,8 @@ from django.views.i18n import JavaScriptCatalog
 
 from fairdm.core.utils import UUID_RE_PATTERN
 from fairdm.utils.views import DirectoryView, HomeView
-from .setup import addon_urls
 
-# register all adminactions
-actions.add_to_site(site)
+from .setup import addon_urls
 
 urlpatterns = [
     path("", include("fairdm.contrib.admin.urls")),
@@ -25,9 +21,8 @@ urlpatterns = [
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
     path("", include("fairdm.utils.urls")),
-    path("api/", include("fairdm.contrib.api.urls")),
-    path("account/", include("account_management.urls")),
-    path("account/", include("allauth.urls")),
+    path("", include("dac.addons.urls")),
+    path("account-center/", include("dac.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
@@ -37,9 +32,10 @@ urlpatterns = [
 ]
 
 if addon_urls:
-    urlpatterns += [
-        path("", include(*addon_urls)),
-    ]
+    for addon_url in addon_urls:
+        urlpatterns += [
+            path("", include(addon_url)),
+        ]
 
 urlpatterns += [
     re_path(UUID_RE_PATTERN, DirectoryView.as_view(), name="directory"),

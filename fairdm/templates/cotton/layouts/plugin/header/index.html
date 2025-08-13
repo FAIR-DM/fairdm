@@ -2,7 +2,7 @@
   {% icon base_object.icon height="1lh" %}
   {% if base_object.verbose_name %}{{ base_object.verbose_name|capfirst }}:{% endif %}
   <span class="text-truncate">{{ base_object }}</span>
-  <div class="ms-auto">
+  <div class="hstack ms-auto">
     {% for action in actions %}<c-component :is="action" />{% endfor %}
     <c-components.button data-bs-toggle="offcanvas"
                          data-bs-target="#objectNavigation"

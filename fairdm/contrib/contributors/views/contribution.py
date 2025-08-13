@@ -95,8 +95,6 @@ class ContributionCreateView(BaseContributionView, FairDMCreateView):
         # Need to think about what permissions they get by default. Perhaps depends on the role?
         pass
 
-    # return render(self.request, "contributors/contribution.html", {"contributor": contribution})
-
     # def get_success_url(self):
     # """Redirect to the detail page of the base object."""
     # return self.base_object.get_absolute_url()

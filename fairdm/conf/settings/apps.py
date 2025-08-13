@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     "treebeard",
     "parler",
     # AUTHENTICATION AND USERS
-    "account_management",
+    "dac.themes.bs5",
+    "dac",
+    "dac.addons.allauth",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -45,15 +47,6 @@ INSTALLED_APPS = [
     "allauth.mfa",
     "allauth.usersessions",
     "invitations",
-    # DJANGO REST FRAMEWORK
-    "corsheaders",
-    "dj_rest_auth.registration",
-    "dj_rest_auth",
-    "drf_auto_endpoint",
-    "drf_spectacular_sidecar",  # static files for drf_spectacular
-    "drf_spectacular",  # auto documentation of API
-    "rest_framework.authtoken",
-    "rest_framework",
     # UTILITIES
     # "django_better_admin_arrayfield",
     "compressor",
@@ -86,8 +79,6 @@ INSTALLED_APPS = [
     "django_htmx",
     "webpack_loader",
     "literature",
-    # ADMIN TOOLS
-    "image_uploader_widget",
     "licensing",
     # "laboratory",
     "research_vocabs",
