@@ -55,7 +55,8 @@ def get_contributor_avatar(contributor):
     Returns:
         str: The URL of the contributor's avatar.
     """
-    if not contributor.image:
+    # This must handle the case where the contributor is a django-guardian AnonymousUser
+    if not hasattr(contributor, "image") or not contributor.image:
         return static("icons/user.svg")
 
     return get_thumbnailer(contributor.image)["thumb"].url
