@@ -228,7 +228,7 @@ class ModelConfig:
         Returns:
             Type[ModelSerializer]: A ModelSerializer subclass.
         """
-        from fairdm.contrib.api.serializers import SampleSerializer
+        from fairdm_api.serializers import SampleSerializer
 
         return factories.serializer_factory(
             self.model,

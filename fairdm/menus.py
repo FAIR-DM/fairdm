@@ -175,14 +175,6 @@ SiteNavigation = Menu(
                     icon="literature",
                     description=_("Explore related published and unpublished literature relevant to this portal."),
                 ),
-                SubMenuItem(
-                    _("API Documentation"),
-                    view_name="api:swagger-ui",
-                    icon="api",
-                    description=_(
-                        "View the API documentation and learn how to interact programatically with this portal."
-                    ),
-                ),
             ],
         ),
     ],

@@ -31,9 +31,10 @@ urlpatterns = [
 ]
 
 if addon_urls:
-    urlpatterns += [
-        path("", include(*addon_urls)),
-    ]
+    for addon_url in addon_urls:
+        urlpatterns += [
+            path("", include(addon_url)),
+        ]
 
 urlpatterns += [
     re_path(UUID_RE_PATTERN, DirectoryView.as_view(), name="directory"),
