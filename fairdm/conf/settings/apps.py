@@ -47,8 +47,6 @@ INSTALLED_APPS = [
     "allauth.mfa",
     "allauth.usersessions",
     "invitations",
-    # DJANGO REST FRAMEWORK
-    "corsheaders",
     # UTILITIES
     # "django_better_admin_arrayfield",
     "compressor",
