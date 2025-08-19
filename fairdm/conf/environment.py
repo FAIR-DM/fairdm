@@ -12,7 +12,6 @@ env = Env(
     DJANGO_ADMIN_URL=(str, "admin/"),
     DJANGO_SUPERUSER_EMAIL=(str, "super.user@example.com"),
     DJANGO_SUPERUSER_PASSWORD=(str, "admin"),
-    DJANGO_ALLOW_SIGNUP=(bool, False),
     DJANGO_ALLOWED_HOSTS=(list, []),
     DJANGO_CACHE=(bool, True),
     DJANGO_DEBUG=(bool, False),
