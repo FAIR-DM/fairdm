@@ -50,10 +50,4 @@ env = Env(
     # REDIS_URL=(str, "redis://redis:6379/0"),
     USE_DOCKER=(bool, False),
     SHOW_DEBUG_TOOLBAR=(bool, False),
-    # LOCKDOWN SETTINGS
-    LOCKDOWN_PASSWORDS=(list, []),
-    LOCKDOWN_STAFF_ONLY=(bool, False),
-    LOCKDOWN_SUPERUSERS_ONLY=(bool, False),
-    LOCKDOWN_UNTIL_DATE=(str, ""),
-    LOCKDOWN_AFTER_DATE=(str, ""),
 )
