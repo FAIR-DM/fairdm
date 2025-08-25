@@ -11,7 +11,7 @@
 <div class="navbar-header-items__center flex-grow-1">
   <nav>
     <ul class="bd-navbar-elements navbar-nav">
-      {% render_menu "SiteNavigation" template="cotton/sections/navbar/test/menu.html" %}
+      {% render_menu "SiteNavigation" %}
       {% comment %} {% for item in menu %}
         {% if item.visible and forloop.counter0 < collapse_after %}
           <c-pst.components.navbar.nav-item :current="item.active" href="{{ item.url }}" text="{{ item.label }}" />

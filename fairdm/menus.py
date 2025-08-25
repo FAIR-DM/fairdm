@@ -2,7 +2,7 @@
 
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from flex_menu import Menu, MenuItem
+from flex_menu import Menu, MenuItem, checks
 
 from fairdm import plugins
 from fairdm.registry import registry
@@ -40,26 +40,6 @@ def get_sample_menu_items():
 def get_measurement_menu_items():
     """Get measurement menu items based on the measurement type."""
     return generate_menu_items(registry.measurements)
-
-
-def user_is_staff(request, instance, **kwargs):
-    """
-    Checks if the user associated with the given request is authenticated.
-
-    Returns:
-        bool: True if the user is authenticated, False otherwise.
-    """
-    return request.user.is_staff
-
-
-def user_is_authenticated(request, instance, **kwargs):
-    """
-    Checks if the user associated with the given request is authenticated.
-
-    Returns:
-        bool: True if the user is authenticated, False otherwise.
-    """
-    return request.user.is_authenticated
 
 
 class NavLink(MenuItem):
@@ -103,8 +83,9 @@ class SiteMenu(Menu):
 SiteNavigation = Menu(
     "SiteNavigation",
     label=_("Database"),
-    root_template="fairdm/menus/site_navigation.html",
-    template="fairdm/menus/database/menu.html",
+    template="cotton/sections/navbar/test/menu.html",
+    # template="fairdm/menus/site_navigation.html",
+    # template="fairdm/menus/database/menu.html",
     children=[
         # NavLink(_("Home"), view_name="home"),  # type: ignore
         NavMenu(
@@ -116,7 +97,7 @@ SiteNavigation = Menu(
                     view_name="project-list",
                     icon="project",
                 ),
-                SubMenuItem(_("Create New"), view_name="project-create", check=user_is_authenticated),
+                SubMenuItem(_("Create New"), view_name="project-create", check=checks.user_is_authenticated),
             ],
         ),
         NavMenu(
@@ -125,7 +106,7 @@ SiteNavigation = Menu(
                 "Browse datasets that meet the data and metadata quality standards required by our community."
             ),
             children=[
-                SubMenuItem(_("Create New"), view_name="dataset-create", check=user_is_authenticated),
+                SubMenuItem(_("Create New"), view_name="dataset-create", check=checks.user_is_authenticated),
                 DropdownHeader(_("Explore")),
                 SubMenuItem(
                     _("Browse Datasets"),
