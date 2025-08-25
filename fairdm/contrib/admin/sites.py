@@ -3,8 +3,11 @@ import tempfile
 
 from admin_site_search.views import AdminSiteSearchView
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.management import call_command
+from django.shortcuts import redirect, render
 from django.urls import path
+from django.utils.translation import gettext as _
 
 from .views import FixtureUploadView
 
@@ -13,15 +16,10 @@ class FixtureUploadForm(forms.Form):
     fixture_file = forms.FileField(label="Select a fixture file")
 
 
-from django.contrib import messages
-from django.core.management import call_command
-from django.shortcuts import redirect, render
-
-
 class CustomAdminSite(AdminSiteSearchView, admin.AdminSite):
-    site_header = "FairDM Admin"
-    site_title = "FairDM Admin"
-    index_title = "Welcome to the FairDM Admin Portal"
+    site_header = _("Portal Administration")
+    site_title = _("Portal Administration")
+    index_title = _("Portal Administration")
 
     def get_urls(self):
         urls = super().get_urls()

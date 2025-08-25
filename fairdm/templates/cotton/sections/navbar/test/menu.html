@@ -1,5 +1,5 @@
-{% for item in menu %}
-  {% if item.visible %}
-    {% include item.template %}
-  {% endif %}
+{% load flex_menu %}
+
+{% for item in children %}
+  {% render_menu_item item %}
 {% endfor %}

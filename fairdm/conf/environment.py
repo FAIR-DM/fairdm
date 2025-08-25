@@ -12,7 +12,6 @@ env = Env(
     DJANGO_ADMIN_URL=(str, "admin/"),
     DJANGO_SUPERUSER_EMAIL=(str, "super.user@example.com"),
     DJANGO_SUPERUSER_PASSWORD=(str, "admin"),
-    DJANGO_ALLOW_SIGNUP=(bool, False),
     DJANGO_ALLOWED_HOSTS=(list, []),
     DJANGO_CACHE=(bool, True),
     DJANGO_DEBUG=(bool, False),
@@ -50,10 +49,4 @@ env = Env(
     # REDIS_URL=(str, "redis://redis:6379/0"),
     USE_DOCKER=(bool, False),
     SHOW_DEBUG_TOOLBAR=(bool, False),
-    # LOCKDOWN SETTINGS
-    LOCKDOWN_PASSWORDS=(list, []),
-    LOCKDOWN_STAFF_ONLY=(bool, False),
-    LOCKDOWN_SUPERUSERS_ONLY=(bool, False),
-    LOCKDOWN_UNTIL_DATE=(str, ""),
-    LOCKDOWN_AFTER_DATE=(str, ""),
 )

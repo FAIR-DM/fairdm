@@ -7,6 +7,7 @@ from django.views.i18n import JavaScriptCatalog
 
 from fairdm.core.utils import UUID_RE_PATTERN
 from fairdm.utils.views import DirectoryView, HomeView
+
 from .setup import addon_urls
 
 urlpatterns = [
