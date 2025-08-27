@@ -70,7 +70,6 @@ pyyaml = "^6.0"
 redis = "^4.5.2"
 tldextract = "^3.4.0"
 whitenoise = "^6.4.0"
-django-content-license = {git = "https://github.com/SamuelJennings/django-content-license"}
 django-easy-icons = {git = "https://github.com/SamuelJennings/django-easy-icons"}
 django-research-vocabs = {git = "https://github.com/SamuelJennings/django-research-vocabs"}
 django-jsonfield-toolkit = {git = "https://github.com/SamuelJennings/django-jsonfield-toolkit"}
@@ -102,6 +101,7 @@ uncertainties = "^3.2.3"
 martor = "^1.7.11"
 django-accounts-center = {git = "https://github.com/SamuelJennings/django-accounts-center"}
 django-polymorphic = "^4.1.0"
+django-content-license = "^0.2.3"
 
 
 
