@@ -2,7 +2,7 @@
 FairDM Utilities Package
 
 This package provides common utilities and helper functions used throughout
-the FairDM framework, including view mixins, form helpers, permission utilities,
+the FairDM framework, including form helpers, permission utilities,
 and data processing functions.
 
 Import utilities as needed to avoid import cycles during Django startup.
@@ -84,21 +84,6 @@ def __getattr__(name: str):
         from .utils import user_guide
 
         return user_guide
-    elif name == "CRUDView":
-        from .view_mixins import CRUDView
 
-        return CRUDView
-    elif name == "FairDMBaseMixin":
-        from .view_mixins import FairDMBaseMixin
-
-        return FairDMBaseMixin
-    elif name == "FairDMModelFormMixin":
-        from .view_mixins import FairDMModelFormMixin
-
-        return FairDMModelFormMixin
-    elif name == "RelatedObjectMixin":
-        from .view_mixins import RelatedObjectMixin
-
-        return RelatedObjectMixin
     else:
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

@@ -1,16 +1,284 @@
+from __future__ import annotations
+
+from functools import cached_property
+
 from actstream import action
+from braces.views import MessageMixin
 from crispy_forms.helper import FormHelper
-from django.db.models.base import Model as Model
+from django.contrib.auth.decorators import login_required
+from django.db.models import Model
+from django.forms import modelform_factory
+from django.shortcuts import get_object_or_404
+from django.urls import path
+from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView, TemplateView
+from django.views.generic import DetailView, ListView, TemplateView, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django_addanother.views import CreatePopupMixin
 from django_filters.views import FilterView
+from meta.views import MetadataMixin
 
 from fairdm.contrib.contributors.utils import current_user_has_role
+from fairdm.contrib.identity.models import Database
+from fairdm.core.utils import get_non_polymorphic_instance
 from fairdm.forms import Form
-from fairdm.utils.permissions import assign_all_model_perms
-from fairdm.utils.view_mixins import CRUDView as CRUDViewMixin
-from fairdm.utils.view_mixins import FairDMBaseMixin, FairDMModelFormMixin
+from fairdm.layouts import BaseLayout, FormLayout
+from fairdm.utils import assign_all_model_perms, get_model_class
+
+# =============================================================================
+# VIEW MIXINS
+# =============================================================================
+
+
+class FairDMBaseMixin(BaseLayout, MessageMixin, MetadataMixin):
+    """
+    A mixin class providing common context and sidebar configuration for views.
+
+    Methods:
+        get_context_data(**kwargs):
+            Extends the context data with user edit permissions and sidebar configurations.
+        user_can_edit():
+            Determines if the current user has edit permissions. Returns False by default.
+        get_meta_title(context):
+            Sets the page title in the context and returns a formatted meta title string.
+    """
+
+    about = None
+    # Optional about text for the page
+
+    actions = []
+    # List of template components to be displayed inline with the page title
+
+    learn_more = None
+    # Optional link to a user guide or documentation (use fairdm.utils.utils.user_guide to generate the link)
+
+    page_title = None
+    # Title of the page, used in the page title
+
+    @staticmethod
+    def check(request, *args, **kwargs):
+        return True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["user_can_edit"] = self.user_can_edit()
+        context["about"] = self.get_about()
+        context["learn_more"] = self.get_learn_more()
+        context["actions"] = self.get_actions()
+        context["title"] = self.get_page_title()
+        return context
+
+    def get_about(self):
+        if isinstance(self.about, list):
+            return self.about
+        return [self.about]
+
+    def get_actions(self):
+        return self.actions
+
+    def get_learn_more(self):
+        return self.learn_more
+
+    def user_can_edit(self):
+        return False
+
+    def get_meta_title(self, context):
+        return f"{self.title} - {Database.get_solo().safe_translation_getter('name')}"
+
+    def get_page_title(self):
+        """Return the page title for the view."""
+        return self.page_title or self.title
+
+
+class FairDMFormViewMixin(FormLayout):
+    """Mixin for form views that provides common form handling functionality."""
+
+    def get_success_url(self):
+        if self.request.GET.get("next"):
+            return self.request.GET["next"]
+        return super().get_success_url()
+
+
+@method_decorator(login_required, name="post")
+class FairDMModelFormMixin(
+    FairDMFormViewMixin,
+    FairDMBaseMixin,
+    CreatePopupMixin,
+):
+    """
+    A mixin class to provide dynamic form class generation for Django model forms.
+
+    Attributes:
+        model (Model): The Django model associated with the form.
+        form_class (Form): The base form class to use for form generation.
+        fields (list or tuple): The fields to include in the generated form.
+
+    Methods:
+        get_form_class():
+            Returns a form class for the associated model. If both `fields` and `form_class` are set,
+            it uses `forms.modelform_factory` to create a form class with the specified fields and base form.
+            If the `base_object` has a `config` attribute with a `get_form_class` method (e.g. registered samples/measurements), it delegates form class
+            retrieval to that method. Otherwise, it falls back to the superclass implementation.
+    """
+
+    model = None
+    form_class = None
+    fields = None
+    template_name = "fairdm/form_view.html"
+
+    def post(self, request, *args, **kwargs):
+        """This is here so the method_decorator works correctly."""
+        return super().post(request, *args, **kwargs)
+
+    def get_template(self, template_name=None):
+        """Return the template to be used for rendering the view."""
+        if template_name is None:
+            template_name = self.template_name
+        return super().get_template(template_name)
+
+    def get_context_data(self, **kwargs):
+        """Add the form class to the context if it is set."""
+        context = super().get_context_data(**kwargs)
+        context["form_visible"] = self.request.user.is_authenticated
+        return context
+
+    def get_form_class(self):
+        if self.form_class is None and getattr(self.base_object, "config", None):
+            self.form_class = self.base_object.config.get_form_class()
+
+        if self.fields:
+            return modelform_factory(
+                self.model,
+                form=self.form_class,
+                fields=self.fields,
+            )
+        return super().get_form_class()
+
+
+class RelatedObjectMixin:
+    """Mixin to fetch and add a related object to the context for views behind the detail view of core models.
+
+    This mixin is primarily used in plugins but can be applied to other views where a related object needs to be
+    fetched based on a URL parameter. The related object is retrieved using the URL parameter specified by
+    `base_object_url_kwarg` (defaults to `base_uuid`). The related object is then added to the context with additional
+    useful information about the related model.
+
+    Example:
+        class SampleListView(RelatedObjectMixin, ListView):
+            def get_queryset(self):
+                return self.base_object.samples.all()
+    """
+
+    base_model: Model | None = None
+    base_object_url_kwarg = "uuid"
+
+    def get_related_model(self):
+        """Retrieve the related model class.
+
+        Uses the URL parameter specified by `base_object_url_kwarg` to fetch the related model class.
+
+        Returns:
+            model: The model class corresponding to the related object.
+        """
+        return get_model_class(self.kwargs.get(self.base_object_url_kwarg))
+
+    @cached_property
+    def base_object(self):
+        """Fetch the related object based on the primary key in the URL.
+
+        If the related model is polymorphic, the method fetches a non-polymorphic version of the object.
+        """
+        uuid = self.kwargs.get(self.base_object_url_kwarg)
+        obj = get_object_or_404(self.base_model, uuid=uuid)
+        if hasattr(obj, "polymorphic_model_marker"):
+            # If the object is polymorphic, get the non-polymorphic instance
+            self.non_polymorphic = get_non_polymorphic_instance(obj)
+        return obj
+
+    def get_context_data(self, **kwargs):
+        """Add the related object and related model information to the context.
+
+        Adds the `base_object` (related object), related model class, and model metadata to the context dictionary.
+        """
+        context = super().get_context_data(**kwargs)
+        context["base_object"] = self.base_object
+        context["base_model"] = self.base_model
+        context["non_polymorphic_object"] = get_non_polymorphic_instance(self.base_object)
+        context[self.base_model._meta.model_name] = self.base_object
+        return context
+
+
+class CRUDView(View):
+    """Experimental class for generating CRUD views dynamically based on a model."""
+
+    model = None
+    base_url = None
+    action = None  # Set dynamically in generated views
+    view_classes = {
+        "list": ListView,
+        "create": CreateView,
+        "detail": DetailView,
+        "update": UpdateView,
+        "delete": DeleteView,
+    }
+
+    @classmethod
+    def get_view_classes(cls):
+        merged = {}
+        for base in reversed(cls.__mro__):
+            if hasattr(base, "view_classes"):
+                merged.update(base.view_classes)
+        return merged
+
+    @classmethod
+    def get_urls(cls):
+        if cls.model is None:
+            raise ValueError(f"{cls.__name__} requires a `model` attribute.")
+
+        model_name = cls.model._meta.model_name
+        base = cls.base_url or model_name
+        views = cls.get_view_classes()
+        urls = []
+
+        action_paths = {
+            "list": (f"{base}/", f"{model_name}_changelist"),
+            "create": (f"{base}/add/", f"{model_name}_add"),
+            "detail": (f"{base}/<int:pk>/", f"{model_name}_detail"),
+            "update": (f"{base}/<int:pk>/change/", f"{model_name}_change"),
+            "delete": (f"{base}/<int:pk>/delete/", f"{model_name}_delete"),
+        }
+
+        for action_name, (route, name) in action_paths.items():
+            view_class = views.get(action_name)
+            if view_class is False:
+                continue
+            urls.append(path(route, cls.make_view(action_name, views), name=name))
+
+        return urls
+
+    @classmethod
+    def make_view(cls, action_name, view_classes):
+        base_view = view_classes[action_name]
+
+        view = type(f"{cls.model.__name__}{base_view.__name__}", (cls, base_view), {"action": action_name})
+        return view.as_view()
+
+    def has_permission(self):
+        attr_name = f"has_{self.action}_permission"
+        if hasattr(self, attr_name):
+            attr = getattr(self, attr_name)
+            return attr() if callable(attr) else bool(attr)
+        return True
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.has_permission():
+            raise PermissionError("Permission denied.")
+        return super().dispatch(request, *args, **kwargs)
+
+
+# =============================================================================
+# CONCRETE VIEW CLASSES
+# =============================================================================
 
 
 class FairDMTemplateView(FairDMBaseMixin, TemplateView):
@@ -190,30 +458,3 @@ class FairDMDeleteView(FairDMModelFormMixin, DeleteView):
         # context["form"].helper = FormHelper()
         # context["form"].helper.form_id = "delete-form"
         return context
-
-
-class FairDMTemplateView(FairDMBaseMixin, TemplateView):
-    """
-    The base class for template views within the FairDM framework.
-    """
-
-    template_name = "fairdm/template_view.html"
-    sections = {
-        "sidebar_primary": False,
-        "sidebar_secondary": False,
-        "footer": False,
-        "header": False,
-    }
-    layout = {
-        "container_class": "container-lg",
-    }
-
-
-class FairDMCRUDView(CRUDViewMixin):
-    view_classes = {
-        "list": FairDMListView,
-        "create": FairDMCreateView,
-        "detail": FairDMDetailView,
-        "update": FairDMUpdateView,
-        "delete": FairDMDeleteView,
-    }
