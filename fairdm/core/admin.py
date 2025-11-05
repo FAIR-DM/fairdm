@@ -25,7 +25,7 @@ class DateInline(admin.StackedInline):
 
 
 @admin.register(Sample)
-class BaseSampleAdmin(PolymorphicParentModelAdmin):
+class SampleAdmin(PolymorphicParentModelAdmin):
     base_model = Sample
     # child_models = [m["class"] for m in registry.samples]
     child_models = get_subclasses(Sample)

@@ -1,7 +1,7 @@
 from django.urls import include, path
 
-from fairdm import plugins
+from .views import SampleDetailView
 
 urlpatterns = [
-    path("samples/<str:uuid>/", include((plugins.sample.get_urls(), "sample"))),
+    path("samples/<str:uuid>/", include((SampleDetailView.get_urls(), "sample"))),
 ]

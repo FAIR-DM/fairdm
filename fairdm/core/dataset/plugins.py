@@ -1,39 +1,33 @@
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from fairdm import plugins
-from fairdm.contrib.contributors.plugins import ContributorsPlugin
 from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
 from fairdm.core.plugins import (
-    ActivityPlugin,
     DeleteObjectPlugin,
     ManageBaseObjectPlugin,
     OverviewPlugin,
 )
+from fairdm.plugins import EXPLORE, MANAGEMENT, register_plugin
 from fairdm.utils.utils import user_guide
 
-from ..plugins import DataTablePlugin
 from .forms import DatasetForm
 from .models import Dataset, DatasetDate, DatasetDescription
+from .views import DatasetDetailView
 
 DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 
 
+@register_plugin(DatasetDetailView)
 class Overview(OverviewPlugin):
+    category = EXPLORE
+    title = _("Overview")
     fieldsets = DATASET_SETTINGS.get("detail", {}).get("info_block_fields", None)
 
 
-plugins.dataset.register(
-    Overview,
-    ContributorsPlugin,
-    DataTablePlugin,
-    ActivityPlugin,
-)
-
-
 # ======== Management Plugins ======== #
-@plugins.dataset.register
+@register_plugin(DatasetDetailView)
 class ManageDatasetPlugin(ManageBaseObjectPlugin):
+    category = MANAGEMENT
     heading_config = {
         "description": _(
             "Configure your dataset's metadata to ensure it's properly categorized and accessible to the right audience."
@@ -42,7 +36,7 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/configure"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -50,7 +44,9 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
     fields = ["image", "name", "project", "reference", "license", "visibility"]
 
 
+@register_plugin(DatasetDetailView)
 class DeleteDatasetPlugin(DeleteObjectPlugin):
+    category = MANAGEMENT
     heading_config = {
         "title": _("Delete Dataset"),
         "description": _(
@@ -60,13 +56,15 @@ class DeleteDatasetPlugin(DeleteObjectPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/delete"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
 
 
+@register_plugin(DatasetDetailView)
 class EditDescriptions(DescriptionsPlugin):
+    category = MANAGEMENT
     heading_config = {
         "title": _("Descriptions"),
         "description": _(
@@ -76,7 +74,7 @@ class EditDescriptions(DescriptionsPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/descriptions"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -84,7 +82,9 @@ class EditDescriptions(DescriptionsPlugin):
     inline_model = DatasetDescription
 
 
+@register_plugin(DatasetDetailView)
 class EditKeywords(KeywordsPlugin):
+    category = MANAGEMENT
     heading_config = {
         "title": _("Keywords"),
         "description": _(
@@ -94,13 +94,15 @@ class EditKeywords(KeywordsPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/keywords"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
 
 
+@register_plugin(DatasetDetailView)
 class EditDates(KeyDatesPlugin):
+    category = MANAGEMENT
     heading_config = {
         "title": _("Key Dates"),
         "description": _(
@@ -110,17 +112,9 @@ class EditDates(KeyDatesPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/key-dates"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
     model = Dataset
     inline_model = DatasetDate
-
-
-plugins.dataset.register(
-    EditDescriptions,
-    EditKeywords,
-    EditDates,
-    DeleteDatasetPlugin,
-)

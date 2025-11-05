@@ -5,7 +5,7 @@ from extra_views import ModelFormSetView, UpdateWithInlinesView
 
 from fairdm import plugins
 from fairdm.utils.utils import get_core_object_or_404
-from fairdm.utils.view_mixins import FairDMModelFormMixin
+from fairdm.views import FairDMModelFormMixin
 
 from .forms import CoreFormset, DateForm, DescriptionInline
 

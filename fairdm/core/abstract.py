@@ -15,7 +15,7 @@ from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
 from fairdm.registry import registry
-from fairdm.utils.utils import default_image_path, get_inheritance_chain
+from fairdm.utils import default_image_path, get_inheritance_chain
 
 
 class BaseModel(models.Model):
@@ -146,7 +146,7 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):
     @classproperty
     def config(cls):
         """Gets the FairDM configuration object for a class or instance from the registry."""
-        if registry_item := registry.get_model(cls):
+        if registry_item := registry.get_for_model(cls):
             return registry_item["config"]
 
     class Meta:

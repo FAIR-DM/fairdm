@@ -4,6 +4,7 @@ from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
 from fairdm.core.filters import DatasetFilter
+from fairdm.plugins import PluginMixin
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
@@ -24,7 +25,7 @@ class DatasetCreateView(FairDMCreateView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("datasets"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -65,7 +66,7 @@ class DatasetListView(FairDMListView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("datasets"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -79,3 +80,10 @@ class DatasetListView(FairDMListView):
 
     def get_queryset(self):
         return Dataset.objects.get_visible().with_contributors()
+
+
+class DatasetDetailView(PluginMixin):
+    """Dataset detail view with plugin support."""
+
+    model = Dataset
+    template_name = "dataset/detail.html"

@@ -2,11 +2,17 @@ from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
 from fairdm.core.filters import ProjectFilter
+from fairdm.plugins import PluginMixin
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..models import Project
 from .forms import ProjectForm
+
+
+class ProjectDetailPage(PluginMixin):
+    model = Project
+    template_name = "project/detail.html"
 
 
 class ProjectCreateView(FairDMCreateView):
@@ -24,7 +30,7 @@ class ProjectCreateView(FairDMCreateView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("project"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -42,19 +48,11 @@ class ProjectListView(FairDMListView):
     description = _(
         "Discover past, present and future research projects shared by our community to see what other are working on."
     )
-    heading_config = {
-        "icon": "project",
+    page = {
         "title": _("Research Projects"),
         "description": _(
             "A research project serves as a container for multiple datasets that share common metadata, such as funding sources, project descriptions, contributors, and institutional affiliations. This page presents publicly listed research projects contributed by community members, allowing you to explore what others community members are currently working on."
         ),
-        "links": [
-            {
-                "text": _("Learn More"),
-                "href": user_guide("project"),
-                "icon": "fa-solid fa-book",
-            },
-        ],
     }
 
     image = static("img/stock/project.jpg")

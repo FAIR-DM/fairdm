@@ -1,28 +1,23 @@
 from django.utils.translation import gettext_lazy as _
 
-from fairdm import plugins
-from fairdm.contrib.contributors.plugins import ContributorsPlugin
 from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
-from fairdm.core.plugins import ActivityPlugin, ManageBaseObjectPlugin, OverviewPlugin
+from fairdm.core.plugins import ManageBaseObjectPlugin, OverviewPlugin
 from fairdm.core.sample.models import SampleDate, SampleDescription
+from fairdm.plugins import EXPLORE, MANAGEMENT, register_plugin
 from fairdm.utils.utils import user_guide
 
 from ..utils import documentation_link
+from .views import SampleDetailView
 
 
 def check_has_edit_permission(request, instance, **kwargs):
     return True
 
 
+@register_plugin(SampleDetailView)
 class Overview(OverviewPlugin):
+    category = EXPLORE
     fieldsets = []
-
-
-plugins.sample.register(
-    Overview,
-    ContributorsPlugin,
-    ActivityPlugin,
-)
 
 
 class SampleManagementMixin:
@@ -35,8 +30,9 @@ class SampleManagementMixin:
 
 
 # ======== Management Plugins ======== #
-@plugins.sample.register
+@register_plugin(SampleDetailView)
 class Configure(SampleManagementMixin, ManageBaseObjectPlugin):
+    category = MANAGEMENT
     heading_config = {
         "description": _(
             "Provide descriptions of your sample to convey its purpose and scope. This information is essential for helping users quickly understand the sample's relevance and applicability to their research or applications."
@@ -46,8 +42,9 @@ class Configure(SampleManagementMixin, ManageBaseObjectPlugin):
     fields = ["image", "name"]
 
 
-@plugins.sample.register
+@register_plugin(SampleDetailView)
 class Descriptions(SampleManagementMixin, DescriptionsPlugin):
+    category = MANAGEMENT
     name = "basic-information"
     title = _("Basic Information")
     heading_config = {
@@ -60,8 +57,9 @@ class Descriptions(SampleManagementMixin, DescriptionsPlugin):
     inline_model = SampleDescription
 
 
-@plugins.sample.register
+@register_plugin(SampleDetailView)
 class Keywords(SampleManagementMixin, KeywordsPlugin):
+    category = MANAGEMENT
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
@@ -70,8 +68,9 @@ class Keywords(SampleManagementMixin, KeywordsPlugin):
     }
 
 
-@plugins.sample.register
+@register_plugin(SampleDetailView)
 class KeyDates(SampleManagementMixin, KeyDatesPlugin):
+    category = MANAGEMENT
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."

@@ -2,13 +2,11 @@ from crispy_forms.helper import FormHelper
 from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
 
-from fairdm import plugins
 from fairdm.contrib.generic.forms import CoreInlineFormset, DateForm, DescriptionForm, KeywordForm
-from fairdm.utils.view_mixins import FairDMModelFormMixin
-from fairdm.views import FairDMUpdateView
+from fairdm.views import FairDMModelFormMixin, FairDMUpdateView
 
 
-class KeywordsPlugin(plugins.Management, FairDMUpdateView):
+class KeywordsPlugin(FairDMUpdateView):
     name = "keywords"
     title = _("Manage Keywords")
     menu_item = {
@@ -21,7 +19,7 @@ class KeywordsPlugin(plugins.Management, FairDMUpdateView):
     form_class = KeywordForm
 
 
-class DescriptionsPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSetView):
+class DescriptionsPlugin(FairDMModelFormMixin, InlineFormSetView):
     name = "descriptions"
     title = _("Edit Descriptions")
     menu_item = {
@@ -43,7 +41,7 @@ class DescriptionsPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSet
         return context
 
 
-class KeyDatesPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSetView):
+class KeyDatesPlugin(FairDMModelFormMixin, InlineFormSetView):
     name = "key-dates"
     title = _("Key Dates")
     menu_item = {

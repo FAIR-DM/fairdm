@@ -6,7 +6,7 @@ from django.forms.forms import DeclarativeFieldsMetaclass
 from django.forms.models import ModelFormMetaclass
 from partial_date import fields as partial_date_fields
 
-from fairdm.utils.utils import fields_to_crispy_layout, fieldsets_to_crispy_layout
+from fairdm.utils import fields_to_crispy_layout, fieldsets_to_crispy_layout
 
 from .fields import PartialDateField
 
