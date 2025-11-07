@@ -15,6 +15,15 @@ DEFAULT_LICENSE = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
 
 
 class DatasetForm(ModelForm):
+    """Form for creating and editing Dataset instances.
+
+    Provides fields for dataset name, image, project association, license,
+    and DOI. The project field uses a Select2 widget with "add another"
+    functionality. License defaults to the configured DEFAULT_LICENSE.
+    The project queryset is filtered to only show projects the authenticated
+    user has access to.
+    """
+
     name = forms.CharField(
         label=_("Name"),
         help_text=_("Give your dataset a name that is descriptive and reflects it's purpose and content."),
