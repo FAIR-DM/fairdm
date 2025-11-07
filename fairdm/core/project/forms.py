@@ -7,6 +7,12 @@ from .models import Project
 
 
 class ProjectForm(ModelForm):
+    """Form for creating and editing Project instances.
+
+    Provides fields for project image, name, visibility, and status with
+    custom widgets and help text to guide users through project creation.
+    """
+
     image = forms.ImageField(
         widget=ImageCroppingWidget(
             width=1200,

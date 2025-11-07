@@ -1,7 +1,8 @@
-{% load easy_icons %}
-
-<c-components.card.style2 title="{{ obj }}"
-                          view_details_text="{% trans "View project" %}"
-                          :obj="obj"
-                          :preview="obj.descriptions.first"
-                          :contributors="obj.contributions.all" />
+<c-components.object-card :object="object"
+                          :image="object.image"
+                          :date="object.added"
+                          description="{{ object.get_abstract }}"
+                          :title="object.title"
+                          :subtitle="object.title"
+                          :contributor="object.contributors.first.contributor"
+                          :organization="object.owner" />

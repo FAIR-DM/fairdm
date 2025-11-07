@@ -1,7 +1,7 @@
-from django.contrib.contenttypes.fields import GenericRelation
+from typing import TYPE_CHECKING
 
-# from rest_framework.authtoken.models import Token
-from django.utils.translation import gettext as _
+from django.contrib.contenttypes.fields import GenericRelation
+from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
 
@@ -13,20 +13,20 @@ from ..choices import ProjectStatus
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 
+if TYPE_CHECKING:
+    from fairdm.core.project.models import Project
+
 
 class ProjectQuerySet(models.QuerySet):
-    def get_visible(self):
+    """Custom QuerySet for Project model with optimized query methods."""
+
+    def get_visible(self) -> QuerySet["Project"]:
+        """Return only projects with public visibility."""
         return self.filter(visibility=Visibility.PUBLIC)
 
-    def with_related(self):
-        return self.prefetch_related(
-            "contributors",
-        )
-
-    def with_contributors(self):
-        return self.prefetch_related(
-            "contributors",
-        )
+    def with_contributors(self) -> QuerySet["Project"]:
+        """Prefetch related contributors for optimized access."""
+        return self.prefetch_related("contributors")
 
 
 class Project(BaseModel):
