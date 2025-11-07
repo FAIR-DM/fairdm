@@ -1,6 +1,6 @@
 import factory
 from django.contrib.contenttypes.models import ContentType
-from factory.declarations import LazyAttribute, SelfAttribute, SubFactory
+from factory.declarations import LazyAttribute, SubFactory
 from factory.django import DjangoModelFactory
 from factory.faker import Faker
 
@@ -64,20 +64,21 @@ class OrganizationMembershipFactory(DjangoModelFactory):
 
 
 class ContributionFactory(DjangoModelFactory):
-    """Factory for creating Contribution instances."""
+    """Factory for creating Contribution instances.
+
+    The content_object must be provided when creating a Contribution.
+    Example:
+        contribution = ContributionFactory(content_object=my_project, contributor=my_person)
+    """
 
     class Meta:
         model = Contribution
+        exclude = ["content_object"]
 
     contributor = SubFactory(PersonFactory)
 
-    content_object = LazyAttribute(lambda obj: _create_project_for_contribution())
-    content_type = LazyAttribute(lambda o: ContentType.objects.get_for_model(o.content_object))
-    object_id = SelfAttribute("content_object.id")
-
-
-def _create_project_for_contribution():
-    """Helper function to create a Project for contributions, avoiding circular imports."""
-    from fairdm.factories.core import ProjectFactory
-
-    return ProjectFactory()
+    # These will be set based on content_object
+    content_type = LazyAttribute(
+        lambda o: ContentType.objects.get_for_model(o.content_object) if o.content_object else None
+    )
+    object_id = LazyAttribute(lambda o: o.content_object.id if o.content_object else None)

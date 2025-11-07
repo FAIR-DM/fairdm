@@ -1,5 +1,5 @@
 import factory
-from factory.declarations import LazyAttribute, RelatedFactoryList, SubFactory
+from factory.declarations import LazyAttribute, SubFactory
 from factory.django import DjangoModelFactory
 from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice
@@ -36,7 +36,11 @@ class ProjectDateFactory(DjangoModelFactory):
 
 
 class ProjectFactory(DjangoModelFactory):
-    """Factory for creating Project instances."""
+    """Factory for creating Project instances.
+
+    By default, creates a minimal Project with only required fields.
+    Use traits or manual creation for descriptions, dates, and contributors.
+    """
 
     class Meta:
         model = Project
@@ -50,19 +54,8 @@ class ProjectFactory(DjangoModelFactory):
     # JSON fields - simplified approach
     funding = LazyAttribute(lambda obj: {"agency": "Sample Agency", "grant_number": "GRANT-2024-001", "amount": 50000})
 
-    # Related objects using RelatedFactoryList
-    descriptions = RelatedFactoryList("fairdm.factories.core.ProjectDescriptionFactory", "related", size=2)
-    dates = RelatedFactoryList("fairdm.factories.core.ProjectDateFactory", "related", size=1)
-
-    # Relations - owner will be set via contributors
+    # Relations - owner can be set manually or via trait
     owner = None
-
-    # Add contributors
-    contributors = RelatedFactoryList(
-        "fairdm.factories.contributors.ContributionFactory",
-        factory_related_name="content_object",
-        size=2,
-    )
 
 
 class DatasetDescriptionFactory(DjangoModelFactory):
@@ -86,7 +79,12 @@ class DatasetDateFactory(DjangoModelFactory):
 
 
 class DatasetFactory(DjangoModelFactory):
-    """Factory for creating Dataset instances."""
+    """Factory for creating Dataset instances.
+
+    By default, creates a minimal Dataset with only required fields.
+    Use traits or manual creation for descriptions, dates, and contributors.
+    Project must be provided or will be auto-created.
+    """
 
     class Meta:
         model = Dataset
@@ -96,12 +94,8 @@ class DatasetFactory(DjangoModelFactory):
     image = factory.django.ImageField(width=800, height=600)
     visibility = FuzzyChoice(Visibility.values)
 
-    # Relations
+    # Relations - project can be passed in or auto-created
     project = SubFactory(ProjectFactory)
-
-    # Related objects using RelatedFactoryList
-    descriptions = RelatedFactoryList("fairdm.factories.core.DatasetDescriptionFactory", "related", size=2)
-    dates = RelatedFactoryList("fairdm.factories.core.DatasetDateFactory", "related", size=1)
 
     # Simplified license handling
     @LazyAttribute
@@ -114,18 +108,8 @@ class DatasetFactory(DjangoModelFactory):
             return existing_license
 
         # Create a minimal license with only the required fields
-        license_obj, created = License.objects.get_or_create(
-            name="CC BY 4.0"
-            # Remove the 'url' field since it doesn't exist on the License model
-        )
+        license_obj, _ = License.objects.get_or_create(name="CC BY 4.0")
         return license_obj
-
-    # Add contributors
-    contributors = RelatedFactoryList(
-        "fairdm.factories.contributors.ContributionFactory",
-        factory_related_name="content_object",
-        size=1,
-    )
 
 
 class SampleDescriptionFactory(DjangoModelFactory):
@@ -149,7 +133,12 @@ class SampleDateFactory(DjangoModelFactory):
 
 
 class SampleFactory(DjangoModelFactory):
-    """Factory for creating Sample instances."""
+    """Factory for creating Sample instances.
+
+    By default, creates a minimal Sample with only required fields.
+    Dataset must be provided or will be auto-created.
+    Use manual creation for descriptions and dates.
+    """
 
     class Meta:
         model = Sample
@@ -159,13 +148,9 @@ class SampleFactory(DjangoModelFactory):
     local_id = Faker("bothify", text="SAMPLE-####")
     status = "unknown"  # Default from the model
 
-    # Relations
+    # Relations - dataset can be passed in or auto-created
     dataset = SubFactory(DatasetFactory)
     location = None  # Optional field
-
-    # Related objects using RelatedFactoryList
-    descriptions = RelatedFactoryList("fairdm.factories.core.SampleDescriptionFactory", "related", size=2)
-    dates = RelatedFactoryList("fairdm.factories.core.SampleDateFactory", "related", size=1)
 
 
 class MeasurementDescriptionFactory(DjangoModelFactory):
@@ -189,7 +174,13 @@ class MeasurementDateFactory(DjangoModelFactory):
 
 
 class MeasurementFactory(DjangoModelFactory):
-    """Factory for creating Measurement instances."""
+    """Factory for creating Measurement instances.
+
+    By default, creates a minimal Measurement with only required fields.
+    Dataset and sample are both required and will be auto-created if not provided.
+    The sample will be created in the same dataset as the measurement.
+    Use manual creation for descriptions and dates.
+    """
 
     class Meta:
         model = Measurement
@@ -197,10 +188,7 @@ class MeasurementFactory(DjangoModelFactory):
     # Basic fields
     name = Faker("word")
 
-    # Relations
+    # Relations - both dataset and sample are required
+    # Create dataset first, then create sample in that dataset
     dataset = SubFactory(DatasetFactory)
-    sample = SubFactory(SampleFactory)
-
-    # Related objects using RelatedFactoryList
-    descriptions = RelatedFactoryList("fairdm.factories.core.MeasurementDescriptionFactory", "related", size=2)
-    dates = RelatedFactoryList("fairdm.factories.core.MeasurementDateFactory", "related", size=1)
+    sample = SubFactory(SampleFactory, dataset=LazyAttribute(lambda o: o.factory_parent.dataset))
