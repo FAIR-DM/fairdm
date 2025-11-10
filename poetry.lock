@@ -1369,6 +1369,24 @@ files = [
 django = ">=4.2,<5.3"
 
 [[package]]
+name = "django-cotton-bs5"
+version = "0.3.0"
+description = "Bootstrap 5 components for use with Django Cotton."
+optional = false
+python-versions = "<4.0,>=3.10"
+files = [
+    {file = "django_cotton_bs5-0.3.0-py3-none-any.whl", hash = "sha256:a658ee76ac57596dae387447d682047ed18bbf04854c260e6eef3d0adc8626f3"},
+    {file = "django_cotton_bs5-0.3.0.tar.gz", hash = "sha256:0829969816f030d8e6e6e5d13f146b4fffffed55ae757720217829bd24ed71f3"},
+]
+
+[package.dependencies]
+django-cotton = ">2.1"
+django-libsass = ">=0.9,<0.10"
+
+[package.extras]
+django-compressor = ["django-compressor (>=4.5.1,<5.0.0)"]
+
+[[package]]
 name = "django-countries"
 version = "7.6.1"
 description = "Provides a country field for Django models."
@@ -1482,8 +1500,8 @@ test = ["tox"]
 
 [[package]]
 name = "django-easy-icons"
-version = "0.1.0"
-description = "Simple inline SVG icons for Django"
+version = "0.2.4"
+description = "Easy, flexible icons for Django"
 optional = false
 python-versions = "^3.10"
 files = []
@@ -1496,7 +1514,7 @@ django = "*"
 type = "git"
 url = "https://github.com/SamuelJennings/django-easy-icons"
 reference = "HEAD"
-resolved_reference = "40b4328ab14788ab7b672c6072a1be8a00c3d7c6"
+resolved_reference = "31591207416e92a174f85a28cbbecd06d2b4436d"
 
 [[package]]
 name = "django-entangled"
@@ -1572,21 +1590,22 @@ Django = ">=4.2"
 
 [[package]]
 name = "django-flex-menus"
-version = "0.1.0"
+version = "0.3.2"
 description = "Flexible site menus for Django"
 optional = false
-python-versions = ">=3.1,<4.0"
+python-versions = ">=3.10,<4.0"
 files = []
 develop = false
 
 [package.dependencies]
-anytree = "^2.12.1"
+anytree = ">2"
+django = ">=4.2,<5.3"
 
 [package.source]
 type = "git"
 url = "https://github.com/SamuelJennings/django-flex-menus"
 reference = "HEAD"
-resolved_reference = "9b84be19a06e96f4e0bb73b493264a2cb2af1404"
+resolved_reference = "c9e31c93ba46c21329136121e5c26921ba8b7e85"
 
 [[package]]
 name = "django-formset"
@@ -2031,18 +2050,17 @@ test = ["pytest", "pytest-cov", "pytest-django", "selenium"]
 
 [[package]]
 name = "django-setup-tools"
-version = "0.1.0"
+version = "0.2.5"
 description = "Declaratively setup Django before deployment in any environment"
 optional = false
-python-versions = ">=3.10,<4.0"
-files = []
-develop = false
+python-versions = "<4.0,>=3.10"
+files = [
+    {file = "django_setup_tools-0.2.5-py3-none-any.whl", hash = "sha256:3158b6f846ff16a82128b5272bb63a4f178aa72529ef9df4261ad14fb24d67f3"},
+    {file = "django_setup_tools-0.2.5.tar.gz", hash = "sha256:ee77b83aae4578b60cd6902beef488ff831418b62276f45a998c571ff24e084b"},
+]
 
-[package.source]
-type = "git"
-url = "https://github.com/SamuelJennings/django-setup-tools"
-reference = "HEAD"
-resolved_reference = "c6b5e92130304997c548507221b7ad0727656ed7"
+[package.dependencies]
+django = ">=3.2"
 
 [[package]]
 name = "django-social-share"
@@ -4015,6 +4033,7 @@ files = [
     {file = "psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:bb89f0a835bcfc1d42ccd5f41f04870c1b936d8507c6df12b7737febc40f0909"},
     {file = "psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:f0c2d907a1e102526dd2986df638343388b94c33860ff3bbe1384130828714b1"},
     {file = "psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:f8157bed2f51db683f31306aa497311b560f2265998122abe1dce6428bd86567"},
+    {file = "psycopg2_binary-2.9.10-cp313-cp313-win_amd64.whl", hash = "sha256:27422aa5f11fbcd9b18da48373eb67081243662f9b46e6fd07c3eb46e4535142"},
     {file = "psycopg2_binary-2.9.10-cp38-cp38-macosx_12_0_x86_64.whl", hash = "sha256:eb09aa7f9cecb45027683bb55aebaaf45a0df8bf6de68801a6afdc7947bb09d4"},
     {file = "psycopg2_binary-2.9.10-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b73d6d7f0ccdad7bc43e6d34273f70d587ef62f824d7261c4ae9b8b1b6af90e8"},
     {file = "psycopg2_binary-2.9.10-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ce5ab4bf46a211a8e924d307c1b1fcda82368586a19d0a24f8ae166f5c784864"},
@@ -6110,4 +6129,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3f63f17ee818a9368a7eb8cc6ad580bce3612d1329bf4a6133dd856320446490"
+content-hash = "dc88a7ea1f19ab00de0666e18bc4d3e8ef7c2e5980cbf42473c152d1faf99a5c"
