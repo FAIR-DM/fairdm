@@ -5,7 +5,7 @@ test.*
 .vocabularies-cache
 # would be nice to ignore these and build bundle in CI workflow
 # fairdm/static/bundles/
-
+xtemplates/
 
 # webpack-stats.json
 docs/_build
