@@ -1,7 +1,7 @@
 {% load literature fairdm easy_icons %}
 
-<c-bs5.card title="{{ obj.title }}">
-</c-bs5.card>
+<c-card title="{{ obj.title }}">
+</c-card>
 {% block card_header %}
   <div class="position-absolute top-0 end-0 m-2">
     <span class="badge rounded-pill text-bg-success">{{ obj.review.get_status_display }}</span>
