@@ -9,10 +9,9 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Model
 from django.forms import modelform_factory
 from django.shortcuts import get_object_or_404
-from django.urls import path
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView, ListView, TemplateView, View
+from django.views.generic import DetailView, TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_addanother.views import CreatePopupMixin
 from django_filters.views import FilterView
@@ -22,7 +21,6 @@ from fairdm.contrib.contributors.utils import current_user_has_role
 from fairdm.contrib.identity.models import Database
 from fairdm.core.utils import get_non_polymorphic_instance
 from fairdm.forms import Form
-from fairdm.layouts import BaseLayout, FormLayout
 from fairdm.utils import assign_all_model_perms, get_model_class
 
 # =============================================================================
@@ -30,7 +28,7 @@ from fairdm.utils import assign_all_model_perms, get_model_class
 # =============================================================================
 
 
-class FairDMBaseMixin(BaseLayout, MessageMixin, MetadataMixin):
+class FairDMBaseMixin(MessageMixin, MetadataMixin):
     """
     A mixin class providing common context and sidebar configuration for views.
 
@@ -90,7 +88,7 @@ class FairDMBaseMixin(BaseLayout, MessageMixin, MetadataMixin):
         return self.page_title or self.title
 
 
-class FairDMFormViewMixin(FormLayout):
+class FairDMFormViewMixin:
     """Mixin for form views that provides common form handling functionality."""
 
     def get_success_url(self):
@@ -208,74 +206,6 @@ class RelatedObjectMixin:
         return context
 
 
-class CRUDView(View):
-    """Experimental class for generating CRUD views dynamically based on a model."""
-
-    model = None
-    base_url = None
-    action = None  # Set dynamically in generated views
-    view_classes = {
-        "list": ListView,
-        "create": CreateView,
-        "detail": DetailView,
-        "update": UpdateView,
-        "delete": DeleteView,
-    }
-
-    @classmethod
-    def get_view_classes(cls):
-        merged = {}
-        for base in reversed(cls.__mro__):
-            if hasattr(base, "view_classes"):
-                merged.update(base.view_classes)
-        return merged
-
-    @classmethod
-    def get_urls(cls):
-        if cls.model is None:
-            raise ValueError(f"{cls.__name__} requires a `model` attribute.")
-
-        model_name = cls.model._meta.model_name
-        base = cls.base_url or model_name
-        views = cls.get_view_classes()
-        urls = []
-
-        action_paths = {
-            "list": (f"{base}/", f"{model_name}_changelist"),
-            "create": (f"{base}/add/", f"{model_name}_add"),
-            "detail": (f"{base}/<int:pk>/", f"{model_name}_detail"),
-            "update": (f"{base}/<int:pk>/change/", f"{model_name}_change"),
-            "delete": (f"{base}/<int:pk>/delete/", f"{model_name}_delete"),
-        }
-
-        for action_name, (route, name) in action_paths.items():
-            view_class = views.get(action_name)
-            if view_class is False:
-                continue
-            urls.append(path(route, cls.make_view(action_name, views), name=name))
-
-        return urls
-
-    @classmethod
-    def make_view(cls, action_name, view_classes):
-        base_view = view_classes[action_name]
-
-        view = type(f"{cls.model.__name__}{base_view.__name__}", (cls, base_view), {"action": action_name})
-        return view.as_view()
-
-    def has_permission(self):
-        attr_name = f"has_{self.action}_permission"
-        if hasattr(self, attr_name):
-            attr = getattr(self, attr_name)
-            return attr() if callable(attr) else bool(attr)
-        return True
-
-    def dispatch(self, request, *args, **kwargs):
-        if not self.has_permission():
-            raise PermissionError("Permission denied.")
-        return super().dispatch(request, *args, **kwargs)
-
-
 # =============================================================================
 # CONCRETE VIEW CLASSES
 # =============================================================================
@@ -291,6 +221,7 @@ class FairDMListView(FairDMBaseMixin, FilterView):
     The base class for displaying a list of objects within the FairDM framework.
     """
 
+    # template_name = "fairdm/list_view.html"
     template_name = "fairdm/list_view.html"
     template_name_suffix = "_list"
     paginate_by = 20
@@ -316,6 +247,7 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         "card": "project.card",
         "empty_message": _("No results found."),
     }
+    page = {}
 
     def get(self, request, *args, **kwargs):
         """Override the get method of the FilterView to allow views to not specify a filterset_class."""
@@ -343,6 +275,7 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         context["is_filtered"] = hasattr(context["filter"].form, "cleaned_data")
         context["object_verbose_name_plural"] = self.get_model()._meta.verbose_name_plural
 
+        context["page"] = self.page
         # Required for sections.sidebar.form to work without modification
         # Ensure the form method is set to GET
         form = context["filter"].form
@@ -354,6 +287,11 @@ class FairDMListView(FairDMBaseMixin, FilterView):
         # form.helper.layout = Layout(Field("o", type="hidden", form="filter-form"))
         form.helper.render_unmentioned_fields = False
         context["form"] = form
+
+        # Add card template if specified
+        if hasattr(self, "card_template") and self.card_template:
+            context["card_template"] = self.card_template
+
         return context
 
     def get_filterset_class(self):

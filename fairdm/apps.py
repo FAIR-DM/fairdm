@@ -1,6 +1,5 @@
 from django.apps import AppConfig
 from django.utils.module_loading import autodiscover_modules
-from django.utils.translation import gettext_lazy as _
 
 
 class FairDMConfig(AppConfig):
@@ -26,13 +25,14 @@ class FairDMConfig(AppConfig):
         Populates the data collection menu with sample types and their respective views.
         This function is called during the `FairDMConfig.ready` method.
         """
-        from fairdm.menus import DropdownHeader, SiteNavigation, get_measurement_menu_items, get_sample_menu_items
+        # from fairdm.menus.menus import DropdownHeader, SiteNavigation
+        # from fairdm.menus.utils import get_measurement_menu_items, get_sample_menu_items
 
-        SiteNavigation.get("Data").get("Data Collections").children = [
-            DropdownHeader(_("Sample Collections")),
-            *get_sample_menu_items(),
-            DropdownHeader(_("Measurement Collections")),
-            *get_measurement_menu_items(),
-        ]
+        # SiteNavigation.get("Data").get("Data Collections").children = [
+        #     DropdownHeader(_("Sample Collections")),
+        #     *get_sample_menu_items(),
+        #     DropdownHeader(_("Measurement Collections")),
+        #     *get_measurement_menu_items(),
+        # ]
 
         # print(SiteNavigation.get("DataCollectionsMenu").children)
