@@ -7,6 +7,7 @@ license = "MIT"
 readme = "README.md"
 include = [
     "fairdm",
+    "fairdm_demo",
     "README.md",
     "LICENSE",
 ]
@@ -100,7 +101,7 @@ django-accounts-center = {git = "https://github.com/SamuelJennings/django-accoun
 django-polymorphic = "^4.1.0"
 django-content-license = "^0.2.3"
 django-setup-tools = "^0.2.5"
-django-flex-menus = "^0.3.2"
+django-flex-menus = "^0.4.0"
 django-easy-icons = "^0.2.4"
 django-cotton-bs5 = "^0.3.0"
 
@@ -111,7 +112,6 @@ fairdm-dev-tools = {git = "https://github.com/FAIR-DM/dev-tools"}
 importtime-waterfall = "^1.0.0"
 pandas = "^2.2.2"
 snakeviz = "^2.2.2"
-fairdm-demo = {git = "https://github.com/FAIR-DM/demo-portal"}
 
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs", extras = ["pydata-sphinx-theme"]}
