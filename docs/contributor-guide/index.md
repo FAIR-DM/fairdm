@@ -22,6 +22,7 @@ design_philosophy
 repo_structure
 core_data_model
 contribution_framework
+plugin_system_architecture
 getting_started
 frontend_dev
 django_dev

@@ -1,15 +1,22 @@
-# Create a plugin
+# Create a Plugin
 
-This guide walks you through creating a plugin in the FairDM Framework. Plugins are modular views that integrate seamlessly into the portal via registration, automatic routing, and a consistent UI system using fairdm components.
+This guide walks you through creating a plugin in the FairDM Framework. Plugins are modular views that integrate seamlessly into the portal via registration, automatic routing, and a consistent UI system.
 
-## 1. Create a plugins.py module
+## 1. Plugin Types
+
+FairDM supports three types of plugins:
+
+- **Explore**: Analytical and exploratory views (data visualization, statistics, etc.)
+- **Actions**: Operations that perform actions (export, import, transformation, etc.)  
+- **Management**: Form-based views for managing object data and settings
+
+## 2. Create a plugins.py module
 
 In any **Django app** that is discoverable by Django, create a file named `plugins.py`.
 
-Your app directory should now look something like this:
+Your app directory should look like this:
 
 ```text
-
 myapp/
 ├── templates/
 │   └── myapp/
@@ -18,110 +25,168 @@ myapp/
 ├── apps.py
 ├── plugins.py   ← define your plugin here
 ├── ...
-
 ```
 
-## 2. Define the plugin class
-
-Inside `plugins.py`, define new view class just like you would with a normal Django class-based view. Be sure
-to also inherit from `GenericPlugin` to gain access to the plugin system. You will also need to register your
-plugin using the `@plugins.register` decorator. Doing so will automatically add the plugin to the appropriate menus in 
-the UI and handle all required URL routing.
+## 3. Import Required Components
 
 ```python
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
-from fairdm.plugins import GenericPlugin
 
-class MyPlugin(GenericPlugin, TemplateView): 
-    template_name = "myapp/myplugin.html" 
-    name = "My Plugin" 
-    menu = "Tools" # default = "Explore"
-    icon = "fa fa-cog" # Optional
+from fairdm import plugins  # For category constants
+from fairdm.plugins import plugin, MenuLink, BasePlugin
 ```
 
-The attributes `name`, `menu`, and `icon` are specific to the `GenericPlugin` class. They define where the plugin will
-appear in the sidebar menu and how it will be displayed.
+## 4. Define and Register Your Plugin
 
-- `name`: The name of the plugin as it will appear in the menu. Also used to generate the URL for the plugin.
-- `menu`: The menu under which the plugin will be listed. If not specified, defaults to "Explore". If set to False, the 
-plugin will not be listed in the menu.
-- `icon`: The icon to be displayed next to the plugin name in the menu.
-- `sidebar_primary`: A dictionary of configuration values for the primary sidebar (left).
-- `sidebar_secondary`: A dictionary of configuration values for the secondary sidebar (right).
+Use the `@plugin.register()` decorator to register plugins with explicit model strings and category constants:
 
-## 3. Register the plugin
-
-For the plugin to be shown in the portal, you need to register it. This is done using the `@plugins.register` decorator. 
-The decorator takes a list of model types ("project", "dataset", "sample", or "contributor") that the plugin will be 
-associated with. Once properly registered, the plugin will then be available for those models in the portal.
+### Explore Plugin Example
 
 ```python
-from django.views.generic import TemplateView
-from fairdm.plugins import GenericPlugin
-from fairdm import plugins # NEW: decorator for registration
-
-@plugins.register(to=["dataset"]) # New: register the plugin (this will register for the dataset detail page only) 
-class MyPlugin(GenericPlugin, TemplateView): 
-    template_name = "myapp/myplugin.html" 
-    name = "My Plugin" # name shown in the menu
-    menu = "Tools" # default = "Explore"
-    icon = "fa fa-cog" # Optional
-```
-
-
-## 4. Add some context
-
-Next, add some context to your plugin that will be passed to the template. You can do this by overriding the `get_context_data` method.
-This method is called when the plugin is rendered, and it allows you to add any additional context variables you need.
-In your context data, you will already have access to the underlying base object (e.g., `dataset`, `project`, or `sample`) via
-context["base_object"] or context["dataset"] (if you have registered it to dataset). You will also have access to the
-related class (e.g., `Dataset`, `Project`, or `Sample`) via context["related_class"].
-
-`related_class` and `related_object` are also available as methods on the plugin class itself.
-
-```python
-
-@plugins.register(to=["dataset"])
-class DatasetSummary(GenericPlugin, TemplateView): 
-    template_name = "myapp/summary.html" 
-    name = "Summary" 
-    menu = "Data Summary" 
+@plugin.register('dataset.Dataset', category=plugins.EXPLORE)
+class DatasetAnalysis(BasePlugin, TemplateView):
+    menu_item = MenuLink(name=_("Analysis"), icon="chart-bar")
+    template_name = "myapp/analysis.html"
+    title = _("Dataset Analysis")
     
-    def get_context_data(self, **kwargs): 
-        context = super().get_context_data(**kwargs) 
-        dataset = self.base_object # Access the related dataset 
-        Dataset = self.related_class # Access the related class (Dataset)
-        # add any additional context variables you need
-        context["summary"] = generate_summary_for(dataset) # Custom function to generate summary  
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        dataset = self.base_object
+        context["stats"] = self.calculate_stats(dataset)
         return context
+    
+    def calculate_stats(self, dataset):
+        # Your analysis logic here
+        return {"record_count": dataset.samples.count()}
 ```
 
-## 5. Create a template for your plugin
+### Action Plugin Example
 
-Now, create a template for your plugin. This template will be rendered when the plugin is accessed in the portal. The 
-location of the template should match the `template_name` attribute you specified in your plugin class.
+```python
+@plugin.register('sample.Sample', category=plugins.ACTIONS)
+class ExportSample(BasePlugin):
+    menu_item = MenuLink(name=_("Export CSV"), icon="download")
+    title = _("Export Sample Data")
+    
+    def get(self, request, *args, **kwargs):
+        sample = self.base_object
+        # Generate CSV export
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{sample.name}.csv"'
+        # Add your export logic here
+        return response
+```
 
-In your template, create a `<c-plugin>` wrapper around your content. This ensures that the plugin is styled correctly 
-and fits into the overall design of the portal.
+### Management Plugin Example
+
+```python
+@plugin.register('project.Project', category=plugins.MANAGEMENT)  
+class ProjectSettings(plugins.Management):
+    menu_item = MenuLink(name=_("Settings"), icon="gear")
+    form_class = ProjectSettingsForm
+    title = _("Project Settings")
+    
+    def get_object(self):
+        return self.base_object
+```
+
+## 5. Plugin Configuration
+
+### Required Attributes
+
+- **menu_item**: A `MenuLink` instance defining how the plugin appears in menus
+  - Set to `None` to hide the plugin from menus
+- **title**: The page title for the plugin view
+
+### Optional Attributes
+
+- **path**: Custom URL path (auto-generated from class name if not provided)
+- **template_name**: Custom template path
+- **sections**: Layout configuration for sidebars and headers
+- **check**: Permission check function or boolean
+
+### MenuLink Configuration
+
+```python
+menu_item = MenuLink(
+    name=_("My Plugin"),           # Display name in menu
+    icon="chart-line",            # Icon name (FontAwesome)
+    check=my_permission_function  # Optional permission check
+)
+```
+
+## 6. Plugin Base Classes
+
+Choose the appropriate base class for your plugin type:
+
+- **`plugins.Explore`**: For analytical/exploratory views
+- **`plugins.Action`**: For action-based operations  
+- **`plugins.Management`**: For form-based management views
+
+All inherit from `BasePlugin` and provide type-specific defaults.
+
+## 7. Accessing the Base Object
+
+In your plugin, access the related model instance via `self.base_object`:
+
+```python
+def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    
+    # Access the object this plugin is attached to
+    dataset = self.base_object  # Will be Dataset, Project, Sample, etc.
+    
+    # Add your custom context
+    context["sample_count"] = dataset.samples.count()
+    return context
+```
+
+## 8. Create a Template
+
+Create a template for your plugin that matches the `template_name` attribute. Wrap your content in a `<c-plugin>` component for consistent styling:
 
 ```html
-<c-plugin> 
-    <h2>{{ dataset.name }}</h2> 
-    <p>This dataset contains {{ summary.record_count }} records.</p>
+<c-plugin>
+    <h2>{{ dataset.name }}</h2>
+    <p>This dataset contains {{ stats.record_count }} samples.</p>
+    
+    <!-- Use FairDM components for consistency -->
+    <c-card>
+        <c-card-header>Analysis Results</c-card-header>
+        <c-card-body>
+            <p>Your analysis content here...</p>
+        </c-card-body>
+    </c-card>
 </c-plugin>
 ```
 
 :::{note}
-**Important:** Do not use `{% extends %}` in your plugin templates. The base layout will be injected automatically by the plugin system.
+**Important:** Do not use `{% extends %}` in plugin templates. The base layout is injected automatically by the plugin system.
 :::
+
 :::{tip}
-Use the FairDM component library to ensure consistency in design with other aspects of the portal. 
-See the [component documentation](../components/components.md) for available components.
+Use the FairDM component library for consistent UI design. See the [component documentation](../components/components.md) for available components.
 :::
+
+## 9. Model Registration Strings
+
+Use these model strings when registering plugins:
+
+- `'project.Project'` - For project-level plugins
+- `'dataset.Dataset'` - For dataset-level plugins  
+- `'sample.Sample'` - For sample-level plugins
+- `'measurement.Measurement'` - For measurement-level plugins
+
+## 10. Plugin Discovery
+
+Plugins are automatically discovered from any `plugins.py` file in installed Django apps. Ensure your app is in `INSTALLED_APPS` for plugins to be loaded.
 
 ## Summary
 
-- Define your plugin class in `plugins.py` and register it with `@plugins.register`.
-- Gain access to the related model instance via `self.base_object`.
-- Do **not** use `{% extends %}` in templates—wrap content with `<c-plugin>`.
-- Use fairdm components for consistent UI design.
+- Use `@plugin.register('model.name', category=plugins.CATEGORY)` for registration
+- Create explicit `MenuLink` instances for menu configuration
+- Access the related object via `self.base_object`
+- Choose appropriate base classes: `Explore`, `Action`, or `Management`
+- Wrap template content with `<c-plugin>` components
+- Use FairDM components for consistent UI design

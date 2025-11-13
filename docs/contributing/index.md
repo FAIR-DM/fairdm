@@ -16,6 +16,7 @@ before_you_start
 design_philosophy
 repo_structure
 core_data_model
+views_module
 contribution_framework
 getting_started
 frontend_dev

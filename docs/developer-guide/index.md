@@ -29,6 +29,7 @@ defining_models
 special_fields
 controlled_vocabularies
 model_configuration
+using_the_registry
 ```
 
 ```{toctree}
