@@ -1481,7 +1481,7 @@ test = ["tox"]
 
 [[package]]
 name = "django-easy-icons"
-version = "0.2.4"
+version = "0.3.0"
 description = "Easy, flexible icons for Django"
 optional = false
 python-versions = "^3.10"
@@ -1495,7 +1495,7 @@ django = "*"
 type = "git"
 url = "https://github.com/SamuelJennings/django-easy-icons"
 reference = "HEAD"
-resolved_reference = "31591207416e92a174f85a28cbbecd06d2b4436d"
+resolved_reference = "6bd6acd0475e08daa125185803be3ad8aef835b9"
 
 [[package]]
 name = "django-entangled"
@@ -6095,4 +6095,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "4c5161ceaf96be4266ff74ec5f5fc45260e88bd025a3f114572508c786b237bf"
+content-hash = "a05ccfd40af67ef77bc6e86180ab399427942a6f248f69279a38eaa1f06a885d"

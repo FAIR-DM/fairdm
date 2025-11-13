@@ -100,7 +100,7 @@ django-polymorphic = "^4.1.0"
 django-content-license = "^0.2.3"
 django-setup-tools = "^0.2.5"
 django-flex-menus = "^0.4.0"
-django-easy-icons = "^0.2.4"
+django-easy-icons = "^0.3.0"
 django-cotton-bs5 = "^0.3.1"
 
 
