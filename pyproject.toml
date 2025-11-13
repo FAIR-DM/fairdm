@@ -74,7 +74,6 @@ whitenoise = "^6.4.0"
 django-research-vocabs = {git = "https://github.com/SamuelJennings/django-research-vocabs"}
 django-jsonfield-toolkit = {git = "https://github.com/SamuelJennings/django-jsonfield-toolkit"}
 shortuuid = "^1.0.13"
-django-cotton = ">=2.1"
 django-literature = {git = "https://github.com/SamuelJennings/django-literature"}
 django-widget-tweaks = "^1.5.0"
 tablib = {extras = ["all"], version = "^3.7.0"}
@@ -83,7 +82,6 @@ django-ordered-model = "^3.7.4"
 django-taggit = "^6.1.0"
 django-waffle = "^5.0.0"
 django-addanother = "^2.2.2"
-cotton-bs5 = {git = "https://github.com/SamuelJennings/cotton-bs5"}
 django-render-fields = {git = "https://github.com/SamuelJennings/django-render-fields"}
 django-admin-site-search = "^1.1.0"
 django-autocomplete-light = "^3.12.1"
@@ -103,7 +101,7 @@ django-content-license = "^0.2.3"
 django-setup-tools = "^0.2.5"
 django-flex-menus = "^0.4.0"
 django-easy-icons = "^0.2.4"
-django-cotton-bs5 = "^0.3.0"
+django-cotton-bs5 = "^0.3.1"
 
 
 

@@ -698,28 +698,6 @@ files = [
 ]
 
 [[package]]
-name = "cotton-bs5"
-version = "0.1.0"
-description = "Bootstrap 5 components for use with Django Cotton."
-optional = false
-python-versions = ">=3.10,<4.0"
-files = []
-develop = false
-
-[package.dependencies]
-django-cotton = ">2.1"
-django-libsass = "^0.9"
-
-[package.extras]
-django-compressor = ["django-compressor (>=4.5.1,<5.0.0)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/SamuelJennings/cotton-bs5"
-reference = "HEAD"
-resolved_reference = "f55ddfedf63b211373f93a4f45f77e531b172f5c"
-
-[[package]]
 name = "coverage"
 version = "7.10.4"
 description = "Code coverage measurement for Python"
@@ -1373,17 +1351,17 @@ django = ">=4.2,<7.0"
 
 [[package]]
 name = "django-cotton-bs5"
-version = "0.3.0"
+version = "0.3.1"
 description = "Bootstrap 5 components for use with Django Cotton."
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "django_cotton_bs5-0.3.0-py3-none-any.whl", hash = "sha256:a658ee76ac57596dae387447d682047ed18bbf04854c260e6eef3d0adc8626f3"},
-    {file = "django_cotton_bs5-0.3.0.tar.gz", hash = "sha256:0829969816f030d8e6e6e5d13f146b4fffffed55ae757720217829bd24ed71f3"},
+    {file = "django_cotton_bs5-0.3.1-py3-none-any.whl", hash = "sha256:d8c13a2f0e4acf3b3dc5504a84ec9f90856e42fa90ff9d9c5d62d2db54963edc"},
+    {file = "django_cotton_bs5-0.3.1.tar.gz", hash = "sha256:41afd4a053ddf092bd2adfed23c86f6e75d7c4ceca2f82ceff3b2f5aaf932bc6"},
 ]
 
 [package.dependencies]
-django-cotton = ">2.1"
+django-cotton = ">=2.3.1"
 django-libsass = ">=0.9,<0.10"
 
 [package.extras]
@@ -6117,4 +6095,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "9867b39748f074e2e5736267db67d06d90acff99099ebfa6f54d7b4b66476740"
+content-hash = "4c5161ceaf96be4266ff74ec5f5fc45260e88bd025a3f114572508c786b237bf"
