@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from crispy_forms.layout import HTML, Column, Fieldset, Layout, Row
 from django.apps import apps
 from django.conf import settings
@@ -6,25 +10,37 @@ from django.utils.text import slugify
 
 from fairdm.contrib import CORE_MAPPING
 
+if TYPE_CHECKING:
+    pass
+
 DOCUMENTATION_BASE_URL = "https://www.fairdm.org/en/latest/user-guide/"
 # DOCUMENTATION_BASE_URL = "http://localhost:5000/user-guide/"
 
 
-def user_guide(name):
+def user_guide(name: str) -> str:
     """
     Returns the documentation URL for a given name.
 
     Args:
-        name (str): The name of the documentation section.
+        name: The name of the documentation section.
 
     Returns:
-        str: The URL to the documentation section.
+        The URL to the documentation section.
     """
     return f"{DOCUMENTATION_BASE_URL}{name}.html"
 
 
-def get_setting(name, key):
-    """Return a setting from the Django settings module."""
+def get_setting(name: str, key: str):
+    """
+    Return a setting from the Django settings module.
+
+    Args:
+        name: The name of the FAIRDM setting (without FAIRDM_ prefix).
+        key: The key within the setting dictionary.
+
+    Returns:
+        The setting value or None if not found.
+    """
     settings_dict = getattr(settings, f"FAIRDM_{name}")
     return settings_dict.get(key)
 
@@ -116,8 +132,17 @@ def get_core_object_or_404(uuid: str):
     return get_object_or_404(model, uuid=uuid)
 
 
-def default_image_path(instance, filename):
-    """Generates file paths for images."""
+def default_image_path(instance, filename: str) -> str:
+    """
+    Generates file paths for images.
+
+    Args:
+        instance: The model instance the image is being uploaded to.
+        filename: The original filename of the uploaded image.
+
+    Returns:
+        A relative file path for storing the image.
+    """
     model_name = slugify(instance._meta.verbose_name_plural)
     return f"{model_name}/{instance.uuid}/{filename}"
 
@@ -159,7 +184,9 @@ def fieldsets_to_crispy_layout(fieldsets):
             layout.append(HTML(f"<p class='help-text'>{help_text}</p>"))
 
         fields = options.pop("fields", [])
-        layout.extend(fields_to_crispy_layout(fields))
+        # Convert fields to layout items and add them individually
+        field_layout = fields_to_crispy_layout(fields)
+        layout.extend(field_layout.fields)
         # for field in fields:
         #     if isinstance(field, (tuple, list)):  # If a tuple/list, group them in a Row
         #         inner_row = [Column(f) for f in field]  # Wrap each field in a Column

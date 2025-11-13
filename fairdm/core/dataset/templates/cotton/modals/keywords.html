@@ -1,4 +1,4 @@
-<c-bs5.modal id="keywordsModal">
+<c-modal id="keywordsModal">
   <c-slot name="title">
     {% blocktrans with entity_type=object.verbose_name|capfirst %}
     <span class="">{{ entity_type }} keywords</span>
@@ -31,4 +31,4 @@
                          icon="save"
                          text="{% trans "Update" %}" />
   </c-slot>
-</c-bs5.modal>
+</c-modal>

@@ -1,8 +1,8 @@
 {% load literature fairdm easy_icons %}
 
-<c-bs5.card title="{{ obj.title }}"
-            subtitle="{{ obj.item|csl_field:"container-title" }}, {{ obj.issued.date|date:"Y" }}"
-            x-data="{{ obj.item }}">
+<c-card title="{{ obj.title }}"
+        subtitle="{{ obj.item|csl_field:"container-title" }}, {{ obj.issued.date|date:"Y" }}"
+        x-data="{{ obj.item }}">
   <div class="text-muted">
     <template x-for="(obj, index) in author">
       <span>
@@ -27,4 +27,4 @@
     {% endblock footer %}
 
   </c-slot>
-</c-bs5.card>
+</c-card>

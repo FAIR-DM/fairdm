@@ -1,34 +1,44 @@
 {% extends "fairdm/base.html" %}
+{% load static %}
+
 {% block content %}
-  <style>
-    .line-clamp {
-      --line-clamp-n: 1;
-      display: -webkit-box;
-      -webkit-line-clamp: var(--line-clamp-n);
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  </style>
-  <c-layouts.standard>
-    <div class="pb-5">
-      {% if sections.heading %}<c-component :attrs="sections.heading" />{% endif %}
-      {% comment %} {% if sections.title %}<c-component :attrs="sections.title" />{% endif %} {% endcomment %}
-      {% comment %} {% if about %}
-        <c-components.button icon="info" text="{% trans "About" %}" data-bs-toggle="modal" data-bs-target="#{{ info_modal_id }}" aria-controls="{{ info_modal_id }}" />
-      {% endif %}
-      <c-components.button icon="filter"
-                           class="d-lg-none"
-                           text="{% trans "Filter" %}"
-                           data-bs-toggle="offcanvas"
-                           data-bs-target="#{{ sidebar_id }}"
-                           aria-controls="{{ sidebar_id }}" /> {% endcomment %}
-      <c-component :attrs="sections.grid" />
+  <div class="list-view container-xxl">
+    <div class="row mt-4">
+      <!-- Desktop Sidebar -->
+      <div class="col-lg-3 d-none d-lg-block border-end">
+        <c-list-view.filter-sidebar>
+          {% include "partials/filters.html" %}
+        </c-list-view.filter-sidebar>
+      </div>
+      <!-- Mobile Offcanvas Filter -->
+      <c-list-view.mobile-filters>
+        {% include "partials/filters.html" with mobile=True %}
+      </c-list-view.mobile-filters>
+      <!-- Main Content Area -->
+      <div class="col-lg-9">
+        <!-- Page Header -->
+        <c-list-view.page-header :title="page.title|default:page_title"
+                                 results_text="Showing {{ object_list.count }} results"
+                                 :search_value="request.GET.q" />
+        <!-- Card List -->
+        <div class="row g-4">
+          {% for object in object_list %}
+            <div class="col-12">{% include card_template %}</div>
+          {% empty %}
+            <c-list-view.empty-state />
+          {% endfor %}
+        </div>
+        <!-- Pagination -->
+        <c-list-view.pagination :is_paginated="is_paginated"
+                                :page_obj="page_obj"
+                                :request="request" />
+        <!-- Results Summary -->
+        <c-list-view.results-summary :is_paginated="is_paginated"
+                                     :page_obj="page_obj"
+                                     :object_list="object_list" />
+      </div>
     </div>
-  </c-layouts.standard>
-  {% comment %} {% if about %}
-    <c-components.modal.show-once id="{{ info_modal_id }}" title="{% trans "About" %} {{ title }}" learn_more="{{ learn_more }}" only>
-      {% for text_content in about %}<p>{{ text_content }}</p>{% endfor %}
-    </c-components.modal.show-once>
-  {% endif %} {% endcomment %}
-  {% for modal in modals %}<c-component :is="modal" />{% endfor %}
+  </div>
+  <!-- Page Information Modal -->
+  {% include "partials/page_info_modal.html" %}
 {% endblock content %}

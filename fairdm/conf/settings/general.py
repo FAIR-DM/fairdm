@@ -123,7 +123,7 @@ DJANGO_SETUP_TOOLS = {
                 "--last_name",
                 env("DJANGO_SUPERUSER_LASTNAME", default="User"),
             ),
-            ("loaddata", "creativecommons"),
+            # ("loaddata", "creativecommons"),
             ("loaddata", "django-waffle"),
             ("loaddata", "groups"),
         ],
@@ -131,7 +131,6 @@ DJANGO_SETUP_TOOLS = {
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
             ("preload",),  # used to preload vocabulary concepts (django-research-vocabs)
-            ("compress",),
             "django_setup_tools.scripts.sync_site_id",
         ],
     },

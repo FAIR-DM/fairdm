@@ -1,4 +1,4 @@
-<c-bs5.modal id="milestonesModal">
+<c-modal id="milestonesModal">
   <c-slot name="title">
     {% blocktrans with entity_type=object.verbose_name %}
     <span class="text-capitalize">{{ entity_type }} milestones</span>
@@ -22,4 +22,4 @@
                          icon="save"
                          text="{% trans "Update" %}" />
   </c-slot>
-</c-bs5.modal>
+</c-modal>

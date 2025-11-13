@@ -1,0 +1,7 @@
+{% load flex_menu %}
+
+<div class="nav flex-column">
+  {% for child in children %}
+    {% render_item child renderer=renderer %}
+  {% endfor %}
+</div>

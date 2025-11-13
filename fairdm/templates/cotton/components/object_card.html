@@ -1,0 +1,62 @@
+<article class="card h-100 border-0 shadow-sm card-hover">
+  {% if image %}
+    <!-- Mobile Image (shown on mobile, hidden on desktop) -->
+    <img src="{{ image.url }}"
+         class="card-image-mobile d-md-none"
+         alt="{{ title }}"
+         width="300"
+         height="200" />
+  {% endif %}
+  <div class="card-body">
+    {% if image %}
+      <!-- Desktop Image (hidden on mobile, shown on desktop) -->
+      <img src="{{ image.url }}"
+           class="card-image-desktop d-none d-md-block"
+           alt="{{ title }}"
+           width="300"
+           height="200" />
+    {% endif %}
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <small class="text-muted">
+        <i class="bi bi-calendar3 me-1"></i>{{ date|date:"F j, Y" }}
+      </small>
+      <span class="badge {% if type == 'sample' %}bg-primary{% elif type == 'dataset' %}bg-success{% elif type == 'measurement' %}bg-warning text-dark{% elif type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
+        {% trans "Project" %}
+      </span>
+    </div>
+    <h5 class="card-title mb-2 text-truncate-2">
+      <a href="{{ object.get_absolute_url }}"
+         class="text-decoration-none text-reset">{{ object.title }}</a>
+    </h5>
+    {% if subtitle %}<h6 class="card-subtitle mb-3 text-muted text-truncate-2">{{ subtitle }}</h6>{% endif %}
+    <p class="card-text text-muted text-truncate-6">{{ description|default:"No description available." }}</p>
+    <button class="btn expand-btn btn-sm mb-3"
+            onclick="toggleExpand(this)">
+      <i class="bi bi-chevron-down me-1"></i>{% trans "Show more" %}
+    </button>
+    {% if tags.all %}
+      <div class="d-flex flex-wrap gap-1 mb-3">
+        {% for tag in tags.all %}
+          <c-badge variant="light"
+                   class="text-dark"
+                   text="{{ tag.name }}" />
+        {% endfor %}
+      </div>
+    {% endif %}
+    <small class="text-muted">
+      {% if contributor %}
+        <i class="bi bi-person me-1"></i>{{ contributor.get_full_name|default:contributor.username }}
+      {% endif %}
+      {% if organization %}
+        <span class="mx-2">•</span>
+        <i class="bi bi-building me-1"></i>{{ organization.name }}
+      {% endif %}
+    </small>
+  </div>
+  <div class="card-footer bg-transparent border-0 pt-0">
+    <a href="{{ object.get_absolute_url }}"
+       class="btn btn-link btn-sm">
+      <i class="bi bi-arrow-right me-1"></i>{% trans "View Details" %}
+    </a>
+  </div>
+</article>

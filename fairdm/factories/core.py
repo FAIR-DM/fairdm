@@ -1,128 +1,194 @@
-import random
-
 import factory
+from factory.declarations import LazyAttribute, SubFactory
 from factory.django import DjangoModelFactory
+from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice
-from licensing.models import License
 
+from fairdm.core.choices import ProjectStatus
+from fairdm.core.dataset.models import DatasetDate, DatasetDescription
+from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Dataset, Measurement, Project, Sample
+from fairdm.core.project.models import ProjectDate, ProjectDescription
+from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.utils.choices import Visibility
 
-from .generic import Dates, Descriptions
-from .utils import TreeFactory, randint
+from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
+
+
+class ProjectDescriptionFactory(DjangoModelFactory):
+    """Factory for creating ProjectDescription instances."""
+
+    class Meta:
+        model = ProjectDescription
+
+    type = "Abstract"  # Default description type
+    value = Faker("text", max_nb_chars=300)
+
+
+class ProjectDateFactory(DjangoModelFactory):
+    """Factory for creating ProjectDate instances."""
+
+    class Meta:
+        model = ProjectDate
+
+    type = "Created"  # Default date type
+    value = Faker("partial_date")
 
 
 class ProjectFactory(DjangoModelFactory):
-    """A factory for creating Project objects."""
+    """Factory for creating Project instances.
+
+    By default, creates a minimal Project with only required fields.
+    Use traits or manual creation for descriptions, dates, and contributors.
+    """
 
     class Meta:
         model = Project
 
-    image = factory.django.ImageField(width=1200, height=1200)
-    name = factory.Faker("sentence", nb_words=8, variable_nb_words=True)
-    visibility = FuzzyChoice(Project.VISIBILITY.values)
-    status = factory.Faker("pyint", min_value=0, max_value=4)
-    datasets = factory.RelatedFactoryList(
-        "fairdm.factories.DatasetFactory",
-        factory_related_name="project",
-        size=randint(1, 3),
-    )
+    # Basic fields
+    name = Faker("sentence", nb_words=4, variable_nb_words=True)
+    image = factory.django.ImageField(width=800, height=600)
+    visibility = FuzzyChoice(Visibility.values)
+    status = FuzzyChoice(ProjectStatus.values)
 
-    descriptions = Descriptions(choices=Project.DESCRIPTION_TYPES.values)
-    dates = Dates(choices=Project.DATE_TYPES.values)
-    contributions = factory.RelatedFactoryList(
-        "fairdm.factories.contributors.ContributionFactory",
-        factory_related_name="content_object",
-        size=randint(1, 5),
-        roles_choices=Project.CONTRIBUTOR_ROLES.values,
-    )
+    # JSON fields - simplified approach
+    funding = LazyAttribute(lambda obj: {"agency": "Sample Agency", "grant_number": "GRANT-2024-001", "amount": 50000})
+
+    # Relations - owner can be set manually or via trait
+    owner = None
+
+
+class DatasetDescriptionFactory(DjangoModelFactory):
+    """Factory for creating DatasetDescription instances."""
+
+    class Meta:
+        model = DatasetDescription
+
+    type = "Abstract"  # Default description type
+    value = Faker("text", max_nb_chars=300)
+
+
+class DatasetDateFactory(DjangoModelFactory):
+    """Factory for creating DatasetDate instances."""
+
+    class Meta:
+        model = DatasetDate
+
+    type = "Created"  # Default date type
+    value = Faker("partial_date")
 
 
 class DatasetFactory(DjangoModelFactory):
-    """A factory for creating Dataset objects."""
+    """Factory for creating Dataset instances.
 
-    project = factory.SubFactory("fairdm.factories.ProjectFactory", datasets=None)
-    image = factory.django.ImageField(width=1200, height=1200)
-    name = factory.Faker("sentence", nb_words=8, variable_nb_words=True)
-    visibility = FuzzyChoice(Visibility.values)
-
-    descriptions = Descriptions(choices=Dataset.DESCRIPTION_TYPES.values)
-    dates = Dates(choices=Dataset.DATE_TYPES.values)
-    contributions = factory.RelatedFactoryList(
-        "fairdm.factories.contributors.ContributionFactory",
-        factory_related_name="content_object",
-        size=randint(1, 5),
-        roles_choices=Dataset.CONTRIBUTOR_ROLES.values,
-    )
-
-    license = factory.Faker("random_instance", model=License)
-
-    samples = factory.RelatedFactoryList(
-        "fairdm.factories.SampleFactory",
-        factory_related_name="dataset",
-        size=randint(10, 20),
-    )
+    By default, creates a minimal Dataset with only required fields.
+    Use traits or manual creation for descriptions, dates, and contributors.
+    Project must be provided or will be auto-created.
+    """
 
     class Meta:
         model = Dataset
 
+    # Basic fields
+    name = Faker("sentence", nb_words=3, variable_nb_words=True)
+    image = factory.django.ImageField(width=800, height=600)
+    visibility = FuzzyChoice(Visibility.values)
 
-class SampleFactory(TreeFactory):
-    """A factory for creating Sample objects."""
+    # Relations - project can be passed in or auto-created
+    project = SubFactory(ProjectFactory)
 
-    dataset = factory.SubFactory("fairdm.factories.core.DatasetFactory", samples=None)
+    # Simplified license handling
+    @LazyAttribute
+    def license(self):
+        from licensing.models import License
 
-    name = factory.Faker("sentence", nb_words=2, variable_nb_words=True)
+        # Try to get the first existing license, or create a simple one
+        existing_license = License.objects.first()
+        if existing_license:
+            return existing_license
 
-    # status = FuzzyChoice(Sample.status_vocab.values)
-    descriptions = Descriptions(choices=Sample.DESCRIPTION_TYPES.values)
-    dates = Dates(choices=Sample.DATE_TYPES.values)
-    contributions = factory.RelatedFactoryList(
-        "fairdm.factories.contributors.ContributionFactory",
-        factory_related_name="content_object",
-        size=randint(1, 5),
-        roles_choices=Sample.CONTRIBUTOR_ROLES.values,
-    )
-    # measurements = factory.RelatedFactoryList(
-    #     "fairdm.factories.MeasurementFactory",
-    #     factory_related_name="sample",
-    #     size=randint(2, 5),
-    # )
+        # Create a minimal license with only the required fields
+        license_obj, _ = License.objects.get_or_create(name="CC BY 4.0")
+        return license_obj
+
+
+class SampleDescriptionFactory(DjangoModelFactory):
+    """Factory for creating SampleDescription instances."""
+
+    class Meta:
+        model = SampleDescription
+
+    type = "Abstract"  # Default description type
+    value = Faker("text", max_nb_chars=300)
+
+
+class SampleDateFactory(DjangoModelFactory):
+    """Factory for creating SampleDate instances."""
+
+    class Meta:
+        model = SampleDate
+
+    type = "Created"  # Default date type
+    value = Faker("partial_date")
+
+
+class SampleFactory(DjangoModelFactory):
+    """Factory for creating Sample instances.
+
+    By default, creates a minimal Sample with only required fields.
+    Dataset must be provided or will be auto-created.
+    Use manual creation for descriptions and dates.
+    """
 
     class Meta:
         model = Sample
 
-    @factory.post_generation
-    def children(instance, create, extracted, **kwargs):
-        """Post-generation hook to recursively generate child nodes."""
-        if not create:
-            return
+    # Basic fields
+    name = Faker("word")
+    local_id = Faker("bothify", text="SAMPLE-####")
+    status = "unknown"  # Default from the model
 
-        max_depth = kwargs.pop("max_depth", 1)
-        max_children = kwargs.pop("max_children", 1)
+    # Relations - dataset can be passed in or auto-created
+    dataset = SubFactory(DatasetFactory)
+    location = None  # Optional field
 
-        if instance.depth >= max_depth:
-            return
 
-        num_children = random.randint(2, max_children)
+class MeasurementDescriptionFactory(DjangoModelFactory):
+    """Factory for creating MeasurementDescription instances."""
 
-        SampleFactory.create_batch(
-            num_children,
-            parent=instance,
-            children__max_depth=max_depth,
-            children__max_children=max_children,
-        )
+    class Meta:
+        model = MeasurementDescription
+
+    type = "Abstract"  # Default description type
+    value = Faker("text", max_nb_chars=300)
+
+
+class MeasurementDateFactory(DjangoModelFactory):
+    """Factory for creating MeasurementDate instances."""
+
+    class Meta:
+        model = MeasurementDate
+
+    type = "Created"  # Default date type
+    value = Faker("partial_date")
 
 
 class MeasurementFactory(DjangoModelFactory):
-    """A factory for creating Measurement objects."""
+    """Factory for creating Measurement instances.
 
-    sample = factory.SubFactory("fairdm.factories.SampleFactory", measurements=None)
-
-    # contributions = ContributorFactoryList(
-    #     meas_models.Contribution,
-    #     roles_choices=meas_models.Contribution.CONTRIBUTOR_ROLES.values,
-    # )
+    By default, creates a minimal Measurement with only required fields.
+    Dataset and sample are both required and will be auto-created if not provided.
+    The sample will be created in the same dataset as the measurement.
+    Use manual creation for descriptions and dates.
+    """
 
     class Meta:
         model = Measurement
+
+    # Basic fields
+    name = Faker("word")
+
+    # Relations - both dataset and sample are required
+    # Create dataset first, then create sample in that dataset
+    dataset = SubFactory(DatasetFactory)
+    sample = SubFactory(SampleFactory, dataset=LazyAttribute(lambda o: o.factory_parent.dataset))

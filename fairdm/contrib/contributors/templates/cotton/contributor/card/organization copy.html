@@ -1,5 +1,5 @@
-<c-bs5.card class="shadow align-items-center text-center {{ contributor.type }}"
-            body_class="vstack align-items-center">
+<c-card class="shadow align-items-center text-center {{ contributor.type }}"
+        body_class="vstack align-items-center">
   <span class="position-absolute top-0 end-0 me-2 mt-1 z-1">{% icon "gear" %}</span>
   {% if contributor.get_default_identifier %}
     <span class="position-absolute top-0 start-0 ms-2 mt-1 z-1">
@@ -12,4 +12,4 @@
                        href="{{ contributor.get_absolute_url }}">
     {% trans "View profile" %}
   </c-components.button>
-</c-bs5.card>
+</c-card>

@@ -1,0 +1,23 @@
+<aside class="sidebar border-end overflow-y-auto overflow-x-hidden position-relative"
+       id="detailSidebar"
+       {{ attrs }}>
+  <div class="p-3 position-relative">
+    <!-- Toggle Button (floating top-right) -->
+    <button class="btn btn-outline-secondary btn-sm position-absolute d-none d-md-block"
+            style="top: 8px;
+                   right: 8px;
+                   z-index: 5"
+            id="sidebarToggle">
+      <i class="bi bi-layout-sidebar"></i>
+    </button>
+    <!-- Collapsed state toggle button (shows when collapsed, looks like menu item) -->
+    <a href="#"
+       class="d-none d-md-flex align-items-center text-decoration-none text-dark py-1 px-2 mb-1 rounded hover-bg-light menu-item sidebar-collapsed-toggle"
+       id="sidebarCollapsedToggle">
+      <i class="bi bi-layout-sidebar me-2 fs-6 menu-icon"></i>
+      <span class="fw-medium small menu-text">Expand</span>
+    </a>
+    <!-- Sidebar content slot -->
+    {{ slot }}
+  </div>
+</aside>

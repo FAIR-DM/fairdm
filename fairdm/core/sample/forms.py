@@ -1,3 +1,5 @@
+"""Forms for the Sample app."""
+
 from crispy_forms.helper import FormHelper
 from django import forms
 
@@ -5,11 +7,21 @@ from .models import Sample
 
 
 class SampleForm(forms.ModelForm):
+    """Form for creating and editing Sample instances.
+
+    Automatically excludes system-managed fields (created, modified, keywords,
+    tree fields) from the form. Uses crispy_forms for enhanced rendering.
+
+    The form can accept a request object to customize behavior based on the
+    current user or request context.
+    """
+
     class Meta:
         model = Sample
         exclude = ["created", "modified", "keywords", "depth", "options", "path", "numchild", "tags"]
 
     def __init__(self, *args, **kwargs):
+        """Initialize form with optional request context."""
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
         # if self.request:

@@ -1,0 +1,15 @@
+{% extends "fairdm/detail_view.html" %}
+{% block plugin %}
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card border-danger">
+        <div class="card-body">
+          <h5 class="card-title text-danger">Delete</h5>
+          <p class="card-text">Permanently delete this item.</p>
+          {# Delete confirmation form will be rendered here by DeleteObjectPlugin #}
+          {{ form }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock plugin %}

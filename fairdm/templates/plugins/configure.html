@@ -1,0 +1,14 @@
+{% extends "fairdm/detail_view.html" %}
+{% block plugin %}
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Configure</h5>
+          {# Configuration form will be rendered here by ManageBaseObjectPlugin #}
+          {{ form }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock plugin %}

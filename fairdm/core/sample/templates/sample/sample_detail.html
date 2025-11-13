@@ -21,14 +21,14 @@
                             level="2"
                             :visible="object.measurements.exists">
     <div class="mt-3">
-      <c-bs5.accordion id="measurement">
+      <c-accordion id="measurement">
         {% for measurement in object.measurements.all %}
-          <c-bs5.accordion.item id="{{ measurement.uuid }}"
-                                label="{{ measurement.verbose_name }}: {{ measurement.get_value }}">
+          <c-accordion.item id="{{ measurement.uuid }}"
+                            label="{{ measurement.verbose_name }}: {{ measurement.get_value }}">
             {% include measurement.get_template_name with obj=measurement %}
-          </c-bs5.accordion.item>
+          </c-accordion.item>
         {% endfor %}
-      </c-bs5.accordion>
+      </c-accordion>
     </div>
   </c-pst.components.section>
 </c-layouts.plugin>

@@ -1,3 +1,4 @@
+from django.db.models import Manager, QuerySet
 from django.urls import reverse
 from django.utils.decorators import classonlymethod
 
@@ -15,7 +16,7 @@ from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
 from fairdm.registry import registry
-from fairdm.utils.utils import default_image_path, get_inheritance_chain
+from fairdm.utils import default_image_path, get_inheritance_chain
 
 
 class BaseModel(models.Model):
@@ -87,22 +88,10 @@ class BaseModel(models.Model):
 
         return self.contributions.filter(contributor=user).exists()
 
-    def get_descriptions_in_order(self):
-        """Returns the descriptions in the correct order specified by the DESCRIPTION_TYPES vocabulary."""
-        default_order = self.DESCRIPTION_TYPES.values
-        descriptions = self.descriptions.all()
-        return sorted(descriptions, key=lambda x: default_order.index(x.type))
-
-    def get_dates_in_order(self):
-        """Returns the dates in the correct order specified by the DATE_TYPES vocabulary."""
-        default_order = self.DATE_TYPES.values
-        dates = self.dates.all()
-        return sorted(dates, key=lambda x: default_order.index(x.type))
-
     def get_abstract(self):
         """Returns the abstract description of the project."""
         try:
-            return self.descriptions.get(type="Abstract")
+            return self.descriptions.filter(type="Abstract").first()
         except self.DoesNotExist:
             return None
 
@@ -146,11 +135,61 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):
     @classproperty
     def config(cls):
         """Gets the FairDM configuration object for a class or instance from the registry."""
-        if registry_item := registry.get_model(cls):
+        if registry_item := registry.get_for_model(cls):
             return registry_item["config"]
 
     class Meta:
         abstract = True
+
+
+class GenericModelQuerySet(QuerySet):
+    """Custom QuerySet for GenericModel subclasses that provides vocabulary-based ordering."""
+
+    def in_order(self):
+        """
+        Orders the queryset by the order defined in the model's VOCABULARY attribute.
+
+        Returns:
+            List of instances ordered according to VOCABULARY.values
+
+        Example:
+            # Get dataset descriptions in vocabulary order
+            dataset.descriptions.in_order()
+
+            # Chain with other queryset methods
+            dataset.descriptions.filter(type__in=['Abstract', 'Methods']).in_order()
+        """
+        model = self.model
+        if model.VOCABULARY is None:
+            msg = f"{model.__name__} does not define a VOCABULARY attribute"
+            raise ValueError(msg)
+
+        # Get the ordering from the vocabulary
+        vocabulary_order = model.VOCABULARY.values
+
+        # Convert queryset to list and sort by vocabulary order
+        # Items not in vocabulary_order go to the end
+        items = list(self)
+
+        def sort_key(item):
+            try:
+                return vocabulary_order.index(item.type)  # type: ignore[attr-defined]
+            except ValueError:
+                # If type not in vocabulary, sort to end
+                return len(vocabulary_order)
+
+        return sorted(items, key=sort_key)
+
+
+class GenericModelManager(Manager):
+    """Custom Manager for GenericModel subclasses."""
+
+    def get_queryset(self):
+        return GenericModelQuerySet(self.model, using=self._db)
+
+    def in_order(self):
+        """Shortcut to get all objects in vocabulary order."""
+        return self.get_queryset().in_order()
 
 
 class GenericModel(models.Model):
@@ -160,6 +199,8 @@ class GenericModel(models.Model):
     modified = None
     added = None
     # FOR = None
+
+    objects = GenericModelManager()
 
     class Meta:
         abstract = True
@@ -180,7 +221,7 @@ class GenericModel(models.Model):
 
     def __init_subclass__(cls):
         if cls.VOCABULARY is not None:
-            cls.type.field.choices = cls.VOCABULARY.choices
+            cls.type.field.choices = cls.VOCABULARY.choices  # type: ignore[attr-defined]
 
         # if cls.FOR is not None:
         #     # if not hasattr(cls._meta, "db_table") or cls._meta.db_table is None:
@@ -189,13 +230,16 @@ class GenericModel(models.Model):
         return super().__init_subclass__()
 
     def __str__(self):
-        return f"{self.type}: {self.value}"  # Display the type and a preview of the text
+        return f"{self.type}: {self.value}"  # Display the type and a preview of the text  # type: ignore[attr-defined]
 
     def __repr__(self):
         return f"<{self}>"
 
     def get_update_url(self):
-        return reverse(f"{self._meta.model_name}-update", kwargs={"uuid": self.uuid, "object_id": self.object_id})
+        return reverse(
+            f"{self._meta.model_name}-update",
+            kwargs={"uuid": self.uuid, "object_id": self.object_id},  # type: ignore[attr-defined]
+        )
 
     def verbose_name(self):
         return self._meta.verbose_name
@@ -213,6 +257,12 @@ class AbstractDescription(GenericModel):
         verbose_name = _("description")
         verbose_name_plural = _("descriptions")
         default_related_name = "descriptions"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["related", "type"],
+                name="%(class)s_unique_type",
+            ),
+        ]
 
 
 class AbstractDate(GenericModel):
@@ -225,6 +275,12 @@ class AbstractDate(GenericModel):
         verbose_name_plural = _("dates")
         ordering = ["value"]
         default_related_name = "dates"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["related", "type"],
+                name="%(class)s_unique_type",
+            ),
+        ]
 
 
 class AbstractIdentifier(GenericModel):
@@ -234,6 +290,14 @@ class AbstractIdentifier(GenericModel):
     class Meta:
         abstract = True
         verbose_name = _("identifier")
+        verbose_name_plural = _("identifiers")
+        default_related_name = "identifiers"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["related", "type"],
+                name="%(class)s_unique_type",
+            ),
+        ]
         verbose_name_plural = _("identifiers")
         default_related_name = "identifiers"
 

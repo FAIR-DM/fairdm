@@ -1,15 +1,36 @@
+from django.db.models import QuerySet
+from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from fairdm.core.filters import ProjectFilter
+from fairdm.plugins import PluggableView
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..models import Project
+from .filters import ProjectFilter
 from .forms import ProjectForm
 
 
+class ProjectDetailPage(PluggableView):
+    """Detail page view for Project with plugin support.
+
+    This view serves as the base for the project detail page and provides
+    plugin integration for extensible functionality like overview, settings,
+    and export features.
+    """
+
+    base_model = Project
+
+
 class ProjectCreateView(FairDMCreateView):
+    """View for creating new Project instances.
+
+    Handles project creation with automatic contributor assignment. The user
+    who creates the project is automatically added as a Creator, ProjectMember,
+    and ContactPerson.
+    """
+
     model = Project
     form_class = ProjectForm
     title = _("Create a Project")
@@ -24,41 +45,53 @@ class ProjectCreateView(FairDMCreateView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("project"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
 
-    def form_valid(self, form):
+    def form_valid(self, form: ProjectForm) -> HttpResponse:
+        """Handle successful form submission and add the creator as a contributor.
+
+        Args:
+            form: The validated ProjectForm instance.
+
+        Returns:
+            HttpResponse: The response from the parent class.
+        """
         response = super().form_valid(form)
         self.object.add_contributor(self.request.user, with_roles=["Creator", "ProjectMember", "ContactPerson"])
         return response
 
 
 class ProjectListView(FairDMListView):
+    """List view for displaying publicly visible projects.
+
+    Shows all projects with public visibility in a card layout, with
+    filtering and sorting capabilities. Contributors are prefetched
+    for optimal performance.
+    """
+
     model = Project
     filterset_class = ProjectFilter
     title = _("Research Projects")
     description = _(
         "Discover past, present and future research projects shared by our community to see what other are working on."
     )
-    heading_config = {
-        "icon": "project",
+    page = {
         "title": _("Research Projects"),
         "description": _(
             "A research project serves as a container for multiple datasets that share common metadata, such as funding sources, project descriptions, contributors, and institutional affiliations. This page presents publicly listed research projects contributed by community members, allowing you to explore what others community members are currently working on."
         ),
-        "links": [
-            {
-                "text": _("Learn More"),
-                "href": user_guide("project"),
-                "icon": "fa-solid fa-book",
-            },
-        ],
     }
 
     image = static("img/stock/project.jpg")
-    # card = "project.card"  # cotton/project/card.html
+    card_template = "project/project_card.html"
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Project]:
+        """Return the queryset of visible projects with prefetched contributors.
+
+        Returns:
+            QuerySet: Filtered and optimized Project queryset.
+        """
         return Project.objects.get_visible().with_contributors()

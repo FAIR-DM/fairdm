@@ -1,12 +1,10 @@
 from django import forms
 from django.urls import path, reverse
-from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
-from render_fields.views import FieldsetsMixin
 
-from fairdm import plugins
 from fairdm.forms import Form
+from fairdm.plugins import EXPLORE, FairDMPlugin, PluginMenuItem
 from fairdm.registry import registry
 from fairdm.views import FairDMDeleteView, FairDMUpdateView
 
@@ -31,12 +29,9 @@ class DeleteForm(Form):
         fields = ["confirm"]
 
 
-class ActivityPlugin(plugins.Explore, TemplateView):
+class ActivityPlugin(TemplateView):
     title = _("Recent Activity")
-    menu_item = {
-        "name": _("Activity"),
-        "icon": "activity",
-    }
+    menu_item = PluginMenuItem(name=_("Activity"), icon="activity")
     title_config = {
         "text": _("Recent Activity"),
     }
@@ -44,7 +39,7 @@ class ActivityPlugin(plugins.Explore, TemplateView):
     template_name = "plugins/activity_stream.html"
 
 
-class OverviewPlugin(plugins.Explore, FieldsetsMixin, TemplateView):
+class OverviewPlugin(FairDMPlugin, TemplateView):
     """
     A plugin for displaying an overview of a project or dataset.
 
@@ -57,58 +52,24 @@ class OverviewPlugin(plugins.Explore, FieldsetsMixin, TemplateView):
     Note: this probably needs to be optimized to select related objects.
     """
 
+    category = EXPLORE
     title = _("Overview")
-    menu_item = {
-        "name": _("Overview"),
-        "icon": "overview",
-    }
-    sections = {"heading": False}
-    path = ""
-
-    @property
-    def model(self):
-        return self.base_object.__class__
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["object"] = self.base_object
-        return context
-
-    def get_template_names(self):
-        if self.template_name is not None:
-            return [self.template_name]
-        opts = self.model._meta
-        templates = [f"{opts.app_label}/{opts.object_name.lower()}{self.template_name_suffix}.html"]
-        if hasattr(self.model, "type_of"):
-            poly_opts = self.model.type_of._meta
-            templates += [f"{poly_opts.app_label}/{poly_opts.object_name.lower()}{self.template_name_suffix}.html"]
-
-        templates += [
-            f"fairdm/object{self.template_name_suffix}.html",
-        ]
-        return templates
-        # return super().get_template_names()
+    menu_item = PluginMenuItem(name=_("Overview"), icon="eye")
 
 
-class ManageBaseObjectPlugin(plugins.Management, FairDMUpdateView):
+class ManageBaseObjectPlugin(FairDMUpdateView):
     name = "basic-information"
     title = _("Basic Information")
-    menu_item = {
-        "name": _("Basic Information"),
-        "icon": "gear",
-    }
+    menu_item = PluginMenuItem(name=_("Basic Information"), icon="gear")
     heading_config = {
         "title": _("Basic Information"),
     }
 
 
-class DeleteObjectPlugin(plugins.Management, FairDMDeleteView):
+class DeleteObjectPlugin(FairDMDeleteView):
     name = "delete"
     title = _("Delete")
-    menu_item = {
-        "name": _("Delete"),
-        "icon": "trash",
-    }
+    menu_item = PluginMenuItem(name=_("Delete"), icon="trash")
     form_config = {
         "submit_button": {
             "text": _("Delete"),
@@ -124,7 +85,7 @@ class DeleteObjectPlugin(plugins.Management, FairDMDeleteView):
         return self.request.user.get_absolute_url()
 
 
-class ProjectPlugin(plugins.Explore, ProjectListView):
+class ProjectPlugin(ProjectListView):
     """
     A plugin for displaying and filtering a list of projects related to a contributor.
 
@@ -140,10 +101,7 @@ class ProjectPlugin(plugins.Explore, ProjectListView):
     Note: This plugin requires a model method `projects` to retrieve the a Project queryset from the related object.
     """
 
-    menu_item = {
-        "name": _("Projects"),
-        "icon": "project",
-    }
+    menu_item = PluginMenuItem(name=_("Projects"), icon="project")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -163,15 +121,23 @@ class ProjectPlugin(plugins.Explore, ProjectListView):
         }
 
 
-class DatasetPlugin(plugins.Explore, DatasetListView):
+class DatasetPlugin(DatasetListView):
     """
-    A plugin for displaying and filtering datasets related to another entry in the database.
+    A plugin for displaying and filtering a list of datasets related to a parent object.
+
+    Inherits from `FairDMListView` to add filtering functionality to the list of datasets.
+    This plugin handles the display and filtering of datasets associated with the current
+    parent object.
+
+    Behavior:
+    - Registers itself to detail views that have related datasets.
+    - Retrieves the list of datasets associated with the parent object.
+    - Supports filtering and pagination for the dataset list via `FairDMListView`.
+
+    Note: This plugin requires a model method `datasets` to retrieve the Dataset queryset from the related object.
     """
 
-    menu_item = {
-        "name": _("Datasets"),
-        "icon": "dataset",
-    }
+    menu_item = PluginMenuItem(name=_("Datasets"), icon="dataset")
     # actions = ["dataset.create-button"]
 
     def get_queryset(self, *args, **kwargs):
@@ -201,13 +167,10 @@ class DatasetPlugin(plugins.Explore, DatasetListView):
         }
 
 
-class DataTablePlugin(plugins.Explore, DataTableView):
+class DataTablePlugin(DataTableView):
     title = _("Data")
     sections = {"header": "datatable.header"}
-    menu_item = {
-        "name": _("Data"),
-        "icon": "table",
-    }
+    menu_item = PluginMenuItem(name=_("Data"), icon="table")
 
     def get_queryset(self, *args, **kwargs):
         # return self.base_object.samples.instance_of(self.model)

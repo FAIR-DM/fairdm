@@ -76,7 +76,6 @@ In addition to Django's standard database fields, FairDM provides custom fields 
 - `QuantityField`: A numeric field that also stores basic units of measurement (e.g. meters, seconds, etc.) alongside the value and allows you to perform unit conversions.
 - `ConceptField`: A field that stores a concept from a controlled vocabulary.
 - `TaggableConcepts`: A generic relationship that allows you to tag any model with concepts from a controlled vocabulary. Great for keyword tagging.
-- `FuzzyDateField`: A field that stores a date with an associated level of uncertainty.
 
 
 ## Multi-lingual

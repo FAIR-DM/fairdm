@@ -2,32 +2,25 @@ from crispy_forms.helper import FormHelper
 from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
 
-from fairdm import plugins
 from fairdm.contrib.generic.forms import CoreInlineFormset, DateForm, DescriptionForm, KeywordForm
-from fairdm.utils.view_mixins import FairDMModelFormMixin
-from fairdm.views import FairDMUpdateView
+from fairdm.plugins import PluginMenuItem
+from fairdm.views import FairDMModelFormMixin, FairDMUpdateView
 
 
-class KeywordsPlugin(plugins.Management, FairDMUpdateView):
+class KeywordsPlugin(FairDMUpdateView):
     name = "keywords"
     title = _("Manage Keywords")
-    menu_item = {
-        "name": _("Keywords"),
-        "icon": "keywords",
-    }
+    menu_item = PluginMenuItem(name=_("Keywords"), icon="tags")
     heading_config = {
         "title": _("Keywords"),
     }
     form_class = KeywordForm
 
 
-class DescriptionsPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSetView):
+class DescriptionsPlugin(FairDMModelFormMixin, InlineFormSetView):
     name = "descriptions"
     title = _("Edit Descriptions")
-    menu_item = {
-        "name": _("Descriptions"),
-        "icon": "description",
-    }
+    menu_item = PluginMenuItem(name=_("Descriptions"), icon="file-text")
     heading_config = {
         "title": _("Descriptions"),
     }
@@ -43,13 +36,10 @@ class DescriptionsPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSet
         return context
 
 
-class KeyDatesPlugin(plugins.Management, FairDMModelFormMixin, InlineFormSetView):
+class KeyDatesPlugin(FairDMModelFormMixin, InlineFormSetView):
     name = "key-dates"
     title = _("Key Dates")
-    menu_item = {
-        "name": _("Key Dates"),
-        "icon": "calendar",
-    }
+    menu_item = PluginMenuItem(name=_("Key Dates"), icon="calendar")
     heading_config = {
         "title": _("Key dates"),
     }

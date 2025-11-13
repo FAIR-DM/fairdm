@@ -1,0 +1,52 @@
+{% extends "plugins/overview.html" %}
+{% load i18n cotton %}
+
+{% block statistics_content %}
+  <div class="col-md-4">
+    <c-detail.stat-box value="{{ dataset_count }}"
+                       label="{% trans 'Datasets' %}" />
+  </div>
+  <div class="col-md-4">
+    <c-detail.stat-box value="{{ project.samples.count }}"
+                       label="{% trans 'Samples' %}"
+                       color="success" />
+  </div>
+  <div class="col-md-4">
+    <c-detail.stat-box value="{{ project.measurements.count }}"
+                       label="{% trans 'Measurements' %}"
+                       color="info" />
+  </div>
+{% endblock statistics_content %}
+
+{% block overview_main %}
+  {{ block.super }}
+  {# Funding Information #}
+  {% if project.funding %}
+    <c-detail.card title="{% trans 'Funding' %}" icon="cash-coin">
+      <p class="card-text">{{ project.funding }}</p>
+    </c-detail.card>
+  {% endif %}
+{% endblock overview_main %}
+
+{% block quick_info_items %}
+  <c-detail.info-item label="{% trans 'Status' %}"
+                      value="{{ project.get_status_display }}"
+                      badge="{{ project.get_status_display|lower }}" />
+  <dt class="text-muted small text-uppercase mb-1">{% trans "Visibility" %}</dt>
+  <dd class="mb-3">
+    <c-badge variant="secondary">
+      <i class="bi bi-{{ project.visibility|yesno:'eye,eye-slash' }} me-1"></i>
+      {{ project.get_visibility_display }}
+    </c-badge>
+  </dd>
+  {% if project.owner %}
+    <c-detail.info-item label="{% trans 'Owner' %}"
+                        value="{{ project.owner }}" />
+  {% endif %}
+  <c-detail.info-item label="{% trans 'Created' %}"
+                      value="{{ project.created|date:'N j, Y' }}" />
+  <dt class="text-muted small text-uppercase mb-1">{% trans "Last Modified" %}</dt>
+  <dd class="mb-0">
+    {{ project.modified|date:"N j, Y" }}
+  </dd>
+{% endblock quick_info_items %}

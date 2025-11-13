@@ -1,5 +1,8 @@
-<c-components.card.style2 title="{{ obj }}"
-                          view_details_text="{% trans "View dataset" %}"
-                          :obj="obj"
-                          :preview="obj.descriptions.first"
-                          :contributors="obj.contributors.all" />
+{% load i18n %}
+
+<c-components.object-card :object="object"
+                          object_type="dataset"
+                          badge_text='{% trans "Dataset" %}'
+                          :subtitle="object.project.name|default:''"
+                          :contributor="object.contributors.first.contributor"
+                          :organization="object.project.owner" />

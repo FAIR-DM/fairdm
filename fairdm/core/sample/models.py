@@ -15,7 +15,20 @@ from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, F
 
 
 class Sample(BasePolymorphicModel):
-    """A sample is a physical or digital object that is part of a dataset."""
+    """A sample is a physical or digital object that is part of a dataset.
+
+    Samples represent physical specimens, digital artifacts, or observational data
+    collected as part of a research dataset. This is a polymorphic model allowing
+    for domain-specific sample types to be defined by inheriting from this base.
+
+    Attributes:
+        dataset: The dataset this sample belongs to
+        uuid: Unique short identifier with 's' prefix
+        local_id: Local identifier used by dataset creator
+        status: Current status of the sample (e.g., available, destroyed)
+        location: Geographic location of the sample
+        contributors: Generic relation to contributor records
+    """
 
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Sample")
     DATE_TYPES = FairDMDates.from_collection("Sample")
@@ -87,24 +100,52 @@ class Sample(BasePolymorphicModel):
 
 
 class SampleDescription(AbstractDescription):
+    """Free-text description of a Sample with type categorization.
+
+    Supports multiple description types (e.g., abstract, methods, notes)
+    as defined by the FairDM Sample description vocabulary.
+    """
+
     VOCABULARY = FairDMDescriptions.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
 
 class SampleDate(AbstractDate):
+    """Important dates associated with a Sample.
+
+    Tracks various dates (e.g., collected, processed, archived) as defined
+    by the FairDM Sample date vocabulary.
+    """
+
     VOCABULARY = FairDMDates.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
 
 class SampleIdentifier(AbstractIdentifier):
+    """External identifiers for a Sample.
+
+    Links samples to external identifier systems (DOI, ARK, Handle, etc.)
+    to support FAIR data principles and cross-referencing.
+    """
+
     VOCABULARY = FairDMIdentifiers()
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
 
 class SampleRelation(models.Model):
-    """A custom M2M through-model that stores relationships between samples."""
+    """Through-model for sample-to-sample relationships.
 
-    # TODO: create a custom manager that gets the related samples based on the type of relation
+    Defines typed relationships between samples (e.g., parent/child, derived from).
+    This allows tracking of sample hierarchies, splits, and derivations.
+
+    Attributes:
+        type: Type of relationship (e.g., 'child_of')
+        source: The sample initiating the relationship
+        target: The sample being related to
+
+    Note:
+        TODO: create a custom manager that gets the related samples based on the type of relation
+    """
 
     RELATION_TYPES = [
         ("child_of", _("child of")),

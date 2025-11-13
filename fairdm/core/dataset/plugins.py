@@ -1,39 +1,35 @@
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from fairdm import plugins
-from fairdm.contrib.contributors.plugins import ContributorsPlugin
 from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
 from fairdm.core.plugins import (
-    ActivityPlugin,
     DeleteObjectPlugin,
     ManageBaseObjectPlugin,
     OverviewPlugin,
 )
+from fairdm.plugins import EXPLORE, MANAGEMENT, PluginMenuItem, register_plugin
 from fairdm.utils.utils import user_guide
 
-from ..plugins import DataTablePlugin
 from .forms import DatasetForm
 from .models import Dataset, DatasetDate, DatasetDescription
+from .views import DatasetDetailView
 
 DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 
 
+@register_plugin(DatasetDetailView)
 class Overview(OverviewPlugin):
+    category = EXPLORE
+    title = _("Overview")
+    menu_item = PluginMenuItem(name=_("Overview"), icon="eye")
     fieldsets = DATASET_SETTINGS.get("detail", {}).get("info_block_fields", None)
 
 
-plugins.dataset.register(
-    Overview,
-    ContributorsPlugin,
-    DataTablePlugin,
-    ActivityPlugin,
-)
-
-
 # ======== Management Plugins ======== #
-@plugins.dataset.register
-class ManageDatasetPlugin(ManageBaseObjectPlugin):
+@register_plugin(DatasetDetailView)
+class Configure(ManageBaseObjectPlugin):
+    category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Configure"), icon="sliders")
     heading_config = {
         "description": _(
             "Configure your dataset's metadata to ensure it's properly categorized and accessible to the right audience."
@@ -42,7 +38,7 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/configure"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -50,7 +46,10 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
     fields = ["image", "name", "project", "reference", "license", "visibility"]
 
 
-class DeleteDatasetPlugin(DeleteObjectPlugin):
+@register_plugin(DatasetDetailView)
+class Delete(DeleteObjectPlugin):
+    category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Delete"), icon="trash")
     heading_config = {
         "title": _("Delete Dataset"),
         "description": _(
@@ -60,13 +59,16 @@ class DeleteDatasetPlugin(DeleteObjectPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/delete"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
 
 
-class EditDescriptions(DescriptionsPlugin):
+@register_plugin(DatasetDetailView)
+class Descriptions(DescriptionsPlugin):
+    category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Descriptions"), icon="file-text")
     heading_config = {
         "title": _("Descriptions"),
         "description": _(
@@ -76,7 +78,7 @@ class EditDescriptions(DescriptionsPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/descriptions"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -84,7 +86,10 @@ class EditDescriptions(DescriptionsPlugin):
     inline_model = DatasetDescription
 
 
-class EditKeywords(KeywordsPlugin):
+@register_plugin(DatasetDetailView)
+class Keywords(KeywordsPlugin):
+    category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Keywords"), icon="tags")
     heading_config = {
         "title": _("Keywords"),
         "description": _(
@@ -94,13 +99,16 @@ class EditKeywords(KeywordsPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/keywords"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
 
 
-class EditDates(KeyDatesPlugin):
+@register_plugin(DatasetDetailView)
+class KeyDates(KeyDatesPlugin):
+    category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Key Dates"), icon="calendar")
     heading_config = {
         "title": _("Key Dates"),
         "description": _(
@@ -110,17 +118,9 @@ class EditDates(KeyDatesPlugin):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/key-dates"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
     model = Dataset
     inline_model = DatasetDate
-
-
-plugins.dataset.register(
-    EditDescriptions,
-    EditKeywords,
-    EditDates,
-    DeleteDatasetPlugin,
-)

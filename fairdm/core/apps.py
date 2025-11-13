@@ -4,7 +4,7 @@ from django.apps import AppConfig, apps
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from fairdm.metadata import Authority, Citation
+from fairdm.registry import Authority, Citation
 from fairdm.registry import registry as fairdm_registry
 
 

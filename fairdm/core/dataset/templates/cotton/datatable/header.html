@@ -20,10 +20,10 @@
                            icon="upload"
                            :visible="user_can_edit" />
     {% endif %}
-    <c-bs5.dropdown button_class="btn-sm btn-outline-primary"
-                    button_text="{% icon 'download' %}">
+    <c-dropdown button_class="btn-sm btn-outline-primary"
+                button_text="{% icon 'download' %}">
       {% comment %} <c-import-export.export-dropdown :formats="view.export_formats" :dataset="dataset" /> {% endcomment %}
-    </c-bs5.dropdown>
+    </c-dropdown>
     <c-components.button data-bs-toggle="offcanvas"
                          data-bs-target="#filterSidebar"
                          class="border-0"

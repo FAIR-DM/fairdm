@@ -5,6 +5,13 @@ from ..models import Project
 
 
 class ProjectSerializer(ModelSerializer):
+    """DRF serializer for Project model.
+
+    Provides REST API representation of Project instances with expandable
+    fields for related datasets. Excludes internal fields like visibility
+    and options from API responses.
+    """
+
     web = HyperlinkedIdentityField(view_name="project-detail")
     # dates = DateSerializer(many=True)
 

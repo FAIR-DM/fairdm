@@ -7,6 +7,7 @@ license = "MIT"
 readme = "README.md"
 include = [
     "fairdm",
+    "fairdm_demo",
     "README.md",
     "LICENSE",
 ]
@@ -70,11 +71,8 @@ pyyaml = "^6.0"
 redis = "^4.5.2"
 tldextract = "^3.4.0"
 whitenoise = "^6.4.0"
-django-content-license = {git = "https://github.com/SamuelJennings/django-content-license"}
-django-easy-icons = {git = "https://github.com/SamuelJennings/django-easy-icons"}
 django-research-vocabs = {git = "https://github.com/SamuelJennings/django-research-vocabs"}
 django-jsonfield-toolkit = {git = "https://github.com/SamuelJennings/django-jsonfield-toolkit"}
-django-setup-tools = {git = "https://github.com/SamuelJennings/django-setup-tools"}
 shortuuid = "^1.0.13"
 django-cotton = ">=2.1"
 django-literature = {git = "https://github.com/SamuelJennings/django-literature"}
@@ -87,7 +85,6 @@ django-waffle = "^5.0.0"
 django-addanother = "^2.2.2"
 cotton-bs5 = {git = "https://github.com/SamuelJennings/cotton-bs5"}
 django-render-fields = {git = "https://github.com/SamuelJennings/django-render-fields"}
-django-flex-menus = {git = "https://github.com/SamuelJennings/django-flex-menus"}
 django-admin-site-search = "^1.1.0"
 django-autocomplete-light = "^3.12.1"
 django-braces = "^1.17.0"
@@ -102,6 +99,11 @@ uncertainties = "^3.2.3"
 martor = "^1.7.11"
 django-accounts-center = {git = "https://github.com/SamuelJennings/django-accounts-center"}
 django-polymorphic = "^4.1.0"
+django-content-license = "^0.2.3"
+django-setup-tools = "^0.2.5"
+django-flex-menus = "^0.4.0"
+django-easy-icons = "^0.2.4"
+django-cotton-bs5 = "^0.3.0"
 
 
 
@@ -110,7 +112,6 @@ fairdm-dev-tools = {git = "https://github.com/FAIR-DM/dev-tools"}
 importtime-waterfall = "^1.0.0"
 pandas = "^2.2.2"
 snakeviz = "^2.2.2"
-fairdm-demo = {git = "https://github.com/FAIR-DM/demo-portal"}
 
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs", extras = ["pydata-sphinx-theme"]}
@@ -281,7 +282,7 @@ disable_error_code = [
 django_settings_module = "tests.settings"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings"
+DJANGO_SETTINGS_MODULE = "tests.settings"
 env = [
     "DJANGO_ENV=development",
 ]

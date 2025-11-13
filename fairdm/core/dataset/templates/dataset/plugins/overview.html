@@ -1,0 +1,73 @@
+{% extends "plugins/overview.html" %}
+{% block statistics_content %}
+  <div class="col-6">
+    <c-detail.stat-box value="{{ dataset.samples.count }}"
+                       label="{% trans 'Samples' %}"
+                       color="success" />
+  </div>
+  <div class="col-6">
+    <c-detail.stat-box value="{{ dataset.measurements.count }}"
+                       label="{% trans 'Measurements' %}"
+                       color="info" />
+  </div>
+{% endblock statistics_content %}
+
+{% block overview_main %}
+  {{ block.super }}
+  {# Related Literature #}
+  {% if dataset.related_literature.exists %}
+    <c-detail.card title="{% trans 'Related Literature' %}"
+                   icon="book">
+      <c-list-group flush>
+        {% for item in dataset.related_literature.all %}
+          <c-list-group.item>
+            <h6 class="mb-1">{{ item.title }}</h6>
+            {% if item.authors %}<p class="text-muted small mb-1">{{ item.authors }}</p>{% endif %}
+            {% if item.doi %}
+              <a href="https://doi.org/{{ item.doi }}"
+                 target="_blank"
+                 class="small">
+                <i class="bi bi-link-45deg"></i> {{ item.doi }}
+              </a>
+            {% endif %}
+          </c-list-group.item>
+        {% endfor %}
+      </c-list-group>
+    </c-detail.card>
+  {% endif %}
+{% endblock overview_main %}
+
+{% block quick_info_items %}
+  <c-detail.info_item label="{% trans 'Project' %}">
+    <a href="{{ dataset.project.get_absolute_url }}"
+       class="text-decoration-none">{{ dataset.project|truncatechars:50 }}</a>
+  </c-detail.info_item>
+  <c-detail.info_item label="{% trans 'Visibility' %}">
+    <c-badge variant="secondary">
+      <i class="bi bi-{{ dataset.visibility|yesno:'eye,eye-slash' }} me-1"></i>
+      {{ dataset.get_visibility_display }}
+    </c-badge>
+  </c-detail.info_item>
+  {% if dataset.license %}
+    <c-detail.info_item label="{% trans 'License' %}">
+      <a href="{{ dataset.license.url }}"
+         target="_blank"
+         class="text-decoration-none">{{ dataset.license }}</a>
+    </c-detail.info_item>
+  {% endif %}
+  {% if dataset.reference %}
+    <c-detail.info_item label="{% trans 'Data Reference' %}">
+      <a href="{{ dataset.reference.get_absolute_url }}"
+         class="text-decoration-none">{{ dataset.reference.title|truncatewords:10 }}</a>
+    </c-detail.info_item>
+  {% endif %}
+{% endblock quick_info_items %}
+
+{% block overview_sidebar %}
+  {{ block.super }}
+  <c-detail.card title="{% trans 'Spatial Coverage' %}"
+                 icon="geo-alt">
+    {# Add map or bbox display here #}
+    <p class="text-muted small">{% trans "Geographic data available" %}</p>
+  </c-detail.card>
+{% endblock overview_sidebar %}

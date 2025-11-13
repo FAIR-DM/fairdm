@@ -1,0 +1,103 @@
+{% extends "plugins/overview.html" %}
+{% load i18n cotton %}
+
+{% block quick_info_items %}
+  <c-detail.info-item label="{% trans 'Project' %}">
+    <a href="{{ sample.dataset.project.get_absolute_url }}"
+       class="text-decoration-none">{{ sample.dataset.project|truncatechars:50 }}</a>
+  </c-detail.info-item>
+  <c-detail.info-item label="{% trans 'Dataset' %}">
+    <a href="{{ sample.dataset.get_absolute_url }}"
+       class="text-decoration-none">{{ sample.dataset|truncatechars:50 }}</a>
+  </c-detail.info-item>
+  {% if sample.local_id %}
+    <c-detail.info-item label="{% trans 'Local ID' %}"
+                        text="{{ sample.local_id }}" />
+  {% endif %}
+  <c-detail.info-item label="{% trans 'UUID' %}"
+                      text="{{ sample.uuid }}" />
+  <c-detail.info-item label="{% trans 'Status' %}">
+    <c-badge variant="secondary">
+      {{ sample.get_status_display }}
+    </c-badge>
+  </c-detail.info-item>
+{% endblock quick_info_items %}
+
+{% block overview_main %}
+  {{ block.super }}
+  {# Measurements #}
+  {% if sample.measurements.exists %}
+    <c-detail.card icon="speedometer2">
+      <c-slot name="title">
+        {% trans "Measurements" %}
+        <c-badge variant="primary"
+                 rounded
+                 pill
+                 text="{{ sample.measurements.count }}" />
+      </c-slot>
+      <div class="list-group list-group-flush">
+        {% for measurement in sample.measurements.all|slice:":10" %}
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1">{{ measurement.name }}</h6>
+                <small class="text-muted">{{ measurement.get_polymorphic_type_name }}</small>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% if sample.measurements.count > 10 %}
+        <div class="card-footer bg-transparent">
+          <a href="#" class="text-decoration-none">
+            {% trans "View all" %} {{ sample.measurements.count }} {% trans "measurements" %}
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      {% endif %}
+    </c-detail.card>
+  {% endif %}
+{% endblock overview_main %}
+
+{% block overview_sidebar %}
+  {{ block.super }}
+  {# Location #}
+  {% if sample.location %}
+    <c-detail.card title="{% trans 'Location' %}" icon="geo-alt">
+      <dl class="mb-0">
+        <dt class="text-muted small text-uppercase mb-1">{% trans "Coordinates" %}</dt>
+        <dd class="mb-2">
+          <code>{{ sample.location.latitude }}, {{ sample.location.longitude }}</code>
+        </dd>
+        {% if sample.location.elevation %}
+          <c-detail.info-item label="{% trans 'Elevation' %}"
+                              value="{{ sample.location.elevation }} m" />
+        {% endif %}
+        <dt class="text-muted small text-uppercase mb-1">{% trans "Map" %}</dt>
+        <dd class="mb-0">
+          <div id="sample-map"
+               style="height: 200px;
+                      border-radius: 0.375rem"></div>
+        </dd>
+      </dl>
+    </c-detail.card>
+  {% endif %}
+  {# Collection Details #}
+  {% if sample.collection_date or sample.collector %}
+    <c-detail.card title="{% trans 'Collection' %}"
+                   icon="calendar-event">
+      <dl class="mb-0">
+        {% if sample.collection_date %}
+          <c-detail.info-item label="{% trans 'Date' %}"
+                              value="{{ sample.collection_date|date:'N j, Y' }}" />
+        {% endif %}
+        {% if sample.collector %}
+          <dt class="text-muted small text-uppercase mb-1">{% trans "Collector" %}</dt>
+          <dd class="mb-0">
+            {{ sample.collector }}
+          </dd>
+        {% endif %}
+      </dl>
+    </c-detail.card>
+  {% endif %}
+{% endblock overview_sidebar %}

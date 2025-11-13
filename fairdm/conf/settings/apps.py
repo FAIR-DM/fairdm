@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "treebeard",
     "parler",
     # AUTHENTICATION AND USERS
-    "dac.themes.bs5",
     "dac",
     "dac.addons.allauth",
     "allauth",

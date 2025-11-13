@@ -87,7 +87,7 @@ class DirectoryView(RedirectView):
 
 class HomeView(FairDMTemplateView):
     title = _("Home")
-    template_name = "fairdm/pages/home.html"
+    template_name = "pages/home.html"
     slider_breakpoints = {
         0: {"slidesPerView": 1, "spaceBetween": 10},
         768: {"slidesPerView": 3, "spaceBetween": 10},

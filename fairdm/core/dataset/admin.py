@@ -6,12 +6,16 @@ from .models import Dataset, DatasetDate, DatasetDescription
 
 
 class DescriptionInline(admin.StackedInline):
+    """Inline admin for Dataset descriptions."""
+
     model = DatasetDescription
     extra = 0
     max_num = 6
 
 
 class DateInline(admin.StackedInline):
+    """Inline admin for Dataset dates."""
+
     model = DatasetDate
     extra = 0
     max_num = 6
@@ -19,7 +23,13 @@ class DateInline(admin.StackedInline):
 
 @admin.register(Dataset)
 class DatasetAdmin(admin.ModelAdmin):
-    # inlines = [DescriptionInline, DateInline]
+    """Admin interface for Dataset model.
+
+    Provides search, filtering, and inline editing through the Django admin interface.
+    Uses Select2 widgets for improved UX on foreign key and many-to-many fields.
+    """
+
+    inlines = [DescriptionInline, DateInline]
     search_fields = ("uuid", "name")
     list_display = ("name", "added", "modified")
     fieldsets = (

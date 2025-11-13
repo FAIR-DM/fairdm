@@ -16,13 +16,13 @@
     </p>
     {% crispy quick_add_form %}
     <c-slot name="footer">
-      <c-bs5.modal.footer>
+      <c-modal.footer>
         <c-components.button type="submit"
                              size="md"
                              style="primary"
                              form="{{ quick_add_form.helper.form_id }}"
                              text="{% trans "Add contributors" %}" />
-      </c-bs5.modal.footer>
+      </c-modal.footer>
     </c-slot>
   </c-components.modal>
   <script>

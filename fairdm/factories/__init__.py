@@ -1,14 +1,21 @@
-from .contributors import OrganizationFactory, OrganizationMembershipFactory, PersonFactory
-from .core import DatasetFactory, MeasurementFactory, ProjectFactory, SampleFactory
-from .generic import randint
+from .contributors import (
+    ContributorFactory,
+    OrganizationFactory,
+    PersonFactory,
+)
+from .core import (
+    DatasetFactory,
+    MeasurementFactory,
+    ProjectFactory,
+    SampleFactory,
+)
 
-__all__ = (
+__all__ = [
+    "ContributorFactory",
     "DatasetFactory",
+    "MeasurementFactory",
+    "OrganizationFactory",
+    "PersonFactory",
     "ProjectFactory",
     "SampleFactory",
-    "MeasurementFactory",
-    "PersonFactory",
-    "OrganizationFactory",
-    "OrganizationMembershipFactory",
-    "randint",
-)
+]

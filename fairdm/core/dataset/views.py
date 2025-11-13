@@ -1,17 +1,27 @@
 from typing import Any
 
+from django.db.models import QuerySet
+from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from fairdm.core.filters import DatasetFilter
+from fairdm.plugins import PluggableView
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
+from .filters import DatasetFilter
 from .forms import DatasetForm
 from .models import Dataset
 
 
 class DatasetCreateView(FairDMCreateView):
+    """View for creating new Dataset instances.
+
+    Handles dataset creation with automatic contributor assignment. The user
+    who creates the dataset is automatically added as a Creator, ProjectMember,
+    and ContactPerson. Supports pre-populating the project field from query params.
+    """
+
     model = Dataset
     form_class = DatasetForm
     title = _("Create a Dataset")
@@ -24,13 +34,18 @@ class DatasetCreateView(FairDMCreateView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("datasets"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
     fields = ["name", "license", "project"]
 
     def get_initial(self) -> dict[str, Any]:
+        """Get initial form data, pre-populating project if provided in query params.
+
+        Returns:
+            dict: Initial form data including project ID if available.
+        """
         if self.request.GET.get("project"):
             project_id = self.request.GET["project"]
             if project_id.isdigit():
@@ -38,17 +53,37 @@ class DatasetCreateView(FairDMCreateView):
         return super().get_initial()
 
     def get_form_kwargs(self):
+        """Add request to form kwargs for user-specific filtering.
+
+        Returns:
+            dict: Form kwargs including the current request.
+        """
         kwargs = super().get_form_kwargs()
         kwargs["request"] = self.request
         return kwargs
 
-    def form_valid(self, form):
+    def form_valid(self, form: DatasetForm) -> HttpResponse:
+        """Handle successful form submission and add the creator as a contributor.
+
+        Args:
+            form: The validated DatasetForm instance.
+
+        Returns:
+            HttpResponse: The response from the parent class.
+        """
         response = super().form_valid(form)
         self.object.add_contributor(self.request.user, with_roles=["Creator", "ProjectMember", "ContactPerson"])
         return response
 
 
 class DatasetListView(FairDMListView):
+    """List view for displaying publicly visible datasets.
+
+    Shows all datasets with public visibility in a card layout, with
+    filtering and sorting capabilities. Contributors are prefetched
+    for optimal performance.
+    """
+
     model = Dataset
     filterset_class = DatasetFilter
     title = _("Datasets")
@@ -65,7 +100,7 @@ class DatasetListView(FairDMListView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("datasets"),
-                "icon": "fa-solid fa-book",
+                "icon": "book",
             }
         ],
     }
@@ -76,6 +111,23 @@ class DatasetListView(FairDMListView):
         "Search and filter thousands of open-access research datasets by topic, field, or format. Access high-quality "
         "data to support your research projects."
     )
+    card_template = "dataset/dataset_card.html"
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Dataset]:
+        """Return the queryset of visible datasets with prefetched contributors.
+
+        Returns:
+            QuerySet: Filtered and optimized Dataset queryset.
+        """
         return Dataset.objects.get_visible().with_contributors()
+
+
+class DatasetDetailView(PluggableView):
+    """Dataset detail view with plugin support.
+
+    This view serves as the base for the dataset detail page and provides
+    plugin integration for extensible functionality like overview, settings,
+    and data management features.
+    """
+
+    base_model = Dataset

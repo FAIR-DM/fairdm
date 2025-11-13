@@ -19,7 +19,7 @@ from ..models import ContributorIdentifier, Person
 
 class PortalTeamView(FairDMTemplateView):
     title = _("Portal Team")
-    template_name = "fairdm/pages/portal_team.html"
+    template_name = "pages/portal_team.html"
     heading_config = {
         "icon": "team",
         "title": _("Portal Team"),
@@ -159,7 +159,7 @@ class CodeOfConduct(MetadataMixin, LoginRequiredMixin, TemplateView):
 
 
 class TermsOfUse(MetadataMixin, LoginRequiredMixin, TemplateView):
-    template_name = "fairdm/pages/code_of_conduct.html"
+    template_name = "pages/code_of_conduct.html"
     title = _("Terms of Use")
 
     def get_object(self):
