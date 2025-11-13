@@ -5,9 +5,11 @@ description = ""
 authors = ["Samuel Jennings"]
 license = "MIT"
 readme = "README.md"
+packages = [
+    { include = "fairdm" },
+    { include = "fairdm_demo" }
+]
 include = [
-    "fairdm",
-    "fairdm_demo",
     "README.md",
     "LICENSE",
 ]
