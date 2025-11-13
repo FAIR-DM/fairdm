@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from fairdm.plugins import PluginMixin
+from fairdm.plugins import PluggableView
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
@@ -122,7 +122,7 @@ class DatasetListView(FairDMListView):
         return Dataset.objects.get_visible().with_contributors()
 
 
-class DatasetDetailView(PluginMixin):
+class DatasetDetailView(PluggableView):
     """Dataset detail view with plugin support.
 
     This view serves as the base for the dataset detail page and provides
@@ -130,5 +130,4 @@ class DatasetDetailView(PluginMixin):
     and data management features.
     """
 
-    model = Dataset
-    template_name = "dataset/detail.html"
+    base_model = Dataset

@@ -7,7 +7,7 @@ from fairdm.core.plugins import (
     ManageBaseObjectPlugin,
     OverviewPlugin,
 )
-from fairdm.plugins import EXPLORE, MANAGEMENT, register_plugin
+from fairdm.plugins import EXPLORE, MANAGEMENT, PluginMenuItem, register_plugin
 from fairdm.utils.utils import user_guide
 
 from .forms import DatasetForm
@@ -21,13 +21,15 @@ DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 class Overview(OverviewPlugin):
     category = EXPLORE
     title = _("Overview")
+    menu_item = PluginMenuItem(name=_("Overview"), icon="eye")
     fieldsets = DATASET_SETTINGS.get("detail", {}).get("info_block_fields", None)
 
 
 # ======== Management Plugins ======== #
 @register_plugin(DatasetDetailView)
-class ManageDatasetPlugin(ManageBaseObjectPlugin):
+class Configure(ManageBaseObjectPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Configure"), icon="sliders")
     heading_config = {
         "description": _(
             "Configure your dataset's metadata to ensure it's properly categorized and accessible to the right audience."
@@ -45,8 +47,9 @@ class ManageDatasetPlugin(ManageBaseObjectPlugin):
 
 
 @register_plugin(DatasetDetailView)
-class DeleteDatasetPlugin(DeleteObjectPlugin):
+class Delete(DeleteObjectPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Delete"), icon="trash")
     heading_config = {
         "title": _("Delete Dataset"),
         "description": _(
@@ -63,8 +66,9 @@ class DeleteDatasetPlugin(DeleteObjectPlugin):
 
 
 @register_plugin(DatasetDetailView)
-class EditDescriptions(DescriptionsPlugin):
+class Descriptions(DescriptionsPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Descriptions"), icon="file-text")
     heading_config = {
         "title": _("Descriptions"),
         "description": _(
@@ -83,8 +87,9 @@ class EditDescriptions(DescriptionsPlugin):
 
 
 @register_plugin(DatasetDetailView)
-class EditKeywords(KeywordsPlugin):
+class Keywords(KeywordsPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Keywords"), icon="tags")
     heading_config = {
         "title": _("Keywords"),
         "description": _(
@@ -101,8 +106,9 @@ class EditKeywords(KeywordsPlugin):
 
 
 @register_plugin(DatasetDetailView)
-class EditDates(KeyDatesPlugin):
+class KeyDates(KeyDatesPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Key Dates"), icon="calendar")
     heading_config = {
         "title": _("Key Dates"),
         "description": _(

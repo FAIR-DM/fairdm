@@ -1,11 +1,11 @@
 {% load fairdm contributor_tags easy_icons %}
 
 {% with obj as contributor %}
-  <c-bs5.card class="overflow-hidden h-100">
+  <c-card class="overflow-hidden h-100">
     <div class="card-img ratio ratio-1x1">
       <c-widgets.avatar :contributor="obj" only />
     </div>
-    <c-bs5.card.body class="card-img-overlay">
+    <c-card.body class="card-img-overlay">
       <c-widgets.follow :object="obj"
                         class="border-0 position-absolute top-0 end-0 fs-6 z-2"
                         :show_text="False" />
@@ -16,11 +16,11 @@
         <c-contributor.person.identifier hide_url />
         {{ contributor }}
       </h5>
-    </c-bs5.card.body>
+    </c-card.body>
     {% if actions %}
-      <c-bs5.card.footer class="z-3">
+      <c-card.footer class="z-3">
         {{ actions }}
-      </c-bs5.card.footer>
+      </c-card.footer>
     {% endif %}
-  </c-bs5.card>
+  </c-card>
 {% endwith %}

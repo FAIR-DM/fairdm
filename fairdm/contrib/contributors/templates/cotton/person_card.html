@@ -1,5 +1,5 @@
-<c-bs5.card class="shadow align-items-center text-center {{ contributor.type }}"
-            body_class="px-1 py-3 vstack align-items-center">
+<c-card class="shadow align-items-center text-center {{ contributor.type }}"
+        body_class="px-1 py-3 vstack align-items-center">
   <span class="text-secondary position-absolute top-0 end-0 me-2 mt-1"
         data-bs-toggle="tooltip"
         data-bs-html="true"
@@ -16,4 +16,4 @@
                        href="{{ contributor.get_absolute_url }}">
     {% trans "View profile" %}
   </c-components.button>
-</c-bs5.card>
+</c-card>

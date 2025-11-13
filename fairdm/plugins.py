@@ -8,6 +8,7 @@ from django.db.models.base import Model as Model
 from django.urls import path
 from django.utils.text import slugify
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
+from flex_menu import MenuItem
 
 from fairdm.views import FairDMBaseMixin, RelatedObjectMixin
 
@@ -15,6 +16,14 @@ from fairdm.views import FairDMBaseMixin, RelatedObjectMixin
 EXPLORE = "explore"
 ACTIONS = "actions"
 MANAGEMENT = "management"
+
+
+class PluginMenuItem(MenuItem):
+    icon: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.extra_context.update({"icon": self.icon})
 
 
 def class_to_slug(name: str | object | type) -> str:
@@ -63,7 +72,7 @@ def register_plugin(view_class):
         @register_plugin(ProjectDetailPage)
         class MyPlugin(Plugin):
             category = "explore"
-            menu_item = {"name": "My Plugin", "icon": "eye"}
+            menu_item = PluginMenuItem(name="My Plugin", icon="eye")
     """
 
     def decorator(plugin_class):
@@ -72,29 +81,80 @@ def register_plugin(view_class):
     return decorator
 
 
-class Menu(flex_menu.MenuGroup):
-    root_template = "fairdm/menus/detail.html"
+class FairDMPlugin:
+    """
+    Base mixin for FairDM plugins.
+
+    All plugin classes must inherit from this mixin to access the parent view's
+    menus and other functionality.
+
+    Usage:
+        class OverviewPlugin(FairDMPlugin, FieldsetsMixin, TemplateView):
+            category = "explore"
+            menu_item = PluginMenuItem(name="Overview", icon="eye")
+            title = "Overview"
+    """
+
+    menu_item: PluginMenuItem | None = None
+    title = "Unnamed Plugin"
+
+    def get_context_data(self, **kwargs):
+        """Add plugin menus to the template context."""
+        context = super().get_context_data(**kwargs)
+        context["menus"] = self.menus
+        return context
 
 
-class SubMenu(flex_menu.MenuGroup):
-    root_template = "fairdm/menus/menu_list.html"
-
-
-class PluginMixin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateResponseMixin):
+class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateResponseMixin):
     """Mixin that adds plugin registration and URL generation capabilities to views."""
 
-    menu_item = {}
+    menu_item: PluginMenuItem | None = None
     title = "Unnamed Plugin"
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Each view class gets its own plugin list
         cls.plugins = []
+        # Initialize the three menu types as flex_menu.Menu objects
         cls.menus = {
-            "explore": SubMenu(name="Explore"),
-            "actions": SubMenu(name="Actions"),
-            "management": SubMenu(name="Management"),
+            "explore": flex_menu.Menu(name="Explore"),
+            "actions": flex_menu.Menu(name="Actions"),
+            "management": flex_menu.Menu(name="Management"),
         }
+
+    def get_template_names(self):
+        """
+        Return a list of template names to be used for the plugin view.
+
+        Template resolution order:
+        1. {model_name}/plugins/{plugin_class_name}.html
+        2. plugins/{plugin_class_name}.html
+        3. fairdm/detail_view.html (fallback)
+        """
+        if self.template_name is not None:
+            return [self.template_name]
+
+        templates = []
+        plugin_class_name = class_to_slug(self.__class__.__name__)
+
+        # First option: model-specific plugin template
+        if self.base_model:
+            opts = self.base_model._meta
+            templates.append(f"{opts.model_name}/plugins/{plugin_class_name}.html")
+
+        # Second option: generic plugin template
+        templates.append(f"plugins/{plugin_class_name}.html")
+
+        # Fallback: default detail view template
+        templates.append("fairdm/detail_view.html")
+
+        return templates
+
+    # def get_context_data(self, **kwargs):
+    #     """Add plugin menus to the template context."""
+    #     context = super().get_context_data(**kwargs)
+    #     context["menus"] = self.menus
+    #     return context
 
     @classmethod
     def register_plugin(cls, plugin_class):
@@ -104,12 +164,12 @@ class PluginMixin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespo
                 f"Invalid category '{plugin_class.category}'. Must be one of: explore, actions, management"
             )
 
-        # auto mixin PluginMixin with the plugin_class
-        if not issubclass(plugin_class, PluginMixin):
+        # auto mixin the parent view class with the plugin_class
+        if not issubclass(plugin_class, PluggableView):
             plugin_class = type(
                 plugin_class.__name__,
-                (PluginMixin, plugin_class),
-                dict(plugin_class.__dict__),
+                (plugin_class, cls),
+                {},
             )
 
             # Restore the parent's plugins and menus to the new plugin class
@@ -125,35 +185,22 @@ class PluginMixin(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRespo
         """Generate URL patterns for the main view and all its plugins."""
         urls = []
 
-        # Main detail view URL
-        # urls.append(path("", cls.as_view(), name="detail"))
-        print(cls.plugins)
         # Plugin URLs
         for plugin in cls.plugins:
             plugin_name = class_to_slug(plugin.__name__)
+            model_name = plugin.base_model._meta.model_name
 
             # Generate URL path based on category
-            if plugin.category == "explore":
-                url_path = f"{plugin_name}/"
-            else:
-                url_path = f"{plugin.category}/{plugin_name}/"
+            url_path = f"{plugin_name}/" if plugin.category == "explore" else f"{plugin.category}/{plugin_name}/"
 
             plugin_url = path(url_path, plugin.as_view(), name=plugin_name)
             urls.append(plugin_url)
 
-            # Add plugin to appropriate submenu if menu_item is defined
+            # Add plugin to appropriate menu using .append method if menu_item is defined
             if plugin.menu_item is not None:
-                # Find the submenu by category name (capitalize first letter to match SubMenu names)
-                submenu = cls.menus.get(plugin.category)
-                submenu.append(
-                    flex_menu.MenuLink(
-                        **{
-                            "view_name": plugin_name,
-                            "name": plugin.title,
-                            **plugin.menu_item,
-                        }
-                    )
-                )
+                # Set the view_name on the menu item
+                plugin.menu_item.view_name = f"{model_name}:{plugin_name}"
+                cls.menus[plugin.category].append(plugin.menu_item)
 
         return urls
 
@@ -163,7 +210,9 @@ __all__ = [
     "ACTIONS",
     "EXPLORE",
     "MANAGEMENT",
-    "PluginMixin",
+    "FairDMPlugin",
+    "PluggableView",
+    "PluginMenuItem",
     "check_has_edit_permission",
     "register_plugin",
     "reverse",

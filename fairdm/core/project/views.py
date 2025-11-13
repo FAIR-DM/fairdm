@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from fairdm.plugins import PluginMixin
+from fairdm.plugins import PluggableView
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
@@ -12,7 +12,7 @@ from .filters import ProjectFilter
 from .forms import ProjectForm
 
 
-class ProjectDetailPage(PluginMixin):
+class ProjectDetailPage(PluggableView):
     """Detail page view for Project with plugin support.
 
     This view serves as the base for the project detail page and provides
@@ -20,8 +20,7 @@ class ProjectDetailPage(PluginMixin):
     and export features.
     """
 
-    model = Project
-    template_name = "project/detail.html"
+    base_model = Project
 
 
 class ProjectCreateView(FairDMCreateView):

@@ -3,16 +3,14 @@ from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
 
 from fairdm.contrib.generic.forms import CoreInlineFormset, DateForm, DescriptionForm, KeywordForm
+from fairdm.plugins import PluginMenuItem
 from fairdm.views import FairDMModelFormMixin, FairDMUpdateView
 
 
 class KeywordsPlugin(FairDMUpdateView):
     name = "keywords"
     title = _("Manage Keywords")
-    menu_item = {
-        "name": _("Keywords"),
-        "icon": "keywords",
-    }
+    menu_item = PluginMenuItem(name=_("Keywords"), icon="tags")
     heading_config = {
         "title": _("Keywords"),
     }
@@ -22,10 +20,7 @@ class KeywordsPlugin(FairDMUpdateView):
 class DescriptionsPlugin(FairDMModelFormMixin, InlineFormSetView):
     name = "descriptions"
     title = _("Edit Descriptions")
-    menu_item = {
-        "name": _("Descriptions"),
-        "icon": "description",
-    }
+    menu_item = PluginMenuItem(name=_("Descriptions"), icon="file-text")
     heading_config = {
         "title": _("Descriptions"),
     }
@@ -44,10 +39,7 @@ class DescriptionsPlugin(FairDMModelFormMixin, InlineFormSetView):
 class KeyDatesPlugin(FairDMModelFormMixin, InlineFormSetView):
     name = "key-dates"
     title = _("Key Dates")
-    menu_item = {
-        "name": _("Key Dates"),
-        "icon": "calendar",
-    }
+    menu_item = PluginMenuItem(name=_("Key Dates"), icon="calendar")
     heading_config = {
         "title": _("Key dates"),
     }

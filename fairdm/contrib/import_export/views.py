@@ -14,7 +14,7 @@ from django_downloadview import VirtualDownloadView
 from fairdm.contrib.import_export.utils import build_metadata
 from fairdm.core.models import Dataset
 from fairdm.forms import Form
-from fairdm.plugins import ACTIONS, register_plugin
+from fairdm.plugins import ACTIONS, PluginMenuItem, register_plugin
 from fairdm.registry import registry
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMModelFormMixin
@@ -139,7 +139,7 @@ class DataImportView(BaseImportExportView):
             }
         ],
     }
-    menu_item = {"name": _("Import Data"), "icon": "import"}
+    menu_item = PluginMenuItem(name=_("Import Data"), icon="import")
     sections = {
         "components.form.default",
     }
@@ -209,7 +209,7 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
             }
         ],
     }
-    menu_item = {"name": _("Publish Dataset"), "icon": "fa-solid fa-file-export"}
+    menu_item = PluginMenuItem(name=_("Publish Dataset"), icon="fa-solid fa-file-export")
     sections = {
         "components.form.default",
     }
@@ -238,7 +238,7 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
 @register_plugin
 class DataExportView(VirtualDownloadView, BaseImportExportView):
     category = ACTIONS
-    menu_item = {"name": _("Export Data"), "icon": "export"}
+    menu_item = PluginMenuItem(name=_("Export Data"), icon="export")
     form_class = ExportForm
 
     def get_file(self):

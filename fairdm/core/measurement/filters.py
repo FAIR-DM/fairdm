@@ -1,22 +1,22 @@
 """Filters for the Measurement app."""
 
-import django_filters as df
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from fairdm.core.filters import BaseListFilter
+from fairdm.core.filters import BaseListFilter, GenericSearchFilter
 
 from .models import Measurement
 
 
 class MeasurementFilter(BaseListFilter):
-    """Filter for Measurement list views.
+    """Filter for Measurement list views with search filtering."""
 
-    Provides filtering by name (case-insensitive contains) for measurements.
-    """
-
-    name = df.CharFilter(lookup_expr="icontains", widget=forms.TextInput(attrs={"placeholder": _("Search...")}))
+    search = GenericSearchFilter(
+        search_fields=["name", "uuid"],
+        widget=forms.TextInput(attrs={"placeholder": _("Search measurements...")}),
+        label=_("Search"),
+    )
 
     class Meta:
-        fields = ["name"]
+        fields = []
         model = Measurement

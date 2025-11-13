@@ -1,11 +1,11 @@
 """Views for the Measurement app."""
 
-from fairdm.plugins import PluginMixin
+from fairdm.plugins import PluggableView
 
 from .models import Measurement
 
 
-class MeasurementDetailView(PluginMixin):
+class MeasurementDetailView(PluggableView):
     """Measurement detail view with plugin support.
 
     Provides a detail page for Measurement instances that can be extended
@@ -17,5 +17,4 @@ class MeasurementDetailView(PluginMixin):
         template_name: Path to the detail template
     """
 
-    model = Measurement
-    template_name = "measurement/detail.html"
+    base_model = Measurement

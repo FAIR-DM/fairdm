@@ -1,7 +1,5 @@
 from django.urls import include, path
 
-from fairdm import plugins
-
 from .views import ContributorContactView
 from .views.account import UpdateAffiliations, UpdateIdentifiers, UpdateProfile
 from .views.organization import OrganizationCreateView, OrganizationListView
@@ -28,7 +26,7 @@ urlpatterns = [
             ]
         ),
     ),
-    path("contributor/<str:uuid>/", include((plugins.contributor.get_urls(), "contributor"))),
+    # path("contributor/<str:uuid>/", include((plugin.contributor.get_urls(), "contributor"))),
     path("contributor/<str:uuid>/contact/", ContributorContactView.as_view(), name="contributor-contact"),
     path("organization/new/", OrganizationCreateView.as_view(), name="organization-add"),
 ]

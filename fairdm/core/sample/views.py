@@ -1,11 +1,11 @@
 """Views for the Sample app."""
 
-from fairdm.plugins import PluginMixin
+from fairdm.plugins import PluggableView
 
 from .models import Sample
 
 
-class SampleDetailView(PluginMixin):
+class SampleDetailView(PluggableView):
     """Sample detail view with plugin support.
 
     Provides a detail page for Sample instances that can be extended
@@ -17,5 +17,7 @@ class SampleDetailView(PluginMixin):
         template_name: Path to the detail template
     """
 
-    model = Sample
-    template_name = "sample/detail.html"
+    base_model = Sample
+
+    def get_meta_title(self, context):
+        return f"{self.base_model._meta.verbose_name} - {self.base_object!s}"

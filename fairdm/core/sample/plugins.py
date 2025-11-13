@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
 from fairdm.core.plugins import ManageBaseObjectPlugin, OverviewPlugin
 from fairdm.core.sample.models import SampleDate, SampleDescription
-from fairdm.plugins import EXPLORE, MANAGEMENT, register_plugin
+from fairdm.plugins import EXPLORE, MANAGEMENT, PluginMenuItem, register_plugin
 from fairdm.utils.utils import user_guide
 
 from ..utils import documentation_link
@@ -17,6 +17,7 @@ def check_has_edit_permission(request, instance, **kwargs):
 @register_plugin(SampleDetailView)
 class Overview(OverviewPlugin):
     category = EXPLORE
+    menu_item = PluginMenuItem(name=_("Overview"), icon="eye")
     fieldsets = []
 
 
@@ -33,6 +34,7 @@ class SampleManagementMixin:
 @register_plugin(SampleDetailView)
 class Configure(SampleManagementMixin, ManageBaseObjectPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Configure"), icon="sliders")
     heading_config = {
         "description": _(
             "Provide descriptions of your sample to convey its purpose and scope. This information is essential for helping users quickly understand the sample's relevance and applicability to their research or applications."
@@ -45,6 +47,7 @@ class Configure(SampleManagementMixin, ManageBaseObjectPlugin):
 @register_plugin(SampleDetailView)
 class Descriptions(SampleManagementMixin, DescriptionsPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Descriptions"), icon="file-text")
     name = "basic-information"
     title = _("Basic Information")
     heading_config = {
@@ -60,6 +63,7 @@ class Descriptions(SampleManagementMixin, DescriptionsPlugin):
 @register_plugin(SampleDetailView)
 class Keywords(SampleManagementMixin, KeywordsPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Keywords"), icon="tags")
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
@@ -71,6 +75,7 @@ class Keywords(SampleManagementMixin, KeywordsPlugin):
 @register_plugin(SampleDetailView)
 class KeyDates(SampleManagementMixin, KeyDatesPlugin):
     category = MANAGEMENT
+    menu_item = PluginMenuItem(name=_("Key Dates"), icon="calendar")
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."

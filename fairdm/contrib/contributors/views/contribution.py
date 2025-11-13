@@ -8,8 +8,7 @@ from django.views.generic.edit import FormView
 
 from fairdm import plugins
 from fairdm.plugins import reverse
-from fairdm.utils.view_mixins import RelatedObjectMixin
-from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMUpdateView
+from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMUpdateView, RelatedObjectMixin
 
 from .. import utils
 from ..forms.contribution import PersonCreateForm, QuickAddContributionForm, UpdateContributionForm
@@ -100,7 +99,7 @@ class ContributionCreateView(BaseContributionView, FairDMCreateView):
     # return self.base_object.get_absolute_url()
 
 
-class ContributionUpdateView(plugins.BasePlugin, FairDMUpdateView):
+class ContributionUpdateView(FairDMUpdateView):
     model = Contribution
     form_class = UpdateContributionForm
 

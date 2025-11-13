@@ -4,18 +4,17 @@ Example plugins for ProjectDetailPage using the new view-centric system.
 
 from django.views.generic import TemplateView
 
-from fairdm.plugins import ACTIONS, EXPLORE, MANAGEMENT, register_plugin
+from fairdm.core.plugins import (
+    OverviewPlugin,
+)
+from fairdm.plugins import ACTIONS, FairDMPlugin, PluginMenuItem, register_plugin
 
 from .views import ProjectDetailPage
 
 
 @register_plugin(ProjectDetailPage)
-class Overview(TemplateView):
+class Overview(OverviewPlugin):
     """Basic project overview plugin."""
-
-    category = EXPLORE
-    menu_item = {"name": "Overview", "icon": "fa-solid fa-eye"}
-    template_name = "project/plugins/overview.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -32,12 +31,11 @@ class Overview(TemplateView):
 
 
 @register_plugin(ProjectDetailPage)
-class ProjectExportPlugin(TemplateView):
+class Export(FairDMPlugin, TemplateView):
     """Export project data plugin."""
 
     category = ACTIONS
-    menu_item = {"name": "Export", "icon": "fa-solid fa-download"}
-    template_name = "project/plugins/export.html"
+    menu_item = PluginMenuItem(name="Export", icon="download")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -54,12 +52,11 @@ class ProjectExportPlugin(TemplateView):
 
 
 @register_plugin(ProjectDetailPage)
-class ProjectSettingsPlugin(TemplateView):
+class Settings(FairDMPlugin, TemplateView):
     """Project settings management plugin."""
 
-    category = MANAGEMENT
-    menu_item = {"name": "Settings", "icon": "fa-solid fa-cog"}
-    template_name = "project/plugins/settings.html"
+    category = ACTIONS
+    menu_item = PluginMenuItem(name="Settings", icon="gear")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

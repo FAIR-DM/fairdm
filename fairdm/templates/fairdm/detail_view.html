@@ -5,46 +5,10 @@
   <div class="fairdm-detail d-flex flex-fil overflow-hidden">
     <!-- Sidebar -->
     <c-detail.sidebar>
-      {% render_menu menus.explore uuid=object.uuid instance=object renderer="sidebar" %}
       <!-- Explore Section -->
-      {% comment %} <c-sidebar.menu-section title="Explore" class="">
-        <c-sidebar.menu-item icon="house" href="#" active>
-          Overview
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="collection" href="#">
-          Datasets
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="droplet" href="#">
-          Samples
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="graph-up" href="#">
-          Measurements
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="file-earmark-text" href="#">
-          Publications
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="people" href="#">
-          Contributors
-        </c-sidebar.menu-item>
-      </c-sidebar.menu-section> {% endcomment %}
+      {% render_menu menus.explore uuid=base_object.uuid instance=object renderer="sidebar" %}
       <!-- Actions Section -->
-      <c-sidebar.menu-section title="Actions">
-        <c-sidebar.menu-item icon="plus-circle" href="#">
-          Add Dataset
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="upload" href="#">
-          Import Data
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="download" href="#">
-          Export Data
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="gear" href="#">
-          Settings
-        </c-sidebar.menu-item>
-        <c-sidebar.menu-item icon="share" href="#">
-          Share
-        </c-sidebar.menu-item>
-      </c-sidebar.menu-section>
+      {% render_menu menus.actions uuid=base_object.uuid instance=object renderer="sidebar" %}
     </c-detail.sidebar>
     <!-- Content Wrapper -->
     <div class="detail-content-wrapper flex-fill overflow-auto">

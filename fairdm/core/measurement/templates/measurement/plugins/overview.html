@@ -1,0 +1,140 @@
+{% extends "plugins/overview.html" %}
+{% load i18n cotton %}
+
+{% block overview_main %}
+  {{ block.super }}
+  {# Measurement Value #}
+  <c-detail.card title="{% trans 'Measurement Value' %}"
+                 icon="speedometer2">
+    <div class="p-4 bg-light rounded text-center">
+      <div class="display-4 fw-bold text-primary mb-2">{{ measurement.get_value }}</div>
+      <div class="text-muted">{{ measurement.get_polymorphic_type_name }}</div>
+    </div>
+  </c-detail.card>
+  {# Sample Information #}
+  {% if measurement.sample %}
+    <c-detail.card title="{% trans 'Sample' %}" icon="box-seam">
+      <div class="d-flex align-items-center">
+        {% if measurement.sample.image %}
+          <img src="{{ measurement.sample.image.url }}"
+               alt="{{ measurement.sample.name }}"
+               class="rounded me-3"
+               style="width: 64px;
+                      height: 64px;
+                      object-fit: cover" />
+        {% else %}
+          <div class="p-3 bg-light rounded me-3">
+            <i class="bi bi-box-seam display-6 text-primary"></i>
+          </div>
+        {% endif %}
+        <div>
+          <h6 class="mb-1">
+            <a href="{{ measurement.sample.get_absolute_url }}"
+               class="text-decoration-none">{{ measurement.sample.name }}</a>
+          </h6>
+          <p class="text-muted small mb-0">
+            {{ measurement.sample.get_polymorphic_type_name }}
+            {% if measurement.sample.local_id %}• <code>{{ measurement.sample.local_id }}</code>{% endif %}
+          </p>
+        </div>
+      </div>
+    </c-detail.card>
+  {% endif %}
+  {# Dataset & Project Information #}
+  <c-detail.card title="{% trans 'Dataset & Project' %}"
+                 icon="folder">
+    <div class="mb-3">
+      <h6 class="text-muted small text-uppercase mb-2">{% trans "Dataset" %}</h6>
+      <div class="d-flex align-items-center">
+        {% if measurement.dataset.image %}
+          <img src="{{ measurement.dataset.image.url }}"
+               alt="{{ measurement.dataset.name }}"
+               class="rounded me-3"
+               style="width: 48px;
+                      height: 48px;
+                      object-fit: cover" />
+        {% endif %}
+        <div>
+          <a href="{{ measurement.dataset.get_absolute_url }}"
+             class="text-decoration-none fw-bold">{{ measurement.dataset.name }}</a>
+        </div>
+      </div>
+    </div>
+    {% if measurement.dataset.project %}
+      <div>
+        <h6 class="text-muted small text-uppercase mb-2">{% trans "Project" %}</h6>
+        <div class="d-flex align-items-center">
+          {% if measurement.dataset.project.image %}
+            <img src="{{ measurement.dataset.project.image.url }}"
+                 alt="{{ measurement.dataset.project.name }}"
+                 class="rounded me-3"
+                 style="width: 48px;
+                        height: 48px;
+                        object-fit: cover" />
+          {% endif %}
+          <div>
+            <a href="{{ measurement.dataset.project.get_absolute_url }}"
+               class="text-decoration-none fw-bold">{{ measurement.dataset.project.name }}</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </c-detail.card>
+  {# Measurement Method/Protocol (if available) #}
+  {% if measurement.method or measurement.protocol %}
+    <c-detail.card title="{% trans 'Method & Protocol' %}"
+                   icon="journal-text">
+      {% if measurement.method %}
+        <h6 class="text-muted small text-uppercase mb-2">{% trans "Method" %}</h6>
+        <p class="mb-3">{{ measurement.method }}</p>
+      {% endif %}
+      {% if measurement.protocol %}
+        <h6 class="text-muted small text-uppercase mb-2">{% trans "Protocol" %}</h6>
+        <p class="mb-0">{{ measurement.protocol }}</p>
+      {% endif %}
+    </c-detail.card>
+  {% endif %}
+{% endblock overview_main %}
+
+{% block quick_info_items %}
+  <c-detail.info-item label="{% trans 'UUID' %}"
+                      value="{{ measurement.uuid }}"
+                      code="True" />
+  <c-detail.info-item label="{% trans 'Type' %}"
+                      value="{{ measurement.get_polymorphic_type_name }}"
+                      badge="primary" />
+  <c-detail.info-item label="{% trans 'Added' %}"
+                      value="{{ measurement.added|date:'N j, Y' }}" />
+  <dt class="text-muted small text-uppercase mb-1">{% trans "Last Modified" %}</dt>
+  <dd class="mb-0">
+    {{ measurement.modified|date:"N j, Y" }}
+  </dd>
+{% endblock quick_info_items %}
+
+{% block overview_sidebar %}
+  {{ block.super }}
+  {# Measurement Metadata (if available) #}
+  {% if measurement.uncertainty or measurement.unit or measurement.precision %}
+    <c-detail.card title="{% trans 'Measurement Details' %}"
+                   icon="graph-up">
+      <dl class="mb-0">
+        {% if measurement.unit %}
+          <c-detail.info-item label="{% trans 'Unit' %}"
+                              value="{{ measurement.unit }}" />
+        {% endif %}
+        {% if measurement.uncertainty %}
+          <dt class="text-muted small text-uppercase mb-1">{% trans "Uncertainty" %}</dt>
+          <dd class="{% if measurement.precision %}mb-3{% else %}mb-0{% endif %}">
+            ± {{ measurement.uncertainty }}
+          </dd>
+        {% endif %}
+        {% if measurement.precision %}
+          <dt class="text-muted small text-uppercase mb-1">{% trans "Precision" %}</dt>
+          <dd class="mb-0">
+            {{ measurement.precision }}
+          </dd>
+        {% endif %}
+      </dl>
+    </c-detail.card>
+  {% endif %}
+{% endblock overview_sidebar %}

@@ -3,13 +3,12 @@ from django.views.generic import RedirectView
 from django_tables2.views import SingleTableMixin
 
 from fairdm.contrib.import_export.utils import export_choices
-from fairdm.layouts import ApplicationLayout
 from fairdm.menus import SiteNavigation
 from fairdm.registry import registry
 from fairdm.views import FairDMListView
 
 
-class DataTableView(ApplicationLayout, SingleTableMixin, FairDMListView):
+class DataTableView(SingleTableMixin, FairDMListView):
     export_formats = ["csv", "xls", "xlsx", "json", "latex", "ods", "tsv", "yaml"]
     template_name_suffix = "_table"
     template_name = "fairdm/data_table.html"

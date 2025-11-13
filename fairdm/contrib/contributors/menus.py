@@ -1,7 +1,4 @@
-from dac.menus import AuthenticatedUserDropdown, DropdownMenuItem
 from django.urls import reverse_lazy
-from django.utils.translation import gettext_lazy as _
-from flex_menu import checks
 
 
 def get_contributor_url(request):
@@ -11,12 +8,12 @@ def get_contributor_url(request):
     return "/"
 
 
-AuthenticatedUserDropdown.insert(
-    [
-        DropdownMenuItem(_("Profile"), url=get_contributor_url, icon="user"),
-        DropdownMenuItem(
-            _("Portal Administration"), check=checks.user_is_staff, view_name="admin:index", icon="administration"
-        ),
-    ],
-    position=0,
-)
+# AuthenticatedUserDropdown.insert(
+#     [
+#         DropdownMenuLink(_("Profile"), url=get_contributor_url, icon="user"),
+#         DropdownMenuLink(
+#             _("Portal Administration"), check=checks.user_is_staff, view_name="admin:index", icon="administration"
+#         ),
+#     ],
+#     position=0,
+# )
