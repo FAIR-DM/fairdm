@@ -1,9 +1,0 @@
-{% load static %}
-
-<c-fdm.dashboard.card image_src="{% static "img/stock/project.jpg" %}"
-                      image_alt="..."
-                      title="{% trans "Create a project" %}"
-                      badge="{% if not user.is_authenticated %}lock{% endif %}"
-                      description="{% trans "Store your past, present and future research projects with the community and manage metadata at all stages of a project's lifecycle." %}"
-                      action="{% url "project-create" %}"
-                      action_text="{% trans "Get started" %}" />

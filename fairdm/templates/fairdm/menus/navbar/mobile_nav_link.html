@@ -1,0 +1,13 @@
+{% if depth == 1 %}
+  {# Top-level link: styled as section header #}
+  <c-navbar.mobile.section-link href="{{ url }}"
+                                :active="{{ selected }}"
+                                icon="{{ icon }}"
+                                text="{{ label }}" />
+{% else %}
+  {# Nested link: regular style #}
+  <c-navbar.mobile.link href="{{ url }}"
+                        :active="{{ selected }}"
+                        icon="{{ icon }}"
+                        text="{{ label }}" />
+{% endif %}

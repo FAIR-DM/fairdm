@@ -1,9 +1,0 @@
-{% load render_fields %}
-
-{% comment %} <c-bs5.card> {% endcomment %}
-{% render_fieldsets obj obj.config.get_fieldsets %}
-{% comment %} <c-slot name="footer">
-    <c-components.button button_class="btn btn-primary" href="{{ obj.dataset.get_absolute_url }}" icon="dataset" text="{% trans "Dataset" %}">
-    </c-components.button>
-</c-slot> {% endcomment %}
-{% comment %} </c-bs5.card> {% endcomment %}

@@ -1,0 +1,17 @@
+<c-vars text="" icon="" id="" />
+<div class="nav-item">
+  <button class="btn btn-link nav-link d-flex align-items-center justify-content-between w-100 text-start border-0 p-2"
+          data-bs-toggle="collapse"
+          data-bs-target="#{{ id }}"
+          aria-expanded="false"
+          aria-controls="{{ id }}">
+    <span>
+      {% if icon %}<i class="bi bi-{{ icon }} me-2"></i>{% endif %}
+      {{ text }}
+    </span>
+    <i class="bi bi-chevron-down"></i>
+  </button>
+  <div class="collapse" id="{{ id }}">
+    <div class="ms-4 mb-2">{{ slot }}</div>
+  </div>
+</div>

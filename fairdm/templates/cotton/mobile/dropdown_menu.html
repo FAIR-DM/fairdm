@@ -1,0 +1,18 @@
+<c-vars title icon="list" dropdown_id />
+{# Generate a unique ID if not provided #}
+{% with dropdown_id=dropdown_id|default:"mobileDropdown"|add:title|slugify %}
+  <div class="dropdown" {{ attrs }}>
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+            type="button"
+            id="{{ dropdown_id }}"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+      {% if icon %}<i class="bi bi-{{ icon }} me-1"></i>{% endif %}
+      {{ title }}
+    </button>
+    <ul class="dropdown-menu"
+        aria-labelledby="{{ dropdown_id }}">
+      {{ slot }}
+    </ul>
+  </div>
+{% endwith %}

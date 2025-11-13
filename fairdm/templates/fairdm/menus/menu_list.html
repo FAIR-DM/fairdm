@@ -1,9 +1,0 @@
-<c-components.menu>
-  {% for item in menu %}
-    {% if item.visible %}
-      <c-components.menu.item href="{{ item.url }}"
-                              text="{{ item.label }}"
-                              :active="item.selected" />
-    {% endif %}
-  {% endfor %}
-</c-components.menu>

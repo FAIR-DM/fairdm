@@ -1,9 +1,0 @@
-<c-vars :active="False" class />
-<li>
-  <a class="dropdown-item {% if active %}active{% endif %} {{ class }}"
-     {{ attrs }}>
-    {% if icon %}
-      {% icon icon %}
-    {% endif %}
-  {% firstof slot text %}</a>
-</li>

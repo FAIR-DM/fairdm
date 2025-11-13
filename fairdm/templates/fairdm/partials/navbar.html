@@ -1,0 +1,71 @@
+{% load flex_menu %}
+
+<!-- Modern Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-body border-bottom shadow-sm sticky-top">
+  <div class="container-fluid px-3">
+    <c-navbar.mobile-toggle />
+    <c-navbar.brand />
+    <!-- Desktop Navigation Menu (Hidden on mobile) -->
+    <div class="navbar-nav me-auto d-none d-lg-flex">{% render_menu 'SiteNavigation' renderer="navbar" %}</div>
+    <!-- Desktop Search Form (Hidden on mobile) -->
+    <c-navbar.search />
+    <!-- Desktop Action Group (Hidden on mobile) -->
+    <div class="d-none d-lg-flex align-items-center gap-3">
+      <c-navbar.action-link icon="github"
+                            url="https://github.com/FAIR-DM/fairdm"
+                            target="_blank"
+                            title="View on GitHub" />
+      <c-navbar.action-link icon="book" title="Documentation" />
+      <!-- Theme Toggle -->
+      <c-navbar.action-link icon="sun-fill"
+                            :is_button="True"
+                            button_id="themeToggle"
+                            title="Toggle theme"
+                            extra_classes="theme-toggle-icon" />
+      <!-- Login/Profile -->
+      <div class="ms-2">
+        <!-- For unauthenticated users -->
+        <button class="btn btn-primary btn-sm d-none"
+                id="loginBtn">
+          <i class="bi bi-person-fill me-1"></i>Login
+        </button>
+        <!-- For authenticated users -->
+        <c-navbar.profile-dropdown :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'gear', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'box-arrow-right', 'text': 'Logout', 'url': '#'} ]" />
+      </div>
+    </div>
+    <!-- Mobile Profile (Far Right on Mobile) -->
+    <c-navbar.profile-dropdown extra_classes="d-lg-none"
+                               :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'gear', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'box-arrow-right', 'text': 'Logout', 'url': '#'} ]" />
+  </div>
+</nav>
+<!-- Mobile Offcanvas Navigation -->
+<div class="offcanvas offcanvas-start"
+     tabindex="-1"
+     id="mobileNavbar"
+     aria-labelledby="mobileNavbarLabel">
+  <div class="offcanvas-body custom-scrollbar">
+    <!-- Header Section (now inside body for scrolling) -->
+    <c-navbar.mobile-header />
+    <div class="px-3">
+      <!-- Mobile Action Group -->
+      <div class="d-flex flex-wrap gap-3 justify-content-center mb-2">
+        <c-navbar.action-link icon="github"
+                              text="GitHub"
+                              url="https://github.com/FAIR-DM/fairdm"
+                              target="_blank"
+                              :show_text="True" />
+        <c-navbar.action-link icon="book" text="Docs" :show_text="True" />
+        <c-navbar.action-link icon="sun-fill"
+                              text="Theme"
+                              :is_button="True"
+                              button_id="mobileThemeToggle"
+                              :show_text="True"
+                              extra_classes="mobile-theme-toggle" />
+      </div>
+      <!-- Mobile Search -->
+      <c-navbar.search classes="mb-4" placeholder="Search..." />
+      <!-- Mobile Navigation Menu -->
+      {% render_menu 'SiteNavigation' renderer="mobile_navbar" %}
+    </div>
+  </div>
+</div>

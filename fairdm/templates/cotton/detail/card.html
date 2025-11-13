@@ -1,0 +1,12 @@
+<c-vars title icon="" class="" />
+<div class="card mb-4 {{ class }}" {{ attrs }}>
+  <div class="card-body">
+    {% if title %}
+      <h5 class="card-title mb-3">
+        {% if icon %}<i class="bi bi-{{ icon }} text-primary me-2"></i>{% endif %}
+        {{ title }}
+      </h5>
+    {% endif %}
+    {{ slot }}
+  </div>
+</div>
