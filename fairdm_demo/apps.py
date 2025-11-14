@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
-from fairdm.registry import Authority, Citation
+
+from fairdm.registry.config import Authority, Citation
 
 
 class FairDMDemoConfig(AppConfig):
