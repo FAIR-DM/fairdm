@@ -448,7 +448,7 @@ class TestPluggableView:
 
         assert "project/plugins/test-view.html" in templates
         assert "plugins/test-view.html" in templates
-        assert "fairdm/detail_view.html" in templates
+        assert "fairdm/plugin.html" in templates
 
     @pytest.mark.django_db
     def test_register_plugin_with_invalid_category_raises_error(self):
