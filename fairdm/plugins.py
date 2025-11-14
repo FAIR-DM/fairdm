@@ -5,8 +5,10 @@ import re
 import flex_menu
 from django import urls
 from django.db.models.base import Model as Model
+from django.forms.widgets import Media
 from django.urls import path
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
 from flex_menu import MenuItem
 
@@ -16,6 +18,95 @@ from fairdm.views import FairDMBaseMixin, RelatedObjectMixin
 EXPLORE = "explore"
 ACTIONS = "actions"
 MANAGEMENT = "management"
+
+
+class PluginRegistry:
+    """
+    Central registry for managing plugins and their associated models.
+
+    Usage:
+        from fairdm import plugins
+
+        @plugins.register(Project)
+        class MyPlugin(plugins.Explore):
+            menu_item = plugins.MenuItem(name="My Plugin", icon="eye")
+    """
+
+    def __init__(self):
+        # Maps models to their PluggableView classes
+        self._model_view_registry: dict[type[Model], type[PluggableView]] = {}
+
+    def register(self, model: type[Model]):
+        """
+        Register a plugin with a specific model.
+
+        Usage:
+            @plugins.register(Project)
+            class MyPlugin(FairDMPlugin):
+                category = "explore"
+                menu_item = PluginMenuItem(name="My Plugin", icon="eye")
+
+        Args:
+            model: The Django Model class to register the plugin with
+
+        Returns:
+            A decorator function that registers the plugin class
+        """
+
+        def decorator(plugin_class):
+            if not (isinstance(model, type) and issubclass(model, Model)):
+                raise TypeError(f"plugins.register expects a Django Model subclass, got {type(model)}")
+
+            view_class = self.get_or_create_view_for_model(model)
+            return view_class.register_plugin(plugin_class)
+
+        return decorator
+
+    def get_or_create_view_for_model(self, model: type[Model]) -> type[PluggableView]:
+        """
+        Get or create a PluggableView subclass for the given model.
+
+        This function maintains a registry of dynamically created view classes,
+        one per model. If a view doesn't exist for the model yet, it creates one.
+
+        Args:
+            model: The Django model class to create/retrieve a view for
+
+        Returns:
+            A PluggableView subclass configured for the given model
+        """
+        if model not in self._model_view_registry:
+            # Create a new PluggableView subclass for this model
+            view_class = type(
+                f"{model.__name__}DetailView",
+                (PluggableView,),
+                {
+                    "base_model": model,
+                    "model": model,
+                },
+            )
+            self._model_view_registry[model] = view_class
+
+        return self._model_view_registry[model]
+
+    def get_view_for_model(self, model: type[Model]) -> type[PluggableView] | None:
+        """
+        Get the PluggableView for a model if it exists.
+
+        Args:
+            model: The Django model class
+
+        Returns:
+            The PluggableView subclass for the model, or None if not found
+        """
+        return self._model_view_registry.get(model)
+
+
+# Global plugin registry instance
+registry = PluginRegistry()
+
+# Convenience alias for cleaner syntax: plugins.register(Model) instead of plugins.registry.register(Model)
+register = registry.register
 
 
 class PluginMenuItem(MenuItem):
@@ -64,23 +155,6 @@ def reverse(model, view_name, *args, **kwargs):
     return urls.reverse(f"{namespace}:{view_name}", args=args, kwargs=kwargs)
 
 
-def register_plugin(view_class):
-    """
-    Register a plugin with a specific view class.
-
-    Usage:
-        @register_plugin(ProjectDetailPage)
-        class MyPlugin(Plugin):
-            category = "explore"
-            menu_item = PluginMenuItem(name="My Plugin", icon="eye")
-    """
-
-    def decorator(plugin_class):
-        return view_class.register_plugin(plugin_class)
-
-    return decorator
-
-
 class FairDMPlugin:
     """
     Base mixin for FairDM plugins.
@@ -93,15 +167,112 @@ class FairDMPlugin:
             category = "explore"
             menu_item = PluginMenuItem(name="Overview", icon="eye")
             title = "Overview"
+
+            class Media:
+                css = {
+                    'all': ('css/my-plugin.css',)
+                }
+                js = ('js/my-plugin.js',)
     """
 
     menu_item: PluginMenuItem | None = None
     title = "Unnamed Plugin"
 
+    @property
+    def media(self):
+        """
+        Return the Media object for this plugin if defined.
+
+        Plugins can define a Media inner class with custom CSS and JS files.
+        This property checks for the Media class and returns it if available.
+        """
+        if hasattr(self.__class__, "Media"):
+            return Media(self.__class__.Media)
+        return Media()
+
+    def get_breadcrumbs(self) -> list[dict[str, str]]:
+        """
+        Return a list of breadcrumb items for navigation.
+
+        Each breadcrumb is a dictionary with:
+        - 'text': The display text for the breadcrumb (required)
+        - 'href': The URL for the breadcrumb (optional)
+
+        Breadcrumb logic:
+        1. First item: Points to user's base_model list view if user is a contributor
+           and object is editable (not published), otherwise points to public list view
+        2. Second item: Truncated object.__str__ representation pointing to overview plugin
+        3. Additional items: Page title with no href
+
+        Example:
+            [
+                {'text': 'My Projects', 'href': '/user/projects/'},
+                {'text': 'My Research Project', 'href': '/project/abc123/overview/'},
+                {'text': 'Datasets'}  # Current page title
+            ]
+
+        Returns:
+            list[dict[str, str]]: List of breadcrumb dictionaries
+        """
+        breadcrumbs = []
+
+        # Only generate breadcrumbs if we have a base_object
+        if not hasattr(self, "base_object") or not self.base_object:
+            return breadcrumbs
+
+        base_object = self.base_object
+        model_name = base_object._meta.model_name
+        model_verbose_name_plural = base_object._meta.verbose_name_plural
+
+        # Determine if user is contributor and object is editable
+        user = getattr(self.request, "user", None)
+        is_contributor = user and user.is_authenticated and base_object.is_contributor(user)
+
+        # Check if object is editable (not published/public)
+        # For projects, check visibility; for other models, you might check different fields
+        is_editable = True
+        if hasattr(base_object, "visibility"):
+            from fairdm.utils.choices import Visibility
+
+            is_editable = base_object.visibility != Visibility.PUBLIC
+
+        # First breadcrumb: List view
+        if is_contributor and is_editable:
+            # Point to user's personal list view (fake for now)
+            breadcrumbs.append(
+                {
+                    "text": _(f"My {model_verbose_name_plural.title()}"),
+                    "href": f"/user/{model_name}s/",  # Fake URL for now
+                }
+            )
+        else:
+            # Point to public list view
+            breadcrumbs.append(
+                {"text": _(f"All {model_verbose_name_plural.title()}"), "href": urls.reverse(f"{model_name}-list")}
+            )
+
+        # Second breadcrumb: Object overview with truncated name
+        object_str = str(base_object)
+        # Truncate to 50 characters
+        if len(object_str) > 30:
+            object_str = object_str[:27] + "..."
+
+        breadcrumbs.append(
+            {"text": object_str, "href": urls.reverse(f"{model_name}:overview", kwargs={"uuid": base_object.uuid})}
+        )
+
+        # Third breadcrumb: Current page title (no href)
+        if hasattr(self, "title") and self.title:
+            breadcrumbs.append({"text": str(self.title)})
+
+        return breadcrumbs
+
     def get_context_data(self, **kwargs):
         """Add plugin menus to the template context."""
         context = super().get_context_data(**kwargs)
         context["menus"] = self.menus
+        context["breadcrumbs"] = self.get_breadcrumbs()
+        context["plugin_media"] = self.media
         return context
 
 
@@ -149,12 +320,6 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
         templates.append("fairdm/detail_view.html")
 
         return templates
-
-    # def get_context_data(self, **kwargs):
-    #     """Add plugin menus to the template context."""
-    #     context = super().get_context_data(**kwargs)
-    #     context["menus"] = self.menus
-    #     return context
 
     @classmethod
     def register_plugin(cls, plugin_class):
@@ -213,8 +378,10 @@ __all__ = [
     "FairDMPlugin",
     "PluggableView",
     "PluginMenuItem",
+    "PluginRegistry",
     "check_has_edit_permission",
-    "register_plugin",
+    "register",
+    "registry",
     "reverse",
     "sample_check_has_edit_permission",
 ]
