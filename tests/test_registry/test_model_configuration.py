@@ -1,38 +1,22 @@
-"""
-Comprehensive tests for the FairDM registration system - Extended coverage.
+"""Comprehensive tests for the FairDM registration system.
 
-This module provides additional test coverage for advanced registration features,
-auto-generation, component factories, and edge cases.
+This module provides test coverage for advanced registration features,
+auto-generation, component factories, ModelConfiguration, and metadata classes.
 """
 
 import pytest
 
 import fairdm
-from fairdm.config import MeasurementConfig, SampleConfig
-from fairdm.core.models import Measurement, Sample
-from fairdm.registry import (
+from fairdm.config import (
     Authority,
     Citation,
+    MeasurementConfig,
     ModelConfiguration,
     ModelMetadata,
-    registry,
+    SampleConfig,
 )
-
-
-@pytest.fixture
-def clean_registry():
-    """Fixture to clean the registry before and after each test."""
-    # Clear registry before test
-    registry._registry.clear()
-    registry._config_registry.clear()
-    registry.all.clear()
-
-    yield registry
-
-    # Clear registry after test
-    registry._registry.clear()
-    registry._config_registry.clear()
-    registry.all.clear()
+from fairdm.core.models import Measurement, Sample
+from fairdm.registry import registry
 
 
 class TestModelMetadata:

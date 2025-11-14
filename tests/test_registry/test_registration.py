@@ -1,7 +1,6 @@
-"""
-Test the FairDM registration API functionality.
+"""Test the FairDM registration API functionality.
 
-This module tests the new @fairdm.register decorator system using
+This module tests the @fairdm.register decorator system using
 the actual Sample and Measurement classes from the core framework.
 """
 
@@ -10,24 +9,8 @@ import pytest
 import fairdm
 from fairdm.config import MeasurementConfig, SampleConfig
 from fairdm.core.models import Measurement, Sample
-from fairdm.factories.core import MeasurementFactory, SampleFactory
+from fairdm.factories import MeasurementFactory, SampleFactory
 from fairdm.registry import registry
-
-
-@pytest.fixture
-def clean_registry():
-    """Fixture to clean the registry before and after each test."""
-    # Clear registry before test
-    registry._registry.clear()
-    registry._config_registry.clear()
-    registry.all.clear()
-
-    yield registry
-
-    # Clear registry after test
-    registry._registry.clear()
-    registry._config_registry.clear()
-    registry.all.clear()
 
 
 class TestRegistrationBasics:
