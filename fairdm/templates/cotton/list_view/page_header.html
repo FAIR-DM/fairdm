@@ -14,7 +14,7 @@
                   data-bs-toggle="modal"
                   data-bs-target="{{ info_modal_target }}"
                   aria-label="Page Information">
-            <i class="bi bi-info-circle"></i>
+            <c-icon name="info-circle" />
           </button>
         {% endif %}
       </h2>
@@ -24,7 +24,7 @@
       <!-- Search Bar -->
       <div class="input-group" style="min-width: 300px;">
         <span class="input-group-text border-end-0">
-          <i class="bi bi-search text-muted"></i>
+          <c-icon name="search" class="text-muted" />
         </span>
         <!-- Visible search input for desktop -->
         <input type="text"
@@ -36,7 +36,7 @@
       {% if filter.form.o %}
         <div class="input-group" style="min-width: 180px;">
           <span class="input-group-text border-end-0">
-            <i class="bi bi-sort-down text-muted"></i>
+            <c-icon name="sort-down" class="text-muted" />
           </span>
           <select class="form-select ordering-field desktop-ordering border-start-0"
                   form="">
@@ -62,7 +62,7 @@
                   data-bs-toggle="modal"
                   data-bs-target="{{ info_modal_target }}"
                   aria-label="Page Information">
-            <i class="bi bi-info-circle"></i>
+            <c-icon name="info-circle" />
           </button>
         {% endif %}
       </h2>
@@ -73,7 +73,8 @@
             data-bs-toggle="offcanvas"
             data-bs-target="{{ filter_offcanvas_target }}"
             aria-controls="filterOffcanvas">
-      <i class="bi bi-funnel-fill me-1"></i>Filters
+      <c-icon name="funnel-fill" class="me-1" />
+      Filters
     </button>
   </div>
   <!-- Mobile: Search and Sort Row -->
@@ -82,7 +83,7 @@
     <div class="flex-grow-1">
       <div class="input-group">
         <span class="input-group-text border-end-0">
-          <i class="bi bi-search text-muted"></i>
+          <c-icon name="search" class="text-muted" />
         </span>
         <!-- Visible search input for mobile -->
         <input type="text"
@@ -96,7 +97,7 @@
       {% if filter.form.o %}
         <div class="input-group" style="min-width: 140px;">
           <span class="input-group-text border-end-0">
-            <i class="bi bi-sort-down text-muted"></i>
+            <c-icon name="sort-down" class="text-muted" />
           </span>
           <select class="form-select ordering-field mobile-ordering border-start-0"
                   form="">
@@ -111,7 +112,7 @@
       {% else %}
         <div class="input-group" style="min-width: 140px;">
           <span class="input-group-text border-end-0">
-            <i class="bi bi-sort-down text-muted"></i>
+            <c-icon name="sort-down" class="text-muted" />
           </span>
           <select class="form-select ordering-field mobile-ordering border-start-0"
                   form="">

@@ -27,7 +27,8 @@
         <!-- For unauthenticated users -->
         <button class="btn btn-primary btn-sm d-none"
                 id="loginBtn">
-          <i class="bi bi-person-fill me-1"></i>Login
+          <c-icon name="person-fill" class="me-1" />
+          Login
         </button>
         <!-- For authenticated users -->
         <c-navbar.profile-dropdown :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'gear', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'box-arrow-right', 'text': 'Logout', 'url': '#'} ]" />

@@ -15,28 +15,7 @@
         {% include "partials/filters.html" with mobile=True %}
       </c-list-view.mobile-filters>
       <!-- Main Content Area -->
-      <div class="col-lg-9">
-        <!-- Page Header -->
-        <c-list-view.page-header :title="page.title|default:page_title"
-                                 results_text="Showing {{ object_list.count }} results"
-                                 :search_value="request.GET.q" />
-        <!-- Card List -->
-        <div class="row g-4">
-          {% for object in object_list %}
-            <div class="col-12">{% include card_template %}</div>
-          {% empty %}
-            <c-list-view.empty-state />
-          {% endfor %}
-        </div>
-        <!-- Pagination -->
-        <c-list-view.pagination :is_paginated="is_paginated"
-                                :page_obj="page_obj"
-                                :request="request" />
-        <!-- Results Summary -->
-        <c-list-view.results-summary :is_paginated="is_paginated"
-                                     :page_obj="page_obj"
-                                     :object_list="object_list" />
-      </div>
+      <div class="col-lg-9">{% include "fairdm/partials/object_list.html" %}</div>
     </div>
   </div>
   <!-- Page Information Modal -->

@@ -1,5 +1,8 @@
-{% extends "fairdm/detail_view.html" %}
+{% extends "fairdm/plugin.html" %}
+{% load fairdm %}
+
 {% block plugin %}
+  {% trans "There's nothing here yet." as empty_text %}
   <div class="row g-4">
     {# Main content area #}
     <div class="col-lg-8">
@@ -15,40 +18,58 @@
           </c-detail.card>
         {% endblock statistics %}
 
+        {% block keywords %}
+          <c-detail.card title="{% trans 'Keywords' %}"
+                         icon="tags"
+                         edit_url="{% plugin_url 'keywords' %}">
+            <div class="d-flex flex-wrap gap-2">
+              {% for keyword in object.keywords.all %}
+                <c-badge variant="light"
+                         class="text-dark border"
+                         :text="keyword" />
+              {% empty %}
+                {{ empty_text }}
+              {% endfor %}
+            </div>
+          </c-detail.card>
+        {% endblock keywords %}
+
         {% block descriptions %}
-          <c-detail.card title="{% trans 'About' %}" icon="file-text">
+          <c-detail.card title="{% trans 'About' %}"
+                         icon="file-text"
+                         edit_url="{% plugin_url 'descriptions' %}">
             {% for description in object.descriptions.in_order %}
               <div class="mb-3">
                 <h6 class="text-muted small text-uppercase mb-2">{{ description.type }}</h6>
                 <p class="card-text">{{ description.value }}</p>
               </div>
             {% empty %}
-              {% trans "There's nothing here yet." %}
+              {{ empty_text }}
             {% endfor %}
           </c-detail.card>
         {% endblock descriptions %}
 
         {% block contributors %}
-          {% if object.contributors.exists %}
-            <c-detail.card title="{% trans 'Contributors' %}" icon="people">
-              <c-list-group flush>
-                {% for contribution in object.contributors.all %}
-                  <c-list-group.item>
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                      <div>
-                        <h6 class="mb-1">{{ contribution.contributor }}</h6>
-                        {% if contribution.roles.exists %}
-                          <small class="text-muted">
-                            {% for role in contribution.roles.all %}<c-badge variant="secondary" class="me-1" :text="role" />{% endfor %}
-                          </small>
-                        {% endif %}
-                      </div>
+          <c-detail.card title="{% trans 'Contributors' %}" icon="people">
+            <c-list-group flush>
+              {% for contribution in object.contributors.all %}
+                <c-list-group.item>
+                  <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div>
+                      <h6 class="mb-1">{{ contribution.contributor }}</h6>
+                      {% if contribution.roles.exists %}
+                        <small class="text-muted">
+                          {% for role in contribution.roles.all %}<c-badge variant="secondary" class="me-1" :text="role" />{% endfor %}
+                        </small>
+                      {% endif %}
                     </div>
-                  </c-list-group.item>
-                {% endfor %}
-              </c-list-group>
-            </c-detail.card>
-          {% endif %}
+                  </div>
+                </c-list-group.item>
+              {% empty %}
+                {{ empty_text }}
+              {% endfor %}
+            </c-list-group>
+          </c-detail.card>
         {% endblock contributors %}
       {% endblock overview_main %}
 
@@ -68,32 +89,18 @@
           </c-detail.card>
         {% endblock quick_info %}
 
-        {% block keywords %}
-          {% if object.keywords.exists %}
-            <c-detail.card title="{% trans 'Keywords' %}" icon="tags">
-              <div class="d-flex flex-wrap gap-2">
-                {% for keyword in object.keywords.all %}
-                  <c-badge variant="light"
-                           class="text-dark border"
-                           :text="keyword" />
-                {% endfor %}
-              </div>
-            </c-detail.card>
-          {% endif %}
-        {% endblock keywords %}
-
         {% block key_dates %}
-          {% if object.dates.exists %}
-            <c-detail.card title="{% trans 'Key Dates' %}" icon="calendar">
-              <dl class="mb-0">
-                {% for date in object.dates.all %}
-                  <c-detail.info_item label="{{ date.type }}">
-                    {{ date.value }}
-                  </c-detail.info_item>
-                {% endfor %}
-              </dl>
-            </c-detail.card>
-          {% endif %}
+          <c-detail.card title="{% trans 'Key Dates' %}"
+                         icon="calendar"
+                         edit_url="{% plugin_url 'key-dates' %}">
+            <dl class="mb-0">
+              {% for date in object.dates.all %}
+                <c-detail.info-item label="{{ date.type }}" text="{{ date.value }}" />
+              {% empty %}
+                {{ empty_text }}
+              {% endfor %}
+            </dl>
+          </c-detail.card>
         {% endblock key_dates %}
       {% endblock overview_sidebar %}
 

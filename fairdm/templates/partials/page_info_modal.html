@@ -1,79 +1,55 @@
-<div class="modal fade"
-     id="pageInfoModal"
-     tabindex="-1"
-     aria-labelledby="pageInfoModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="pageInfoModalLabel">
-          <i class="bi bi-info-circle me-2 text-primary"></i>About This Page
-        </h1>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div class="col-md-8">
-            <h6 class="fw-bold mb-3">{{ page.title }}</h6>
-            <p class="mb-3">{{ page.description }}</p>
-            <h6 class="fw-bold mb-2">{% trans "How to Use" %}</h6>
-            <!-- Desktop Instructions (hidden on mobile) -->
-            <div class="d-none d-lg-block">
-              <div class="card bg-light border-0 mb-3">
-                <div class="card-body py-2 px-3">
-                  <small class="text-muted">Use the sidebar to filter results and the top toolbar for search and sorting.</small>
-                </div>
-              </div>
-            </div>
-            <!-- Mobile Instructions (hidden on desktop) -->
-            <div class="d-lg-none">
-              <div class="card bg-light border-0 mb-3">
-                <div class="card-body py-2 px-3">
-                  <small class="text-muted">Tap the "Filters" button to access filtering options. Search and sort are available below the title.</small>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="bg-primary bg-opacity-10 rounded p-3">
-              <h6 class="fw-bold text-primary mb-2">
-                <i class="bi bi-lightbulb me-1"></i>Quick Tips
-              </h6>
-              <ul class="list-unstyled small mb-0">
-                <li class="mb-2">
-                  <strong>Search:</strong> Use keywords from titles, descriptions, or tags
-                </li>
-                <li class="mb-2">
-                  <strong>Filters:</strong> Multiple selections work as "OR" within categories
-                </li>
-                <li class="mb-2">
-                  <strong>Tags:</strong> Click tag buttons to toggle active filters
-                </li>
-                <li class="mb-2">
-                  <strong>Cards:</strong> Click "Show more" to expand long descriptions
-                </li>
-                <li class="mb-0">
-                  <strong>Navigation:</strong> Use pagination controls to browse all results
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer bg-light">
-        <div class="d-flex justify-content-between align-items-center w-100">
-          <small class="text-muted">
-            <i class="bi bi-database me-1"></i>
-            Last updated: {{ last_updated|default:"Recently" }}
-          </small>
-          <button type="button"
-                  class="btn btn-secondary"
-                  data-bs-dismiss="modal">Close</button>
+{% load cotton i18n %}
+
+<c-page-info-modal modal_id="pageInfoModal"
+                   :modal_title='{% trans "About This Page" %}'
+                   :page_title="page.title"
+                   :page_description="page.description">
+  <c-slot name="how_to_use">
+    <!-- Desktop Instructions (hidden on mobile) -->
+    <div class="d-none d-lg-block">
+      <div class="card bg-light border-0 mb-3">
+        <div class="card-body py-2 px-3">
+          <small class="text-muted">{% trans "Use the sidebar to filter results and the top toolbar for search and sorting." %}</small>
         </div>
       </div>
     </div>
-  </div>
-</div>
+    <!-- Mobile Instructions (hidden on desktop) -->
+    <div class="d-lg-none">
+      <div class="card bg-light border-0 mb-3">
+        <div class="card-body py-2 px-3">
+          <small class="text-muted">{% trans "Tap the \"Filters\" button to access filtering options. Search and sort are available below the title." %}</small>
+        </div>
+      </div>
+    </div>
+  </c-slot>
+  <c-slot name="tips">
+    <ul class="list-unstyled small mb-0">
+      <li class="mb-2">
+        <strong>{% trans "Search:" %}</strong> {% trans "Use keywords from titles, descriptions, or tags" %}
+      </li>
+      <li class="mb-2">
+        <strong>{% trans "Filters:" %}</strong> {% trans "Multiple selections work as \"OR\" within categories" %}
+      </li>
+      <li class="mb-2">
+        <strong>{% trans "Tags:" %}</strong> {% trans "Click tag buttons to toggle active filters" %}
+      </li>
+      <li class="mb-2">
+        <strong>{% trans "Cards:" %}</strong> {% trans "Click \"Show more\" to expand long descriptions" %}
+      </li>
+      <li class="mb-0">
+        <strong>{% trans "Navigation:" %}</strong> {% trans "Use pagination controls to browse all results" %}
+      </li>
+    </ul>
+  </c-slot>
+  <c-slot name="footer">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <small class="text-muted">
+        <c-icon name="database" class="me-1" />
+        {% trans "Last updated:" %} {{ last_updated|default:"Recently" }}
+      </small>
+      <button type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal">{% trans "Close" %}</button>
+    </div>
+  </c-slot>
+</c-page-info-modal>

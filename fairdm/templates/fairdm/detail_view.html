@@ -1,6 +1,16 @@
 {% extends "fairdm/base.html" %}
 {% load static flex_menu %}
 
+{% block extra_css %}
+  {{ block.super }}
+  {{ plugin_media.css }}
+{% endblock extra_css %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {{ plugin_media.js }}
+{% endblock extra_js %}
+
 {% block content %}
   <div class="fairdm-detail d-flex flex-fil overflow-hidden">
     <!-- Sidebar -->
@@ -55,12 +65,12 @@
             </c-mobile.dropdown-menu>
             <!-- Edit Button -->
             <button class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-pencil me-1"></i>
+              <c-icon name="pencil" class="me-1" />
               Edit
             </button>
             <!-- Share Button -->
             <button class="btn btn-primary btn-sm">
-              <i class="bi bi-share me-1"></i>
+              <c-icon name="share" class="me-1" />
               Share
             </button>
           </div>
@@ -71,19 +81,25 @@
         {% block plugin_basic %}
           <div class="container-fluid px-lg-4">
             <!-- Breadcrumbs -->
-            <c-breadcrumbs class="my-3">
-              <c-breadcrumbs.item text="Home" href="#" />
-              <c-breadcrumbs.item text="Projects" href="#" />
-              <c-breadcrumbs.item text="Detail View" />
-            </c-breadcrumbs>
+            {% if breadcrumbs %}
+              <c-breadcrumbs class="my-3">
+                {% for breadcrumb in breadcrumbs %}<c-breadcrumbs.item :attrs="breadcrumb" />{% endfor %}
+              </c-breadcrumbs>
+            {% endif %}
             <!-- Page Header -->
-            <c-detail.header title="{{ object }}">
-              <c-slot name="actions">
-                {% block detail_actions %}
-                {% endblock detail_actions %}
+            {% block plugin_header %}
+              <c-detail.header :title="title|default:object"
+                               :subtitle="page_subtitle"
+                               :show_info_button="show_page_info_button"
+                               :info_modal_target="page_info_modal_target">
+                <c-slot name="actions">
+                  {% block detail_actions %}
+                  {% endblock detail_actions %}
 
-              </c-slot>
-            </c-detail.header>
+                </c-slot>
+              </c-detail.header>
+            {% endblock plugin_header %}
+
             <!-- Detail Content -->
             {% block plugin %}
             {% endblock plugin %}

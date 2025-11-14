@@ -10,11 +10,16 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
           rel="stylesheet" />
+    <script type="text/javascript"
+            src="{% url 'javascript-catalog' %}"></script>
     {% compress css file fairdm %}
       <link rel="stylesheet"
             type="text/x-scss"
             href="{% static 'fairdm/fairdm.scss' %}" />
     {% endcompress %}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
     <!-- Custom CSS -->
     {% block extra_css %}
     {% endblock extra_css %}
@@ -40,6 +45,7 @@
       <script src="{% static 'js/list_view.js' %}"></script>
       <script src="{% static 'js/detail_view.js' %}"></script>
       <script src="{% static 'js/table_view.js' %}"></script>
+      {% comment %} <script src="{% static 'js/multilevel-dropdown.js' %}"></script> {% endcomment %}
     {% endcompress %}
   </body>
 </html>

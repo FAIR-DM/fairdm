@@ -300,7 +300,7 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
         Template resolution order:
         1. {model_name}/plugins/{plugin_class_name}.html
         2. plugins/{plugin_class_name}.html
-        3. fairdm/detail_view.html (fallback)
+        3. fairdm/plugin.html (fallback)
         """
         if self.template_name is not None:
             return [self.template_name]
@@ -317,7 +317,7 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
         templates.append(f"plugins/{plugin_class_name}.html")
 
         # Fallback: default detail view template
-        templates.append("fairdm/detail_view.html")
+        templates.append("fairdm/plugin.html")
 
         return templates
 

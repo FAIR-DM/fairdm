@@ -22,7 +22,7 @@
                  style="max-width: 300px;
                         min-width: 250px">
               <span class="input-group-text">
-                <i class="bi bi-search"></i>
+                <c-icon name="search" />
               </span>
               <input type="text"
                      class="form-control"
@@ -31,15 +31,15 @@
             <div class="d-flex gap-2 flex-nowrap">
               {% block toolbar_actions %}
                 <button class="btn btn-primary btn-sm btn-action text-nowrap">
-                  <i class="bi bi-plus-circle me-1"></i>
+                  <c-icon name="plus-circle" class="me-1" />
                   Add New
                 </button>
                 <button class="btn btn-outline-secondary btn-sm btn-action text-nowrap">
-                  <i class="bi bi-download me-1"></i>
+                  <c-icon name="download" class="me-1" />
                   Export
                 </button>
                 <button class="btn btn-outline-secondary btn-sm btn-action text-nowrap">
-                  <i class="bi bi-funnel me-1"></i>
+                  <c-icon name="funnel" class="me-1" />
                   Filter
                 </button>
               {% endblock toolbar_actions %}
@@ -52,7 +52,7 @@
             <button class="btn btn-outline-secondary btn-sm"
                     type="button"
                     onclick="toggleSearchDrawer()">
-              <i class="bi bi-search"></i>
+              <c-icon name="search" />
             </button>
             <!-- Actions Dropdown -->
             <div class="dropdown">
@@ -60,25 +60,25 @@
                       type="button"
                       data-bs-toggle="dropdown"
                       aria-expanded="false">
-                <i class="bi bi-three-dots-vertical"></i>
+                <c-icon name="three-dots-vertical" />
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 {% block mobile_actions %}
                   <li>
                     <a class="dropdown-item" href="#">
-                      <i class="bi bi-plus-circle me-2"></i>
+                      <c-icon name="plus-circle" class="me-2" />
                       Add New
                     </a>
                   </li>
                   <li>
                     <a class="dropdown-item" href="#">
-                      <i class="bi bi-download me-2"></i>
+                      <c-icon name="download" class="me-2" />
                       Export
                     </a>
                   </li>
                   <li>
                     <a class="dropdown-item" href="#">
-                      <i class="bi bi-funnel me-2"></i>
+                      <c-icon name="funnel" class="me-2" />
                       Filter
                     </a>
                   </li>
@@ -93,7 +93,7 @@
           <div class="d-flex gap-2">
             <div class="input-group flex-grow-1">
               <span class="input-group-text">
-                <i class="bi bi-search"></i>
+                <c-icon name="search" />
               </span>
               <input type="text"
                      class="form-control"
@@ -102,7 +102,7 @@
             <button class="btn btn-outline-secondary"
                     type="button"
                     onclick="toggleSearchDrawer()">
-              <i class="bi bi-x"></i>
+              <c-icon name="x" />
             </button>
           </div>
         </div>
@@ -122,35 +122,35 @@
                 </th>
                 <th scope="col" class="text-nowrap">
                   ID
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Name
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Project
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Dataset
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Type
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Status
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Created Date
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Last Modified
-                  <i class="bi bi-chevron-expand ms-1 text-muted"></i>
+                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">Actions</th>
               </tr>
@@ -168,7 +168,7 @@
                       <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <i class="bi bi-droplet text-primary"></i>
+                        <c-icon name="droplet" class="text-primary" />
                       </div>
                       <div>
                         <div class="fw-medium">Water Sample Alpha</div>
@@ -197,23 +197,31 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <i class="bi bi-three-dots"></i>
+                        <c-icon name="three-dots" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="eye" class="me-2" />
+                          View</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="pencil" class="me-2" />
+                          Edit</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Export</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="download" class="me-2" />
+                          Export</a>
                         </li>
                         <li>
                           <hr class="dropdown-divider" />
                         </li>
                         <li>
-                          <a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a>
+                          <a class="dropdown-item text-danger" href="#">
+                            <c-icon name="trash" class="me-2" />
+                          Delete</a>
                         </li>
                       </ul>
                     </div>
@@ -229,7 +237,7 @@
                       <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <i class="bi bi-graph-up text-success"></i>
+                        <c-icon name="graph-up" class="text-success" />
                       </div>
                       <div>
                         <div class="fw-medium">Temperature Measurement</div>
@@ -258,23 +266,31 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <i class="bi bi-three-dots"></i>
+                        <c-icon name="three-dots" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="eye" class="me-2" />
+                          View</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="pencil" class="me-2" />
+                          Edit</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Export</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="download" class="me-2" />
+                          Export</a>
                         </li>
                         <li>
                           <hr class="dropdown-divider" />
                         </li>
                         <li>
-                          <a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a>
+                          <a class="dropdown-item text-danger" href="#">
+                            <c-icon name="trash" class="me-2" />
+                          Delete</a>
                         </li>
                       </ul>
                     </div>
@@ -290,7 +306,7 @@
                       <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <i class="bi bi-geo-alt text-warning"></i>
+                        <c-icon name="geo-alt" class="text-warning" />
                       </div>
                       <div>
                         <div class="fw-medium">Soil Sample Beta</div>
@@ -319,23 +335,31 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <i class="bi bi-three-dots"></i>
+                        <c-icon name="three-dots" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="eye" class="me-2" />
+                          View</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="pencil" class="me-2" />
+                          Edit</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Export</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="download" class="me-2" />
+                          Export</a>
                         </li>
                         <li>
                           <hr class="dropdown-divider" />
                         </li>
                         <li>
-                          <a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a>
+                          <a class="dropdown-item text-danger" href="#">
+                            <c-icon name="trash" class="me-2" />
+                          Delete</a>
                         </li>
                       </ul>
                     </div>
@@ -351,7 +375,7 @@
                       <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <i class="bi bi-wind text-danger"></i>
+                        <c-icon name="wind" class="text-danger" />
                       </div>
                       <div>
                         <div class="fw-medium">Air Quality Sample</div>
@@ -380,23 +404,31 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <i class="bi bi-three-dots"></i>
+                        <c-icon name="three-dots" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="eye" class="me-2" />
+                          View</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="pencil" class="me-2" />
+                          Edit</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Export</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="download" class="me-2" />
+                          Export</a>
                         </li>
                         <li>
                           <hr class="dropdown-divider" />
                         </li>
                         <li>
-                          <a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a>
+                          <a class="dropdown-item text-danger" href="#">
+                            <c-icon name="trash" class="me-2" />
+                          Delete</a>
                         </li>
                       </ul>
                     </div>
@@ -412,7 +444,7 @@
                       <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <i class="bi bi-activity text-secondary"></i>
+                        <c-icon name="activity" class="text-secondary" />
                       </div>
                       <div>
                         <div class="fw-medium">Biodiversity Measurement</div>
@@ -441,23 +473,31 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <i class="bi bi-three-dots"></i>
+                        <c-icon name="three-dots" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="eye" class="me-2" />
+                          View</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="pencil" class="me-2" />
+                          Edit</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Export</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="download" class="me-2" />
+                          Export</a>
                         </li>
                         <li>
                           <hr class="dropdown-divider" />
                         </li>
                         <li>
-                          <a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a>
+                          <a class="dropdown-item text-danger" href="#">
+                            <c-icon name="trash" class="me-2" />
+                          Delete</a>
                         </li>
                       </ul>
                     </div>
@@ -474,7 +514,7 @@
                       <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <i class="bi bi-droplet text-primary"></i>
+                        <c-icon name="droplet" class="text-primary" />
                       </div>
                       <div>
                         <div class="fw-medium">River Water Sample</div>
@@ -503,23 +543,31 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <i class="bi bi-three-dots"></i>
+                        <c-icon name="three-dots" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="eye" class="me-2" />
+                          View</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="pencil" class="me-2" />
+                          Edit</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Export</a>
+                          <a class="dropdown-item" href="#">
+                            <c-icon name="download" class="me-2" />
+                          Export</a>
                         </li>
                         <li>
                           <hr class="dropdown-divider" />
                         </li>
                         <li>
-                          <a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a>
+                          <a class="dropdown-item text-danger" href="#">
+                            <c-icon name="trash" class="me-2" />
+                          Delete</a>
                         </li>
                       </ul>
                     </div>
@@ -555,7 +603,7 @@
                      href="#"
                      tabindex="-1"
                      aria-disabled="true">
-                    <i class="bi bi-chevron-left"></i>
+                    <c-icon name="chevron-left" />
                   </a>
                 </li>
                 <li class="page-item active">
@@ -569,7 +617,7 @@
                 </li>
                 <li class="page-item">
                   <a class="page-link" href="#">
-                    <i class="bi bi-chevron-right"></i>
+                    <c-icon name="chevron-right" />
                   </a>
                 </li>
               </ul>
