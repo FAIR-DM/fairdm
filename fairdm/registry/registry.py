@@ -7,10 +7,9 @@ managing Sample and Measurement models in the FairDM framework.
 
 from django.apps import apps
 from django.contrib import admin
-from django.utils.text import slugify
 
-# Import configuration classes from fairdm.config
-from fairdm.config import ModelConfiguration
+# Import configuration classes from fairdm.registry.config
+from fairdm.registry.config import ModelConfiguration
 
 
 class FairDMRegistry:
@@ -32,9 +31,7 @@ class FairDMRegistry:
     """
 
     def __init__(self):
-        self._registry = {}
-        self.all = []
-        self._config_registry = {}
+        self._registry = {}  # Stores model -> config_instance mapping
         self._auto_factories = None  # Lazy loaded factories
 
     def _validate_model_class(self, model_class):
@@ -82,9 +79,7 @@ class FairDMRegistry:
                             e.g., "sample.sample" for the Sample model in the sample app
 
         Returns:
-            dict or None: The registry entry dictionary for the model, or None if not found.
-                         The dictionary contains keys: 'app_label', 'model', 'class',
-                         'verbose_name', 'verbose_name_plural', 'type', 'config'
+            ModelConfiguration or None: The configuration instance for the model, or None if not found.
 
         Examples:
             # Using model class
@@ -111,22 +106,26 @@ class FairDMRegistry:
     @property
     def samples(self):
         """
-        Retrieves all registered models categorized as 'sample'.
+        Retrieves all registered Sample models.
 
         Returns:
-            list[dict]: A list of models with type 'sample'.
+            list[type]: A list of registered Sample model classes.
         """
-        return [item for item in self.all if item["type"] == "sample"]
+        from fairdm.core.sample.models import Sample
+
+        return [model for model in self._registry.keys() if issubclass(model, Sample)]
 
     @property
     def measurements(self):
         """
-        Retrieves all registered models categorized as 'measurement'.
+        Retrieves all registered Measurement models.
 
         Returns:
-            list[dict]: A list of models with type 'measurement'.
+            list[type]: A list of registered Measurement model classes.
         """
-        return [item for item in self.all if item["type"] == "measurement"]
+        from fairdm.core.measurement.models import Measurement
+
+        return [model for model in self._registry.keys() if issubclass(model, Measurement)]
 
     def register(self, model_class, config=None):
         """
@@ -136,15 +135,6 @@ class FairDMRegistry:
             model_class (django.db.models.Model): The Django model class to register.
                 Must be a subclass of Sample or Measurement.
             config (type, optional): Configuration class for the model.
-
-        The registered model metadata includes:
-        - `app_label`: The app label of the model.
-        - `model`: The model name.
-        - `class`: The model class itself.
-        - `verbose_name`: The human-readable name of the model.
-        - `verbose_name_plural`: The plural version of the verbose name.
-        - `type`: The classification type of the model (sample or measurement).
-        - `config`: The configuration instance for auto-generation.
 
         Raises:
             TypeError: If model_class is not a Sample or Measurement subclass.
@@ -157,42 +147,27 @@ class FairDMRegistry:
             return  # Skip if already registered
 
         self.register_actstream(model_class)
-        self.register_admin(model_class)
 
-        # Get or create configuration
+        # Get or create configuration instance
         config_instance = self.get_config(model_class, config)
 
-        mtype = getattr(model_class, "type_of", None)
-        if mtype is not None:
-            mtype = mtype.__name__.lower()
+        # Register admin using the config
+        self.register_admin(model_class, config_instance)
 
-        opts = model_class._meta
-        item = {
-            "app_label": opts.app_label,
-            "class": model_class,
-            "config": config_instance,
-            "full_name": f"{opts.app_label}.{opts.model_name}",
-            "model": opts.model_name,
-            "path": f"{model_class.__module__}.{model_class.__name__}",
-            "type": mtype,
-            "verbose_name": opts.verbose_name,
-            "verbose_name_plural": opts.verbose_name_plural,
-            "slug": slugify(opts.verbose_name),
-            "slug_plural": slugify(opts.verbose_name_plural),
-        }
-        self._registry[model_class] = item
-        self.all.append(item)
+        # Store just the config instance
+        self._registry[model_class] = config_instance
 
     def register_actstream(self, model_class):
         from actstream import registry as actstream_registry
 
         actstream_registry.register(model_class)
 
-    def register_admin(self, model_class):
+    def register_admin(self, model_class, config_instance):
+        """Register model with Django admin using auto-generated admin class from config."""
         try:
-            from fairdm.contrib.admin.admin import SampleAdmin
-
-            admin.site.register(model_class, SampleAdmin)
+            # Get admin class from config
+            admin_class = config_instance.get_admin_class()
+            admin.site.register(model_class, admin_class)
         except Exception:
             # Model already registered or admin not available - this is expected
             # Silently ignore admin registration failures as they are non-critical
@@ -212,29 +187,29 @@ class FairDMRegistry:
         measurements = self.measurements
 
         summary = {
-            "total_registered": len(self.all),
+            "total_registered": len(self._registry),
             "samples": {
                 "count": len(samples),
                 "models": [
                     {
-                        "name": item["class"].__name__,
-                        "app": item["app_label"],
-                        "verbose_name": item["verbose_name"],
-                        "display_name": getattr(item["config"], "display_name", "N/A"),
+                        "name": model.__name__,
+                        "app": model._meta.app_label,
+                        "verbose_name": model._meta.verbose_name,
+                        "display_name": self._registry[model].get_display_name(),
                     }
-                    for item in samples
+                    for model in samples
                 ],
             },
             "measurements": {
                 "count": len(measurements),
                 "models": [
                     {
-                        "name": item["class"].__name__,
-                        "app": item["app_label"],
-                        "verbose_name": item["verbose_name"],
-                        "display_name": getattr(item["config"], "display_name", "N/A"),
+                        "name": model.__name__,
+                        "app": model._meta.app_label,
+                        "verbose_name": model._meta.verbose_name,
+                        "display_name": self._registry[model].get_display_name(),
                     }
-                    for item in measurements
+                    for model in measurements
                 ],
             },
         }
@@ -248,10 +223,10 @@ class FairDMRegistry:
             print(f"\n📊 SAMPLES ({summary['samples']['count']})")
             print("-" * 40)
             if summary["samples"]["models"]:
-                for model in summary["samples"]["models"]:
-                    print(f"  • {model['name']} ({model['app']})")
-                    print(f"    Display: {model['display_name']}")
-                    print(f"    Verbose: {model['verbose_name']}")
+                for model_info in summary["samples"]["models"]:
+                    print(f"  • {model_info['name']} ({model_info['app']})")
+                    print(f"    Display: {model_info['display_name']}")
+                    print(f"    Verbose: {model_info['verbose_name']}")
                     print()
             else:
                 print("  No samples registered")
@@ -259,10 +234,10 @@ class FairDMRegistry:
             print(f"📊 MEASUREMENTS ({summary['measurements']['count']})")
             print("-" * 40)
             if summary["measurements"]["models"]:
-                for model in summary["measurements"]["models"]:
-                    print(f"  • {model['name']} ({model['app']})")
-                    print(f"    Display: {model['display_name']}")
-                    print(f"    Verbose: {model['verbose_name']}")
+                for model_info in summary["measurements"]["models"]:
+                    print(f"  • {model_info['name']} ({model_info['app']})")
+                    print(f"    Display: {model_info['display_name']}")
+                    print(f"    Verbose: {model_info['verbose_name']}")
                     print()
             else:
                 print("  No measurements registered")
@@ -271,21 +246,22 @@ class FairDMRegistry:
 
         return summary
 
-    def get_config(self, model_class, config):
+    def get_config(self, model_class, config=None):
         """
         Builds a configuration instance from the registered config class.
         Handles auto-generation of forms, serializers, filters, and tables.
+
+        Args:
+            model_class: The Django model class
+            config: Either a config class or instance, or None for default
+
+        Returns:
+            ModelConfiguration: The configuration instance
         """
         if config is None:
-            # Try to get from _fairdm attribute first
-            existing_config = getattr(model_class, "_fairdm", None)
-            if existing_config is not None and hasattr(existing_config, "config"):
-                return existing_config.config
-
-            # Check if we have a stored config class
-            if model_class in self._config_registry:
-                config_cls = self._config_registry[model_class]
-                return config_cls(model_class)
+            # Check if already registered
+            if model_class in self._registry:
+                return self._registry[model_class]
 
             # Create default config with auto-generation
             return ModelConfiguration(model_class)
@@ -309,14 +285,10 @@ class FairDMRegistry:
             @registry.register_model(MySample)
             class MySampleConfig:
                 display_name = "Water Sample"
-                list_fields = ["name", "location", "collected_at"]
-                detail_fields = ["name", "description", "metadata"]
-                filter_fields = ["collected_at", "contributor"]
+                fields = ["name", "location", "collected_at"]
         """
 
         def _register(config_cls):
-            # Store config class for later instantiation
-            self._config_registry[model_class] = config_cls
             self.register(model_class, config_cls, **kwargs)
             return config_cls
 

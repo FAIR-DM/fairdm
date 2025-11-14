@@ -8,6 +8,7 @@ import pytest
 
 import fairdm
 from fairdm.config import MeasurementConfig, SampleConfig
+from fairdm.config_components import FiltersConfig, FormConfig, TableConfig
 from fairdm.core.models import Measurement, Sample
 from fairdm.factories import MeasurementFactory, SampleFactory
 from fairdm.registry import registry
@@ -27,14 +28,9 @@ class TestRegistrationBasics:
         # Check that model was registered
         assert Sample in registry._registry
 
-        # Check registry item structure
-        item = registry._registry[Sample]
-        assert item["verbose_name"] == "sample"
-        assert item["type"] == "sample"
-        assert item["class"] == Sample
-
-        # Check configuration
-        config = item["config"]
+        # Check configuration (registry now stores config directly)
+        config = registry._registry[Sample]
+        assert config.model == Sample
         assert config.display_name == "Test Sample"
         assert isinstance(config, SampleConfig)
 
@@ -45,20 +41,19 @@ class TestRegistrationBasics:
         class TestMeasurementConfig(MeasurementConfig):
             model = Measurement
             display_name = "Test Measurement"
-            list_fields = ["name", "sample", "created"]
-            filter_fields = ["sample", "created"]
+            # In new API, list_fields → table.fields, filter_fields → filters.fields
+
+            table = TableConfig(fields=["name", "sample", "created"])
+            filters = FiltersConfig(fields=["sample", "created"])
 
         # Check registration
         assert Measurement in registry._registry
 
-        item = registry._registry[Measurement]
-        assert item["type"] == "measurement"
-
-        # Check config fields
-        config = item["config"]
+        # Check config fields (registry now stores config directly)
+        config = registry._registry[Measurement]
         assert config.display_name == "Test Measurement"
-        assert config.get_list_fields() == ["name", "sample", "created"]
-        assert config.get_filter_fields() == ["sample", "created"]
+        assert config.table.fields == ["name", "sample", "created"]
+        assert config.filters.fields == ["sample", "created"]
 
     def test_register_duplicate_model_skipped(self, clean_registry, db):
         """Test that registering the same model twice skips the second registration."""
@@ -70,7 +65,7 @@ class TestRegistrationBasics:
 
         # Should be registered
         assert Sample in registry._registry
-        first_config = registry._registry[Sample]["config"]
+        first_config = registry._registry[Sample]
         assert first_config.display_name == "First Config"
 
         @fairdm.register
@@ -79,7 +74,7 @@ class TestRegistrationBasics:
             display_name = "Second Config"
 
         # Should still have the first config (duplicate skipped)
-        config = registry._registry[Sample]["config"]
+        config = registry._registry[Sample]
         assert config.display_name == "First Config"
 
 
@@ -136,16 +131,17 @@ class TestFieldConfiguration:
         class FieldConfig(SampleConfig):
             model = Sample
             display_name = "Field Test Sample"
-            list_fields = ["name", "created", "modified"]
-            detail_fields = ["name", "description", "created", "modified"]
-            filter_fields = ["created", "modified"]
+            # In new API, use nested configs for component-specific fields
+            table = TableConfig(fields=["name", "created", "modified"])
+            form = FormConfig(fields=["name", "description", "created", "modified"])
+            filters = FiltersConfig(fields=["created", "modified"])
             private_fields = ["internal_field"]
 
-        config = registry._registry[Sample]["config"]
+        config = registry._registry[Sample]
 
-        assert config.get_list_fields() == ["name", "created", "modified"]
-        assert config.get_detail_fields() == ["name", "description", "created", "modified"]
-        assert config.get_filter_fields() == ["created", "modified"]
+        assert config.table.fields == ["name", "created", "modified"]
+        assert config.form.fields == ["name", "description", "created", "modified"]
+        assert config.filters.fields == ["created", "modified"]
         assert config.private_fields == ["internal_field"]
 
     def test_default_fields_with_no_specification(self, clean_registry, db):
@@ -156,19 +152,22 @@ class TestFieldConfiguration:
             model = Sample
             display_name = "Minimal Sample"
 
-        config = registry._registry[Sample]["config"]
+        config = registry._registry[Sample]
 
-        # Should have some default fields (specific defaults depend on model structure)
-        list_fields = config.get_list_fields()
-        detail_fields = config.get_detail_fields()
-        filter_fields = config.get_filter_fields()
+        # Should have default nested configs created
+        assert config.table is not None
+        assert config.form is not None
+        assert config.filters is not None
 
-        assert isinstance(list_fields, list)
-        assert isinstance(detail_fields, list)
-        assert isinstance(filter_fields, list)
+        # Factory will generate defaults when get_*_class() is called
+        # These methods use factories with inspector-based defaults
+        table_class = config.get_table_class()
+        form_class = config.get_form_class()
+        filterset_class = config.get_filterset_class()
 
-        # detail_fields should default to list_fields when not specified
-        assert detail_fields == list_fields
+        assert table_class is not None
+        assert form_class is not None
+        assert filterset_class is not None
 
 
 class TestRegistryAccess:
@@ -183,10 +182,10 @@ class TestRegistryAccess:
             display_name = "Retrieval Test"
 
         # Test get_for_model method with model class
-        item = registry.get_for_model(Sample)
-        assert item is not None
-        assert item["class"] == Sample
-        assert item["config"].display_name == "Retrieval Test"
+        config = registry.get_for_model(Sample)
+        assert config is not None
+        assert config.model == Sample
+        assert config.display_name == "Retrieval Test"
 
     def test_get_for_model_by_string(self, clean_registry, db):
         """Test retrieving registered models by string reference."""
@@ -197,32 +196,32 @@ class TestRegistryAccess:
             display_name = "String Retrieval Test"
 
         # Test get_for_model method with string reference
-        item = registry.get_for_model("sample.sample")
-        assert item is not None
-        assert item["class"] == Sample
-        assert item["config"].display_name == "String Retrieval Test"
+        config = registry.get_for_model("sample.sample")
+        assert config is not None
+        assert config.model == Sample
+        assert config.display_name == "String Retrieval Test"
 
     def test_get_for_model_nonexistent_returns_none(self, clean_registry):
         """Test that getting a non-registered model returns None."""
 
         # Test with model class
-        item = registry.get_for_model(Sample)
-        assert item is None
+        config = registry.get_for_model(Sample)
+        assert config is None
 
         # Test with string reference
-        item = registry.get_for_model("sample.sample")
-        assert item is None
+        config = registry.get_for_model("sample.sample")
+        assert config is None
 
     def test_get_for_model_invalid_string_returns_none(self, clean_registry):
         """Test that invalid string references return None."""
 
         # Test with invalid format
-        item = registry.get_for_model("invalid_format")
-        assert item is None
+        config = registry.get_for_model("invalid_format")
+        assert config is None
 
         # Test with non-existent model
-        item = registry.get_for_model("nonexistent.Model")
-        assert item is None
+        config = registry.get_for_model("nonexistent.Model")
+        assert config is None
 
     def test_registry_properties(self, clean_registry, db):
         """Test registry properties for samples and measurements."""
@@ -237,19 +236,20 @@ class TestRegistryAccess:
             model = Measurement
             display_name = "Test Measurement"
 
-        # Check samples property
+        # Check samples property (returns list of model classes)
         samples = registry.samples
         assert len(samples) == 1
-        assert samples[0]["class"] == Sample
+        assert Sample in samples
 
-        # Check measurements property
+        # Check measurements property (returns list of model classes)
         measurements = registry.measurements
         assert len(measurements) == 1
-        assert measurements[0]["class"] == Measurement
+        assert Measurement in measurements
 
-        # Check all property
-        all_models = registry.all
-        assert len(all_models) == 2
+        # Check registry has both models
+        assert len(registry._registry) == 2
+        assert Sample in registry._registry
+        assert Measurement in registry._registry
 
 
 class TestIntegrationWithFactories:
@@ -283,8 +283,8 @@ class TestIntegrationWithFactories:
         assert MeasurementModel in registry._registry
 
         # Check configurations work
-        sample_config = registry._registry[SampleModel]["config"]
-        measurement_config = registry._registry[MeasurementModel]["config"]
+        sample_config = registry._registry[SampleModel]
+        measurement_config = registry._registry[MeasurementModel]
 
         assert sample_config.display_name == "Factory Sample"
         assert measurement_config.display_name == "Factory Measurement"
@@ -300,13 +300,14 @@ class TestConfigInheritance:
         class InheritedSampleConfig(SampleConfig):
             model = Sample
             display_name = "Inherited Sample"
-            list_fields = ["name", "created"]
+            # In new API, fields is the primary field config
+            fields = ["name", "created"]
 
-        config = registry._registry[Sample]["config"]
+        config = registry._registry[Sample]
 
         # Should work the same as BaseModelConfig
         assert config.display_name == "Inherited Sample"
-        assert config.get_list_fields() == ["name", "created"]
+        assert config.fields == ["name", "created"]
         assert isinstance(config, SampleConfig)
 
     def test_measurement_config_inheritance(self, clean_registry, db):
@@ -316,12 +317,13 @@ class TestConfigInheritance:
         class InheritedMeasurementConfig(MeasurementConfig):
             model = Measurement
             display_name = "Inherited Measurement"
-            list_fields = ["name", "sample", "created"]
+            # In new API, fields is the primary field config
+            fields = ["name", "sample", "created"]
 
-        config = registry._registry[Measurement]["config"]
+        config = registry._registry[Measurement]
 
         assert config.display_name == "Inherited Measurement"
-        assert config.get_list_fields() == ["name", "sample", "created"]
+        assert config.fields == ["name", "sample", "created"]
         assert isinstance(config, MeasurementConfig)
 
 

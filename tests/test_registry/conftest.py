@@ -10,12 +10,8 @@ def clean_registry():
     """Fixture to clean the registry before and after each test."""
     # Clear registry before test
     registry._registry.clear()
-    registry._config_registry.clear()
-    registry.all.clear()
 
     yield registry
 
     # Clear registry after test
     registry._registry.clear()
-    registry._config_registry.clear()
-    registry.all.clear()
