@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 import flex_menu
 from django import urls
@@ -10,7 +11,6 @@ from django.urls import path
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
-from flex_menu import MenuItem
 
 from fairdm.views import FairDMBaseMixin, RelatedObjectMixin
 
@@ -29,36 +29,54 @@ class PluginRegistry:
 
         @plugins.register(Project)
         class MyPlugin(plugins.Explore):
-            menu_item = plugins.MenuItem(name="My Plugin", icon="eye")
+            menu_item = plugins.MenuItem(name="My Plugin", icon="view")
     """
 
     def __init__(self):
         # Maps models to their PluggableView classes
         self._model_view_registry: dict[type[Model], type[PluggableView]] = {}
 
-    def register(self, model: type[Model]):
+    def register(self, *models: type[Model]):
         """
-        Register a plugin with a specific model.
+        Register a plugin with one or more models.
 
         Usage:
+            # Single model
             @plugins.register(Project)
             class MyPlugin(FairDMPlugin):
                 category = "explore"
-                menu_item = PluginMenuItem(name="My Plugin", icon="eye")
+                menu_item = PluginMenuItem(name="My Plugin", icon="view")
+
+            # Multiple models
+            @plugins.register(Project, Dataset, Sample, Measurement)
+            class ContributorsPlugin(FairDMPlugin):
+                category = "explore"
+                menu_item = PluginMenuItem(name="Contributors", icon="people")
 
         Args:
-            model: The Django Model class to register the plugin with
+            *models: One or more Django Model classes to register the plugin with
 
         Returns:
             A decorator function that registers the plugin class
         """
 
         def decorator(plugin_class):
-            if not (isinstance(model, type) and issubclass(model, Model)):
-                raise TypeError(f"plugins.register expects a Django Model subclass, got {type(model)}")
+            if not models:
+                raise ValueError("plugins.register requires at least one model")
 
-            view_class = self.get_or_create_view_for_model(model)
-            return view_class.register_plugin(plugin_class)
+            # Validate all models first
+            for model in models:
+                if not (isinstance(model, type) and issubclass(model, Model)):
+                    raise TypeError(f"plugins.register expects Django Model subclasses, got {type(model)}")
+
+            # Register the plugin with each model
+            registered_class = None
+            for model in models:
+                view_class = self.get_or_create_view_for_model(model)
+                registered_class = view_class.register_plugin(plugin_class)
+
+            # Return the last registered class (they should all be equivalent)
+            return registered_class
 
         return decorator
 
@@ -109,12 +127,23 @@ registry = PluginRegistry()
 register = registry.register
 
 
-class PluginMenuItem(MenuItem):
-    icon: str = ""
+@dataclass
+class PluginMenuItem:
+    """
+    Configuration for a plugin menu item.
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.extra_context.update({"icon": self.icon})
+    This dataclass holds the configuration that will be used to create
+    a MenuItem instance during plugin registration, avoiding shared state issues.
+
+    Attributes:
+        name: Display name for the menu item
+        icon: Icon identifier for the menu item
+        category: Plugin category (EXPLORE, ACTIONS, or MANAGEMENT)
+    """
+
+    name: str
+    category: str
+    icon: str = ""
 
 
 def class_to_slug(name: str | object | type) -> str:
@@ -165,7 +194,7 @@ class FairDMPlugin:
     Usage:
         class OverviewPlugin(FairDMPlugin, FieldsetsMixin, TemplateView):
             category = "explore"
-            menu_item = PluginMenuItem(name="Overview", icon="eye")
+            menu_item = PluginMenuItem(name="Overview", icon="view")
             title = "Overview"
 
             class Media:
@@ -224,32 +253,28 @@ class FairDMPlugin:
         model_name = base_object._meta.model_name
         model_verbose_name_plural = base_object._meta.verbose_name_plural
 
+        # Determine the namespace - for polymorphic models, use the base model
+        # The base_model attribute is set on the PluggableView subclass
+        namespace = model_name
+        if hasattr(self, "base_model") and self.base_model:
+            namespace = self.base_model._meta.model_name
+
         # Determine if user is contributor and object is editable
-        user = getattr(self.request, "user", None)
-        is_contributor = user and user.is_authenticated and base_object.is_contributor(user)
+        # user = getattr(self.request, "user", None)
+        # is_contributor = user and user.is_authenticated and base_object.is_contributor(user)
 
         # Check if object is editable (not published/public)
         # For projects, check visibility; for other models, you might check different fields
-        is_editable = True
-        if hasattr(base_object, "visibility"):
-            from fairdm.utils.choices import Visibility
+        # is_editable = True
+        # if hasattr(base_object, "visibility"):
+        #     from fairdm.utils.choices import Visibility
 
-            is_editable = base_object.visibility != Visibility.PUBLIC
+        #     is_editable = base_object.visibility != Visibility.PUBLIC
 
-        # First breadcrumb: List view
-        if is_contributor and is_editable:
-            # Point to user's personal list view (fake for now)
-            breadcrumbs.append(
-                {
-                    "text": _(f"My {model_verbose_name_plural.title()}"),
-                    "href": f"/user/{model_name}s/",  # Fake URL for now
-                }
-            )
-        else:
-            # Point to public list view
-            breadcrumbs.append(
-                {"text": _(f"All {model_verbose_name_plural.title()}"), "href": urls.reverse(f"{model_name}-list")}
-            )
+        # Point to public list view
+        breadcrumbs.append(
+            {"text": _(f"All {model_verbose_name_plural.title()}"), "href": urls.reverse(f"{model_name}-list")}
+        )
 
         # Second breadcrumb: Object overview with truncated name
         object_str = str(base_object)
@@ -258,7 +283,7 @@ class FairDMPlugin:
             object_str = object_str[:27] + "..."
 
         breadcrumbs.append(
-            {"text": object_str, "href": urls.reverse(f"{model_name}:overview", kwargs={"uuid": base_object.uuid})}
+            {"text": object_str, "href": urls.reverse(f"{namespace}:overview", kwargs={"uuid": base_object.uuid})}
         )
 
         # Third breadcrumb: Current page title (no href)
@@ -297,7 +322,13 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
         """
         Return a list of template names to be used for the plugin view.
 
-        Template resolution order:
+        Template resolution order (for polymorphic models):
+        1. {actual_model_name}/plugins/{plugin_class_name}.html (e.g., person/plugins/overview.html)
+        2. {base_model_name}/plugins/{plugin_class_name}.html (e.g., contributor/plugins/overview.html)
+        3. plugins/{plugin_class_name}.html
+        4. fairdm/plugin.html (fallback)
+
+        For non-polymorphic models:
         1. {model_name}/plugins/{plugin_class_name}.html
         2. plugins/{plugin_class_name}.html
         3. fairdm/plugin.html (fallback)
@@ -308,12 +339,25 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
         templates = []
         plugin_class_name = class_to_slug(self.__class__.__name__)
 
-        # First option: model-specific plugin template
-        if self.base_model:
-            opts = self.base_model._meta
-            templates.append(f"{opts.model_name}/plugins/{plugin_class_name}.html")
+        # Check if we have a base_object and if it's polymorphic
+        if hasattr(self, "base_object") and self.base_object:
+            actual_model = type(self.base_object)
 
-        # Second option: generic plugin template
+            # If the actual model is different from base_model, it's polymorphic
+            if self.base_model and actual_model != self.base_model:
+                # First priority: template for the actual/child model (e.g., person/plugins/overview.html)
+                templates.append(f"{actual_model._meta.model_name}/plugins/{plugin_class_name}.html")
+
+                # Second priority: template for the base model (e.g., contributor/plugins/overview.html)
+                templates.append(f"{self.base_model._meta.model_name}/plugins/{plugin_class_name}.html")
+            elif self.base_model:
+                # Non-polymorphic case: just use the base_model
+                templates.append(f"{self.base_model._meta.model_name}/plugins/{plugin_class_name}.html")
+        elif self.base_model:
+            # Fallback if no base_object yet
+            templates.append(f"{self.base_model._meta.model_name}/plugins/{plugin_class_name}.html")
+
+        # Generic plugin template
         templates.append(f"plugins/{plugin_class_name}.html")
 
         # Fallback: default detail view template
@@ -324,10 +368,11 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
     @classmethod
     def register_plugin(cls, plugin_class):
         """Register a plugin for this view."""
-        if plugin_class.category not in ["explore", "actions", "management"]:
-            raise ValueError(
-                f"Invalid category '{plugin_class.category}'. Must be one of: explore, actions, management"
-            )
+        # Plugins with a menu_item must have a category
+        if hasattr(plugin_class, "menu_item") and plugin_class.menu_item is not None:
+            category = plugin_class.menu_item.category
+            if category not in ["explore", "actions", "management"]:
+                raise ValueError(f"Invalid category '{category}'. Must be one of: explore, actions, management")
 
         # auto mixin the parent view class with the plugin_class
         if not issubclass(plugin_class, PluggableView):
@@ -355,17 +400,33 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
             plugin_name = class_to_slug(plugin.__name__)
             model_name = plugin.base_model._meta.model_name
 
+            # Only process plugins with menu_items
+            if not hasattr(plugin, "menu_item") or plugin.menu_item is None:
+                # Plugins without menu_items still need URLs but won't appear in menus
+                # URL path defaults to plugin name
+                url_path = f"management/{plugin_name}/"
+                plugin_url = path(url_path, plugin.as_view(), name=plugin_name)
+                urls.append(plugin_url)
+                continue
+
+            # Get category from menu_item (required for all plugins with menu_items)
+            category = plugin.menu_item.category
+
             # Generate URL path based on category
-            url_path = f"{plugin_name}/" if plugin.category == "explore" else f"{plugin.category}/{plugin_name}/"
+            url_path = f"{plugin_name}/" if category == "explore" else f"{category}/{plugin_name}/"
 
             plugin_url = path(url_path, plugin.as_view(), name=plugin_name)
             urls.append(plugin_url)
 
-            # Add plugin to appropriate menu using .append method if menu_item is defined
-            if plugin.menu_item is not None:
-                # Set the view_name on the menu item
-                plugin.menu_item.view_name = f"{model_name}:{plugin_name}"
-                cls.menus[plugin.category].append(plugin.menu_item)
+            # Add plugin to appropriate menu
+            # Create a MenuItem instance from the PluginMenuItem dataclass
+            # This ensures each registration gets its own MenuItem instance
+            menu_item = flex_menu.MenuItem(
+                name=plugin.menu_item.name,
+                view_name=f"{model_name}:{plugin_name}",
+                extra_context={"icon": plugin.menu_item.icon},
+            )
+            cls.menus[category].append(menu_item)
 
         return urls
 
