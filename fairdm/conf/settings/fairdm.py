@@ -34,16 +34,17 @@ FAIRDM_CRS = "EPSG:4326"
 
 FAIRDM_DATASET = {
     "keyword_vocabularies": [
-        "fairdm_geo.vocabularies.cgi.geosciml.SimpleLithology",
-        "fairdm_geo.vocabularies.stratigraphy.GeologicalTimescale",
+        # "fairdm_geo.vocabularies.cgi.geosciml.SimpleLithology",
+        # "fairdm_geo.vocabularies.stratigraphy.GeologicalTimescale",
     ],
-    "detail": {
-        "info_block_fields": {
-            None: {
-                "fields": [("project", "reference"), "added", "license", "keywords", "dates"],
-            },
-        },
-    },
+}
+
+FAIRDM_PROJECT = {
+    "keywords": [
+        "fairdm.core.vocabularies.FairDMRoles",
+        # "fairdm_geo.vocabularies.cgi.geosciml.SimpleLithology",
+        # "fairdm_geo.vocabularies.stratigraphy.GeologicalTimescale",
+    ],
 }
 
 

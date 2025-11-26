@@ -50,15 +50,6 @@ INSTALLED_APPS.insert(0, "whitenoise.runserver_nostatic")
 COMPRESS_OFFLINE = False
 COMPRESS_ENABLED = False
 
-if env("USE_DOCKER"):
-    WEBPACK_LOADER = {
-        "FAIRDM": {
-            "CACHE": False,
-            "STATS_FILE": BASE_DIR / "assets" / "webpack-stats.json",
-            "POLL_INTERVAL": 0.1,
-            "IGNORE": [r".+\.hot-update.js", r".+\.map"],
-        },
-    }
 
 if env("SHOW_DEBUG_TOOLBAR"):
     INSTALLED_APPS.append("debug_toolbar")

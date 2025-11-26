@@ -53,7 +53,6 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.template.context_processors.csrf",
                 "django.template.context_processors.tz",
-                "sekizai.context_processors.sekizai",
                 "django.template.context_processors.static",
                 "fairdm.utils.context_processors.fairdm",
             ],
@@ -79,6 +78,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "hijack.middleware.HijackUserMiddleware",
 ]
 
 

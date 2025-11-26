@@ -16,19 +16,21 @@ urlpatterns = [
     path("django-literature/", include("literature.urls")),
     path("", HomeView.as_view(), name="home"),
     path("data/", TemplateView.as_view(template_name="fairdm/data.html"), name="data"),
+    path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
+    path("activity/", include("fairdm.contrib.activity_stream.urls")),
     path("", include("fairdm.utils.urls")),
     path("", include("dac.addons.urls")),
     path("account-center/", include("dac.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
-    path("activity/", include("actstream.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("martor/", include("martor.urls")),
+    path("hijack/", include("hijack.urls")),
 ]
 
 if addon_urls:
