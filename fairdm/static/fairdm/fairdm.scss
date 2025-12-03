@@ -61,7 +61,9 @@ $enable-cssgrid: false;
 
 // 8. FairDM custom styles
 @import "base";
+@import "layouts";
 @import "detail-view";
 @import "list-view";
 @import "navbar";
 @import "table-view";
+@import "object-types";

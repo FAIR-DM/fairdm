@@ -2,10 +2,16 @@
 // Using Bootstrap utilities wherever possible with minimal custom styles
 
 .fairdm-detail {
+  height: 100%;
+  display: flex;
+
   .sidebar {
     transition: all 0.3s ease;
-    width: 25%; // 3/12 width
+    // Fixed width with sensible min/max constraints
+    width: 320px;
+    max-width: 320px;
     min-width: 280px;
+    flex-shrink: 0; // Prevent sidebar from shrinking in flex layout
     // Custom scrollbar styling to prevent layout shift
     overflow-y: overlay; // Use overlay scrolling where supported
     scrollbar-width: thin;

@@ -14,8 +14,69 @@ function toggleSearchDrawer() {
   }
 }
 
+// Clear all filters function
+function clearAllFilters() {
+  const form = document.getElementById('filterForm')
+  if (form) {
+    // Reset all form fields except hidden fields
+    const inputs = form.querySelectorAll('input:not([type="hidden"]), select, textarea')
+    inputs.forEach(input => {
+      if (input.type === 'checkbox' || input.type === 'radio') {
+        input.checked = false
+      } else {
+        input.value = ''
+      }
+    })
+    // Submit the form to show all results
+    form.submit()
+  }
+}
+
+// Synchronize search field between main toolbar and hidden filter form
+function syncSearchFields() {
+  // Get all search input fields
+  const searchFields = document.querySelectorAll('input[name="search"]')
+
+  if (searchFields.length > 0) {
+    searchFields.forEach(field => {
+      field.addEventListener('input', function () {
+        // Update all search fields with the same value
+        searchFields.forEach(otherField => {
+          if (otherField !== field) {
+            otherField.value = field.value
+          }
+        })
+
+        // Update the hidden field in filter form
+        const hiddenSearch = document.getElementById('search-hidden')
+        if (hiddenSearch) {
+          hiddenSearch.value = field.value
+        }
+      })
+    })
+  }
+}
+
+// Toggle fullscreen mode for the table view
+function toggleFullscreen() {
+  const mainLayout = document.querySelector('.main-layout')
+  const fullscreenIcons = document.querySelectorAll('#fullscreenIcon, #fullscreenIconMobile')
+
+  if (mainLayout) {
+    mainLayout.classList.toggle('fullscreen-mode')
+
+    // Update icon - toggle between fullscreen and fullscreen_exit
+    const isFullscreen = mainLayout.classList.contains('fullscreen-mode')
+    fullscreenIcons.forEach(icon => {
+      icon.setAttribute('name', isFullscreen ? 'fullscreen_exit' : 'fullscreen')
+    })
+  }
+}
+
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
+  // Sync search fields
+  syncSearchFields()
 
   // Close drawer when clicking outside
   document.addEventListener('click', function (event) {
@@ -35,6 +96,15 @@ document.addEventListener('DOMContentLoaded', function () {
       const drawer = document.getElementById('searchDrawer')
       if (drawer) {
         drawer.classList.remove('show')
+      }
+
+      // Also close offcanvas
+      const offcanvas = document.getElementById('filterOffcanvas')
+      if (offcanvas && offcanvas.classList.contains('show')) {
+        const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas)
+        if (bsOffcanvas) {
+          bsOffcanvas.hide()
+        }
       }
     }
   })
