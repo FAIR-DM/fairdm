@@ -13,8 +13,12 @@ class ActivityStreamConfig(AppConfig):
         # Import here to avoid circular imports
         from actstream import registry
 
+        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.contrib.location.models import Point
         from fairdm.core.models import Dataset, Measurement, Project, Sample
 
+        registry.register(Point)
+        registry.register(Contributor)
         registry.register(Project)
         registry.register(Dataset)
         registry.register(Sample)
