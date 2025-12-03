@@ -5,13 +5,16 @@ from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from fairdm.plugins import PluggableView
+from fairdm import plugins
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from .filters import DatasetFilter
 from .forms import DatasetForm
 from .models import Dataset
+
+# Get or create the PluggableView for Dataset model
+DatasetDetailView = plugins.registry.get_or_create_view_for_model(Dataset)
 
 
 class DatasetCreateView(FairDMCreateView):
@@ -34,7 +37,7 @@ class DatasetCreateView(FairDMCreateView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("datasets"),
-                "icon": "book",
+                "icon": "documentation",
             }
         ],
     }
@@ -100,7 +103,7 @@ class DatasetListView(FairDMListView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("datasets"),
-                "icon": "book",
+                "icon": "documentation",
             }
         ],
     }
@@ -120,14 +123,3 @@ class DatasetListView(FairDMListView):
             QuerySet: Filtered and optimized Dataset queryset.
         """
         return Dataset.objects.get_visible().with_contributors()
-
-
-class DatasetDetailView(PluggableView):
-    """Dataset detail view with plugin support.
-
-    This view serves as the base for the dataset detail page and provides
-    plugin integration for extensible functionality like overview, settings,
-    and data management features.
-    """
-
-    base_model = Dataset

@@ -78,7 +78,7 @@ class Measurement(BasePolymorphicModel):
 
         description = "A measurement is a record of a specific observation or calculation made on a sample."
         filterset_class = "fairdm.core.filters.MeasurementFilter"
-        table_class = "fairdm.core.tables.MeasurementTable"
+        table_class = "fairdm.contrib.collections.tables.MeasurementTable"
 
     def __str__(self):
         """Return string representation using the measurement value."""

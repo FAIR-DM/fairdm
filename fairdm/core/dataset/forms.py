@@ -7,7 +7,7 @@ from django_select2.forms import ModelSelect2Widget
 from licensing.models import License
 
 from fairdm.core.models import Project
-from fairdm.forms import ImageCroppingWidget, ModelForm
+from fairdm.forms import ModelForm
 
 from .models import Dataset
 
@@ -30,16 +30,6 @@ class DatasetForm(ModelForm):
         required=True,
     )
     image = forms.ImageField(
-        widget=ImageCroppingWidget(
-            width=1200,
-            height=int(1200 * 9 / 21),
-            config={
-                "enableOrientation": True,
-            },
-            result={
-                "format": "jpeg",
-            },
-        ),
         required=False,
         label=False,
     )

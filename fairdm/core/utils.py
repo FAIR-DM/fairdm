@@ -21,7 +21,7 @@ def documentation_link(path):
     return {
         "text": _("Learn more"),
         "href": user_guide(path),
-        "icon": "book",
+        "icon": "documentation",
     }
 
 

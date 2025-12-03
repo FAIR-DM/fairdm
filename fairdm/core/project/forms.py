@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext as _
 
-from fairdm.forms import ImageCroppingWidget, ModelForm
+from fairdm.forms import ModelForm
 
 from .models import Project
 
@@ -14,17 +14,6 @@ class ProjectForm(ModelForm):
     """
 
     image = forms.ImageField(
-        widget=ImageCroppingWidget(
-            width=1200,
-            height=int(1200 * 9 / 16),
-            empty_text=_("Select cover image"),
-            config={
-                "enableOrientation": True,
-            },
-            result={
-                "format": "jpeg",
-            },
-        ),
         required=False,
         label=False,
     )

@@ -27,7 +27,7 @@
   {{ block.super }}
   {# Measurements #}
   {% if sample.measurements.exists %}
-    <c-detail.card icon="speedometer2">
+    <c-dashboard.card icon="speedometer2">
       <c-slot name="title">
         {% trans "Measurements" %}
         <c-badge variant="primary"
@@ -51,11 +51,11 @@
         <div class="card-footer bg-transparent">
           <a href="#" class="text-decoration-none">
             {% trans "View all" %} {{ sample.measurements.count }} {% trans "measurements" %}
-            <i class="bi bi-arrow-right"></i>
+            <c-icon name="arrow_right" />
           </a>
         </div>
       {% endif %}
-    </c-detail.card>
+    </c-dashboard.card>
   {% endif %}
 {% endblock overview_main %}
 
@@ -63,7 +63,7 @@
   {{ block.super }}
   {# Location #}
   {% if sample.location %}
-    <c-detail.card title="{% trans 'Location' %}" icon="geo-alt">
+    <c-dashboard.card title="{% trans 'Location' %}" icon="location">
       <dl class="mb-0">
         <dt class="text-muted small text-uppercase mb-1">{% trans "Coordinates" %}</dt>
         <dd class="mb-2">
@@ -80,12 +80,12 @@
                       border-radius: 0.375rem"></div>
         </dd>
       </dl>
-    </c-detail.card>
+    </c-dashboard.card>
   {% endif %}
   {# Collection Details #}
   {% if sample.collection_date or sample.collector %}
-    <c-detail.card title="{% trans 'Collection' %}"
-                   icon="calendar-event">
+    <c-dashboard.card title="{% trans 'Collection' %}"
+                      icon="calendar-event">
       <dl class="mb-0">
         {% if sample.collection_date %}
           <c-detail.info-item label="{% trans 'Date' %}"
@@ -98,6 +98,6 @@
           </dd>
         {% endif %}
       </dl>
-    </c-detail.card>
+    </c-dashboard.card>
   {% endif %}
 {% endblock overview_sidebar %}

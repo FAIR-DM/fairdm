@@ -18,7 +18,7 @@ class SampleForm(forms.ModelForm):
 
     class Meta:
         model = Sample
-        exclude = ["created", "modified", "keywords", "depth", "options", "path", "numchild", "tags"]
+        exclude = ["created", "modified", "keywords", "depth", "options", "path", "numchild", "keywords"]
 
     def __init__(self, *args, **kwargs):
         """Initialize form with optional request context."""

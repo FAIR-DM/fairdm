@@ -86,7 +86,33 @@ class BaseModel(models.Model):
     def is_contributor(self, user):
         """Returns true if the user is a contributor."""
 
-        return self.contributions.filter(contributor=user).exists()
+        return self.contributors.filter(contributor=user).exists()
+
+    def get_direct_contributors(self):
+        """Get all people and organizations who are directly listed as contributors."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        return Contributor.objects.filter(contributions__object_id=self.pk).distinct()
+
+    def get_affiliated_organizations(self):
+        """Get all organizations that appear as affiliations in person contributions."""
+        from fairdm.contrib.contributors.models import Organization, Person
+
+        return Organization.objects.filter(
+            pk__in=self.contributors.filter(contributor__in=Person.objects.all()).values_list(
+                "affiliation_id", flat=True
+            )
+        ).distinct()
+
+    def get_all_contributors(self):
+        """Get combined queryset of all direct contributors and affiliated organizations."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        direct = self.contributors.values_list("contributor_id", flat=True)
+        affiliated = self.contributors.exclude(affiliation__isnull=True).values_list("affiliation_id", flat=True)
+
+        all_ids = set(direct) | set(affiliated)
+        return Contributor.objects.filter(pk__in=all_ids).distinct()
 
     def get_abstract(self):
         """Returns the abstract description of the project."""
@@ -136,7 +162,7 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):
     def config(cls):
         """Gets the FairDM configuration object for a class or instance from the registry."""
         if registry_item := registry.get_for_model(cls):
-            return registry_item["config"]
+            return registry_item
 
     class Meta:
         abstract = True
