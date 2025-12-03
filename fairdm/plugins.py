@@ -20,6 +20,78 @@ ACTIONS = "actions"
 MANAGEMENT = "management"
 
 
+@dataclass
+class PluginConfig:
+    """
+    Configuration for a plugin.
+
+    Centralizes all plugin configuration in one place, reducing duplication
+    and providing a clear structure for plugin metadata.
+
+    Example:
+        config = PluginConfig(
+            title=_("Contributors"),
+            icon="people",
+            category=plugins.EXPLORE,
+            url_path="people/",  # Custom URL path
+        )
+    """
+
+    # Display
+    title: str
+    icon: str | None = None
+
+    # Menu configuration
+    menu: str | None = None  # Menu text (defaults to title if category is set)
+    category: str | None = None  # EXPLORE, ACTIONS, MANAGEMENT, or None for no menu
+
+    # URL configuration
+    url_path: str | None = None  # Custom URL path (supports Django path patterns like <int:pk>)
+    url_name: str | None = None  # Custom URL name (auto-generated if not provided)
+
+    # Permissions
+    check: callable | None = None  # Permission check function
+
+    # Documentation
+    about: str | None = None  # Description shown on the page
+    learn_more: str | None = None  # Link to documentation
+
+    def get_menu_item(self) -> PluginMenuItem | None:
+        """
+        Generate PluginMenuItem from config.
+
+        Returns None if category is not set (no menu entry desired).
+        """
+        if self.category is None:
+            return None
+        return PluginMenuItem(
+            name=self.menu or self.title,
+            category=self.category,
+            icon=self.icon,
+        )
+
+    def get_url_name_from_path(self, plugin_name: str) -> str:
+        """
+        Extract URL name from custom path or use plugin name.
+
+        For paths like "actions/contribution/<int:pk>/edit/",
+        generates a sensible name like "contribution-edit".
+        """
+        if self.url_name:
+            return self.url_name
+
+        # If custom path is provided, try to extract meaningful name
+        if self.url_path:
+            # Remove parameter patterns and clean up
+            path_parts = re.sub(r"<[^>]+>", "", self.url_path).strip("/")
+            name_parts = [p for p in path_parts.split("/") if p]
+            if name_parts:
+                return "-".join(name_parts)
+
+        # Fallback to plugin name
+        return plugin_name
+
+
 class PluginRegistry:
     """
     Central registry for managing plugins and their associated models.
@@ -191,21 +263,56 @@ class FairDMPlugin:
     All plugin classes must inherit from this mixin to access the parent view's
     menus and other functionality.
 
-    Usage:
-        class OverviewPlugin(FairDMPlugin, FieldsetsMixin, TemplateView):
-            category = "explore"
-            menu_item = PluginMenuItem(name="Overview", icon="view")
-            title = "Overview"
+    Plugins can be configured using either the new PluginConfig approach or
+    the legacy attribute approach:
 
-            class Media:
-                css = {
-                    'all': ('css/my-plugin.css',)
-                }
-                js = ('js/my-plugin.js',)
+    New way (preferred):
+        class OverviewPlugin(FairDMPlugin, TemplateView):
+            config = PluginConfig(
+                title=_("Overview"),
+                icon="view",
+                category=plugins.EXPLORE,
+            )
+
+    Legacy way (still supported):
+        class OverviewPlugin(FairDMPlugin, TemplateView):
+            title = "Overview"
+            menu_item = PluginMenuItem(name="Overview", icon="view", category=plugins.EXPLORE)
     """
 
+    config: PluginConfig | None = None
     menu_item: PluginMenuItem | None = None
-    title = "Unnamed Plugin"
+    title: str = "Unnamed Plugin"
+
+    def get_config(self) -> PluginConfig | None:
+        """Get the plugin configuration, checking config first then falling back to attributes."""
+        if self.config is not None:
+            return self.config
+        return None
+
+    def get_title(self) -> str:
+        """Get the plugin title from config or fallback to title attribute."""
+        if self.config is not None:
+            return self.config.title
+        return self.title
+
+    def get_menu_item(self) -> PluginMenuItem | None:
+        """Get the menu item from config or fallback to menu_item attribute."""
+        if self.config is not None:
+            return self.config.get_menu_item()
+        return self.menu_item
+
+    def get_about(self) -> str | None:
+        """Get the about text from config or fallback to about attribute."""
+        if self.config is not None:
+            return self.config.about
+        return getattr(self, "about", None)
+
+    def get_learn_more(self) -> str | None:
+        """Get the learn_more link from config or fallback to learn_more attribute."""
+        if self.config is not None:
+            return self.config.learn_more
+        return getattr(self, "learn_more", None)
 
     @property
     def media(self):
@@ -287,8 +394,9 @@ class FairDMPlugin:
         )
 
         # Third breadcrumb: Current page title (no href)
-        if hasattr(self, "title") and self.title:
-            breadcrumbs.append({"text": str(self.title)})
+        title = self.get_title() if hasattr(self, "get_title") else getattr(self, "title", None)
+        if title:
+            breadcrumbs.append({"text": str(title)})
 
         return breadcrumbs
 
@@ -298,6 +406,9 @@ class FairDMPlugin:
         context["menus"] = self.menus
         context["breadcrumbs"] = self.get_breadcrumbs()
         context["plugin_media"] = self.media
+        # Add title to context using get_title() method
+        if hasattr(self, "get_title"):
+            context["title"] = self.get_title()
         return context
 
 
@@ -400,33 +511,43 @@ class PluggableView(FairDMBaseMixin, RelatedObjectMixin, SingleObjectTemplateRes
             plugin_name = class_to_slug(plugin.__name__)
             model_name = plugin.base_model._meta.model_name
 
-            # Only process plugins with menu_items
-            if not hasattr(plugin, "menu_item") or plugin.menu_item is None:
-                # Plugins without menu_items still need URLs but won't appear in menus
-                # URL path defaults to plugin name
+            # Check if plugin uses new PluginConfig
+            config = getattr(plugin, "config", None)
+            menu_item = plugin.menu_item if not config else config.get_menu_item()
+
+            # Determine URL path and name
+            if config and config.url_path:
+                # Custom URL path from config
+                url_path = config.url_path
+                url_name = config.get_url_name_from_path(plugin_name)
+            elif menu_item is None:
+                # No menu item - use management category
                 url_path = f"management/{plugin_name}/"
-                plugin_url = path(url_path, plugin.as_view(), name=plugin_name)
-                urls.append(plugin_url)
-                continue
+                url_name = plugin_name
+            else:
+                # Standard plugin with menu item
+                category = menu_item.category
+                url_path = f"{plugin_name}/" if category == "explore" else f"{category}/{plugin_name}/"
+                url_name = plugin_name
 
-            # Get category from menu_item (required for all plugins with menu_items)
-            category = plugin.menu_item.category
-
-            # Generate URL path based on category
-            url_path = f"{plugin_name}/" if category == "explore" else f"{category}/{plugin_name}/"
-
-            plugin_url = path(url_path, plugin.as_view(), name=plugin_name)
+            # Create URL pattern
+            plugin_url = path(url_path, plugin.as_view(), name=url_name)
             urls.append(plugin_url)
 
-            # Add plugin to appropriate menu
-            # Create a MenuItem instance from the PluginMenuItem dataclass
-            # This ensures each registration gets its own MenuItem instance
-            menu_item = flex_menu.MenuItem(
-                name=plugin.menu_item.name,
-                view_name=f"{model_name}:{plugin_name}",
-                extra_context={"icon": plugin.menu_item.icon},
-            )
-            cls.menus[category].append(menu_item)
+            # Check for extra URLs from this plugin
+            if hasattr(plugin, "get_extra_urls") and callable(plugin.get_extra_urls):
+                extra_urls = plugin.get_extra_urls()
+                if extra_urls:
+                    urls.extend(extra_urls)
+
+            # Add to menu if menu_item exists
+            if menu_item is not None:
+                menu_item_instance = flex_menu.MenuItem(
+                    name=menu_item.name,
+                    view_name=f"{model_name}:{url_name}",
+                    extra_context={"icon": menu_item.icon},
+                )
+                cls.menus[menu_item.category].append(menu_item_instance)
 
         return urls
 
@@ -438,6 +559,7 @@ __all__ = [
     "MANAGEMENT",
     "FairDMPlugin",
     "PluggableView",
+    "PluginConfig",
     "PluginMenuItem",
     "PluginRegistry",
     "check_has_edit_permission",

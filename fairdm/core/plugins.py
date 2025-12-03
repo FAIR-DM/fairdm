@@ -1,16 +1,17 @@
+from crispy_forms.helper import FormHelper
 from django import forms
-from django.urls import path, reverse
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
+from extra_views import InlineFormSetView
 
+from fairdm.contrib.activity_stream.utils import get_object_activities
 from fairdm.forms import Form
-from fairdm.plugins import EXPLORE, FairDMPlugin, PluginMenuItem
-from fairdm.registry import registry
-from fairdm.views import FairDMDeleteView, FairDMUpdateView
+from fairdm.plugins import EXPLORE, MANAGEMENT, FairDMPlugin, PluginMenuItem
+from fairdm.views import FairDMDeleteView, FairDMModelFormMixin, FairDMUpdateView
 
 from .dataset.views import DatasetListView
 from .project.views import ProjectListView
-from .views import DataTableView
 
 
 class DeleteForm(Form):
@@ -29,16 +30,6 @@ class DeleteForm(Form):
         fields = ["confirm"]
 
 
-class ActivityPlugin(TemplateView):
-    title = _("Recent Activity")
-    menu_item = PluginMenuItem(name=_("Activity"), icon="activity")
-    title_config = {
-        "text": _("Recent Activity"),
-    }
-    grid_config = {"card": "activity.action_compact"}
-    template_name = "plugins/activity_stream.html"
-
-
 class OverviewPlugin(FairDMPlugin, TemplateView):
     """
     A plugin for displaying an overview of a project or dataset.
@@ -52,24 +43,156 @@ class OverviewPlugin(FairDMPlugin, TemplateView):
     Note: this probably needs to be optimized to select related objects.
     """
 
-    category = EXPLORE
     title = _("Overview")
-    menu_item = PluginMenuItem(name=_("Overview"), icon="eye")
+    menu_item = PluginMenuItem(name=_("Overview"), category=EXPLORE, icon="view")
+
+    def get_context_data(self, **kwargs):
+        """Add recent activities to the context."""
+
+        context = super().get_context_data(**kwargs)
+
+        # Make base_object available as 'object' for template compatibility
+        context["object"] = self.base_object
+
+        # Get the 5 most recent activities for this object
+        recent_activities = get_object_activities(self.base_object, limit=5)
+
+        context["recent_activities"] = recent_activities
+        return context
+
+    def get_page_title(self):
+        """Return the string representation of the base object as the page title."""
+        return str(self.base_object)
+
+    def get_breadcrumbs(self) -> list[dict[str, str]]:
+        breadcrumbs = super().get_breadcrumbs()
+        breadcrumbs = breadcrumbs[:-1]  # Remove last breadcrumb (current page)
+        breadcrumbs[-1].pop("href", None)  # Remove href from last breadcrumb
+        return breadcrumbs
 
 
-class ManageBaseObjectPlugin(FairDMUpdateView):
-    name = "basic-information"
+class EditPlugin(FairDMPlugin, FairDMUpdateView):
     title = _("Basic Information")
-    menu_item = PluginMenuItem(name=_("Basic Information"), icon="gear")
-    heading_config = {
-        "title": _("Basic Information"),
-    }
+    slug_url_kwarg = "uuid"
+    slug_field = "uuid"
+
+    def get_template_names(self):
+        """
+        Return a list of template names for form-based plugin views.
+
+        Template resolution order:
+        1. {model_name}/plugins/{plugin_class_name}.html (e.g., contributor/plugins/edit.html)
+        2. fairdm/plugins/{plugin_class_name}.html (e.g., fairdm/plugins/edit.html)
+        3. fairdm/plugins/form.html (generic form template - covers 90% of use cases)
+        4. fairdm/plugin.html (fallback)
+        """
+        from fairdm.plugins import class_to_slug
+
+        if self.template_name is not None:
+            return [self.template_name]
+
+        templates = []
+        plugin_class_name = class_to_slug(self.__class__.__name__)
+
+        # Check if we have a base_model
+        if self.base_model:
+            # Model-specific plugin template (e.g., contributor/plugins/edit.html)
+            templates.append(f"{self.base_model._meta.model_name}/plugins/{plugin_class_name}.html")
+
+        # Framework-specific plugin template (e.g., fairdm/plugins/edit.html)
+        templates.append(f"fairdm/plugins/{plugin_class_name}.html")
+
+        # Generic form template - covers 90% of form-based plugin use cases
+        templates.append("fairdm/plugins/form.html")
+
+        # Fallback: default plugin template
+        templates.append("fairdm/plugin.html")
+
+        return templates
 
 
-class DeleteObjectPlugin(FairDMDeleteView):
+class InlineFormSetPlugin(FairDMPlugin, FairDMModelFormMixin, InlineFormSetView):
+    """
+    Base plugin class for managing inline formsets.
+
+    This plugin provides a standardized way to edit related objects using Django's
+    InlineFormSetView from django-extra-views. It handles formset rendering,
+    validation, and saving.
+
+    Attributes:
+        title: Display title for the plugin
+        slug_url_kwarg: URL kwarg for object lookup (default: "uuid")
+        slug_field: Model field for object lookup (default: "uuid")
+        inline_model: The related model for the inline formset (required)
+        formset_class: The formset class to use (default: BaseInlineFormSet)
+        factory_kwargs: Additional kwargs for inlineformset_factory
+        display_as_table: Whether to render formset as a table (default: False)
+
+    Template Resolution Order:
+        1. {model_name}/plugins/{plugin_class_name}.html
+        2. fairdm/plugins/{plugin_class_name}.html
+        3. fairdm/plugins/formset.html (generic formset template - covers 90% of use cases)
+        4. fairdm/plugin.html (fallback)
+    """
+
+    title = _("Edit Related Objects")
+    slug_url_kwarg = "uuid"
+    slug_field = "uuid"
+    factory_kwargs = {"extra": 1, "max_num": None, "can_order": False, "can_delete": True}
+    display_as_table = False
+
+    def get_template_names(self):
+        """
+        Return a list of template names for formset-based plugin views.
+
+        Template resolution order:
+        1. {model_name}/plugins/{plugin_class_name}.html (e.g., contributor/plugins/identifiers.html)
+        2. fairdm/plugins/{plugin_class_name}.html (e.g., fairdm/plugins/identifiers.html)
+        3. fairdm/plugins/formset.html (generic formset template - covers 90% of use cases)
+        4. fairdm/plugin.html (fallback)
+        """
+        from fairdm.plugins import class_to_slug
+
+        if self.template_name is not None:
+            return [self.template_name]
+
+        templates = []
+        plugin_class_name = class_to_slug(self.__class__.__name__)
+
+        # Check if we have a base_model
+        if self.base_model:
+            # Model-specific plugin template (e.g., contributor/plugins/identifiers.html)
+            templates.append(f"{self.base_model._meta.model_name}/plugins/{plugin_class_name}.html")
+
+        # Framework-specific plugin template (e.g., fairdm/plugins/identifiers.html)
+        templates.append(f"fairdm/plugins/{plugin_class_name}.html")
+
+        # Generic formset template - covers 90% of formset-based plugin use cases
+        templates.append("fairdm/plugins/formset.html")
+
+        # Fallback: default plugin template
+        templates.append("fairdm/plugin.html")
+
+        return templates
+
+    def get_context_data(self, **kwargs):
+        """Add formset helper configuration to context."""
+        context = super().get_context_data(**kwargs)
+        formset = context.get("formset")
+        if formset and not hasattr(formset, "helper"):
+            formset.helper = FormHelper()
+            formset.helper.form_id = f"{self.name}-form" if hasattr(self, "name") else "formset-form"
+            # Only use table template if display_as_table is True
+            if self.display_as_table:
+                formset.helper.template = "bootstrap5/table_inline_formset.html"
+            context["form"] = formset
+        return context
+
+
+class DeleteObjectPlugin(FairDMPlugin, FairDMDeleteView):
     name = "delete"
     title = _("Delete")
-    menu_item = PluginMenuItem(name=_("Delete"), icon="trash")
+    menu_item = PluginMenuItem(name=_("Delete"), category=MANAGEMENT, icon="delete")
     form_config = {
         "submit_button": {
             "text": _("Delete"),
@@ -85,7 +208,7 @@ class DeleteObjectPlugin(FairDMDeleteView):
         return self.request.user.get_absolute_url()
 
 
-class ProjectPlugin(ProjectListView):
+class ProjectPlugin(FairDMPlugin, ProjectListView):
     """
     A plugin for displaying and filtering a list of projects related to a contributor.
 
@@ -101,7 +224,9 @@ class ProjectPlugin(ProjectListView):
     Note: This plugin requires a model method `projects` to retrieve the a Project queryset from the related object.
     """
 
-    menu_item = PluginMenuItem(name=_("Projects"), icon="project")
+    title = _("Projects")
+    menu_item = PluginMenuItem(name=_("Projects"), category=EXPLORE, icon="project")
+    template_name = "plugins/list_view.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -121,7 +246,7 @@ class ProjectPlugin(ProjectListView):
         }
 
 
-class DatasetPlugin(DatasetListView):
+class DatasetPlugin(FairDMPlugin, DatasetListView):
     """
     A plugin for displaying and filtering a list of datasets related to a parent object.
 
@@ -137,8 +262,9 @@ class DatasetPlugin(DatasetListView):
     Note: This plugin requires a model method `datasets` to retrieve the Dataset queryset from the related object.
     """
 
-    menu_item = PluginMenuItem(name=_("Datasets"), icon="dataset")
-    # actions = ["dataset.create-button"]
+    title = _("Datasets")
+    menu_item = PluginMenuItem(name=_("Datasets"), category=EXPLORE, icon="dataset")
+    template_name = "plugins/list_view.html"
 
     def get_queryset(self, *args, **kwargs):
         return self.base_object.datasets.all()
@@ -165,41 +291,3 @@ class DatasetPlugin(DatasetListView):
             "description": _(f"The following datasets are associated with {self.base_object}."),
             "title_actions": ["dataset.create-button"],
         }
-
-
-class DataTablePlugin(DataTableView):
-    title = _("Data")
-    sections = {"header": "datatable.header"}
-    menu_item = PluginMenuItem(name=_("Data"), icon="table")
-
-    def get_queryset(self, *args, **kwargs):
-        # return self.base_object.samples.instance_of(self.model)
-        if hasattr(self.model, "sample_ptr"):
-            return self.model.objects.filter(dataset=self.base_object)
-        elif hasattr(self.model, "measurement_ptr"):
-            return self.model.objects.filter(sample__dataset=self.base_object)
-
-        return super().get_queryset(*args, **kwargs)
-
-        # return self.model.objects.filter(dataset=self.base_object)
-
-    @classmethod
-    def get_urls(cls, **kwargs):
-        """
-        Return the URLs for the table view.
-        """
-        if not registry.samples or not registry.measurements:
-            # In case there are no samples or measurements registered, return an empty list.
-            return [], None
-        urls = []
-        for item in [*registry.samples, *registry.measurements]:
-            urls.append(
-                path(
-                    f"{item['type']}s/{item['slug']}/",
-                    cls.as_view(model=item["class"], **kwargs),
-                    name=f"{item['slug']}-collection",
-                )
-            )
-        first = registry.samples[0]
-
-        return urls, f"{first['slug']}-collection"
