@@ -1,0 +1,162 @@
+{% extends "fairdm/base.html" %}
+{% load i18n cotton %}
+
+{% block content %}
+  <div class="container py-4">
+    {# Page Header #}
+    <c-detail.header title="{% trans 'Sample Collections' %}"
+                     icon="sample"
+                     subtitle="{% trans 'Browse and explore all sample collections in this portal. Samples represent physical specimens, collection units, or observational locations in your research.' %}">
+      <c-slot name="breadcrumb">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <a href="{% url 'data-collections' %}">{% trans "Collections" %}</a>
+            </li>
+            <li class="breadcrumb-item active"
+                aria-current="page">{% trans "Samples" %}</li>
+          </ol>
+        </nav>
+      </c-slot>
+    </c-detail.header>
+    {# Statistics #}
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <c-detail.stat-box value="{{ total_sample_types }}"
+                           label="{% trans 'Sample Types' %}"
+                           icon="sample"
+                           color="sample" />
+      </div>
+      <div class="col-md-4">
+        <c-detail.stat-box value="{{ total_samples }}"
+                           label="{% trans 'Total Samples' %}"
+                           icon="database"
+                           color="info" />
+      </div>
+      <div class="col-md-4">
+        <c-detail.stat-box value="{{ sample_types|length|yesno:'Yes,No' }}"
+                           label="{% trans 'Average per Type' %}"
+                           icon="analytics"
+                           color="success">
+          <c-slot name="value">
+            {% if total_sample_types > 0 %}
+              {{ total_samples|floatformat:0|add:total_sample_types|floatformat:0 }}
+            {% else %}
+              0
+            {% endif %}
+          </c-slot>
+        </c-detail.stat-box>
+      </div>
+    </div>
+    {# Main Content #}
+    <c-dashboard gap="3">
+      {# Sample Type Listings #}
+      {% if sample_types %}
+        <c-dashboard.card title="{% trans 'All Sample Types' %}"
+                          icon="sample">
+          <c-slot name="description">
+            <p class="text-muted small mb-3">
+              {% trans "Click on any sample type below to view and filter the full collection." %}
+            </p>
+          </c-slot>
+          <div class="row g-3">
+            {% for sample_type in sample_types %}
+              <div class="col-md-6 col-lg-4">
+                <div class="card border hover-shadow h-100">
+                  <div class="card-body">
+                    <div class="d-flex align-items-start">
+                      <div class="flex-shrink-0">
+                        <div class="bg-sample bg-opacity-10 rounded p-3">
+                          <c-icon name="sample" size="24" class="text-sample" />
+                        </div>
+                      </div>
+                      <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">
+                          {% if sample_type.url %}
+                            <a href="{{ sample_type.url }}"
+                               class="text-decoration-none stretched-link">{{ sample_type.name }}</a>
+                          {% else %}
+                            {{ sample_type.name }}
+                          {% endif %}
+                        </h6>
+                        <div class="d-flex flex-column gap-1 text-muted small">
+                          <span>
+                            <c-icon name="database" size="14" class="me-1" />
+                            {{ sample_type.count }} {% trans "records" %}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </c-dashboard.card>
+      {% else %}
+        <c-dashboard.card title="{% trans 'Sample Collections' %}"
+                          icon="sample">
+          <div class="text-center py-5">
+            <c-icon name="sample" size="64" class="text-muted mb-3" />
+            <h5 class="text-muted">{% trans "No Sample Types Registered" %}</h5>
+            <p class="text-muted mb-0">{% trans "Sample types will appear here once they are registered in the portal." %}</p>
+          </div>
+        </c-dashboard.card>
+      {% endif %}
+      {# Sidebar #}
+      <c-slot name="sidebar">
+        {# About Samples #}
+        <c-dashboard.card title="{% trans 'About Samples' %}" icon="info">
+          <div class="small">
+            <p class="mb-2">
+              {% trans "Samples are the core units of data collection in research. They can represent physical specimens, observation points, or any discrete entity being studied." %}
+            </p>
+            <h6 class="mt-3 mb-2">{% trans "Common Uses" %}</h6>
+            <ul class="mb-0 ps-3">
+              <li>{% trans "Physical specimens (rocks, cores, tissues)" %}</li>
+              <li>{% trans "Observational locations" %}</li>
+              <li>{% trans "Collection units" %}</li>
+              <li>{% trans "Experimental subjects" %}</li>
+            </ul>
+          </div>
+        </c-dashboard.card>
+        {# Sample Statistics #}
+        {% if sample_types %}
+          <c-dashboard.card title="{% trans 'Collection Statistics' %}"
+                            icon="analytics">
+            <dl class="mb-0 small">
+              <c-detail.info-item label="{% trans 'Largest Collection' %}">
+                {% with largest=sample_types|first %}{{ largest.name }} ({{ largest.count }}){% endwith %}
+              </c-detail.info-item>
+              <c-detail.info-item label="{% trans 'Smallest Collection' %}">
+                {% with smallest=sample_types|last %}{{ smallest.name }} ({{ smallest.count }}){% endwith %}
+              </c-detail.info-item>
+              <c-detail.info-item label="{% trans 'Total Sample Types' %}"
+                                  text="{{ total_sample_types }}" />
+              <c-detail.info-item label="{% trans 'Total Sample Records' %}"
+                                  text="{{ total_samples }}" />
+            </dl>
+          </c-dashboard.card>
+        {% endif %}
+        {# Quick Actions #}
+        <c-dashboard.card title="{% trans 'Quick Actions' %}"
+                          icon="lightning">
+          <div class="d-grid gap-2 small">
+            <a href="{% url 'data-collections' %}"
+               class="btn btn-sm btn-outline-secondary">
+              <c-icon name="arrow_left" size="14" class="me-1" />
+              {% trans "Back to Collections" %}
+            </a>
+            {% if total_measurement_types > 0 %}
+              <a href="{% url 'measurements-overview' %}"
+                 class="btn btn-sm btn-outline-secondary">
+                <c-icon name="measurement" size="14" class="me-1" />
+                {% trans "View Measurements" %}
+              </a>
+            {% endif %}
+          </div>
+        </c-dashboard.card>
+      </c-slot>
+    </c-dashboard>
+  </div>
+{% endblock content %}

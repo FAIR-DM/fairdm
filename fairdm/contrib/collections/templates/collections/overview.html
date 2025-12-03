@@ -1,0 +1,194 @@
+{% extends "fairdm/base.html" %}
+{% load i18n cotton %}
+
+{% block content %}
+  <div class="container py-4">
+    {# Page Header #}
+    <c-detail.header title="{% trans 'Data Collections' %}"
+                     icon="table"
+                     subtitle="{% trans 'Explore tabular data collections by sample or measurement type. Each collection provides filtering, sorting, and export capabilities to help you discover and analyze research data.' %}" />
+    {# Overview Statistics #}
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ total_sample_types }}"
+                           label="{% trans 'Sample Types' %}"
+                           icon="sample"
+                           color="sample" />
+      </div>
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ total_samples }}"
+                           label="{% trans 'Total Samples' %}"
+                           icon="sample"
+                           color="info" />
+      </div>
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ total_measurement_types }}"
+                           label="{% trans 'Measurement Types' %}"
+                           icon="measurement"
+                           color="measurement" />
+      </div>
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ total_measurements }}"
+                           label="{% trans 'Total Measurements' %}"
+                           icon="analytics"
+                           color="warning" />
+      </div>
+    </div>
+    {# Main Content - Navigation Cards #}
+    <div class="row g-4 mb-4">
+      {# Sample Collections Card #}
+      <div class="col-lg-6">
+        <div class="card h-100 border-2 hover-shadow">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-start mb-3">
+              <div class="flex-shrink-0">
+                <div class="bg-sample bg-opacity-10 rounded-3 p-4">
+                  <c-icon name="sample" size="48" class="text-sample" />
+                </div>
+              </div>
+              <div class="flex-grow-1 ms-4">
+                <h3 class="h4 mb-2">{% trans "Sample Collections" %}</h3>
+                <p class="text-muted mb-3">
+                  {% trans "Browse and filter sample data by type. Samples represent physical specimens or collection units in your research." %}
+                </p>
+                <div class="d-flex gap-3 mb-3">
+                  <div>
+                    <div class="h5 mb-0 text-sample">{{ total_sample_types }}</div>
+                    <small class="text-muted">{% trans "Types" %}</small>
+                  </div>
+                  <div>
+                    <div class="h5 mb-0 text-info">{{ total_samples }}</div>
+                    <small class="text-muted">{% trans "Records" %}</small>
+                  </div>
+                </div>
+                {% if total_sample_types > 0 %}
+                  <a href="{% url 'samples-overview' %}"
+                     class="btn btn-outline-primary">
+                    {% trans "Explore Samples" %}
+                    <c-icon name="arrow_right" class="ms-1" />
+                  </a>
+                {% else %}
+                  <p class="text-muted small mb-0">{% trans "No sample types registered yet." %}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# Measurement Collections Card #}
+      <div class="col-lg-6">
+        <div class="card h-100 border-2 hover-shadow">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-start mb-3">
+              <div class="flex-shrink-0">
+                <div class="bg-measurement bg-opacity-10 rounded-3 p-4">
+                  <c-icon name="measurement"
+                          size="48"
+                          class="text-measurement" />
+                </div>
+              </div>
+              <div class="flex-grow-1 ms-4">
+                <h3 class="h4 mb-2">{% trans "Measurement Collections" %}</h3>
+                <p class="text-muted mb-3">
+                  {% trans "Explore measurement and analytical data associated with samples. Measurements capture observations, analyses, and results." %}
+                </p>
+                <div class="d-flex gap-3 mb-3">
+                  <div>
+                    <div class="h5 mb-0 text-measurement">{{ total_measurement_types }}</div>
+                    <small class="text-muted">{% trans "Types" %}</small>
+                  </div>
+                  <div>
+                    <div class="h5 mb-0 text-warning">{{ total_measurements }}</div>
+                    <small class="text-muted">{% trans "Records" %}</small>
+                  </div>
+                </div>
+                {% if total_measurement_types > 0 %}
+                  <a href="{% url 'measurements-overview' %}"
+                     class="btn btn-outline-primary">
+                    {% trans "Explore Measurements" %}
+                    <c-icon name="arrow_right" class="ms-1" />
+                  </a>
+                {% else %}
+                  <p class="text-muted small mb-0">{% trans "No measurement types registered yet." %}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {# Quick Links to Individual Collections #}
+    {% if sample_types or measurement_types %}
+      <div class="row g-4">
+        {% if sample_types %}
+          <div class="col-lg-6">
+            <c-dashboard.card title="{% trans 'Quick Access - Samples' %}"
+                              icon="sample">
+              <c-list-group flush>
+                {% for sample_type in sample_types|slice:":5" %}
+                  <c-list-group.item class="py-2">
+                    {% if sample_type.url %}
+                      <a href="{{ sample_type.url }}"
+                         class="text-decoration-none d-flex justify-content-between align-items-center">
+                        <span>{{ sample_type.name }}</span>
+                        <c-badge class="bg-sample text-white"
+                                 text="{{ sample_type.count }}" />
+                      </a>
+                    {% else %}
+                      <span class="d-flex justify-content-between align-items-center text-muted">
+                        <span>{{ sample_type.name }}</span>
+                        <c-badge class="bg-secondary text-white"
+                                 text="{{ sample_type.count }}" />
+                      </span>
+                    {% endif %}
+                  </c-list-group.item>
+                {% endfor %}
+              </c-list-group>
+              {% if sample_types|length > 5 %}
+                <c-slot name="actions">
+                  <c-dashboard.card.action href="{% url 'samples-overview' %}"
+                                           text="{% trans 'View all sample types' %}"
+                                           icon="arrow_right" />
+                </c-slot>
+              {% endif %}
+            </c-dashboard.card>
+          </div>
+        {% endif %}
+        {% if measurement_types %}
+          <div class="col-lg-6">
+            <c-dashboard.card title="{% trans 'Quick Access - Measurements' %}"
+                              icon="measurement">
+              <c-list-group flush>
+                {% for measurement_type in measurement_types|slice:":5" %}
+                  <c-list-group.item class="py-2">
+                    {% if measurement_type.url %}
+                      <a href="{{ measurement_type.url }}"
+                         class="text-decoration-none d-flex justify-content-between align-items-center">
+                        <span>{{ measurement_type.name }}</span>
+                        <c-badge class="bg-measurement text-white"
+                                 text="{{ measurement_type.count }}" />
+                      </a>
+                    {% else %}
+                      <span class="d-flex justify-content-between align-items-center text-muted">
+                        <span>{{ measurement_type.name }}</span>
+                        <c-badge class="bg-secondary text-white"
+                                 text="{{ measurement_type.count }}" />
+                      </span>
+                    {% endif %}
+                  </c-list-group.item>
+                {% endfor %}
+              </c-list-group>
+              {% if measurement_types|length > 5 %}
+                <c-slot name="actions">
+                  <c-dashboard.card.action href="{% url 'measurements-overview' %}"
+                                           text="{% trans 'View all measurement types' %}"
+                                           icon="arrow_right" />
+                </c-slot>
+              {% endif %}
+            </c-dashboard.card>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock content %}
