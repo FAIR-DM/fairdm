@@ -1,7 +1,6 @@
 minio/
 example/**/migrations/*
 !**/migrations/__init__.py
-test.*
 .vocabularies-cache
 # would be nice to ignore these and build bundle in CI workflow
 # fairdm/static/bundles/
@@ -10,7 +9,8 @@ xtemplates/
 # webpack-stats.json
 docs/_build
 docs/apidocs
-
+test*
+tmp*
 
 # Temporary and binary files
 *~
@@ -31,6 +31,7 @@ docs/apidocs
 .DS_Store
 _test*.py
 /node_modules
+.playwright-mcp
 
 # Project files
 .ropeproject
