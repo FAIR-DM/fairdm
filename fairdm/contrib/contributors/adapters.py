@@ -9,7 +9,7 @@ from django.http import HttpRequest
 
 # from allauth.socialaccount.models import SocialLogin
 from fairdm.contrib.contributors.models import ContributorIdentifier
-from fairdm.contrib.contributors.utils import contributor_from_orcid_data
+from fairdm.contrib.contributors.utils.transforms import ORCIDTransform
 
 
 def is_provider(name, sociallogin):
@@ -101,5 +101,5 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         # This method will help populate the user with data from the social login.
         user = super().populate_user(request, sociallogin, data)
         if is_provider("orcid", sociallogin):
-            user = contributor_from_orcid_data(sociallogin.account.extra_data, user, save=False)
+            user = ORCIDTransform().import_data(sociallogin.account.extra_data, instance=user, save=False)
         return user

@@ -1,46 +1,57 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
-from django.urls import include, path
+from django.http import HttpResponse
 from django.utils.translation import gettext as _
+from django.views.generic import DeleteView, FormView, ListView, TemplateView, UpdateView
 from django_filters import FilterSet
-from guardian.shortcuts import get_perms
 
+from fairdm import plugins
+from fairdm.core.dataset.models import Dataset
+from fairdm.core.measurement.models import Measurement
 from fairdm.core.plugins import (
-    ManageBaseObjectPlugin,
+    DatasetPlugin,
+    EditPlugin,
+    InlineFormSetPlugin,
     OverviewPlugin,
+    ProjectPlugin,
 )
-from fairdm.plugins import EXPLORE, MANAGEMENT, PluginMenuItem, register_plugin
+from fairdm.core.project.models import Project
+from fairdm.core.sample.models import Sample
+from fairdm.plugins import PluginConfig
+from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMListView
 
-from .forms.contribution import QuickAddContributionForm
+from .forms.contribution import QuickAddContributionForm, UpdateContributionForm
+from .forms.forms import AffiliationForm, UserIdentifierForm, UserIdentifierFormSet
 from .forms.organization import OrganizationProfileForm
 from .forms.person import UserProfileForm
-from .models import Contribution, Person
-from .views.contribution import (
-    ContributionCreateView,
-    ContributionRemoveView,
-    ContributionUpdateView,
-    ContributorQuickAddView,
-)
+from .models import Contribution, Contributor, ContributorIdentifier, Organization, OrganizationMember, Person
 
 
-# Overview plugin for Person model
-@register_plugin
-class PersonOverview(OverviewPlugin):
-    category = EXPLORE
-    menu_item = PluginMenuItem(name=_("Overview"), icon="user-circle")
-    sections = {
-        "title": False,
-    }
+@plugins.register(Contributor)
+class Overview(OverviewPlugin):
+    """Overview plugin for Contributor detail pages (Person and Organization)."""
 
     def get_context_data(self, **kwargs):
+        """Add contribution counts and ORCID identifier to the context."""
         context = super().get_context_data(**kwargs)
         context["contributions_by_type"] = self.get_contribution_counts()
+        context["object"] = self.base_object
+
+        # Add ORCID identifier if available (for Person objects)
+        if isinstance(self.base_object, Person):
+            orcid = self.base_object.identifiers.filter(type="ORCID").first()
+            context["orcid_identifier"] = orcid
+
         return context
 
     def get_contribution_counts(self):
         """
-        Returns a dictionary of contribution counts by type for the base object.
+        Calculate contribution counts by content type.
+
+        Returns:
+            dict: Mapping of model verbose names to contribution counts
+                  (e.g., {"Projects": 5, "Datasets": 3})
         """
         contributions_by_type = self.base_object.contributions.values("content_type").annotate(count=Count("id"))
         result = {}
@@ -55,139 +66,479 @@ class PersonOverview(OverviewPlugin):
         return result
 
 
-# Overview plugin for Organization model
-@register_plugin
-class OrganizationOverview(OverviewPlugin):
-    category = EXPLORE
-    menu_item = PluginMenuItem(name=_("Overview"), icon="user-circle")
-    sections = {
-        "title": False,
-    }
+@plugins.register(Contributor)
+class ContributorProjects(ProjectPlugin):
+    """Projects plugin for Contributor model - shows all projects a contributor is associated with."""
+
+    pass
+
+
+@plugins.register(Contributor)
+class ContributorDatasets(DatasetPlugin):
+    """Datasets plugin for Contributor model - shows all datasets a contributor is associated with."""
+
+    pass
+
+
+# ============ MANAGEMENT PLUGINS =================
+
+
+@plugins.register(Contributor)
+class Profile(EditPlugin):
+    """Profile editing plugin for Contributor detail pages.
+
+    Dynamically selects the appropriate form based on contributor type.
+    """
+
+    model = Contributor
+    about = _(
+        "Edit your public profile information, including your name, biography, and profile image. "
+        "This information is visible to all visitors of the portal."
+    )
+    learn_more = user_guide("contributor/profile")
+
+    def get_form_class(self):
+        """Return appropriate form based on contributor type."""
+        if isinstance(self.base_object, Person):
+            return UserProfileForm
+        elif isinstance(self.base_object, Organization):
+            return OrganizationProfileForm
+        return super().get_form_class()
+
+
+@plugins.register(Contributor)
+class Identifiers(InlineFormSetPlugin):
+    """Plugin for managing persistent identifiers (ORCID, ROR, etc.)."""
+
+    name = "identifiers"
+    title = _("Identifiers")
+    menu_item = plugins.PluginMenuItem(name=_("Identifiers"), category=plugins.MANAGEMENT, icon="identifier")
+
+    # Page configuration
+    about = _(
+        "Manage your persistent identifiers such as ORCID, which help uniquely identify you "
+        "in research outputs and allow automatic synchronization of your profile data."
+    )
+    learn_more = user_guide("contributor/identifiers")
+
+    # InlineFormSetView configuration
+    model = Contributor
+    inline_model = ContributorIdentifier
+    form_class = UserIdentifierForm
+    formset_class = UserIdentifierFormSet
+    display_as_table = True
+
+    def get_factory_kwargs(self):
+        """Override to set max_num based on contributor type (Person vs Organization)."""
+        kwargs = super().get_factory_kwargs()
+        # Limit to one identifier per type, but only show appropriate types
+        vocabulary = self.inline_model.VOCABULARY
+        if isinstance(self.object, Person):
+            # Person: ORCID, ResearcherID
+            kwargs["max_num"] = len(vocabulary.from_collection("Person").values)
+        elif isinstance(self.object, Organization):
+            # Organization: ROR, Wikidata, ISNI, Crossref Funder ID
+            kwargs["max_num"] = len(vocabulary.from_collection("Organization").values)
+        else:
+            # Fallback to all identifiers
+            kwargs["max_num"] = len(vocabulary.values)
+        return kwargs
+
+    def get_formset_kwargs(self):
+        """Pass contributor instance to form for filtering identifier choices."""
+        kwargs = super().get_formset_kwargs()
+        kwargs["form_kwargs"] = {"contributor_instance": self.object}
+        return kwargs
+
+
+@plugins.register(Contributor)
+class Affiliations(InlineFormSetPlugin):
+    """Plugin for managing organizational affiliations (Person only)."""
+
+    name = "affiliations"
+    title = _("Affiliations")
+    learn_more = user_guide("contributor/affiliations")
+    check = lambda self: isinstance(self.base_object, Person)
+    model = Person
+    inline_model = OrganizationMember
+    form_class = AffiliationForm
+    display_as_table = True
+
+
+@plugins.register(Contributor)
+class Keywords(EditPlugin):
+    """Plugin for managing research interests/keywords."""
+
+    name = "keywords"
+    title = _("Research Interests")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Research Interests"),
+        category=plugins.MANAGEMENT,
+        icon="keywords",
+    )
+    about = _(
+        "Manage your research interests and keywords. These help others discover your work "
+        "and understand your areas of expertise."
+    )
+    learn_more = user_guide("contributor/keywords")
+    model = Contributor
+    fields = ["keywords"]
+
+
+@plugins.register(Contributor)
+class Links(EditPlugin):
+    """Plugin for managing external links."""
+
+    name = "links"
+    title = _("External Links")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Links"),
+        category=plugins.MANAGEMENT,
+        icon="link",
+    )
+    about = _(
+        "Add links to your personal website, social media profiles, institutional pages, "
+        "or other relevant online presence."
+    )
+    learn_more = user_guide("contributor/links")
+    model = Contributor
+    fields = ["links"]
+
+
+@plugins.register(Organization)
+class SubOrganizations(FairDMListView):
+    """Plugin for displaying sub-organizations (Organization only)."""
+
+    name = "sub-organizations"
+    title = _("Sub-Organizations")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Sub-Organizations"),
+        category=plugins.EXPLORE,
+        icon="relationships",
+    )
+    model = Organization
+    check = lambda self: isinstance(self.base_object, Organization)
+
+    def get_queryset(self):
+        """Return sub-organizations of this organization."""
+        return self.base_object.sub_organizations.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["contributions_by_type"] = self.get_contribution_counts()
+        context["heading_config"] = {
+            "icon": "relationships",
+            "title": _("Sub-Organizations"),
+            "description": _("Departments, research groups, and other units within this organization."),
+        }
         return context
 
-    def get_contribution_counts(self):
-        """
-        Returns a dictionary of contribution counts by type for the base object.
-        """
-        contributions_by_type = self.base_object.contributions.values("content_type").annotate(count=Count("id"))
-        result = {}
-        for entry in contributions_by_type:
-            content_type = ContentType.objects.get(pk=entry["content_type"])
-            model_class = content_type.model_class()
-            if model_class:
-                verbose_name = model_class._meta.verbose_name_plural
-                if verbose_name:
-                    model_verbose_name = str(verbose_name).title()
-                    result[model_verbose_name] = entry["count"]
-        return result
+
+@plugins.register(Organization)
+class OrganizationMembers(FairDMListView):
+    """Plugin for displaying organization members (Organization only)."""
+
+    name = "members"
+    title = _("Members")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Members"),
+        category=plugins.EXPLORE,
+        icon="users",
+    )
+    model = OrganizationMember
+    check = lambda self: isinstance(self.base_object, Organization)
+    filterset_fields = ["person__name", "role", "is_primary", "is_current"]
+
+    def get_queryset(self):
+        """Return members of this organization."""
+        return self.base_object.memberships.select_related("person").all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["heading_config"] = {
+            "icon": "users",
+            "title": _("Members"),
+            "description": _("People affiliated with this organization."),
+        }
+        return context
 
 
-# Profile management plugin for Person model
-@register_plugin
-class PersonProfile(ManageBaseObjectPlugin):
-    category = MANAGEMENT
-    menu_item = PluginMenuItem(name=_("Profile"), icon="user")
-    title = _("Profile")
-    form_class = UserProfileForm
-    sections = {
-        "sidebar_secondary": False,
-    }
+@plugins.register(Contributor)
+class Activity(plugins.FairDMPlugin, FairDMListView):
+    """Plugin showing recent activity/contributions chronologically."""
 
-
-# Profile management plugin for Organization model
-@register_plugin
-class OrganizationProfile(ManageBaseObjectPlugin):
-    category = MANAGEMENT
-    menu_item = PluginMenuItem(name=_("Profile"), icon="building")
-    title = _("Profile")
-    form_class = OrganizationProfileForm
-    sections = {
-        "sidebar_secondary": False,
-    }
-
-
-@register_plugin
-class ContributorsPlugin(FairDMListView):
-    category = EXPLORE
+    name = "activity"
+    title = _("Recent Activity")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Activity"),
+        category=plugins.EXPLORE,
+        icon="timeline",
+    )
     model = Contribution
-    name = "contributors"
-    title = _("Contributors")
-    heading_config = {
-        "icon": "contributors",
-        "title": _("Contributors"),
-        "description": _("The following individuals have made contributions towards this database entry. "),
-        "title_actions": [
-            "contributor.quick-add",
-        ],
-    }
-    filterset_fields = ["contributor__name"]
-    menu_item = PluginMenuItem(name=_("Contributors"), icon="contributors")
-    grid_config = {
-        "cols": 1,
-        "gap": 2,
-        "responsive": {"sm": 2, "md": 4},
-        "card": "contributor.card.contribution",
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        quick_add_form = QuickAddContributionForm()
-        # TODO: Fix URL generation for quick-add form
-        # This needs to be updated to work with the new plugin system
-        # if context.get("non_polymorphic_object"):
-        #     quick_add_form.helper.form_action = plugins.reverse(
-        #         context["non_polymorphic_object"], "contributors-quick-add"
-        #     )
-        # else:
-        #     quick_add_form.helper.form_action = plugins.reverse(self.base_object, "contributors-quick-add")
-        context["quick_add_form"] = quick_add_form
-        context["modals"] = [
-            "contributor.modals.edit-contribution",
-        ]
-
-        context["user_permissions"] = get_perms(self.request.user, self.base_object)
-        if self.request.user.is_authenticated:
-            context["can_modify_contributor"] = (
-                "modify_contributor" in context["user_permissions"]
-                # Note: removed is_data_admin check as it's not available in base User model
-            )
-        return context
+    card_template = "cotton/contributor/card/contribution.html"
 
     def get_filterset_class(self):
+        """Return a basic FilterSet for contributions."""
+
         return FilterSet
 
+    def get_queryset(self):
+        """Return all contributions ordered by most recent."""
+        return self.base_object.contributions.select_related("content_type", "contributor").order_by("-id")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["page"] = {
+            "title": _("Recent Activity"),
+        }
+        return context
+
+
+@plugins.register(Contributor)
+class Statistics(plugins.FairDMPlugin, TemplateView):
+    """Plugin showing detailed contribution statistics."""
+
+    name = "statistics"
+    title = _("Statistics")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Statistics"),
+        category=plugins.EXPLORE,
+        icon="statistics",
+    )
+    template_name = "contributors/plugins/statistics.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get contribution counts by type
+        contributions_by_type = {}
+        for entry in self.base_object.contributions.values("content_type").annotate(count=Count("id")):
+            content_type = ContentType.objects.get(pk=entry["content_type"])
+            model_class = content_type.model_class()
+            if model_class:
+                contributions_by_type[model_class._meta.verbose_name_plural] = entry["count"]
+
+        context.update(
+            {
+                "total_contributions": self.base_object.contributions.count(),
+                "contributions_by_type": contributions_by_type,
+            }
+        )
+
+        return context
+
+
+@plugins.register(Contributor)
+class Collaborators(plugins.FairDMPlugin, FairDMListView):
+    """Plugin showing frequent collaborators."""
+
+    name = "collaborators"
+    title = _("Collaborators")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Collaborators"),
+        category=plugins.EXPLORE,
+        icon="people",
+    )
+    model = Contributor
+    card_template = "cotton/contributor_card.html"
+
+    def get_queryset(self):
+        """
+        Return contributors who have worked on the same projects/datasets.
+
+        This finds all content objects this contributor has contributed to,
+        then finds other contributors to those same objects.
+        """
+        # Get all content objects this contributor has contributed to
+        content_types = self.base_object.contributions.values_list("content_type", "object_id")
+
+        # Find other contributors to the same objects
+        collaborator_ids = set()
+        for ct_id, obj_id in content_types:
+            related_contributions = (
+                Contribution.objects.filter(content_type_id=ct_id, object_id=obj_id)
+                .exclude(contributor=self.base_object)
+                .values_list("contributor_id", flat=True)
+            )
+            collaborator_ids.update(related_contributions)
+
+        # Return collaborators annotated with collaboration count
+        return (
+            Contributor.objects.filter(id__in=collaborator_ids)
+            .annotate(collaboration_count=Count("contributions"))
+            .order_by("-collaboration_count")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["page"] = {
+            "title": _("Collaborators"),
+        }
+        return context
+
+
+# =========== PLUGIN FOR CORE DATA MODELS =================
+
+
+@plugins.register(Project, Dataset, Sample, Measurement)
+class Contributors(plugins.FairDMPlugin, ListView):
+    """
+    Plugin for managing contributors on any model with a 'contributors' GenericRelation.
+    """
+
+    model = Contribution
+    config = PluginConfig(
+        title=_("Contributors"),
+        menu=_("Contributors"),
+        icon="people",
+        category=plugins.EXPLORE,
+    )
+    template_name = "contributors/plugins/list_view.html"
+
+    class Media:
+        css = {"all": ("contributors/css/contributor-filter.css",)}
+        js = ("contributors/js/contributor-filter.js",)
+
     def get_queryset(self, *args, **kwargs):
-        # restrict to contributors of type Person
-        person_type = ContentType.objects.get_for_model(Person)
-        return self.base_object.contributors.filter(contributor__polymorphic_ctype=person_type)
-        # show people and organizations
-        # return self.base_object.contributors.all()
+        """Return contributors of type Person for the base object."""
+        return self.base_object.contributors.all()
 
-    @classmethod
-    def get_suburls(cls, **kwargs):
-        base_model = kwargs.get("base_model")
-        menu = kwargs.get("menu")
-        return [
-            path("quick-add/", ContributorQuickAddView.as_view(base_model=base_model), name="contributors-quick-add"),
-            path("create/", ContributionCreateView.as_view(base_model=base_model), name="contributors-create"),
-            path(
-                "<pk>/edit/",
-                ContributionUpdateView.as_view(base_model=base_model, menu=menu),
-                name="contributor-update",
-            ),
-            path(
-                "<pk>/remove/",
-                ContributionRemoveView.as_view(base_model=base_model),
-                name="contributor-remove",
-            ),
-        ]
+    def get_context_data(self, **kwargs):
+        """Add available roles to the context for filtering."""
+        context = super().get_context_data(**kwargs)
+        # Get all unique roles from the contributions grouped by contributor type
+        person_roles = set()
+        org_roles = set()
 
-    @classmethod
-    def get_urls(cls, **kwargs):
-        urls, view_name = super().get_urls(**kwargs)
-        urls.append(path(view_name + "/", include(cls.get_suburls(**kwargs))))
-        return urls, view_name
+        for contribution in context["object_list"]:
+            is_person = contribution.contributor.polymorphic_ctype.model == "person"
+            for role in contribution.roles.all():
+                if is_person:
+                    person_roles.add((role.name, role.label, "person"))
+                else:
+                    org_roles.add((role.name, role.label, "organization"))
+
+        # Combine and sort all roles
+        all_roles = list(person_roles) + list(org_roles)
+        context["available_roles"] = sorted(all_roles, key=lambda x: (x[2], x[1]))
+
+        return context
+
+
+# =========== CONTRIBUTION CRUD PLUGINS =================
+
+
+@plugins.register(Project, Dataset, Sample, Measurement)
+class AddContribution(plugins.FairDMPlugin, FormView):
+    """Quick add plugin for adding multiple contributors to an object."""
+
+    config = PluginConfig(
+        title=_("Add Contributor"),
+        category=None,  # No menu item - accessed via button
+        url_path="actions/contribution/quick-add/",
+        url_name="contribution-quick-add",
+    )
+    template_name = "contributors/plugins/contribution_quick_add.html"
+    form_class = QuickAddContributionForm
+
+    def get_form_kwargs(self):
+        """Pass base_object to form for autocomplete filtering."""
+        kwargs = super().get_form_kwargs()
+        kwargs["base_object"] = self.base_object
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        """Add base object verbose name to context."""
+        context = super().get_context_data(**kwargs)
+        context["base_object_verbose_name"] = self.base_object._meta.verbose_name
+        return context
+
+    def get_success_url(self):
+        """Return to the contributors page after successful add."""
+        return self.base_object.get_plugin_url("contributors")
+
+    def form_valid(self, form):
+        """Add selected contributors to the base object."""
+        contributors = form.cleaned_data["contributors"]
+        for contributor in contributors:
+            # Use the Contribution.add_to classmethod for consistency
+            Contribution.add_to(
+                contributor=contributor,
+                obj=self.base_object,
+                roles=None,  # Default roles can be set later via edit
+                affiliation=None,
+            )
+
+        # For HTMX requests, return a success response
+        if self.request.htmx:
+            response = HttpResponse(status=204)
+            response["HX-Trigger"] = "contributionUpdated"
+            return response
+
+        return super().form_valid(form)
+
+
+@plugins.register(Project, Dataset, Sample, Measurement)
+class EditContribution(plugins.FairDMPlugin, UpdateView):
+    """Edit plugin for updating contribution roles and affiliation."""
+
+    config = PluginConfig(
+        title=_("Edit Contribution"),
+        category=None,  # No menu item - accessed via button
+        url_path="actions/contribution/<int:pk>/edit/",
+        url_name="contribution-update",
+    )
+    template_name = "contributors/plugins/contribution_form.html"
+    form_class = UpdateContributionForm
+    model = Contribution
+
+    def get_form_kwargs(self):
+        """Pass the base object to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs["base_object"] = self.base_object
+        return kwargs
+
+    def get_success_url(self):
+        """Return to the contributors page after successful edit."""
+        return self.base_object.get_plugin_url("contributors")
+
+    def form_valid(self, form):
+        """Save the contribution and trigger HTMX refresh."""
+        response = super().form_valid(form)
+
+        # For HTMX requests, return a success response with trigger
+        if self.request.htmx:
+            response = HttpResponse(status=204)
+            response["HX-Trigger"] = "contributionUpdated"
+            return response
+
+        return response
+
+
+@plugins.register(Project, Dataset, Sample, Measurement)
+class RemoveContribution(plugins.FairDMPlugin, DeleteView):
+    """Delete plugin for removing a contribution."""
+
+    config = PluginConfig(
+        title=_("Remove Contribution"),
+        category=None,  # No menu item - accessed via button
+        url_path="actions/contribution/<int:pk>/remove/",
+        url_name="contribution-remove",
+    )
+    template_name = "contributors/plugins/contribution_confirm_delete.html"
+    model = Contribution
+
+    def get_success_url(self):
+        """Return to the contributors page after successful deletion."""
+        return self.base_object.get_plugin_url("contributors")
+
+    def delete(self, request, *args, **kwargs):
+        """Delete the contribution and trigger HTMX refresh."""
+        response = super().delete(request, *args, **kwargs)
+
+        # For HTMX requests, return a success response with trigger
+        if self.request.htmx:
+            response = HttpResponse(status=204)
+            response["HX-Trigger"] = "contributionUpdated"
+            return response
+
+        return response
