@@ -101,6 +101,8 @@ fairdm-dev-tools = {git = "https://github.com/FAIR-DM/dev-tools"}
 importtime-waterfall = "^1.0.0"
 pandas = "^2.2.2"
 snakeviz = "^2.2.2"
+fairdm-discussions = {git = "https://github.com/FAIR-DM/fairdm-discussions"}
+fairdm-rest-api = {git = "https://github.com/FAIR-DM/fairdm-rest-api"}
 
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs", extras = ["pydata-sphinx-theme"]}
