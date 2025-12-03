@@ -4,7 +4,7 @@
   {% if can_modify_contributor %}
     <c-components.dropdown class="fs-6 fw-semibold border-0 z-2"
                            dropdown_class="position-absolute top-0 start-0 z-2"
-                           text="{% icon "gear" %}"
+                           text="{% icon "settings" %}"
                            :show_toggle="False">
       <c-components.dropdown.item href="{% plugin_url "contributor-update" pk=obj.pk %}"
                                   hx-get="{% plugin_url "contributor-update" pk=obj.pk %}"

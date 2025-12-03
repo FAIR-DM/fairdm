@@ -1,0 +1,323 @@
+{% extends "fairdm/plugin.html" %}
+{% load fairdm humanize i18n martortags static easy_icons %}
+
+{% block plugin_header %}
+  {# Custom header for Organization with logo, name, and identifiers #}
+  <div class="organization-header py-4 mb-4">
+    <div class="d-flex flex-column flex-md-row align-items-center gap-3 gap-md-4">
+      {# Logo #}
+      <div class="position-relative flex-shrink-0">
+        {% if object.image %}
+          <img src="{{ object.image.url }}"
+               alt="{{ object.name }}"
+               class="rounded object-fit-contain bg-white p-2 border"
+               width="120"
+               height="120" />
+        {% else %}
+          <div class="rounded bg-secondary d-flex align-items-center justify-content-center"
+               style="width: 120px;
+                      height: 120px">
+            <c-icon name="organization"
+                    class="text-white"
+                    style="font-size: 3rem" />
+          </div>
+        {% endif %}
+      </div>
+      {# Name and primary identifiers #}
+      <div class="flex-grow-1 text-center text-md-start">
+        <h4>{{ object.name }}</h4>
+        {# ROR Identifier - if available #}
+        {% for identifier in object.identifiers.all %}
+          {% if identifier.type == "ROR" %}
+            <div>
+              <a href="https://ror.org/{{ identifier.value }}"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="text-decoration-none d-inline-flex align-items-center gap-2"
+                 title="{% trans "View ROR Profile" %}">
+                {% icon "ror" width="24" height="24" renderer="svg" %}
+                <span class="text-muted">{{ identifier.value }}</span>
+              </a>
+            </div>
+          {% endif %}
+        {% endfor %}
+        {# Location #}
+        {% if object.city or object.country %}
+          <p class="text-muted mb-0">
+            <c-icon name="location" class="me-1" />
+            {% if object.city %}
+              {{ object.city }}
+              {% if object.country %},{% endif %}
+            {% endif %}
+            {% if object.country %}{{ object.country.name }}{% endif %}
+          </p>
+        {% endif %}
+        {# Alternative names preview #}
+        {% if object.alternative_names %}
+          <p class="text-muted mb-0 small">
+            <c-icon name="organization" class="me-1" />
+            {% trans "Also known as:" %}
+            {{ object.alternative_names|slice:":2"|join:", " }}
+            {% if object.alternative_names|length > 2 %}
+              {% trans "and" %} {{ object.alternative_names|length|add:"-2" }} {% trans "more" %}
+            {% endif %}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock plugin_header %}
+
+{% block plugin %}
+  {% trans "There's nothing here yet." as empty_text %}
+  <div class="row g-4">
+    {# Main content area #}
+    <div class="col-lg-8">
+      {% block overview_main %}
+        {% block description %}
+          <c-dashboard.card title="{% trans "About" %}" icon="info">
+            {% if object.profile %}
+              <p class="card-text">{{ object.profile|safe_markdown }}</p>
+            {% else %}
+              <p class="text-muted">{{ empty_text }}</p>
+            {% endif %}
+          </c-dashboard.card>
+        {% endblock description %}
+
+        {% block contributions %}
+          {# Contributions Statistics #}
+          <c-dashboard.card title="{% trans "Contributions" %}"
+                            icon="analytics">
+            {% if contributions_by_type %}
+              <div class="row g-3">
+                {% for model_name, count in contributions_by_type.items %}
+                  <div class="col-sm-6 col-md-4">
+                    <div class="text-center p-3 bg-light rounded">
+                      <div class="display-6 fw-bold text-primary">{{ count }}</div>
+                      <div class="text-muted small text-uppercase mt-1">{{ model_name }}</div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted mb-0">{{ empty_text }}</p>
+            {% endif %}
+          </c-dashboard.card>
+        {% endblock contributions %}
+
+        {% block research_areas %}
+          {# Research Areas / Focus Topics #}
+          <c-dashboard.card title="{% trans "Research Areas" %}"
+                            icon="keywords">
+            <div class="d-flex flex-wrap gap-2">
+              {% for keyword in object.keywords.all %}
+                <c-badge variant="light"
+                         class="text-dark border"
+                         :text="keyword" />
+              {% empty %}
+                {{ empty_text }}
+              {% endfor %}
+            </div>
+          </c-dashboard.card>
+        {% endblock research_areas %}
+
+        {% block members %}
+          {# Organization Members #}
+          <c-dashboard.card title="{% trans "Members" %}" icon="people">
+            <c-list-group flush>
+              {% for membership in object.members.all|slice:":10" %}
+                <c-list-group.item>
+                  <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div class="d-flex align-items-center gap-3">
+                      {# Member avatar #}
+                      {% if membership.person.image %}
+                        <img src="{{ membership.person.image.url }}"
+                             alt="{{ membership.person.name }}"
+                             class="rounded-circle object-fit-cover"
+                             width="40"
+                             height="40" />
+                      {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+                             style="width: 40px;
+                                    height: 40px">
+                          <c-icon name="person"
+                                  class="text-white"
+                                  style="font-size: 1.2rem" />
+                        </div>
+                      {% endif %}
+                      <div>
+                        <h6 class="mb-0">
+                          {% if membership.person.get_absolute_url %}
+                            <a href="{{ membership.person.get_absolute_url }}"
+                               class="text-decoration-none">{{ membership.person.name }}</a>
+                          {% else %}
+                            {{ membership.person.name }}
+                          {% endif %}
+                        </h6>
+                        {% if membership.role %}<small class="text-muted">{{ membership.role }}</small>{% endif %}
+                      </div>
+                    </div>
+                    <div>
+                      {% if membership.is_primary %}
+                        <c-badge variant="primary"
+                                 size="sm"
+                                 :text="{% trans "Primary" %}" />
+                      {% endif %}
+                    </div>
+                  </div>
+                </c-list-group.item>
+              {% empty %}
+                {{ empty_text }}
+              {% endfor %}
+            </c-list-group>
+            {% if object.members.count > 10 %}
+              <div class="card-footer text-center">
+                <small class="text-muted">
+                  {% blocktrans count counter=object.members.count %}
+                    Showing first 10 of {{ counter }} member
+                  {% plural %}
+                    Showing first 10 of {{ counter }} members
+                  {% endblocktrans %}
+                </small>
+              </div>
+            {% endif %}
+          </c-dashboard.card>
+        {% endblock members %}
+      {% endblock overview_main %}
+
+    </div>
+    {# Sidebar #}
+    <div class="col-lg-4">
+      {% block overview_sidebar %}
+        {% block organization_type %}
+          {# Organization Type/Category #}
+          {% if object.type %}
+            <c-dashboard.card title="{% trans "Organization Type" %}"
+                              icon="relationships">
+              <c-badge variant="info" class="fs-6" :text="object.type" />
+            </c-dashboard.card>
+          {% endif %}
+        {% endblock organization_type %}
+
+        {% block location %}
+          {# Location/Address Information #}
+          {% if object.country or object.city %}
+            <c-dashboard.card title="{% trans "Location" %}" icon="location">
+              <dl class="mb-0">
+                {% if object.city %}
+                  <c-detail.info-item label="{% trans "City" %}"
+                                      text="{{ object.city }}" />
+                {% endif %}
+                {% if object.country %}
+                  <c-detail.info-item label="{% trans "Country" %}"
+                                      text="{{ object.country.name }}" />
+                {% endif %}
+              </dl>
+            </c-dashboard.card>
+          {% endif %}
+        {% endblock location %}
+
+        {% block identifiers %}
+          {# External Identifiers #}
+          <c-dashboard.card title="{% trans "Identifiers" %}"
+                            icon="identifier">
+            <dl class="mb-0">
+              {% for identifier in object.identifiers.all %}
+                <c-detail.info-item label="{{ identifier.type }}">
+                  {% if identifier.get_absolute_url %}
+                    <a href="{{ identifier.get_absolute_url }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="text-decoration-none">
+                      {{ identifier.value }}
+                      <c-icon name="external_link" size="12" class="ms-1" />
+                    </a>
+                  {% else %}
+                    {{ identifier.value }}
+                  {% endif %}
+                </c-detail.info-item>
+              {% empty %}
+                <p class="text-muted small mb-0">{{ empty_text }}</p>
+              {% endfor %}
+            </dl>
+          </c-dashboard.card>
+        {% endblock identifiers %}
+
+        {% block external_links %}
+          {# External Links #}
+          <c-dashboard.card title="{% trans "Links" %}" icon="link">
+            {% if object.links %}
+              <div class="d-flex flex-column gap-2">
+                {% for link in object.links %}
+                  <a href="{{ link }}"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="text-decoration-none text-truncate">
+                    <c-icon name="external_link" size="14" class="me-1" />
+                    {{ link }}
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted small mb-0">{{ empty_text }}</p>
+            {% endif %}
+          </c-dashboard.card>
+        {% endblock external_links %}
+
+        {% block alternative_names %}
+          {# Alternative Names / Acronyms #}
+          {% if object.alternative_names %}
+            <c-dashboard.card title="{% trans "Alternative Names" %}"
+                              icon="organization">
+              <div class="d-flex flex-wrap gap-2">
+                {% for alt_name in object.alternative_names %}
+                  <c-badge variant="light"
+                           class="text-dark border"
+                           :text="alt_name" />
+                {% endfor %}
+              </div>
+            </c-dashboard.card>
+          {% endif %}
+        {% endblock alternative_names %}
+
+        {% block parent_organization %}
+          {# Parent Organization (if applicable) #}
+          {% if object.parent %}
+            <c-dashboard.card title="{% trans "Part Of" %}" icon="diagram-2">
+              <div class="d-flex align-items-center gap-2">
+                {% if object.parent.image %}
+                  <img src="{{ object.parent.image.url }}"
+                       alt="{{ object.parent.name }}"
+                       class="rounded object-fit-contain"
+                       width="30"
+                       height="30" />
+                {% endif %}
+                <div>
+                  {% if object.parent.get_absolute_url %}
+                    <a href="{{ object.parent.get_absolute_url }}"
+                       class="text-decoration-none">{{ object.parent.name }}</a>
+                  {% else %}
+                    {{ object.parent.name }}
+                  {% endif %}
+                </div>
+              </div>
+            </c-dashboard.card>
+          {% endif %}
+        {% endblock parent_organization %}
+
+        {% block established %}
+          {# Established Date #}
+          {% if object.established %}
+            <c-dashboard.card title="{% trans "Established" %}"
+                              icon="calendar-event">
+              <dl class="mb-0">
+                <c-detail.info-item text="{{ object.established|date:'Y' }}" />
+              </dl>
+            </c-dashboard.card>
+          {% endif %}
+        {% endblock established %}
+      {% endblock overview_sidebar %}
+
+    </div>
+  </div>
+{% endblock plugin %}

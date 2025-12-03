@@ -1,0 +1,450 @@
+{% extends "fairdm/base.html" %}
+{% load i18n cotton %}
+
+{% block content %}
+  <div class="container">
+    {# Page Header #}
+    <c-detail.header title="{% trans 'Community Dashboard' %}"
+                     icon="people"
+                     subtitle="{% trans 'Overview of our research community including contributors, organizations, collaborations, and recent activity.' %}" />
+    {# Overview Statistics #}
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ total_contributors }}"
+                           label="{% trans 'Total Contributors' %}"
+                           icon="people"
+                           color="primary" />
+      </div>
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ active_contributors }}"
+                           label="{% trans 'Active Contributors' %}"
+                           icon="person"
+                           color="success" />
+      </div>
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ total_users }}"
+                           label="{% trans 'Registered Users' %}"
+                           icon="person"
+                           color="info" />
+      </div>
+      <div class="col-md-3">
+        <c-detail.stat-box value="{{ total_staff }}"
+                           label="{% trans 'Portal Team' %}"
+                           icon="person"
+                           color="warning" />
+      </div>
+    </div>
+    {# Contributor Breakdown #}
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <c-dashboard.card title="{% trans 'Community Growth' %}"
+                          icon="analytics"
+                          class="h-100">
+          <div style="position: relative; height: 300px;">
+            <canvas id="growthChart"></canvas>
+          </div>
+        </c-dashboard.card>
+      </div>
+      <div class="col-lg-4">
+        <c-dashboard.card title="{% trans 'Contributor Types' %}"
+                          icon="pie-chart"
+                          class="h-100">
+          <canvas id="contributorTypeChart"></canvas>
+        </c-dashboard.card>
+      </div>
+    </div>
+    {# Detailed Statistics #}
+    <div class="row g-4 mb-4">
+      {# People & Organizations #}
+      <div class="col-lg-6">
+        <c-dashboard.card title="{% trans 'Contributors' %}" icon="people">
+          <c-slot name="actions">
+            <c-dashboard.card.action href="{% url 'person-list' %}"
+                                     text="{% trans 'View all contributors' %}"
+                                     icon="arrow_right" />
+          </c-slot>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-primary">{{ total_people }}</div>
+                <small class="text-muted">
+                  <c-icon name="person" class="me-1" />
+                  {% trans "People" %}
+                </small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-success">{{ total_organizations }}</div>
+                <small class="text-muted">
+                  <c-icon name="organization" class="me-1" />
+                  {% trans "Organizations" %}
+                </small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-info">{{ contributors_with_identifiers }}</div>
+                <small class="text-muted">
+                  <c-icon name="identifier" class="me-1" />
+                  {% trans "With Identifiers" %}
+                </small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-warning">{{ orcid_count }}</div>
+                <small class="text-muted">
+                  {% comment %} <c-icon name="orcid" renderer="svg" class="me-1" /> {% endcomment %}
+                  {% trans "ORCID iDs" %}
+                </small>
+              </div>
+            </div>
+          </div>
+        </c-dashboard.card>
+      </div>
+      {# Users & Portal Team #}
+      <div class="col-lg-6">
+        <c-dashboard.card title="{% trans 'Portal Users' %}"
+                          icon="person-badge">
+          <c-slot name="actions">
+            <c-dashboard.card.action href="{% url 'active-member-list' %}"
+                                     text="{% trans 'View active members' %}"
+                                     icon="arrow_right" />
+          </c-slot>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-primary">{{ verified_users }}</div>
+                <small class="text-muted">
+                  <c-icon name="verified" class="me-1" />
+                  {% trans "Verified Users" %}
+                </small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-success">{{ recent_users }}</div>
+                <small class="text-muted">
+                  <c-icon name="timeline" class="me-1" />
+                  {% trans "New (30 days)" %}
+                </small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="border rounded p-3 text-center">
+                <div class="h4 mb-1 text-danger">{{ portal_admins }}</div>
+                <small class="text-muted">{% trans "Admins" %}</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="border rounded p-3 text-center">
+                <div class="h4 mb-1 text-info">{{ data_admins }}</div>
+                <small class="text-muted">{% trans "Data" %}</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="border rounded p-3 text-center">
+                <div class="h4 mb-1 text-warning">{{ developers }}</div>
+                <small class="text-muted">{% trans "Devs" %}</small>
+              </div>
+            </div>
+          </div>
+        </c-dashboard.card>
+      </div>
+    </div>
+    {# Contributions & Organizations #}
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <c-dashboard.card title="{% trans 'Contributions' %}"
+                          icon="file_text">
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">{% trans "Total Contributions" %}</span>
+              <strong class="h5 mb-0 text-primary">{{ total_contributions }}</strong>
+            </div>
+          </div>
+          <hr class="my-3" />
+          <h6 class="text-muted mb-3">{% trans "By Type" %}</h6>
+          <div class="list-group list-group-flush">
+            {% for item in contribution_breakdown %}
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                <span class="text-capitalize">{{ item.content_type__model }}</span>
+                <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </c-dashboard.card>
+      </div>
+      <div class="col-lg-6">
+        <c-dashboard.card title="{% trans 'Organizations' %}"
+                          icon="organization">
+          <c-slot name="actions">
+            <c-dashboard.card.action href="{% url 'organization-list' %}"
+                                     text="{% trans 'View all organizations' %}"
+                                     icon="arrow_right" />
+          </c-slot>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-primary">{{ total_affiliations }}</div>
+                <small class="text-muted">{% trans "Total Affiliations" %}</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 text-center">
+                <div class="h3 mb-1 text-success">{{ current_affiliations }}</div>
+                <small class="text-muted">{% trans "Current" %}</small>
+              </div>
+            </div>
+          </div>
+          <hr class="my-3" />
+          <h6 class="text-muted mb-3">{% trans "Top Countries" %}</h6>
+          <div style="position: relative; height: 250px;">
+            <canvas id="countryChart"></canvas>
+          </div>
+        </c-dashboard.card>
+      </div>
+    </div>
+    {# Top Contributors #}
+    <div class="row g-4">
+      <div class="col-lg-12">
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0">
+                <c-icon name="award" class="text-primary me-2" />
+                {% trans "Top Contributors" %}
+              </h5>
+              <ul class="nav nav-pills nav-pills-sm" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active"
+                          id="people-tab"
+                          data-bs-toggle="tab"
+                          data-bs-target="#people-table"
+                          type="button"
+                          role="tab"
+                          aria-controls="people-table"
+                          aria-selected="true">
+                    <c-icon name="person" class="me-1" />
+                    {% trans "People" %}
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link"
+                          id="organizations-tab"
+                          data-bs-toggle="tab"
+                          data-bs-target="#organizations-table"
+                          type="button"
+                          role="tab"
+                          aria-controls="organizations-table"
+                          aria-selected="false">
+                    <c-icon name="organization" class="me-1" />
+                    {% trans "Organizations" %}
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div class="tab-content">
+              {# People Table #}
+              <div class="tab-pane fade show active"
+                   id="people-table"
+                   role="tabpanel"
+                   aria-labelledby="people-tab">
+                <div class="table-responsive">
+                  <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>{% trans "Rank" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th class="text-end">{% trans "Contributions" %}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for person in top_people %}
+                        <tr>
+                          <td>
+                            <strong class="text-muted">#{{ forloop.counter }}</strong>
+                          </td>
+                          <td>
+                            <a href="{{ person.get_absolute_url }}"
+                               class="text-decoration-none">
+                              <c-icon name="person" class="me-1 text-primary" />
+                              {{ person.name }}
+                            </a>
+                          </td>
+                          <td class="text-end">
+                            <strong class="text-primary">{{ person.contribution_count }}</strong>
+                          </td>
+                        </tr>
+                      {% empty %}
+                        <tr>
+                          <td colspan="3" class="text-center text-muted py-4">{% trans "No contributions yet" %}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              {# Organizations Table #}
+              <div class="tab-pane fade"
+                   id="organizations-table"
+                   role="tabpanel"
+                   aria-labelledby="organizations-tab">
+                <div class="table-responsive">
+                  <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>{% trans "Rank" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th class="text-end">{% trans "Contributions" %}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for org in top_organizations %}
+                        <tr>
+                          <td>
+                            <strong class="text-muted">#{{ forloop.counter }}</strong>
+                          </td>
+                          <td>
+                            <a href="{{ org.get_absolute_url }}"
+                               class="text-decoration-none">
+                              <c-icon name="organization" class="me-1 text-success" />
+                              {{ org.name }}
+                            </a>
+                          </td>
+                          <td class="text-end">
+                            <strong class="text-primary">{{ org.contribution_count }}</strong>
+                          </td>
+                        </tr>
+                      {% empty %}
+                        <tr>
+                          <td colspan="3" class="text-center text-muted py-4">{% trans "No contributions yet" %}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {# Close container #}
+{% endblock content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  {# djlint:off #}
+  <script>
+    // Growth Chart
+    const growthCtx = document.getElementById('growthChart').getContext('2d');
+    const monthlyData = JSON.parse('{{ monthly_data_json|escapejs }}');
+
+    new Chart(growthCtx, {
+      type: 'line',
+      data: {
+        labels: monthlyData.map(d => d.month),
+        datasets: [{
+          label: '{% trans "Contributors" %}',
+          data: monthlyData.map(d => d.contributors),
+          borderColor: 'rgb(13, 110, 253)',
+          backgroundColor: 'rgba(13, 110, 253, 0.1)',
+          tension: 0.4,
+          fill: true
+        }, {
+          label: '{% trans "Users" %}',
+          data: monthlyData.map(d => d.users),
+          borderColor: 'rgb(25, 135, 84)',
+          backgroundColor: 'rgba(25, 135, 84, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+
+    // Contributor Type Pie Chart
+    const typeCtx = document.getElementById('contributorTypeChart').getContext('2d');
+
+    new Chart(typeCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['{% trans "People" %}', '{% trans "Organizations" %}'],
+        datasets: [{
+          data: [{{ total_people }}, {{ total_organizations }}],
+          backgroundColor: [
+            'rgb(13, 110, 253)',
+            'rgb(25, 135, 84)'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+
+    // Country Chart
+    const countryCtx = document.getElementById('countryChart').getContext('2d');
+    const countryData = JSON.parse('{{ country_chart_data_json|escapejs }}');
+
+    new Chart(countryCtx, {
+      type: 'bar',
+      data: {
+        labels: countryData.map(d => d.country),
+        datasets: [{
+          label: '{% trans "Organizations" %}',
+          data: countryData.map(d => d.count),
+          backgroundColor: 'rgba(13, 110, 253, 0.8)',
+          borderColor: 'rgb(13, 110, 253)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+</script>
+  {# djlint:on #}
+{% endblock extra_js %}

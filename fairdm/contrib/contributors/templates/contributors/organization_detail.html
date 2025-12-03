@@ -5,6 +5,12 @@
                 :organization="base_object" />
   <div class="mb-3">
     <c-text.heading text="{{ object.name }}" level="1" compact />
+    {% if object.synced_data %}
+      <c-components.badge class="ms-2" color="success">
+        <c-icon name="cloud-check" />
+        {% trans "Synced" %}
+      </c-components.badge>
+    {% endif %}
     {% comment %} <c-contributor.person.identifier /> {% endcomment %}
     {% comment %} <c-contributor.person.affiliations /> {% endcomment %}
   </div>
@@ -22,6 +28,12 @@
                         label="{% trans "Active" %}"
                         message="{% trans "This contributor is an active member of this online community." %}"
                         :visible="object.owner" />
+    {% if object.last_synced %}
+      <c-components.badge style="info"
+                          label="{% trans "Last Synced" %}"
+                          message="{% trans "The date and time when this organization's data was last synchronized from an external source." %}"
+                          value="{{ object.last_synced|date:'SHORT_DATETIME_FORMAT' }}" />
+    {% endif %}
     {% for data_type, count in contributions_by_type.items %}
       <c-components.badge style="secondary"
                           label="{% trans data_type %}"
