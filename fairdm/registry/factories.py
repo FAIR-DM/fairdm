@@ -259,13 +259,12 @@ class TableFactory(ComponentFactory):
         Returns:
             Table subclass configured for the model
         """
-        # If user provided a custom table class, use it
-        if self.config.table_class is not None:
-            if isinstance(self.config.table_class, str):
-                from django.utils.module_loading import import_string
 
-                return import_string(self.config.table_class)
-            return self.config.table_class
+        # If user provided a custom table class, use it
+        table_class = self.config.table_class
+
+        if table_class is not None:
+            return table_class
 
         # Get fields for the table
         fields = self.get_fields()
@@ -275,6 +274,7 @@ class TableFactory(ComponentFactory):
         # We'll need to set orderable on the Meta class after generation
         table_class = table_factory(
             self.model,
+            table=self.get_base_table_class(),
             fields=fields,
         )
 
@@ -288,6 +288,22 @@ class TableFactory(ComponentFactory):
                 table_class._meta.orderable = self.config.orderable
 
         return table_class
+
+    def get_base_table_class(self) -> type[Table]:
+        """Get the base table class to use.
+
+        Returns:
+            Base Table subclass
+        """
+        from fairdm.contrib.collections.tables import MeasurementTable, SampleTable
+        from fairdm.core.models import Measurement, Sample
+
+        if issubclass(self.model, Sample):
+            return SampleTable
+        elif issubclass(self.model, Measurement):
+            return MeasurementTable
+
+        return Table
 
 
 class FilterFactory(ComponentFactory):

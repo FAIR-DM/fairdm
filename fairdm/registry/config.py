@@ -197,6 +197,38 @@ class ModelConfiguration:
             return "No model specified"
         return f"Configuration for {self.model.__name__}"
 
+    def get_slug(self) -> str:
+        """Get the URL-safe slug for this model.
+
+        Returns the model's lowercase model name, which is used in URLs and view names.
+
+        Returns:
+            str: The model's slug (e.g., 'customsample', 'watermeasurement')
+        """
+        if not self.model:
+            return "unknown"
+        return self.model._meta.model_name
+
+    def get_verbose_name(self) -> str:
+        """Get the singular verbose name for this model.
+
+        Returns:
+            str: The model's verbose name (e.g., 'custom sample', 'water measurement')
+        """
+        if not self.model:
+            return "Unknown Model"
+        return str(self.model._meta.verbose_name)
+
+    def get_verbose_name_plural(self) -> str:
+        """Get the plural verbose name for this model.
+
+        Returns:
+            str: The model's plural verbose name (e.g., 'custom samples', 'water measurements')
+        """
+        if not self.model:
+            return "Unknown Models"
+        return str(self.model._meta.verbose_name_plural)
+
     # Component Generation Methods
 
     def get_form_class(self) -> type[ModelForm]:
@@ -271,7 +303,7 @@ class ModelConfiguration:
                 "created",
                 "modified",
                 "options",
-                "tags",
+                "keywords",
             ]
             return factories.modelresource_factory(self.model, exclude=exclude)
 

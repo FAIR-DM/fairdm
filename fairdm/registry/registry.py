@@ -146,8 +146,6 @@ class FairDMRegistry:
         if model_class in self._registry:
             return  # Skip if already registered
 
-        self.register_actstream(model_class)
-
         # Get or create configuration instance
         config_instance = self.get_config(model_class, config)
 
@@ -156,11 +154,6 @@ class FairDMRegistry:
 
         # Store just the config instance
         self._registry[model_class] = config_instance
-
-    def register_actstream(self, model_class):
-        from actstream import registry as actstream_registry
-
-        actstream_registry.register(model_class)
 
     def register_admin(self, model_class, config_instance):
         """Register model with Django admin using auto-generated admin class from config."""
