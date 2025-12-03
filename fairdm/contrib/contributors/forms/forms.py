@@ -1,103 +1,134 @@
-from client_side_image_cropping import ClientsideCroppingWidget
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit
+from dal import autocomplete
 from django import forms
+from django.forms.models import BaseInlineFormSet
 from django.utils.translation import gettext as _
-from django_select2.forms import Select2MultipleWidget, Select2Widget
 
-from fairdm.utils.choices import iso_639_1_languages
+from ..models import ContributorIdentifier, Organization, OrganizationMember, Person
 
-from ..models import Contribution, Contributor
+
+class UserIdentifierFormSet(BaseInlineFormSet):
+    """Custom formset for identifiers that tracks existing types to prevent duplicates."""
+
+    def get_form_kwargs(self, index):
+        """Pass existing types to each form so it can filter choices appropriately."""
+        kwargs = super().get_form_kwargs(index)
+
+        # Collect existing identifier types from the instance's saved identifiers
+        # This gets called before forms are bound, so we need to look at the queryset
+        existing_types = set()
+
+        # Get the instance being edited in this form (if any)
+        current_instance = None
+        if self.queryset is not None and index is not None and index < len(self.queryset):
+            current_instance = self.queryset[index]
+
+        # Collect types from all existing identifiers except the current one
+        if self.queryset is not None:
+            for obj in self.queryset:
+                if obj != current_instance:
+                    existing_types.add(obj.type)
+
+        kwargs["existing_types"] = existing_types
+        return kwargs
 
 
 class UserIdentifierForm(forms.ModelForm):
-    class Meta:
-        # model = Identifier
-        fields = ["type", "value"]
+    """Form for editing user persistent identifiers (ORCID, etc.).
+
+    Used in inline formset for managing multiple identifiers per user.
+    Filters available identifier types based on contributor type (Person vs Organization)
+    and excludes types that are already selected in other forms.
+    """
 
     def __init__(self, *args, **kwargs):
+        # Extract contributor_instance and existing_types from kwargs if provided
+        contributor_instance = kwargs.pop("contributor_instance", None)
+        existing_types = kwargs.pop("existing_types", set())
         super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            "type",
-            "value",
-            "delete",
-        )
-        self.helper.add_input(Submit("submit", "Save"))
 
+        # Filter identifier type choices based on contributor type
+        if contributor_instance:
+            vocabulary = self._meta.model.VOCABULARY
+            if isinstance(contributor_instance, Person):
+                # Person: ORCID, ResearcherID
+                filtered_vocab = vocabulary.from_collection("Person")
+            elif isinstance(contributor_instance, Organization):
+                # Organization: ROR, Wikidata, ISNI, Crossref Funder ID
+                filtered_vocab = vocabulary.from_collection("Organization")
+            else:
+                # Fallback: all types
+                filtered_vocab = vocabulary
 
-class UserProfileForm(forms.ModelForm):
-    image = forms.ImageField(
-        widget=ClientsideCroppingWidget(
-            width=300,
-            height=300,
-            preview_width=150,
-            preview_height=150,
-            file_name="profile.jpg",
-        ),
-        required=False,
-        label=False,
-    )
-    lang = forms.ChoiceField(
-        choices=iso_639_1_languages,
-        initial="en",
-        # widget=Selectize(),
-        help_text=_("Preferred display language for this site (where possible)."),
-        label=_("Language"),
-    )
+            # Get all available choices
+            all_choices = filtered_vocab.choices
 
-    name = forms.CharField(help_text=_("Your name as it will appear on this site."))
+            # Filter out already-selected types (unless this is the current instance's type)
+            current_type = self.instance.type if self.instance.pk else None
+            available_choices = [
+                (value, label)
+                for value, label in all_choices
+                if value == "" or value == current_type or value not in existing_types
+            ]
+
+            # Update the choices for the type field
+            self.fields["type"].choices = available_choices
 
     class Meta:
-        model = Contributor
-        fields = [
-            "image",
-            "name",
-            "lang",
-            "profile",
-        ]
-
-
-class ContributionForm(forms.ModelForm):
-    """Used to modify contributors on a project, dataset, etc. and assign roles."""
-
-    class Meta:
-        model = Contribution
-        fields = [
-            # "object",
-            "contributor",
-            "roles",
-        ]
-        widgets = {
-            "contributor": Select2Widget(),
-            "roles": Select2MultipleWidget,
+        model = ContributorIdentifier
+        fields = ["type", "value"]
+        labels = {
+            "type": _("Type"),
+            "value": _("Value"),
         }
 
 
-class ContributorForm(forms.ModelForm):
-    image = forms.ImageField(
-        help_text="Please do not upload files larger than 1MB",
-        required=False,
+class AffiliationForm(forms.ModelForm):
+    """Form for editing organizational affiliations.
+
+    Used in inline formset for managing person's organizational memberships.
+    Automatically sets membership type based on organization's existing memberships:
+    - PENDING if organization has owners or admins
+    - MEMBER if organization has no owners or admins
+    """
+
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.all(),
+        label=_("Organization"),
+        help_text=_("Select an organization."),
+        widget=autocomplete.ModelSelect2(url="autocomplete:organization"),
     )
 
+    def save(self, commit=True):
+        """Override save to automatically set membership type."""
+        instance = super().save(commit=False)
+
+        # Only set type for new memberships (not when editing existing ones)
+        if not instance.pk:
+            # Check if organization has owners or admins
+            from .models import OrganizationMember
+
+            has_managers = instance.organization.memberships.filter(
+                type__in=[OrganizationMember.MembershipType.OWNER, OrganizationMember.MembershipType.ADMIN]
+            ).exists()
+
+            # Set type based on whether organization has managers
+            if has_managers:
+                instance.type = OrganizationMember.MembershipType.PENDING
+            else:
+                instance.type = OrganizationMember.MembershipType.MEMBER
+
+        if commit:
+            instance.save()
+        return instance
+
     class Meta:
-        model = Contributor
-        fields = ["image", "name", "profile", "lang"]
-
-
-class IdentifierForm(forms.ModelForm):
-    min_siblings = 0
-
-    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
-    scheme = forms.ChoiceField(
-        label=_("Scheme"),
-        help_text=_("The scheme that the identifier is based on."),
-        choices=[],  # set dynamically in __init__,
-    )
-
-    class Meta:
-        fields = ["scheme", "identifier"]
-
-    def __init__(self, scheme_choices, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["scheme"].choices = scheme_choices
+        model = OrganizationMember
+        fields = ["organization", "is_primary", "is_current"]
+        labels = {
+            "is_primary": _("Primary"),
+            "is_current": _("Current"),
+        }
+        help_texts = {
+            "is_primary": _("Your primary affiliation."),
+            "is_current": _("Is this affiliation ongoing?"),
+        }

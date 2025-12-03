@@ -1,138 +1,74 @@
-from crispy_forms.bootstrap import StrictButton, Tab, TabHolder
-from crispy_forms.layout import HTML, Column, Div, Fieldset, Layout, Row
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django_countries import countries
-from django_select2.forms import Select2Widget
 
 from fairdm.contrib.contributors.models import Organization
 from fairdm.forms import ModelForm
-from fairdm.forms.fields import LatitudeField, LongitudeField
 
 from .widgets import RORWidget
 
-ADD_MANUALLY_HELP_TEXT = _(
-    "If the organization you wish to add is not in the Research Organization Registry (ROR), you can add it manually by filling out the form below. Please provide as much information as possible to ensure accurate representation."
-)
 
-ADD_FROM_ROR_HELP_TEXT = _("Search for an organization using the Research Organization Registry (ROR).")
+class OrganizationCreateForm(ModelForm):
+    """Form for creating a new organization.
 
+    Provides two methods of creation:
+    1. Search ROR - Fetch organization data from Research Organization Registry
+    2. Add Manually - Enter organization information manually
 
-class OrgMixin:
-    name = forms.CharField(
+    The form uses action-based validation to ensure only the active method's
+    fields are validated.
+    """
+
+    from_ror = forms.CharField(
+        label=_("ROR ID"),
         required=False,
-        help_text=_("This is how the organization will be displayed within the portal and on any published materials."),
-    )
-    lat = LatitudeField(
-        required=False,
-        label=_("Latitude"),
-        help_text=_("The latitude of the organization's location."),
-    )
-    lon = LongitudeField(
-        required=False,
-        label=_("Longitude"),
-        help_text=_("The longitude of the organization's location."),
+        help_text=_("Search the Research Organization Registry. Type at least 3 characters."),
+        widget=RORWidget(
+            attrs={
+                "data-placeholder": _("Search for an organization..."),
+                "data-minimum-input-length": "3",
+            }
+        ),
     )
     country = forms.ChoiceField(
         required=False,
         choices=countries,
-        label=_("Country"),
-        help_text=_("The country where the organization is based."),
-        widget=Select2Widget,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["name"].required = False
-
-
-class OrganizationCreateForm(OrgMixin, ModelForm):
-    """Form to create a new contributor from ORCID or manually from form data."""
-
-    from_ror = forms.CharField(
-        label="ROR ID",
-        required=False,
-        widget=RORWidget(
-            attrs={
-                "data-placeholder": _("Search for an organization..."),
-                "data-minimum-input-length": 3,
-            }
-        ),
+        widget=forms.Select,
     )
 
     class Meta:
         model = Organization
-        fields = ["from_ror", "name", "lat", "lon", "country"]
+        fields = ["from_ror", "name", "location", "country"]
+        labels = {
+            "country": _("Country"),
+        }
+        help_texts = {
+            "name": _("How the organization will be displayed in the portal and publications."),
+            "country": _("The country where the organization is based."),
+            "location": _("Geographic location or address."),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        location_text = "Provide an optional location for the organization. This allows us to include the organization in maps and geographic visualizations."
-        self.helper.layout = Layout(
-            Div(
-                TabHolder(
-                    Tab(
-                        _("Search ROR"),
-                        HTML(f"<p class='text-muted'>{ADD_FROM_ROR_HELP_TEXT}</p>"),
-                        "from_ror",
-                        StrictButton(
-                            _("Add organization"),
-                            name="action",
-                            value="from_ror",
-                            type="submit",
-                            css_class="btn btn-primary",
-                        ),
-                        css_class="py-3",
-                    ),
-                    Tab(
-                        _("Add Manually"),
-                        HTML(f"<p class='text-muted'>{ADD_MANUALLY_HELP_TEXT}</p>"),
-                        Fieldset(
-                            _("Required"),
-                            "name",
-                            "country",
-                        ),
-                        Fieldset(
-                            _("Optional"),
-                            HTML(f"<p>{location_text}</p>"),
-                            Row(
-                                Column("lat"),
-                                Column("lon"),
-                            ),
-                        ),
-                        StrictButton(
-                            _("Add organization"),
-                            name="action",
-                            value="from_form",
-                            type="submit",
-                            css_class="btn btn-primary",
-                        ),
-                        css_class="py-3",
-                    ),
-                ),
-                x_data={},
-            )
-        )
-        self.action = None
-        if self.data:
-            self.action = self.data.get("action")
+        self.action = self.data.get("action") if self.data else None
 
     def clean_name(self):
         name = self.cleaned_data.get("name")
         if self.action == "from_form" and not name:
-            raise ValidationError("This field is required.")
+            raise ValidationError(_("Organization name is required when adding manually."))
         return name
 
     def clean_country(self):
         country = self.cleaned_data.get("country")
         if self.action == "from_form" and not country:
-            raise ValidationError("This field is required.")
+            raise ValidationError(_("Country is required when adding manually."))
         return country
 
     def clean_from_ror(self):
         ror_id = self.cleaned_data.get("from_ror")
         if self.action == "from_ror" and not ror_id:
-            raise ValidationError("This field is required.")
+            raise ValidationError(_("ROR ID is required when searching ROR."))
         return ror_id
 
     def save(self, commit: bool = True):
@@ -145,43 +81,33 @@ class OrganizationCreateForm(OrgMixin, ModelForm):
         return super().save(commit)
 
 
-class OrganizationProfileForm(OrgMixin, ModelForm):
-    """Form to edit an existing organization profile."""
+class OrganizationProfileForm(ModelForm):
+    """Form for editing an existing organization's profile.
 
-    # image = forms.ImageField(
-    #     widget=ClientsideCroppingWidget(
-    #         width=600,
-    #         height=400,
-    #         preview_width="100%",
-    #         preview_height="auto",
-    #         file_name="logo.jpg",
-    #     ),
-    #     required=False,
-    #     label=False,
-    # )
+    Includes image upload, basic information (name, country, location),
+    and biographical profile.
+    """
 
-    # hopefully this can be removed when this issue is solved: https://github.com/koendewit/django-client-side-image-cropping/issues/15
+    country = forms.ChoiceField(
+        choices=countries,
+        widget=forms.Select,
+    )
 
     class Meta:
         model = Organization
-        fields = ["image", "name", "country", "lat", "lon", "profile"]
+        fields = ["image", "name", "country", "location", "profile"]
+        labels = {
+            "image": _("Logo"),
+            "profile": _("About"),
+        }
+        help_texts = {
+            "image": _("Upload an organization logo or representative image."),
+            "name": _("Official name of the organization."),
+            "country": _("Country where the organization is headquartered."),
+            "location": _("Specific location or address."),
+            "profile": _("Brief description of the organization's purpose and activities."),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    "image",
-                    css_class="col-md-4",
-                ),
-                Column(
-                    "name",
-                    "country",
-                    Row(Column("lat"), Column("lon")),
-                    "profile",
-                    # css_class="col-md-8",
-                ),
-                css_class="gx-4 flex-md-row-reverse",
-            ),
-        )
-        self.helper.form_id = "user-profile-form"
+        self.helper.form_id = "organization-profile-form"

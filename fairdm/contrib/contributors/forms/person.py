@@ -1,5 +1,3 @@
-from client_side_image_cropping import ClientsideCroppingWidget
-from crispy_forms.layout import Column, Layout, Row
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
@@ -19,6 +17,14 @@ class SignupExtraForm(forms.ModelForm):
     class Meta:
         model = get_user_model()
         fields = ("first_name", "last_name")
+        labels = {
+            "first_name": _("First name"),
+            "last_name": _("Last name"),
+        }
+        help_texts = {
+            "first_name": _("Your given name."),
+            "last_name": _("Your family name."),
+        }
 
     def signup(self, request, user):
         """Save the user's first and last name."""
@@ -27,77 +33,35 @@ class SignupExtraForm(forms.ModelForm):
         user.save()
 
 
-class BaseUserForm(ModelForm):
-    class Meta:
-        model = get_user_model()
-        fields = ["first_name", "last_name", "email"]
-
-
 class UserProfileForm(ModelForm):
+    """Form for editing user profile information.
+
+    Includes image cropping, name fields, and biographical profile.
+    Used in account management and contributor profile editing.
+    """
+
     image = forms.ImageField(
-        widget=ClientsideCroppingWidget(
-            width=300,
-            height=300,
-            preview_width="100%",
-            preview_height="auto",
-            file_name="profile.jpg",
-        ),
         required=False,
         label=False,
     )
-    # lang = forms.ChoiceField(
-    #     choices=iso_639_1_languages,
-    #     initial="en",
-    #     # widget=Selectize(),
-    #     help_text=_("Preferred display language for this site (where possible)."),
-    #     label=_("Language"),
-    # )
-
-    name = forms.CharField(
-        label=_("Publishing name"),
-        help_text=_("Your full name as you wish it to appear on formal research documents."),
-    )
-    profile = MartorFormField(
-        label=_("Profile"),
-        help_text=_("A short biography or description of yourself. This will be publicly visible."),
-        required=False,
-    )
-
-    # hopefully this can be removed when this issue is solved: https://github.com/koendewit/django-client-side-image-cropping/issues/15
-    class Media:
-        css = {
-            "all": (
-                "client_side_image_cropping/croppie.css",
-                # "client_side_image_cropping/cropping_widget.css",
-            ),
-        }
-        js = (
-            "client_side_image_cropping/croppie.min.js",
-            "client_side_image_cropping/cropping_widget.js",
-        )
+    profile = MartorFormField(required=False)
 
     class Meta:
         model = User
-        fields = "__all__"
         fields = ["image", "name", "first_name", "last_name", "profile"]
+        labels = {
+            "name": _("Publishing name"),
+            "first_name": _("First name"),
+            "last_name": _("Last name"),
+            "profile": _("Biography"),
+        }
+        help_texts = {
+            "name": _("Your full name as it appears in formal research documents and citations."),
+            "first_name": _("Your given name."),
+            "last_name": _("Your family name."),
+            "profile": _("A brief biography or professional summary. This will be publicly visible."),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    "image",
-                    css_class="col-md-4",
-                ),
-                Column(
-                    "name",
-                    Row(Column("first_name"), Column("last_name")),
-                    "profile",
-                    # "lang",
-                    # "email",
-                    # css_class="col-md-8",
-                ),
-                css_class="gx-4 flex-md-row-reverse",
-            ),
-        )
-        self.helper.form_id = "user-profile-form"
+        self.helper.form_id = "person-profile-form"

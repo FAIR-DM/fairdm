@@ -1,215 +1,147 @@
-from crispy_forms.bootstrap import StrictButton, Tab, TabHolder
-from crispy_forms.layout import HTML, Column, Div, Layout, Row
 from django import forms
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django_addanother.widgets import AddAnotherWidgetWrapper
-from django_select2.forms import ModelSelect2Widget, Select2MultipleWidget
+from django_select2.forms import HeavySelect2MultipleWidget, HeavySelect2Widget
 from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.models import Contribution, Contributor, Organization, Person
 from fairdm.forms import Form, ModelForm
 
-from .widgets import ContributorSelectMultipleWidget, OrcidInputWidget
-
-ADD_USER_MANUALLY_HELP_TEXT = _(
-    "If the person you wish to add is not yet in our system and they do not have an ORCID ID, you can add their information manually. Please fill in the required fields below."
-)
-
-ADD_FROM_ORCID_HELP_TEXT = [
-    _(
-        "If the person you wish to add has an ORCID ID, you can enter it below to retrieve their information automatically. This will help ensure that their contributions are accurately recorded and linked to their ORCID profile."
-    ),
-    _(
-        "If you are unsure of their ORCID ID, you can search for them on the <a href='https://orcid.org/orcid-search/search' target='_blank'>ORCID website</a>."
-    ),
-]
-
-p_joiner = "</p><p class='text-muted'>"
+from .widgets import ContributorSelect2Widget, OrcidInputWidget
 
 
 class PersonCreateForm(ModelForm):
-    """Form to create a new contributor from ORCID or manually from form data."""
+    """Form for creating a new person contributor.
+
+    Provides two methods of creation:
+    1. Search ORCID - Fetch person data from ORCID registry
+    2. Add Manually - Enter person information manually
+
+    The form uses action-based validation to ensure only the active method's
+    fields are validated.
+    """
 
     from_orcid = forms.CharField(
-        label="ORCID ID",
+        label=_("ORCID iD"),
         required=False,
         widget=OrcidInputWidget,
-    )
-    name = forms.CharField(
-        required=False,
         help_text=_(
-            "Please add the full name of the contributor as it should appear in our system and in formal citations. If left blank, this will be populated from the first and last name fields below."
+            "Enter the ORCID iD to automatically retrieve contributor information. "
+            "Search for ORCIDs at https://orcid.org/orcid-search/search"
         ),
-    )
-    first_name = forms.CharField(
-        required=False,
-        help_text=_("First name of the contributor."),
-    )
-    last_name = forms.CharField(
-        required=False,
-        help_text=_("Last name of the contributor."),
     )
     affiliations = forms.ModelChoiceField(
         queryset=Organization.objects.all(),
         required=False,
-        label="Affiliation",
+        label=_("Affiliation"),
         help_text=_(
-            "Select an affiliation for this contributor. If you cannot find the correct affiliation, use the plus icon on the right to add a new organization to our system."
+            "Select the contributor's organizational affiliation. Use the + button to add a new organization if needed."
         ),
         widget=AddAnotherWidgetWrapper(
-            ModelSelect2Widget(
-                search_fields=["name__icontains"],
-            ),
+            HeavySelect2Widget(data_view="organization-autocomplete"),
             reverse_lazy("organization-add"),
         ),
     )
-
     is_primary = forms.BooleanField(
         required=False,
-        label=_("Primary Affiliation"),
-        help_text=_(
-            "Check this box if this is the primary affiliation of this contributor. Marking as primary implies that this is also a current affiliation."
-        ),
+        label=_("Primary affiliation"),
+        help_text=_("Primary affiliation implies current affiliation."),
     )
-
     is_current = forms.BooleanField(
         required=False,
-        label=_("Current Affiliation"),
-        help_text=_(
-            "Check this box if this person is currently affiliated with this organization. If not checked, it will be marked as a past affiliation."
-        ),
+        label=_("Current affiliation"),
+        help_text=_("Uncheck if this is a past affiliation."),
     )
 
     class Meta:
         model = Person
         fields = ["from_orcid", "name", "first_name", "last_name", "affiliations", "is_primary", "is_current"]
+        help_texts = {
+            "name": _(
+                "Full name as it should appear in citations. If blank, will be generated from first and last name."
+            ),
+            "first_name": _("Given name of the contributor."),
+            "last_name": _("Family name of the contributor."),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = Layout(
-            Div(
-                TabHolder(
-                    Tab(
-                        _("Search ORCID"),
-                        HTML(f"<p class='text-muted'>{p_joiner.join(ADD_FROM_ORCID_HELP_TEXT)}</p>"),
-                        "from_orcid",
-                        StrictButton(
-                            _("Add contributor"),
-                            name="action",
-                            value="from_orcid",
-                            type="submit",
-                            css_class="btn btn-primary",
-                        ),
-                        css_class="py-3",
-                    ),
-                    Tab(
-                        _("Add Manually"),
-                        HTML(f"<p class='text-muted'>{ADD_USER_MANUALLY_HELP_TEXT}</p>"),
-                        "name",
-                        Row(
-                            Column("first_name"),
-                            Column("last_name"),
-                        ),
-                        "affiliations",
-                        "is_primary",
-                        "is_current",
-                        # Row(
-                        # Column("is_primary"),
-                        # Column("is_current"),
-                        # ),
-                        StrictButton(
-                            _("Add contributor"),
-                            name="action",
-                            value="from_form",
-                            type="submit",
-                            css_class="btn btn-primary",
-                        ),
-                        css_class="py-3",
-                    ),
-                ),
-                x_data={"orcid": ""},
-            )
-        )
-        self.action = None
-        if self.data:
-            self.action = self.data.get("action")
-
-    # def clean_name(self):
-    #     name = self.cleaned_data.get("name", "")
-    #     if self.action == "from_form" and not name:
-    #         raise ValidationError("This field is required.")
-    #     return name
+        self.action = self.data.get("action") if self.data else None
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get("first_name", "")
         if self.action == "from_form" and not first_name:
-            raise ValidationError("This field is required.")
+            raise ValidationError(_("First name is required when adding manually."))
         return first_name
 
     def clean_last_name(self):
         last_name = self.cleaned_data.get("last_name", "")
         if self.action == "from_form" and not last_name:
-            raise ValidationError("This field is required.")
+            raise ValidationError(_("Last name is required when adding manually."))
         return last_name
 
     def clean_affiliations(self):
         affiliation = self.cleaned_data.get("affiliations")
         if self.action == "from_form" and not affiliation:
-            raise ValidationError("This field is required.")
+            raise ValidationError(_("Affiliation is required when adding manually."))
         return affiliation
 
     def clean_from_orcid(self):
         orcid_id = self.cleaned_data.get("from_orcid", "")
         if self.action == "from_orcid" and not orcid_id:
-            raise ValidationError("This field is required.")
+            raise ValidationError(_("ORCID iD is required when searching ORCID."))
         return orcid_id
 
     def save(self, commit=True):
         if self.action == "from_orcid":
             orcid_id = self.cleaned_data.get("from_orcid")
-            # Fetch person data from ORCID and populate the form fields
-            # This is a placeholder for the actual implementation
-            self.instance, created = Person.from_orcid(orcid_id)
+            self.instance, _ = Person.from_orcid(orcid_id)
             return self.instance
 
         self.instance = super().save(commit)
         affiliations = self.cleaned_data.get("affiliations")
         if commit and affiliations:
-            is_primary = self.cleaned_data.get("is_primary")
-            is_current = True if is_primary else self.cleaned_data.get("is_current", False)
+            is_primary = self.cleaned_data.get("is_primary", False)
+            is_current = is_primary or self.cleaned_data.get("is_current", False)
             self.instance.organization_memberships.create(
                 is_primary=is_primary,
                 is_current=is_current,
                 organization=affiliations,
             )
-            # self.instance.affiliations.add(affiliations)
-            # self.instance.save()
         return self.instance
 
 
 class UpdateContributionForm(ModelForm):
-    """Form to update an existing contribution."""
+    """Form for editing an existing contribution's roles and affiliation.
+
+    Dynamically filters available roles based on the object type (Project,
+    Dataset, etc.) and available affiliations based on the contributor's
+    organization memberships.
+    """
 
     roles = forms.ModelMultipleChoiceField(
         queryset=Concept.objects.none(),
-        help_text="Select roles for the contributor.",
-        widget=Select2MultipleWidget,
+        widget=HeavySelect2MultipleWidget(data_view="concept-autocomplete"),
     )
-
     affiliation = forms.ModelChoiceField(
-        queryset=Person.contributors.all(),  # This will be populated dynamically
+        queryset=Person.contributors.all(),
         required=False,
-        label=_("Affiliation"),
-        help_text=_(
-            "Select the contributor's affiliation for this entry. You may choose a past affiliation if relevant. The organization will be properly credited."
-        ),
     )
 
     class Meta:
         model = Contribution
         fields = ["roles", "affiliation"]
+        labels = {
+            "affiliation": _("Affiliation"),
+        }
+        help_texts = {
+            "roles": _("Select one or more contributor roles."),
+            "affiliation": _(
+                "The contributor's organizational affiliation for this contribution. Past affiliations are acceptable."
+            ),
+        }
 
     def __init__(self, *args, **kwargs):
         self.base_object = kwargs.pop("base_object", None)
@@ -223,17 +155,19 @@ class UpdateContributionForm(ModelForm):
 
 
 class QuickAddContributionForm(Form):
+    """Simple form for quickly adding multiple contributors at once."""
+
     contributors = forms.ModelMultipleChoiceField(
         queryset=Contributor.objects.all(),
         required=True,
-        label="",
-        widget=ContributorSelectMultipleWidget(
-            attrs={
-                "data-placeholder": "Search for contributors...",
-                "data-minimum-input-length": 2,
-            }
-        ),
+        label=_("Contributors"),
+        help_text=_("Search and select contributors to add. Type to search."),
+        widget=ContributorSelect2Widget,
     )
 
     class Meta:
         fields = ["contributors"]
+
+    def __init__(self, base_object, *args, **kwargs):
+        self.base_object = base_object
+        super().__init__(*args, **kwargs)

@@ -33,23 +33,6 @@ class ContributorListView(FairDMListView):
 
     model = Contributor
     title = _("Contributors")
-    grid_config = {
-        "cols": 1,
-        "gap": 2,
-        "responsive": {"md": 2},
-        "card": "contributor.card.person",
-    }
-    # description = _(
-    #     "Discover past, present and future research projects shared by our community to see what other are working on."
-    # )
-    # about = [
-    #     _(
-    #         "A research project serves as a container for multiple datasets that share common metadata, such as funding sources, project descriptions, contributors, and institutional affiliations. This page presents publicly listed research projects contributed by community members, allowing you to explore what others are working on."
-    #     ),
-    #     _(
-    #         "Search and filter projects by topic, field, or format. Each project may contain multiple datasets, which can be accessed individually."
-    #     ),
-    # ]
     learn_more = user_guide("project")
     image = static("img/stock/contributors.jpg")
     filterset_class = ContributorFilter

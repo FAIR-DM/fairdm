@@ -11,7 +11,7 @@ class OrganizationListView(FairDMListView):
     """List of organizations that the user is a member of."""
 
     model = Organization
-    filterset_class = OrganizationFilter  # No filter for organizations
+    filterset_class = OrganizationFilter
     title = _("Organizations")
     heading_config = {
         "icon": "organization",
@@ -32,9 +32,6 @@ class OrganizationCreateView(FairDMCreateView):
 
     heading_config = {
         "title": _("Create Organization"),
-        "description": _(
-            "This data import workflow allows you to upload an existing dataset formatted according to the latest specifications of the Global Heat Flow Database. "
-        ),
     }
     form_class = OrganizationCreateForm
 
