@@ -11,6 +11,7 @@ docs/_build
 docs/apidocs
 test*
 tmp*
+temp*
 
 # Temporary and binary files
 *~
