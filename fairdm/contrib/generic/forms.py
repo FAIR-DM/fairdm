@@ -1,14 +1,12 @@
 from crispy_forms.helper import FormHelper
 from django import forms
 from django.forms import BaseFormSet, BaseInlineFormSet
-from django.forms.models import BaseInlineFormSet
 from django.utils.module_loading import import_string
-from django_select2.forms import Select2MultipleWidget, Select2TagWidget
+from django_select2.forms import Select2TagWidget
 from extra_views import InlineFormSetFactory
 from martor.fields import MartorFormField
-from research_vocabs.forms import MultiConceptField, TaggableConceptFormMixin
 
-from fairdm.core.models import Dataset
+from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
 from fairdm.core.sample.models import SampleDescription
 from fairdm.forms import PartialDateField
 from fairdm.utils.utils import get_setting
@@ -125,36 +123,104 @@ class DateForm(TypeVocabularyFormMixin):
         fields = ["value", "type"]
 
 
-class KeywordForm(TaggableConceptFormMixin, forms.ModelForm):
-    tags = forms.CharField(
-        label="Free keywords",
-        help_text="Additional keywords that are not available in the listed controlled vocabularies.",
-        widget=TagWidget,
-        required=False,
-    )
+class KeywordForm(forms.ModelForm):
+    """
+    A flexible form for managing keywords on FairDM objects.
+
+    This form dynamically creates fields for each vocabulary specified in settings.
+    For Project: uses FAIRDM_PROJECT["keywords"]
+    For Dataset: uses FAIRDM_DATASET["keyword_vocabularies"]
+    For other models: looks for FAIRDM_{MODEL}["keywords"]
+
+    Free keywords (tags) are always shown last as a fallback option.
+    """
 
     class Meta:
-        model = Dataset
-        fields = ["tags"]
-        taggable_fields = []
-        # The field name to add the controlled voacbulary keywords to
-        taggable_field_name = "keywords"
+        fields = ["keywords"]
 
     def __init__(self, *args, **kwargs):
+        # Set the model dynamically based on the instance
+        if kwargs.get("instance"):
+            self._meta.model = kwargs["instance"].__class__
+
         super().__init__(*args, **kwargs)
+
+        # Get the model name for settings lookup
+        model_name = self._meta.model._meta.model_name.upper()
+
+        # Try different settings patterns
+        vocabularies = None
+        if model_name == "DATASET":
+            # Legacy support for DATASET using "keyword_vocabularies"
+            vocabularies = get_setting("DATASET", "keyword_vocabularies")
+        else:
+            # Standard pattern: FAIRDM_{MODEL}["keywords"]
+            vocabularies = get_setting(model_name, "keywords")
+
+        # Default to empty list if no vocabularies configured
+        vocabularies = vocabularies or []
+
+        # Get existing keywords if we have an instance
+        existing_keywords = []
+        if self.instance and self.instance.pk:
+            existing_keywords = list(self.instance.keywords.all())
+
+        # Create a field for each vocabulary using autocomplete
+        for vocab_str in vocabularies:
+            vocab_class = import_string(vocab_str)
+            field_name = vocab_class.__name__
+
+            # Use the simplified ConceptMultiSelect field
+            self.fields[field_name] = ConceptMultiSelect(vocabulary=vocab_str, required=False)
+
+            # Set initial values from existing keywords that match this vocabulary
+            if existing_keywords:
+                # Get the vocabulary name to filter existing keywords
+                vocab_name = vocab_class._meta.name
+                matching_keywords = [kw for kw in existing_keywords if kw.vocabulary.name == vocab_name]
+                if matching_keywords:
+                    self.initial[field_name] = matching_keywords
+
+        # Add free keywords field at the END of the form (after vocabulary fields)
+        self.fields["tags"] = forms.CharField(
+            label="Free keywords",
+            help_text="Additional keywords that are not available in the listed controlled vocabularies.",
+            widget=TagWidget,
+            required=False,
+        )
 
         self.helper = FormHelper()
         self.helper.form_id = "keyword-form"
 
-    def before_populate_concepts(self):
-        vocabularies = get_setting("DATASET", "keyword_vocabularies")
-        for vocab_str in vocabularies:
-            vocab_class = import_string(vocab_str)
-            self.taggable_fields.append(vocab_class.__name__)
-            self.fields[vocab_class.__name__] = MultiConceptField(
-                vocabulary=vocab_class, widget=Select2MultipleWidget, required=False
-            )
-        # self._meta.fields = fields + self._meta.fields
+    def save(self, commit=True):
+        """
+        Save the form, handling both vocabulary-based keywords and free-form tags.
+        """
+        instance = super().save(commit=False)
+
+        if commit:
+            instance.save()
+
+            # Collect all selected concepts from vocabulary fields
+            concepts = []
+            for field_name, field in self.fields.items():
+                if isinstance(field, ConceptMultiSelect) and field_name in self.cleaned_data:
+                    concepts.extend(self.cleaned_data[field_name])
+
+            # Set the keywords M2M relationship (always set, even if empty to clear old values)
+            instance.keywords.set(concepts)
+
+            # Handle tags separately if the model has a tags field
+            if hasattr(instance, "tags") and "tags" in self.cleaned_data:
+                tags_value = self.cleaned_data["tags"]
+                if tags_value:
+                    # TagWidget returns a list of tag names
+                    instance.tags.set(*tags_value.split(",") if isinstance(tags_value, str) else tags_value)
+                else:
+                    # Clear tags if empty
+                    instance.tags.clear()
+
+        return instance
 
 
 # Inlines: To be used with extra_views.UpdateWithInlinesView
