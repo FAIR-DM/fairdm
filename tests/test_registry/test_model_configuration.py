@@ -5,8 +5,6 @@ auto-generation, component factories, ModelConfiguration, and metadata classes.
 """
 
 import pytest
-
-import fairdm
 from fairdm.config import (
     Authority,
     Citation,
@@ -15,6 +13,8 @@ from fairdm.config import (
     ModelMetadata,
     SampleConfig,
 )
+
+import fairdm
 from fairdm.core.models import Measurement, Sample
 from fairdm.registry import registry
 
@@ -532,18 +532,6 @@ class TestRegistryEdgeCases:
 
 class TestRegistryIntegration:
     """Test integration between registry and other FairDM components."""
-
-    def test_registry_actstream_integration(self, clean_registry, db):
-        """Test that actstream registration is called."""
-
-        @fairdm.register
-        class ActstreamTestConfig(SampleConfig):
-            model = Sample
-            display_name = "Actstream Test"
-
-        # Should register with actstream without errors
-        # The actual actstream functionality is tested elsewhere
-        assert Sample in registry._registry
 
     def test_registry_admin_integration(self, clean_registry, db):
         """Test that admin registration is attempted."""

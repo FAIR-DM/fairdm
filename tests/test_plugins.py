@@ -451,6 +451,33 @@ class TestPluggableView:
         assert "fairdm/plugin.html" in templates
 
     @pytest.mark.django_db
+    def test_get_template_names_polymorphic_hierarchy(self):
+        """Test get_template_names returns correct hierarchy for polymorphic models."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        class TestView(PluggableView):
+            base_model = Contributor
+            model = Contributor
+
+        # Create a Person instance (polymorphic child of Contributor)
+        person = PersonFactory()
+        view = TestView()
+        view.base_object = person
+
+        templates = view.get_template_names()
+
+        # Should check child class first, then parent class
+        assert "person/plugins/test-view.html" in templates
+        assert "contributor/plugins/test-view.html" in templates
+        assert "plugins/test-view.html" in templates
+        assert "fairdm/plugin.html" in templates
+
+        # Verify order: child before parent
+        person_index = templates.index("person/plugins/test-view.html")
+        contributor_index = templates.index("contributor/plugins/test-view.html")
+        assert person_index < contributor_index
+
+    @pytest.mark.django_db
     def test_register_plugin_with_invalid_category_raises_error(self):
         """Test that registering plugin with invalid category raises ValueError."""
 
@@ -543,7 +570,7 @@ class TestPluggableView:
 
         class ExplorePlugin(FairDMPlugin, TemplateView):
             category = EXPLORE
-            menu_item = PluginMenuItem(name="Explore Test", icon="eye")
+            menu_item = PluginMenuItem(name="Explore Test", icon="view")
 
         class ActionsPlugin(FairDMPlugin, TemplateView):
             category = ACTIONS
@@ -630,7 +657,7 @@ class TestPluginIntegration:
         @clean_plugin_registry.register(Project)
         class OverviewPlugin(FairDMPlugin, TemplateView):
             category = EXPLORE
-            menu_item = PluginMenuItem(name="Overview", icon="eye")
+            menu_item = PluginMenuItem(name="Overview", icon="view")
             title = "Overview"
             template_name = "test/overview.html"
 
@@ -655,13 +682,13 @@ class TestPluginIntegration:
         @clean_plugin_registry.register(Project)
         class OverviewPlugin(FairDMPlugin, TemplateView):
             category = EXPLORE
-            menu_item = PluginMenuItem(name="Overview", icon="eye")
+            menu_item = PluginMenuItem(name="Overview", icon="view")
             title = "Overview"
 
         @clean_plugin_registry.register(Project)
         class SettingsPlugin(FairDMPlugin, TemplateView):
             category = MANAGEMENT
-            menu_item = PluginMenuItem(name="Settings", icon="gear")
+            menu_item = PluginMenuItem(name="Settings", icon="settings")
             title = "Settings"
 
         view_class = clean_plugin_registry.get_view_for_model(Project)
