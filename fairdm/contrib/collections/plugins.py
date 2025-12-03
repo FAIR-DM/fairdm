@@ -14,7 +14,6 @@ class DataTablePlugin(FairDMPlugin, DataTableView):
     """
 
     title = _("Data")
-    sections = {"header": "datatable.header"}
     menu_item = PluginMenuItem(name=_("Data"), category=EXPLORE, icon="table")
 
     def get_queryset(self, *args, **kwargs):
