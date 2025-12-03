@@ -18,7 +18,7 @@
         <li>
           <a class="dropdown-item"
              href="{{ item.url|default:'#' }}">
-            <i class="bi bi-{{ item.icon }} me-2"></i>{{ item.text }}
+            <c-icon name="{{ item.icon }}" class="me-2" />{{ item.text }}
           </a>
         </li>
       {% endif %}

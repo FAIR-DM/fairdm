@@ -1,6 +1,6 @@
 <c-vars active="False" href="#" icon="" />
 <a class="nav-link p-2{% if active %} active{% endif %}"
    href="{{ href }}">
-  {% if icon %}<i class="bi bi-{{ icon }} me-2"></i>{% endif %}
+  {% if icon %}<c-icon name="{{ icon }}" class="me-2" />{% endif %}
   {{ text }} {{ slot }}
 </a>

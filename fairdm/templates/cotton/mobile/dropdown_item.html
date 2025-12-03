@@ -3,7 +3,7 @@
   <a class="dropdown-item"
      href="{{ href }}"
      {{ attrs }}>
-    {% if icon %}<i class="bi bi-{{ icon }} me-2"></i>{% endif %}
+    {% if icon %}<c-icon name="{{ icon }}" class="me-2" />{% endif %}
     {{ slot }}
   </a>
 </li>

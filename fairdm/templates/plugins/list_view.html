@@ -4,5 +4,6 @@
 {% block plugin_header %}{% endblock %}
 
 {% block plugin %}
-  {% include "fairdm/partials/object_list.html" %}
+  <c-list card="{{ card_template }}"
+          cols="{{ cols|default:"1" }}" />
 {% endblock plugin %}

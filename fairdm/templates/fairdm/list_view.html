@@ -6,16 +6,15 @@
     <div class="row mt-4">
       <!-- Desktop Sidebar -->
       <div class="col-lg-3 d-none d-lg-block border-end">
-        <c-list-view.filter-sidebar>
+        <c-list.filter-sidebar>
           {% include "partials/filters.html" %}
-        </c-list-view.filter-sidebar>
+        </c-list.filter-sidebar>
       </div>
-      <!-- Mobile Offcanvas Filter -->
-      <c-list-view.mobile-filters>
-        {% include "partials/filters.html" with mobile=True %}
-      </c-list-view.mobile-filters>
       <!-- Main Content Area -->
-      <div class="col-lg-9">{% include "fairdm/partials/object_list.html" %}</div>
+      <div class="col-lg-9">
+        <c-list card="{{ card_template }}"
+                cols="{{ cols|default:"1" }}" />
+      </div>
     </div>
   </div>
   <!-- Page Information Modal -->

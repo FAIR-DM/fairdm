@@ -3,7 +3,8 @@
   <button class="btn btn-link text-reset text-decoration-none p-0 {{ extra_classes }}"
           id="{{ button_id }}"
           title="{{ title }}">
-    <i class="bi bi-{{ icon }} fs-5{% if show_text %} me-2{% endif %}"></i>
+    <c-icon name="{{ icon }}"
+            class="fs-5{% if show_text %} me-2{% endif %}" />
     {% if show_text %}{{ text }}{% endif %}
   </button>
 {% else %}
@@ -11,7 +12,8 @@
      class="text-reset text-decoration-none{% if show_text %} d-flex align-items-center{% endif %} {{ extra_classes }}"
      {% if target %}target="{{ target }}"{% endif %}
      title="{{ title }}">
-    <i class="bi bi-{{ icon }} fs-5{% if show_text %} me-2{% endif %}"></i>
+    <c-icon name="{{ icon }}"
+            class="fs-5{% if show_text %} me-2{% endif %}" />
     {% if show_text %}{{ text }}{% endif %}
   </a>
 {% endif %}

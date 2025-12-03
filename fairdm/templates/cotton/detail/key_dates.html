@@ -11,7 +11,7 @@ The component expects the object to have a `.dates` queryset.
 
 <c-vars object />
 {% if object.dates.exists %}
-  <c-detail.card title="{% trans 'Key Dates' %}" icon="calendar">
+  <c-dashboard.card title="{% trans 'Key Dates' %}" icon="calendar">
     <dl class="mb-0">
       {% for date in object.dates.all %}
         <c-detail.info_item label="{{ date.type }}">
@@ -19,5 +19,5 @@ The component expects the object to have a `.dates` queryset.
         </c-detail.info_item>
       {% endfor %}
     </dl>
-  </c-detail.card>
+  </c-dashboard.card>
 {% endif %}

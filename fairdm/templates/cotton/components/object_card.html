@@ -1,4 +1,4 @@
-<article class="card h-100 border-0 shadow-sm card-hover">
+<article class="card h-100 border-0 shadow-sm card-hover {% if object_type == 'project' %}border-start border-project border-3{% elif object_type == 'dataset' %}border-start border-dataset border-3{% elif object_type == 'sample' %}border-start border-sample border-3{% elif object_type == 'measurement' %}border-start border-measurement border-3{% endif %}">
   {% if image %}
     <!-- Mobile Image (shown on mobile, hidden on desktop) -->
     <img src="{{ image.url }}"
@@ -18,12 +18,14 @@
     {% endif %}
     <div class="d-flex justify-content-between align-items-start mb-2">
       <small class="text-muted">
-        <c-icon name="calendar3" class="me-1" />
+        <c-icon name="date" class="me-1" />
         {{ date|date:"F j, Y" }}
       </small>
-      <span class="badge {% if type == 'sample' %}bg-primary{% elif type == 'dataset' %}bg-success{% elif type == 'measurement' %}bg-warning text-dark{% elif type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
-        {% trans "Project" %}
-      </span>
+      {% if badge_text %}
+        <span class="badge {% if object_type == 'sample' %}bg-primary{% elif object_type == 'dataset' %}bg-success{% elif object_type == 'measurement' %}bg-warning text-dark{% elif object_type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
+          {{ badge_text }}
+        </span>
+      {% endif %}
     </div>
     <h5 class="card-title mb-2 text-truncate-2">
       <a href="{{ object.get_absolute_url }}"
@@ -33,7 +35,7 @@
     <p class="card-text text-muted text-truncate-6">{{ description|default:"No description available." }}</p>
     <button class="btn expand-btn btn-sm mb-3"
             onclick="toggleExpand(this)">
-      <c-icon name="chevron-down" class="me-1" />
+      <c-icon name="chevron_down" class="me-1" />
       {% trans "Show more" %}
     </button>
     {% if tags.all %}
@@ -52,7 +54,7 @@
       {% endif %}
       {% if organization %}
         <span class="mx-2">•</span>
-        <c-icon name="building" class="me-1" />
+        <c-icon name="organization" class="me-1" />
         {{ organization.name }}
       {% endif %}
     </small>
@@ -60,7 +62,7 @@
   <div class="card-footer bg-transparent border-0 pt-0">
     <a href="{{ object.get_absolute_url }}"
        class="btn btn-link btn-sm">
-      <c-icon name="arrow-right" class="me-1" />
+      <c-icon name="arrow_right" class="me-1" />
       {% trans "View Details" %}
     </a>
   </div>

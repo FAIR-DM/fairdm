@@ -1,0 +1,31 @@
+{% extends "fairdm/plugin.html" %}
+{% load i18n static crispy_forms_tags cotton %}
+
+{% block plugin %}
+  <div class="mb-4 pb-5">
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        {{ form.media.css }}
+        <form method="post" id="edit-form" novalidate>
+          {% csrf_token %}
+          {{ form|crispy }}
+        </form>
+        {{ form.media.js }}
+      </div>
+    </div>
+  </div>
+  {# Form Actions - Sticky to bottom #}
+  <div class="w-100 border-top p-3">
+    <div class="container-fluid d-flex">
+      <c-button-group gap="2" class="ms-auto">
+        <c-actions.secondary text="{% trans "Cancel" %}"
+                             icon="cancel"
+                             href="{{ cancel_url }}" />
+        <c-actions.primary text="{% trans "Save Changes" %}"
+                           type="submit"
+                           form="edit-form"
+                           icon="success" />
+      </c-button-group>
+    </div>
+  </div>
+{% endblock plugin %}

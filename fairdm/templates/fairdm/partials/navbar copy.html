@@ -10,14 +10,14 @@
                          :items="[ {'icon': 'folder', 'text': 'All Projects', 'url': '#'}, {'icon': 'plus-circle', 'text': 'Create Project', 'url': '#'}, {'divider': True}, {'icon': 'archive', 'text': 'Archived Projects', 'url': '#'} ]" />
       <!-- Datasets Dropdown -->
       <c-navbar.dropdown title="Datasets"
-                         :items="[ {'icon': 'collection', 'text': 'Browse Datasets', 'url': '#'}, {'icon': 'upload', 'text': 'Upload Dataset', 'url': '#'}, {'divider': True}, {'header': True, 'text': 'Recent Datasets'}, {'icon': 'file-earmark-data', 'text': 'Climate Data 2024', 'url': '#'}, {'icon': 'file-earmark-data', 'text': 'Soil Samples', 'url': '#'} ]" />
+                         :items="[ {'icon': 'dataset', 'text': 'Browse Datasets', 'url': '#'}, {'icon': 'upload', 'text': 'Upload Dataset', 'url': '#'}, {'divider': True}, {'header': True, 'text': 'Recent Datasets'}, {'icon': 'file-earmark-data', 'text': 'Climate Data 2024', 'url': '#'}, {'icon': 'file-earmark-data', 'text': 'Soil Samples', 'url': '#'} ]" />
       <!-- Samples Link -->
       <a class="nav-link" href="#">Samples</a>
       <!-- Measurements Link -->
       <a class="nav-link" href="#">Measurements</a>
       <!-- Tools Dropdown -->
       <c-navbar.dropdown title="Tools"
-                         :items="[ {'icon': 'download', 'text': 'Data Export', 'url': '#'}, {'icon': 'graph-up', 'text': 'Analytics', 'url': '#'}, {'icon': 'shield-check', 'text': 'Validation', 'url': '#'}, {'divider': True}, {'icon': 'gear', 'text': 'Settings', 'url': '#'} ]" />
+                         :items="[ {'icon': 'download', 'text': 'Data Export', 'url': '#'}, {'icon': 'graph-up', 'text': 'Analytics', 'url': '#'}, {'icon': 'shield-check', 'text': 'Validation', 'url': '#'}, {'divider': True}, {'icon': 'settings', 'text': 'Settings', 'url': '#'} ]" />
     </div>
     <!-- Desktop Search Form (Hidden on mobile) -->
     <c-navbar.search />
@@ -27,9 +27,9 @@
                             url="https://github.com/FAIR-DM/fairdm"
                             target="_blank"
                             title="View on GitHub" />
-      <c-navbar.action-link icon="book" title="Documentation" />
+      <c-navbar.action-link icon="documentation" title="Documentation" />
       <!-- Theme Toggle -->
-      <c-navbar.action-link icon="sun-fill"
+      <c-navbar.action-link icon="theme_light"
                             :is_button="True"
                             button_id="themeToggle"
                             title="Toggle theme"
@@ -39,16 +39,16 @@
         <!-- For unauthenticated users -->
         <button class="btn btn-primary btn-sm d-none"
                 id="loginBtn">
-          <c-icon name="person-fill" class="me-1" />
+          <c-icon name="person" class="me-1" />
           Login
         </button>
         <!-- For authenticated users -->
-        <c-navbar.profile-dropdown :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'gear', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'box-arrow-right', 'text': 'Logout', 'url': '#'} ]" />
+        <c-navbar.profile-dropdown :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'settings', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'logout', 'text': 'Logout', 'url': '#'} ]" />
       </div>
     </div>
     <!-- Mobile Profile (Far Right on Mobile) -->
     <c-navbar.profile-dropdown extra_classes="d-lg-none"
-                               :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'gear', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'box-arrow-right', 'text': 'Logout', 'url': '#'} ]" />
+                               :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'settings', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'logout', 'text': 'Logout', 'url': '#'} ]" />
   </div>
 </nav>
 <!-- Mobile Offcanvas Navigation -->
@@ -67,8 +67,10 @@
                               url="https://github.com/FAIR-DM/fairdm"
                               target="_blank"
                               :show_text="True" />
-        <c-navbar.action-link icon="book" text="Docs" :show_text="True" />
-        <c-navbar.action-link icon="sun-fill"
+        <c-navbar.action-link icon="documentation"
+                              text="Docs"
+                              :show_text="True" />
+        <c-navbar.action-link icon="theme_light"
                               text="Theme"
                               :is_button="True"
                               button_id="mobileThemeToggle"
@@ -81,13 +83,13 @@
       <div class="nav flex-column">
         <!-- Projects -->
         <c-navbar.mobile-nav-item title="Projects"
-                                  icon="folder"
+                                  icon="project"
                                   collapse_id="projectsCollapse"
                                   :has_children="True"
                                   :children="[ {'text': 'All Projects', 'url': '#'}, {'text': 'Create Project', 'url': '#'}, {'text': 'Archived Projects', 'url': '#'} ]" />
         <!-- Datasets -->
         <c-navbar.mobile-nav-item title="Datasets"
-                                  icon="collection"
+                                  icon="dataset"
                                   collapse_id="datasetsCollapse"
                                   :has_children="True"
                                   :children="[ {'text': 'Browse Datasets', 'url': '#'}, {'text': 'Upload Dataset', 'url': '#'}, {'header': True, 'text': 'Recent Datasets'}, {'text': 'Climate Data 2024', 'url': '#', 'small': True}, {'text': 'Soil Samples', 'url': '#', 'small': True} ]" />

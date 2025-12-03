@@ -31,7 +31,7 @@
             <div class="d-flex gap-2 flex-nowrap">
               {% block toolbar_actions %}
                 <button class="btn btn-primary btn-sm btn-action text-nowrap">
-                  <c-icon name="plus-circle" class="me-1" />
+                  <c-icon name="add" class="me-1" />
                   Add New
                 </button>
                 <button class="btn btn-outline-secondary btn-sm btn-action text-nowrap">
@@ -39,7 +39,7 @@
                   Export
                 </button>
                 <button class="btn btn-outline-secondary btn-sm btn-action text-nowrap">
-                  <c-icon name="funnel" class="me-1" />
+                  <c-icon name="filter" class="me-1" />
                   Filter
                 </button>
               {% endblock toolbar_actions %}
@@ -60,13 +60,13 @@
                       type="button"
                       data-bs-toggle="dropdown"
                       aria-expanded="false">
-                <c-icon name="three-dots-vertical" />
+                <c-icon name="menu_vertical" />
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 {% block mobile_actions %}
                   <li>
                     <a class="dropdown-item" href="#">
-                      <c-icon name="plus-circle" class="me-2" />
+                      <c-icon name="add" class="me-2" />
                       Add New
                     </a>
                   </li>
@@ -78,7 +78,7 @@
                   </li>
                   <li>
                     <a class="dropdown-item" href="#">
-                      <c-icon name="funnel" class="me-2" />
+                      <c-icon name="filter" class="me-2" />
                       Filter
                     </a>
                   </li>
@@ -102,7 +102,7 @@
             <button class="btn btn-outline-secondary"
                     type="button"
                     onclick="toggleSearchDrawer()">
-              <c-icon name="x" />
+              <c-icon name="close" />
             </button>
           </div>
         </div>
@@ -122,35 +122,35 @@
                 </th>
                 <th scope="col" class="text-nowrap">
                   ID
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Name
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Project
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Dataset
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Type
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Status
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Created Date
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">
                   Last Modified
-                  <c-icon name="chevron-expand" class="ms-1 text-muted" />
+                  <c-icon name="chevron_expand" class="ms-1 text-muted" />
                 </th>
                 <th scope="col" class="text-nowrap">Actions</th>
               </tr>
@@ -168,7 +168,7 @@
                       <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <c-icon name="droplet" class="text-primary" />
+                        <c-icon name="sample" class="text-primary" />
                       </div>
                       <div>
                         <div class="fw-medium">Water Sample Alpha</div>
@@ -197,17 +197,17 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <c-icon name="three-dots" />
+                        <c-icon name="menu_horizontal" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="eye" class="me-2" />
+                            <c-icon name="view" class="me-2" />
                           View</a>
                         </li>
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="pencil" class="me-2" />
+                            <c-icon name="edit" class="me-2" />
                           Edit</a>
                         </li>
                         <li>
@@ -220,7 +220,7 @@
                         </li>
                         <li>
                           <a class="dropdown-item text-danger" href="#">
-                            <c-icon name="trash" class="me-2" />
+                            <c-icon name="delete" class="me-2" />
                           Delete</a>
                         </li>
                       </ul>
@@ -237,7 +237,7 @@
                       <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <c-icon name="graph-up" class="text-success" />
+                        <c-icon name="analytics" class="text-success" />
                       </div>
                       <div>
                         <div class="fw-medium">Temperature Measurement</div>
@@ -266,17 +266,17 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <c-icon name="three-dots" />
+                        <c-icon name="menu_horizontal" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="eye" class="me-2" />
+                            <c-icon name="view" class="me-2" />
                           View</a>
                         </li>
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="pencil" class="me-2" />
+                            <c-icon name="edit" class="me-2" />
                           Edit</a>
                         </li>
                         <li>
@@ -289,7 +289,7 @@
                         </li>
                         <li>
                           <a class="dropdown-item text-danger" href="#">
-                            <c-icon name="trash" class="me-2" />
+                            <c-icon name="delete" class="me-2" />
                           Delete</a>
                         </li>
                       </ul>
@@ -306,7 +306,7 @@
                       <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <c-icon name="geo-alt" class="text-warning" />
+                        <c-icon name="location" class="text-warning" />
                       </div>
                       <div>
                         <div class="fw-medium">Soil Sample Beta</div>
@@ -335,17 +335,17 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <c-icon name="three-dots" />
+                        <c-icon name="menu_horizontal" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="eye" class="me-2" />
+                            <c-icon name="view" class="me-2" />
                           View</a>
                         </li>
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="pencil" class="me-2" />
+                            <c-icon name="edit" class="me-2" />
                           Edit</a>
                         </li>
                         <li>
@@ -358,7 +358,7 @@
                         </li>
                         <li>
                           <a class="dropdown-item text-danger" href="#">
-                            <c-icon name="trash" class="me-2" />
+                            <c-icon name="delete" class="me-2" />
                           Delete</a>
                         </li>
                       </ul>
@@ -404,17 +404,17 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <c-icon name="three-dots" />
+                        <c-icon name="menu_horizontal" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="eye" class="me-2" />
+                            <c-icon name="view" class="me-2" />
                           View</a>
                         </li>
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="pencil" class="me-2" />
+                            <c-icon name="edit" class="me-2" />
                           Edit</a>
                         </li>
                         <li>
@@ -427,7 +427,7 @@
                         </li>
                         <li>
                           <a class="dropdown-item text-danger" href="#">
-                            <c-icon name="trash" class="me-2" />
+                            <c-icon name="delete" class="me-2" />
                           Delete</a>
                         </li>
                       </ul>
@@ -473,17 +473,17 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <c-icon name="three-dots" />
+                        <c-icon name="menu_horizontal" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="eye" class="me-2" />
+                            <c-icon name="view" class="me-2" />
                           View</a>
                         </li>
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="pencil" class="me-2" />
+                            <c-icon name="edit" class="me-2" />
                           Edit</a>
                         </li>
                         <li>
@@ -496,7 +496,7 @@
                         </li>
                         <li>
                           <a class="dropdown-item text-danger" href="#">
-                            <c-icon name="trash" class="me-2" />
+                            <c-icon name="delete" class="me-2" />
                           Delete</a>
                         </li>
                       </ul>
@@ -514,7 +514,7 @@
                       <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2"
                            style="width: 32px;
                                   height: 32px">
-                        <c-icon name="droplet" class="text-primary" />
+                        <c-icon name="sample" class="text-primary" />
                       </div>
                       <div>
                         <div class="fw-medium">River Water Sample</div>
@@ -543,17 +543,17 @@
                       <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                               type="button"
                               data-bs-toggle="dropdown">
-                        <c-icon name="three-dots" />
+                        <c-icon name="menu_horizontal" />
                       </button>
                       <ul class="dropdown-menu">
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="eye" class="me-2" />
+                            <c-icon name="view" class="me-2" />
                           View</a>
                         </li>
                         <li>
                           <a class="dropdown-item" href="#">
-                            <c-icon name="pencil" class="me-2" />
+                            <c-icon name="edit" class="me-2" />
                           Edit</a>
                         </li>
                         <li>
@@ -566,7 +566,7 @@
                         </li>
                         <li>
                           <a class="dropdown-item text-danger" href="#">
-                            <c-icon name="trash" class="me-2" />
+                            <c-icon name="delete" class="me-2" />
                           Delete</a>
                         </li>
                       </ul>
@@ -603,7 +603,7 @@
                      href="#"
                      tabindex="-1"
                      aria-disabled="true">
-                    <c-icon name="chevron-left" />
+                    <c-icon name="chevron_left" />
                   </a>
                 </li>
                 <li class="page-item active">
@@ -617,7 +617,7 @@
                 </li>
                 <li class="page-item">
                   <a class="page-link" href="#">
-                    <c-icon name="chevron-right" />
+                    <c-icon name="chevron_right" />
                   </a>
                 </li>
               </ul>

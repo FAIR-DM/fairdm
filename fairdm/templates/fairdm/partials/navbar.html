@@ -15,9 +15,9 @@
                             url="https://github.com/FAIR-DM/fairdm"
                             target="_blank"
                             title="View on GitHub" />
-      <c-navbar.action-link icon="book" title="Documentation" />
+      <c-navbar.action-link icon="documentation" title="Documentation" />
       <!-- Theme Toggle -->
-      <c-navbar.action-link icon="sun-fill"
+      <c-navbar.action-link icon="theme_light"
                             :is_button="True"
                             button_id="themeToggle"
                             title="Toggle theme"
@@ -27,16 +27,16 @@
         <!-- For unauthenticated users -->
         <button class="btn btn-primary btn-sm d-none"
                 id="loginBtn">
-          <c-icon name="person-fill" class="me-1" />
+          <c-icon name="person" class="me-1" />
           Login
         </button>
         <!-- For authenticated users -->
-        <c-navbar.profile-dropdown :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'gear', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'box-arrow-right', 'text': 'Logout', 'url': '#'} ]" />
+        <c-navbar.profile-dropdown :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'settings', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'logout', 'text': 'Logout', 'url': '#'} ]" />
       </div>
     </div>
     <!-- Mobile Profile (Far Right on Mobile) -->
     <c-navbar.profile-dropdown extra_classes="d-lg-none"
-                               :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'gear', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'box-arrow-right', 'text': 'Logout', 'url': '#'} ]" />
+                               :menu_items="[ {'icon': 'person', 'text': 'Profile', 'url': '#'}, {'icon': 'settings', 'text': 'Settings', 'url': '#'}, {'divider': True}, {'icon': 'logout', 'text': 'Logout', 'url': '#'} ]" />
   </div>
 </nav>
 <!-- Mobile Offcanvas Navigation -->
@@ -55,8 +55,10 @@
                               url="https://github.com/FAIR-DM/fairdm"
                               target="_blank"
                               :show_text="True" />
-        <c-navbar.action-link icon="book" text="Docs" :show_text="True" />
-        <c-navbar.action-link icon="sun-fill"
+        <c-navbar.action-link icon="documentation"
+                              text="Docs"
+                              :show_text="True" />
+        <c-navbar.action-link icon="theme_light"
                               text="Theme"
                               :is_button="True"
                               button_id="mobileThemeToggle"

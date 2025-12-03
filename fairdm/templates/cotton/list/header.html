@@ -1,32 +1,16 @@
-<c-vars show_info_button="True"
-        search_placeholder="Search objects..."
-        info_modal_target="#pageInfoModal"
+<c-vars search_placeholder="Search objects..."
         filter_offcanvas_target="#filterOffcanvas" />
-<div class="mb-4">
-  <!-- Desktop: Title Row with Search and Sort -->
-  <div class="d-none d-lg-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h2 class="h4 mb-1">
-        {{ title }}
-        {% if show_info_button %}
-          <button type="button"
-                  class="btn btn-link p-0 ms-2 text-muted page-info-btn"
-                  data-bs-toggle="modal"
-                  data-bs-target="{{ info_modal_target }}"
-                  aria-label="Page Information">
-            <c-icon name="info-circle" />
-          </button>
-        {% endif %}
-      </h2>
-      <p class="text-muted mb-0">{{ results_text }}</p>
-    </div>
-    <div class="d-flex gap-3 align-items-center">
+<c-page-header :title="title"
+               :subtitle="subtitle"
+               :description="description"
+               info_modal_target="{{ info_modal_target|default:'#pageInfoModal' }}">
+  <c-slot name="actions">
+    {% if filter %}
       <!-- Search Bar -->
       <div class="input-group" style="min-width: 300px;">
         <span class="input-group-text border-end-0">
           <c-icon name="search" class="text-muted" />
         </span>
-        <!-- Visible search input for desktop -->
         <input type="text"
                class="form-control border-start-0 search-field desktop-search"
                placeholder="{{ search_placeholder }}"
@@ -36,7 +20,7 @@
       {% if filter.form.o %}
         <div class="input-group" style="min-width: 180px;">
           <span class="input-group-text border-end-0">
-            <c-icon name="sort-down" class="text-muted" />
+            <c-icon name="sort" class="text-muted" />
           </span>
           <select class="form-select ordering-field desktop-ordering border-start-0"
                   form="">
@@ -49,43 +33,35 @@
           </select>
         </div>
       {% endif %}
-    </div>
-  </div>
-  <!-- Mobile: Title Row with Filter Button -->
-  <div class="d-flex d-lg-none justify-content-between align-items-start mb-3">
-    <div class="flex-grow-1">
-      <h2 class="h4 mb-1">
-        {{ title }}
-        {% if show_info_button %}
-          <button type="button"
-                  class="btn btn-link p-0 ms-2 text-muted page-info-btn"
-                  data-bs-toggle="modal"
-                  data-bs-target="{{ info_modal_target }}"
-                  aria-label="Page Information">
-            <c-icon name="info-circle" />
-          </button>
-        {% endif %}
-      </h2>
-      <p class="text-muted mb-0">{{ results_text }}</p>
-    </div>
-    <button class="btn btn-outline-secondary btn-sm"
-            type="button"
-            data-bs-toggle="offcanvas"
-            data-bs-target="{{ filter_offcanvas_target }}"
-            aria-controls="filterOffcanvas">
-      <c-icon name="funnel-fill" class="me-1" />
-      Filters
-    </button>
-  </div>
-  <!-- Mobile: Search and Sort Row -->
-  <div class="d-flex d-lg-none gap-2">
+      <!-- Filter Toggle Button -->
+      <button class="btn text-nowrap"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="{{ filter_offcanvas_target }}"
+              aria-controls="filterOffcanvas">
+        <c-icon name="filter_active" class="me-1" />
+      </button>
+    {% endif %}
+  </c-slot>
+  <c-slot name="actions_mobile">
+    {% if filter %}
+      <button class="btn btn-outline-secondary btn-sm"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="{{ filter_offcanvas_target }}"
+              aria-controls="filterOffcanvas">
+        <c-icon name="filter_active" class="me-1" />
+        Filters
+      </button>
+    {% endif %}
+  </c-slot>
+  <c-slot name="actions_row">
     <!-- Search Bar (expands to fill available space) -->
     <div class="flex-grow-1">
       <div class="input-group">
         <span class="input-group-text border-end-0">
           <c-icon name="search" class="text-muted" />
         </span>
-        <!-- Visible search input for mobile -->
         <input type="text"
                class="form-control border-start-0 search-field mobile-search"
                placeholder="{{ search_placeholder }}"
@@ -97,7 +73,7 @@
       {% if filter.form.o %}
         <div class="input-group" style="min-width: 140px;">
           <span class="input-group-text border-end-0">
-            <c-icon name="sort-down" class="text-muted" />
+            <c-icon name="sort" class="text-muted" />
           </span>
           <select class="form-select ordering-field mobile-ordering border-start-0"
                   form="">
@@ -112,7 +88,7 @@
       {% else %}
         <div class="input-group" style="min-width: 140px;">
           <span class="input-group-text border-end-0">
-            <c-icon name="sort-down" class="text-muted" />
+            <c-icon name="sort" class="text-muted" />
           </span>
           <select class="form-select ordering-field mobile-ordering border-start-0"
                   form="">
@@ -121,5 +97,5 @@
         </div>
       {% endif %}
     </div>
-  </div>
-</div>
+  </c-slot>
+</c-page-header>

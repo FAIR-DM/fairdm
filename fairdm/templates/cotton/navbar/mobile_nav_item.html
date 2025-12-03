@@ -6,8 +6,10 @@
             data-bs-target="#{{ collapse_id }}"
             aria-expanded="false"
             aria-controls="{{ collapse_id }}">
-      <span><i class="bi bi-{{ icon }} me-2"></i>{{ title }}</span>
-      <c-icon name="chevron-down" />
+      <span>
+        <c-icon name="{{ icon }}" class="me-2" />
+      {{ title }}</span>
+      <c-icon name="chevron_down" />
     </button>
     <div class="collapse" id="{{ collapse_id }}">
       <div class="ms-4 mb-2">
@@ -23,7 +25,8 @@
     </div>
   {% else %}
     <a class="nav-link p-2" href="{{ url|default:'#' }}">
-      <i class="bi bi-{{ icon }} me-2"></i>{{ title }}
+      <c-icon name="{{ icon }}" class="me-2" />
+      {{ title }}
     </a>
   {% endif %}
 </div>

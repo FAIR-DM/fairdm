@@ -6,10 +6,10 @@
           aria-expanded="false"
           aria-controls="{{ id }}">
     <span>
-      {% if icon %}<i class="bi bi-{{ icon }} me-2"></i>{% endif %}
+      {% if icon %}<c-icon name="{{ icon }}" class="me-2" />{% endif %}
       {{ text }}
     </span>
-    <c-icon name="chevron-down" />
+    <c-icon name="chevron_down" />
   </button>
   <div class="collapse" id="{{ id }}">
     <div class="ms-4 mb-2">{{ slot }}</div>

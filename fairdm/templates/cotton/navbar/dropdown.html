@@ -19,7 +19,7 @@
         <li>
           <a class="dropdown-item"
              href="{{ item.url|default:'#' }}">
-            {% if item.icon %}<i class="bi bi-{{ item.icon }} me-2"></i>{% endif %}
+            {% if item.icon %}<c-icon name="{{ item.icon }}" class="me-2" />{% endif %}
             {{ item.text }}
           </a>
         </li>

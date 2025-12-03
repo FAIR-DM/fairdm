@@ -16,7 +16,7 @@
       <c-fdm.dashboard.slider id="{{ entry.label|slugify }}">
         {% for user in entry.group.user_set.all %}
           <div class="swiper-slide">
-            <c-contributor.card.person-alt :obj="user" />
+            <c-contributor.card.person-alt :obj="person" />
           </div>
         {% empty %}
           <li>{% trans "No users in this group." %}</li>

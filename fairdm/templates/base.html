@@ -20,12 +20,15 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
             integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
             crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
     <!-- Custom CSS -->
     {% block extra_css %}
     {% endblock extra_css %}
 
   </head>
-  <body>
+  <body class="{% block body_class %}{% endblock body_class %}
+     ">
     <!-- Header -->
     {% include "fairdm/partials/navbar.html" %}
     <!-- Main Content -->

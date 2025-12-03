@@ -1,0 +1,158 @@
+{% extends "fairdm/plugin.html" %}
+{% load i18n static crispy_forms_tags cotton %}
+
+{# 
+  Generic FormSet Template for InlineFormSetPlugin
+  
+  This template provides a standard layout for editing related objects using
+  InlineFormSetView from django-extra-views. It includes:
+  - Crispy forms rendering for each form in the formset
+  - Management form (required by Django formsets)
+  - Cancel and Save buttons with proper form submission
+  - Media (CSS/JS) handling for formset widgets
+  
+  Used by: InlineFormSetPlugin and subclasses (Identifiers, Affiliations, etc.)
+#}
+{% block extra_css %}
+  {{ block.super }}
+  {{ formset.media.css }}
+{% endblock extra_css %}
+
+{% block plugin %}
+  <div class="mb-4 pb-5"
+       x-data="formsetManager({{ formset.total_form_count }}, {{ formset.forms|length }}, '{{ formset.prefix }}')"
+       x-init="init()">
+    {# Formset Form - using crispy to render as table #}
+    <form method="post" id="formset-form" novalidate>
+      {% csrf_token %}
+      <div id="formset-container">{% crispy formset formset.helper %}</div>
+      {# Add form button #}
+      <button type="button"
+              class="btn btn-outline-primary btn-sm mt-2"
+              @click="addForm()"
+              x-show="canAddMore">
+        <c-icon name="add" class="me-1" />
+        {% trans "Add another" %}
+      </button>
+    </form>
+  </div>
+  {# Form Actions - Sticky to bottom #}
+  <div class="w-100 border-top p-3">
+    <div class="container-fluid d-flex">
+      <c-button-group gap="2" class="ms-auto">
+        <c-actions.secondary text="{% trans "Cancel" %}"
+                             icon="cancel"
+                             href="{{ cancel_url }}" />
+        <c-actions.primary text="{% trans "Save Changes" %}"
+                           type="submit"
+                           form="formset-form"
+                           icon="success" />
+      </c-button-group>
+    </div>
+  </div>
+{% endblock plugin %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {{ formset.media.js }}
+  <script>
+    function formsetManager(totalForms, initialForms, prefix) {
+      return {
+        totalForms: totalForms,
+        prefix: prefix,
+        maxForms: parseInt(document.getElementById(`id_${prefix}-MAX_NUM_FORMS`)?.value) || 1000,
+        emptyFormTemplate: null,
+
+        init() {
+          // Store the last row as a template for cloning
+          const tbody = document.querySelector('#formset-container table tbody');
+          if (tbody && tbody.rows.length > 0) {
+            this.emptyFormTemplate = tbody.rows[tbody.rows.length - 1].cloneNode(true);
+          }
+        },
+
+        get canAddMore() {
+          return this.totalForms < this.maxForms;
+        },
+
+        addForm() {
+          if (!this.canAddMore || !this.emptyFormTemplate) return;
+
+          const tbody = document.querySelector('#formset-container table tbody');
+          if (!tbody) return;
+
+          const newRow = this.emptyFormTemplate.cloneNode(true);
+          const formIndex = this.totalForms;
+
+          // Update form index in the HTML - replace both __prefix__ and the old index
+          newRow.innerHTML = newRow.innerHTML.replace(/__prefix__/g, formIndex);
+
+          // Also replace any existing index patterns (for when cloning an existing form)
+          const oldIndex = this.totalForms - 1;
+          const oldPattern = new RegExp(`${this.prefix}-(\\d+)-`, 'g');
+          newRow.innerHTML = newRow.innerHTML.replace(oldPattern, `${this.prefix}-${formIndex}-`);
+
+          // Clear values in the new row
+          newRow.querySelectorAll('input:not([type="hidden"]), textarea, select').forEach(input => {
+            if (input.type === 'checkbox' || input.type === 'radio') {
+              input.checked = false;
+            } else if (!input.name.includes('-DELETE')) {
+              input.value = '';
+            }
+          });
+
+          // Add delete button to the new row
+          this.addDeleteButton(newRow, formIndex);
+
+          // Append new row to table
+          tbody.appendChild(newRow);
+
+          // Re-initialize Select2 widgets in the new row
+          newRow.querySelectorAll('.django-select2').forEach(select => {
+            // Remove any existing Select2 instance
+            if ($(select).data('select2')) {
+              $(select).select2('destroy');
+            }
+            // Initialize Select2 with default options
+            $(select).djangoSelect2();
+          });
+
+          // Update total forms count
+          this.totalForms++;
+          document.getElementById(`id_${this.prefix}-TOTAL_FORMS`).value = this.totalForms;
+        },
+
+        addDeleteButton(row, formIndex) {
+          // Find the last cell and add a delete button
+          const lastCell = row.cells[row.cells.length - 1];
+          if (!lastCell) return;
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'btn btn-link btn-sm text-danger p-0';
+          deleteBtn.innerHTML = '<c-icon name="delete" />';
+          deleteBtn.title = 'Remove';
+          deleteBtn.onclick = () => this.deleteForm(row, formIndex);
+
+          // Clear existing content and add button
+          lastCell.innerHTML = '';
+          lastCell.appendChild(deleteBtn);
+        },
+
+        deleteForm(row, formIndex) {
+          // Check if this row has a DELETE checkbox (for existing objects)
+          const deleteInput = row.querySelector(`input[name="${this.prefix}-${formIndex}-DELETE"]`);
+          if (deleteInput) {
+            deleteInput.checked = true;
+            row.style.display = 'none';
+          } else {
+            // If no DELETE field, just remove the row
+            row.remove();
+            this.totalForms--;
+            document.getElementById(`id_${this.prefix}-TOTAL_FORMS`).value = this.totalForms;
+          }
+        }
+      }
+    }
+  </script>
+{% endblock extra_js %}

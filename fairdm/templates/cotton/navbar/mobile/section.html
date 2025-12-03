@@ -1,7 +1,7 @@
 <c-vars text="" icon="" />
 <div class="nav-item mb-3">
   <div class="fw-semibold text-uppercase small text-muted px-2 mb-2">
-    {% if icon %}<i class="bi bi-{{ icon }} me-2"></i>{% endif %}
+    {% if icon %}<c-icon name="{{ icon }}" class="me-2" />{% endif %}
     {{ text }}
   </div>
   <div class="ms-2">{{ slot }}</div>

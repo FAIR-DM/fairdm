@@ -11,8 +11,15 @@
   {{ plugin_media.js }}
 {% endblock extra_js %}
 
+{% block body_class %}
+  application-layout
+{% endblock body_class %}
+
 {% block content %}
-  <div class="fairdm-detail d-flex flex-fil overflow-hidden">
+  <!-- Colored Top Border for Object Type -->
+  <div class="border-top border-3 border-{{ base_model_name }}"
+       style="height: 3px"></div>
+  <div class="fairdm-detail">
     <!-- Sidebar -->
     <c-detail.sidebar>
       <!-- Explore Section -->
@@ -28,20 +35,20 @@
         <div class="px-3 py-2">
           <div class="d-flex align-items-center gap-2">
             <!-- Explore Dropdown -->
-            <c-mobile.dropdown-menu title="Explore" icon="list">
-              <c-mobile.dropdown-item icon="house" href="#">
+            <c-mobile.dropdown-menu title="Explore" icon="menu">
+              <c-mobile.dropdown-item icon="home" href="#">
                 Overview
               </c-mobile.dropdown-item>
-              <c-mobile.dropdown-item icon="collection" href="#">
+              <c-mobile.dropdown-item icon="dataset" href="#">
                 Datasets
               </c-mobile.dropdown-item>
-              <c-mobile.dropdown-item icon="droplet" href="#">
+              <c-mobile.dropdown-item icon="sample" href="#">
                 Samples
               </c-mobile.dropdown-item>
-              <c-mobile.dropdown-item icon="graph-up" href="#">
+              <c-mobile.dropdown-item icon="analytics" href="#">
                 Measurements
               </c-mobile.dropdown-item>
-              <c-mobile.dropdown-item icon="file-earmark-text" href="#">
+              <c-mobile.dropdown-item icon="file_text" href="#">
                 Publications
               </c-mobile.dropdown-item>
               <c-mobile.dropdown-item icon="people" href="#">
@@ -49,8 +56,8 @@
               </c-mobile.dropdown-item>
             </c-mobile.dropdown-menu>
             <!-- Actions Dropdown -->
-            <c-mobile.dropdown-menu title="Actions" icon="tools">
-              <c-mobile.dropdown-item icon="plus-circle" href="#">
+            <c-mobile.dropdown-menu title="Actions" icon="administration">
+              <c-mobile.dropdown-item icon="add" href="#">
                 Add Dataset
               </c-mobile.dropdown-item>
               <c-mobile.dropdown-item icon="upload" href="#">
@@ -59,13 +66,13 @@
               <c-mobile.dropdown-item icon="download" href="#">
                 Export Data
               </c-mobile.dropdown-item>
-              <c-mobile.dropdown-item icon="gear" href="#">
+              <c-mobile.dropdown-item icon="settings" href="#">
                 Settings
               </c-mobile.dropdown-item>
             </c-mobile.dropdown-menu>
             <!-- Edit Button -->
             <button class="btn btn-outline-primary btn-sm">
-              <c-icon name="pencil" class="me-1" />
+              <c-icon name="edit" class="me-1" />
               Edit
             </button>
             <!-- Share Button -->
@@ -88,20 +95,21 @@
             {% endif %}
             <!-- Page Header -->
             {% block plugin_header %}
-              <c-detail.header :title="title|default:object"
-                               :subtitle="page_subtitle"
-                               :show_info_button="show_page_info_button"
-                               :info_modal_target="page_info_modal_target">
+              <c-page_header :title="title|default:object"
+                             :subtitle="page_subtitle"
+                             :description="show_page_info_button"
+                             info_modal_target="{{ page_info_modal_target|default:'#pageInfoModal' }}">
                 <c-slot name="actions">
                   {% block detail_actions %}
                   {% endblock detail_actions %}
 
                 </c-slot>
-              </c-detail.header>
+              </c-page_header>
             {% endblock plugin_header %}
 
             <!-- Detail Content -->
             {% block plugin %}
+              {% trans "If you're seeing this, you haven't created a template for your plugin yet!" %}
             {% endblock plugin %}
 
           </div>

@@ -1,2 +1,4 @@
+{% load easy_icons %}
+
 <c-vars name class />
-<i class="bi bi-{{ name }} {{ class }}" {{ attrs }}></i>
+{% icon name defaults=attrs.dict %}
