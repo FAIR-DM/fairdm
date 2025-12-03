@@ -1,6 +1,21 @@
 """
 Management command to generate fake data for development purposes.
 
+This command creates a complete hierarchy of fake data including projects, datasets,
+samples, and measurements. It uses polymorphic Sample and Measurement subclasses
+configured via the FAIRDM_FACTORIES setting.
+
+Configuration:
+    Add your custom factory classes to settings.py:
+
+    FAIRDM_FACTORIES = {
+        "myapp.CustomSample": "myapp.factories.CustomSampleFactory",
+        "myapp.SpecialMeasurement": "myapp.factories.SpecialMeasurementFactory",
+    }
+
+    The command will randomly use these factories to create polymorphic instances.
+    If no factories are configured, it falls back to base Sample/Measurement factories.
+
 Usage:
     poetry run python manage.py generate_fake_data
     poetry run python manage.py generate_fake_data --projects 5 --datasets 3
@@ -8,7 +23,9 @@ Usage:
 """
 
 import random
+from importlib import import_module
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from research_vocabs.models import Concept
@@ -21,11 +38,9 @@ from fairdm.core.project.models import ProjectDate, ProjectDescription
 from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.factories import (
     DatasetFactory,
-    MeasurementFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
-    SampleFactory,
 )
 
 
@@ -95,6 +110,63 @@ class Command(BaseCommand):
             help="Clear existing data before generating new data",
         )
 
+    def _load_factories_from_settings(self):
+        """Load factory classes from FAIRDM_FACTORIES setting.
+
+        Returns:
+            dict: Dictionary with 'sample_factories' and 'measurement_factories' lists,
+                  where each item is a tuple of (factory_class, model_class).
+        """
+        from fairdm.core.models import Measurement, Sample
+
+        factories_config = getattr(settings, "FAIRDM_FACTORIES", {})
+        sample_factories = []
+        measurement_factories = []
+
+        for model_path, factory_path in factories_config.items():
+            try:
+                # Import the factory class
+                module_path, class_name = factory_path.rsplit(".", 1)
+                module = import_module(module_path)
+                factory_class = getattr(module, class_name)
+
+                # Get the model class from the factory's Meta
+                model_class = factory_class._meta.model
+
+                # Categorize by base type
+                if issubclass(model_class, Sample):
+                    sample_factories.append((factory_class, model_class))
+                    self.stdout.write(f"  ✓ Loaded Sample factory: {class_name} for {model_class.__name__}")
+                elif issubclass(model_class, Measurement):
+                    measurement_factories.append((factory_class, model_class))
+                    self.stdout.write(f"  ✓ Loaded Measurement factory: {class_name} for {model_class.__name__}")
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"  ⚠ Skipping {factory_path}: {model_class.__name__} is not a Sample or Measurement"
+                        )
+                    )
+            except (ImportError, AttributeError) as e:
+                self.stdout.write(self.style.WARNING(f"  ⚠ Could not load factory {factory_path}: {e}"))
+
+        # Warn if no factories configured - we should never create base Sample/Measurement instances
+        if not sample_factories:
+            self.stdout.write(
+                self.style.WARNING("  ⚠ No Sample factories configured in FAIRDM_FACTORIES. Samples will be skipped.")
+            )
+
+        if not measurement_factories:
+            self.stdout.write(
+                self.style.WARNING(
+                    "  ⚠ No Measurement factories configured in FAIRDM_FACTORIES. Measurements will be skipped."
+                )
+            )
+
+        return {
+            "sample_factories": sample_factories,
+            "measurement_factories": measurement_factories,
+        }
+
     def handle(self, *args, **options):
         """Execute the command."""
         num_projects = options["projects"]
@@ -120,7 +192,10 @@ class Command(BaseCommand):
                 Organization.objects.all().delete()
             self.stdout.write(self.style.SUCCESS("✓ Data cleared"))
 
-        self.stdout.write(self.style.WARNING("Generating fake data..."))
+        self.stdout.write(self.style.WARNING("Loading configured factories..."))
+        factories = self._load_factories_from_settings()
+
+        self.stdout.write(self.style.WARNING("\nGenerating fake data..."))
 
         with transaction.atomic():
             # Create contributors first
@@ -134,6 +209,7 @@ class Command(BaseCommand):
                 project = self._create_project(
                     i + 1,
                     all_contributors,
+                    factories,
                     min_datasets,
                     max_datasets,
                     min_samples,
@@ -185,6 +261,7 @@ class Command(BaseCommand):
         self,
         project_num,
         all_contributors,
+        factories,
         min_datasets,
         max_datasets,
         min_samples,
@@ -223,6 +300,7 @@ class Command(BaseCommand):
                 project,
                 j + 1,
                 all_contributors,
+                factories,
                 min_samples,
                 max_samples,
                 min_measurements,
@@ -236,6 +314,7 @@ class Command(BaseCommand):
         project,
         dataset_num,
         all_contributors,
+        factories,
         min_samples,
         max_samples,
         min_measurements,
@@ -256,25 +335,44 @@ class Command(BaseCommand):
 
         self.stdout.write(f"    ✓ Created dataset: {dataset.name}")
 
-        # Create samples for this dataset
+        # Create samples for this dataset using configured factories
         num_samples = random.randint(min_samples, max_samples)
         samples = []
-        for k in range(num_samples):
-            sample = self._create_sample(dataset, k + 1)
-            samples.append(sample)
 
-        # Create measurements for this dataset
+        if factories["sample_factories"]:
+            for k in range(num_samples):
+                sample = self._create_sample(dataset, factories["sample_factories"])
+                samples.append(sample)
+        else:
+            self.stdout.write(self.style.WARNING("      ⚠ Skipping sample creation (no Sample factories configured)"))
+
+        # Create measurements for this dataset using configured factories
         num_measurements = random.randint(min_measurements, max_measurements)
-        for m in range(num_measurements):
-            # Randomly associate measurements with samples in this dataset
-            related_sample = random.choice(samples) if samples else None
-            self._create_measurement(dataset, related_sample, m + 1)
+
+        if factories["measurement_factories"]:
+            for m in range(num_measurements):
+                # Randomly associate measurements with samples in this dataset
+                related_sample = random.choice(samples) if samples else None
+                self._create_measurement(dataset, related_sample, factories["measurement_factories"])
+        else:
+            self.stdout.write(
+                self.style.WARNING("      ⚠ Skipping measurement creation (no Measurement factories configured)")
+            )
 
         return dataset
 
-    def _create_sample(self, dataset, sample_num):
-        """Create a sample."""
-        sample = SampleFactory(dataset=dataset)
+    def _create_sample(self, dataset, sample_factories):
+        """Create a sample using a random factory from configured sample factories.
+
+        Args:
+            dataset: The dataset to associate the sample with
+            sample_factories: List of (factory_class, model_class) tuples
+        """
+        # Randomly select a factory from the available sample factories
+        factory_class, model_class = random.choice(sample_factories)
+
+        # Create sample instance using the selected factory
+        sample = factory_class(dataset=dataset)
 
         # Add descriptions and dates
         self._add_descriptions(sample, SampleDescription, random.randint(1, 3))
@@ -282,9 +380,19 @@ class Command(BaseCommand):
 
         return sample
 
-    def _create_measurement(self, dataset, sample, measurement_num):
-        """Create a measurement."""
-        measurement = MeasurementFactory(dataset=dataset, sample=sample)
+    def _create_measurement(self, dataset, sample, measurement_factories):
+        """Create a measurement using a random factory from configured measurement factories.
+
+        Args:
+            dataset: The dataset to associate the measurement with
+            sample: The sample to associate the measurement with
+            measurement_factories: List of (factory_class, model_class) tuples
+        """
+        # Randomly select a factory from the available measurement factories
+        factory_class, model_class = random.choice(measurement_factories)
+
+        # Create measurement instance using the selected factory
+        measurement = factory_class(dataset=dataset, sample=sample)
 
         # Add descriptions and dates
         self._add_descriptions(measurement, MeasurementDescription, random.randint(1, 2))
@@ -295,8 +403,9 @@ class Command(BaseCommand):
     def _add_descriptions(self, obj, description_model, count):
         """Add description objects to a model instance."""
         description_types = ["Abstract", "Methods", "Technical Info", "Table of Contents"]
-        for _ in range(count):
-            desc_type = random.choice(description_types)
+        # Use sample to avoid duplicates (UniqueConstraint on related+type)
+        selected_types = random.sample(description_types, min(count, len(description_types)))
+        for desc_type in selected_types:
             description_model.objects.create(
                 related=obj,
                 type=desc_type,
@@ -306,8 +415,9 @@ class Command(BaseCommand):
     def _add_dates(self, obj, date_model, count):
         """Add date objects to a model instance."""
         date_types = ["Created", "Updated", "Issued", "Submitted", "Accepted", "Available"]
-        for _ in range(count):
-            date_type = random.choice(date_types)
+        # Use sample to avoid duplicates (UniqueConstraint on related+type)
+        selected_types = random.sample(date_types, min(count, len(date_types)))
+        for date_type in selected_types:
             date_model.objects.create(
                 related=obj,
                 type=date_type,

@@ -17,3 +17,10 @@ HOME_PAGE_CONFIG = {
 
 # Portal description shown in About section
 PORTAL_DESCRIPTION = "This research data portal provides a collaborative platform for sharing and discovering FAIR (Findable, Accessible, Interoperable, and Reusable) research data. Our community brings together researchers, organizations, and institutions to advance open science."
+
+
+FAIRDM_FACTORIES = {
+    "fairdm_demo.CustomSample": "fairdm_demo.factories.CustomSampleFactory",
+    "fairdm_demo.CustomParentSample": "fairdm_demo.factories.CustomParentSampleFactory",
+    "fairdm_demo.ExampleMeasurement": "fairdm_demo.factories.ExampleMeasurementFactory",
+}
