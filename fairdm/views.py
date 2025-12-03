@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from functools import cached_property
 
-from actstream import action
 from braces.views import MessageMixin
 from crispy_forms.helper import FormHelper
 from django.contrib.auth.decorators import login_required
@@ -81,7 +80,8 @@ class FairDMBaseMixin(MessageMixin, MetadataMixin):
         return False
 
     def get_meta_title(self, context):
-        return f"{self.title} - {Database.get_solo().safe_translation_getter('name')}"
+        title = self.get_title() if hasattr(self, "get_title") else self.title
+        return f"{title} - {Database.get_solo().safe_translation_getter('name')}"
 
     def get_page_title(self):
         """Return the page title for the view."""
@@ -122,17 +122,16 @@ class FairDMModelFormMixin(
     model = None
     form_class = None
     fields = None
-    template_name = "fairdm/form_view.html"
 
     def post(self, request, *args, **kwargs):
         """This is here so the method_decorator works correctly."""
         return super().post(request, *args, **kwargs)
 
-    def get_template(self, template_name=None):
-        """Return the template to be used for rendering the view."""
-        if template_name is None:
-            template_name = self.template_name
-        return super().get_template(template_name)
+    # def get_template(self, template_name=None):
+    #     """Return the template to be used for rendering the view."""
+    #     if template_name is None:
+    #         template_name = self.template_name
+    #     return super().get_template(template_name)
 
     def get_context_data(self, **kwargs):
         """Add the form class to the context if it is set."""
@@ -201,6 +200,7 @@ class RelatedObjectMixin:
         context = super().get_context_data(**kwargs)
         context["base_object"] = self.base_object
         context["base_model"] = self.base_model
+        context["base_model_name"] = self.base_model._meta.model_name
         context["non_polymorphic_object"] = get_non_polymorphic_instance(self.base_object)
         context[self.base_model._meta.model_name] = self.base_object
         return context
@@ -268,25 +268,37 @@ class FairDMListView(FairDMBaseMixin, FilterView):
     def get_model(self):
         return self.model or self.queryset.model
 
+    def get_template_names(self):
+        """Override template if there's no filter - use plugin template instead."""
+        if self.filterset is None:
+            # Use the simpler plugin list view template when there's no filter
+            return ["plugins/list_view.html"]
+        return super().get_template_names()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if context["object_list"] is not None:
             context["filtered_object_count"] = context["object_list"].count()
-        context["is_filtered"] = hasattr(context["filter"].form, "cleaned_data")
-        context["object_verbose_name_plural"] = self.get_model()._meta.verbose_name_plural
 
+        # Handle case where no filter is present
+        if context.get("filter") is not None and hasattr(context["filter"], "form"):
+            context["is_filtered"] = hasattr(context["filter"].form, "cleaned_data")
+
+            # Required for sections.sidebar.form to work without modification
+            # Ensure the form method is set to GET
+            form = context["filter"].form
+            if not hasattr(form, "helper"):
+                form.helper = FormHelper()
+            form.helper.form_method = "get"
+            form.helper.form_id = "filter-form"
+            form.helper.render_unmentioned_fields = False
+            context["form"] = form
+        else:
+            context["is_filtered"] = False
+            context["form"] = None
+
+        context["object_verbose_name_plural"] = self.get_model()._meta.verbose_name_plural
         context["page"] = self.page
-        # Required for sections.sidebar.form to work without modification
-        # Ensure the form method is set to GET
-        form = context["filter"].form
-        if not hasattr(form, "helper"):
-            form.helper = FormHelper()
-        form.helper.form_method = "get"
-        form.helper.form_id = "filter-form"
-        # form.helper.render_unmentioned_fields = False
-        # form.helper.layout = Layout(Field("o", type="hidden", form="filter-form"))
-        form.helper.render_unmentioned_fields = False
-        context["form"] = form
 
         # Add card template if specified
         if hasattr(self, "card_template") and self.card_template:
@@ -336,7 +348,7 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
     form_config = {
         "submit_button": {
             "text": _("Create & enter"),
-            "icon": "arrow-right",
+            "icon": "arrow_right",
             "icon_position": "end",
         },
     }
@@ -348,12 +360,7 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         self.assign_permissions()
-        action.send(
-            self.request.user,
-            verb="created",
-            target=self.object,
-            description=_("Created a new {}: {}").format(self.object._meta.verbose_name, str(self.object)),
-        )
+
         return response
 
     def assign_permissions(self):

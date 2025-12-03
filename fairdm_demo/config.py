@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 
+from fairdm.contrib.collections.tables import MeasurementTable
 from fairdm.contrib.import_export.resources import MeasurementResource, SampleResource
-from fairdm.core.tables import MeasurementTable, SampleTable
 from fairdm.registry import register
 from fairdm.registry.config import Authority, Citation, ModelConfiguration, ModelMetadata
 
@@ -33,7 +33,7 @@ class CustomParentSampleConfig(ModelConfiguration):
         ("added", "modified"),
     ]
     resource_class = SampleResource
-    table_class = SampleTable
+    # table_class = SampleTable
 
 
 @register

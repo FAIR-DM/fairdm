@@ -1,4 +1,4 @@
-from fairdm.core.tables import SampleTable
+from fairdm.contrib.collections.tables import SampleTable
 
 from .models import CustomSample
 
