@@ -13,7 +13,7 @@
       <c-components.button class="btn btn-sm btn-outline-primary"
                            href="{{ create_view_url }}"
                            hx-get="{{ create_view_url }}"
-                           icon="plus"
+                           icon="create"
                            :visible="user_can_edit" />
       <c-components.button class="btn btn-sm btn-outline-primary"
                            href="{% url "dataset-import-view" uuid=dataset.uuid %}{% querystring %}"

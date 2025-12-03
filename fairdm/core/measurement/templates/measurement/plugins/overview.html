@@ -4,16 +4,16 @@
 {% block overview_main %}
   {{ block.super }}
   {# Measurement Value #}
-  <c-detail.card title="{% trans 'Measurement Value' %}"
-                 icon="speedometer2">
+  <c-dashboard.card title="{% trans 'Measurement Value' %}"
+                    icon="speedometer2">
     <div class="p-4 bg-light rounded text-center">
       <div class="display-4 fw-bold text-primary mb-2">{{ measurement.get_value }}</div>
       <div class="text-muted">{{ measurement.get_polymorphic_type_name }}</div>
     </div>
-  </c-detail.card>
+  </c-dashboard.card>
   {# Sample Information #}
   {% if measurement.sample %}
-    <c-detail.card title="{% trans 'Sample' %}" icon="box-seam">
+    <c-dashboard.card title="{% trans 'Sample' %}" icon="box-seam">
       <div class="d-flex align-items-center">
         {% if measurement.sample.image %}
           <img src="{{ measurement.sample.image.url }}"
@@ -24,7 +24,7 @@
                       object-fit: cover" />
         {% else %}
           <div class="p-3 bg-light rounded me-3">
-            <i class="bi bi-box-seam display-6 text-primary"></i>
+            <c-icon name="box-seam" class="display-6 text-primary" />
           </div>
         {% endif %}
         <div>
@@ -38,11 +38,11 @@
           </p>
         </div>
       </div>
-    </c-detail.card>
+    </c-dashboard.card>
   {% endif %}
   {# Dataset & Project Information #}
-  <c-detail.card title="{% trans 'Dataset & Project' %}"
-                 icon="folder">
+  <c-dashboard.card title="{% trans 'Dataset & Project' %}"
+                    icon="project">
     <div class="mb-3">
       <h6 class="text-muted small text-uppercase mb-2">{% trans "Dataset" %}</h6>
       <div class="d-flex align-items-center">
@@ -79,11 +79,11 @@
         </div>
       </div>
     {% endif %}
-  </c-detail.card>
+  </c-dashboard.card>
   {# Measurement Method/Protocol (if available) #}
   {% if measurement.method or measurement.protocol %}
-    <c-detail.card title="{% trans 'Method & Protocol' %}"
-                   icon="journal-text">
+    <c-dashboard.card title="{% trans 'Method & Protocol' %}"
+                      icon="journal-text">
       {% if measurement.method %}
         <h6 class="text-muted small text-uppercase mb-2">{% trans "Method" %}</h6>
         <p class="mb-3">{{ measurement.method }}</p>
@@ -92,7 +92,7 @@
         <h6 class="text-muted small text-uppercase mb-2">{% trans "Protocol" %}</h6>
         <p class="mb-0">{{ measurement.protocol }}</p>
       {% endif %}
-    </c-detail.card>
+    </c-dashboard.card>
   {% endif %}
 {% endblock overview_main %}
 
@@ -115,8 +115,8 @@
   {{ block.super }}
   {# Measurement Metadata (if available) #}
   {% if measurement.uncertainty or measurement.unit or measurement.precision %}
-    <c-detail.card title="{% trans 'Measurement Details' %}"
-                   icon="graph-up">
+    <c-dashboard.card title="{% trans 'Measurement Details' %}"
+                      icon="analytics">
       <dl class="mb-0">
         {% if measurement.unit %}
           <c-detail.info-item label="{% trans 'Unit' %}"
@@ -135,6 +135,6 @@
           </dd>
         {% endif %}
       </dl>
-    </c-detail.card>
+    </c-dashboard.card>
   {% endif %}
 {% endblock overview_sidebar %}

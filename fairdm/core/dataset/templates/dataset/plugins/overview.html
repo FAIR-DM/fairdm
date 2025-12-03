@@ -16,8 +16,8 @@
   {{ block.super }}
   {# Related Literature #}
   {% if dataset.related_literature.exists %}
-    <c-detail.card title="{% trans 'Related Literature' %}"
-                   icon="book">
+    <c-dashboard.card title="{% trans 'Related Literature' %}"
+                      icon="documentation">
       <c-list-group flush>
         {% for item in dataset.related_literature.all %}
           <c-list-group.item>
@@ -27,13 +27,14 @@
               <a href="https://doi.org/{{ item.doi }}"
                  target="_blank"
                  class="small">
-                <i class="bi bi-link-45deg"></i> {{ item.doi }}
+                <c-icon name="link" />
+                {{ item.doi }}
               </a>
             {% endif %}
           </c-list-group.item>
         {% endfor %}
       </c-list-group>
-    </c-detail.card>
+    </c-dashboard.card>
   {% endif %}
 {% endblock overview_main %}
 
@@ -44,7 +45,8 @@
   </c-detail.info_item>
   <c-detail.info_item label="{% trans 'Visibility' %}">
     <c-badge variant="secondary">
-      <i class="bi bi-{{ dataset.visibility|yesno:'eye,eye-slash' }} me-1"></i>
+      <c-icon name="{{ dataset.visibility|yesno:'visible,private' }}"
+              class="me-1" />
       {{ dataset.get_visibility_display }}
     </c-badge>
   </c-detail.info_item>
@@ -65,9 +67,9 @@
 
 {% block overview_sidebar %}
   {{ block.super }}
-  <c-detail.card title="{% trans 'Spatial Coverage' %}"
-                 icon="geo-alt">
+  <c-dashboard.card title="{% trans 'Spatial Coverage' %}"
+                    icon="location">
     {# Add map or bbox display here #}
     <p class="text-muted small">{% trans "Geographic data available" %}</p>
-  </c-detail.card>
+  </c-dashboard.card>
 {% endblock overview_sidebar %}
