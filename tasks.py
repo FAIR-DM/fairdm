@@ -116,14 +116,11 @@ def update_deps(c):
         "django-easy-icons",
         "django-literature",
         "django-jsonfield-toolkit",
-        "django-polymorphic-treebeard",
-        "django-account-management",
         "fairdm-docs",
         "django-research-vocabs",
         "django-setup-tools",
         "django-flex-menus",
         "django-render-fields",
-        "cotton-bs5",
     ]
 
     c.run(f"poetry update {' '.join(packages)}")
