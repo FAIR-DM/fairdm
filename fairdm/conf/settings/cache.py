@@ -52,7 +52,8 @@ else:
             "LOCATION": "default-cache",
         },
         "select2": {
-            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
             "LOCATION": "select2-cache",
         },
     }
