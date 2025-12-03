@@ -1,9 +1,8 @@
 from .base import Form, ModelForm
-from .fields import ImageCroppingWidget, PartialDateField
+from .fields import PartialDateField
 
 __all__ = [
     "Form",
-    "ImageCroppingWidget",
     "ModelForm",
     "PartialDateField",
 ]
