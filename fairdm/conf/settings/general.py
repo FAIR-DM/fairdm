@@ -104,7 +104,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 
 # DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
-DJANGO_TABLES2_TEMPLATE = "fairdm/table.html"
+DJANGO_TABLES2_TEMPLATE = "collections/table.html"
 
 ACCOUNT_MANAGEMENT_GET_AVATAR_URL = "fairdm.contrib.contributors.utils.get_contributor_avatar"  # This line connects the avatar_url template tag to the function that retrieves the contributor's avatar URL.
 
