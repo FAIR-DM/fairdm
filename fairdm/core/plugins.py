@@ -282,12 +282,3 @@ class DatasetPlugin(FairDMPlugin, DatasetListView):
         Returns the URL for creating a new dataset.
         """
         return reverse("dataset-create")
-
-    def get_heading_config(self):
-        """
-        Returns the heading configuration for the project list view.
-        """
-        return {
-            "description": _(f"The following datasets are associated with {self.base_object}."),
-            "title_actions": ["dataset.create-button"],
-        }

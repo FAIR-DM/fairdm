@@ -107,9 +107,7 @@ class DatasetListView(FairDMListView):
             }
         ],
     }
-    grid_config = {
-        "card": "dataset.card",
-    }
+
     description = _(
         "Search and filter thousands of open-access research datasets by topic, field, or format. Access high-quality "
         "data to support your research projects."
