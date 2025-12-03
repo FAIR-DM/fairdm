@@ -99,6 +99,8 @@ EASY_ICONS = {
             "card_view": "bi bi-grid-3x2",
             "collapse": "bi bi-chevron-down",
             "expand": "bi bi-arrows-expand",
+            "fullscreen": "bi bi-arrows-fullscreen",
+            "fullscreen_exit": "bi bi-fullscreen-exit",
             # Media
             "image": "bi bi-image",
             "images": "bi bi-images",
