@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "django_cleanup.apps.CleanupConfig",
     # FAIRDM
+    "fairdm.contrib.theme",
     "fairdm",
     "fairdm.core.project",
     "fairdm.core.dataset",
