@@ -1,4 +1,4 @@
-{% extends "fairdm/base.html" %}
+{% extends "layouts/base.html" %}
 {% load i18n cotton %}
 
 {% block content %}
@@ -52,8 +52,8 @@
     <c-dashboard gap="3">
       {# Measurement Type Listings #}
       {% if measurement_types %}
-        <c-dashboard.card title="{% trans 'All Measurement Types' %}"
-                          icon="measurement">
+        <c-card title="{% trans 'All Measurement Types' %}"
+                icon="measurement">
           <c-slot name="description">
             <p class="text-muted small mb-3">
               {% trans "Click on any measurement type below to view and filter the full collection." %}
@@ -94,10 +94,10 @@
               </div>
             {% endfor %}
           </div>
-        </c-dashboard.card>
+        </c-card>
       {% else %}
-        <c-dashboard.card title="{% trans 'Measurement Collections' %}"
-                          icon="measurement">
+        <c-card title="{% trans 'Measurement Collections' %}"
+                icon="measurement">
           <div class="text-center py-5">
             <c-icon name="measurement"
                     size="64"
@@ -107,13 +107,13 @@
               {% trans "Measurement types will appear here once they are registered in the portal." %}
             </p>
           </div>
-        </c-dashboard.card>
+        </c-card>
       {% endif %}
       {# Sidebar #}
       <c-slot name="sidebar">
         {# About Measurements #}
-        <c-dashboard.card title="{% trans 'About Measurements' %}"
-                          icon="info">
+        <c-card title="{% trans 'About Measurements' %}"
+                icon="info">
           <div class="small">
             <p class="mb-2">
               {% trans "Measurements are observations, analyses, or experimental results associated with samples. They capture the data generated from research activities." %}
@@ -126,11 +126,11 @@
               <li>{% trans "Experimental outcomes" %}</li>
             </ul>
           </div>
-        </c-dashboard.card>
+        </c-card>
         {# Measurement Statistics #}
         {% if measurement_types %}
-          <c-dashboard.card title="{% trans 'Collection Statistics' %}"
-                            icon="analytics">
+          <c-card title="{% trans 'Collection Statistics' %}"
+                  icon="analytics">
             <dl class="mb-0 small">
               <c-detail.info-item label="{% trans 'Largest Collection' %}">
                 {% with largest=measurement_types|first %}{{ largest.name }} ({{ largest.count }}){% endwith %}
@@ -143,11 +143,11 @@
               <c-detail.info-item label="{% trans 'Total Measurement Records' %}"
                                   text="{{ total_measurements }}" />
             </dl>
-          </c-dashboard.card>
+          </c-card>
         {% endif %}
         {# Quick Actions #}
-        <c-dashboard.card title="{% trans 'Quick Actions' %}"
-                          icon="lightning">
+        <c-card title="{% trans 'Quick Actions' %}"
+                icon="lightning">
           <div class="d-grid gap-2 small">
             <a href="{% url 'data-collections' %}"
                class="btn btn-sm btn-outline-secondary">
@@ -162,7 +162,7 @@
               </a>
             {% endif %}
           </div>
-        </c-dashboard.card>
+        </c-card>
       </c-slot>
     </c-dashboard>
   </div>

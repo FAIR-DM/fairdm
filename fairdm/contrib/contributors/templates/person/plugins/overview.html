@@ -1,7 +1,7 @@
 {% extends "fairdm/plugin.html" %}
 {% load fairdm humanize i18n martortags static easy_icons %}
 
-{% block plugin_header %}
+{% block page_header %}
   {# Custom header for Person with avatar, name, ORCID, and primary affiliation #}
   <div class="person-header py-4 mb-4">
     <div class="d-flex flex-column flex-md-row align-items-center gap-3 gap-md-4">
@@ -77,7 +77,7 @@
       </div>
     </div>
   </div>
-{% endblock plugin_header %}
+{% endblock page_header %}
 
 {% block plugin %}
   {% trans "There's nothing here yet." as empty_text %}
@@ -86,21 +86,21 @@
     <div class="col-lg-8">
       {% block overview_main %}
         {% block bio %}
-          <c-dashboard.card title="{% trans "About" %}"
-                            icon="person-lines-fill"
-                            edit_url="{% if object == request.user %}{% plugin_url "profile" %}{% endif %}">
+          <c-card title="{% trans "About" %}"
+                  icon="person-lines-fill"
+                  edit_url="{% if object == request.user %}{% plugin_url "profile" %}{% endif %}">
             {% if object.profile %}
               <p class="card-text">{{ object.profile|safe_markdown }}</p>
             {% else %}
               <p class="text-muted">{{ empty_text }}</p>
             {% endif %}
-          </c-dashboard.card>
+          </c-card>
         {% endblock bio %}
 
         {% block contributions %}
           {# Contributions Statistics #}
-          <c-dashboard.card title="{% trans "Contributions" %}"
-                            icon="analytics">
+          <c-card title="{% trans "Contributions" %}"
+                  icon="analytics">
             {% if contributions_by_type %}
               <div class="row g-3">
                 {% for model_name, count in contributions_by_type.items %}
@@ -115,14 +115,14 @@
             {% else %}
               <p class="text-muted mb-0">{{ empty_text }}</p>
             {% endif %}
-          </c-dashboard.card>
+          </c-card>
         {% endblock contributions %}
 
         {% block research_interests %}
           {# Research Interests / Keywords #}
-          <c-dashboard.card title="{% trans "Research Interests" %}"
-                            icon="keywords"
-                            edit_url="{% if object == request.user %}{% plugin_url "keywords" %}{% endif %}">
+          <c-card title="{% trans "Research Interests" %}"
+                  icon="keywords"
+                  edit_url="{% if object == request.user %}{% plugin_url "keywords" %}{% endif %}">
             <div class="d-flex flex-wrap gap-2">
               {% for keyword in object.keywords.all %}
                 <c-badge variant="light"
@@ -132,14 +132,14 @@
                 {{ empty_text }}
               {% endfor %}
             </div>
-          </c-dashboard.card>
+          </c-card>
         {% endblock research_interests %}
 
         {% block affiliations %}
           {# Current Affiliations #}
-          <c-dashboard.card title="{% trans "Affiliations" %}"
-                            icon="organization"
-                            edit_url="{% if object == request.user %}{% plugin_url 'affiliations' %}{% endif %}">
+          <c-card title="{% trans "Affiliations" %}"
+                  icon="organization"
+                  edit_url="{% if object == request.user %}{% plugin_url 'affiliations' %}{% endif %}">
             <c-list-group flush>
               {% for membership in object.current_affiliations %}
                 <c-list-group.item>
@@ -167,7 +167,7 @@
                 {{ empty_text }}
               {% endfor %}
             </c-list-group>
-          </c-dashboard.card>
+          </c-card>
         {% endblock affiliations %}
       {% endblock overview_main %}
 
@@ -177,9 +177,9 @@
       {% block overview_sidebar %}
         {% block identifiers %}
           {# External Identifiers #}
-          <c-dashboard.card title="{% trans "Identifiers" %}"
-                            icon="identifier"
-                            edit_url="{% if object == request.user %}{% plugin_url "identifiers" %}{% endif %}">
+          <c-card title="{% trans "Identifiers" %}"
+                  icon="identifier"
+                  edit_url="{% if object == request.user %}{% plugin_url "identifiers" %}{% endif %}">
             <dl class="mb-0">
               {% for identifier in object.identifiers.all %}
                 <c-detail.info-item label="{{ identifier.type }}">
@@ -199,12 +199,12 @@
                 <p class="text-muted small mb-0">{{ empty_text }}</p>
               {% endfor %}
             </dl>
-          </c-dashboard.card>
+          </c-card>
         {% endblock identifiers %}
 
         {% block external_links %}
           {# External Links #}
-          <c-dashboard.card title="{% trans "Links" %}" icon="link">
+          <c-card title="{% trans "Links" %}" icon="link">
             {% if object.links %}
               <div class="d-flex flex-column gap-2">
                 {% for link in object.links %}
@@ -220,14 +220,14 @@
             {% else %}
               <p class="text-muted small mb-0">{{ empty_text }}</p>
             {% endif %}
-          </c-dashboard.card>
+          </c-card>
         {% endblock external_links %}
 
         {% block alternative_names %}
           {# Alternative Names #}
           {% if object.alternative_names %}
-            <c-dashboard.card title="{% trans "Also Known As" %}"
-                              icon="person-badge">
+            <c-card title="{% trans "Also Known As" %}"
+                    icon="person-badge">
               <div class="d-flex flex-wrap gap-2">
                 {% for alt_name in object.alternative_names %}
                   <c-badge variant="light"
@@ -235,15 +235,15 @@
                            :text="alt_name" />
                 {% endfor %}
               </div>
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock alternative_names %}
 
         {% block account_info %}
           {# Account Status (only visible to the person themselves) #}
           {% if object == request.user %}
-            <c-dashboard.card title="{% trans "Account Status" %}"
-                              icon="shield-check">
+            <c-card title="{% trans "Account Status" %}"
+                    icon="shield-check">
               <dl class="mb-0">
                 <c-detail.info-item label="{% trans "Account Type" %}">
                   {% if object.is_staff %}
@@ -262,15 +262,15 @@
                                       text="{{ object.last_login|naturaltime }}" />
                 {% endif %}
               </dl>
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock account_info %}
 
         {% block sync_info %}
           {# Sync Information (only visible to the person themselves) #}
           {% if object == request.user and object.last_synced %}
-            <c-dashboard.card title="{% trans "Data Synchronization" %}"
-                              icon="arrow-repeat">
+            <c-card title="{% trans "Data Synchronization" %}"
+                    icon="arrow-repeat">
               <dl class="mb-0">
                 <c-detail.info-item label="{% trans "Last Synced" %}"
                                     text="{{ object.last_synced|date:'F d, Y' }}" />
@@ -281,7 +281,7 @@
                   {% trans "Profile data synchronized from external sources." %}
                 </small>
               </div>
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock sync_info %}
       {% endblock overview_sidebar %}

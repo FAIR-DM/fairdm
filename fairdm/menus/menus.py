@@ -1,12 +1,12 @@
 """Site navigation menu for FairDM."""
 
+from cotton_layouts.menus import SiteNavigation
 from django.utils.translation import gettext_lazy as _
-from flex_menu import Menu, MenuItem
+from flex_menu import MenuItem
 
 # Main site navigation menu
-SiteNavigation = Menu(
-    "SiteNavigation",
-    children=[
+SiteNavigation.extend(
+    [
         # Projects dropdown
         MenuItem(
             name=_("Projects"),

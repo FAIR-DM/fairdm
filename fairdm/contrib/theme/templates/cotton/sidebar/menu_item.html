@@ -1,7 +1,0 @@
-<c-vars :active="False" href="#" icon="" text="" />
-<a href="{{ href }}"
-   class="d-flex align-items-center text-decoration-none py-1 px-2 mb-1 rounded menu-item{% if active %} active bg-primary text-white{% else %} text-dark hover-bg-light{% endif %}"
-   {{ attrs }}>
-  {% if icon %}<c-icon name="{{ icon }}" class="me-2 fs-6 menu-icon" />{% endif %}
-  <span class="fw-medium small menu-text">{{ text }}{{ slot }}</span>
-</a>

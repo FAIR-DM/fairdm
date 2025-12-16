@@ -16,8 +16,8 @@
   {{ block.super }}
   {# Related Literature #}
   {% if dataset.related_literature.exists %}
-    <c-dashboard.card title="{% trans 'Related Literature' %}"
-                      icon="documentation">
+    <c-card title="{% trans 'Related Literature' %}"
+            icon="documentation">
       <c-list-group flush>
         {% for item in dataset.related_literature.all %}
           <c-list-group.item>
@@ -34,7 +34,7 @@
           </c-list-group.item>
         {% endfor %}
       </c-list-group>
-    </c-dashboard.card>
+    </c-card>
   {% endif %}
 {% endblock overview_main %}
 
@@ -67,9 +67,9 @@
 
 {% block overview_sidebar %}
   {{ block.super }}
-  <c-dashboard.card title="{% trans 'Spatial Coverage' %}"
-                    icon="location">
+  <c-card title="{% trans 'Spatial Coverage' %}"
+          icon="location">
     {# Add map or bbox display here #}
     <p class="text-muted small">{% trans "Geographic data available" %}</p>
-  </c-dashboard.card>
+  </c-card>
 {% endblock overview_sidebar %}

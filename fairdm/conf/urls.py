@@ -15,7 +15,6 @@ urlpatterns = [
     path(r"jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("django-literature/", include("literature.urls")),
     path("", HomeView.as_view(), name="home"),
-    path("data/", TemplateView.as_view(template_name="fairdm/data.html"), name="data"),
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.collections.urls")),

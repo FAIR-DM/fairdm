@@ -53,7 +53,7 @@
       {% endfor %}
     </c-list-group>
     <c-slot name="sidebar">
-      <c-dashboard.card title="{% trans "Actions" %}" icon="plus">
+      <c-card title="{% trans "Actions" %}" icon="plus">
         <div class="d-grid gap-2">
           <button class="btn btn-primary btn-sm"
                   hx-get="{% plugin_url 'contribution-quick-add' %}"
@@ -64,10 +64,10 @@
             <i class="bi bi-person-plus me-2"></i>{% trans "Add Contributor" %}
           </button>
         </div>
-      </c-dashboard.card>
-      <c-dashboard.card title="{% trans "Contributor Type" %}"
-                        icon="filter"
-                        class="mt-3">
+      </c-card>
+      <c-card title="{% trans "Contributor Type" %}"
+              icon="filter"
+              class="mt-3">
         <div class="d-flex flex-column gap-2">
           <div class="form-check">
             <input class="form-check-input"
@@ -92,11 +92,11 @@
             </label>
           </div>
         </div>
-      </c-dashboard.card>
+      </c-card>
       {% if available_roles %}
-        <c-dashboard.card title="{% trans "Role" %}"
-                          icon="tag"
-                          class="mt-3">
+        <c-card title="{% trans "Role" %}"
+                icon="tag"
+                class="mt-3">
           <div class="d-flex flex-column gap-2"
                id="role-filters">
             <div class="form-check">
@@ -121,7 +121,7 @@
               </div>
             {% endfor %}
           </div>
-        </c-dashboard.card>
+        </c-card>
       {% endif %}
     </c-slot>
   </c-dashboard>

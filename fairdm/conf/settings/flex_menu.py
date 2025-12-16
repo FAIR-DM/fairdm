@@ -3,11 +3,9 @@
 # Custom renderers for FairDM navigation menus
 FLEX_MENUS = {
     "renderers": {
-        # Desktop navbar renderer
-        "navbar": "fairdm.menus.renderers.NavbarRenderer",
-        # Mobile navbar renderer
-        "mobile_navbar": "fairdm.menus.renderers.MobileNavbarRenderer",
-        # Sidebar/detail menu renderer for plugin menus
-        "sidebar": "fairdm.menus.renderers.SidebarRenderer",
+        "navbar": "cotton_layouts.renderers.NavbarRenderer",
+        "mobile_navbar": "cotton_layouts.renderers.MobileNavbarRenderer",
+        "sidebar": "cotton_layouts.renderers.SidebarRenderer",
+        "dropdown": "cotton_layouts.renderers.DropdownRenderer",
     }
 }

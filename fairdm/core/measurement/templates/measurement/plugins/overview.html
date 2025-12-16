@@ -4,16 +4,16 @@
 {% block overview_main %}
   {{ block.super }}
   {# Measurement Value #}
-  <c-dashboard.card title="{% trans 'Measurement Value' %}"
-                    icon="speedometer2">
+  <c-card title="{% trans 'Measurement Value' %}"
+          icon="speedometer2">
     <div class="p-4 bg-light rounded text-center">
       <div class="display-4 fw-bold text-primary mb-2">{{ measurement.get_value }}</div>
       <div class="text-muted">{{ measurement.get_polymorphic_type_name }}</div>
     </div>
-  </c-dashboard.card>
+  </c-card>
   {# Sample Information #}
   {% if measurement.sample %}
-    <c-dashboard.card title="{% trans 'Sample' %}" icon="box-seam">
+    <c-card title="{% trans 'Sample' %}" icon="box-seam">
       <div class="d-flex align-items-center">
         {% if measurement.sample.image %}
           <img src="{{ measurement.sample.image.url }}"
@@ -38,11 +38,11 @@
           </p>
         </div>
       </div>
-    </c-dashboard.card>
+    </c-card>
   {% endif %}
   {# Dataset & Project Information #}
-  <c-dashboard.card title="{% trans 'Dataset & Project' %}"
-                    icon="project">
+  <c-card title="{% trans 'Dataset & Project' %}"
+          icon="project">
     <div class="mb-3">
       <h6 class="text-muted small text-uppercase mb-2">{% trans "Dataset" %}</h6>
       <div class="d-flex align-items-center">
@@ -79,11 +79,11 @@
         </div>
       </div>
     {% endif %}
-  </c-dashboard.card>
+  </c-card>
   {# Measurement Method/Protocol (if available) #}
   {% if measurement.method or measurement.protocol %}
-    <c-dashboard.card title="{% trans 'Method & Protocol' %}"
-                      icon="journal-text">
+    <c-card title="{% trans 'Method & Protocol' %}"
+            icon="journal-text">
       {% if measurement.method %}
         <h6 class="text-muted small text-uppercase mb-2">{% trans "Method" %}</h6>
         <p class="mb-3">{{ measurement.method }}</p>
@@ -92,7 +92,7 @@
         <h6 class="text-muted small text-uppercase mb-2">{% trans "Protocol" %}</h6>
         <p class="mb-0">{{ measurement.protocol }}</p>
       {% endif %}
-    </c-dashboard.card>
+    </c-card>
   {% endif %}
 {% endblock overview_main %}
 
@@ -115,8 +115,8 @@
   {{ block.super }}
   {# Measurement Metadata (if available) #}
   {% if measurement.uncertainty or measurement.unit or measurement.precision %}
-    <c-dashboard.card title="{% trans 'Measurement Details' %}"
-                      icon="analytics">
+    <c-card title="{% trans 'Measurement Details' %}"
+            icon="analytics">
       <dl class="mb-0">
         {% if measurement.unit %}
           <c-detail.info-item label="{% trans 'Unit' %}"
@@ -135,6 +135,6 @@
           </dd>
         {% endif %}
       </dl>
-    </c-dashboard.card>
+    </c-card>
   {% endif %}
 {% endblock overview_sidebar %}

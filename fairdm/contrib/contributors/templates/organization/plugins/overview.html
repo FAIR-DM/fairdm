@@ -1,7 +1,7 @@
 {% extends "fairdm/plugin.html" %}
 {% load fairdm humanize i18n martortags static easy_icons %}
 
-{% block plugin_header %}
+{% block page_header %}
   {# Custom header for Organization with logo, name, and identifiers #}
   <div class="organization-header py-4 mb-4">
     <div class="d-flex flex-column flex-md-row align-items-center gap-3 gap-md-4">
@@ -66,7 +66,7 @@
       </div>
     </div>
   </div>
-{% endblock plugin_header %}
+{% endblock page_header %}
 
 {% block plugin %}
   {% trans "There's nothing here yet." as empty_text %}
@@ -75,19 +75,19 @@
     <div class="col-lg-8">
       {% block overview_main %}
         {% block description %}
-          <c-dashboard.card title="{% trans "About" %}" icon="info">
+          <c-card title="{% trans "About" %}" icon="info">
             {% if object.profile %}
               <p class="card-text">{{ object.profile|safe_markdown }}</p>
             {% else %}
               <p class="text-muted">{{ empty_text }}</p>
             {% endif %}
-          </c-dashboard.card>
+          </c-card>
         {% endblock description %}
 
         {% block contributions %}
           {# Contributions Statistics #}
-          <c-dashboard.card title="{% trans "Contributions" %}"
-                            icon="analytics">
+          <c-card title="{% trans "Contributions" %}"
+                  icon="analytics">
             {% if contributions_by_type %}
               <div class="row g-3">
                 {% for model_name, count in contributions_by_type.items %}
@@ -102,13 +102,13 @@
             {% else %}
               <p class="text-muted mb-0">{{ empty_text }}</p>
             {% endif %}
-          </c-dashboard.card>
+          </c-card>
         {% endblock contributions %}
 
         {% block research_areas %}
           {# Research Areas / Focus Topics #}
-          <c-dashboard.card title="{% trans "Research Areas" %}"
-                            icon="keywords">
+          <c-card title="{% trans "Research Areas" %}"
+                  icon="keywords">
             <div class="d-flex flex-wrap gap-2">
               {% for keyword in object.keywords.all %}
                 <c-badge variant="light"
@@ -118,12 +118,12 @@
                 {{ empty_text }}
               {% endfor %}
             </div>
-          </c-dashboard.card>
+          </c-card>
         {% endblock research_areas %}
 
         {% block members %}
           {# Organization Members #}
-          <c-dashboard.card title="{% trans "Members" %}" icon="people">
+          <c-card title="{% trans "Members" %}" icon="people">
             <c-list-group flush>
               {% for membership in object.members.all|slice:":10" %}
                 <c-list-group.item>
@@ -181,7 +181,7 @@
                 </small>
               </div>
             {% endif %}
-          </c-dashboard.card>
+          </c-card>
         {% endblock members %}
       {% endblock overview_main %}
 
@@ -192,17 +192,17 @@
         {% block organization_type %}
           {# Organization Type/Category #}
           {% if object.type %}
-            <c-dashboard.card title="{% trans "Organization Type" %}"
-                              icon="relationships">
+            <c-card title="{% trans "Organization Type" %}"
+                    icon="relationships">
               <c-badge variant="info" class="fs-6" :text="object.type" />
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock organization_type %}
 
         {% block location %}
           {# Location/Address Information #}
           {% if object.country or object.city %}
-            <c-dashboard.card title="{% trans "Location" %}" icon="location">
+            <c-card title="{% trans "Location" %}" icon="location">
               <dl class="mb-0">
                 {% if object.city %}
                   <c-detail.info-item label="{% trans "City" %}"
@@ -213,14 +213,14 @@
                                       text="{{ object.country.name }}" />
                 {% endif %}
               </dl>
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock location %}
 
         {% block identifiers %}
           {# External Identifiers #}
-          <c-dashboard.card title="{% trans "Identifiers" %}"
-                            icon="identifier">
+          <c-card title="{% trans "Identifiers" %}"
+                  icon="identifier">
             <dl class="mb-0">
               {% for identifier in object.identifiers.all %}
                 <c-detail.info-item label="{{ identifier.type }}">
@@ -240,12 +240,12 @@
                 <p class="text-muted small mb-0">{{ empty_text }}</p>
               {% endfor %}
             </dl>
-          </c-dashboard.card>
+          </c-card>
         {% endblock identifiers %}
 
         {% block external_links %}
           {# External Links #}
-          <c-dashboard.card title="{% trans "Links" %}" icon="link">
+          <c-card title="{% trans "Links" %}" icon="link">
             {% if object.links %}
               <div class="d-flex flex-column gap-2">
                 {% for link in object.links %}
@@ -261,14 +261,14 @@
             {% else %}
               <p class="text-muted small mb-0">{{ empty_text }}</p>
             {% endif %}
-          </c-dashboard.card>
+          </c-card>
         {% endblock external_links %}
 
         {% block alternative_names %}
           {# Alternative Names / Acronyms #}
           {% if object.alternative_names %}
-            <c-dashboard.card title="{% trans "Alternative Names" %}"
-                              icon="organization">
+            <c-card title="{% trans "Alternative Names" %}"
+                    icon="organization">
               <div class="d-flex flex-wrap gap-2">
                 {% for alt_name in object.alternative_names %}
                   <c-badge variant="light"
@@ -276,14 +276,14 @@
                            :text="alt_name" />
                 {% endfor %}
               </div>
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock alternative_names %}
 
         {% block parent_organization %}
           {# Parent Organization (if applicable) #}
           {% if object.parent %}
-            <c-dashboard.card title="{% trans "Part Of" %}" icon="diagram-2">
+            <c-card title="{% trans "Part Of" %}" icon="diagram-2">
               <div class="d-flex align-items-center gap-2">
                 {% if object.parent.image %}
                   <img src="{{ object.parent.image.url }}"
@@ -301,19 +301,19 @@
                   {% endif %}
                 </div>
               </div>
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock parent_organization %}
 
         {% block established %}
           {# Established Date #}
           {% if object.established %}
-            <c-dashboard.card title="{% trans "Established" %}"
-                              icon="calendar-event">
+            <c-card title="{% trans "Established" %}"
+                    icon="calendar-event">
               <dl class="mb-0">
                 <c-detail.info-item text="{{ object.established|date:'Y' }}" />
               </dl>
-            </c-dashboard.card>
+            </c-card>
           {% endif %}
         {% endblock established %}
       {% endblock overview_sidebar %}

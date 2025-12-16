@@ -116,6 +116,55 @@ menu_item = MenuLink(
 )
 ```
 
+### Adding CSS and JavaScript
+
+:::{important}
+**Always create CSS and JavaScript in separate files.** Do not use inline `<style>` or `<script>` tags in plugin templates.
+:::
+
+Use Django's `Media` inner class to declare static assets:
+
+```python
+@plugin.register('dataset.Dataset', category=plugins.EXPLORE)
+class DatasetAnalysis(BasePlugin, TemplateView):
+    menu_item = MenuLink(name=_("Analysis"), icon="chart-bar")
+    template_name = "myapp/analysis.html"
+    title = _("Dataset Analysis")
+    
+    class Media:
+        css = {
+            'all': ('myapp/css/analysis.css',)
+        }
+        js = ('myapp/js/charts.js', 'myapp/js/analysis.js')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["stats"] = self.calculate_stats(self.base_object)
+        return context
+```
+
+**File Structure:**
+```text
+myapp/
+├── static/
+│   └── myapp/
+│       ├── css/
+│       │   └── analysis.css
+│       └── js/
+│           ├── charts.js
+│           └── analysis.js
+├── templates/
+│   └── myapp/
+│       └── analysis.html
+└── plugins.py
+```
+
+**Benefits:**
+- Proper caching and minification in production
+- Better code organization and reusability
+- Automatic asset collection via `collectstatic`
+- Easier debugging and maintenance
+
 ## 6. Plugin Base Classes
 
 Choose the appropriate base class for your plugin type:
@@ -190,3 +239,4 @@ Plugins are automatically discovered from any `plugins.py` file in installed Dja
 - Choose appropriate base classes: `Explore`, `Action`, or `Management`
 - Wrap template content with `<c-plugin>` components
 - Use FairDM components for consistent UI design
+- **Always use separate CSS/JS files with the `Media` inner class** - never inline styles or scripts

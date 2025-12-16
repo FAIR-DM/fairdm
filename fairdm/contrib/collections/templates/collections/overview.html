@@ -1,4 +1,4 @@
-{% extends "fairdm/base.html" %}
+{% extends "layouts/base.html" %}
 {% load i18n cotton %}
 
 {% block content %}
@@ -122,8 +122,8 @@
       <div class="row g-4">
         {% if sample_types %}
           <div class="col-lg-6">
-            <c-dashboard.card title="{% trans 'Quick Access - Samples' %}"
-                              icon="sample">
+            <c-card title="{% trans 'Quick Access - Samples' %}"
+                    icon="sample">
               <c-list-group flush>
                 {% for sample_type in sample_types|slice:":5" %}
                   <c-list-group.item class="py-2">
@@ -146,18 +146,18 @@
               </c-list-group>
               {% if sample_types|length > 5 %}
                 <c-slot name="actions">
-                  <c-dashboard.card.action href="{% url 'samples-overview' %}"
-                                           text="{% trans 'View all sample types' %}"
-                                           icon="arrow_right" />
+                  <c-card.action href="{% url 'samples-overview' %}"
+                                 text="{% trans 'View all sample types' %}"
+                                 icon="arrow_right" />
                 </c-slot>
               {% endif %}
-            </c-dashboard.card>
+            </c-card>
           </div>
         {% endif %}
         {% if measurement_types %}
           <div class="col-lg-6">
-            <c-dashboard.card title="{% trans 'Quick Access - Measurements' %}"
-                              icon="measurement">
+            <c-card title="{% trans 'Quick Access - Measurements' %}"
+                    icon="measurement">
               <c-list-group flush>
                 {% for measurement_type in measurement_types|slice:":5" %}
                   <c-list-group.item class="py-2">
@@ -180,12 +180,12 @@
               </c-list-group>
               {% if measurement_types|length > 5 %}
                 <c-slot name="actions">
-                  <c-dashboard.card.action href="{% url 'measurements-overview' %}"
-                                           text="{% trans 'View all measurement types' %}"
-                                           icon="arrow_right" />
+                  <c-card.action href="{% url 'measurements-overview' %}"
+                                 text="{% trans 'View all measurement types' %}"
+                                 icon="arrow_right" />
                 </c-slot>
               {% endif %}
-            </c-dashboard.card>
+            </c-card>
           </div>
         {% endif %}
       </div>

@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import cached_property
 
 from braces.views import MessageMixin
+from cotton_layouts.mixins import SearchOrderMixin
 from crispy_forms.helper import FormHelper
 from django.contrib.auth.decorators import login_required
 from django.db.models import Model
@@ -216,31 +217,14 @@ class FairDMTemplateView(FairDMBaseMixin, TemplateView):
 
 
 # @method_decorator(cache_page(60 * 5), name="dispatch")
-class FairDMListView(FairDMBaseMixin, FilterView):
+class FairDMListView(FairDMBaseMixin, SearchOrderMixin, FilterView):
     """
     The base class for displaying a list of objects within the FairDM framework.
     """
 
-    # template_name = "fairdm/list_view.html"
-    template_name = "fairdm/list_view.html"
+    template_name = "layouts/list_view.html"
     template_name_suffix = "_list"
     paginate_by = 20
-    layout = {
-        "container_class": "container",
-    }
-    sections = {
-        "sidebar_primary": "sections.sidebar.form",
-        "sidebar_secondary": False,  # hide the secondary sidebar
-        "header": False,
-        "grid": "sections.object-list",
-        "heading": "sections.heading",
-    }
-    sidebar_primary_config = {
-        "breakpoint": "md",
-        "header": {
-            "title": _("Filter"),
-        },
-    }
     grid_config = {
         "cols": 1,
         "gap": 2,
@@ -249,11 +233,32 @@ class FairDMListView(FairDMBaseMixin, FilterView):
     }
     page = {}
 
+    # def get_filterset_kwargs(self, filterset_class):
+    #     """Override to apply search and ordering to the base queryset before filtering."""
+    #     kwargs = super().get_filterset_kwargs(filterset_class)
+
+    #     # Get the base queryset
+    #     queryset = kwargs.get("queryset")
+
+    #     # Apply search from SearchMixin
+    #     search_term = self.request.GET.get("q", "").strip()
+    #     if search_term and self.get_search_fields():
+    #         queryset = self._apply_search(queryset, search_term)
+
+    #     # Apply ordering from OrderMixin
+    #     ordering = self.request.GET.get("o", "")
+    #     if ordering and self.get_order_by_choices():
+    #         queryset = self._apply_ordering(queryset, ordering)
+
+    #     kwargs["queryset"] = queryset
+    #     return kwargs
+
     def get(self, request, *args, **kwargs):
         """Override the get method of the FilterView to allow views to not specify a filterset_class."""
         filterset_class = self.get_filterset_class()
         if filterset_class is None:
             self.filterset = None
+            # When no filterset, use the mixin's get_queryset which applies search/ordering
             self.object_list = self.get_queryset()
         else:
             self.filterset = self.get_filterset(filterset_class)
@@ -382,7 +387,7 @@ class FairDMDeleteView(FairDMModelFormMixin, DeleteView):
     The base class for deleting objects within the FairDM framework.
     """
 
-    template_name = "fairdm/form_view.html"
+    template_name = "layouts/form_view.html"
     form_class = Form
     form_config = {
         "submit_button": {

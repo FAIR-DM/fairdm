@@ -1,4 +1,4 @@
-{% extends "fairdm/base.html" %}
+{% extends "layouts/base.html" %}
 {% load i18n cotton %}
 
 {% block content %}
@@ -52,8 +52,8 @@
     <c-dashboard gap="3">
       {# Sample Type Listings #}
       {% if sample_types %}
-        <c-dashboard.card title="{% trans 'All Sample Types' %}"
-                          icon="sample">
+        <c-card title="{% trans 'All Sample Types' %}"
+                icon="sample">
           <c-slot name="description">
             <p class="text-muted small mb-3">
               {% trans "Click on any sample type below to view and filter the full collection." %}
@@ -92,21 +92,21 @@
               </div>
             {% endfor %}
           </div>
-        </c-dashboard.card>
+        </c-card>
       {% else %}
-        <c-dashboard.card title="{% trans 'Sample Collections' %}"
-                          icon="sample">
+        <c-card title="{% trans 'Sample Collections' %}"
+                icon="sample">
           <div class="text-center py-5">
             <c-icon name="sample" size="64" class="text-muted mb-3" />
             <h5 class="text-muted">{% trans "No Sample Types Registered" %}</h5>
             <p class="text-muted mb-0">{% trans "Sample types will appear here once they are registered in the portal." %}</p>
           </div>
-        </c-dashboard.card>
+        </c-card>
       {% endif %}
       {# Sidebar #}
       <c-slot name="sidebar">
         {# About Samples #}
-        <c-dashboard.card title="{% trans 'About Samples' %}" icon="info">
+        <c-card title="{% trans 'About Samples' %}" icon="info">
           <div class="small">
             <p class="mb-2">
               {% trans "Samples are the core units of data collection in research. They can represent physical specimens, observation points, or any discrete entity being studied." %}
@@ -119,11 +119,11 @@
               <li>{% trans "Experimental subjects" %}</li>
             </ul>
           </div>
-        </c-dashboard.card>
+        </c-card>
         {# Sample Statistics #}
         {% if sample_types %}
-          <c-dashboard.card title="{% trans 'Collection Statistics' %}"
-                            icon="analytics">
+          <c-card title="{% trans 'Collection Statistics' %}"
+                  icon="analytics">
             <dl class="mb-0 small">
               <c-detail.info-item label="{% trans 'Largest Collection' %}">
                 {% with largest=sample_types|first %}{{ largest.name }} ({{ largest.count }}){% endwith %}
@@ -136,11 +136,11 @@
               <c-detail.info-item label="{% trans 'Total Sample Records' %}"
                                   text="{{ total_samples }}" />
             </dl>
-          </c-dashboard.card>
+          </c-card>
         {% endif %}
         {# Quick Actions #}
-        <c-dashboard.card title="{% trans 'Quick Actions' %}"
-                          icon="lightning">
+        <c-card title="{% trans 'Quick Actions' %}"
+                icon="lightning">
           <div class="d-grid gap-2 small">
             <a href="{% url 'data-collections' %}"
                class="btn btn-sm btn-outline-secondary">
@@ -155,7 +155,7 @@
               </a>
             {% endif %}
           </div>
-        </c-dashboard.card>
+        </c-card>
       </c-slot>
     </c-dashboard>
   </div>

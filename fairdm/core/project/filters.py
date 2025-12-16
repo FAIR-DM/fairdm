@@ -6,7 +6,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
-from fairdm.core.filters import BaseListFilter, GenericSearchFilter
+from fairdm.core.filters import BaseListFilter
 from fairdm.utils.utils import get_setting
 
 from .models import Project
@@ -17,13 +17,6 @@ class ProjectFilter(BaseListFilter):
 
     Keyword filters are automatically created based on FAIRDM_PROJECT["keywords"] setting.
     """
-
-    # Search across name, UUID, and descriptions
-    search = GenericSearchFilter(
-        search_fields=["name", "uuid", "descriptions__value"],
-        widget=forms.TextInput(attrs={"placeholder": _("Search projects...")}),
-        label=_("Search"),
-    )
 
     # Project status filter (Concept, Planning, In Progress, Complete)
     status = df.ChoiceFilter(
@@ -53,21 +46,6 @@ class ProjectFilter(BaseListFilter):
         empty_label=_("Any"),
         label=_("Contributor"),
         distinct=True,
-    )
-
-    # Ordering options
-    o = df.OrderingFilter(
-        choices=(
-            ("-created", _("Newest First")),
-            ("created", _("Oldest First")),
-            ("-modified", _("Recently Updated")),
-            ("modified", _("Last Updated")),
-            ("name", _("Name A-Z")),
-            ("-name", _("Name Z-A")),
-        ),
-        widget=forms.Select,
-        empty_label=False,
-        initial="-created",
     )
 
     def __init__(self, *args, **kwargs):
@@ -138,4 +116,4 @@ class ProjectFilter(BaseListFilter):
 
     class Meta:
         model = Project
-        fields = ["search", "status", "owner", "tags", "contributor"]
+        fields = ["status", "owner", "tags", "contributor"]

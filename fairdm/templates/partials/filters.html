@@ -1,0 +1,20 @@
+{% load crispy_forms_tags widget_tweaks %}
+
+<form id="filterForm"
+      action="{{ request.path }}"
+      method="get">
+  {% csrf_token %}
+  {{ filter.form|crispy }}
+  <div class="d-grid mt-3">
+    <button type="submit" class="btn btn-primary btn-sm">
+      <c-icon name="filter" class="me-1" />
+      Apply Filters
+    </button>
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm mt-2"
+            onclick="clearAllFilters()">
+      <c-icon name="cancel" class="me-1" />
+      Clear Filters
+    </button>
+  </div>
+</form>

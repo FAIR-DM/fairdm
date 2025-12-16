@@ -2,7 +2,6 @@ from typing import Any
 
 from django.db.models import QuerySet
 from django.http import HttpResponse
-from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
 from fairdm import plugins
@@ -90,7 +89,14 @@ class DatasetListView(FairDMListView):
     model = Dataset
     filterset_class = DatasetFilter
     title = _("Datasets")
-    image = static("img/stock/dataset.jpg")
+    order_by = (
+        ("-added", _("Newest First")),
+        ("added", _("Oldest First")),
+        ("-modified", _("Recently Updated")),
+        ("name", _("Name A-Z")),
+        ("-name", _("Name Z-A")),
+    )
+    search_fields = ["name", "uuid", "descriptions__value"]
     heading_config = {
         "icon": "dataset",
         "title": _("Datasets"),
@@ -120,4 +126,6 @@ class DatasetListView(FairDMListView):
         Returns:
             QuerySet: Filtered and optimized Dataset queryset.
         """
-        return Dataset.objects.get_visible().with_contributors()
+        qs = super().get_queryset()
+        return qs.get_visible().with_contributors()
+        # return Dataset.objects.get_visible().with_contributors()

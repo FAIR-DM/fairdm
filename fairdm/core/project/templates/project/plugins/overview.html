@@ -31,9 +31,9 @@
   {{ block.super }}
   {# Funding Information #}
   {% if project.funding %}
-    <c-dashboard.card title="{% trans 'Funding' %}" icon="funding">
+    <c-card title="{% trans 'Funding' %}" icon="funding">
       <p class="card-text">{{ project.funding }}</p>
-    </c-dashboard.card>
+    </c-card>
   {% endif %}
 {% endblock overview_main %}
 

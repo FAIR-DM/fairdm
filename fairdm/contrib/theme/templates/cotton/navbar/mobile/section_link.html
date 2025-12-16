@@ -1,8 +1,0 @@
-<c-vars :active="False" href="#" icon="" text="" />
-<div class="nav-item mb-2">
-  <a class="nav-link fw-semibold text-uppercase small{% if active %} active{% endif %}"
-     href="{{ href }}">
-    {% if icon %}<c-icon name="{{ icon }}" class="me-2" />{% endif %}
-    {{ text }}{{ slot }}
-  </a>
-</div>

@@ -1,10 +1,58 @@
 # Home Page
 
-The home page is the first page that users who are not logged in will see when they visit your site. FairDM provides a default home page that you can customize to suit the requirements of your portal and it's community.
+The home page is the first page that users see when they visit your portal. FairDM provides a configurable home page that you can customize through Django settings and templates.
 
-Before you get started, it is recommended to familiarize yourself with the basics of templates within the Django web framework. You can find more information in the [Django documentation](https://docs.djangoproject.com/en/5.1/topics/templates/).
+## Configuration
 
-## Creating the template
+You can configure the home page welcome section through the `HOME_PAGE_CONFIG` setting in your `settings.py` file:
+
+```python
+# config/settings.py
+
+HOME_PAGE_CONFIG = {
+    "logo": True,  # Set to False to hide the logo
+    "title": "Welcome to {site_name}",  # Set to False to hide the title
+    "lead": "Discover, explore, and contribute to research data. Our platform enables FAIR data management practices.",  # Set to False to hide the lead text
+}
+```
+
+### Configuration Options
+
+- **`logo`** (boolean): Controls whether the portal logo is displayed above the title. Set to `False` to hide the logo.
+- **`title`** (string or False): The main heading text. Use `{site_name}` as a placeholder to include your site name. Set to `False` to hide the title completely.
+- **`lead`** (string or False): The lead/subtitle text displayed below the title. Use `{site_name}` as a placeholder if needed. Set to `False` to hide the lead text completely.
+
+### Example Configurations
+
+**Minimal configuration (no logo, no lead):**
+```python
+HOME_PAGE_CONFIG = {
+    "logo": False,
+    "title": "Welcome",
+    "lead": False,
+}
+```
+
+**Custom branding:**
+```python
+HOME_PAGE_CONFIG = {
+    "logo": True,
+    "title": "{site_name} Research Portal",
+    "lead": "A collaborative platform for sharing research data in the {site_name} community.",
+}
+```
+
+**Default behavior:**
+If you don't define `HOME_PAGE_CONFIG`, the following defaults are used:
+```python
+{
+    "logo": True,
+    "title": "Welcome to {site_name}",
+    "lead": "Discover, explore, and contribute to research data. Our platform enables FAIR data management practices.",
+}
+```
+
+## Template Customization
 
 The default home page is a full screen slider using the [SwiperJS](https://swiperjs.com/) library in combination with the [Swiper Element](https://swiperjs.com/element) web components. This provides an attractive and modern web page that is responsive and easy to customise. To get started, we will have to override and extend the default `fairdm/home.html` template. 
 

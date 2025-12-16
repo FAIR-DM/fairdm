@@ -1,4 +1,4 @@
-{% extends "fairdm/base.html" %}
+{% extends "layouts/base.html" %}
 {% load i18n cotton %}
 
 {% block content %}
@@ -37,31 +37,31 @@
     {# Contributor Breakdown #}
     <div class="row g-4 mb-4">
       <div class="col-lg-8">
-        <c-dashboard.card title="{% trans 'Community Growth' %}"
-                          icon="analytics"
-                          class="h-100">
+        <c-card title="{% trans 'Community Growth' %}"
+                icon="analytics"
+                class="h-100">
           <div style="position: relative; height: 300px;">
             <canvas id="growthChart"></canvas>
           </div>
-        </c-dashboard.card>
+        </c-card>
       </div>
       <div class="col-lg-4">
-        <c-dashboard.card title="{% trans 'Contributor Types' %}"
-                          icon="pie-chart"
-                          class="h-100">
+        <c-card title="{% trans 'Contributor Types' %}"
+                icon="pie-chart"
+                class="h-100">
           <canvas id="contributorTypeChart"></canvas>
-        </c-dashboard.card>
+        </c-card>
       </div>
     </div>
     {# Detailed Statistics #}
     <div class="row g-4 mb-4">
       {# People & Organizations #}
       <div class="col-lg-6">
-        <c-dashboard.card title="{% trans 'Contributors' %}" icon="people">
+        <c-card title="{% trans 'Contributors' %}" icon="people">
           <c-slot name="actions">
-            <c-dashboard.card.action href="{% url 'person-list' %}"
-                                     text="{% trans 'View all contributors' %}"
-                                     icon="arrow_right" />
+            <c-card.action href="{% url 'person-list' %}"
+                           text="{% trans 'View all contributors' %}"
+                           icon="arrow_right" />
           </c-slot>
           <div class="row g-3">
             <div class="col-6">
@@ -101,16 +101,16 @@
               </div>
             </div>
           </div>
-        </c-dashboard.card>
+        </c-card>
       </div>
       {# Users & Portal Team #}
       <div class="col-lg-6">
-        <c-dashboard.card title="{% trans 'Portal Users' %}"
-                          icon="person-badge">
+        <c-card title="{% trans 'Portal Users' %}"
+                icon="person-badge">
           <c-slot name="actions">
-            <c-dashboard.card.action href="{% url 'active-member-list' %}"
-                                     text="{% trans 'View active members' %}"
-                                     icon="arrow_right" />
+            <c-card.action href="{% url 'active-member-list' %}"
+                           text="{% trans 'View active members' %}"
+                           icon="arrow_right" />
           </c-slot>
           <div class="row g-3">
             <div class="col-6">
@@ -150,14 +150,14 @@
               </div>
             </div>
           </div>
-        </c-dashboard.card>
+        </c-card>
       </div>
     </div>
     {# Contributions & Organizations #}
     <div class="row g-4 mb-4">
       <div class="col-lg-6">
-        <c-dashboard.card title="{% trans 'Contributions' %}"
-                          icon="file_text">
+        <c-card title="{% trans 'Contributions' %}"
+                icon="file_text">
           <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="text-muted">{% trans "Total Contributions" %}</span>
@@ -174,15 +174,15 @@
               </div>
             {% endfor %}
           </div>
-        </c-dashboard.card>
+        </c-card>
       </div>
       <div class="col-lg-6">
-        <c-dashboard.card title="{% trans 'Organizations' %}"
-                          icon="organization">
+        <c-card title="{% trans 'Organizations' %}"
+                icon="organization">
           <c-slot name="actions">
-            <c-dashboard.card.action href="{% url 'organization-list' %}"
-                                     text="{% trans 'View all organizations' %}"
-                                     icon="arrow_right" />
+            <c-card.action href="{% url 'organization-list' %}"
+                           text="{% trans 'View all organizations' %}"
+                           icon="arrow_right" />
           </c-slot>
           <div class="row g-3 mb-3">
             <div class="col-6">
@@ -203,7 +203,7 @@
           <div style="position: relative; height: 250px;">
             <canvas id="countryChart"></canvas>
           </div>
-        </c-dashboard.card>
+        </c-card>
       </div>
     </div>
     {# Top Contributors #}
