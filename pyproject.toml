@@ -89,7 +89,9 @@ django-content-license = "^0.2.3"
 django-setup-tools = "^0.2.5"
 django-flex-menus = "^0.4.0"
 django-easy-icons = "^0.4.0"
+django-cotton = ">=2.3.1"
 django-cotton-bs5 = "^0.5.0"
+django-mvp = {path = "../django-cotton-layouts", develop = true}
 django-hijack = "^3.7.4"
 tablib = {extras = ["ods", "xlsx"], version = "^3.9.0"}
 django-extra-views = "^0.16.0"
@@ -101,6 +103,7 @@ fairdm-dev-tools = {git = "https://github.com/FAIR-DM/dev-tools"}
 importtime-waterfall = "^1.0.0"
 pandas = "^2.2.2"
 snakeviz = "^2.2.2"
+django-browser-reload = "^1.21.0"
 fairdm-discussions = {git = "https://github.com/FAIR-DM/fairdm-discussions"}
 fairdm-rest-api = {git = "https://github.com/FAIR-DM/fairdm-rest-api"}
 

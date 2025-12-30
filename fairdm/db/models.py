@@ -42,8 +42,10 @@ class PrefetchBase(models.base.ModelBase):
 
         # Only inject if it's not already explicitly set
         # if not hasattr(new_class._meta, "base_manager_name"):
-        if new_class._meta.base_manager_name is None:
-            new_class._meta.base_manager_name = "prefetch_manager"
+
+        # WARNING: This has changed due to unavoidable system checks in django-auto-prefetch. It may have unintended consequences!
+        # if new_class._meta.base_manager_name is None:
+        new_class._meta.base_manager_name = "prefetch_manager"
 
         return new_class
 

@@ -159,4 +159,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
 	- Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
 	- As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.0.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2025-12-30
+**Version**: 1.1.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2025-12-30
