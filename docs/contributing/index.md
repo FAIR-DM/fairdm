@@ -1,11 +1,30 @@
-# How to contribute
+# How to Contribute
+
+**For framework contributors** who want to contribute to the core FairDM framework.
 
 ```{important}
-This guide is mainly for experienced Django developers that may wish to contribute to the development of the core FairDM framework. If you are looking for information on how to develop a FairDM-powered web application for your research community, please see the [Developer Guide](../app_development_guide/index.md).
+This guide is for developers who want to contribute to the FairDM framework itself. If you're looking to build a FairDM-powered portal for your research community, please see the [Developer Guide](../developer-guide/index.md). If you want to contribute data to an existing portal, see the [User Guide](../user-guide/index.md).
 ```
 
-Before getting started, please familiarise yourself with the contributor [Code of Conduct](code_of_conduct.md). Once you have done that, take a look at the getting started guide to get your development environment up and running.
+## Your Role
 
+As a framework contributor, you will:
+
+- **Extend the core framework**: Add new features, fix bugs, and improve existing functionality
+- **Maintain code quality**: Follow testing, typing, and documentation standards
+- **Align with the constitution**: Ensure changes respect FairDM's core principles and architecture
+- **Collaborate with the community**: Work with other contributors through issues, discussions, and pull requests
+
+## What You'll Find Here
+
+This guide covers:
+
+- Setting up a FairDM development environment
+- Understanding the framework architecture and design philosophy
+- Running tests, type checking, linting, and building documentation
+- Following the contribution workflow and aligning with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md)
+
+Before getting started, please familiarize yourself with the [Code of Conduct](code_of_conduct.md).
 
 ## Table of Contents
 

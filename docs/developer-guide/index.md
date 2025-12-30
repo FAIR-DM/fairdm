@@ -4,9 +4,28 @@ html_theme.sidebar_secondary.remove: true
 
 # Developer Guide
 
-This guide is designed for developers who want to build and deploy a new FairDM portal. While you don’t need to be a Django or Docker expert, you should have a working knowledge of Python and general web development concepts.
+**For portal developers** who want to build and deploy a new FairDM-powered research portal.
 
-We’ll walk you through the entire process—from setting up your development environment to launching your portal in the cloud.
+## Your Role
+
+As a portal developer, you will:
+
+- **Build a custom research portal**: Create a FairDM-based portal tailored to your research community's needs
+- **Define domain-specific models**: Extend the core Sample and Measurement models with your own fields and validation
+- **Configure and customize**: Set up your portal's appearance, permissions, and behavior
+- **Deploy to production**: Launch your portal in the cloud or on your own infrastructure
+
+## Prerequisites
+
+You should have:
+
+- Working knowledge of Python and general web development concepts
+- Basic familiarity with Django (ideally having completed the [official Django tutorials](https://docs.djangoproject.com/en/stable/intro/tutorial01/))
+- Basic understanding of Docker for deployment (optional but recommended)
+
+## What You'll Find Here
+
+This guide walks you through the entire process—from setting up your development environment to launching your portal in the cloud.
 
 ## Contents
 
@@ -40,7 +59,6 @@ customise/logo
 customise/theme
 component_library/index
 ```
-
 
 
 
