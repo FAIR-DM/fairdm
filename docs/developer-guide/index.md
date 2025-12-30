@@ -23,9 +23,21 @@ You should have:
 - Basic familiarity with Django (ideally having completed the [official Django tutorials](https://docs.djangoproject.com/en/stable/intro/tutorial01/))
 - Basic understanding of Docker for deployment (optional but recommended)
 
-## What You'll Find Here
+## Quick Start
 
-This guide walks you through the entire process—from setting up your development environment to launching your portal in the cloud.
+```{important}
+**New to FairDM?** Start with the [Getting Started guide](getting_started.md) for a complete walkthrough from running the demo to creating your first custom models.
+```
+
+The Getting Started guide will walk you through:
+
+1. Running the FairDM demo portal locally
+2. Creating your first custom Sample model (e.g., `RockSample`)
+3. Creating your first custom Measurement model (e.g., `MineralAnalysis`)
+4. Registering your models and seeing them in the UI
+5. Verifying programmatic access via the API
+
+**Time required**: ~30-60 minutes
 
 ## Contents
 
@@ -33,6 +45,7 @@ This guide walks you through the entire process—from setting up your developme
 :caption: Getting started
 :maxdepth: 2
 
+getting_started
 before_you_begin
 setting_up
 project_directory

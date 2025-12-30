@@ -12,6 +12,10 @@ ______________________________________________________________________
 
 FairDM is an open-source web framework designed to help you build modern research data portals that fully align with the FAIR data principles. It streamlines the process of creating, deploying, and maintaining research portals by using a modern, well-documented, and widely supported open-source tech stack. FairDM takes care of the complexities of web development with sensible defaults that work out of the box—so researchers and data managers can focus on their data and research, not on technical headaches.
 
+```{tip}
+**New to FairDM?** Jump straight to the [Getting Started guide](developer-guide/getting_started.md) for a hands-on introduction.
+```
+
 ## Documentation by Role
 
 Choose the guide that best matches your needs:
