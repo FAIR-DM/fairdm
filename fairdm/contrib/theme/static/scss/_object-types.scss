@@ -1,0 +1,71 @@
+// Object Type Utility Classes
+// These utilities provide consistent coloring for text, backgrounds, and borders
+// based on the core FairDM object types (Project, Dataset, Sample, Measurement)
+
+// Text color utilities
+.text-project {
+  color: $project-color !important;
+}
+
+.text-dataset {
+  color: $dataset-color !important;
+}
+
+.text-sample {
+  color: $sample-color !important;
+}
+
+.text-measurement {
+  color: $measurement-color !important;
+}
+
+// Background color utilities
+.bg-project {
+  background-color: $project-color !important;
+}
+
+.bg-dataset {
+  background-color: $dataset-color !important;
+}
+
+.bg-sample {
+  background-color: $sample-color !important;
+}
+
+.bg-measurement {
+  background-color: $measurement-color !important;
+}
+
+// Border color utilities
+.border-project {
+  border-color: $project-color !important;
+}
+
+.border-dataset {
+  border-color: $dataset-color !important;
+}
+
+.border-sample {
+  border-color: $sample-color !important;
+}
+
+.border-measurement {
+  border-color: $measurement-color !important;
+}
+
+// Subtle background utilities (10% opacity)
+.bg-project-subtle {
+  background-color: rgba($project-color, 0.1) !important;
+}
+
+.bg-dataset-subtle {
+  background-color: rgba($dataset-color, 0.1) !important;
+}
+
+.bg-sample-subtle {
+  background-color: rgba($sample-color, 0.1) !important;
+}
+
+.bg-measurement-subtle {
+  background-color: rgba($measurement-color, 0.1) !important;
+}
