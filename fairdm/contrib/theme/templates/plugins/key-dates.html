@@ -1,0 +1,14 @@
+{% extends "fairdm/plugin.html" %}
+{% block plugin %}
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Key Dates</h5>
+          {# Key dates formset will be rendered here by KeyDatesPlugin #}
+          {{ formset }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock plugin %}

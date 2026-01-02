@@ -42,7 +42,7 @@ class DatasetAdmin(admin.ModelAdmin):
                     "image",
                     "reference",
                     "visibility",
-                    "tags",
+                    "keywords",
                 )
             },
         ),

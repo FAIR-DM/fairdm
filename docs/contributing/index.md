@@ -1,11 +1,32 @@
-# How to contribute
+# Framework Contributors
+
+**For FairDM framework contributors** who want to contribute to the core framework itself.
 
 ```{important}
-This guide is mainly for experienced Django developers that may wish to contribute to the development of the core FairDM framework. If you are looking for information on how to develop a FairDM-powered web application for your research community, please see the [Developer Guide](../app_development_guide/index.md).
+**Framework contributors vs portal contributors**: This guide is for people who want to contribute to the FairDM framework codebase, documentation, or examples. If you're looking to:
+- **Build a portal** for your research community → see the [Developer Guide](../developer-guide/index.md)
+- **Add data** to an existing portal → see the [Contributor Guide](../contributor-guide/index.md) for portal contributors
 ```
 
-Before getting started, please familiarise yourself with the contributor [Code of Conduct](code_of_conduct.md). Once you have done that, take a look at the getting started guide to get your development environment up and running.
+## Your Role
 
+As a framework contributor, you will:
+
+- **Extend the core framework**: Add new features, fix bugs, and improve existing functionality
+- **Maintain code quality**: Follow testing, typing, and documentation standards
+- **Align with the constitution**: Ensure changes respect FairDM's core principles and architecture
+- **Collaborate with the community**: Work with other contributors through issues, discussions, and pull requests
+
+## What You'll Find Here
+
+This guide covers:
+
+- Setting up a FairDM development environment
+- Understanding the framework architecture and design philosophy
+- Running tests, type checking, linting, and building documentation
+- Following the contribution workflow and aligning with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md)
+
+Before getting started, please review the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md) and respect community standards.
 
 ## Table of Contents
 
@@ -13,8 +34,6 @@ Before getting started, please familiarise yourself with the contributor [Code o
 :maxdepth: 1
 
 before_you_start
-design_philosophy
-repo_structure
 core_data_model
 views_module
 contribution_framework

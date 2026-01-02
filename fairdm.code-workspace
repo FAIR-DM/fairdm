@@ -3,6 +3,9 @@
 		{
 			"path": "."
 		},
+		{
+			"path": "../fairdm-discussions"
+		},
 	],
 	"settings": {
 		"cSpell.enabled": false
@@ -22,7 +25,6 @@
 			"ms-python.python",
 			"ms-python.black-formatter",
 			"batisteo.vscode-django",
-			"ms-azuretools.vscode-docker",
 			"ms-python.isort",
 			"ms-python.vscode-pylance",
 			"charliermarsh.ruff",

@@ -1,0 +1,9 @@
+{% extends "fairdm/plugin.html" %}
+{% load i18n static crispy_forms_tags cotton %}
+
+{% block page_header %}{% endblock %}
+
+{% block plugin %}
+  <c-list card="{{ card_template }}"
+          cols="{{ cols|default:"1" }}" />
+{% endblock plugin %}

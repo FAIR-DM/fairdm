@@ -7,6 +7,3 @@ class FairDMSampleConfig(AppConfig):
     label = "sample"
     verbose_name = _("Sample")
     verbose_name_plural = _("Sample")
-
-    def ready(self) -> None:
-        return super().ready()

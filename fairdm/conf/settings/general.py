@@ -18,7 +18,9 @@ ADMIN_URL = f"{env('DJANGO_ADMIN_URL')}"
 ADMINS = [("Super User", env("DJANGO_SUPERUSER_EMAIL"))]
 # ADMINS = [(admin["name"], admin["email"]) for admin in FAIRDM["application"]["developers"]]
 ALLOWED_HOSTS = [env("DJANGO_SITE_DOMAIN")] + env("DJANGO_ALLOWED_HOSTS")
-CSRF_TRUSTED_ORIGINS = [f"https://{domain}" for domain in globals().get("ALLOWED_HOSTS", [])]
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{domain}" for domain in globals().get("ALLOWED_HOSTS", [])
+]
 MANAGERS = ADMINS
 ROOT_URLCONF = env("DJANGO_ROOT_URLCONF")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
@@ -53,9 +55,9 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.template.context_processors.csrf",
                 "django.template.context_processors.tz",
-                "sekizai.context_processors.sekizai",
                 "django.template.context_processors.static",
                 "fairdm.utils.context_processors.fairdm",
+                "mvp.context_processors.page_config",
             ],
             "builtins": [
                 "django.templatetags.i18n",
@@ -79,6 +81,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "hijack.middleware.HijackUserMiddleware",
 ]
 
 
@@ -104,7 +107,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 
 # DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
-DJANGO_TABLES2_TEMPLATE = "fairdm/table.html"
+DJANGO_TABLES2_TEMPLATE = "collections/table.html"
 
 ACCOUNT_MANAGEMENT_GET_AVATAR_URL = "fairdm.contrib.contributors.utils.get_contributor_avatar"  # This line connects the avatar_url template tag to the function that retrieves the contributor's avatar URL.
 
@@ -130,7 +133,9 @@ DJANGO_SETUP_TOOLS = {
         "always_run": [
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
-            ("preload",),  # used to preload vocabulary concepts (django-research-vocabs)
+            (
+                "preload",
+            ),  # used to preload vocabulary concepts (django-research-vocabs)
             "django_setup_tools.scripts.sync_site_id",
         ],
     },

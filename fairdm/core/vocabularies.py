@@ -65,6 +65,28 @@ class FairDMIdentifiers(VocabularyBuilder):
             "skos:prefLabel": _("FairDM Identifiers"),
             "skos:definition": _("Identifiers for the purpose of metadata archival of research projects."),
         }
+        collections = {
+            "Person": Collection(
+                prefLabel=_("Person Identifiers"),
+                definition=_("Persistent identifiers for individual researchers and scholars."),
+                ordered=True,
+                members=[
+                    "ORCID",
+                    "RESEARCHER_ID",
+                ],
+            ),
+            "Organization": Collection(
+                prefLabel=_("Organization Identifiers"),
+                definition=_("Persistent identifiers for research organizations and institutions."),
+                ordered=True,
+                members=[
+                    "ROR",
+                    "WIKIDATA",
+                    "ISNI",
+                    "CROSSREF_FUNDER_ID",
+                ],
+            ),
+        }
 
 
 class FairDMDescriptions(VocabularyBuilder):

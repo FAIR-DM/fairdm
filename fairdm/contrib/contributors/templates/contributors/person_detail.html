@@ -1,20 +1,32 @@
 {% load martortags %}
 
-<c-layouts.plugin>
-  <div class="d-flex flex-column gap-3 flex-md-row align-items-center my-3">
-    <div class="flex-shrink-0" style="min-width: 200px">
-      <c-widgets.avatar circle />
-    </div>
-    <div class="flex-grow-1">
-      <c-text.heading text="{{ object.name }}" level="1" compact />
-      <c-contributor.person.identifier />
-      {% if object.primary_affiliation %}
-        <div>
-          <c-contributor.person.affiliation :org="object.primary_affiliation.organization"
-                                            show_location />
+{% extends "base.html" %}
+{% load cotton i18n %}
+
+{% block title %}{{ object.name }}{% endblock %}
+
+{% block content %}
+  <c-layouts.plugin>
+    <c-slot name="header">
+      <c-widgets.avatar :person="object" size="lg" class="me-3" />
+      {{ object.name }}
+      {% if object.synced_data %}
+        <c-components.badge class="ms-2" color="success">
+          <c-icon name="cloud-check" />
+          {% trans "Synced" %}
+        </c-components.badge>
+      {% endif %}
+    </c-slot>
+    <c-slot name="nav">
+      <c-contributor.person.identifier :person="object" />
+      <c-contributor.person.affiliation :person="object" />
+      {% if object.last_synced %}
+        <div class="text-muted small mt-2">
+          <c-icon name="timeline" />
+          {% trans "Last synced:" %} {{ object.last_synced|date:"SHORT_DATETIME_FORMAT" }}
         </div>
       {% endif %}
-    </div>
-  </div>
-  {% if object.profile %}{{ object.profile|safe_markdown }}{% endif %}
-</c-layouts.plugin>
+    </c-slot>
+    {{ object.profile }}
+  </c-layouts.plugin>
+{% endblock %}

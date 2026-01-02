@@ -11,10 +11,10 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormView
 from django_downloadview import VirtualDownloadView
 
+from fairdm import plugins
 from fairdm.contrib.import_export.utils import build_metadata
 from fairdm.core.models import Dataset
 from fairdm.forms import Form
-from fairdm.plugins import ACTIONS, PluginMenuItem, register_plugin
 from fairdm.registry import registry
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMModelFormMixin
@@ -121,9 +121,8 @@ class BaseImportExportView(MessageMixin, FormView):
         return self.import_kwargs.copy()
 
 
-@register_plugin
+@plugins.register
 class DataImportView(BaseImportExportView):
-    category = ACTIONS
     name = "import"
     title = _("Import Data")
     heading_config = {
@@ -135,11 +134,11 @@ class DataImportView(BaseImportExportView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/import"),
-                "icon": "book",
+                "icon": "documentation",
             }
         ],
     }
-    menu_item = PluginMenuItem(name=_("Import Data"), icon="import")
+    menu_item = plugins.PluginMenuItem(name=_("Import Data"), category=plugins.ACTIONS, icon="import")
     sections = {
         "components.form.default",
     }
@@ -191,9 +190,8 @@ class DataImportView(BaseImportExportView):
         return self.get_object().get_absolute_url()
 
 
-@register_plugin
+@plugins.register
 class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
-    category = ACTIONS
     name = "get-published"
     title = _("Get Published")
     heading_config = {
@@ -205,11 +203,11 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("dataset/get-published"),
-                "icon": "book",
+                "icon": "documentation",
             }
         ],
     }
-    menu_item = PluginMenuItem(name=_("Publish Dataset"), icon="fa-solid fa-file-export")
+    menu_item = plugins.PluginMenuItem(name=_("Publish Dataset"), category=plugins.ACTIONS, icon="export")
     sections = {
         "components.form.default",
     }
@@ -235,10 +233,9 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
 
 
 @method_decorator(require_POST, name="dispatch")
-@register_plugin
+@plugins.register
 class DataExportView(VirtualDownloadView, BaseImportExportView):
-    category = ACTIONS
-    menu_item = PluginMenuItem(name=_("Export Data"), icon="export")
+    menu_item = plugins.PluginMenuItem(name=_("Export Data"), category=plugins.ACTIONS, icon="export")
     form_class = ExportForm
 
     def get_file(self):
@@ -285,9 +282,8 @@ class DatasetPackageDownloadView(SingleObjectMixin, VirtualDownloadView):
         return "application/zip"
 
 
-@register_plugin
+@plugins.register
 class MetadataDownloadView(VirtualDownloadView):
-    category = ACTIONS
     template_name = "publishing/datacite44.xml"
 
     def get_file(self):

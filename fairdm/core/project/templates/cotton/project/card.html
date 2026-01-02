@@ -1,5 +1,7 @@
-<c-components.card.style2 title="{{ obj }}"
-                          view_details_text="{% trans "View project" %}"
-                          :obj="obj"
-                          :preview="obj.descriptions.first"
-                          :contributors="obj.contributions.all" />
+{% load i18n %}
+
+<c-components.object-card :object="object"
+                          object_type="project"
+                          badge_text='{% trans "Project" %}'
+                          :contributor="object.contributors.first.contributor"
+                          :organization="object.owner" />

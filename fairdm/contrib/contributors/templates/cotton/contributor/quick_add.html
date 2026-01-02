@@ -3,7 +3,7 @@
 {% has_permission "add_contributor" as granted %}
 {% if granted %}
   <c-components.button text="{% trans "Add" %}"
-                       icon="plus"
+                       icon="create"
                        data-bs-toggle="modal"
                        data-bs-target="#quick-add-contribution-modal" />
   <c-components.modal id="quick-add-contribution-modal"

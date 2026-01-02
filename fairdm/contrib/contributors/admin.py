@@ -1,15 +1,13 @@
 from allauth.account.models import EmailAddress
-from client_side_image_cropping import DcsicAdminMixin
+from dal import autocomplete
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
-from django_select2.forms import Select2MultipleWidget
 from import_export.admin import ImportExportModelAdmin
 
 from fairdm.db import models
 
-# from django_select2.forms import Select2AdminMixin
 from .models import Contributor, ContributorIdentifier, Organization, OrganizationMember, Person
 from .resources import PersonResource
 
@@ -48,10 +46,11 @@ class IdentifierInline(admin.StackedInline):
 #     model = Organization
 #     fields = ["profile"]
 #     extra = 0
+from hijack.contrib.admin import HijackUserAdminMixin
 
 
 @admin.register(Person)
-class UserAdmin(BaseUserAdmin, DcsicAdminMixin, ImportExportModelAdmin):
+class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     base_model = Contributor
     show_in_index = True
     resource_classes = [PersonResource]
@@ -67,7 +66,7 @@ class UserAdmin(BaseUserAdmin, DcsicAdminMixin, ImportExportModelAdmin):
     list_filter = ("is_staff", "is_superuser", "is_active", "groups", "affiliations")
     exclude = ("username",)
     formfield_overrides = {
-        models.ManyToManyField: {"widget": Select2MultipleWidget},
+        models.ManyToManyField: {"widget": autocomplete.ModelSelect2Multiple(url="admin:autocomplete")},
         # models.ImageField: {
         #     "widget": ClientsideCroppingWidget(
         #         width=1200,

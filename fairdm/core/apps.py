@@ -4,7 +4,7 @@ from django.apps import AppConfig, apps
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from fairdm.registry import Authority, Citation
+from fairdm.config import Authority, Citation
 from fairdm.registry import registry as fairdm_registry
 
 
@@ -24,18 +24,7 @@ class FairDMCoreConfig(AppConfig):
     repository_url = "https://github.com/FAIR-DM/fairdm"
 
     def ready(self) -> None:
-        # self.register_core_models()
-        # self.register_actstream()
-        # self.register_sample_children()
         return super().ready()
-
-    # def register_actstream(self):
-    #     from actstream import registry
-
-    #     registry.register(self.get_model("Project"))
-    #     registry.register(self.get_model("Dataset"))
-    #     for model in fairdm_registry.samples:
-    #         registry.register(model["class"])
 
     def register_core_models(self):
         from fairdm.core.models import Measurement, Sample

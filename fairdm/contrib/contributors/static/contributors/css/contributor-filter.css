@@ -1,0 +1,33 @@
+/* Contributor filter animations */
+.contributor-item {
+  max-height: 200px;
+  opacity: 1;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
+  transition: max-height 600ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 600ms cubic-bezier(0.4, 0, 0.2, 1),
+              margin 600ms cubic-bezier(0.4, 0, 0.2, 1),
+              padding 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contributor-item.hiding {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.contributor-item.hidden {
+  display: none;
+}
+
+.action-btns {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.contributor-item:hover .action-btns {
+  opacity: 1;
+}

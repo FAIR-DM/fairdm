@@ -1,0 +1,100 @@
+{% comment %}
+Activity Item Component
+
+Displays a single activity stream item with:
+- Color-coded left border (green=created, blue=updated, red=deleted)
+- Actor avatar (48px rounded)
+- Activity content with actor name, verb, and target
+- Optional description and action object badge
+- Human-readable timestamp
+- Action type icon on the right
+
+Usage:
+  <c-activity.item :activity="action_object" />
+{% endcomment %}
+{% load i18n cotton humanize %}
+
+<c-vars activity />
+<c-card class="border-start border-3 {% if activity.verb == 'created' %}border-success{% elif activity.verb == 'updated' or activity.verb == 'modified' %}border-primary{% elif activity.verb == 'deleted' %}border-danger{% else %}border-secondary{% endif %}">
+  <div class="d-flex gap-3 align-items-start">
+    {# Actor Avatar #}
+    <div class="flex-shrink-0">
+      {% if activity.actor.get_absolute_url %}
+        <c-widgets.avatar :contributor="activity.actor"
+                          size="48"
+                          class="rounded-circle" />
+      {% else %}
+        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+             style="width: 48px;
+                    height: 48px">
+          <c-icon name="person" class="text-white" />
+        </div>
+      {% endif %}
+    </div>
+    {# Activity Content #}
+    <div class="flex-grow-1 min-w-0">
+      {# Actor Name and Verb #}
+      <div class="mb-1">
+        {% if activity.actor.get_absolute_url %}
+          <a href="{{ activity.actor.get_absolute_url }}"
+             class="fw-semibold text-decoration-none">{{ activity.actor }}</a>
+        {% elif activity.actor %}
+          <span class="fw-semibold">{{ activity.actor }}</span>
+        {% else %}
+          <span class="fw-semibold text-muted">{% trans "System" %}</span>
+        {% endif %}
+        {# Verb/Action #}
+        <span class="text-muted">{{ activity.verb }}</span>
+        {# Target Object #}
+        {% if activity.target %}
+          <span class="text-muted">
+            {% if activity.target.get_absolute_url %}
+              <a href="{{ activity.target.get_absolute_url }}"
+                 class="text-decoration-none fw-medium">{{ activity.target }}</a>
+            {% else %}
+              <span class="fw-medium">{{ activity.target }}</span>
+            {% endif %}
+          </span>
+        {% endif %}
+      </div>
+      {# Description #}
+      {% if activity.description %}<p class="mb-2 text-muted small">{{ activity.description }}</p>{% endif %}
+      {# Action Object Badge #}
+      {% if activity.action_object %}
+        <div class="mb-2">
+          <c-badge variant="secondary" class="bg-opacity-10 small">
+            <c-icon name="box" size="12" class="me-1" />
+            {% if activity.action_object.get_absolute_url %}
+              <a href="{{ activity.action_object.get_absolute_url }}"
+                 class="text-decoration-none">{{ activity.action_object }}</a>
+            {% else %}
+              {{ activity.action_object }}
+            {% endif %}
+          </c-badge>
+        </div>
+      {% endif %}
+      {# Timestamp #}
+      <div class="small text-muted">
+        <c-icon name="time" size="14" class="me-1" />
+        <time datetime="{{ activity.timestamp|date:'c' }}"
+              title="{{ activity.timestamp|date:'F j, Y, g:i a' }}">
+          {{ activity.timestamp|naturaltime }}
+        </time>
+      </div>
+    </div>
+    {# Activity Type Icon #}
+    <div class="flex-shrink-0">
+      {% if activity.verb == "created" %}
+        <c-icon name="add" class="text-success" size="24" />
+      {% elif activity.verb == "updated" or activity.verb == "modified" %}
+        <c-icon name="update" class="text-primary" size="24" />
+      {% elif activity.verb == "deleted" %}
+        <c-icon name="delete" class="text-danger" size="24" />
+      {% elif activity.verb == "published" %}
+        <c-icon name="success" class="text-info" size="24" />
+      {% else %}
+        <c-icon name="activity" class="text-secondary" size="24" />
+      {% endif %}
+    </div>
+  </div>
+</c-card>

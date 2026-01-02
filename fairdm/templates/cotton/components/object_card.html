@@ -1,4 +1,4 @@
-<article class="card h-100 border-0 shadow-sm card-hover">
+<article class="card h-100 border-0 shadow-sm card-hover {% if object_type == 'project' %}border-start border-project border-3{% elif object_type == 'dataset' %}border-start border-dataset border-3{% elif object_type == 'sample' %}border-start border-sample border-3{% elif object_type == 'measurement' %}border-start border-measurement border-3{% endif %}">
   {% if image %}
     <!-- Mobile Image (shown on mobile, hidden on desktop) -->
     <img src="{{ image.url }}"
@@ -18,11 +18,14 @@
     {% endif %}
     <div class="d-flex justify-content-between align-items-start mb-2">
       <small class="text-muted">
-        <i class="bi bi-calendar3 me-1"></i>{{ date|date:"F j, Y" }}
+        <c-icon name="date" class="me-1" />
+        {{ date|date:"F j, Y" }}
       </small>
-      <span class="badge {% if type == 'sample' %}bg-primary{% elif type == 'dataset' %}bg-success{% elif type == 'measurement' %}bg-warning text-dark{% elif type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
-        {% trans "Project" %}
-      </span>
+      {% if badge_text %}
+        <span class="badge {% if object_type == 'sample' %}bg-primary{% elif object_type == 'dataset' %}bg-success{% elif object_type == 'measurement' %}bg-warning text-dark{% elif object_type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
+          {{ badge_text }}
+        </span>
+      {% endif %}
     </div>
     <h5 class="card-title mb-2 text-truncate-2">
       <a href="{{ object.get_absolute_url }}"
@@ -32,7 +35,8 @@
     <p class="card-text text-muted text-truncate-6">{{ description|default:"No description available." }}</p>
     <button class="btn expand-btn btn-sm mb-3"
             onclick="toggleExpand(this)">
-      <i class="bi bi-chevron-down me-1"></i>{% trans "Show more" %}
+      <c-icon name="chevron_down" class="me-1" />
+      {% trans "Show more" %}
     </button>
     {% if tags.all %}
       <div class="d-flex flex-wrap gap-1 mb-3">
@@ -45,18 +49,21 @@
     {% endif %}
     <small class="text-muted">
       {% if contributor %}
-        <i class="bi bi-person me-1"></i>{{ contributor.get_full_name|default:contributor.username }}
+        <c-icon name="person" class="me-1" />
+        {{ contributor.get_full_name|default:contributor.username }}
       {% endif %}
       {% if organization %}
         <span class="mx-2">•</span>
-        <i class="bi bi-building me-1"></i>{{ organization.name }}
+        <c-icon name="organization" class="me-1" />
+        {{ organization.name }}
       {% endif %}
     </small>
   </div>
   <div class="card-footer bg-transparent border-0 pt-0">
     <a href="{{ object.get_absolute_url }}"
        class="btn btn-link btn-sm">
-      <i class="bi bi-arrow-right me-1"></i>{% trans "View Details" %}
+      <c-icon name="arrow_right" class="me-1" />
+      {% trans "View Details" %}
     </a>
   </div>
 </article>

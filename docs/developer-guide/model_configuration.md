@@ -32,11 +32,12 @@ class WaterSample(Sample):
 
 ```python  
 # myapp/fairdm_config.py
-from fairdm.registry import ModelConfig, ModelMetadata, register
+from fairdm.config import ModelConfiguration, ModelMetadata
+from fairdm.registry import register
 from .models import WaterSample
 
 @register
-class WaterSampleConfig(ModelConfig):
+class WaterSampleConfig(ModelConfiguration):
     model = WaterSample
     metadata = ModelMetadata(
         description="Water samples collected for chemical analysis"
@@ -51,14 +52,15 @@ That's it! FairDM will automatically generate forms, tables, filters, and API en
 
 ### Sample Registration
 
-For Sample models, inherit from `ModelConfig` and use the `@register` decorator:
+For Sample models, inherit from `ModelConfiguration` and use the `@register` decorator:
 
 ```python
-from fairdm.registry import ModelConfig, ModelMetadata, Authority, register
+from fairdm.config import ModelConfiguration, ModelMetadata, Authority
+from fairdm.registry import register
 from .models import SoilSample
 
 @register
-class SoilSampleConfig(ModelConfig):
+class SoilSampleConfig(ModelConfiguration):
     model = SoilSample
     metadata = ModelMetadata(
         description="Samples of soil collected for geological analysis",
@@ -77,14 +79,14 @@ class SoilSampleConfig(ModelConfig):
 
 ### Measurement Registration  
 
-For Measurement models, also inherit from `ModelConfig`:
+For Measurement models, also inherit from `ModelConfiguration`:
 
 ```python
-from fairdm.registry import ModelConfig, ModelMetadata, register
+from fairdm.config import ModelConfiguration, ModelMetadata, register
 from .models import TemperatureMeasurement
 
 @register
-class TemperatureMeasurementConfig(ModelConfig):
+class TemperatureMeasurementConfig(ModelConfiguration):
     model = TemperatureMeasurement
     metadata = ModelMetadata(
         description="Temperature readings from various samples"
@@ -148,7 +150,7 @@ Default behavior for each component:
 
 ```python
 @register
-class MinimalConfig(ModelConfig):
+class MinimalConfig(ModelConfiguration):
     model = MySample
     # Uses sensible defaults for all field lists
     # Tables will show: name, created, modified
@@ -162,7 +164,7 @@ Use `private_fields` to exclude sensitive or internal fields from all auto-gener
 
 ```python
 @register  
-class SecureSampleConfig(ModelConfig):
+class SecureSampleConfig(ModelConfiguration):
     model = MySample
     fields = ["name", "location", "status", "data"]
     private_fields = ["internal_notes", "processing_id"]  # Excluded from all components
@@ -179,7 +181,7 @@ from .forms import CustomWaterSampleForm
 from .filters import CustomWaterSampleFilter
 
 @register
-class AdvancedWaterSampleConfig(ModelConfig):
+class AdvancedWaterSampleConfig(ModelConfiguration):
     model = WaterSample
     metadata = ModelMetadata(
         description="Advanced water sample with custom components"
@@ -200,7 +202,7 @@ Use component-specific field attributes for precise control:
 
 ```python
 @register
-class FineTunedConfig(ModelConfig):
+class FineTunedConfig(ModelConfiguration):
     model = WaterSample
     metadata = ModelMetadata(description="Fine-tuned water sample configuration")
     
@@ -224,7 +226,7 @@ The configuration system supports multiple patterns - use what works best for yo
 **Pattern 1: Simple (same fields everywhere)**
 ```python
 @register
-class SimpleConfig(ModelConfig):
+class SimpleConfig(ModelConfiguration):
     model = WaterSample
     fields = ["name", "location", "ph_level"]  # Used for all components
 ```
@@ -232,7 +234,7 @@ class SimpleConfig(ModelConfig):
 **Pattern 2: Component-specific fields**  
 ```python
 @register
-class TargetedConfig(ModelConfig):
+class TargetedConfig(ModelConfiguration):
     model = WaterSample
     table_fields = ["name", "status"]
     form_fields = ["name", "location", "ph_level", "temperature"]
@@ -242,7 +244,7 @@ class TargetedConfig(ModelConfig):
 **Pattern 3: Mixed (custom classes + field configs)**
 ```python
 @register  
-class MixedConfig(ModelConfig):
+class MixedConfig(ModelConfiguration):
     model = WaterSample
     form_class = CustomForm          # Custom form
     table_class = CustomTable        # Custom table
@@ -356,10 +358,10 @@ class MyMeasurement(Measurement):
     value = models.FloatField()
 
 # In fairdm_config.py
-from fairdm.registry import ModelConfig, ModelMetadata, register
+from fairdm.config import ModelConfiguration, ModelMetadata, register
 
 @register
-class MyMeasurementConfig(ModelConfig):
+class MyMeasurementConfig(ModelConfiguration):
     model = MyMeasurement
     metadata = ModelMetadata(description="My measurement")
     
@@ -394,7 +396,7 @@ Include comprehensive metadata for better data management:
 
 ```python
 @register
-class WellDocumentedConfig(ModelConfig):
+class WellDocumentedConfig(ModelConfiguration):
     model = MySample
     metadata = ModelMetadata(
         description="Detailed description of the sample type",
@@ -415,7 +417,7 @@ Start simple, add complexity only where needed:
 
 ```python
 @register
-class ProgressiveConfig(ModelConfig):
+class ProgressiveConfig(ModelConfiguration):
     model = MySample
     
     # Start with simple field configuration
@@ -434,14 +436,14 @@ Use descriptive configuration class names:
 
 ```python
 # Good
-class WaterSampleConfig(ModelConfig):
-class TemperatureMeasurementConfig(ModelConfig):
-class SoilAnalysisConfig(ModelConfig):
+class WaterSampleConfig(ModelConfiguration):
+class TemperatureMeasurementConfig(ModelConfiguration):
+class SoilAnalysisConfig(ModelConfiguration):
 
 # Avoid
-class Config1(ModelConfig):
-class MyConfig(ModelConfig):
-class SampleConfig(ModelConfig):  # Too generic
+class Config1(ModelConfiguration):
+class MyConfig(ModelConfiguration):
+class SampleConfig(ModelConfiguration):  # Too generic
 ```
 
 ### 5. Keep Configurations Focused
@@ -450,14 +452,14 @@ One configuration per model, keep them simple and focused:
 ```python
 # Good - focused and clear
 @register
-class WaterSampleConfig(ModelConfig):
+class WaterSampleConfig(ModelConfiguration):
     model = WaterSample
     metadata = ModelMetadata(description="Water sample analysis")
     fields = ["name", "location", "ph_level"]
 
 # Avoid - overly complex configurations
 @register  
-class OverlyComplexConfig(ModelConfig):
+class OverlyComplexConfig(ModelConfiguration):
     model = ComplexSample
     # ... 50 lines of field configurations for every component
     # Consider splitting into multiple models instead
@@ -505,8 +507,8 @@ serializer_class = config.get_serializer_class()  # if DRF available
 
 **Type errors during registration?**
 - Ensure your model inherits from Sample or Measurement, not a different base class
-- Check that you're inheriting from `ModelConfig` and using the `@register` decorator
-- Verify your imports are correct: `from fairdm.registry import ModelConfig, register`
+- Check that you're inheriting from `ModelConfiguration` and using the `@register` decorator
+- Verify your imports are correct: `from fairdm.config import ModelConfiguration, register`
 
 ### Debug Tips
 
@@ -568,12 +570,12 @@ class WaterSample(Sample):
 ```python
 # myapp/fairdm_config.py
 from fairdm.registry import (
-    Authority, Citation, ModelConfig, ModelMetadata, register
+    Authority, Citation, ModelConfiguration, ModelMetadata, register
 )
 from .models import WaterSample
 
 @register
-class WaterSampleConfig(ModelConfig):
+class WaterSampleConfig(ModelConfiguration):
     """Configuration for water sample registration."""
     
     model = WaterSample

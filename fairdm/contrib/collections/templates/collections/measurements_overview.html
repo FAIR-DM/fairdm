@@ -1,0 +1,169 @@
+{% extends "layouts/base.html" %}
+{% load i18n cotton %}
+
+{% block content %}
+  <div class="container py-4">
+    {# Page Header #}
+    <c-detail.header title="{% trans 'Measurement Collections' %}"
+                     icon="measurement"
+                     subtitle="{% trans 'Browse and explore all measurement collections in this portal. Measurements capture observations, analyses, and experimental results associated with samples.' %}">
+      <c-slot name="breadcrumb">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <a href="{% url 'data-collections' %}">{% trans "Collections" %}</a>
+            </li>
+            <li class="breadcrumb-item active"
+                aria-current="page">{% trans "Measurements" %}</li>
+          </ol>
+        </nav>
+      </c-slot>
+    </c-detail.header>
+    {# Statistics #}
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <c-detail.stat-box value="{{ total_measurement_types }}"
+                           label="{% trans 'Measurement Types' %}"
+                           icon="measurement"
+                           color="measurement" />
+      </div>
+      <div class="col-md-4">
+        <c-detail.stat-box value="{{ total_measurements }}"
+                           label="{% trans 'Total Measurements' %}"
+                           icon="database"
+                           color="warning" />
+      </div>
+      <div class="col-md-4">
+        <c-detail.stat-box value="{{ measurement_types|length|yesno:'Yes,No' }}"
+                           label="{% trans 'Average per Type' %}"
+                           icon="analytics"
+                           color="success">
+          <c-slot name="value">
+            {% if total_measurement_types > 0 %}
+              {{ total_measurements|floatformat:0|add:total_measurement_types|floatformat:0 }}
+            {% else %}
+              0
+            {% endif %}
+          </c-slot>
+        </c-detail.stat-box>
+      </div>
+    </div>
+    {# Main Content #}
+    <c-dashboard gap="3">
+      {# Measurement Type Listings #}
+      {% if measurement_types %}
+        <c-card title="{% trans 'All Measurement Types' %}"
+                icon="measurement">
+          <c-slot name="description">
+            <p class="text-muted small mb-3">
+              {% trans "Click on any measurement type below to view and filter the full collection." %}
+            </p>
+          </c-slot>
+          <div class="row g-3">
+            {% for measurement_type in measurement_types %}
+              <div class="col-md-6 col-lg-4">
+                <div class="card border hover-shadow h-100">
+                  <div class="card-body">
+                    <div class="d-flex align-items-start">
+                      <div class="flex-shrink-0">
+                        <div class="bg-measurement bg-opacity-10 rounded p-3">
+                          <c-icon name="measurement"
+                                  size="24"
+                                  class="text-measurement" />
+                        </div>
+                      </div>
+                      <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">
+                          {% if measurement_type.url %}
+                            <a href="{{ measurement_type.url }}"
+                               class="text-decoration-none stretched-link">{{ measurement_type.name }}</a>
+                          {% else %}
+                            {{ measurement_type.name }}
+                          {% endif %}
+                        </h6>
+                        <div class="d-flex flex-column gap-1 text-muted small">
+                          <span>
+                            <c-icon name="database" size="14" class="me-1" />
+                            {{ measurement_type.count }} {% trans "records" %}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </c-card>
+      {% else %}
+        <c-card title="{% trans 'Measurement Collections' %}"
+                icon="measurement">
+          <div class="text-center py-5">
+            <c-icon name="measurement"
+                    size="64"
+                    class="text-muted mb-3" />
+            <h5 class="text-muted">{% trans "No Measurement Types Registered" %}</h5>
+            <p class="text-muted mb-0">
+              {% trans "Measurement types will appear here once they are registered in the portal." %}
+            </p>
+          </div>
+        </c-card>
+      {% endif %}
+      {# Sidebar #}
+      <c-slot name="sidebar">
+        {# About Measurements #}
+        <c-card title="{% trans 'About Measurements' %}"
+                icon="info">
+          <div class="small">
+            <p class="mb-2">
+              {% trans "Measurements are observations, analyses, or experimental results associated with samples. They capture the data generated from research activities." %}
+            </p>
+            <h6 class="mt-3 mb-2">{% trans "Common Types" %}</h6>
+            <ul class="mb-0 ps-3">
+              <li>{% trans "Analytical results (geochemistry, isotopes)" %}</li>
+              <li>{% trans "Physical measurements (dimensions, weight)" %}</li>
+              <li>{% trans "Observational data" %}</li>
+              <li>{% trans "Experimental outcomes" %}</li>
+            </ul>
+          </div>
+        </c-card>
+        {# Measurement Statistics #}
+        {% if measurement_types %}
+          <c-card title="{% trans 'Collection Statistics' %}"
+                  icon="analytics">
+            <dl class="mb-0 small">
+              <c-detail.info-item label="{% trans 'Largest Collection' %}">
+                {% with largest=measurement_types|first %}{{ largest.name }} ({{ largest.count }}){% endwith %}
+              </c-detail.info-item>
+              <c-detail.info-item label="{% trans 'Smallest Collection' %}">
+                {% with smallest=measurement_types|last %}{{ smallest.name }} ({{ smallest.count }}){% endwith %}
+              </c-detail.info-item>
+              <c-detail.info-item label="{% trans 'Total Measurement Types' %}"
+                                  text="{{ total_measurement_types }}" />
+              <c-detail.info-item label="{% trans 'Total Measurement Records' %}"
+                                  text="{{ total_measurements }}" />
+            </dl>
+          </c-card>
+        {% endif %}
+        {# Quick Actions #}
+        <c-card title="{% trans 'Quick Actions' %}"
+                icon="lightning">
+          <div class="d-grid gap-2 small">
+            <a href="{% url 'data-collections' %}"
+               class="btn btn-sm btn-outline-secondary">
+              <c-icon name="arrow_left" size="14" class="me-1" />
+              {% trans "Back to Collections" %}
+            </a>
+            {% if total_sample_types > 0 %}
+              <a href="{% url 'samples-overview' %}"
+                 class="btn btn-sm btn-outline-secondary">
+                <c-icon name="sample" size="14" class="me-1" />
+                {% trans "View Samples" %}
+              </a>
+            {% endif %}
+          </div>
+        </c-card>
+      </c-slot>
+    </c-dashboard>
+  </div>
+{% endblock content %}

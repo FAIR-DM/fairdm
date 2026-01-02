@@ -1,4 +1,3 @@
-from actstream.models import Follow
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
@@ -9,6 +8,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from meta.views import MetadataMixin
 
+from fairdm.contrib.activity_stream.utils import Follow
 from fairdm.views import FairDMCreateView, FairDMListView, FairDMTemplateView
 
 from ..choices import DefaultGroups
@@ -81,7 +81,7 @@ class ContributorListView(ContributorBaseListView):
     filterset_class = PersonFilter
     queryset = Person.contributors.all()
     heading_config = {
-        "icon": "contributors",
+        "icon": "people",
         "title": _("Personal Contributors"),
         "description": _(
             "Contributors are individuals who have made contributions to data made public within this portal. "
@@ -141,7 +141,7 @@ class ActiveMemberListView(ContributorListView):
     title = _("Active Members")
     queryset = Person.contributors.filter(is_active=True)
     heading_config = {
-        "icon": "contributors",
+        "icon": "people",
         "title": _("Active Members"),
         "description": _(
             "Active members are contributors who have created a personal account within the portal. "

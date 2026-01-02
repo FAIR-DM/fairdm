@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from functools import cached_property
 
-from actstream import action
 from braces.views import MessageMixin
 from crispy_forms.helper import FormHelper
 from django.contrib.auth.decorators import login_required
@@ -16,9 +15,10 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_addanother.views import CreatePopupMixin
 from django_filters.views import FilterView
 from meta.views import MetadataMixin
+from mvp.views import SearchOrderMixin
 
 from fairdm.contrib.contributors.utils import current_user_has_role
-from fairdm.contrib.identity.models import Database
+from fairdm.contrib.identity.models import Identity
 from fairdm.core.utils import get_non_polymorphic_instance
 from fairdm.forms import Form
 from fairdm.utils import assign_all_model_perms, get_model_class
@@ -81,7 +81,8 @@ class FairDMBaseMixin(MessageMixin, MetadataMixin):
         return False
 
     def get_meta_title(self, context):
-        return f"{self.title} - {Database.get_solo().safe_translation_getter('name')}"
+        title = self.get_title() if hasattr(self, "get_title") else self.title
+        return f"{title} - {Identity.get_solo().safe_translation_getter('name')}"
 
     def get_page_title(self):
         """Return the page title for the view."""
@@ -122,17 +123,16 @@ class FairDMModelFormMixin(
     model = None
     form_class = None
     fields = None
-    template_name = "fairdm/form_view.html"
 
     def post(self, request, *args, **kwargs):
         """This is here so the method_decorator works correctly."""
         return super().post(request, *args, **kwargs)
 
-    def get_template(self, template_name=None):
-        """Return the template to be used for rendering the view."""
-        if template_name is None:
-            template_name = self.template_name
-        return super().get_template(template_name)
+    # def get_template(self, template_name=None):
+    #     """Return the template to be used for rendering the view."""
+    #     if template_name is None:
+    #         template_name = self.template_name
+    #     return super().get_template(template_name)
 
     def get_context_data(self, **kwargs):
         """Add the form class to the context if it is set."""
@@ -201,6 +201,7 @@ class RelatedObjectMixin:
         context = super().get_context_data(**kwargs)
         context["base_object"] = self.base_object
         context["base_model"] = self.base_model
+        context["base_model_name"] = self.base_model._meta.model_name
         context["non_polymorphic_object"] = get_non_polymorphic_instance(self.base_object)
         context[self.base_model._meta.model_name] = self.base_object
         return context
@@ -216,31 +217,14 @@ class FairDMTemplateView(FairDMBaseMixin, TemplateView):
 
 
 # @method_decorator(cache_page(60 * 5), name="dispatch")
-class FairDMListView(FairDMBaseMixin, FilterView):
+class FairDMListView(FairDMBaseMixin, SearchOrderMixin, FilterView):
     """
     The base class for displaying a list of objects within the FairDM framework.
     """
 
-    # template_name = "fairdm/list_view.html"
-    template_name = "fairdm/list_view.html"
+    template_name = "layouts/list_view.html"
     template_name_suffix = "_list"
     paginate_by = 20
-    layout = {
-        "container_class": "container",
-    }
-    sections = {
-        "sidebar_primary": "sections.sidebar.form",
-        "sidebar_secondary": False,  # hide the secondary sidebar
-        "header": False,
-        "grid": "sections.object-list",
-        "heading": "sections.heading",
-    }
-    sidebar_primary_config = {
-        "breakpoint": "md",
-        "header": {
-            "title": _("Filter"),
-        },
-    }
     grid_config = {
         "cols": 1,
         "gap": 2,
@@ -249,11 +233,32 @@ class FairDMListView(FairDMBaseMixin, FilterView):
     }
     page = {}
 
+    # def get_filterset_kwargs(self, filterset_class):
+    #     """Override to apply search and ordering to the base queryset before filtering."""
+    #     kwargs = super().get_filterset_kwargs(filterset_class)
+
+    #     # Get the base queryset
+    #     queryset = kwargs.get("queryset")
+
+    #     # Apply search from SearchMixin
+    #     search_term = self.request.GET.get("q", "").strip()
+    #     if search_term and self.get_search_fields():
+    #         queryset = self._apply_search(queryset, search_term)
+
+    #     # Apply ordering from OrderMixin
+    #     ordering = self.request.GET.get("o", "")
+    #     if ordering and self.get_order_by_choices():
+    #         queryset = self._apply_ordering(queryset, ordering)
+
+    #     kwargs["queryset"] = queryset
+    #     return kwargs
+
     def get(self, request, *args, **kwargs):
         """Override the get method of the FilterView to allow views to not specify a filterset_class."""
         filterset_class = self.get_filterset_class()
         if filterset_class is None:
             self.filterset = None
+            # When no filterset, use the mixin's get_queryset which applies search/ordering
             self.object_list = self.get_queryset()
         else:
             self.filterset = self.get_filterset(filterset_class)
@@ -268,25 +273,37 @@ class FairDMListView(FairDMBaseMixin, FilterView):
     def get_model(self):
         return self.model or self.queryset.model
 
+    def get_template_names(self):
+        """Override template if there's no filter - use plugin template instead."""
+        if self.filterset is None:
+            # Use the simpler plugin list view template when there's no filter
+            return ["plugins/list_view.html"]
+        return super().get_template_names()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if context["object_list"] is not None:
             context["filtered_object_count"] = context["object_list"].count()
-        context["is_filtered"] = hasattr(context["filter"].form, "cleaned_data")
-        context["object_verbose_name_plural"] = self.get_model()._meta.verbose_name_plural
 
+        # Handle case where no filter is present
+        if context.get("filter") is not None and hasattr(context["filter"], "form"):
+            context["is_filtered"] = hasattr(context["filter"].form, "cleaned_data")
+
+            # Required for sections.sidebar.form to work without modification
+            # Ensure the form method is set to GET
+            form = context["filter"].form
+            if not hasattr(form, "helper"):
+                form.helper = FormHelper()
+            form.helper.form_method = "get"
+            form.helper.form_id = "filter-form"
+            form.helper.render_unmentioned_fields = False
+            context["form"] = form
+        else:
+            context["is_filtered"] = False
+            context["form"] = None
+
+        context["object_verbose_name_plural"] = self.get_model()._meta.verbose_name_plural
         context["page"] = self.page
-        # Required for sections.sidebar.form to work without modification
-        # Ensure the form method is set to GET
-        form = context["filter"].form
-        if not hasattr(form, "helper"):
-            form.helper = FormHelper()
-        form.helper.form_method = "get"
-        form.helper.form_id = "filter-form"
-        # form.helper.render_unmentioned_fields = False
-        # form.helper.layout = Layout(Field("o", type="hidden", form="filter-form"))
-        form.helper.render_unmentioned_fields = False
-        context["form"] = form
 
         # Add card template if specified
         if hasattr(self, "card_template") and self.card_template:
@@ -336,7 +353,7 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
     form_config = {
         "submit_button": {
             "text": _("Create & enter"),
-            "icon": "arrow-right",
+            "icon": "arrow_right",
             "icon_position": "end",
         },
     }
@@ -348,12 +365,7 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         self.assign_permissions()
-        action.send(
-            self.request.user,
-            verb="created",
-            target=self.object,
-            description=_("Created a new {}: {}").format(self.object._meta.verbose_name, str(self.object)),
-        )
+
         return response
 
     def assign_permissions(self):
@@ -375,7 +387,7 @@ class FairDMDeleteView(FairDMModelFormMixin, DeleteView):
     The base class for deleting objects within the FairDM framework.
     """
 
-    template_name = "fairdm/form_view.html"
+    template_name = "layouts/form_view.html"
     form_class = Form
     form_config = {
         "submit_button": {

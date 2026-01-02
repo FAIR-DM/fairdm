@@ -20,21 +20,24 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "django_cleanup.apps.CleanupConfig",
     # FAIRDM
+    "fairdm.contrib.theme",
     "fairdm",
     "fairdm.core.project",
     "fairdm.core.dataset",
     "fairdm.core.sample",
     "fairdm.core.measurement",
+    "fairdm.contrib.autocomplete",
     "fairdm.contrib.generic",
+    "fairdm.contrib.collections",
     "fairdm.contrib.contributors",
     "fairdm.contrib.import_export",
     "fairdm.contrib.location",
+    "fairdm.contrib.activity_stream",
     "fairdm.utils",
     "fairdm.contrib.identity",
     "actstream",
     # "configuration",
     "polymorphic",
-    "treebeard",
     "parler",
     # AUTHENTICATION AND USERS
     "dac",
@@ -53,6 +56,7 @@ INSTALLED_APPS = [
     # "django_celery_beat",  # celery based task manager
     "django_cotton",
     "cotton_bs5",
+    "mvp",
     "django_extensions",
     "django_setup_tools",
     "django_tables2",
@@ -61,7 +65,6 @@ INSTALLED_APPS = [
     "flex_menu",
     "jsonfield_toolkit",
     "meta",  # for seo optimization
-    "sekizai",
     # OTHERS
     "solo",  # singleton model for storing dynamic global variables in the DB
     "django_contact_form",  # for contact forms
@@ -72,11 +75,9 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "widget_tweaks",
     "django_select2",
-    "client_side_image_cropping",
     # some other useful apps that are required by the default installation
     "django_social_share",  # easy links to social sharing sites
     "django_htmx",
-    "webpack_loader",
     "literature",
     "licensing",
     # "laboratory",
@@ -90,5 +91,7 @@ INSTALLED_APPS = [
     "guardian",  # for object level permissions
     "django_countries",
     "martor",  # markdown editor
+    "hijack",
+    "hijack.contrib.admin",
     *FAIRDM_APPS,
 ]

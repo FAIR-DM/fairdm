@@ -95,12 +95,5 @@ AWS_S3_REGION_NAME = env("S3_REGION_NAME")
 # THUMBNAIL_DEFAULT_STORAGE = STORAGES["default"]
 
 
-WEBPACK_LOADER = {
-    "FAIRDM": {
-        "CACHE": env("DJANGO_CACHE"),
-        "STATS_FILE": Path(__file__).parent / "webpack-stats.prod.json",
-    },
-}
-
 # 1MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB

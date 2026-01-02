@@ -1,0 +1,24 @@
+{% extends "fairdm/plugin.html" %}
+{% load i18n cotton %}
+
+{% block plugin %}
+  {% if activities %}
+    <div class="d-flex flex-column gap-3">
+      {% for activity in activities %}<c-activity.item :activity="activity" />{% endfor %}
+    </div>
+    {% if activities.count >= 20 %}
+      <div class="text-center mt-4">
+        <p class="text-muted">
+          <c-icon name="info" class="me-1" />
+          {% trans "Showing the 20 most recent activities" %}
+        </p>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="text-center py-5">
+      <c-icon name="activity" class="display-1 text-muted mb-3" />
+      <h5 class="text-muted">{% trans "No activities yet" %}</h5>
+      <p class="text-muted">{% trans "Activity will appear here as changes are made to" %} {{ base_object }}.</p>
+    </div>
+  {% endif %}
+{% endblock plugin %}

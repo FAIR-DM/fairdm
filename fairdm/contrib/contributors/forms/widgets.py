@@ -1,28 +1,12 @@
 from django import forms
-from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget, Select2Mixin
+from django_select2.forms import ModelSelect2MultipleWidget
+
+from ..models import Contributor, Organization, Person
 
 
-class ContributorSelectWidget(ModelSelect2Widget):
-    model = "contributor.Contributor"
-    search_fields = ["name__icontains"]
-    attrs = {
-        "data-placeholder": "Search for a contributor...",
-        "data-minimum-input-length": 2,
-        "data-theme": "bootstrap5",
-    }
+class RORWidget(forms.TextInput):
+    """Widget for ROR (Research Organization Registry) ID input."""
 
-
-class ContributorSelectMultipleWidget(ModelSelect2MultipleWidget):
-    model = "contributor.Contributor"
-    search_fields = ["name__icontains"]
-    attrs = {
-        "data-placeholder": "Search for contributors...",
-        "data-minimum-input-length": 2,
-        "data-theme": "bootstrap5",
-    }
-
-
-class RORWidget(Select2Mixin, forms.Select):
     template_name = "widgets/ror.html"
 
 
@@ -48,3 +32,18 @@ class LongitudeWidget(forms.TextInput):
         if attrs:
             default_attrs.update(attrs)
         super().__init__(default_attrs)
+
+
+class ContributorSelect2Widget(ModelSelect2MultipleWidget):
+    queryset = Contributor.objects.all()
+    search_fields = ["name__icontains"]
+
+
+class PersonSelect2Widget(ModelSelect2MultipleWidget):
+    queryset = Person.objects.all()
+    search_fields = ["first_name__icontains", "last_name__icontains"]
+
+
+class OrganizationSelect2Widget(ModelSelect2MultipleWidget):
+    queryset = Organization.objects.all()
+    search_fields = ["name__icontains"]

@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from fairdm.plugins import PluggableView
+from fairdm import plugins
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
@@ -11,16 +11,9 @@ from ..models import Project
 from .filters import ProjectFilter
 from .forms import ProjectForm
 
-
-class ProjectDetailPage(PluggableView):
-    """Detail page view for Project with plugin support.
-
-    This view serves as the base for the project detail page and provides
-    plugin integration for extensible functionality like overview, settings,
-    and export features.
-    """
-
-    base_model = Project
+# Get or create the PluggableView for Project model
+# This replaces the need for an explicit ProjectDetailPage class
+ProjectDetailPage = plugins.registry.get_or_create_view_for_model(Project)
 
 
 class ProjectCreateView(FairDMCreateView):
@@ -45,7 +38,7 @@ class ProjectCreateView(FairDMCreateView):
             {
                 "text": _("Learn more"),
                 "href": user_guide("project"),
-                "icon": "book",
+                "icon": "documentation",
             }
         ],
     }

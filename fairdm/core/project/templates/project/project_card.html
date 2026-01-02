@@ -1,8 +1,9 @@
+{% load i18n contributor_tags %}
+
 <c-components.object-card :object="object"
+                          object_type="project"
                           :image="object.image"
                           :date="object.added"
-                          description="{{ object.get_abstract }}"
+                          description="{{ object.get_abstract.value|default:'' }}"
                           :title="object.title"
-                          :subtitle="object.title"
-                          :contributor="object.contributors.first.contributor"
-                          :organization="object.owner" />
+                          subtitle="{% for c in object.contributors.all %}{{ c.contributor }}{% if not forloop.last %}, {% endif %}{% endfor %}" />

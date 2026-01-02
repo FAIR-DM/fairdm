@@ -15,20 +15,22 @@ urlpatterns = [
     path(r"jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("django-literature/", include("literature.urls")),
     path("", HomeView.as_view(), name="home"),
-    path("data/", TemplateView.as_view(template_name="fairdm/data.html"), name="data"),
+    path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("", include("fairdm.core.urls")),
+    path("", include("fairdm.contrib.collections.urls")),
     path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
+    path("activity/", include("fairdm.contrib.activity_stream.urls")),
     path("", include("fairdm.utils.urls")),
     path("", include("dac.addons.urls")),
     path("account-center/", include("dac.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
-    path("activity/", include("actstream.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("martor/", include("martor.urls")),
+    path("hijack/", include("hijack.urls")),
 ]
 
 if addon_urls:
@@ -72,6 +74,11 @@ if settings.DEBUG:
         from debug_toolbar.toolbar import debug_toolbar_urls
 
         urlpatterns += debug_toolbar_urls()
+
+    if "django_browser_reload" in settings.INSTALLED_APPS:
+        urlpatterns += [
+            path("__reload__/", include("django_browser_reload.urls")),
+        ]
 
 
 # urlpatterns += [path("", include("cms.urls"))]  # must be last

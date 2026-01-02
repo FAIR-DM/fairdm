@@ -7,6 +7,3 @@ class FairDMMeasurementConfig(AppConfig):
     label = "measurement"
     verbose_name = _("Measurement")
     verbose_name_plural = _("Measurements")
-
-    def ready(self) -> None:
-        return super().ready()

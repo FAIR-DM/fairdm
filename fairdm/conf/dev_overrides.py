@@ -50,19 +50,14 @@ INSTALLED_APPS.insert(0, "whitenoise.runserver_nostatic")
 COMPRESS_OFFLINE = False
 COMPRESS_ENABLED = False
 
-if env("USE_DOCKER"):
-    WEBPACK_LOADER = {
-        "FAIRDM": {
-            "CACHE": False,
-            "STATS_FILE": BASE_DIR / "assets" / "webpack-stats.json",
-            "POLL_INTERVAL": 0.1,
-            "IGNORE": [r".+\.hot-update.js", r".+\.map"],
-        },
-    }
 
 if env("SHOW_DEBUG_TOOLBAR"):
     INSTALLED_APPS.append("debug_toolbar")
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+
+# django-browser-reload for automatic browser refresh during development
+INSTALLED_APPS.append("django_browser_reload")
+MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
 
 
 INTERNAL_IPS = ["127.0.0.1"]

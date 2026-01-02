@@ -1,0 +1,21 @@
+{% load easy_thumbnails_tags %}
+
+<c-vars contributor size="40" />
+{% if contributor.image %}
+  <img src="{% thumbnail contributor.image 200x200 crop=True %}"
+       alt="{{ contributor.name }}"
+       class="rounded-circle"
+       width="{{ size }}"
+       height="{{ size }}"
+       {{ attrs }} />
+{% else %}
+  <div class="btn p-0 profile-icon bg-primary text-white"
+       style="width: {{ size }}px;
+              height: {{ size }}px;
+              font-size: calc({{ size }}px * 0.4);
+              font-weight: 600"
+       title="{{ contributor.name }}"
+       {{ attrs }}>
+    {{ contributor.get_initials }}
+  </div>
+{% endif %}

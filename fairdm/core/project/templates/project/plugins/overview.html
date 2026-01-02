@@ -1,20 +1,29 @@
 {% extends "plugins/overview.html" %}
-{% load i18n cotton %}
+{% load i18n cotton fairdm %}
+
+{% block detail_actions %}
+  <a href="{% plugin_url 'edit' %}"
+     class="btn btn-outline-primary btn-sm">
+    <c-icon name="edit" class="me-1" />
+    {% trans "Edit" %}
+  </a>
+{% endblock detail_actions %}
 
 {% block statistics_content %}
   <div class="col-md-4">
     <c-detail.stat-box value="{{ dataset_count }}"
+                       color="dataset"
                        label="{% trans 'Datasets' %}" />
   </div>
   <div class="col-md-4">
     <c-detail.stat-box value="{{ project.samples.count }}"
                        label="{% trans 'Samples' %}"
-                       color="success" />
+                       color="sample" />
   </div>
   <div class="col-md-4">
     <c-detail.stat-box value="{{ project.measurements.count }}"
                        label="{% trans 'Measurements' %}"
-                       color="info" />
+                       color="measurement" />
   </div>
 {% endblock statistics_content %}
 
@@ -22,9 +31,9 @@
   {{ block.super }}
   {# Funding Information #}
   {% if project.funding %}
-    <c-detail.card title="{% trans 'Funding' %}" icon="cash-coin">
+    <c-card title="{% trans 'Funding' %}" icon="funding">
       <p class="card-text">{{ project.funding }}</p>
-    </c-detail.card>
+    </c-card>
   {% endif %}
 {% endblock overview_main %}
 
@@ -35,7 +44,8 @@
   <dt class="text-muted small text-uppercase mb-1">{% trans "Visibility" %}</dt>
   <dd class="mb-3">
     <c-badge variant="secondary">
-      <i class="bi bi-{{ project.visibility|yesno:'eye,eye-slash' }} me-1"></i>
+      <c-icon name="{{ project.visibility|yesno:'visible,private' }}"
+              class="me-1" />
       {{ project.get_visibility_display }}
     </c-badge>
   </dd>

@@ -24,7 +24,7 @@ class DateInline(admin.StackedInline):
     max_num = 6
 
 
-@admin.register(Sample)
+# @admin.register(Sample)
 class SampleAdmin(PolymorphicParentModelAdmin):
     base_model = Sample
     # child_models = [m["class"] for m in registry.samples]
@@ -62,7 +62,7 @@ class SampleAdmin(ImportExportActionModelAdmin):
     }
 
 
-@admin.register(Measurement)
+# @admin.register(Measurement)
 class MeasurementParentAdmin(PolymorphicParentModelAdmin):
     model = Measurement
     child_models = get_subclasses(Measurement)

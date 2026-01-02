@@ -10,23 +10,9 @@ class PersonFilter(df.FilterSet):
     city = df.CharFilter(label=_("City"), field_name="affiliations__city", lookup_expr="icontains")
     country = df.CharFilter(label=_("Country"), field_name="affiliations__country", lookup_expr="icontains")
 
-    o = df.OrderingFilter(
-        fields=(
-            ("created", "created"),
-            ("modified", "modified"),
-        ),
-        field_labels={
-            "created": _("Created"),
-            "modified": _("Modified"),
-        },
-        label=_("Sort by"),
-        widget=forms.Select,
-        empty_label=_("Order by"),
-    )
-
     class Meta:
         model = Contributor
-        fields = ["name", "city", "country", "o"]
+        fields = ["name", "city", "country"]
 
 
 class OrganizationFilter(df.FilterSet):
@@ -41,43 +27,15 @@ class OrganizationFilter(df.FilterSet):
         label=_("Country"),
     )
 
-    o = df.OrderingFilter(
-        fields=(
-            ("created", "created"),
-            ("modified", "modified"),
-        ),
-        field_labels={
-            "created": _("Created"),
-            "modified": _("Modified"),
-        },
-        label=_("Sort by"),
-        widget=forms.Select,
-        empty_label=_("Order by"),
-    )
-
     class Meta:
         model = Contributor
-        fields = ["name", "city", "country", "o"]
+        fields = ["name", "city", "country"]
 
 
 class ContributorFilter(df.FilterSet):
     name = df.CharFilter(
         lookup_expr="icontains",
         widget=forms.TextInput(attrs={"placeholder": "Find a contributor..."}),
-    )
-
-    o = df.OrderingFilter(
-        fields=(
-            ("created", "created"),
-            ("modified", "modified"),
-        ),
-        field_labels={
-            "created": _("Created"),
-            "modified": _("Modified"),
-        },
-        label=_("Sort by"),
-        widget=forms.Select,
-        empty_label=_("Order by"),
     )
 
     type = df.ChoiceFilter(
@@ -94,7 +52,7 @@ class ContributorFilter(df.FilterSet):
 
     class Meta:
         model = Contributor
-        fields = ["name", "o", "type"]
+        fields = ["name", "type"]
 
     def filter_type(self, queryset, name, value):
         if value == "active":

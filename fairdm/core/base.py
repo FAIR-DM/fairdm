@@ -12,7 +12,7 @@ from polymorphic.base import PolymorphicModelBase
 from research_vocabs.core import Concept
 from rest_framework.serializers import ModelSerializer
 
-from fairdm.registry import Authority, Citation
+from fairdm.config import Authority, Citation
 from fairdm.utils import factories
 from fairdm.utils.utils import get_inheritance_chain, get_subclasses
 
@@ -215,7 +215,7 @@ class Config:
                 "modified",
                 "options",
                 "test",
-                "tags",
+                "keywords",
             ],
             **self.resource_kwargs,
         }

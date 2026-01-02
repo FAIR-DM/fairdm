@@ -1,4 +1,11 @@
-# Before you begin
+# Before You Begin
+
+```{admonition} You are here
+:class: tip
+**Developer Guide** → Before You Begin
+
+This page covers the prerequisites and tools for developing FairDM portals. If you landed here from a search, you may want to start with the [Developer Guide overview](index.md) to understand the developer role.
+```
 
 Before diving in, it’s helpful to be comfortable with the following tools and concepts:
 
@@ -13,6 +20,10 @@ FairDM is built on top of Python and the Django web framework, so a basic unders
 
 ```{note}
 We highly suggest that you complete the [Django tutorial](https://docs.djangoproject.com/en/stable/intro/tutorial01/) if you are new to Django. It will provide a solid foundation for working within the FairDM framework.
+```
+
+```{seealso}
+**Ready to get hands-on?** Once you have the prerequisites installed, head to the [Getting Started guide](getting_started.md) for a complete walkthrough of running the demo portal and creating your first custom models.
 ```
 
 ## Tools & Technologies

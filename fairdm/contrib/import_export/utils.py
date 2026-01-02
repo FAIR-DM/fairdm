@@ -1,7 +1,7 @@
 import io
 import zipfile
+from xml.dom import minidom
 
-from defusedxml import minidom
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string

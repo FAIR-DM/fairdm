@@ -1,13 +1,9 @@
 from django.utils.translation import gettext_lazy as _
+
+from fairdm.contrib.collections.tables import MeasurementTable
 from fairdm.contrib.import_export.resources import MeasurementResource, SampleResource
-from fairdm.core.tables import MeasurementTable, SampleTable
-from fairdm.registry import (
-    Authority,
-    Citation,
-    ModelConfiguration,
-    ModelMetadata,
-    register,
-)
+from fairdm.registry import register
+from fairdm.registry.config import Authority, Citation, ModelConfiguration, ModelMetadata
 
 from .filters import CustomSampleFilter
 from .models import CustomParentSample, CustomSample, ExampleMeasurement
@@ -34,10 +30,10 @@ class CustomParentSampleConfig(ModelConfiguration):
     fields = [
         ("name", "status"),
         "char_field",
-        ("created", "modified"),
+        ("added", "modified"),
     ]
     resource_class = SampleResource
-    table_class = SampleTable
+    # table_class = SampleTable
 
 
 @register
@@ -68,7 +64,7 @@ class CustomSampleConfig(ModelConfiguration):
         "char_field",
         "boolean_field",
         "date_field",
-        "created",
+        "added",
     ]
 
     form_fields = [
@@ -88,7 +84,7 @@ class CustomSampleConfig(ModelConfiguration):
         "char_field",
         "boolean_field",
         "date_field",
-        "created",
+        "added",
     ]
 
     resource_fields = [

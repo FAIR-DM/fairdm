@@ -4,19 +4,6 @@ from literature.models import LiteratureItem
 
 
 class LiteratureFilterset(df.FilterSet):
-    o = df.OrderingFilter(
-        fields=(
-            ("title", "title"),
-            ("issued", "issued"),
-            ("created", "created"),
-        ),
-        field_labels={
-            "title": _("Title"),
-            "issued": _("Year published"),
-            "created": _("Date added"),
-        },
-    )
-
     title = df.CharFilter(label=_("Title"), lookup_expr="icontains")
     author = df.CharFilter(field_name="item__author", lookup_expr="icontains", label=_("Author"))
     issued = df.CharFilter(label=_("Year"))
@@ -28,7 +15,6 @@ class LiteratureFilterset(df.FilterSet):
     class Meta:
         model = LiteratureItem
         fields = [
-            "o",
             "type",
             "doi",
             "title",

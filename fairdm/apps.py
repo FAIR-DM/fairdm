@@ -17,22 +17,4 @@ class FairDMConfig(AppConfig):
 
         compat.is_crispy = lambda: False
 
-        self.populate_data_collection_menu()
         return super().ready()
-
-    def populate_data_collection_menu(self):
-        """
-        Populates the data collection menu with sample types and their respective views.
-        This function is called during the `FairDMConfig.ready` method.
-        """
-        # from fairdm.menus.menus import DropdownHeader, SiteNavigation
-        # from fairdm.menus.utils import get_measurement_menu_items, get_sample_menu_items
-
-        # SiteNavigation.get("Data").get("Data Collections").children = [
-        #     DropdownHeader(_("Sample Collections")),
-        #     *get_sample_menu_items(),
-        #     DropdownHeader(_("Measurement Collections")),
-        #     *get_measurement_menu_items(),
-        # ]
-
-        # print(SiteNavigation.get("DataCollectionsMenu").children)

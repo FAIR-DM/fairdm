@@ -2,7 +2,7 @@ import fairdm
 
 fairdm.setup(
     apps=[
-        "example",
+        "fairdm_demo",
         # "django_better_admin_arrayfield",
     ]
 )

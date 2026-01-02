@@ -1,14 +1,11 @@
 from fairdm.conf.setup import setup
-
-from .config import BaseModelConfig, MeasurementConfig, SampleConfig
-from .registry import register
+from fairdm.registry import config, register, registry
 
 __version__ = "2014.1"
 
 __all__ = [
-    "BaseModelConfig",
-    "MeasurementConfig",
-    "SampleConfig",
+    "config",
     "register",
+    "registry",
     "setup",
 ]

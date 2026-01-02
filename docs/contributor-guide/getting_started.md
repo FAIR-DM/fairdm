@@ -1,166 +1,216 @@
-# Getting Started
+# Getting Started as a Contributor
 
-This guide outlines the steps to contribute to FairDM. By following these instructions, you can fork the repository, set up a virtual environment, make changes, write tests, and submit a pull request to the main repository.
+```{admonition} You are here
+:class: tip
+**User Guide** → Getting Started
+
+This page walks you through your first data contribution. If you landed here from a search, you may want to start with the [User Guide overview](index.md) to understand the contributor role and FAIR principles.
+```
+
+This guide walks you through your first data contribution to a FairDM portal. You'll learn how to locate an existing dataset, understand its structure, add a new sample, and record measurements while following FAIR metadata practices.
 
 ## Prerequisites
 
-Before you begin, ensure that you have the following installed on your local machine:
+- A FairDM portal account with contributor permissions for at least one dataset
+- Basic familiarity with the research domain and data you're contributing
 
-- [Git](https://git-scm.com/downloads) 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Python Poetry](https://python-poetry.org/docs/) (version 1.1.0 or higher)
+```{tip}
+If you don't yet have an account, contact your portal administrator to request access.
+```
 
-## Step 1: Fork the Repository and Clone it to Your Local Machine
+## Step 1: Log In and Navigate to Your Dataset
 
-1. Click on the "Fork" button at the top right corner of the [repository page](https://github.com/FAIR-DM/fairdm).
-2. After forking, you'll be redirected to your forked repository. Copy the URL of your forked repository.
-3. Open a terminal or command prompt.
-4. Change to the directory where you want to clone the repository.
-5. Run the following command to clone the repository:
+### Log In
 
-   ```shell
-   git clone <forked_repository_url>
-   ```
+1. Navigate to your portal's homepage
+2. Click **Log In** (usually in the top-right corner)
+3. Enter your username and password
+4. Click **Sign In**
 
-   Replace `<forked_repository_url>` with the URL of your forked repository.
+### Find Your Dataset
 
-## Step 2: Set up a Virtual Environment and Install Project Dependencies
+1. From the homepage, click **Datasets** in the main navigation
+2. Browse or search for the dataset you're contributing to (e.g., "Field Campaign 2024")
+3. Click on the dataset name to open its detail page
 
-1. Change to the cloned repository's directory:
+You should now see:
 
-   ```shell
-   cd fairdm
-   ```
+- Dataset title and description
+- Existing samples (if any have been added)
+- Option to **Add Sample** (if you have contributor permissions)
 
-2. Run the following command to set up a virtual environment using Poetry:
+```{note}
+If you don't see an "Add Sample" button, you may not have contributor permissions for this dataset. Contact your portal administrator to request access.
+```
 
-   ```shell
-   poetry install
-   ```
+## Step 2: Review Existing Data and Field Meanings
 
-   This command will create a new virtual environment and install the project's dependencies.
+Before adding new data, take a moment to review what's already in the dataset:
 
-## Step 3: Create a New Branch for Your Contribution
+### Review Existing Samples
 
-1. Run the following command to create a new branch:
+If samples are already listed:
 
-   ```shell
-   git checkout -b <branch_name>
-   ```
+1. Click on one or two sample names to view their detail pages
+2. Note the structure:
+   - **Sample ID**: Usually a lab code or field identifier
+   - **Name**: A human-readable description
+   - **Collection details**: Location, date, depth, etc.
+   - **Sample type**: Rock, water, sediment, etc.
+3. Observe which fields are filled in and which are left blank
 
-   Replace `<branch_name>` with a descriptive name that reflects the nature of your changes.
+This helps you understand the expected level of detail and consistency.
 
-## Step 4a: Open the VS Code workspace
+### Understand Required Fields
 
-1. Open the project in VS Code by running the following command
-2. Select the `fairdm.code-workspace` file from the file explorer to open the project workspace.
-3. Install the recommended extensions when prompted by VS Code. These extensions are recommended for the project and will enhance your development experience.
+On the sample detail page, look for:
 
+- **Required fields** (marked with a red asterisk *): Must be completed
+- **Recommended fields**: Strongly encouraged for FAIR compliance
+- **Optional fields**: Provide if available
 
-## Step 4b: Make Your Changes
+```{tip}
+**Consistency matters**: Try to match the level of detail and naming conventions used in existing samples. For example, if location names follow a specific pattern (e.g., "Site A-1", "Site A-2"), continue that pattern.
+```
 
-1. Use your favorite code editor to make the desired changes to the project's code.
-2. Follow the coding style and best practices of the project to maintain consistency.
+## Step 3: Add a New Sample
 
-## Step 5: Write Tests for Your Changes
+Now you're ready to add your own sample to the dataset.
 
-1. Ensure that the project has a testing framework in place.
-2. Write tests to cover your changes, ensuring that they pass successfully.
-3. Run the tests using the appropriate command (often provided in the project's documentation).
+### Start the Add Sample Form
 
-## Step 6: Commit Your Changes
+1. Return to the dataset's main page (click the dataset name in the breadcrumb navigation)
+2. Click **Add Sample**
+3. You'll see a form with multiple fields
 
-1. Run the following command to stage your changes for commit:
+### Fill in Sample Details
 
-   ```shell
-   git add .
-   ```
+Here's a typical example for a water sample:
 
-   This command stages all modified files for commit. If you only want to stage specific files, replace `.` with the file paths.
+**Sample ID** (required): `WATER-2024-045`  
+- Use a unique identifier that follows your lab or field naming convention
 
-2. Commit your changes with a clear and concise commit message:
+**Name** (required): `River water sample from Site B, June 2024`  
+- Provide a descriptive name that helps identify the sample at a glance
 
-   ```shell
-   git commit -m "Your commit message"
-   ```
+**Description** (optional but recommended): `Water sample collected from the main channel at Site B during low-flow conditions. Part of the summer monitoring campaign.`  
+- Add context that will help future users (including your future self) understand the sample
 
-   Replace `"Your commit message"` with a descriptive message that explains the purpose of your changes.
+**Collection Date** (required): `2024-06-20`  
+- Use the date picker or enter the date in YYYY-MM-DD format
 
-## Step 7: Push Your Branch to Your Forked Repository
+**Collection Location** (required):  
+- **Latitude**: `45.5231`
+- **Longitude**: `-122.6765`
+- **Site Name**: `Site B - Main Channel`
 
-1. Run the following command to push your branch to your forked repository:
+**Sample Type** (required): Select `Water` from the dropdown (or enter a custom type if your portal allows)
 
-   ```shell
-   git push origin <branch_name>
-   ```
+**Storage Location** (optional): `Lab Freezer 3, Shelf B`  
+- Record where the sample is physically stored for future reference
 
-   Replace `<branch_name>` with the name of the branch you created in Step 3.
+### Save the Sample
 
-## Step 8: Submit a Pull Request
+1. Review your entries to ensure accuracy
+2. Click **Save** at the bottom of the form
 
-1. Visit your forked repository on GitHub.
-2. Click on the "Compare & pull request" button next to your pushed branch.
-3. Provide a detailed description of your changes and the problem they solve.
-4. Review your changes and ensure that all necessary information is included.
-5. Click on the "Create pull request" button to submit your pull request.
+If any required fields are missing, the form will highlight them in red and prevent saving until they're completed.
 
-Congratulations! You've successfully contributed to the main repository by following these steps. Your pull request will be reviewed by the project maintainers, who may provide feedback or request further changes.
+```{seealso}
+For a detailed explanation of each field and how it supports FAIR principles, see [Understanding Core Data Structures](core_data_model.md).
+```
 
+## Step 4: Add Measurements to Your Sample
 
+Once your sample is saved, you can record observations and analysis results as measurements.
 
-<!-- 
+### Navigate to the Sample
 
-# Contributor Guidelines
+After saving, you should be redirected to the sample's detail page. If not:
 
-Thank you for your interest in contributing to FairDM! We appreciate your time and effort in helping us improve the project. To ensure a smooth and collaborative development process, please follow these guidelines when contributing.
+1. Go back to the dataset page
+2. Click on the sample you just created
 
-## Getting Started
+### Start Adding a Measurement
 
-1. Fork the repository and clone it to your local machine.
-2. Set up a virtual environment and install the project dependencies.
-3. Create a new branch for your contribution. Choose a descriptive name that reflects the nature of your changes.
-4. Make your changes, following the coding style and best practices of the project.
-5. Write tests to cover your changes, ensuring that they pass successfully.
-6. Commit your changes with a clear and concise commit message.
-7. Push your branch to your forked repository.
-8. Submit a pull request to the main repository, providing a detailed description of your changes and the problem they solve.
+1. On the sample detail page, click **Add Measurement**
+2. You'll see a measurement form
 
-## Coding Style
+### Fill in Measurement Details
 
-- Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) guidelines for Python code.
-- Use meaningful variable and function names that reflect their purpose.
-- Write docstrings for classes, functions, and modules to provide clear and concise explanations.
-- Use type hints where appropriate to enhance code readability and maintainability.
+Here's an example for a pH measurement:
 
-## Testing
+**Measurement Type** (required): Select `pH Measurement` from the dropdown (or enter a custom type)
 
-- Write tests for new features, bug fixes, and any changes that may affect the behavior of the application.
-- Ensure that all tests pass before submitting a pull request.
-- Aim for good test coverage, testing both positive and negative scenarios.
+**Method** (required): `Handheld pH meter (Brand XYZ Model 123), calibrated with standard pH 4.0, 7.0, and 10.0 buffers prior to measurement.`  
+- Be specific about the instrument and method used
 
-## Documentation
+**Result** (required): `7.35`  
+- Enter the measured value
 
-- Update the documentation to reflect any changes made to the project.
-- Document new features, APIs, and configurations in a clear and understandable manner.
-- Write helpful and concise comments within the code to aid other developers in understanding the implementation.
+**Units** (required): `pH units` (dimensionless)
 
-## Communication
+**Uncertainty** (optional but recommended): `±0.05`  
+- If known, provide the measurement precision or uncertainty
 
-- Be respectful and considerate when communicating with other contributors.
-- Use clear and concise language in discussions and issue comments.
-- Provide constructive feedback and suggestions to help improve the project.
-- Be responsive to comments and questions from other contributors.
+**Analysis Date** (required): `2024-06-21`  
+- The date the measurement was performed (may differ from sample collection date)
 
-## Pull Request Guidelines
+**Analyst** (optional): Link or enter the name of the person who performed the analysis
 
-- Provide a clear and descriptive title for your pull request.
-- Include a detailed description of the changes made and the problem they solve.
-- Reference any related issues in your pull request description using the appropriate [GitHub keywords](https://docs.github.com/en/enterprise/2.16/user/github/managing-your-work-on-github/closing-issues-using-keywords).
-- Ensure that your branch is up to date with the latest changes from the main repository before submitting the pull request.
+**Notes** (optional): `Measurement taken at field site immediately after sample collection; sample temperature was 18°C.`  
+- Add any relevant context
 
-## Code of Conduct
+### Save the Measurement
 
-Please note that all contributions are subject to our [Code of Conduct](CODE_OF_CONDUCT.md). We expect all contributors to adhere to its guidelines and maintain a respectful and inclusive environment.
+1. Review your entries
+2. Click **Save**
 
-We appreciate your contributions and look forward to working with you to make our Django project even better!
- -->
+The measurement will now appear associated with your sample.
+
+```{tip}
+**Add multiple measurements**: Repeat this process to add additional measurements (e.g., dissolved oxygen, temperature, turbidity) for the same sample.
+```
+
+## Step 5: Review Your Contribution
+
+After saving, return to the dataset page to see your sample and measurements listed.
+
+### Verify Your Entries
+
+1. Click on your sample name
+2. Review all fields for accuracy
+3. Check that measurements are correctly associated with the sample
+4. If you spot an error, click **Edit** (if you have edit permissions) to make corrections
+
+### Understand Required vs. Optional Metadata
+
+As you review, notice which fields you filled in:
+
+- **Required fields**: Sample ID, Name, Collection Date, Location, Type → These are essential for identifying and locating the sample.
+- **Recommended fields**: Description, Storage Location, Method details → These improve discoverability and reusability.
+- **Optional fields**: Notes, Analyst, Uncertainty → Nice to have when available; they provide additional scientific context.
+
+```{important}
+**FAIR-compliant metadata**: The more complete your metadata, the more valuable your data becomes for future research. Even optional fields contribute to making data Findable, Accessible, Interoperable, and Reusable.
+```
+
+## What You've Accomplished
+
+Congratulations! You've completed your first data contribution:
+
+✅ Logged in and navigated to a dataset  
+✅ Reviewed existing samples to understand field meanings and conventions  
+✅ Added a new sample with required metadata  
+✅ Recorded a measurement with method details and results  
+✅ Verified your entries for accuracy  
+
+## Next Steps
+
+- **[Metadata Best Practices](metadata_practices.md)**: Learn tips for ensuring high-quality, FAIR-compliant contributions
+- **[Understanding Core Data Structures](core_data_model.md)**: Deep dive into Projects, Datasets, Samples, and Measurements
+- **Explore other datasets**: Contribute to additional datasets within your portal's projects
+
+```{tip}
+**Questions or issues?** If you encounter any problems while contributing data, contact your portal administrator or consult the portal's help documentation for dataset-specific guidance.
+```

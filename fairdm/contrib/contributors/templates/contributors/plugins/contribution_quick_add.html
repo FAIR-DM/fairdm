@@ -1,0 +1,32 @@
+{% load i18n crispy_forms_tags %}
+
+<div class="modal-header">
+  <h5 class="modal-title">{% trans "Add Contributors" %}</h5>
+  <button type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="{% trans "Close" %}"></button>
+</div>
+<form method="post"
+      hx-post="{% url request.resolver_match.namespace|add:':'|add:request.resolver_match.url_name uuid=base_object.uuid %}"
+      hx-target="#contribution-modal-content"
+      hx-swap="innerHTML">
+  <div class="modal-body">
+    {% csrf_token %}
+    {{ form.media }}
+    {{ form|crispy }}
+    <p class="text-muted small mt-3">
+      <i class="bi bi-info-circle me-1"></i>
+      {% trans "Selected contributors will be added to this" %} {{ base_object_verbose_name }}.
+      {% trans "You can assign roles and affiliations later by editing each contribution." %}
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>{% trans "Add Contributors" %}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,180 @@
+{% extends "fairdm/plugin.html" %}
+{% load i18n static crispy_forms_tags cotton fairdm %}
+
+{% block plugin %}
+  <c-dashboard>
+    <c-list-group flush id="contributors-list">
+      {% for contribution in object_list %}
+        <c-list-group.item class="contributor-item"
+                           data-contribution-id="{{ contribution.id }}"
+                           data-ctype="{{ contribution.contributor.polymorphic_ctype.model }}"
+                           data-roles="{% for role in contribution.roles.all %}{{ role.name }}{% if not forloop.last %},{% endif %}{% endfor %}">
+          <div class="d-flex w-100 align-items-center gap-3">
+            <c-contributor.avatar :contributor="contribution.contributor" size="48" />
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{ contribution.contributor }}</h6>
+              {% if contribution.roles.exists %}
+                <small class="text-muted">
+                  {% for role in contribution.roles.all %}
+                    <c-badge variant="secondary"
+                             class="me-1"
+                             :text="role.label" />
+                  {% endfor %}
+                </small>
+              {% endif %}
+            </div>
+            <div class="btn-group btn-group-sm action-btns"
+                 role="group">
+              <button class="btn btn-sm btn-link text-primary"
+                      title="{% trans "Edit contributor role" %}"
+                      hx-get="{% plugin_url 'contribution-update' pk=contribution.pk %}"
+                      hx-target="#contribution-modal-content"
+                      hx-swap="innerHTML"
+                      data-bs-toggle="modal"
+                      data-bs-target="#contributionModal">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-link text-danger delete-btn"
+                      title="{% trans "Remove contributor" %}"
+                      hx-get="{% plugin_url 'contribution-remove' pk=contribution.pk %}"
+                      hx-target="#contribution-modal-content"
+                      hx-swap="innerHTML"
+                      data-bs-toggle="modal"
+                      data-bs-target="#contributionModal">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </c-list-group.item>
+      {% empty %}
+        <c-list-group.item>
+          <p class="text-muted mb-0">{{ empty_text }}</p>
+        </c-list-group.item>
+      {% endfor %}
+    </c-list-group>
+    <c-slot name="sidebar">
+      <c-card title="{% trans "Actions" %}" icon="plus">
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary btn-sm"
+                  hx-get="{% plugin_url 'contribution-quick-add' %}"
+                  hx-target="#contribution-modal-content"
+                  hx-swap="innerHTML"
+                  data-bs-toggle="modal"
+                  data-bs-target="#contributionModal">
+            <i class="bi bi-person-plus me-2"></i>{% trans "Add Contributor" %}
+          </button>
+        </div>
+      </c-card>
+      <c-card title="{% trans "Contributor Type" %}"
+              icon="filter"
+              class="mt-3">
+        <div class="d-flex flex-column gap-2">
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="radio"
+                   name="contributor-filter"
+                   id="filter-person"
+                   value="person"
+                   checked />
+            <label class="form-check-label" for="filter-person">
+              <i class="bi bi-person"></i> {% trans "People" %}
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="radio"
+                   name="contributor-filter"
+                   id="filter-organization"
+                   value="organization" />
+            <label class="form-check-label"
+                   for="filter-organization">
+              <i class="bi bi-building"></i> {% trans "Organizations" %}
+            </label>
+          </div>
+        </div>
+      </c-card>
+      {% if available_roles %}
+        <c-card title="{% trans "Role" %}"
+                icon="tag"
+                class="mt-3">
+          <div class="d-flex flex-column gap-2"
+               id="role-filters">
+            <div class="form-check">
+              <input class="form-check-input"
+                     type="radio"
+                     name="role-filter"
+                     id="role-all"
+                     value="all"
+                     checked />
+              <label class="form-check-label" for="role-all">{% trans "All Roles" %}</label>
+            </div>
+            {% for role_name, role_label, ctype in available_roles %}
+              <div class="form-check role-option"
+                   data-for-ctype="{{ ctype }}">
+                <input class="form-check-input"
+                       type="radio"
+                       name="role-filter"
+                       id="role-{{ role_name }}"
+                       value="{{ role_name }}" />
+                <label class="form-check-label"
+                       for="role-{{ role_name }}">{{ role_label }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </c-card>
+      {% endif %}
+    </c-slot>
+  </c-dashboard>
+  {# Modal for add/edit/delete contribution forms #}
+  <c-modal id="contributionModal" size="lg">
+    {% comment %} <c-modal.body>
+      {% crispy quick_add_form %}
+    </c-modal.body> {% endcomment %}
+    <div id="contribution-modal-content">{# Content loaded via HTMX #}</div>
+  </c-modal>
+{% endblock plugin %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static "admin/js/vendor/select2/select2.full.js" %}"></script>
+  <script src="{% static "autocomplete_light/autocomplete_light.js" %}"></script>
+  <script src="{% static "autocomplete_light/select2.js" %}"></script>
+  <script src="{% static "autocomplete_light/i18n/en.js" %}"></script>
+  {# djlint:off #}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Listen for contributionUpdated event from HTMX
+      document.body.addEventListener('contributionUpdated', function(event) {
+        window.location.reload();
+      });
+
+      // Initialize Select2 widgets after HTMX loads content into modal
+      document.body.addEventListener('htmx:afterSettle', function(event) {
+        if (event.detail.target.id === 'contribution-modal-content') {
+          setTimeout(function() {
+            $('.django-select2').each(function() {
+              if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).djangoSelect2();
+              }
+            });
+          }, 100);
+        }
+      });
+
+      // Also listen for Bootstrap modal shown event as a fallback
+      document.addEventListener('shown.bs.modal', function(event) {
+        if (event.target.id === 'contributionModal') {
+          setTimeout(function() {
+            $('.django-select2').each(function() {
+              if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).djangoSelect2();
+              }
+            });
+          }, 100);
+        }
+      });
+    });
+
+</script>
+  {# djlint:on #}
+{% endblock extra_js %}

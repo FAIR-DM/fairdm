@@ -1,29 +1,54 @@
 # Contributor Guide
 
-<!-- ```{important}
-This guide is mainly for experienced Django developers that may wish to contribute to the development of the core FairDM framework. If you are looking for information on how to develop a FairDM-powered web application for your research community, please see the [Developer Guide](../app_development_guide/index.md).
-``` -->
+**For portal contributors** who add and edit research data in FairDM portals.
 
-Before getting started, please familiarise yourself with the contributor [Code of Conduct](code_of_conduct.md). Once you have done that, take a look at the getting started guide to get your development environment up and running.
+```{note}
+This guide is for people who contribute data and metadata to an existing FairDM portal. If you want to contribute to the FairDM framework itself (code, documentation, examples), see the [Contributing Guide](../contributing/index.md) for framework contributors.
+```
 
-[![PyPI](https://badge.fury.io/py/fairdm.svg)](https://badge.fury.io/py/fairdm) 
-[![Build status](https://travis-ci.org/SSJenny90/fairdm.svg?branch=master)](https://travis-ci.org/SSJenny90/fairdm) 
-[![Code coverage](https://codecov.io/gh/SSJenny90/fairdm/branch/master/graph/badge.svg)](https://codecov.io/gh/SSJenny90/fairdm) 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+## Your Role
 
+As a portal contributor, you will:
 
-## Table of Contents
+- **Access and browse research data**: Search and view projects, datasets, samples, and measurements
+- **Contribute data**: Add and edit research data entries in the portal
+- **Follow FAIR practices**: Understand and provide required metadata to ensure data quality and reusability
+- **Manage your account**: Configure your profile and authentication settings
+
+## Why FAIR Metadata Matters
+
+FAIR principles (Findable, Accessible, Interoperable, Reusable) ensure that research data remains valuable beyond the immediate project. When you contribute data:
+
+- **Findable**: Proper metadata helps others discover your data via search engines and data repositories
+- **Accessible**: Clear descriptions and persistent identifiers make it easy to retrieve and cite data
+- **Interoperable**: Standardized fields allow data to be combined with other datasets
+- **Reusable**: Well-documented data enables future research and verification
+
+Your role as a contributor is essential: accurate, complete metadata entry directly improves the quality and impact of the research.
+
+## What You'll Find Here
+
+This guide helps you:
+
+- Create and manage your account
+- Understand the core data structures (Projects, Datasets, Samples, Measurements)
+- Learn how to add and edit data while following FAIR metadata practices
+- Navigate the portal effectively
 
 ```{toctree}
 :maxdepth: 1
+:caption: Account Management
 
-before_you_start
-design_philosophy
-repo_structure
-core_data_model
-contribution_framework
-plugin_system_architecture
+account_management/create_an_account
+
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Contributing Data
+
 getting_started
-frontend_dev
-django_dev
+core_data_model
+metadata_practices
+
 ```
