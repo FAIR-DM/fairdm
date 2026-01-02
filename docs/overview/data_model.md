@@ -55,7 +55,7 @@ A dataset typically holds:
 - **Visibility settings**: These control who can view the dataset (private or public).
 - **Time stamps**: Indicate when the dataset was created or last modified.
 - **Contributor information**: Who created or worked on this dataset.
-- **Descriptions**: Structured descriptions explaning what the dataset contains and how it was collected.
+- **Descriptions**: Structured descriptions explaining what the dataset contains and how it was collected.
 - **Optional links to publications**: References to scientific articles or reports related to the dataset.
 - **License information**: Explains how the data can be reused. By default, FairDM comes with support for standard Creative Commons licenses.
 
@@ -77,7 +77,7 @@ Each sample by default includes:
 - **A location**: If the sample has a known geographic origin, you can link it to a location record.
 - **Time stamps**: Automatically track when the sample was created and last updated.
 - **Contributors**: You can list who helped collect, prepare, or manage the sample.
-- **Descriptions**: Structured descriptions explaning what the dataset contains and how it was collected.
+- **Descriptions**: Structured descriptions explaining what the sample is and how it was collected.
 
 And most importantly:
 
@@ -118,7 +118,7 @@ Each measurement records:
 - **A sample**: Every measurement must be linked to the **sample it was taken from**.
 - **Timestamps**: Automatically track when the measurement was created and last modified.
 - **Contributors**: Optionally record who performed or contributed to the measurement.
-- **Descriptions**: Structured descriptions explaning what the dataset contains and how it was collected.
+- **Descriptions**: Structured descriptions explaining what the measurement represents and how it was produced.
 
 ### Can I extend the Measurement model?
 

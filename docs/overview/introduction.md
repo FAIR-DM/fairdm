@@ -17,8 +17,8 @@ On the technical side, FairDM provides:
 
 - A robust core data model that includes metadata structures for projects, datasets, samples, and measurements—reflecting common patterns in research data organization.
 - Easy extensibility for sample and measurement models, allowing projects to define domain-specific fields without compromising compatibility.
-- Built-in user account management with support for authentication, email validation, two-factor authentication, and integration with ORCID and other third-party login providers.
-- A standardized RESTful API available by default, ensuring consistent and interoperable access to data.
+- Built-in user account management with support for authentication and email validation. Optional features such as two-factor authentication and third-party login (e.g., ORCID) can be enabled depending on portal needs.
+- A RESTful API can be enabled for programmatic access, supporting consistent, interoperable access to data and metadata.
 - Pre-configured Docker Compose setups to simplify deployment across a variety of hosting environments.
 
 Beyond the technical layer, FairDM also addresses common non-technical challenges:
@@ -37,18 +37,18 @@ FairDM is built from the ground up to support the **FAIR** data principles—**F
 
 FairDM ensures that research data is easy to discover by:
 
-- Enforcing metadata standards that enable consistent, searchable records.
+- Encouraging structured metadata that enables consistent, searchable records.
 - Including full indexing and filterable list views for core objects like projects and datasets.
-- Introducing "data collections" for samples and measurements—customizable tabular views that span multiple datasets and projects—so users can find specific data types without navigating or downloading each dataset manually.
-- Supporting persistent identifiers (e.g., DOIs, IGSNs) to make datasets and objects reliably referenceable.
+- Introducing "data collections" for samples and measurements—customizable tabular views that can span multiple datasets and projects—so users can find specific data types without navigating or downloading each dataset manually.
+- Supporting stable identifiers (e.g., DOIs, IGSNs, internal stable IDs) where appropriate and configured.
 
 ### Accessibility
 
 Data stored in a FairDM portal can be easily accessed through:
 
-- A standardized RESTful API that provides machine-readable access to all core objects.
+- A RESTful API (when enabled) that provides machine-readable access to core objects.
 - Configurable access controls that support both public and private datasets.
-- Required license declarations for all datasets, with a recommendation to use Creative Commons licenses—though portal administrators remain free to define their own licensing policies.
+- License information and clear reuse terms, with a recommendation to use Creative Commons licenses—though portal administrators remain free to define their own licensing policies.
 
 ### Interoperability
 
@@ -56,7 +56,7 @@ FairDM promotes interoperability by:
 
 - Encouraging the use of structured metadata and standardized formats for data exchange.
 - Supporting controlled vocabularies to ensure semantic consistency across records.
-- Offering import/export mechanisms that align with community-recognized data standards.
+- Offering import/export mechanisms that can align with community-recognized data standards.
 
 ### Reusability
 

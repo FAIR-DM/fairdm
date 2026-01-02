@@ -1,166 +1,334 @@
-# Getting Started
+# Contributing to FairDM
 
-This guide outlines the steps to contribute to FairDM. By following these instructions, you can fork the repository, set up a virtual environment, make changes, write tests, and submit a pull request to the main repository.
+This guide outlines the workflow for contributing code, documentation, and other improvements to the FairDM framework. By following these steps, you can fork the repository, make changes, run quality checks, and submit a pull request.
+
+```{important}
+**Read the constitution first**: Before making significant changes, review the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md) to understand the framework's core principles, design constraints, and development workflow. All contributions should align with these principles.
+```
 
 ## Prerequisites
 
-Before you begin, ensure that you have the following installed on your local machine:
+Before you begin, ensure you have completed the environment setup:
 
-- [Git](https://git-scm.com/downloads) 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Python Poetry](https://python-poetry.org/docs/) (version 1.1.0 or higher)
+- **[Development environment set up](before_you_start.md)**: Follow the setup guide to install Python, Poetry, Git, PostgreSQL (optional), and clone the repository
+- **[Quality gates understood](django_dev.md)**: Familiarize yourself with tests, type checking, linting, and documentation builds
 
-## Step 1: Fork the Repository and Clone it to Your Local Machine
+If you haven't set up your environment yet, start with [Before You Start](before_you_start.md).
 
-1. Click on the "Fork" button at the top right corner of the [repository page](https://github.com/FAIR-DM/fairdm).
-2. After forking, you'll be redirected to your forked repository. Copy the URL of your forked repository.
-3. Open a terminal or command prompt.
-4. Change to the directory where you want to clone the repository.
-5. Run the following command to clone the repository:
+## Contribution Workflow Overview
 
-   ```shell
-   git clone <forked_repository_url>
-   ```
+The FairDM contribution workflow follows a standard Git-based process:
 
-   Replace `<forked_repository_url>` with the URL of your forked repository.
+1. **Identify or create an issue**: Discuss your proposed change
+2. **Fork and clone**: Create your personal copy of the repository
+3. **Create a feature branch**: Work in isolation from the main codebase
+4. **Make changes**: Implement your feature or fix
+5. **Write tests**: Ensure your changes are covered by tests
+6. **Run quality gates**: Verify tests, type checking, linting, and docs build
+7. **Commit and push**: Save your changes to your fork
+8. **Submit a pull request**: Propose your changes to the main repository
+9. **Address feedback**: Respond to review comments and make requested changes
+10. **Merge**: Once approved, your changes are merged into main
 
-## Step 2: Set up a Virtual Environment and Install Project Dependencies
+```{tip}
+**Small, focused pull requests**: Break large changes into smaller, reviewable chunks. This makes reviews faster and reduces the risk of conflicts.
+```
 
-1. Change to the cloned repository's directory:
+## Step 1: Identify or Create an Issue
 
-   ```shell
+Before starting work, check if an issue exists for your proposed change:
+
+1. **Search existing issues**: [GitHub Issues](https://github.com/FAIR-DM/fairdm/issues)
+2. **If no issue exists**, create one:
+   - **Bug reports**: Describe the problem, steps to reproduce, expected vs actual behavior
+   - **Feature requests**: Explain the use case, proposed solution, and how it aligns with FairDM's constitution
+   - **Documentation improvements**: Describe what's unclear or missing
+
+3. **Discuss first for major changes**: For significant architectural changes, new features, or changes that affect the constitution, open a **Discussion** first to gather feedback before coding.
+
+```{important}
+**Constitution alignment**: When proposing features or changes, explain how they align with FairDM's core principles (FAIR-first, domain-driven, configuration over code, opinionated defaults, etc.). Proposals that conflict with the constitution may be rejected unless a strong case for amending the constitution is made.
+```
+
+## Step 2: Fork and Clone the Repository
+
+If you haven't already:
+
+1. **Fork the repository** on GitHub:
+   - Navigate to [https://github.com/FAIR-DM/fairdm](https://github.com/FAIR-DM/fairdm)
+   - Click **Fork** in the top-right corner
+
+2. **Clone your fork** to your local machine:
+
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/fairdm.git
    cd fairdm
    ```
 
-2. Run the following command to set up a virtual environment using Poetry:
+3. **Add the upstream remote** (to keep your fork in sync):
 
-   ```shell
-   poetry install
+   ```bash
+   git remote add upstream https://github.com/FAIR-DM/fairdm.git
    ```
 
-   This command will create a new virtual environment and install the project's dependencies.
+## Step 3: Create a Feature Branch
 
-## Step 3: Create a New Branch for Your Contribution
+Create a new branch for your contribution:
 
-1. Run the following command to create a new branch:
+```bash
+git checkout -b feature/your-feature-name
+```
 
-   ```shell
-   git checkout -b <branch_name>
-   ```
+**Branch naming conventions**:
 
-   Replace `<branch_name>` with a descriptive name that reflects the nature of your changes.
+- `feature/description`: New features (e.g., `feature/add-polymorphic-filters`)
+- `fix/description`: Bug fixes (e.g., `fix/measurement-save-validation`)
+- `docs/description`: Documentation changes (e.g., `docs/improve-getting-started`)
+- `refactor/description`: Code refactoring without functional changes
 
-## Step 4a: Open the VS Code workspace
+Replace `<branch_name>` with a descriptive name that reflects the nature of your changes.
 
-1. Open the project in VS Code by running the following command
-2. Select the `fairdm.code-workspace` file from the file explorer to open the project workspace.
-3. Install the recommended extensions when prompted by VS Code. These extensions are recommended for the project and will enhance your development experience.
+## Step 4: Make Your Changes
 
+1. **Open the VS Code workspace** (recommended):
 
-## Step 4b: Make Your Changes
+   - Open the project in VS Code
+   - Select the `fairdm.code-workspace` file to open the project workspace
+   - Install the recommended extensions when prompted (Python, Django, mypy, etc.)
 
-1. Use your favorite code editor to make the desired changes to the project's code.
-2. Follow the coding style and best practices of the project to maintain consistency.
+2. **Make your changes**:
+
+   - Follow the coding style guidelines in [Python Code Development](django_dev.md)
+   - Use meaningful variable and function names
+   - Add type hints to function signatures
+   - Write docstrings for classes and public functions
+   - Keep functions small and focused (single responsibility)
+
+3. **Check alignment with constitution**:
+
+   - If adding new models: Are they domain-driven and polymorphic where appropriate?
+   - If adding configuration: Is it declarative and easy to understand?
+   - If adding UI: Does it follow Bootstrap 5 conventions and require minimal custom CSS?
+   - If adding dependencies: Are they well-maintained and aligned with the tech stack?
+
+```{tip}
+**Incremental commits**: Commit your changes incrementally as you work. This makes it easier to review and revert if needed.
+```
 
 ## Step 5: Write Tests for Your Changes
 
-1. Ensure that the project has a testing framework in place.
-2. Write tests to cover your changes, ensuring that they pass successfully.
-3. Run the tests using the appropriate command (often provided in the project's documentation).
+All code changes must include tests. See the [Python Code Development guide](django_dev.md) for testing guidelines.
 
-## Step 6: Commit Your Changes
+### For New Features
 
-1. Run the following command to stage your changes for commit:
+1. **Write tests first** (TDD approach): Define the expected behavior before implementing
+2. **Test the happy path**: Verify the feature works as intended
+3. **Test edge cases**: What happens with invalid input, missing data, etc.?
+4. **Test integration**: If your feature interacts with other components, test those interactions
 
-   ```shell
+### For Bug Fixes
+
+1. **Write a failing test**: Reproduce the bug in a test
+2. **Fix the bug**: Implement the fix
+3. **Verify the test passes**: Confirm the bug is resolved
+
+### Run Tests Locally
+
+```bash
+poetry run pytest
+```
+
+Ensure all tests pass before proceeding.
+
+## Step 6: Run Quality Gates
+
+Before committing, run all quality gates locally:
+
+### 1. Tests
+
+```bash
+poetry run pytest
+```
+
+### 2. Type Checking
+
+```bash
+poetry run mypy fairdm
+```
+
+### 3. Linting
+
+```bash
+poetry run ruff check fairdm
+```
+
+Auto-fix issues where possible:
+
+```bash
+poetry run ruff check --fix fairdm
+```
+
+### 4. Documentation Build (if you changed docs)
+
+```bash
+poetry run sphinx-build -W -b html docs docs/_build/html
+```
+
+```{important}
+**All quality gates must pass**: Pull requests that fail any quality gate will not be merged. Run these checks locally to avoid CI failures.
+```
+
+## Step 7: Commit Your Changes
+
+1. **Stage your changes**:
+
+   ```bash
    git add .
    ```
 
-   This command stages all modified files for commit. If you only want to stage specific files, replace `.` with the file paths.
+   Or stage specific files:
 
-2. Commit your changes with a clear and concise commit message:
-
-   ```shell
-   git commit -m "Your commit message"
+   ```bash
+   git add fairdm/core/models.py tests/test_core/test_models.py
    ```
 
-   Replace `"Your commit message"` with a descriptive message that explains the purpose of your changes.
+2. **Commit with a clear message**:
 
-## Step 7: Push Your Branch to Your Forked Repository
+   ```bash
+   git commit -m "Add polymorphic filtering for Measurements
 
-1. Run the following command to push your branch to your forked repository:
+   - Implement filter_by_type method on MeasurementQuerySet
+   - Add tests for filtering by measurement subclass
+   - Update documentation with usage example
 
-   ```shell
-   git push origin <branch_name>
+   Fixes #123"
    ```
 
-   Replace `<branch_name>` with the name of the branch you created in Step 3.
+**Commit message guidelines**:
 
-## Step 8: Submit a Pull Request
+- **First line**: Short summary (50 characters or less)
+- **Blank line**: Separates summary from body
+- **Body**: Detailed explanation (wrapped at 72 characters)
+  - What changed and why
+  - Any relevant context or decisions
+- **Footer**: Reference issues (e.g., `Fixes #123`, `Closes #456`, `Relates to #789`)
 
-1. Visit your forked repository on GitHub.
-2. Click on the "Compare & pull request" button next to your pushed branch.
-3. Provide a detailed description of your changes and the problem they solve.
-4. Review your changes and ensure that all necessary information is included.
-5. Click on the "Create pull request" button to submit your pull request.
+## Step 8: Push Your Branch to Your Fork
 
-Congratulations! You've successfully contributed to the main repository by following these steps. Your pull request will be reviewed by the project maintainers, who may provide feedback or request further changes.
+```bash
+git push origin feature/your-feature-name
+```
 
+## Step 9: Submit a Pull Request
 
+1. **Visit your fork on GitHub**: You should see a prompt to create a pull request
+2. **Click "Compare & pull request"**
+3. **Fill out the PR template**:
+   - **Title**: Clear, concise summary (e.g., "Add polymorphic filtering for Measurements")
+   - **Description**:
+     - What problem does this solve?
+     - What changes were made?
+     - How was it tested?
+     - How does it align with the constitution?
+   - **Related issues**: Link to the issue (e.g., `Fixes #123`)
+   - **Screenshots/GIFs**: If UI changes, include visuals
+   - **Checklist**: Confirm all quality gates passed
 
-<!-- 
+4. **Request review**: Tag relevant maintainers or leave it to auto-assignment
 
-# Contributor Guidelines
+```{tip}
+**Draft pull requests**: If your work is in progress, open a **Draft PR** to get early feedback. Convert it to "Ready for review" when complete.
+```
 
-Thank you for your interest in contributing to FairDM! We appreciate your time and effort in helping us improve the project. To ensure a smooth and collaborative development process, please follow these guidelines when contributing.
+## Step 10: Address Review Feedback
 
-## Getting Started
+Reviewers may request changes:
 
-1. Fork the repository and clone it to your local machine.
-2. Set up a virtual environment and install the project dependencies.
-3. Create a new branch for your contribution. Choose a descriptive name that reflects the nature of your changes.
-4. Make your changes, following the coding style and best practices of the project.
-5. Write tests to cover your changes, ensuring that they pass successfully.
-6. Commit your changes with a clear and concise commit message.
-7. Push your branch to your forked repository.
-8. Submit a pull request to the main repository, providing a detailed description of your changes and the problem they solve.
+1. **Respond to comments**: Ask clarifying questions if needed
+2. **Make requested changes**: Commit and push to the same branch
+3. **Re-run quality gates**: Ensure changes don't break tests or linting
+4. **Request re-review**: Once changes are made, request another review
 
-## Coding Style
+```{important}
+**Be responsive and respectful**: Code review is collaborative. Reviewers are helping improve the code, not criticizing you personally. Respond to feedback promptly and professionally.
+```
 
-- Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) guidelines for Python code.
-- Use meaningful variable and function names that reflect their purpose.
-- Write docstrings for classes, functions, and modules to provide clear and concise explanations.
-- Use type hints where appropriate to enhance code readability and maintainability.
+## Step 11: Merge
 
-## Testing
+Once approved by maintainers, your pull request will be merged into the `main` branch. Congratulations! 🎉
 
-- Write tests for new features, bug fixes, and any changes that may affect the behavior of the application.
-- Ensure that all tests pass before submitting a pull request.
-- Aim for good test coverage, testing both positive and negative scenarios.
+### After Merging
 
-## Documentation
+- **Sync your fork** with upstream:
 
-- Update the documentation to reflect any changes made to the project.
-- Document new features, APIs, and configurations in a clear and understandable manner.
-- Write helpful and concise comments within the code to aid other developers in understanding the implementation.
+  ```bash
+  git checkout main
+  git pull upstream main
+  git push origin main
+  ```
 
-## Communication
+- **Delete your feature branch** (optional):
 
-- Be respectful and considerate when communicating with other contributors.
-- Use clear and concise language in discussions and issue comments.
-- Provide constructive feedback and suggestions to help improve the project.
-- Be responsive to comments and questions from other contributors.
+  ```bash
+  git branch -d feature/your-feature-name
+  git push origin --delete feature/your-feature-name
+  ```
 
-## Pull Request Guidelines
+## Keeping Your Fork in Sync
 
-- Provide a clear and descriptive title for your pull request.
-- Include a detailed description of the changes made and the problem they solve.
-- Reference any related issues in your pull request description using the appropriate [GitHub keywords](https://docs.github.com/en/enterprise/2.16/user/github/managing-your-work-on-github/closing-issues-using-keywords).
-- Ensure that your branch is up to date with the latest changes from the main repository before submitting the pull request.
+Periodically sync your fork with the upstream repository to avoid merge conflicts:
 
-## Code of Conduct
+```bash
+git fetch upstream
+git checkout main
+git merge upstream/main
+git push origin main
+```
 
-Please note that all contributions are subject to our [Code of Conduct](CODE_OF_CONDUCT.md). We expect all contributors to adhere to its guidelines and maintain a respectful and inclusive environment.
+## Common Contribution Scenarios
 
-We appreciate your contributions and look forward to working with you to make our Django project even better!
- -->
+### Scenario 1: Reporting a Bug
+
+1. Search for existing issues to avoid duplicates
+2. Create a new issue with:
+   - Clear title (e.g., "Measurement validation fails for negative values")
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Environment details (OS, Python version, FairDM version)
+3. Wait for maintainer triage before starting a fix (to avoid duplicate work)
+
+### Scenario 2: Proposing a New Feature
+
+1. Open a **Discussion** (not an issue) to propose the feature
+2. Explain the use case and how it aligns with the constitution
+3. Gather feedback from maintainers and community
+4. If approved, create an issue to track implementation
+5. Follow the standard contribution workflow
+
+### Scenario 3: Improving Documentation
+
+1. Identify what's unclear or missing
+2. Create an issue or go straight to a PR (for small changes)
+3. Make changes to Markdown files in `docs/`
+4. Run `sphinx-build` to verify the docs build correctly
+5. Submit a PR with clear explanation of what improved
+
+## Resources
+
+- **[FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md)**: Core principles and design constraints
+- **[Code of Conduct](https://github.com/FAIR-DM/fairdm/blob/main/CODE_OF_CONDUCT.md)**: Community standards
+- **[Quality Gates Guide](django_dev.md)**: Tests, type checking, linting, docs
+- **[Frontend Development Guide](frontend_dev.md)**: Templates, CSS, JavaScript
+- **[Issue Tracker](https://github.com/FAIR-DM/fairdm/issues)**: Report bugs and request features
+- **[Discussions](https://github.com/FAIR-DM/fairdm/discussions)**: Ask questions and propose ideas
+
+## Getting Help
+
+If you're stuck or have questions:
+
+- **Check the documentation**: Many common questions are answered in the guides
+- **Search existing issues and discussions**: Your question may already be answered
+- **Open a discussion**: Ask in [GitHub Discussions](https://github.com/FAIR-DM/fairdm/discussions)
+- **Join the community**: Connect with other contributors (link to Slack/Discord if available)
+
+Thank you for contributing to FairDM! Your efforts help make research data more FAIR and accessible. 🚀

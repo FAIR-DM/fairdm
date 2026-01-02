@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     # "django_celery_beat",  # celery based task manager
     "django_cotton",
     "cotton_bs5",
-    "cotton_layouts",
+    "mvp",
     "django_extensions",
     "django_setup_tools",
     "django_tables2",

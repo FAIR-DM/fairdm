@@ -3,7 +3,6 @@ from __future__ import annotations
 from functools import cached_property
 
 from braces.views import MessageMixin
-from cotton_layouts.mixins import SearchOrderMixin
 from crispy_forms.helper import FormHelper
 from django.contrib.auth.decorators import login_required
 from django.db.models import Model
@@ -16,9 +15,10 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_addanother.views import CreatePopupMixin
 from django_filters.views import FilterView
 from meta.views import MetadataMixin
+from mvp.views import SearchOrderMixin
 
 from fairdm.contrib.contributors.utils import current_user_has_role
-from fairdm.contrib.identity.models import Database
+from fairdm.contrib.identity.models import Identity
 from fairdm.core.utils import get_non_polymorphic_instance
 from fairdm.forms import Form
 from fairdm.utils import assign_all_model_perms, get_model_class
@@ -82,7 +82,7 @@ class FairDMBaseMixin(MessageMixin, MetadataMixin):
 
     def get_meta_title(self, context):
         title = self.get_title() if hasattr(self, "get_title") else self.title
-        return f"{title} - {Database.get_solo().safe_translation_getter('name')}"
+        return f"{title} - {Identity.get_solo().safe_translation_getter('name')}"
 
     def get_page_title(self):
         """Return the page title for the view."""

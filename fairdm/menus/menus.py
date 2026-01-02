@@ -1,8 +1,8 @@
 """Site navigation menu for FairDM."""
 
-from cotton_layouts.menus import SiteNavigation
 from django.utils.translation import gettext_lazy as _
 from flex_menu import MenuItem
+from mvp.menus import SiteNavigation
 
 # Main site navigation menu
 SiteNavigation.extend(

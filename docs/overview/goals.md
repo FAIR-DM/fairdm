@@ -4,7 +4,7 @@
 
    FairDM is designed to be flexible and extensible, allowing researchers to create portals that meet the specific needs of their research communities. By providing a set of pre-defined templates, design patterns, and components, FairDM enables researchers to quickly and easily create portals that are tailored to their specific requirements.
 
-2. **Simplify the process of declaring and distributing reuseable data structures**
+2. **Simplify the process of declaring and distributing reusable data structures**
 
    FairDM provides a set of pre-defined data structures and fields that are commonly used in research data management. These structures can be easily extended and customized to meet the specific requirements of individual research communities. By simplifying the process of defining data structures, FairDM enables researchers to focus on their data and research, rather than the technical details of the portal.
 
@@ -14,7 +14,7 @@
 
 4. **Foster collaboration and networking within individual research communities**
 
-   At the heart of FairDM lies a profound commitment to community building and fostering collaboration among researchers. Our web-framework is not just a technical solution; it's a catalyst for empowering research communities to thrive together. FairDM provides the perfect platform to unite researchers, innovators, and experts from various fields, facilitating seamless collaboration and knowledge exchange.
+   At the heart of FairDM lies a profound commitment to community building and fostering collaboration among researchers. Our web framework is not just a technical solution; it's a catalyst for empowering research communities to thrive together. FairDM provides a platform to unite researchers, innovators, and experts from various fields, facilitating collaboration and knowledge exchange.
 
 5. **Credit where credit is due**
 
