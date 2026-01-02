@@ -1,9 +1,11 @@
-# How to Contribute
+# Framework Contributors
 
-**For framework contributors** who want to contribute to the core FairDM framework.
+**For FairDM framework contributors** who want to contribute to the core framework itself.
 
 ```{important}
-This guide is for developers who want to contribute to the FairDM framework itself. If you're looking to build a FairDM-powered portal for your research community, please see the [Developer Guide](../developer-guide/index.md). If you want to contribute data to an existing portal, see the [User Guide](../user-guide/index.md).
+**Framework contributors vs portal contributors**: This guide is for people who want to contribute to the FairDM framework codebase, documentation, or examples. If you're looking to:
+- **Build a portal** for your research community → see the [Developer Guide](../developer-guide/index.md)
+- **Add data** to an existing portal → see the [Contributor Guide](../contributor-guide/index.md) for portal contributors
 ```
 
 ## Your Role
@@ -24,7 +26,7 @@ This guide covers:
 - Running tests, type checking, linting, and building documentation
 - Following the contribution workflow and aligning with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md)
 
-Before getting started, please familiarize yourself with the [Code of Conduct](code_of_conduct.md).
+Before getting started, please review the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md) and respect community standards.
 
 ## Table of Contents
 
@@ -32,8 +34,6 @@ Before getting started, please familiarize yourself with the [Code of Conduct](c
 :maxdepth: 1
 
 before_you_start
-design_philosophy
-repo_structure
 core_data_model
 views_module
 contribution_framework

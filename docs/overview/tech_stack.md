@@ -18,21 +18,21 @@ To improve application performance and manage asynchronous tasks, FairDM leverag
 
 FairDM relies on Celery, a distributed task queue system, to manage background processing. Celery handles tasks such as sending notification emails, processing uploaded datasets, and other long-running operations asynchronously, keeping the main application responsive and efficient. Paired with Redis as a broker, Celery allows the system to scale background tasks independently of user requests.
 
-## Traefik Reverse Proxy and Load Balancer
+## Reverse proxy and TLS termination (deployment choice)
 
-For incoming traffic management, FairDM uses Traefik, a modern reverse proxy and load balancer. Traefik automatically routes HTTP and HTTPS requests to the appropriate service containers. Its seamless integration with Docker Compose allows configuration through simple labels, which lowers the barrier for administrators unfamiliar with complex network setups. Traefik also handles SSL certificate provisioning and renewal through Let’s Encrypt, ensuring secure communication by default.
+In production deployments, FairDM is typically placed behind a reverse proxy / ingress layer that handles routing and (optionally) TLS termination. Many setups use tools like Traefik or Nginx, but the exact choice depends on your hosting environment and operational preferences.
 
-## Automated Backup and Persistence
+## Backup and persistence (recommended)
 
-Data durability is crucial for research portals. FairDM includes automated database backup capabilities to regularly save PostgreSQL data snapshots. However, these backups require configuration with an external storage service, allowing flexibility depending on institutional policies and infrastructure.
+Data durability is crucial for research portals. FairDM expects deployments to include a backup strategy for databases and uploaded files (frequency, retention, and off-site storage are deployment concerns). The exact mechanism depends on institutional policies and infrastructure.
 
-## Monitoring and Logging
+## Monitoring and logging
 
-While FairDM does not yet provide built-in comprehensive monitoring, it supports integration with popular third-party tools such as Sentry for error tracking and alerting. For task monitoring, it includes Flower, a web interface that tracks Celery workers and job status, enabling administrators to supervise background task health.
+FairDM can be integrated with third-party tools such as Sentry for error tracking and alerting. If you use Celery, tools like Flower can be used to monitor workers and task health.
 
-## Deployment Environment and Management
+## Deployment environment and management
 
-FairDM is optimized for single-server deployment, striking a balance between capability and simplicity. Docker Compose orchestrates all the core services, encapsulating the entire stack into manageable containers. To facilitate easy server management, detailed documentation is provided for using tools like Portainer CE, which offers a graphical interface for container and volume management, ideal for users with limited command-line experience.
+FairDM is optimized for single-server deployment, striking a balance between capability and simplicity. Docker Compose can orchestrate core services and encapsulate the stack into manageable containers. Many teams also use tools like Portainer CE for graphical container and volume management.
 
 ## Configuration via Environment Variables
 

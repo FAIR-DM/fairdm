@@ -67,6 +67,21 @@ A developer who wants to contribute to the FairDM framework itself (code, docume
 
 ---
 
+### User Story 5 - Reader Understands FairDM Overview and Contributors (Priority: P2)
+
+A new reader (often a prospective portal administrator, developer, or institutional stakeholder) wants to understand, at a glance, what FairDM is for, how it relates to FAIR principles, what its core features and data model look like, and why contributors are explicitly modeled and recorded.
+
+**Why this priority**: The Overview pages are the first contact point for many evaluators and non-technical stakeholders. If they cannot quickly understand FairDM's purpose, scope, and treatment of contributors, they may not trust or adopt the framework.
+
+**Independent Test**: A new reader with no prior FairDM knowledge, but general familiarity with research data management, can read the Overview and related core concept pages and then accurately explain (in their own words) FairDM's purpose, its core entities (Projects, Datasets, Samples, Measurements, Contributors, Organizations), and why contributor information is recorded and surfaced in portals.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new reader landing on the main documentation entry point, **When** they follow links to the Overview section, **Then** they can find clear explanations of FairDM's introduction, background, goals, core features, high-level core data model, and contributor tracking without needing to read developer- or admin-focused guides, and can describe what a contributor is in FairDM portals, what counts as a contribution (data, metadata, curation, code, documentation, etc.), and why contributors are recorded (attribution, provenance, FAIR/reproducibility).
+2. **Given** a reader who has read the Overview and Contributors sections, **When** they later browse a FairDM portal (demo or production), **Then** they can recognise where contributor information appears in the UI (e.g., on project, dataset, sample, or measurement pages) and understand its purpose.
+
+---
+
 ### Edge Cases
 
 - What happens when a user lands directly on a deep documentation page (via search) without context? The documentation MUST provide navigation and framing so they can easily discover where they are and how to get back to the main structure.
@@ -85,6 +100,13 @@ A developer who wants to contribute to the FairDM framework itself (code, docume
 - **FR-006**: The documentation MUST avoid prescribing specific tooling commands or environment details beyond what is necessary to describe user journeys; concrete commands and stack details SHOULD be deferred to implementation-oriented quickstarts or developer appendices.
 - **FR-007**: Documentation pages MUST be internally cross-linked so that users can move between role-specific guides, concept explanations (e.g., Projects, Datasets, Samples, Measurements), and the Getting Started flow without dead ends.
 
+### Non-Functional Requirements
+
+- **NFR-001**: Documentation MUST be reasonably accessible and usable on common desktop and mobile devices, with navigation elements and primary content remaining readable without requiring horizontal scrolling at typical viewport widths.
+- **NFR-002**: Documentation navigation MUST remain responsive; key landing pages (main index, role-specific indexes, and primary getting-started guides) SHOULD render and become interactive within a few seconds on a typical developer laptop when built locally.
+- **NFR-003**: Documentation MUST be structured to allow future internationalisation (e.g., user-facing strings and examples SHOULD avoid hard-coded locale assumptions where possible, and content SHOULD avoid mixing multiple languages in a single page except where explicitly illustrative).
+- **NFR-004**: Documentation SHOULD follow basic accessibility best practices consistent with the Bootstrap-based UI (e.g., meaningful headings, descriptive link text, and avoidance of color-only distinctions in diagrams or screenshots where feasible).
+
 ### Key Entities *(include if feature involves data)*
 
 - **Documentation Section**: Represents a logical grouping of pages targeted at a specific audience (e.g., portal administrators, contributors, developers, framework contributors). Key attributes include purpose, target audience, and primary entry points.
@@ -100,10 +122,25 @@ A developer who wants to contribute to the FairDM framework itself (code, docume
 
 ### Measurable Outcomes
 
-- **SC-001**: At least 80% of new developers who are comfortable with Python object-oriented programming and have basic familiarity with Django (ideally having completed the official Django tutorials) can, using only the documentation, complete the Getting Started journey (demo portal plus first Sample/Measurement model registration) within half a day.
-- **SC-002**: Portal administrators report (via qualitative feedback or informal testing) that they understand their key responsibilities and can perform at least three core admin tasks (e.g., managing users, adjusting permissions, reviewing core metadata) after reading the admin-guide.
-- **SC-003**: Contributors can, after reading the contributor-guide, correctly identify required vs optional metadata fields for at least one Sample/Measurement workflow without additional explanation from a developer.
-- **SC-004**: Users landing directly on any major documentation page (defined as the main documentation index, role-specific landing pages, and primary getting-started guides in each section) can reach the main documentation entry point or an appropriate role-specific landing page in no more than two clicks.
+- **SC-001**: Users landing directly on any major documentation page (defined as the main documentation index, role-specific landing pages, and primary getting-started guides in each section) can reach the main documentation entry point or an appropriate role-specific landing page in no more than two clicks.
+
+### Validation Approach
+
+Success criteria are validated through manual walkthroughs documented in the tasks.md validation tasks (T015, T021, T027, T032, T041). Each validation task specifies the user story acceptance scenarios to verify.
+
+## Terminology *(reference)*
+
+| Term | Definition | Canonical Location |
+|------|------------|--------------------|
+| **Overview** | High-level conceptual documentation section explaining FairDM's purpose, FAIR-first philosophy, core architecture, and contributor model | `docs/overview/` |
+| **Contributor Guide** | Documentation section for portal contributors (people who add/edit data in portals) | `docs/contributor-guide/` |
+| **User Guide** | (Obsolete) Former name for Contributor Guide | N/A |
+| **About** | (Obsolete) Former name for Overview section | N/A |
+| **Portal Contributor** | Person who adds or edits research data, samples, measurements, and metadata in a FairDM portal | See Contributor Guide |
+| **Framework Contributor** | Person who contributes to the FairDM framework codebase itself (code, docs, tests) | See Contributing Guide |
+| **Admin Guide** | Documentation section for portal administrators who manage users, permissions, and metadata quality | `docs/admin-guide/` |
+| **Developer Guide** | Documentation section for developers building new FairDM portals | `docs/developer-guide/` |
+| **Contributing Guide** | Documentation section for framework contributors | `docs/contributing/` |
 
 ## Clarifications
 

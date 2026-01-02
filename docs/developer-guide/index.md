@@ -2,7 +2,7 @@
 html_theme.sidebar_secondary.remove: true
 ---
 
-# Developer Guide
+# Development Guide
 
 **For portal developers** who want to build and deploy a new FairDM-powered research portal.
 

@@ -23,8 +23,8 @@ description: "Task list for FairDM documentation baseline feature"
 
 **Purpose**: Ensure the documentation toolchain and local environment are ready to implement the documentation baseline.
 
-- [ ] T001 Confirm local documentation environment and Sphinx configuration using fairdm-docs for docs/conf.py
-- [ ] T002 Run a baseline documentation build to capture current warnings and errors for docs/
+- [X] T001 Confirm local documentation environment and Sphinx configuration using fairdm-docs for docs/conf.py
+- [X] T002 Run a baseline documentation build to capture current warnings and errors for docs/
 
 ---
 
@@ -34,10 +34,10 @@ description: "Task list for FairDM documentation baseline feature"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 Review existing role-based sections and toctrees to understand current structure and gaps in docs/index.md, docs/admin-guide/index.md, docs/contributor-guide/index.md, docs/developer-guide/index.md, docs/contributing/index.md
-- [ ] T004 [P] Update the main documentation entry point to prominently surface admin-guide, contributor-guide, developer-guide, and contributing sections with short role-focused descriptions in docs/index.md
-- [ ] T005 [P] Ensure each role section has a clear landing page stating purpose and target audience (create or update) in docs/admin-guide/index.md, docs/contributor-guide/index.md, docs/developer-guide/index.md, docs/contributing/index.md
-- [ ] T006 [P] Add an explicit reference and link to the FairDM constitution in the high-level overview section of docs/about/about.md and align messaging with .specify/memory/constitution.md
+- [X] T003 Review existing role-based sections and toctrees to understand current structure and gaps in docs/index.md, docs/admin-guide/index.md, docs/contributor-guide/index.md, docs/developer-guide/index.md, docs/contributing/index.md
+- [X] T004 [P] Update the main documentation entry point to prominently surface admin-guide, contributor-guide, developer-guide, and contributing sections with short role-focused descriptions in docs/index.md
+- [X] T005 [P] Ensure each role section has a clear landing page stating purpose and target audience (create or update) in docs/admin-guide/index.md, docs/contributor-guide/index.md, docs/developer-guide/index.md, docs/contributing/index.md
+- [X] T006 [P] Add an explicit reference and link to the FairDM constitution in the high-level overview section of docs/overview/index.md and align messaging with .specify/memory/constitution.md
 
 **Checkpoint**: Foundation ready — role-based sections and navigation are in place and discoverable from the main entry point.
 
@@ -51,14 +51,14 @@ description: "Task list for FairDM documentation baseline feature"
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Refine the high-level "What is FairDM" and FAIR-first overview to highlight developer evaluation goals and link to the constitution in docs/about/about.md
-- [ ] T008 [P] [US1] Ensure the developer-focused entry point describes the scope of the developer guide and links clearly from the main index in docs/developer-guide/index.md and docs/index.md
-- [ ] T009 [P] [US1] Design and document a single, opinionated Getting Started flow outline (steps, prerequisites, expected outcome) in docs/developer-guide/getting_started.md
-- [ ] T010 [US1] Flesh out the Getting Started flow with concrete narrative steps for running the demo portal locally (without hard-coding specific tooling beyond what quickstart.md allows) in docs/developer-guide/getting_started.md
-- [ ] T011 [US1] Extend the Getting Started flow to include defining a minimal custom Sample model and a related Measurement model (conceptual description tied to existing demo configuration) in docs/developer-guide/getting_started.md
-- [ ] T012 [US1] Document how to register the new Sample/Measurement models with the FairDM registry and verify that they appear in the portal UI in docs/developer-guide/getting_started.md
-- [ ] T013 [US1] Add a section to the Getting Started flow showing how to confirm the new model via a programmatic access path (e.g., documented endpoint or shell snippet) in docs/developer-guide/getting_started.md
-- [ ] T014 [P] [US1] Cross-link from any existing developer-facing onboarding pages (e.g., docs/developer-guide/before_you_start.md and docs/developer-guide/project_directory.md) to the single canonical Getting Started journey in docs/developer-guide/getting_started.md
+- [X] T007 [US1] Refine the high-level "What is FairDM" and FAIR-first overview to highlight developer evaluation goals and link to the constitution in docs/overview/introduction.md
+- [X] T008 [P] [US1] Ensure the developer-focused entry point describes the scope of the developer guide and links clearly from the main index in docs/developer-guide/index.md and docs/index.md
+- [X] T009 [P] [US1] Design and document a single, opinionated Getting Started flow outline (steps, prerequisites, expected outcome) in docs/developer-guide/getting_started.md
+- [X] T010 [US1] Flesh out the Getting Started flow with concrete narrative steps for running the demo portal locally (per FR-006: describe outcomes and defer exact tooling commands to quickstart.md or developer appendices where feasible) in docs/developer-guide/getting_started.md
+- [X] T011 [US1] Extend the Getting Started flow to include defining a minimal custom Sample model and a related Measurement model (conceptual description tied to existing demo configuration) in docs/developer-guide/getting_started.md
+- [X] T012 [US1] Document how to register the new Sample/Measurement models with the FairDM registry and verify that they appear in the portal UI in docs/developer-guide/getting_started.md
+- [X] T013 [US1] Add a section to the Getting Started flow showing how to confirm the new model via a programmatic access path (e.g., documented endpoint or shell snippet) in docs/developer-guide/getting_started.md
+- [X] T014 [P] [US1] Cross-link from any existing developer-facing onboarding pages (e.g., docs/developer-guide/before_you_start.md and docs/developer-guide/project_directory.md) to the single canonical Getting Started journey in docs/developer-guide/getting_started.md
 - [ ] T015 [US1] Validate the full developer journey manually against the acceptance scenarios and success criterion SC-001, noting any gaps for follow-up, using docs/index.md and docs/developer-guide/getting_started.md
 
 **Checkpoint**: User Story 1 is complete when a new developer can follow the documented journey end-to-end without external guidance and reach a working demo portal with a visible Sample/Measurement model and programmatic access.
@@ -73,11 +73,11 @@ description: "Task list for FairDM documentation baseline feature"
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Update the admin-guide landing page to describe the portal administrator role, responsibilities, and relationship to core entities (Projects, Datasets, Samples, Measurements, Contributors) in docs/admin-guide/index.md
+- [X] T016 [US2] Update the admin-guide landing page to describe the portal administrator role, responsibilities, and relationship to core entities (Projects, Datasets, Samples, Measurements, Contributors) in docs/admin-guide/index.md
 - [ ] T017 [P] [US2] Add or refine a concise overview of core entities suitable for admins, reusing or cross-linking to conceptual material from docs/developer-guide/core_data_model.md in docs/admin-guide/index.md
 - [ ] T018 [P] [US2] Create or update a focused guide for managing users, roles, and permissions, including at least one dataset-level access control example, in docs/admin-guide/managing_users_and_permissions.md
 - [ ] T019 [US2] Add an end-to-end walkthrough for adjusting access to a dataset in a demo portal, linked from the admin-guide landing page, in docs/admin-guide/adjusting_dataset_access.md
-- [ ] T020 [P] [US2] Ensure clear navigation from the main docs entry point and from the high-level roles description to the admin-guide landing page in docs/index.md and docs/about/roles.md
+- [ ] T020 [P] [US2] Ensure clear navigation from the main docs entry point and from the high-level roles description to the admin-guide landing page in docs/index.md and docs/overview/roles.md
 - [ ] T021 [US2] Manually validate the admin journey against the acceptance scenarios and success criterion SC-002 using docs/admin-guide/index.md, docs/admin-guide/managing_users_and_permissions.md, and docs/admin-guide/adjusting_dataset_access.md
 
 **Checkpoint**: User Story 2 is complete when an administrator can understand their responsibilities and perform documented admin tasks in a demo portal using only the admin-guide.
@@ -92,11 +92,11 @@ description: "Task list for FairDM documentation baseline feature"
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Update the contributor-guide landing page to clearly describe the contributor role, high-level workflow, and connection to FAIR metadata practices in docs/contributor-guide/index.md
-- [ ] T023 [P] [US3] Create or refine guidance on understanding core dataset and record fields from a contributor perspective, building on existing explanations in docs/contributor-guide/core_data_model.md
-- [ ] T024 [P] [US3] Extend or rewrite the contributor Getting Started page to walk through locating an existing dataset, reviewing field meanings, and safely editing an existing record in docs/contributor-guide/getting_started.md
-- [ ] T025 [US3] Add a step-by-step guide for adding a new Sample and associated Measurements in the UI, including highlighting required vs optional metadata fields for one concrete workflow, in docs/contributor-guide/getting_started.md
-- [ ] T026 [P] [US3] Introduce a short metadata best-practices page or section (e.g., required vs optional, controlled vocabularies, provenance hints) linked from the contributor-guide landing page in docs/contributor-guide/metadata_practices.md
+- [X] T022 [US3] Update the contributor-guide landing page to clearly describe the contributor role, high-level workflow, and connection to FAIR metadata practices in docs/contributor-guide/index.md
+- [X] T023 [P] [US3] Create or refine guidance on understanding core dataset and record fields from a contributor perspective, building on existing explanations in docs/contributor-guide/core_data_model.md
+- [X] T024 [P] [US3] Extend or rewrite the contributor Getting Started page to walk through locating an existing dataset, reviewing field meanings, and safely editing an existing record in docs/contributor-guide/getting_started.md
+- [X] T025 [US3] Add a step-by-step guide for adding a new Sample and associated Measurements in the UI, including highlighting required vs optional metadata fields for one concrete workflow, in docs/contributor-guide/getting_started.md
+- [X] T026 [P] [US3] Introduce a short metadata best-practices page or section (e.g., required vs optional, controlled vocabularies, provenance hints) linked from the contributor-guide landing page in docs/contributor-guide/metadata_practices.md
 - [ ] T027 [US3] Manually validate the contributor journey against the acceptance scenarios and success criterion SC-003 using docs/contributor-guide/index.md and docs/contributor-guide/getting_started.md
 
 **Checkpoint**: User Story 3 is complete when contributors can reliably add and edit data in a demo portal while following documented metadata guidelines.
@@ -111,10 +111,10 @@ description: "Task list for FairDM documentation baseline feature"
 
 ### Implementation for User Story 4
 
-- [ ] T028 [US4] Update the framework contributor landing information to clearly describe the framework contributor role, expectations, and how it differs from portal contributors in docs/contributing/index.md
-- [ ] T029 [P] [US4] Ensure docs/contributing/before_you_start.md and docs/contributing/django_dev.md together provide a step-by-step guide for setting up a FairDM development environment (clone repository, install dependencies, run tests and docs build)
-- [ ] T030 [P] [US4] Document the core quality gates (tests, type checking, linting, documentation build) and how to run them locally, consolidating or extending guidance in docs/contributing/django_dev.md and docs/contributing/frontend_dev.md
-- [ ] T031 [P] [US4] Update docs/contributing/contribution_framework.md to explain the contribution workflow (issues, discussions, pull requests) and explicitly reference the FairDM constitution for design decisions
+- [X] T028 [US4] Update the framework contributor landing information to clearly describe the framework contributor role, expectations, and how it differs from portal contributors in docs/contributing/index.md
+- [X] T029 [P] [US4] Ensure docs/contributing/before_you_start.md and docs/contributing/django_dev.md together provide a step-by-step guide for setting up a FairDM development environment (clone repository, install dependencies, run tests and docs build)
+- [X] T030 [P] [US4] Document the core quality gates (tests, type checking, linting, documentation build) and how to run them locally, consolidating or extending guidance in docs/contributing/django_dev.md and docs/contributing/frontend_dev.md
+- [X] T031 [P] [US4] Update docs/contributing/getting_started.md to explain the contribution workflow (issues, discussions, pull requests) and explicitly reference the FairDM constitution for design decisions
 - [ ] T032 [US4] Manually validate that a new framework contributor can follow the contributing docs (index, before_you_start.md, django_dev.md, contribution_framework.md) to set up a development environment, run the core quality gates, and understand how to propose a change without external guidance
 
 **Checkpoint**: User Story 4 is complete when a new framework contributor can confidently set up a development environment, run the agreed quality gates, and understand the basic contribution workflow using only the contributing documentation.
@@ -125,11 +125,35 @@ description: "Task list for FairDM documentation baseline feature"
 
 **Purpose**: Tighten cross-links, edge-case handling, and high-level guidance that spans multiple user stories.
 
-- [ ] T033 [P] Add contextual navigation and "You are here" framing on deep documentation pages most likely to be landed on from search (e.g., docs/more/* and role-specific subpages) to address edge-case navigation
-- [ ] T034 [P] Add or update a short "Reporting documentation issues" section that explains how users can report discrepancies or gaps, linked from docs/index.md and docs/about/reviewing_content.md
-- [ ] T035 Consolidate and verify cross-links between role guides and core concept pages (e.g., Projects, Datasets, Samples, Measurements) across docs/about/, docs/contributor-guide/, docs/developer-guide/, and docs/admin-guide/
-- [ ] T036 Run a final documentation build and skim for obvious structural issues, broken navigation, and inconsistencies against FR-001–FR-007, FR-006’s tooling-agnostic requirement, and SC-001–SC-004 for docs/
-- [ ] T037 [P] Update or add a brief "What changed" or release-notes style summary for this documentation baseline feature, grouped under a section keyed to this baseline or the relevant FairDM release, so existing users can discover updated workflows, in docs/about/reviewing_content.md or a new docs/more/whats_new.md
+### Edge Case Handling (per spec.md Edge Cases section)
+
+- [X] T033 [P] Add contextual navigation and "You are here" framing on deep documentation pages most likely to be landed on from search (e.g., docs/more/* and role-specific subpages) to address edge-case navigation
+- [X] T034 [P] Add or update a short "Reporting documentation issues" section that explains how users can report discrepancies or gaps, linked from docs/index.md and docs/admin-guide/reviewing_content.md
+- [X] T037 Update or add a brief "What changed" or release-notes style summary for this documentation baseline feature, grouped under a section keyed to this baseline or the relevant FairDM release, so existing users can discover updated workflows, in docs/more/changelog.md or a new docs/more/whats_new.md
+
+**Checkpoint**: Edge cases from spec.md (deep-page navigation, discrepancy reporting, workflow change communication) are addressed.
+
+### Final Polish
+
+- [X] T035 Audit and verify comprehensive cross-links and navigation paths: (a) from role landing pages to Getting Started guides, (b) from Getting Started guides to core concept pages (Projects, Datasets, Samples, Measurements, Contributors), (c) from concept pages back to role landing pages, (d) from all major pages to main documentation index, across docs/overview/, docs/contributor-guide/, docs/developer-guide/, docs/admin-guide/, and docs/contributing/
+- [X] T036 Run a final documentation build and skim for obvious structural issues, broken navigation, and inconsistencies against FR-001–FR-007, FR-006's tooling-agnostic requirement, and SC-001 for docs/
+
+---
+
+## Phase 8: User Story 5 - Reader Understands FairDM Overview and Contributors (Priority: P2)
+
+**Goal**: A new reader can use the Overview documentation to understand FairDM's purpose, core features, core data model, and why contributors are explicitly modeled and surfaced in portals.
+
+**Independent Test**: A reader with general research data management experience, but no prior FairDM knowledge, can read the Overview and related core concept pages and then accurately explain FairDM's purpose, its core entities, and the rationale for recording contributors, without needing to consult role-specific guides.
+
+### Implementation for User Story 5
+
+- [X] T038 [US5] Review and align the introduction, background, goals, core features, and high-level core data model descriptions across docs/overview/index.md, docs/background.md, docs/features.md, and any other overview pages so they present a consistent, FAIR-aligned story.
+- [X] T039 [P] [US5] Add or refine a dedicated Contributors section in docs/overview/index.md explaining what a contributor is in FairDM portals, what counts as a contribution (data, metadata, curation, code, documentation, etc.), why contributors are recorded, and how this information is surfaced in portal UIs.
+- [X] T040 [P] [US5] Ensure clear cross-links from the Overview pages to the admin, contributor, developer, and contributing guides (docs/admin-guide/index.md, docs/contributor-guide/index.md, docs/developer-guide/index.md, docs/contributing/index.md) so readers can move from conceptual understanding to role-specific workflows.
+- [ ] T041 [US5] Manually validate that a new reader can, using only the About/Overview and Contributors sections, answer basic evaluation questions about FairDM's purpose, core entities, and contributor tracking in a way that matches the acceptance scenarios and success criteria for User Story 5.
+
+**Checkpoint**: User Story 5 is complete when a new reader can use the About/Overview pages to understand FairDM's purpose, core model, and contributor model without needing to read role-specific guides.
 
 ---
 
@@ -139,8 +163,8 @@ description: "Task list for FairDM documentation baseline feature"
 
 - **Setup (Phase 1)**: No dependencies — can start immediately.
 - **Foundational (Phase 2)**: Depends on completion of Phase 1 — blocks all user story phases.
-- **User Story Phases (3–6)**: Each depends on completion of Phase 2, but US2, US3, and US4 do not depend on US1 and can be developed in parallel once foundational work is done.
-- **Polish (Phase 7)**: Depends on completion of all user stories targeted for this feature (at minimum US1 as the MVP, and optionally US2, US3, and US4).
+- **User Story Phases (3–6, 8)**: Each depends on completion of Phase 2, but US2, US3, US4, and US5 do not depend on US1 and can be developed in parallel once foundational work is done.
+- **Polish (Phase 7)**: Depends on completion of all user stories targeted for this feature (at minimum US1 as the MVP, and optionally US2, US3, US4, and US5).
 
 ### User Story Dependencies
 
@@ -148,6 +172,7 @@ description: "Task list for FairDM documentation baseline feature"
 - **User Story 2 (P2)**: Can start after Phase 2; may cross-link to conceptual material created or refined during US1 but remains independently testable using admin-focused pages.
 - **User Story 3 (P3)**: Can start after Phase 2; may cross-link to the same conceptual material but remains independently testable using contributor-focused pages.
 - **User Story 4 (P3)**: Can start after Phase 2; may cross-link to conceptual and governance material but remains independently testable using the contributing documentation.
+- **User Story 5 (P2)**: Can start after Phase 2; may cross-link to conceptual material created or refined during US1–US4 but remains independently testable using About/Overview and Contributors pages.
 
 ### Within Each User Story
 
@@ -159,7 +184,7 @@ description: "Task list for FairDM documentation baseline feature"
 
 - After Phase 1, foundational tasks T004, T005, and T006 can be executed in parallel since they affect different files.
 - Once foundational navigation is stable, User Story 1, 2, and 3 implementation tasks can be split across team members:
-  - US1 tasks in docs/about/about.md and docs/developer-guide/*
+  - US1 tasks in docs/overview/ and docs/developer-guide/*
   - US2 tasks in docs/admin-guide/* and shared index/roles pages
   - US3 tasks in docs/contributor-guide/* and related metadata guidance pages
 - Within US1, T008, T009, and T014 can be worked on in parallel as they affect different developer-guide files.
@@ -184,7 +209,8 @@ description: "Task list for FairDM documentation baseline feature"
 2. Add User Story 2 (Phase 4) to strengthen admin-focused guidance; validate against SC-002.
 3. Add User Story 3 (Phase 5) to provide contributor-focused guidance; validate against SC-003.
 4. Add User Story 4 (Phase 6) to provide framework-contributor-focused guidance.
-5. Apply Phase 7 (Polish) to improve navigation, edge cases, and communication of changes.
+5. Add User Story 5 (Phase 8) to ensure the About/Overview and Contributors pages provide a clear, FAIR-aligned high-level introduction.
+6. Apply Phase 7 (Polish) to improve navigation, edge cases, and communication of changes across all stories.
 
 ### Parallel Team Strategy
 
@@ -192,5 +218,5 @@ With multiple contributors:
 
 - One person can focus on foundational navigation and constitution linkage (Phases 1–2).
 - Another can implement US1 (developer Getting Started) in Phase 3.
-- Additional contributors can handle US2 and US3 (Phases 4–5) and US4 (Phase 6) in parallel once foundational structure is stable.
+- Additional contributors can handle US2 and US3 (Phases 4–5), US4 (Phase 6), and US5 (Phase 8) in parallel once foundational structure is stable.
 - A final pass (Phase 7) can be owned by a maintainer to unify tone, ensure cross-links are consistent, and verify alignment with the FairDM constitution and spec.md.
