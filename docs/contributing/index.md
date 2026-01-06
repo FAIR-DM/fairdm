@@ -40,9 +40,5 @@ contribution_framework
 getting_started
 frontend_dev
 django_dev
+documentation-standards
 ```
-
-
-
-
-

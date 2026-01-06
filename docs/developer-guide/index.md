@@ -39,6 +39,16 @@ The Getting Started guide will walk you through:
 
 **Time required**: ~30-60 minutes
 
+## Feature Specifications
+
+For implementation details and rationale behind FairDM features, see the feature specifications:
+
+- [Documentation Infrastructure](../../specs/003-docs-infrastructure/spec.md) - How documentation is organized and validated
+- [Production Configuration](../../specs/002-production-config-fairdm-conf/spec.md) - Configuration system and deployment settings
+- [All Specifications](../../specs/) - Complete list of feature specs
+
+These specifications provide full context on design decisions, user stories, and acceptance criteria for documented features.
+
 ## Contents
 
 ```{toctree}
@@ -50,6 +60,7 @@ before_you_begin
 setting_up
 project_directory
 committing_to_github
+documentation
 
 ```
 
@@ -72,9 +83,6 @@ customise/logo
 customise/theme
 component_library/index
 ```
-
-
-
 
 ```{toctree}
 :caption: How to
