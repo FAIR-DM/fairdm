@@ -1,0 +1,129 @@
+name: Documentation Validation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'specs/**/checklists/documentation.md'
+      - '.specify/templates/feature-docs-checklist.md'
+      - '.github/workflows/docs-validation.yml'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'docs/**'
+      - 'specs/**/checklists/documentation.md'
+
+jobs:
+  validate-docs:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached dependencies
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Build documentation (warnings as errors)
+        id: build-docs
+        run: |
+          echo "Building documentation with sphinx-build -W..."
+          poetry run sphinx-build -W -b html docs docs/_build
+        continue-on-error: false
+
+      - name: Check internal links (hard failure)
+        id: check-internal-links
+        run: |
+          echo "Checking links with sphinx-build -b linkcheck..."
+          poetry run sphinx-build -b linkcheck docs docs/_build
+
+          # Parse linkcheck output for internal link failures
+          if [ -f "docs/_build/output.txt" ]; then
+            # Check for broken internal links (non-HTTP URLs)
+            BROKEN_INTERNAL=$(grep "broken" docs/_build/output.txt | grep -v "http" || true)
+
+            if [ -n "$BROKEN_INTERNAL" ]; then
+              echo "❌ Found broken internal links:"
+              echo "$BROKEN_INTERNAL"
+              exit 1
+            else
+              echo "✅ All internal links are valid"
+            fi
+
+            # Check for broken external links (warnings only)
+            BROKEN_EXTERNAL=$(grep "broken" docs/_build/output.txt | grep "http" || true)
+
+            if [ -n "$BROKEN_EXTERNAL" ]; then
+              echo "⚠️ Found broken external links (manual review required):"
+              echo "$BROKEN_EXTERNAL"
+              # Don't fail on external links
+            else
+              echo "✅ All external links are valid"
+            fi
+          else
+            echo "⚠️ Link check output file not found"
+          fi
+        continue-on-error: false
+
+      - name: Validate feature documentation checklists
+        id: validate-checklists
+        run: |
+          echo "Validating feature documentation checklists..."
+          poetry run python .specify/scripts/powershell/validate-checklists.py
+        continue-on-error: false
+
+      - name: Upload documentation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-build
+          path: docs/_build/
+          retention-days: 7
+
+      - name: Comment PR with validation results
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+            const body = `## 📝 Documentation Validation Failed
+
+            The documentation validation checks failed. Please review the errors above and fix them before merging.
+
+            **Common fixes:**
+            - Fix broken internal links (must resolve correctly)
+            - Ensure documentation builds without warnings
+            - Complete feature documentation checklists
+            - Review broken external links (warnings only, but should be fixed if possible)
+
+            See the [Documentation Standards](https://github.com/FAIR-DM/fairdm/blob/main/docs/contributing/documentation-standards.md) for guidance.`;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: body
+            });

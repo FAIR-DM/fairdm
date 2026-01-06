@@ -5,6 +5,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent.resolve()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.settings")
+os.environ.setdefault("DJANGO_ENV", "development")
 os.environ.setdefault("DATABASE_URL", "postgresql://username:password@hostname:5555/database_name")
 
 sys.path.append(str(BASE_DIR / "tests"))
@@ -70,6 +71,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosectionlabel",
+    # "sphinx.ext.linkcheck",  # Not an extension - use `sphinx-build -b linkcheck` instead
     "sphinx_copybutton",
     "sphinxext.opengraph",
     # "autodoc2",
@@ -77,6 +79,37 @@ extensions = [
     "myst_parser",
     # "sphinx_tippy",
 ]
+
+# Link checking configuration
+linkcheck_ignore = [
+    # Ignore localhost and example domains
+    r'http://localhost:\d+/',
+    r'http://127.0.0.1:\d+/',
+    r'https?://example\.(com|org|net)',
+    # Ignore temporary or flaky external sites (add as needed)
+]
+
+# Treat internal link failures as hard errors
+linkcheck_allowed_redirects = {}
+
+# External links: check but don't fail build (warnings only handled in CI)
+linkcheck_timeout = 30
+linkcheck_retries = 2
+linkcheck_workers = 5
+
+# MyST Parser configuration for cross-references
+myst_enable_extensions = [
+    "colon_fence",      # Allow ::: fence style
+    "deflist",          # Definition lists
+    "html_image",       # Parse HTML img tags
+    # "linkify",          # Auto-link URLs (requires linkify-it-py package)
+    "replacements",     # Text replacements
+    "smartquotes",      # Smart quotes
+    "substitution",     # Variable substitutions
+    "tasklist",         # Task lists with [ ] and [x]
+]
+
+myst_heading_anchors = 3  # Auto-generate anchors for H1-H3
 
 epub_theme = html_theme
 epub_title = "FairDM Documentation"

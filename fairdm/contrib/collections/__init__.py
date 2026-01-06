@@ -7,15 +7,5 @@ and plugins that show tabular views related to core objects.
 
 default_app_config = "fairdm.contrib.collections.apps.CollectionsConfig"
 
-__all__ = [
-    "BaseTable",
-    "CollectionRedirectView",
-    "CollectionsConfig",
-    "CollectionsOverview",
-    "DataTablePlugin",
-    "DataTableView",
-    "MeasurementTable",
-    "MeasurementsOverview",
-    "SampleTable",
-    "SamplesOverview",
-]
+# Module-level imports removed to prevent AppRegistryNotReady error
+# Import BaseTable, MeasurementTable, SampleTable from .tables where needed

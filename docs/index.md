@@ -3,12 +3,14 @@
 :target: www.fairdm.org
 :width: 100%
 ```
+
 ______________________________________________________________________
 
-[![PyPI](https://badge.fury.io/py/fairdm.svg)](https://badge.fury.io/py/fairdm) 
-[![Build status](https://travis-ci.org/SSJenny90/fairdm.svg?branch=master)](https://travis-ci.org/SSJenny90/fairdm) 
-[![Code coverage](https://codecov.io/gh/SSJenny90/fairdm/branch/master/graph/badge.svg)](https://codecov.io/gh/SSJenny90/fairdm) 
+[![PyPI](https://badge.fury.io/py/fairdm.svg)](https://badge.fury.io/py/fairdm)
+[![Build status](https://travis-ci.org/SSJenny90/fairdm.svg?branch=master)](https://travis-ci.org/SSJenny90/fairdm)
+[![Code coverage](https://codecov.io/gh/SSJenny90/fairdm/branch/master/graph/badge.svg)](https://codecov.io/gh/SSJenny90/fairdm)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Documentation Validation](https://github.com/FAIR-DM/fairdm/workflows/Documentation%20Validation/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/docs-validation.yml)
 
 FairDM is an open-source web framework designed to help you build modern research data portals that fully align with the FAIR data principles. It streamlines the process of creating, deploying, and maintaining research portals by using a modern, well-documented, and widely supported open-source tech stack. FairDM takes care of the complexities of web development with sensible defaults that work out of the box—so researchers and data managers can focus on their data and research, not on technical headaches.
 
@@ -21,21 +23,25 @@ FairDM is an open-source web framework designed to help you build modern researc
 Choose the guide that best matches your needs:
 
 ### [Developer Guide](developer-guide/index.md)
+
 **For portal developers** who want to build and deploy a new FairDM-powered research portal. Learn how to set up your environment, define domain-specific data models, configure your portal, and deploy it to production.
 
 **Start here if**: You're building a FairDM-based portal for your research community
 
 ### [Admin Guide](admin-guide/index.md)
+
 **For portal administrators** who manage an existing FairDM portal. Understand your responsibilities for managing users, permissions, datasets, and ensuring FAIR-compliant metadata quality.
 
 **Start here if**: You manage an existing FairDM portal and its users
 
 ### [Contributor Guide](contributor-guide/index.md) (Portal Contributors)
+
 **For portal contributors** who add and edit research data in FairDM portals. Learn how to contribute data, understand metadata requirements, and follow FAIR practices.
 
 **Start here if**: You contribute data and metadata to an existing portal
 
 ### [Contributing Guide](contributing/index.md) (Framework Contributors)
+
 **For FairDM framework contributors** who want to contribute to the core framework itself (code, documentation, examples). Set up a development environment, understand the architecture, and learn how to propose changes that align with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md).
 
 **Start here if**: You want to improve the FairDM framework codebase
@@ -45,9 +51,24 @@ For more on the distinction between portal contributors and framework contributo
 ```
 
 ### [Overview](overview/index.md)
-Learn more about FairDM's vision, FAIR-first philosophy, core architecture, design principles, and the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md). This section provides essential context for understanding how FairDM approaches research data management.
+
+Learn more about FairDM's vision, FAIR-first philosophy, core architecture, design principles, and the [FairDM Constitution](../.specify/memory/constitution.md). This section provides essential context for understanding how FairDM approaches research data management.
 
 **Start here if**: You're evaluating FairDM or need high-level context
+
+---
+
+## Governance & Specifications
+
+FairDM follows a governance model defined in the [FairDM Constitution](../.specify/memory/constitution.md), which establishes five core principles:
+
+- [I. FAIR-First Research Portals](../.specify/memory/constitution.md#i-fair-first-research-portals) - Every feature improves or maintains FAIR characteristics
+- [II. Domain-Driven, Declarative Modeling](../.specify/memory/constitution.md#ii-domain-driven-declarative-modeling) - Research communities define schemas declaratively
+- [III. Configuration Over Custom Plumbing](../.specify/memory/constitution.md#iii-configuration-over-custom-plumbing) - Focus on domain modeling, not web plumbing
+- [IV. Opinionated, Production-Grade Defaults](../.specify/memory/constitution.md#iv-opinionated-production-grade-defaults) - Coherent modern stack with sensible defaults
+- [V. Quality, Sustainability, and Community](../.specify/memory/constitution.md#v-quality-sustainability-and-community) - Long-lived research infrastructure with comprehensive testing
+
+Feature specifications and implementation plans are maintained in the [`specs/` directory](https://github.com/FAIR-DM/fairdm/tree/main/specs).
 
 ```{toctree}
 :maxdepth: 1
