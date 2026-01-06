@@ -1,114 +1,162 @@
+"""
+FairDM configuration setup entry point.
+
+This module provides the main `setup()` function that portals call to initialize
+their configuration. It handles profile selection, environment loading, and addon integration.
+"""
+
 import inspect
 import logging
 import os
 from pathlib import Path
-import importlib.util
-from importlib import import_module
-import os
+
 import environ
 from split_settings.tools import include
 
+from .addons import load_addons
+from .checks import validate_services
 
 logger = logging.getLogger(__name__)
 
-addon_urls = []
 
-
-def get_module_path(module_name: str) -> str:
+def setup(
+    apps: list[str] | None = None,
+    addons: list[str] | None = None,
+    base_dir: Path | None = None,
+    env_file: str | None = None,
+    **overrides,
+) -> None:
     """
-    Given a module name like 'myapp.utils.helpers', return the file system path
-    to the .py file.
+    Initialize FairDM configuration with environment-specific settings.
 
-    Raises:
-        ModuleNotFoundError: if the module can't be found.
-        ValueError: if the module is a package (i.e. __init__.py).
-    """
-    spec = importlib.util.find_spec(module_name)
-    if spec is None or spec.origin is None:
-        raise ModuleNotFoundError(f"Module '{module_name}' not found")
-
-    if spec.submodule_search_locations:
-        raise ValueError(f"'{module_name}' is a package, not a module")
-
-    return os.path.abspath(spec.origin)
-
-
-def import_addons_settings(addons):
-    """Get a list of settings modules for the given addons. The full path of each module is returned allowing
-    use of the split_settings.include function."""
-    fdm_setup_modules = []
-    for addon in addons:
-        module = import_module(addon)
-        addon_fdm_setup_module = getattr(module, "__fdm_setup_module__", None)
-        if addon_fdm_setup_module is None:
-            logger.warning(f"Addon '{addon}' does not define __fdm_setup_module__; skipping.")
-            continue
-        try:
-            fdm_setup_modules.append(get_module_path(addon_fdm_setup_module))
-        except Exception as e:
-            logger.warning(f"Could not import setup module '{addon_fdm_setup_module}' for addon '{addon}': {e}")
-    return fdm_setup_modules
-
-
-def setup(apps=[], addons=[], base_dir=None):
-    """Adds all the default variables defined in fairdm.conf.settings to the global namespace.
+    This is the main entry point for portal configuration. It:
+    1. Determines the environment profile (production, staging, development)
+    2. Loads environment variables
+    3. Injects base settings into the caller's global namespace
+    4. Loads addon configurations
+    5. Validates the configuration
+    6. Applies any user overrides
 
     Args:
-        development (bool): Whether or not to load development settings. Defaults to False.
+        apps: List of portal-specific Django apps to include in INSTALLED_APPS
+        addons: List of FairDM addon packages to enable
+        base_dir: Project base directory (auto-detected if not provided)
+        env_file: Optional path to .env file to load
+        **overrides: Additional settings to override after profile loading
+
+    Example:
+        >>> import fairdm
+        >>> fairdm.setup(
+        ...     apps=["my_portal_app"],
+        ...     addons=["fairdm_discussions"],
+        ... )
     """
+    apps = apps or []
+    addons = addons or []
 
-    DJANGO_ENV = os.environ.get("DJANGO_ENV")
+    # Determine environment profile
+    env_profile = os.environ.get("DJANGO_ENV", "production")
+    if env_profile not in ("production", "staging", "development"):
+        logger.warning(
+            f"Unknown DJANGO_ENV='{env_profile}'. Defaulting to 'production'. "
+            "Valid options: production, staging, development"
+        )
+        env_profile = "production"
 
-    globals = inspect.stack()[1][0].f_globals
+    logger.info(f"🚀 FairDM Configuration: {env_profile} profile")
+
+    # Get caller's global namespace (where settings will be injected)
+    caller_globals = inspect.stack()[1][0].f_globals
+
+    # Determine base directory
     if not base_dir:
-        base_dir = Path(globals["__file__"]).resolve(strict=True).parent.parent
+        base_dir = Path(caller_globals["__file__"]).resolve(strict=True).parent.parent
 
-    globals.update(
+    # Load environment variables
+    from .environment import env
+
+    # Load environment files in order of precedence (later files override earlier)
+    env_files_to_load = []
+
+    # 1. Base environment file (if exists)
+    if (base_dir / "stack.env").exists():
+        env_files_to_load.append(str(base_dir / "stack.env"))
+
+    # 2. Environment-specific file (if exists)
+    env_specific_file = base_dir / f"stack.{env_profile}.env"
+    if env_specific_file.exists():
+        env_files_to_load.append(str(env_specific_file))
+
+    # 3. Custom env file (if provided)
+    if env_file and Path(env_file).exists():
+        env_files_to_load.append(env_file)
+
+    # Load all env files
+    for env_path in env_files_to_load:
+        environ.Env.read_env(env_path)
+        logger.debug(f"Loaded environment file: {env_path}")
+
+    # Inject essential variables into caller's namespace
+    caller_globals.update(
         {
-            "FAIRDM_APPS": apps,
-            "DJANGO_ENV": DJANGO_ENV,
+            "env": env,
             "BASE_DIR": base_dir,
+            "FAIRDM_APPS": apps,
+            "DJANGO_ENV": env_profile,
             "__file__": os.path.realpath(__file__),
         }
     )
-    # environ.Env.read_env(".env")
 
-    if DJANGO_ENV == "development":
-        # print("Loading development settings")
-        # read any override config from the .env file
-        environ.Env.read_env("stack.development.env")
-        environ.Env.read_env("stack.env")
-        logger.warning("Using development settings")
-        # env("DJANGO_INSECURE", default=True)
-        # os.environ.setdefault("DJANGO_INSECURE", "True")
-        include(
-            "environment.py",
-            "settings/general.py",
-            "settings/*.py",
-            "dev_overrides.py",
-            scope=globals,
-        )
-    else:
-        # read any override config from the stack.env file (if it exists)
-        environ.Env.read_env("stack.env")
-        logger.warning("Using production settings")
-        include(
-            "environment.py",
-            "settings/general.py",
-            "settings/*.py",
-            scope=globals,
-        )
+    # Load all settings modules from settings/ directory (production baseline)
+    logger.info("Loading production baseline settings...")
+    settings_dir = Path(__file__).parent / "settings"
 
-    # find any required settings modules specified by addons and import them
-    include(*import_addons_settings(addons), scope=globals)
+    # Define explicit order for settings modules to ensure dependencies are met
+    settings_modules = [
+        "settings/apps.py",  # INSTALLED_APPS, MIDDLEWARE, TEMPLATES (needs env, BASE_DIR)
+        "settings/security.py",  # SECRET_KEY, ALLOWED_HOSTS, DEBUG, security headers
+        "settings/database.py",  # Database configuration
+        "settings/cache.py",  # Cache backends
+        "settings/static_media.py",  # Static/media file handling
+        "settings/celery.py",  # Background task processing
+        "settings/auth.py",  # Authentication backends
+        "settings/logging.py",  # Logging configuration
+        "settings/email.py",  # Email backend
+        "settings/addons.py",  # Third-party add-on configurations
+    ]
 
-    # find any urls.py files in the addons and include them, these will be automatically added to the urlpatterns
-    # in fairdm.conf.urls
-    for addon in addons:
-        try:
-            spec = importlib.util.find_spec(f"{addon}.urls")
-            if spec is not None and spec.origin is not None:
-                addon_urls.append(f"{addon}.urls")
-        except Exception as e:
-            pass
-            # logger.warning(f"Could not check for urls.py in addon '{addon}': {e}")
+    include(*settings_modules, scope=caller_globals)
+
+    # Load environment-specific overrides
+    env_override_files = {
+        "development": "development.py",
+        "staging": "staging.py",
+    }
+
+    if env_profile in env_override_files:
+        override_file = env_override_files[env_profile]
+        override_path = Path(__file__).parent / override_file
+        if override_path.exists():
+            logger.info(f"Applying {env_profile} overrides from {override_file}")
+            include(override_file, scope=caller_globals)
+
+    # Load addon configurations
+    if addons:
+        addon_setup_modules = load_addons(addons, env_profile)
+        if addon_setup_modules:
+            include(*addon_setup_modules, scope=caller_globals)
+
+    # Apply user overrides
+    if overrides:
+        logger.info(f"Applying {len(overrides)} custom override(s)")
+        caller_globals.update(overrides)
+
+    # Validate configuration
+    logger.info("Validating configuration...")
+    validate_services(env_profile, caller_globals)
+
+    logger.info("✅ Configuration complete")
+
+
+# Export addon_urls for backward compatibility
+from .addons import addon_urls  # noqa: E402, F401

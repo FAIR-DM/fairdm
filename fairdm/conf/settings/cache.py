@@ -1,19 +1,33 @@
+"""Cache Configuration
+
+Production-ready Redis cache configuration with graceful fallbacks for development.
+
+Production/Staging: Requires REDIS_URL (fails fast if missing)
+Local/Development: Falls back to LocMemCache with warning if no REDIS_URL
+
+This is the production baseline. Environment-specific overrides in local.py/staging.py.
+"""
+
 import logging
 
+# Access environment variables via shared env instance
 env = globals()["env"]
 
 logger = logging.getLogger(__name__)
 
-# https://docs.djangoproject.com/en/dev/ref/settings/#caches
+# CACHE CONFIGURATION
+# Production expects Redis for performance and session management
+# Priority: REDIS_URL (Redis) > LocMemCache fallback > DummyCache (no caching)
+
 if env("DJANGO_CACHE") and env("REDIS_URL"):
-    logging.info("Cache Configuration: Redis")
+    logger.info("Cache Configuration: Redis")
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": env("REDIS_URL"),
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                # Mimicing memcache behavior.
+                # Mimic memcache behavior - ignore connection errors gracefully
                 # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
                 "IGNORE_EXCEPTIONS": True,
             },
@@ -26,9 +40,19 @@ if env("DJANGO_CACHE") and env("REDIS_URL"):
                 "IGNORE_EXCEPTIONS": True,
             },
         },
+        "vocabularies": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": env("REDIS_URL"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+            },
+        },
     }
 elif env("DJANGO_CACHE"):
-    logging.info("Cache Configuration: LocMemCache")
+    # LocMemCache fallback - acceptable for development
+    # Production will fail validation if this path is taken
+    logger.warning("Cache Configuration: LocMemCache fallback (not for production)")
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
@@ -45,16 +69,21 @@ elif env("DJANGO_CACHE"):
     }
 
 else:
-    logging.info("Cache Configuration: DummyCache")
+    # DummyCache - no caching at all (for testing only)
+    logger.warning("Cache Configuration: DummyCache (no caching)")
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",
             "LOCATION": "default-cache",
         },
         "select2": {
-            # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            # select2 needs at least LocMemCache to function properly
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
             "LOCATION": "select2-cache",
+        },
+        "vocabularies": {
+            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            "LOCATION": "vocabularies-cache",
         },
     }
 

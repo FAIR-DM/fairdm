@@ -1,13 +1,23 @@
+"""Static and Media Files Configuration
+
+Production-ready static file serving with WhiteNoise and optional S3 media storage.
+
+Production: Uses WhiteNoise for static files, S3/local for media files
+Development: Uses local filesystem for both static and media
+
+This is the production baseline. Environment-specific overrides in local.py/staging.py.
+"""
+
 import os
 from pathlib import Path
 import logging
 
+# Access environment variables via shared env instance
 env = globals()["env"]
-
-logger = logging.getLogger(__name__)
-
 BASE_DIR = globals()["BASE_DIR"]
 SITE_DOMAIN = globals()["SITE_DOMAIN"]
+
+logger = logging.getLogger(__name__)
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = COMPRESS_ROOT = str(BASE_DIR / "static")
@@ -97,3 +107,25 @@ AWS_S3_REGION_NAME = env("S3_REGION_NAME")
 
 # 1MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB
+
+# EASY-THUMBNAILS CONFIGURATION
+# https://easy-thumbnails.readthedocs.io/
+
+THUMBNAIL_CACHE_DIMENSIONS = True
+THUMBNAIL_SUBDIR = "thumbs"
+THUMBNAIL_DEBUG = True
+
+THUMBNAIL_ALIASES = {
+    "contributors": {
+        "thumb": {"size": (48, 48), "crop": False},
+        "small": {"size": (150, 150), "crop": False},
+        "medium": {"size": (600, 600), "crop": False},
+    },
+}
+
+THUMBNAIL_PROCESSORS = [
+    "easy_thumbnails.processors.colorspace",
+    "easy_thumbnails.processors.autocrop",
+    "easy_thumbnails.processors.scale_and_crop",
+    "easy_thumbnails.processors.filters",
+]

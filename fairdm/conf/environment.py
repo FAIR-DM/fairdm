@@ -1,8 +1,6 @@
 from environ import Env
 
 env = Env(
-    # FAIRDM SETTINGS
-    FAIRDM_ALLOW_DISCUSSIONS=(bool, True),
     # when False, discussion tabs are hidden from the detail views
     FAIRDM_SHOW_DATA_TABLES=(bool, True),
     # when False, data tables are hidden from the UI (useful for portals that don't make use of Sample or Measurement models)
