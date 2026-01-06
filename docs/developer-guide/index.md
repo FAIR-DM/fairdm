@@ -90,6 +90,7 @@ quality_control
 :maxdepth: 1
 :hidden:
 
+configuration
 emails
 social_accounts
 deployment_guide/production

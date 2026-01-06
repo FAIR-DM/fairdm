@@ -1,19 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.1.0
-- Modified principles: template placeholders → concrete FairDM principles
-- Added sections:
-	- Core Principles (FAIR-first, domain-driven, configuration-over-code, opinionated defaults, quality & community)
-	- Architecture & Stack Constraints
-	- Development Workflow & Quality Gates
-	- Governance (project-specific rules)
-- Removed sections: None (template sections populated, not removed)
+- Version change: 1.1.0 → 1.1.1
+- Modified principles:
+	- Principle V: Strengthened testing requirement to "comprehensive automated tests".
+	- Development Workflow: Renamed "Testing Discipline" to "Comprehensive Testing Discipline" and "Documentation & Templates" to "Feature Documentation & Templates" for clarity.
+- Added sections: None
+- Removed sections: None
 - Templates requiring updates (✅ updated / ⚠ pending):
-	- ✅ .specify/templates/plan-template.md (Constitution Check remains generic but aligned with this constitution)
-	- ✅ .specify/templates/spec-template.md (no constitution-specific rules; remains valid)
-	- ✅ .specify/templates/tasks-template.md (workflow consistent with constitution’s workflow section)
-	- ✅ .specify/templates/checklist-template.md (generic; no conflicting rules)
-	- ⚠ .specify/templates/commands/* (directory not present; cannot verify or update command docs)
+	- ✅ .specify/templates/plan-template.md (Compatible)
+	- ✅ .specify/templates/spec-template.md (Compatible)
+	- ✅ .specify/templates/tasks-template.md (Compatible)
+	- ✅ .specify/templates/checklist-template.md (Compatible)
 - Follow-up TODOs: None
 -->
 
@@ -65,7 +62,7 @@ In the near term (while FairDM is primarily used by its original author), stabil
 
 FairDM is intended for long-lived research infrastructure. Code, documentation, and community processes must reflect that responsibility.
 
-- All core changes MUST include automated tests appropriate to their scope (unit, integration, or functional) and MUST preserve or improve overall test reliability.
+- All core changes MUST include comprehensive automated tests appropriate to their scope (unit, integration, or functional) and MUST preserve or improve overall test reliability.
 - Type hints, static analysis, and style rules (e.g., Ruff, mypy) are REQUIRED for core framework code except where explicitly exempted in project-wide configuration.
 - Documentation (developer, admin, and contributor guides) MUST be updated alongside new features or breaking changes so that research teams with modest technical skills can remain productive.
 - Accessibility, internationalisation readiness, and usability SHOULD be considered non-optional; regressions in these areas MUST be treated as bugs.
@@ -127,10 +124,10 @@ This section governs how new capabilities are proposed, designed, and implemente
 - **Task Breakdown**:
 	- Tasks (tasks.md) MUST be grouped by user story and structured so that each story can be implemented and tested independently where feasible.
 	- Shared foundational work (infrastructure, core models) MUST be captured as explicit blocking tasks before story-specific implementation.
-- **Testing Discipline**:
+- **Comprehensive Testing Discipline**:
 	- Where tests are requested or appropriate, contract/integration tests SHOULD be written before or alongside implementation for critical user journeys.
 	- No change MAY be merged that causes the agreed test suite for the touched areas to fail.
-- **Documentation & Templates**:
+- **Feature Documentation & Templates**:
 	- Developer, admin, and contributor documentation MUST be updated when behavior, configuration, or workflows change in user-visible ways.
 	- Speckit templates (plan-template, spec-template, tasks-template, checklist-template, command templates when present) MUST remain consistent with this constitution; any divergence MUST be corrected as part of the change.
 
@@ -159,4 +156,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
 	- Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
 	- As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.1.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2025-12-30
+**Version**: 1.1.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-01-02

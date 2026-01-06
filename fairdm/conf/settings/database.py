@@ -1,21 +1,30 @@
+"""Database Configuration
+
+Production-ready PostgreSQL configuration with graceful SQLite fallback for development.
+
+Production/Staging: Requires DATABASE_URL or POSTGRES_* env vars (fails fast if missing)
+Local/Development: Falls back to SQLite with warning if no DATABASE_URL
+
+This is the production baseline. Environment-specific overrides in local.py/staging.py.
+"""
+
 import logging
 
+# Access environment variables via shared env instance
 env = globals()["env"]
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+BASE_DIR = globals()["BASE_DIR"]
 
 logger = logging.getLogger(__name__)
 
+# Default for all Django models
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# FAIRDM Docs: Choosing a database backend
+# DATABASE CONFIGURATION
+# Priority: DATABASE_URL > POSTGRES_* vars > SQLite fallback
+# Production expects DATABASE_URL or POSTGRES_* (validation in checks.py)
 
-# Env var precedence: DATABASE_URL > POSTGRES_DB (and associated vars) > SQLITE_DB (default)
-
-# Typical FairDM distributions will be built using a PostgreSQL database. However, the DATABASE_URL env takes precedence
-# to allow customization (e.g. managed databases). If neither DATABASE_URL or any POSTGRES_* vars are set, FairDM will
-# default to SQLite.
 if env("DATABASE_URL"):
-    logger.info(f"Database: {env('DATABASE_URL')}")
+    logger.info(f"Database: PostgreSQL via DATABASE_URL")
     DATABASES = {
         "default": env.db(),
     }
@@ -34,7 +43,9 @@ elif env("POSTGRES_DB"):
     }
 
 else:
-    logger.info("Database: SQLite")
+    # SQLite fallback - only acceptable in development
+    # Production will fail validation if this path is taken
+    logger.warning("Database: SQLite fallback (not for production)")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -42,18 +53,18 @@ else:
         }
     }
 
-DATABASES["default"]["ATOMIC_REQUESTS"] = True
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa F405
+# Database performance settings
+DATABASES["default"]["ATOMIC_REQUESTS"] = True  # Wrap each request in a transaction
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # Persistent connections (60s)
 
+# DATABASE BACKUP CONFIGURATION (django-dbbackup)
+# https://django-dbbackup.readthedocs.io/
 
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
 DBBACKUP_STORAGE_OPTIONS = {"location": "/app/dbbackups/"}
 
-
 DBBACKUP_FILENAME_TEMPLATE = "{databasename}-{servername}-{datetime}.{extension}"
-
 DBBACKUP_MEDIA_FILENAME_TEMPLATE = "{databasename}_media-{servername}-{datetime}.{extension}"
 
-# DBBACKUP_CLEANUP_FILTER = ''
-
+# Keep last 10 backups
 DBBACKUP_CLEANUP_KEEP = 10
