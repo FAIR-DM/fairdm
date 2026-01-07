@@ -28,7 +28,7 @@ Example (Portal Developer Usage):
         assert private_project.visibility == "private"
 
 See Also:
-    - docs/developer-guide/testing-portal-projects.md
+    - docs/portal-development/testing-portal-projects.md
     - docs/contributing/testing/fixtures.md
 """
 

@@ -2,92 +2,18 @@
 
 **Feature Branch**: `001-documentation-strategy`
 **Created**: 2025-12-30 (merged with 003-docs-infrastructure on 2026-01-07)
-**Status**: Draft
+**Completed**: 2026-01-07
+**Status**: Complete (MVP Delivered - Phase 7 Deferred)
 **Input**: This specification merges two related features:
 
-1. "Establish a coherent documentation baseline aligned with the constitution, covering portal admins, contributors, and developers. Clarify the high-level vision, FAIR-first philosophy, and core architecture. Ensure the four major doc sections (admin-guide, contributor-guide, developer-guide, contributing) are discoverable, up to date, and cross-linked. Provide a minimal but complete Getting Started flow for spinning up the demo portal, creating a first custom Sample/Measurement model, and registering it so that it is visible in the UI and via the API."
+1. "Establish a coherent documentation baseline aligned with the constitution, covering portal admins, contributors, and developers. Clarify the high-level vision, FAIR-first philosophy, and core architecture. Ensure the four major doc sections (portal-administration, user-guide, portal-development, contributing) are discoverable, up to date, and cross-linked. Provide a minimal but complete Getting Started flow for spinning up the demo portal, creating a first custom Sample/Measurement model, and registering it so that it is visible in the UI and via the API."
 2. "Create a feature spec defining how documentation is authored, validated, and kept in sync with the constitution and features. The spec should define the Sphinx information architecture: where new docs live (user guides vs dev docs vs governance docs), where governance materials live (constitution + references) and how they are cross-linked, the 'feature docs checklist' that lists what docs must be updated when a feature ships, how specs are referenced from docs so readers can trace behavior back to a spec, what 'docs are valid' means including build steps and link checks and failure conditions and minimum expectations, and any migration or conformance work needed to bring existing docs into the conventions."
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - New Developer Onboards Quickly (Priority: P1)
+### User Story 1 - Contributor Finds Where to Add Documentation (Priority: P1)
 
-A new developer wants to evaluate FairDM and set up a small prototype portal for their research group. They should be able to read a high-level overview, follow a single "Getting Started" path to run a demo portal locally, define one simple Sample/Measurement model, register it, and see it in the portal UI and via a programmatic endpoint.
-
-**Why this priority**: This journey is the primary entry point for adoption: if new developers cannot quickly understand and trial FairDM, they are unlikely to build portals on top of it.
-
-**Independent Test**: A developer who is comfortable with Python object-oriented programming and has basic familiarity with Django (ideally having completed the official Django tutorials), but no prior FairDM experience, can, using only the documentation, complete the prototype journey end-to-end in one sitting without external guidance.
-
-**Acceptance Scenarios**:
-
-1. **Given** a new developer who knows where the documentation is, **When** they follow the Getting Started guide, **Then** they successfully start a local demo portal and access it through a browser.
-2. **Given** the same developer, **When** they follow the documented steps to define and register a minimal Sample/Measurement model, **Then** the new model appears in the portal UI and is retrievable via a documented programmatic endpoint.
-
----
-
-### User Story 2 - Portal Administrator Understands Their Responsibilities (Priority: P2)
-
-A portal administrator (often a data manager with limited development experience) wants to understand what FairDM can do, how the core data model works, and what tasks they are responsible for (e.g., managing users, permissions, and core metadata) without reading developer-focused material.
-
-**Why this priority**: Administrators shape day-to-day data quality, FAIR compliance, and user trust; they need clear, concise guidance tailored to their role.
-
-**Independent Test**: An administrator can navigate the admin-facing documentation section, understand the core concepts and responsibilities, and perform key administrative tasks in a demo portal using only the documentation.
-
-**Acceptance Scenarios**:
-
-1. **Given** a portal administrator, **When** they open the admin-guide section from the main documentation entry point, **Then** they find an overview that explains their role, core entities (Projects, Datasets, Samples, Measurements, Contributors), and links to specific how-to guides.
-2. **Given** this admin-guide, **When** they follow the steps for managing users and permissions, **Then** they can successfully adjust access to a dataset in a demo portal as described in the docs.
-
----
-
-### User Story 3 - Contributor Learns How to Contribute Data (Priority: P3)
-
-A data contributor (e.g., researcher) wants to know how to log in, understand the basic structure of a FairDM portal, and add or edit data in a way that aligns with FAIR principles without needing to understand implementation details.
-
-**Why this priority**: Contributors are the primary source of data; clear guidance for them directly improves data quality and FAIR compliance.
-
-**Independent Test**: A contributor can, using only the contributor-guide, understand how to access a FairDM-powered portal, locate relevant projects/datasets, and add or edit entries while following recommended metadata practices.
-
-**Acceptance Scenarios**:
-
-1. **Given** a contributor with access to a demo portal, **When** they follow the contributor-guide, **Then** they can successfully locate an existing dataset and understand the meaning of key fields before editing.
-2. **Given** the same contributor, **When** they follow the documented steps for adding a new Sample and associated Measurements, **Then** they can complete the process using the UI and understand which metadata is required for FAIR compliance.
-
----
-
-### User Story 4 - Framework Contributor Knows How to Contribute Safely (Priority: P3)
-
-A developer who wants to contribute to the FairDM framework itself (code, documentation, or examples) needs clear, role-appropriate guidance on how to set up a development environment, follow the project's quality gates, and submit changes in a way that aligns with the constitution.
-
-**Why this priority**: Framework contributors extend and maintain the core that other portals rely on. Clear contributor-facing documentation reduces friction for new contributors while protecting project quality and constitutional alignment.
-
-**Independent Test**: A developer with general Python and Django experience, but no prior involvement with FairDM, can locate the contributing documentation, set up a working development environment, run the test suite and docs build, and identify how to propose a change (e.g., via pull request) without external guidance.
-
-**Acceptance Scenarios**:
-
-1. **Given** a developer interested in contributing to FairDM, **When** they navigate from the main documentation entry point to the contributing section, **Then** they find an overview that explains contributor roles, expectations (tests, typing, documentation), and links to setup instructions.
-2. **Given** that same developer, **When** they follow the contributing guide, **Then** they can set up a local development environment, run the relevant test and documentation commands, and understand the basic workflow for submitting a contribution (issues, discussions, or pull requests) in a way that references the FairDM constitution.
-
----
-
-### User Story 5 - Reader Understands FairDM Overview and Contributors (Priority: P2)
-
-A new reader (often a prospective portal administrator, developer, or institutional stakeholder) wants to understand, at a glance, what FairDM is for, how it relates to FAIR principles, what its core features and data model look like, and why contributors are explicitly modeled and recorded.
-
-**Why this priority**: The Overview pages are the first contact point for many evaluators and non-technical stakeholders. If they cannot quickly understand FairDM's purpose, scope, and treatment of contributors, they may not trust or adopt the framework.
-
-**Independent Test**: A new reader with no prior FairDM knowledge, but general familiarity with research data management, can read the Overview and related core concept pages and then accurately explain (in their own words) FairDM's purpose, its core entities (Projects, Datasets, Samples, Measurements, Contributors, Organizations), and why contributor information is recorded and surfaced in portals.
-
-**Acceptance Scenarios**:
-
-1. **Given** a new reader landing on the main documentation entry point, **When** they follow links to the Overview section, **Then** they can find clear explanations of FairDM's introduction, background, goals, core features, high-level core data model, and contributor tracking without needing to read developer- or admin-focused guides, and can describe what a contributor is in FairDM portals, what counts as a contribution (data, metadata, curation, code, documentation, etc.), and why contributors are recorded (attribution, provenance, FAIR/reproducibility).
-2. **Given** a reader who has read the Overview and Contributors sections, **When** they later browse a FairDM portal (demo or production), **Then** they can recognise where contributor information appears in the UI (e.g., on project, dataset, sample, or measurement pages) and understand its purpose.
-
----
-
-### User Story 6 - Contributor Finds Where to Add Documentation (Priority: P1)
-
-A framework contributor implementing a new feature needs to know exactly where to add documentation for different aspects of the feature (developer setup, admin configuration, portal contributor usage).
+A framework contributor implementing a new feature needs to know exactly where to add documentation for different aspects of the feature (developer setup, admin configuration, portal user usage).
 
 **Why this priority**: Without clear guidance on documentation location, contributors will skip documentation or place it incorrectly, leading to fragmented and undiscoverable docs. This is the foundation for all other documentation requirements.
 
@@ -95,13 +21,13 @@ A framework contributor implementing a new feature needs to know exactly where t
 
 **Acceptance Scenarios**:
 
-1. **Given** a contributor is adding a new admin feature, **When** they consult the documentation guidelines, **Then** they can determine it belongs in `docs/admin-guide/` and find the appropriate subdirectory or file to update
-2. **Given** a contributor is documenting a new model configuration option, **When** they reference the information architecture, **Then** they know to add it to `docs/developer-guide/model_configuration.md` or related file
+1. **Given** a contributor is adding a new admin feature, **When** they consult the documentation guidelines, **Then** they can determine it belongs in `docs/portal-administration/` and find the appropriate subdirectory or file to update
+2. **Given** a contributor is documenting a new model configuration option, **When** they reference the information architecture, **Then** they know to add it to `docs/portal-development/model_configuration.md` or related file
 3. **Given** a contributor is adding a governance principle, **When** they consult the guidelines, **Then** they know the constitution lives at `.specify/memory/constitution.md` and understand the amendment process
 
 ---
 
-### User Story 7 - Contributor Uses Feature Documentation Checklist (Priority: P2)
+### User Story 2 - Contributor Uses Feature Documentation Checklist (Priority: P2)
 
 A framework contributor completing a feature uses a structured checklist to ensure all required documentation updates are completed before the feature can be considered done.
 
@@ -111,13 +37,13 @@ A framework contributor completing a feature uses a structured checklist to ensu
 
 **Acceptance Scenarios**:
 
-1. **Given** a contributor has implemented a new core model, **When** they consult the feature documentation checklist, **Then** they see explicit items for updating developer guide (model definition), contributor guide (how to use), and admin guide (permissions/management)
+1. **Given** a contributor has implemented a new core model, **When** they consult the feature documentation checklist, **Then** they see explicit items for updating developer guide (model definition), User Guide (how to use), and admin guide (permissions/management)
 2. **Given** a feature adds new configuration options, **When** checking the documentation checklist, **Then** the contributor is prompted to update the configuration reference and provide examples
 3. **Given** a feature changes existing behavior, **When** using the checklist, **Then** the contributor is reminded to update migration guides and mark any breaking changes
 
 ---
 
-### User Story 8 - Reader Traces Documentation to Specification (Priority: P3)
+### User Story 3 - Reader Traces Documentation to Specification (Priority: P3)
 
 A portal developer reading documentation can follow links to the original feature specification to understand the rationale, full requirements, and design decisions behind a documented feature.
 
@@ -133,7 +59,7 @@ A portal developer reading documentation can follow links to the original featur
 
 ---
 
-### User Story 9 - Documentation Validation Passes (Priority: P1)
+### User Story 4 - Documentation Validation Passes (Priority: P1)
 
 An automated documentation validation process checks that documentation builds successfully, links are valid, required sections exist, and constitution principles are followed.
 
@@ -150,7 +76,7 @@ An automated documentation validation process checks that documentation builds s
 
 ---
 
-### User Story 10 - Existing Documentation Brought Into Compliance (Priority: P2)
+### User Story 5 - Existing Documentation Brought Into Compliance (Priority: P2)
 
 A migration process identifies and remediates non-conforming documentation, bringing existing docs into alignment with the new information architecture and quality standards.
 
@@ -171,27 +97,29 @@ A migration process identifies and remediates non-conforming documentation, brin
 - What happens when a user lands directly on a deep documentation page (via search) without context? The documentation MUST provide navigation and framing so they can easily discover where they are and how to get back to the main structure.
 - How does the system handle documentation updates that significantly change recommended workflows? Change logs, "What's new" sections, or upgrade notes SHOULD guide existing users to updated practices.
 - How are discrepancies between actual portal behaviour and documentation handled? There MUST be an obvious way for users to report documentation issues or gaps.
-- What happens when a feature spans multiple documentation sections (e.g., developer + admin + contributor)?
-- How do we handle deprecated features that still need documentation?
-- What if a feature is experimental and documentation should be marked as such?
+- What happens when a feature spans multiple documentation sections (e.g., developer + admin + contributor)? [RESOLVED: Feature documentation checklist (FR-011) prompts authors to update all relevant sections; spec authors decide which sections to update based on information architecture guidance]
+- How do we handle deprecated features that still need documentation? [RESOLVED: Use standard MyST `:::{{deprecated}}` admonition per FR-021; include version deprecated and migration path]
+- What if a feature is experimental and documentation should be marked as such? [RESOLVED: Use standard MyST `:::{{warning}} Experimental` admonition per FR-021; clearly communicate stability expectations]
 - How do we maintain versioned documentation for different FairDM releases? [DEFERRED: Multi-version hosting explicitly out of scope for this feature; will be addressed if/when FairDM reaches stable 1.0 release with backward compatibility requirements]
-- What happens when specs are updated after initial documentation is written?
+- What happens when specs are updated after initial documentation is written? [RESOLVED: Spec authors are responsible for updating related documentation when specs change; normal PR review process ensures alignment; this spec defines WHERE to place documentation]
 - How do we handle external links that become stale over time? [RESOLVED: External links checked but treated as warnings requiring manual review, not hard failures]
+- What happens when the constitution is amended and documentation needs to be updated to reflect new principles or governance changes? [RESOLVED: Constitution amendment owner triggers documentation review and ensures alignment before amendment is considered complete per FR-020]
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: The documentation MUST present a clear high-level overview of FairDM's purpose, FAIR-first philosophy, and core architecture, including an explicit link to the FairDM constitution for deeper governance and principles.
-- **FR-002**: The documentation MUST have clearly separated and discoverable sections for portal administrators, contributors, developers, and FairDM framework contributors.
-- **FR-003**: The main documentation entry point MUST provide obvious navigation to the four key sections: admin-guide, contributor-guide, developer-guide, and contributing.
-- **FR-004**: There MUST be a single, linear Getting Started guide for developers that describes how to bring up a demo portal, define a simple Sample/Measurement model, register it, and confirm it appears in both the UI and via a documented programmatic access path.
-- **FR-005**: The documentation MUST describe, in non-implementation terms, the responsibilities and typical workflows of portal administrators and contributors, emphasising FAIR-compliant metadata practices.
+- **FR-002**: The documentation MUST have clearly separated and discoverable sections for portal administrators, Portal Users, portal developers, and Framework Contributors.
+- **FR-003**: The main documentation entry point MUST provide obvious navigation to the four key sections: portal-administration, user-guide, portal-development, and contributing.
+- **FR-004**: There MUST be a single, linear Getting Started guide for Portal Developers that describes how to bring up a demo portal, define a simple Sample/Measurement model, register it, and confirm it appears in both the UI and via a documented programmatic access path.
+- **FR-005**: The documentation MUST describe, in non-implementation terms, the responsibilities and typical workflows of portal administrators and Portal Users, emphasising FAIR-compliant metadata practices.
 - **FR-006**: The documentation MUST avoid prescribing specific tooling commands or environment details beyond what is necessary to describe user journeys; concrete commands and stack details SHOULD be deferred to implementation-oriented quickstarts or developer appendices.
 - **FR-007**: Documentation pages MUST be internally cross-linked so that users can move between role-specific guides, concept explanations (e.g., Projects, Datasets, Samples, Measurements), and the Getting Started flow without dead ends.
-- **FR-008**: Documentation MUST be organized into four primary sections: developer-guide (portal builders), admin-guide (portal administrators), contributor-guide (portal data contributors), and contributing (framework contributors), each with a clear index and purpose statement
-- **FR-009**: Governance materials (constitution, principles, governance process) MUST reside in `.specify/memory/` and be cross-referenced from documentation using stable links
-- **FR-010**: Feature specifications MUST reside in `specs/###-feature-name/` directories with spec.md, plan.md, tasks.md, and checklists/ subdirectory
+- **FR-008**: Documentation MUST be organized into four primary sections: portal-development (Portal Developers), portal-administration (Portal Administrators), user-guide (Portal Users), and contributing (Framework Contributors), each with a clear index and purpose statement; this top-level structure is immutable and future specs MUST be able to rely on these section names and locations without concern for structural changes
+- **FR-008a**: Within each primary documentation section, subdirectories MAY be added as needed to organize content; the information architecture guide MUST provide clear guidance on when to create new subdirectories vs adding to existing files
+- **FR-009**: Governance materials (constitution, principles, governance process) MUST reside in `.specify/memory/` and be cross-referenced from documentation using stable links; this location is immutable
+- **FR-010**: Feature specifications MUST reside in `specs/###-feature-name/` directories with spec.md, plan.md, tasks.md, and checklists/ subdirectory; this location is immutable
 - **FR-011**: Documentation MUST include a feature documentation checklist template at `.specify/templates/feature-docs-checklist.md` that lists all documentation sections requiring updates when features change
 - **FR-012**: Documentation pages MUST be able to reference specifications using a consistent linking pattern (e.g., `[spec](../../specs/003-docs-infrastructure/spec.md)` or custom MyST role)
 - **FR-013**: Documentation MUST reference constitution sections using stable anchor links (e.g., `[Constitution: FAIR-First](.specify/memory/constitution.md#i-fair-first-research-portals)`)
@@ -200,7 +128,9 @@ A migration process identifies and remediates non-conforming documentation, brin
 - **FR-016**: Documentation MUST define minimum expectations including: no broken links, all code examples syntactically valid, all images have alt text, all sections have proper heading hierarchy
 - **FR-017**: A documentation conformance audit MUST identify existing documentation that does not meet the information architecture or quality standards
 - **FR-018**: Feature documentation checklist MUST be integrated into the Speckit workflow (triggered after tasks are complete or as part of `/speckit.finalize`)
-- **FR-019**: Documentation MUST include guidance on when to update docs vs create new pages (e.g., add section vs new file thresholds)
+- **FR-019**: Documentation MUST include guidance on when to create new files vs update existing pages; new files SHOULD be created when: (a) content represents a standalone concept requiring dedicated treatment, OR (b) content describes a separate user journey or workflow, OR (c) adding content to an existing page would exceed approximately 500 words of new material (loose guideline, not strict threshold); the information architecture guide MUST provide examples of each scenario
+- **FR-020**: When the constitution is amended, the person proposing or approving the amendment MUST trigger a documentation review to identify affected documentation sections and either update them directly or create tracked issues for section owners to address; constitution amendments MUST NOT be considered complete until documentation alignment is verified
+- **FR-021**: Documentation MUST use standard MyST admonitions to mark feature lifecycle status: `:::{{deprecated}}` for deprecated features (with version deprecated and alternative if applicable), `:::{{warning}} Experimental` for experimental/unstable features, and `:::{{note}}` for features in maintenance mode; the information architecture guide MUST provide examples and conventions for each lifecycle status
 
 ### Non-Functional Requirements
 
@@ -229,16 +159,17 @@ A migration process identifies and remediates non-conforming documentation, brin
 - **Assumption 2**: Feature specifications will continue to live in the `specs/` directory using the Speckit format; information architecture depends on this structure
 - **Assumption 3**: The constitution will remain the single source of truth for governance and will continue to reside in `.specify/memory/constitution.md`
 - **Assumption 4**: CI/CD infrastructure exists or will be implemented to run documentation validation automatically on pull requests
-- **Assumption 5**: Contributors have basic familiarity with Markdown and can learn MyST syntax; no specialized documentation tooling expertise is required
+- **Assumption 5**: Framework Contributors have basic familiarity with Markdown and can learn MyST syntax; no specialized documentation tooling expertise is required
 - **Assumption 6**: Documentation versioning will follow the FairDM release versioning scheme; multi-version documentation hosting will be addressed in a future feature if needed
 - **Assumption 7**: External link checking will use a reasonable grace period (e.g., warn but don't fail on temporary outages) to avoid false positives in CI
+- **Assumption 8**: Spec authors are responsible for updating documentation related to their specs; this documentation strategy provides the information architecture (WHERE to place docs), and the normal PR review process ensures documentation quality and alignment
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
 - **SC-001**: Users landing directly on any major documentation page (defined as the main documentation index, role-specific landing pages, and primary getting-started guides in each section) can reach the main documentation entry point or an appropriate role-specific landing page in no more than two clicks.
-- **SC-002**: Contributors can answer "where do I document X?" in under 30 seconds by consulting the information architecture guide (measured by observing 5 representative contributors with varying experience levels completing common documentation placement tasks)
+- **SC-002**: Framework Contributors can answer "where do I document X?" in under 30 seconds by consulting the information architecture guide (measured by observing 5 representative Framework Contributors with varying experience levels completing common documentation placement tasks)
 - **SC-003**: 95% of new features include completed feature documentation checklists before being marked done
 - **SC-004**: Documentation builds succeed without errors or warnings in CI/CD pipeline on every commit
 - **SC-005**: Link validation catches 100% of broken internal links before documentation is published
@@ -255,7 +186,8 @@ Success criteria are validated through manual walkthroughs documented in the tas
 
 ### In Scope
 
-- Defining clear information architecture for all four documentation sections (developer, admin, contributor, contributing)
+- Defining immutable top-level information architecture: four primary documentation sections (portal-development, portal-administration, user-guide, contributing), governance materials location (.specify/memory/), and feature specifications location (specs/)
+- Establishing guidelines for when and how to create subdirectories within the four primary documentation sections
 - Creating feature documentation checklist template with guidance for different feature types
 - Establishing spec-to-docs and constitution-to-docs cross-reference patterns
 - Implementing documentation validation including build checks, link validation, and checklist verification
@@ -298,17 +230,27 @@ Success criteria are validated through manual walkthroughs documented in the tas
 
 ## Terminology *(reference)*
 
+**Note**: Documentation sections have both human-readable display names (used in prose and navigation) and directory paths (used in file system and links). The table below shows both.
+
+**Important**: The term "contributor" is ambiguous and should NOT be used alone in specifications. Always use the fully qualified term: "Framework Contributor" for people contributing to FairDM codebase, or "Portal User" for people contributing data to portals. Similarly, use "Portal Developer" (not "developer" or "portal builder") when referring to people building portals with FairDM.
+
 | Term | Definition | Canonical Location |
-|------|------------|--------------------|
+| ---- | ---------- | ------------------ |
 | **Overview** | High-level conceptual documentation section explaining FairDM's purpose, FAIR-first philosophy, core architecture, and contributor model | `docs/overview/` |
-| **Contributor Guide** | Documentation section for portal contributors (people who add/edit data in portals) | `docs/contributor-guide/` |
-| **User Guide** | (Obsolete) Former name for Contributor Guide | N/A |
-| **About** | (Obsolete) Former name for Overview section | N/A |
-| **Portal Contributor** | Person who adds or edits research data, samples, measurements, and metadata in a FairDM portal | See Contributor Guide |
+| **User Guide** | Documentation section for portal users (people who add/edit data in portals); display name for the user-facing documentation | `docs/user-guide/` |
+| **Admin Guide** | Documentation section for portal administrators who manage users, permissions, and metadata quality; display name for administrator-facing documentation | `docs/portal-administration/` |
+| **Developer Guide** | Documentation section for Portal Developers (people building new FairDM-powered portals); display name for portal developer documentation | `docs/portal-development/` |
+| **Contributing Guide** | Documentation section for Framework Contributors; display name for framework contribution documentation | `docs/contributing/` |
+| **Portal User** | Person who adds or edits research data, samples, measurements, and metadata in a FairDM portal | See User Guide |
+| **Portal Administrator** | Person who has access to the Django admin site (is_staff=True) and manages portal configuration, users, and permissions | See Admin Guide |
+| **Portal Developer** | Person who builds new research data portals using the FairDM framework; primary audience for the Developer Guide | See Developer Guide |
 | **Framework Contributor** | Person who contributes to the FairDM framework codebase itself (code, docs, tests) | See Contributing Guide |
-| **Admin Guide** | Documentation section for portal administrators who manage users, permissions, and metadata quality | `docs/admin-guide/` |
-| **Developer Guide** | Documentation section for developers building new FairDM portals | `docs/developer-guide/` |
-| **Contributing Guide** | Documentation section for framework contributors | `docs/contributing/` |
+| **Information Architecture** | The hierarchical structure defining where documentation lives (sections, subsections, files) and the purpose of each area; establishes the immutable top-level structure and guidelines for subdirectory creation | Defined in this spec |
+| **Feature Documentation Checklist** | Template listing documentation sections that require updates for different feature types (new models, UI components, configuration changes, etc.); integrated into Speckit workflow | `.specify/templates/feature-docs-checklist.md` |
+| **Spec Cross-Reference** | Link from documentation to specification files providing context about what aspect of the spec the documentation covers; enables traceability from docs to requirements | Pattern: `[spec](../../specs/###-feature-name/spec.md)` |
+| **Constitution Cross-Reference** | Link from documentation to specific constitutional principles explaining how a feature aligns with governance requirements | Pattern: `[Constitution: Topic](.specify/memory/constitution.md#anchor)` |
+| **Validation Report** | Output from automated documentation validation including build status, link check results, checklist completeness, and quality metrics; generated by CI/CD pipeline | Generated by validation tools |
+| **Conformance Audit** | Analysis process that identifies existing documentation not meeting information architecture or quality standards, with specific issues and remediation steps | Process defined in FR-017 |
 
 ## Clarifications
 
@@ -322,6 +264,19 @@ Success criteria are validated through manual walkthroughs documented in the tas
 
 - Q: When documentation validation fails in CI (e.g., broken links, missing checklist items), what should happen to the pull request? → A: Hard block - PR cannot be merged under any circumstances until validation passes
 - Q: External links in documentation can fail temporarily (site downtime) or permanently (moved/deleted content). How should the validation system handle external link failures? → A: Check external links but treat failures as warnings; require manual review
+
+### Session 2026-01-07
+
+- Q: User Stories 1-5 describe outcomes requiring actual documentation content (Getting Started guides, admin guides, User Guides). Should these implementation-focused stories remain in this strategy/infrastructure spec? → A: Delete User Stories 1-5 entirely; they are out of scope for this spec
+- Q: The spec requires "unchanging directory structure" but also mentions future extensibility. What level of immutability is required for the documentation directory structure? → A: Core structure immutable (4 main sections + .specify/ + specs/), but subdirectories within sections can be added as needed
+- Q: FR-019 requires guidance on when to create new documentation files vs adding to existing files, but no criteria are defined. What thresholds should determine file creation? → A: New file when topic >500 words (loose guideline) OR standalone concept OR separate user journey
+- Q: When the constitution is amended, how should affected documentation be updated? Who is responsible for triggering and coordinating documentation reviews? → A: Constitution owner triggers docs review
+- Q: What happens when specs are updated after initial documentation is written? How is documentation kept aligned with evolving specs? → A: Spec authors responsible for documentation; PR review by maintainers
+- Q: The spec uses both "Admin Guide" and "portal-administration" interchangeably. Are these synonyms or is there a distinction between display names and directory paths? → A: "Admin Guide" is the display name/human-readable term; "portal-administration" is the directory path; terminology should clarify this distinction
+- Q: The word "contributor" is used ambiguously throughout - sometimes meaning Framework Contributors (who contribute code), other times Portal Users (who contribute data). How should this be clarified? → A: Always specify contributor type
+- Q: Several technical terms from Key Entities (Information Architecture, Feature Documentation Checklist, Spec Cross-Reference, etc.) are not defined in Terminology. Should these be added? → A: Add technical terms to terminology
+- Q: The spec uses "developers", "portal developers", and "portal builders" inconsistently when referring to people building portals with FairDM. What term should be used consistently? → A: Use "Portal Developer" consistently
+- Q: Edge cases mention deprecated and experimental features but don't define how to mark them in documentation. What convention should be used? → A: Standard admonitions for lifecycle
 
 ## Open Questions
 

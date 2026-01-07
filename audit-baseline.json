@@ -1,396 +1,396 @@
 ﻿{
-    "AuditDate":  "\/Date(1767716276157)\/",
-    "PagesScanned":  106,
-    "Findings":  [
-                     {
-                         "FilePath":  "docs\\background.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\features.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\index.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for portal developers but is not in developer-guide/",
-                         "Remediation":  "Move to docs/developer-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\index.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\roadmap.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\temp.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\contributing\\contribution_framework.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\contributing\\django_dev.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\contributing\\documentation-standards.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for portal developers but is not in developer-guide/",
-                         "Remediation":  "Move to docs/developer-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\contributing\\documentation-standards.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 271: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\contributing\\getting_started.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\contributing\\index.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\contributing\\views_module.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\contributor-guide\\getting_started.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\contributor-guide\\metadata_practices.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\contributor-guide\\account_management\\create_an_account.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\before_you_begin.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 143: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 159: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 214: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 269: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 359: Heading level skips from H1 to H4",
-                         "Remediation":  "Use H2 instead of H4",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 406: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 426: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\create_a_plugin.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\documentation.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\filtering-by-vocabulary.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\getting_started.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\getting_started.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\getting_started.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 196: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\home_page.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 19: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\index.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\model_configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 317: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\model_configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 329: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\model_configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 394: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\model_configuration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 449: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\production.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\quality_control.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\special_fields.md",
-                         "Category":  "Missing Spec Cross-Reference",
-                         "Issue":  "Feature-related documentation lacks link to specification",
-                         "Remediation":  "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\theme-migration.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 67: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\using_the_registry.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 96: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\using_the_registry.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 113: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\developer-guide\\using_the_registry.md",
-                         "Category":  "Heading Hierarchy Violation",
-                         "Issue":  "Line 204: Heading level skips from H1 to H3",
-                         "Remediation":  "Use H2 instead of H3",
-                         "Priority":  "Medium"
-                     },
-                     {
-                         "FilePath":  "docs\\more\\changelog.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for portal developers but is not in developer-guide/",
-                         "Remediation":  "Move to docs/developer-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\more\\changelog.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\overview\\background.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\overview\\features.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\overview\\goals.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\overview\\index.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\overview\\introduction.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for portal developers but is not in developer-guide/",
-                         "Remediation":  "Move to docs/developer-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\overview\\introduction.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\overview\\tech_stack.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\technology\\django.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     },
-                     {
-                         "FilePath":  "docs\\technology\\postgres.md",
-                         "Category":  "Misplaced File",
-                         "Issue":  "Content appears to be for administrators but is not in admin-guide/",
-                         "Remediation":  "Move to docs/admin-guide/ or update content",
-                         "Priority":  "Low"
-                     }
-                 ],
-    "IssuesByCategory":  {
-                             "Misplaced File":  28,
-                             "Heading Hierarchy Violation":  18,
-                             "Missing Spec Cross-Reference":  9
-                         }
+    "AuditDate": "\/Date(1767716276157)\/",
+    "PagesScanned": 106,
+    "Findings": [
+        {
+            "FilePath": "docs\\background.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\features.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\index.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for portal developers but is not in portal-development/",
+            "Remediation": "Move to docs/portal-development/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\index.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\roadmap.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\temp.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\contributing\\contribution_framework.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\contributing\\django_dev.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\contributing\\documentation-standards.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for portal developers but is not in portal-development/",
+            "Remediation": "Move to docs/portal-development/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\contributing\\documentation-standards.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 271: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\contributing\\getting_started.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\contributing\\index.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\contributing\\views_module.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\user-guide\\getting_started.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\user-guide\\metadata_practices.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\user-guide\\account_management\\create_an_account.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\before_you_begin.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 143: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 159: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 214: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 269: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 359: Heading level skips from H1 to H4",
+            "Remediation": "Use H2 instead of H4",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 406: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 426: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\create_a_plugin.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\documentation.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\filtering-by-vocabulary.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\getting_started.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\getting_started.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\getting_started.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 196: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\home_page.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 19: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\index.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\model_configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 317: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\model_configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 329: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\model_configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 394: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\model_configuration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 449: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\production.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\portal-development\\quality_control.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\special_fields.md",
+            "Category": "Missing Spec Cross-Reference",
+            "Issue": "Feature-related documentation lacks link to specification",
+            "Remediation": "Add spec cross-reference: [spec](../../specs/###-feature-name/spec.md)",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\theme-migration.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 67: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\using_the_registry.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 96: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\using_the_registry.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 113: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\portal-development\\using_the_registry.md",
+            "Category": "Heading Hierarchy Violation",
+            "Issue": "Line 204: Heading level skips from H1 to H3",
+            "Remediation": "Use H2 instead of H3",
+            "Priority": "Medium"
+        },
+        {
+            "FilePath": "docs\\more\\changelog.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for portal developers but is not in portal-development/",
+            "Remediation": "Move to docs/portal-development/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\more\\changelog.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\overview\\background.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\overview\\features.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\overview\\goals.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\overview\\index.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\overview\\introduction.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for portal developers but is not in portal-development/",
+            "Remediation": "Move to docs/portal-development/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\overview\\introduction.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\overview\\tech_stack.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\technology\\django.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        },
+        {
+            "FilePath": "docs\\technology\\postgres.md",
+            "Category": "Misplaced File",
+            "Issue": "Content appears to be for administrators but is not in portal-administration/",
+            "Remediation": "Move to docs/portal-administration/ or update content",
+            "Priority": "Low"
+        }
+    ],
+    "IssuesByCategory": {
+        "Misplaced File": 28,
+        "Heading Hierarchy Violation": 18,
+        "Missing Spec Cross-Reference": 9
+    }
 }

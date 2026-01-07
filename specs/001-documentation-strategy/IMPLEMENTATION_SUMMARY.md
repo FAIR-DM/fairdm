@@ -55,7 +55,7 @@ Documentation complete, build verification blocked:
 - ✅ MyST syntax examples in documentation-standards.md
 - ✅ Common patterns documented
 - ✅ Troubleshooting guide for validation errors
-- ✅ Developer-guide/documentation.md workflow summary
+- ✅ portal-development/documentation.md workflow summary
 - ✅ FAQ section in documentation-standards.md
 - ✅ Deprecated/experimental feature handling documented
 - ✅ Feature checklist completed and marked as done
@@ -147,7 +147,7 @@ Only 2 remaining tasks are ongoing maintenance (T068-T069) tracked in the migrat
 ### Documentation
 
 - `docs/contributing/documentation-standards.md` (457 lines) - Complete IA guide
-- `docs/developer-guide/documentation.md` (148 lines) - Quick reference
+- `docs/portal-development/documentation.md` (148 lines) - Quick reference
 - `specs/003-docs-infrastructure/migration-plan.md` (176 lines) - Remediation roadmap
 - `specs/003-docs-infrastructure/checklists/documentation.md` (175 lines) - Sample checklist
 

@@ -1,13 +1,20 @@
 # Feature Documentation Checklist
 
 **Feature**: [Feature Name]
-**Spec**: [Link to spec.md]
+**Spec**: [Link to spec.md, e.g., `../../specs/###-feature-name/spec.md`]
+**Author**: [Your Name]
 **Date Created**: YYYY-MM-DD
 **Status**: not-started | in-progress | completed
 
-## Purpose
+---
 
-This checklist ensures all required documentation is updated when shipping a feature. Complete all relevant sections before marking the feature as done.
+## Overview
+
+**Feature Summary**: [Brief 1-2 sentence summary of what this feature does]
+
+**Target Audiences**: [Which user types are affected? Users, Admins, Developers, Contributors?]
+
+---
 
 ## How to Use This Checklist
 
@@ -42,9 +49,80 @@ Select the feature types that apply to your feature:
 
 ---
 
-## Documentation Sections
+## Documentation Updates
 
-### Developer Guide (`docs/developer-guide/`)
+### Section Checklist
+
+Mark which documentation sections require updates for this feature:
+
+- [ ] **user-guide/** - End users interacting with portal web interface
+  - [ ] Feature usage guide created/updated
+  - [ ] Screenshots or UI examples added
+  - [ ] Common workflows documented
+
+- [ ] **portal-administration/** - Portal administrators managing settings and users
+  - [ ] Admin interface changes documented
+  - [ ] Configuration options added
+  - [ ] Permissions/access control updated
+
+- [ ] **portal-development/** - Developers building/customizing portals with FairDM
+  - [ ] Model configuration documented
+  - [ ] API usage examples provided
+  - [ ] Integration guide created/updated
+
+- [ ] **contributing/** - Framework contributors developing FairDM itself
+  - [ ] Architecture changes documented
+  - [ ] Testing patterns updated
+  - [ ] Development workflow changes noted
+
+**Documentation Updated** (add links as you complete):
+-
+
+**Notes**:
+
+
+---
+
+### Content Requirements
+
+Ensure each updated documentation page includes:
+
+- [ ] **Feature overview** - Clear explanation of what the feature does and why it exists
+- [ ] **Usage examples** - At least one concrete example showing feature in action
+- [ ] **Configuration options** - Any settings, environment variables, or config changes (if applicable)
+- [ ] **Migration guide** - How to migrate from old behavior (if breaking change)
+- [ ] **Cross-references** - Links to related documentation, spec, and constitution principles
+- [ ] **Code snippets** - Code examples tested and validated (if code-heavy feature)
+- [ ] **Screenshots/diagrams** - Visual aids for UI features (if applicable)
+- [ ] **Lifecycle markers** - Deprecated/experimental markers if relevant (see FR-021)
+
+**Notes on content**:
+
+
+---
+
+### Validation Checklist
+
+Before marking complete, verify:
+
+- [ ] **Spec link resolves** - `[Feature Name](../../specs/###-feature-name/spec.md)` link works
+- [ ] **Documentation builds** - `poetry run sphinx-build -b html docs docs/_build/html` succeeds
+- [ ] **Internal links valid** - `poetry run python .github/scripts/check-internal-links.py` passes
+- [ ] **External links checked** - `poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck` completes
+- [ ] **Examples tested** - All code snippets are syntactically correct and tested (if applicable)
+- [ ] **Screenshots current** - All images reflect current UI (if applicable)
+- [ ] **Cross-references added** - At least one link to spec and relevant constitution principles
+
+**Validation notes**:
+
+
+---
+
+## Legacy Sections (for reference)
+
+The sections below provide more detailed breakdowns. Use them if the section checklist above doesn't provide enough detail:
+
+### Developer Guide (`docs/portal-development/`)
 
 **Audience**: Portal builders who are implementing FairDM for their research domain
 
@@ -63,7 +141,7 @@ Select the feature types that apply to your feature:
 
 ---
 
-### Admin Guide (`docs/admin-guide/`)
+### Admin Guide (`docs/portal-administration/`)
 
 **Audience**: Portal administrators who manage deployed FairDM instances
 
@@ -81,7 +159,7 @@ Select the feature types that apply to your feature:
 
 ---
 
-### Contributor Guide (`docs/contributor-guide/`)
+### User Guide (`docs/user-guide/`)
 
 **Audience**: Portal users who contribute data and use portal features
 
@@ -157,7 +235,7 @@ Select the feature types that apply to your feature:
 - ✅ Developer Guide: Model configuration (how to add custom fields)
 - ✅ Developer Guide: Registration API (how to register custom Sample types)
 - ✅ Admin Guide: Admin interface (how custom fields appear in admin)
-- ✅ Contributor Guide: Feature usage (how contributors fill in custom fields)
+- ✅ User Guide: Feature usage (how contributors fill in custom fields)
 - ✅ Spec cross-reference added
 
 **Skipped Sections**:
@@ -178,7 +256,7 @@ Select the feature types that apply to your feature:
 - ✅ Contributing Guide: Release process (noted in breaking changes section)
 
 **Skipped Sections**:
-- ❌ Contributor Guide (no user-facing changes)
+- ❌ User Guide (no user-facing changes)
 - ❌ API Documentation (no API changes)
 
 ---
@@ -191,8 +269,8 @@ Select the feature types that apply to your feature:
 **Completed Sections**:
 - ✅ Developer Guide: Plugin integration (how to register visualization plugins)
 - ✅ Admin Guide: Permissions (who can access visualizations)
-- ✅ Contributor Guide: Feature usage (how to use visualizations)
-- ✅ Contributor Guide: UI screenshots (visualization examples)
+- ✅ User Guide: Feature usage (how to use visualizations)
+- ✅ User Guide: UI screenshots (visualization examples)
 - ✅ API Documentation: API endpoints (data endpoints for visualizations)
 
 **Skipped Sections**:

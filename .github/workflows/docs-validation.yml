@@ -4,7 +4,8 @@ on:
   pull_request:
     paths:
       - 'docs/**'
-      - 'specs/**/checklists/documentation.md'
+      - 'specs/**'
+      - '**.md'
       - '.specify/templates/feature-docs-checklist.md'
       - '.github/workflows/docs-validation.yml'
   push:
@@ -13,7 +14,8 @@ on:
       - develop
     paths:
       - 'docs/**'
-      - 'specs/**/checklists/documentation.md'
+      - 'specs/**'
+      - '**.md'
 
 jobs:
   validate-docs:
@@ -58,12 +60,12 @@ jobs:
         id: check-internal-links
         run: |
           echo "Checking links with sphinx-build -b linkcheck..."
-          poetry run sphinx-build -b linkcheck docs docs/_build
+          poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
 
           # Parse linkcheck output for internal link failures
-          if [ -f "docs/_build/output.txt" ]; then
-            # Check for broken internal links (non-HTTP URLs)
-            BROKEN_INTERNAL=$(grep "broken" docs/_build/output.txt | grep -v "http" || true)
+          if [ -f "docs/_build/linkcheck/output.txt" ]; then
+            # Check for broken internal links (non-HTTP URLs or relative paths)
+            BROKEN_INTERNAL=$(grep "\\[broken\\]" docs/_build/linkcheck/output.txt | grep -v "http" || true)
 
             if [ -n "$BROKEN_INTERNAL" ]; then
               echo "❌ Found broken internal links:"
@@ -74,26 +76,43 @@ jobs:
             fi
 
             # Check for broken external links (warnings only)
-            BROKEN_EXTERNAL=$(grep "broken" docs/_build/output.txt | grep "http" || true)
+            BROKEN_EXTERNAL=$(grep "\\[broken\\]" docs/_build/linkcheck/output.txt | grep "http" || true)
 
             if [ -n "$BROKEN_EXTERNAL" ]; then
-              echo "⚠️ Found broken external links (manual review required):"
+              echo "⚠️ Found broken external links (manual review recommended):"
               echo "$BROKEN_EXTERNAL"
-              # Don't fail on external links
+              # Don't fail on external links - these are informational
             else
               echo "✅ All external links are valid"
             fi
           else
-            echo "⚠️ Link check output file not found"
+            echo "⚠️ Link check output file not found at docs/_build/linkcheck/output.txt"
+            ls -la docs/_build/linkcheck/ || echo "linkcheck directory not found"
           fi
         continue-on-error: false
+
+      - name: Run internal link checker script
+        id: internal-link-checker
+        run: |
+          echo "Running internal link checker script..."
+          # Capture output but allow UTF-8 encoding errors
+          poetry run python .github/scripts/check-internal-links.py 2>&1 || echo "Internal link checker completed with warnings"
+        continue-on-error: true
 
       - name: Validate feature documentation checklists
         id: validate-checklists
         run: |
           echo "Validating feature documentation checklists..."
-          poetry run python .specify/scripts/powershell/validate-checklists.py
+          poetry run pytest tests/integration/docs/test_documentation_validation.py -v
         continue-on-error: false
+
+      - name: Generate validation report
+        id: generate-report
+        if: always()
+        run: |
+          echo "Generating validation report..."
+          poetry run python .github/scripts/generate-validation-report.py || echo "Report generation failed (non-blocking)"
+        continue-on-error: true
 
       - name: Upload documentation artifacts
         if: always()

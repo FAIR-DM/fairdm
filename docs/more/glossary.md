@@ -6,6 +6,7 @@ myst:
 ---
 
 (glossary)=
+
 # Glossary
 
 :::{glossary}
@@ -17,12 +18,12 @@ User
 Anonymous User
     An anonymous user is a person who is browsing the portal without having registered an account. Anonymous users can access all public content but are restricted in terms of community interactions.
 
-Portal Contributor
-    A person who adds or edits data and metadata in a FairDM-powered research portal. Portal contributors use the portal interface to contribute research data, samples, measurements, and associated metadata. Sometimes referred to simply as "contributor" in portal-facing documentation. See the [Contributor Guide](../contributor-guide/index.md) for portal contributors.
+Portal User
+    A person who adds or edits data and metadata in a FairDM-powered research portal. Portal users use the portal interface to contribute research data, samples, measurements, and associated metadata. Sometimes referred to simply as "contributor" in portal-facing documentation. See the [User Guide](../user-guide/index.md) for portal users.
 
 Framework Contributor
     A person who contributes to the FairDM framework itself through code, documentation, examples, or other improvements. Framework contributors work with the framework's codebase and follow development workflows. See the [Contributing Guide](../contributing/index.md) for framework contributors.
-    
+
 Organisation
     An organisation is a group of users who have registered an account on the portal using the same email domain. Organisations can create and manage content, participate in discussions, and establish contact with other community members.
 
@@ -30,8 +31,8 @@ Contributor Profile
     A contributor profile consists of publicly available information that can be associated with either a {term}`user <User>` or an {term}`organisation <Organisation>`. organisation who has created or submitted content to the portal. Contributors can create and manage content, participate in discussions, and establish contact with other community members.
 
 Project
-    A project is a collection of related datasets plus relevant metadata that describes the collection. See the [Projects](projects.md) section of the user guide for more information. 
-    
+    A project is a collection of related datasets plus relevant metadata that describes the collection. See the [Projects](projects.md) section of the user guide for more information.
+
 Dataset
     A dataset represents a collection of samples and any measurements or observations made on those samples. Datasets are the core building block of FairDM-powered web portals. See the [Datasets](datasets.md) section of the user guide for more information.
 
@@ -40,6 +41,5 @@ Sample
 
 Measurement
     A measurement represents a single measurement or observation made on a sample. See the [Measurements](measurements.md) section of the user guide for more information.
-
 
 :::

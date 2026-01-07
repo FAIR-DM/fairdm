@@ -30,7 +30,7 @@ Usage:
 
 See Also:
     - docs/contributing/testing/fixtures.md
-    - docs/developer-guide/testing-portal-projects.md
+    - docs/portal-development/testing-portal-projects.md
     - docs/contributing/testing/examples/fixture-factory-example.md
 """
 

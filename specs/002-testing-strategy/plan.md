@@ -95,7 +95,7 @@ docs/
 │   │       ├── contract-test-example.md
 │   │       └── fixture-factory-example.md
 │   └── index.md                  # Link to testing section
-├── developer-guide/
+├── portal-development/
 │   ├── testing-portal-projects.md  # Portal developer guide (NEW)
 │   └── index.md                    # Link to portal testing guide
 
@@ -328,7 +328,7 @@ This feature produces documentation, not APIs, so no formal contracts are needed
 4. Running tests and interpreting coverage reports
 5. Understanding test quality vs coverage numbers
 
-**Portal Developer Quickstart** (`docs/developer-guide/testing-portal-projects.md`):
+**Portal Developer Quickstart** (`docs/portal-development/testing-portal-projects.md`):
 
 A dedicated guide for downstream portal developers:
 

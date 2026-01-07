@@ -29,7 +29,7 @@ html_theme_options.update({
             "image_light": "_static/fairdm_light.svg",
             "image_dark": "_static/fairdm_dark.svg",
         },
-        "header_links_before_dropdown": 4,
+        "header_links_before_dropdown": 0,
         "navbar_align": "left",
         "secondary_sidebar_items": {
             "**": ["page-toc", "edit-this-page",],

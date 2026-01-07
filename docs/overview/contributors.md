@@ -6,10 +6,10 @@ FairDM treats contributor attribution and provenance as first-class concerns. Th
 
 FairDM documentation uses two related terms:
 
-- **Portal contributors**: people and organizations who contribute to the *research outputs* managed in a FairDM portal (projects, datasets, samples, measurements, metadata, and curation activities).
+- **Portal users**: people and organizations who contribute to the *research outputs* managed in a FairDM portal (projects, datasets, samples, measurements, metadata, and curation activities).
 - **Framework contributors**: people who contribute to the *FairDM framework itself* (code, documentation, tests, releases).
 
-This page focuses on **portal contributors**.
+This page focuses on **portal users**.
 
 ## Why record contributors?
 
@@ -38,7 +38,7 @@ Where available, contributor records can be linked to persistent identifiers and
 - **ROR IDs** for organizations
 
 ```{seealso}
-- Portal contributor workflows: the [Contributor Guide](../contributor-guide/index.md)
-- Managing contributor entities and roles: the [Admin Guide](../admin-guide/index.md)
+- Portal user workflows: the [User Guide](../user-guide/index.md)
+- Managing contributor entities and roles: the [Admin Guide](../portal-administration/index.md)
 - Contributing to the FairDM framework: the [Contributing guide](../contributing/index.md)
 ```

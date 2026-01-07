@@ -13,9 +13,9 @@ FairDM documentation is organized into four primary sections, each serving a dis
 
 | Section | Audience | Purpose | Example Pages |
 |---------|----------|---------|---------------|
-| **developer-guide/** | Portal builders implementing FairDM | How to build and configure portals using FairDM framework | Model configuration, Registry API, Plugin development, Settings reference |
-| **admin-guide/** | Portal administrators managing deployments | How to deploy, configure, and maintain FairDM instances | Deployment guide, Backup/restore, Permissions management, Monitoring |
-| **contributor-guide/** | Portal users contributing data | How to use portal features and contribute data | Data submission workflow, Metadata guidelines, UI walkthroughs, FAQ |
+| **portal-development/** | Portal builders implementing FairDM | How to build and configure portals using FairDM framework | Model configuration, Registry API, Plugin development, Settings reference |
+| **portal-administration/** | Portal administrators managing deployments | How to deploy, configure, and maintain FairDM instances | Deployment guide, Backup/restore, Permissions management, Monitoring |
+| **user-guide/** | Portal users contributing data | How to use portal features and contribute data | Data submission workflow, Metadata guidelines, UI walkthroughs, FAQ |
 | **contributing/** | Framework contributors developing FairDM | How to contribute to FairDM core development | Development setup, Testing guidelines, Code style, Release process |
 
 ---
@@ -24,7 +24,7 @@ FairDM documentation is organized into four primary sections, each serving a dis
 
 Use these decision rules to determine the correct section for your documentation:
 
-### Developer Guide (`docs/developer-guide/`)
+### Developer Guide (`docs/portal-development/`)
 
 Choose this section if your documentation answers:
 
@@ -35,11 +35,11 @@ Choose this section if your documentation answers:
 
 **Examples**:
 
-- Documenting a new registry option → `developer-guide/registry-api.md`
-- Explaining model configuration → `developer-guide/models/`
-- Plugin development guide → `developer-guide/plugins.md`
+- Documenting a new registry option → `portal-development/registry-api.md`
+- Explaining model configuration → `portal-development/models/`
+- Plugin development guide → `portal-development/plugins.md`
 
-### Admin Guide (`docs/admin-guide/`)
+### Admin Guide (`docs/portal-administration/`)
 
 Choose this section if your documentation answers:
 
@@ -50,11 +50,11 @@ Choose this section if your documentation answers:
 
 **Examples**:
 
-- Deployment instructions → `admin-guide/deployment.md`
-- Permission configuration → `admin-guide/permissions.md`
-- Backup procedures → `admin-guide/backup-restore.md`
+- Deployment instructions → `portal-administration/deployment.md`
+- Permission configuration → `portal-administration/permissions.md`
+- Backup procedures → `portal-administration/backup-restore.md`
 
-### Contributor Guide (`docs/contributor-guide/`)
+### User Guide (`docs/user-guide/`)
 
 Choose this section if your documentation answers:
 
@@ -65,9 +65,9 @@ Choose this section if your documentation answers:
 
 **Examples**:
 
-- Data submission workflow → `contributor-guide/submitting-data.md`
-- Using the search interface → `contributor-guide/searching.md`
-- Metadata best practices → `contributor-guide/metadata.md`
+- Data submission workflow → `user-guide/submitting-data.md`
+- Using the search interface → `user-guide/searching.md`
+- Metadata best practices → `user-guide/metadata.md`
 
 ### Contributing Guide (`docs/contributing/`)
 
@@ -124,8 +124,8 @@ Feature specifications follow the **Speckit** structure in `specs/###-feature-na
 
 **Examples**:
 
-- New feature: Custom Sample Types → `developer-guide/custom-samples.md`
-- New workflow: Batch Data Import → `contributor-guide/batch-import.md`
+- New feature: Custom Sample Types → `portal-development/custom-samples.md`
+- New workflow: Batch Data Import → `user-guide/batch-import.md`
 
 ### Update an Existing Page When
 
@@ -136,8 +136,8 @@ Feature specifications follow the **Speckit** structure in `specs/###-feature-na
 
 **Examples**:
 
-- New configuration option → Add to existing `developer-guide/configuration.md`
-- UI improvement → Update existing `contributor-guide/searching.md`
+- New configuration option → Add to existing `portal-development/configuration.md`
+- UI improvement → Update existing `user-guide/searching.md`
 - Bug fix clarification → Update relevant troubleshooting section
 
 ### Use Sections and Subsections
@@ -286,7 +286,7 @@ Periodically run the conformance audit to check for documentation quality issues
 The audit checks for:
 
 - **Missing spec cross-references**: Feature-related documentation should link to specifications
-- **Misplaced files**: Content in wrong directory (e.g., admin content not in admin-guide/)
+- **Misplaced files**: Content in wrong directory (e.g., admin content not in portal-administration/)
 - **Missing alt text**: Images without descriptive alt text
 - **Heading hierarchy violations**: Heading levels that skip (e.g., H1 → H3)
 
@@ -317,7 +317,7 @@ All pull requests are validated automatically:
 
 ### For Portal Developers
 
-1. **Consult developer-guide**: Find configuration and usage guidance
+1. **Consult portal-development**: Find configuration and usage guidance
 2. **Reference specs**: Follow links to specifications for full context
 3. **Check constitution**: Understand alignment with FairDM principles
 4. **Submit issues**: Report documentation gaps or errors
@@ -421,7 +421,7 @@ This is a warning.
 A: Not every change requires documentation. Bug fixes and internal refactoring usually don't need docs updates. New features, configuration changes, and breaking changes always require documentation.
 
 **Q: Which section should I update for a feature that affects multiple audiences?**
-A: Update all relevant sections. Use the feature documentation checklist to identify which sections need updates. A new model might need developer-guide (configuration), admin-guide (permissions), and contributor-guide (usage).
+A: Update all relevant sections. Use the feature documentation checklist to identify which sections need updates. A new model might need portal-development (configuration), portal-administration (permissions), and user-guide (usage).
 
 **Q: How do I handle deprecated features?**
 A: Mark the documentation section with a deprecation warning, explain the migration path to the replacement, and note the version when the feature will be removed. Use MyST admonitions:

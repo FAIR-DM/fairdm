@@ -51,13 +51,13 @@ description: "Task list for Testing Strategy & Fixtures - Corrective Implementat
 
 ### Create Portal Developer Documentation (User Story 3)
 
-- [X] T013 [US3] Create docs/developer-guide/testing-portal-projects.md with portal developer quickstart
+- [X] T013 [US3] Create docs/portal-development/testing-portal-projects.md with portal developer quickstart
 - [X] T014 [US3] Add installation section (poetry add --group dev fairdm) to testing-portal-projects.md
 - [X] T015 [US3] Add basic usage examples section with import and factory creation to testing-portal-projects.md
 - [X] T016 [US3] Add runtime override examples section showing field customization to testing-portal-projects.md
 - [X] T017 [US3] Add factory extension section for portal-specific fields to testing-portal-projects.md
 - [X] T018 [US3] Add best practices section for portal test maintenance to testing-portal-projects.md
-- [X] T019 [US3] Update docs/developer-guide/index.md to link to testing-portal-projects.md
+- [X] T019 [US3] Update docs/portal-development/index.md to link to testing-portal-projects.md
 
 **Checkpoint**: ✅ All documentation now shows correct import paths and portal developers have dedicated guide
 
@@ -153,7 +153,7 @@ Task T012: "Update integration-test-example.md"
 # Then sequentially create portal guide:
 Task T013: "Create testing-portal-projects.md"
 Task T014-T018: "Add sections to testing-portal-projects.md"
-Task T019: "Link from developer-guide/index.md"
+Task T019: "Link from portal-development/index.md"
 ```
 
 **Phase 3 (Validation)**:
@@ -232,7 +232,7 @@ This addresses the critical architectural issue and unblocks portal developers.
 - ✅ T013-T018: Comprehensive portal developer guide created
 - ✅ T022: Downstream project simulation test validates import workflow
 - ✅ T023: Built package includes factories in distribution
-- ✅ T019: Portal developer guide linked from developer-guide index
+- ✅ T019: Portal developer guide linked from portal-development index
 
 **Test**: A portal developer can install FairDM as a dependency, import `from fairdm.factories import ProjectFactory`, create instances with overrides, and extend factories for portal-specific fields following documented patterns.
 

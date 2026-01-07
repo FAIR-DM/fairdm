@@ -26,8 +26,8 @@ FairDM documentation is organized by audience:
 | Section | Audience | When to Use |
 |---------|----------|-------------|
 | **developer-guide/** | Portal builders | Configuring FairDM, extending with custom models/plugins |
-| **admin-guide/** | Portal administrators | Deploying, managing permissions, backups, monitoring |
-| **contributor-guide/** | Portal data contributors | Submitting data, using portal features, metadata guidelines |
+| **portal-administration/** | Portal administrators | Deploying, managing permissions, backups, monitoring |
+| **user-guide/** | Portal data contributors | Submitting data, using portal features, metadata guidelines |
 | **contributing/** | Framework contributors | Developing FairDM core, testing, code style, releasing |
 
 **See the full decision criteria**: [Documentation Standards](../contributing/documentation-standards.md#decision-criteria-where-does-my-documentation-go)
@@ -111,23 +111,23 @@ CI automatically validates:
 Update:
 
 - **developer-guide**: Model configuration, registration API usage
-- **admin-guide**: Permissions, admin interface
-- **contributor-guide**: How users interact with the model
+- **portal-administration**: Permissions, admin interface
+- **user-guide**: How users interact with the model
 
 ### Adding UI Components
 
 Update:
 
 - **developer-guide**: Component integration, customization
-- **contributor-guide**: UI usage guide with screenshots
-- **admin-guide**: Permissions for UI features (if applicable)
+- **user-guide**: UI usage guide with screenshots
+- **portal-administration**: Permissions for UI features (if applicable)
 
 ### Breaking Changes
 
 Update:
 
 - **developer-guide**: Migration guide with before/after examples
-- **admin-guide**: Deployment considerations
+- **portal-administration**: Deployment considerations
 - **contributing**: Note in release process/changelog
 
 ### Configuration Changes
@@ -135,7 +135,7 @@ Update:
 Update:
 
 - **developer-guide**: New settings reference with examples
-- **admin-guide**: Deployment environment variables
+- **portal-administration**: Deployment environment variables
 
 ---
 

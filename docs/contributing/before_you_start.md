@@ -1,6 +1,6 @@
 # Before You Start
 
-This guide is for experienced Django developers who wish to contribute to the development of the core FairDM framework. If you are looking for information on how to develop a FairDM-powered web application for your research community, please see the [Developer Guide](../developer-guide/index.md).
+This guide is for experienced Django developers who wish to contribute to the development of the core FairDM framework. If you are looking for information on how to develop a FairDM-powered web application for your research community, please see the [Developer Guide](../portal-development/index.md).
 
 ## Prerequisites
 

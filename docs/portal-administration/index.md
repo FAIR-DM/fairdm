@@ -3,7 +3,7 @@
 **For portal administrators** who manage an existing FairDM portal.
 
 ```{tip}
-This guide focuses on day-to-day administrative tasks in a FairDM portal. For technical setup and deployment, see the [Developer Guide](../developer-guide/index.md).
+This guide focuses on day-to-day administrative tasks in a FairDM portal. For technical setup and deployment, see the [Developer Guide](../portal-development/index.md).
 ```
 
 ## Your Role

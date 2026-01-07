@@ -1,10 +1,11 @@
 """Site navigation menu for FairDM."""
 
 from django.utils.translation import gettext_lazy as _
-from flex_menu import MenuItem
-from mvp.menus import SiteNavigation
+from flex_menu import Menu, MenuItem
 
 # Main site navigation menu
+SiteNavigation = Menu("main")
+
 SiteNavigation.extend(
     [
         # Projects dropdown

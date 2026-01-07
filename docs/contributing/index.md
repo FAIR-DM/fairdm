@@ -3,9 +3,9 @@
 **For FairDM framework contributors** who want to contribute to the core framework itself.
 
 ```{important}
-**Framework contributors vs portal contributors**: This guide is for people who want to contribute to the FairDM framework codebase, documentation, or examples. If you're looking to:
-- **Build a portal** for your research community → see the [Developer Guide](../developer-guide/index.md)
-- **Add data** to an existing portal → see the [Contributor Guide](../contributor-guide/index.md) for portal contributors
+**Framework contributors vs portal users**: This guide is for people who want to contribute to the FairDM framework codebase, documentation, or examples. If you're looking to:
+- **Build a portal** for your research community → see the [Developer Guide](../portal-development/index.md)
+- **Add data** to an existing portal → see the [User Guide](../user-guide/index.md) for portal users
 ```
 
 ## Your Role
@@ -40,6 +40,7 @@ contribution_framework
 getting_started
 frontend_dev
 django_dev
+documentation/index
 documentation-standards
 testing/index
 ```
