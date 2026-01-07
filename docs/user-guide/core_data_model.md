@@ -11,11 +11,13 @@ FairDM organizes research data into a hierarchical structure with four main leve
 A **Project** is a high-level container for related research activities. Think of it as the overarching research initiative, grant, or collaboration.
 
 **Examples:**
+
 - "Arctic Climate Monitoring 2020-2025"
 - "Urban Water Quality Assessment"
 - "Geological Survey of Region XYZ"
 
 **What you'll provide:**
+
 - Project title and description
 - Principal investigator and collaborators
 - Funding information
@@ -26,11 +28,13 @@ A **Project** is a high-level container for related research activities. Think o
 A **Dataset** is a collection of samples and measurements focused on a specific research question or hypothesis within a project. A project can have multiple datasets.
 
 **Examples:**
+
 - "Summer 2024 Ice Core Samples" (within an Arctic climate project)
 - "River Water Sampling Campaign" (within an urban water quality project)
 - "Basalt Formation Survey" (within a geological survey project)
 
 **What you'll provide:**
+
 - Dataset title and abstract
 - Research methods and protocols
 - Geographic coverage
@@ -47,11 +51,13 @@ A **Dataset** is a collection of samples and measurements focused on a specific 
 A **Sample** is a physical or digital object that you collect, process, and analyze. Each sample belongs to a dataset.
 
 **Examples:**
+
 - A rock specimen labeled "ROCK-001"
 - A water sample from "Site A, Date 2024-06-15"
 - A digital scan or photograph
 
 **What you'll provide:**
+
 - Sample identifier (often a lab code or field ID)
 - Sample name and description
 - Collection location (coordinates, site name, depth)
@@ -68,11 +74,13 @@ Samples can have **sub-samples**. For example, a borehole core might be subdivid
 A **Measurement** (or observation) is a quantifiable result from analyzing a sample. Each sample can have many measurements.
 
 **Examples:**
+
 - "Mineral composition analysis via X-ray diffraction"
 - "pH and dissolved oxygen readings"
 - "Grain size distribution"
 
 **What you'll provide:**
+
 - Measurement type (e.g., chemical analysis, physical property)
 - Method and instrument used
 - Measured values and units
@@ -148,5 +156,5 @@ The portal will validate your entries and flag any missing required fields befor
 - **[Metadata Best Practices](metadata_practices.md)**: Tips for ensuring high-quality, FAIR-compliant metadata
 
 ```{seealso}
-For a more technical description of the data model, see the [Core Data Model documentation](../contributing/core_data_model.md) in the framework contributor guide.
+For a more technical description of the data model, see the [Core Data Model documentation](../contributing/core_data_model.md) in the framework User Guide.
 ```

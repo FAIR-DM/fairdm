@@ -90,9 +90,9 @@ FairDM is intended for long-lived research infrastructure. All behavior changes 
 
 **Documentation & Community**:
 
-- Documentation (developer, admin, and contributor guides) MUST be updated alongside new features or breaking changes so that research teams with modest technical skills can remain productive.
+- Documentation (developer, admin, and User Guides) MUST be updated alongside new features or breaking changes so that research teams with modest technical skills can remain productive.
 - Accessibility, internationalisation readiness, and usability SHOULD be considered non-optional; regressions in these areas MUST be treated as bugs.
-- Community contributions MUST respect this constitution and the published contributor guidelines; maintainers MUST clearly communicate rationale for accepting or rejecting proposals with reference to these principles.
+- Community contributions MUST respect this constitution and the published User Guidelines; maintainers MUST clearly communicate rationale for accepting or rejecting proposals with reference to these principles.
 - Privacy and protection of sensitive research data MUST be treated as first-class concerns: portals MUST be able to restrict access appropriately and MUST NOT require public exposure of data to use core features.
 
 ### VI. Documentation Critical
@@ -131,7 +131,7 @@ This section defines the non-negotiable architectural boundaries and technology 
   - Cotton component tests MUST use `django_cotton.render_component()` with pytest-django fixtures.
   - UI/interaction tests MUST use pytest-playwright for user-visible behavior validation.
   - Coverage measurement SHOULD use coverage.py to identify untested code paths; coverage is a guide to find gaps, not a gate to merge.
-   	- Static analysis and formatting tooling (e.g., Ruff, mypy, djlint) as defined in pyproject.toml MUST be used for core development.
+    - Static analysis and formatting tooling (e.g., Ruff, mypy, djlint) as defined in pyproject.toml MUST be used for core development.
 - **Core MUST include**:
   - The canonical data model backbone (Project, Dataset, Sample, Measurement, Contributor, Organization and closely related entities).
   - Facilities to collect, validate, and store the metadata required for FAIR-compliant portals.

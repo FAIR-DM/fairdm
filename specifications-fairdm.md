@@ -26,7 +26,7 @@ Define the administrative publication approval workflow controlling dataset tran
 
 ## Provenance & Attribution Model (Authors vs Curators vs Editors)
 
-Define canonical data structures and attribution rules for publication metadata, scientific authors, portal contributors, and editorial approvers. Establish entity relationships for DOI and citation metadata, original scientific authors, portal contributors (reviewers and curators), and editorial approvers with action timestamps. Define attribution rules for data exports and public display. Establish audit and event requirements for editorial actions. Ensure given a dataset, the system can unambiguously identify original authors, curators, and editorial approvers, and provenance fields required at publication time are explicitly enumerated.
+Define canonical data structures and attribution rules for publication metadata, scientific authors, portal users, and editorial approvers. Establish entity relationships for DOI and citation metadata, original scientific authors, portal users (reviewers and curators), and editorial approvers with action timestamps. Define attribution rules for data exports and public display. Establish audit and event requirements for editorial actions. Ensure given a dataset, the system can unambiguously identify original authors, curators, and editorial approvers, and provenance fields required at publication time are explicitly enumerated.
 
 ## Role Hierarchy & Permission Matrix
 

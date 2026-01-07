@@ -36,10 +36,10 @@ This migration plan addresses conformance issues identified by the baseline audi
 
 **Tasks**:
 
-1. Add spec cross-references to key developer-guide pages:
-   - [ ] `docs/developer-guide/models.md` → link to relevant specs
-   - [ ] `docs/developer-guide/views.md` → link to relevant specs
-   - [ ] `docs/developer-guide/permissions.md` → link to relevant specs
+1. Add spec cross-references to key portal-development pages:
+   - [ ] `docs/portal-development/models.md` → link to relevant specs
+   - [ ] `docs/portal-development/views.md` → link to relevant specs
+   - [ ] `docs/portal-development/permissions.md` → link to relevant specs
 
 2. Add spec cross-references to contributing guide pages:
    - [ ] `docs/contributing/contribution_framework.md` → link to Feature 003
@@ -55,7 +55,7 @@ This migration plan addresses conformance issues identified by the baseline audi
 **Tasks**:
 
 1. Review and remediate misplaced root-level docs:
-   - [ ] `docs/background.md` - Evaluate if admin-guide or overview section is more appropriate
+   - [ ] `docs/background.md` - Evaluate if portal-administration or overview section is more appropriate
    - [ ] `docs/features.md` - Move to overview/ or split into developer/admin guides
    - [ ] `docs/roadmap.md` - Move to overview/ or contributing/
    - [ ] `docs/temp.md` - Remove or integrate into appropriate section
@@ -96,10 +96,10 @@ This migration plan addresses conformance issues identified by the baseline audi
 Based on expected traffic and importance, prioritize these pages:
 
 1. **Developer Guide** (highest traffic):
-   - `docs/developer-guide/index.md`
-   - `docs/developer-guide/documentation.md` ✅ (compliant)
-   - `docs/developer-guide/models.md`
-   - `docs/developer-guide/views.md`
+   - `docs/portal-development/index.md`
+   - `docs/portal-development/documentation.md` ✅ (compliant)
+   - `docs/portal-development/models.md`
+   - `docs/portal-development/views.md`
 
 2. **Contributing Guide**:
    - `docs/contributing/index.md`

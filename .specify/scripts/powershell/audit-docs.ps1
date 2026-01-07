@@ -106,7 +106,7 @@ function Test-SpecCrossReferences {
     $hasSpecReference = $content -match '\[.*\]\(.*specs/\d+-.*\.md\)'
 
     # Only flag feature-related docs without spec links
-    if ($mentionsFeature -and -not $hasSpecReference -and $FilePath -match 'docs\\(developer-guide|contributing)') {
+    if ($mentionsFeature -and -not $hasSpecReference -and $FilePath -match 'docs\\(portal-development|contributing)') {
         $relPath = $FilePath.Replace($RepoRoot, '').TrimStart('\')
         $Audit.AddFinding(
             $relPath,
@@ -131,23 +131,23 @@ function Test-FileLocation {
     if (-not $content) { return }
 
     # Developer guide heuristics
-    if ($content -match 'portal (developer|builder)' -and $FilePath -notmatch 'developer-guide') {
+    if ($content -match 'portal (developer|builder)' -and $FilePath -notmatch 'portal-development') {
         $Audit.AddFinding(
             $relPath,
             "Misplaced File",
-            "Content appears to be for portal developers but is not in developer-guide/",
-            "Move to docs/developer-guide/ or update content",
+            "Content appears to be for portal developers but is not in portal-development/",
+            "Move to docs/portal-development/ or update content",
             "Low"
         )
     }
 
     # Admin guide heuristics
-    if ($content -match '(deploy|deployment|production|administrator)' -and $FilePath -notmatch 'admin-guide' -and $FilePath -notmatch 'contributing') {
+    if ($content -match '(deploy|deployment|production|administrator)' -and $FilePath -notmatch 'portal-administration' -and $FilePath -notmatch 'contributing') {
         $Audit.AddFinding(
             $relPath,
             "Misplaced File",
-            "Content appears to be for administrators but is not in admin-guide/",
-            "Move to docs/admin-guide/ or update content",
+            "Content appears to be for administrators but is not in portal-administration/",
+            "Move to docs/portal-administration/ or update content",
             "Low"
         )
     }

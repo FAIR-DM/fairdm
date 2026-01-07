@@ -15,28 +15,28 @@ ______________________________________________________________________
 FairDM is an open-source web framework designed to help you build modern research data portals that fully align with the FAIR data principles. It streamlines the process of creating, deploying, and maintaining research portals by using a modern, well-documented, and widely supported open-source tech stack. FairDM takes care of the complexities of web development with sensible defaults that work out of the box—so researchers and data managers can focus on their data and research, not on technical headaches.
 
 ```{tip}
-**New to FairDM?** Jump straight to the [Getting Started guide](developer-guide/getting_started.md) for a hands-on introduction.
+**New to FairDM?** Jump straight to the [Getting Started guide](portal-development/getting_started.md) for a hands-on introduction.
 ```
 
 ## Documentation by Role
 
 Choose the guide that best matches your needs:
 
-### [Developer Guide](developer-guide/index.md)
+### [Developer Guide](portal-development/index.md)
 
 **For portal developers** who want to build and deploy a new FairDM-powered research portal. Learn how to set up your environment, define domain-specific data models, configure your portal, and deploy it to production.
 
 **Start here if**: You're building a FairDM-based portal for your research community
 
-### [Admin Guide](admin-guide/index.md)
+### [Admin Guide](portal-administration/index.md)
 
 **For portal administrators** who manage an existing FairDM portal. Understand your responsibilities for managing users, permissions, datasets, and ensuring FAIR-compliant metadata quality.
 
 **Start here if**: You manage an existing FairDM portal and its users
 
-### [Contributor Guide](contributor-guide/index.md) (Portal Contributors)
+### [User Guide](user-guide/index.md) (Portal Users)
 
-**For portal contributors** who add and edit research data in FairDM portals. Learn how to contribute data, understand metadata requirements, and follow FAIR practices.
+**For portal users** who add and edit research data in FairDM portals. Learn how to contribute data, understand metadata requirements, and follow FAIR practices.
 
 **Start here if**: You contribute data and metadata to an existing portal
 
@@ -47,7 +47,7 @@ Choose the guide that best matches your needs:
 **Start here if**: You want to improve the FairDM framework codebase
 
 ```{seealso}
-For more on the distinction between portal contributors and framework contributors, see the [Glossary](more/glossary.md).
+For more on the distinction between portal users and framework contributors, see the [Glossary](more/glossary.md).
 ```
 
 ### [Overview](overview/index.md)
@@ -75,9 +75,9 @@ Feature specifications and implementation plans are maintained in the [`specs/` 
 :hidden:
 
 overview/index
-contributor-guide/index
-developer-guide/index
-admin-guide/index
+user-guide/index
+portal-development/index
+portal-administration/index
 contributing/index
 more/glossary
 more/changelog

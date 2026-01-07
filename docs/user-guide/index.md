@@ -1,6 +1,6 @@
-# Contributor Guide
+# User Guide
 
-**For portal contributors** who add and edit research data in FairDM portals.
+**For portal users** who add and edit research data in FairDM portals.
 
 ```{note}
 This guide is for people who contribute data and metadata to an existing FairDM portal. If you want to contribute to the FairDM framework itself (code, documentation, examples), see the [Contributing Guide](../contributing/index.md) for framework contributors.
@@ -8,7 +8,7 @@ This guide is for people who contribute data and metadata to an existing FairDM 
 
 ## Your Role
 
-As a portal contributor, you will:
+As a portal user, you will:
 
 - **Access and browse research data**: Search and view projects, datasets, samples, and measurements
 - **Contribute data**: Add and edit research data entries in the portal

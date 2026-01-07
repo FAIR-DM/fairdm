@@ -1,0 +1,548 @@
+# Documentation Validation Schema
+
+This YAML schema specifies the validation rules enforced by the documentation validation tooling.
+
+---
+
+## Sphinx Build Validation
+
+```yaml
+sphinx_build:
+  # Command to run Sphinx build
+  command: sphinx-build
+
+  # Build options
+  options:
+    - "-W"              # Treat warnings as errors
+    - "--keep-going"    # Report all errors, not just first
+    - "-b"              # Builder type
+    - "html"            # HTML output format
+
+  # Source and output directories
+  source_dir: docs
+  output_dir: docs/_build/html
+
+  # Validation rules
+  rules:
+    exit_code_zero:
+      required: true
+      severity: error
+      message: "Build must complete without errors or warnings"
+
+    warnings_as_errors:
+      enabled: true
+      severity: error
+      message: "All warnings treated as build-blocking errors"
+
+    missing_includes:
+      severity: error
+      message: "All included files must exist"
+      pattern: "WARNING: .* could not be found"
+
+    invalid_myst_syntax:
+      severity: error
+      message: "All MyST syntax must be valid"
+      pattern: "WARNING: .* MyST.*"
+
+    orphan_documents:
+      severity: error
+      message: "All documents must be included in a toctree"
+      pattern: "WARNING: document isn't included in any toctree"
+      exceptions:
+        - "index.md"  # Root index doesn't need toctree inclusion
+```
+
+---
+
+## Link Check Validation
+
+```yaml
+link_check:
+  # Command to run link checker
+  command: sphinx-build
+
+  # Build options
+  options:
+    - "-b"
+    - "linkcheck"
+
+  # Source and output directories
+  source_dir: docs
+  output_dir: docs/_build/linkcheck
+
+  # Output file
+  output_file: docs/_build/linkcheck/output.txt
+
+  # Validation rules
+  rules:
+    internal_links:
+      # Internal links (same domain/repo)
+      severity: error
+      action: fail_build
+      message: "All internal links must resolve"
+      patterns:
+        broken:
+          - "broken\\s+.*"
+          - "\\[broken\\]"
+      scope:
+        - "docs/**/*.md"
+        - "specs/**/*.md"
+        - "specs/**/*.rst"
+
+    external_links:
+      # External links (other domains)
+      severity: warning
+      action: log_only
+      message: "External link failures logged but not blocking"
+      continue_on_error: true
+      patterns:
+        broken:
+          - "broken\\s+http"
+          - "\\[broken\\] http"
+
+    anchor_validation:
+      # Verify anchors exist in target documents
+      severity: error
+      action: fail_build
+      message: "Internal link anchors must exist in target"
+      scope:
+        - internal_links_only
+
+  # Ignore patterns (configured in docs/conf.py)
+  ignore_patterns:
+    - pattern: "http://localhost:\\d+"
+      reason: "Local development URLs"
+    - pattern: "https://example\\.com"
+      reason: "Example/placeholder URLs"
+    - pattern: ".*\\.local"
+      reason: "Local network URLs"
+
+  # Retry configuration
+  retries: 2
+  timeout: 10
+  workers: 5
+
+  # Rate limiting (to avoid 429 errors)
+  rate_limit:
+    delay_seconds: 1
+    max_concurrent: 5
+```
+
+---
+
+## Checklist Validation
+
+```yaml
+checklist_validation:
+  # Test command
+  command: pytest
+  test_file: tests/integration/docs/test_documentation_validation.py
+
+  # Checklist location pattern
+  checklist_pattern: "specs/{spec_id}/checklists/*.md"
+
+  # Required for features merged to main
+  required_for:
+    - branch: main
+      path_patterns:
+        - "fairdm/**/*.py"
+        - "docs/**/*.md"
+      exceptions:
+        - "tests/**/*"
+        - "docs/overview/**/*"  # Overview pages don't require checklists
+
+  # Checklist structure validation
+  structure:
+    required_sections:
+      - name: "Metadata"
+        patterns:
+          - "\\*\\*Feature\\*\\*:"
+          - "\\*\\*Spec\\*\\*:"
+          - "\\*\\*Author\\*\\*:"
+          - "\\*\\*Date\\*\\*:"
+        message: "Checklist must include metadata section with Feature, Spec, Author, Date"
+
+      - name: "Section Checklist"
+        patterns:
+          - "- \\[[ x]\\] \\*\\*user-guide/\\*\\*"
+          - "- \\[[ x]\\] \\*\\*portal-administration/\\*\\*"
+          - "- \\[[ x]\\] \\*\\*portal-development/\\*\\*"
+          - "- \\[[ x]\\] \\*\\*contributing/\\*\\*"
+        min_checked: 1
+        message: "At least one documentation section must be checked"
+
+      - name: "Content Requirements"
+        patterns:
+          - "- \\[[ x]\\] \\*\\*Feature overview\\*\\*"
+          - "- \\[[ x]\\] \\*\\*Usage examples\\*\\*"
+        message: "Content requirements section must be present"
+
+      - name: "Validation Results"
+        optional: true
+        patterns:
+          - "Build Validation"
+          - "Link Validation"
+        message: "Validation results encouraged but not required"
+
+  # Spec reference validation
+  spec_reference:
+    required: true
+    pattern: "\\[\\d{3}-[a-z0-9-]+\\]\\(\\.\\./"
+    validation:
+      - check: link_resolves
+        severity: error
+        message: "Spec reference must resolve via linkcheck"
+      - check: spec_file_exists
+        severity: error
+        message: "Referenced spec.md must exist"
+
+  # Completeness tracking (informational only)
+  completeness:
+    action: log_only
+    severity: info
+    metrics:
+      - name: features_with_checklists
+        query: "count(specs/*/checklists/*.md)"
+      - name: completed_checklists
+        query: "count(specs/*/checklists/*.md where status='Complete')"
+      - name: incomplete_checklists
+        query: "list(specs/*/checklists/*.md where status!='Complete')"
+```
+
+---
+
+## Conformance Audit
+
+```yaml
+conformance_audit:
+  # Audit trigger conditions
+  triggers:
+    - event: constitution_amendment
+      required: true
+      message: "Conformance audit required after constitution amendments"
+
+    - event: quarterly_schedule
+      required: false
+      schedule: "0 0 1 */3 *"  # First day of quarter
+      message: "Periodic audit recommended quarterly"
+
+    - event: major_release
+      required: true
+      message: "Conformance audit required before major releases"
+
+  # Audit scope
+  scope:
+    directories:
+      - docs/
+      - specs/
+      - .specify/
+
+    file_patterns:
+      - "**/*.md"
+      - "**/*.rst"
+
+  # Audit checks
+  checks:
+    structure_violations:
+      severity: error
+      description: "Files must be in correct top-level sections"
+      rules:
+        - allowed_top_level:
+            - user-guide/
+            - portal-administration/
+            - portal-development/
+            - contributing/
+            - overview/
+            - .specify/
+            - specs/
+        - no_new_top_level:
+            message: "Cannot add new top-level sections without constitution amendment"
+        - no_miscellaneous:
+            forbidden_dirs:
+              - "docs/misc/"
+              - "docs/miscellaneous/"
+              - "docs/other/"
+              - "docs/temp/"
+            message: "Miscellaneous directories not allowed"
+
+    missing_cross_references:
+      severity: warning
+      description: "Documentation should reference specs and constitution where relevant"
+      patterns:
+        spec_reference_missing:
+          scope: "portal-development/**/*.md"
+          search_for: "\\b(API|feature|component|system)\\b"
+          require: "../../specs/"
+          message: "Portal development docs should reference relevant specs"
+
+        constitution_reference_missing:
+          scope: "contributing/**/*.md"
+          search_for: "\\b(principle|philosophy|design decision)\\b"
+          require: "../../.specify/memory/constitution.md"
+          message: "Contributing docs should reference constitutional principles"
+
+    lifecycle_markers_missing:
+      severity: warning
+      description: "Known deprecated/experimental features should be marked"
+      rules:
+        deprecated_features:
+          # Manually maintained list of deprecated features
+          source: .specify/memory/deprecated-features.yml
+          check: marker_exists
+          marker_pattern: ":::{deprecated}"
+          message: "Deprecated features must be marked with admonition"
+
+        experimental_features:
+          # Automatically detected from spec status
+          source: specs/*/spec.md
+          query: "status == 'experimental'"
+          check: marker_exists
+          marker_pattern: ":::{warning}.*Experimental"
+          message: "Experimental features should be marked with warning"
+
+    terminology_consistency:
+      severity: warning
+      description: "Role terms should be consistently qualified"
+      patterns:
+        - term: "\\bcontributor\\b"
+          require_qualification: true
+          valid_forms:
+            - "Portal User"
+            - "Portal Administrator"
+            - "Portal Developer"
+            - "Framework Contributor"
+          message: "Use qualified role terms, not bare 'contributor'"
+
+        - term: "\\bdeveloper\\b"
+          require_qualification: true
+          valid_forms:
+            - "Portal Developer"
+            - "Framework Contributor"
+          context_exceptions:
+            - "when context clearly indicates which type"
+          message: "Qualify 'developer' as Portal Developer or Framework Contributor"
+
+  # Output format
+  output:
+    format: markdown
+    template: .specify/templates/conformance-audit-report.md
+    sections:
+      - summary
+      - structure_violations
+      - missing_cross_references
+      - lifecycle_markers
+      - terminology_issues
+      - recommendations
+```
+
+---
+
+## CI/CD Integration
+
+```yaml
+ci_cd_integration:
+  # GitHub Actions workflow
+  workflow_file: .github/workflows/docs-validation.yml
+
+  # Trigger conditions
+  triggers:
+    pull_request:
+      paths:
+        - "docs/**"
+        - "specs/**"
+        - "*.md"
+        - ".specify/**"
+
+    push:
+      branches:
+        - main
+        - develop
+
+  # Job configuration
+  jobs:
+    validate_docs:
+      runs_on: ubuntu-latest
+
+      steps:
+        - name: Build documentation
+          command: poetry run sphinx-build -W --keep-going -b html docs docs/_build/html
+          on_failure: fail_job
+
+        - name: Check internal links
+          command: poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+          script: python .github/scripts/check-internal-links.py
+          on_failure: fail_job
+
+        - name: Check external links
+          command: poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+          script: python .github/scripts/check-external-links.py
+          on_failure: log_warning
+          continue_on_error: true
+
+        - name: Validate checklists
+          command: poetry run pytest tests/integration/docs/test_documentation_validation.py
+          on_failure: log_info
+          continue_on_error: true
+          comment_on_pr: true
+
+        - name: Generate validation report
+          command: python .github/scripts/generate-validation-report.py
+          output: docs-validation-report.md
+          upload_artifact: true
+          comment_on_pr: true
+
+  # Required checks (must pass before merge)
+  required_checks:
+    - validate_docs.build_documentation
+    - validate_docs.check_internal_links
+
+  # Optional checks (informational only)
+  optional_checks:
+    - validate_docs.check_external_links
+    - validate_docs.validate_checklists
+```
+
+---
+
+## Validation Scripts
+
+### check-internal-links.py
+
+```yaml
+script_spec:
+  name: check-internal-links.py
+  location: .github/scripts/
+  purpose: Parse linkcheck output and fail on broken internal links
+
+  inputs:
+    - file: docs/_build/linkcheck/output.txt
+      format: plain text
+
+  logic:
+    - parse: linkcheck output
+    - filter: internal links only (same domain/repo)
+    - check: any broken?
+    - exit_code: 0 if all pass, 1 if any broken
+
+  output:
+    console:
+      format: summary
+      example: |
+        Internal Link Check Results:
+        ✅ 245 internal links validated
+        ❌ 2 broken internal links found:
+           - docs/portal-development/registry.md → ../../specs/999-nonexistent/spec.md
+           - docs/contributing/setup.md → ../../.specify/memory/constitution.md#typo-anchor
+
+        Result: FAIL
+```
+
+### check-external-links.py
+
+```yaml
+script_spec:
+  name: check-external-links.py
+  location: .github/scripts/
+  purpose: Parse linkcheck output and warn on broken external links
+
+  inputs:
+    - file: docs/_build/linkcheck/output.txt
+      format: plain text
+
+  logic:
+    - parse: linkcheck output
+    - filter: external links only (other domains)
+    - check: any broken?
+    - exit_code: 0 always (warnings only)
+
+  output:
+    console:
+      format: summary
+      example: |
+        External Link Check Results:
+        ✅ 38 external links validated
+        ⚠️  4 external link warnings:
+           - https://old-domain.com/article → 404 Not Found
+           - https://api.service.com/v1/docs → Connection timeout
+
+        Note: External link failures are logged but do not block build.
+        Result: PASS (with warnings)
+```
+
+### generate-validation-report.py
+
+```yaml
+script_spec:
+  name: generate-validation-report.py
+  location: .github/scripts/
+  purpose: Aggregate all validation results into single report
+
+  inputs:
+    - sphinx_build_output
+    - linkcheck_output
+    - pytest_results
+
+  output:
+    file: docs-validation-report.md
+    format: markdown
+    sections:
+      - summary: Pass/fail status for each validation type
+      - build_metrics: Warnings, errors, files processed
+      - link_metrics: Internal/external links checked and results
+      - checklist_metrics: Features with checklists, completion status
+      - recommendations: Suggested improvements
+
+    upload: GitHub Actions artifact
+    comment: Post summary to PR
+```
+
+---
+
+## Usage Examples
+
+### Local Validation
+
+```bash
+# Full validation suite
+poetry run sphinx-build -W -b html docs docs/_build/html
+poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+poetry run pytest tests/integration/docs/
+
+# Quick build check (no links)
+poetry run sphinx-build -W -b html docs docs/_build/html
+
+# Links only
+poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+```
+
+### CI/CD Validation
+
+```yaml
+# In .github/workflows/docs-validation.yml
+- name: Validate documentation
+  run: |
+    poetry run sphinx-build -W --keep-going -b html docs docs/_build/html
+    poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+    python .github/scripts/check-internal-links.py
+    poetry run pytest tests/integration/docs/test_documentation_validation.py
+```
+
+### Pre-commit Hook
+
+```yaml
+# In .pre-commit-config.yaml
+- repo: local
+  hooks:
+    - id: docs-validation
+      name: Validate documentation
+      entry: poetry run sphinx-build -W -b html docs docs/_build/html
+      language: system
+      pass_filenames: false
+      files: ^docs/.*\.md$
+```
+
+---
+
+**Schema Version**: 1.0.0
+**Last Updated**: 2026-01-07
+**Spec Reference**: [001-documentation-strategy](../spec.md)
