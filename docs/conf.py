@@ -11,7 +11,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql://username:password@hostname:5
 sys.path.append(str(BASE_DIR / "tests"))
 
 
-from docs.conf import *
+from docs.conf import * # type: ignore
 
 # https://sphinx-book-theme.readthedocs.io/en/stable/reference.html
 # https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/index.html

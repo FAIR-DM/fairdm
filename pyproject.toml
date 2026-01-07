@@ -281,25 +281,43 @@ env = [
     "DJANGO_ENV=development",
 ]
 python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests (fast, isolated, no external dependencies)",
+    "integration: Integration tests (database, cross-component interactions)",
+    "contract: Contract tests (API schemas, data format validation, interoperability)",
+    "slow: Tests that take > 1 second to execute",
+]
 filterwarnings = [
     "ignore",
     "default:::keywords",
 ]
-# addopts = "--cov --cov-report html"
-
-[tool.coverage.report]
-skip_empty = true
-show_missing = "true"
+addopts = [
+    "--strict-markers",
+    "--reuse-db",
+    "--no-migrations",
+]
+# Coverage can be enabled with: --cov --cov-report html
 
 [tool.coverage.run]
-branch = "true"
+source = ["fairdm"]
+branch = true
 omit = [
     "*site-packages*",
     "*/tests/*",
     "*.tox*",
     "*__init__.py",
-    "*/migrations/*"
-    ]
+    "*/migrations/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+precision = 1
+skip_empty = true
+show_missing = true
+skip_covered = false
 
 
 [tool.deptry]
