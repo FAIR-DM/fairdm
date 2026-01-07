@@ -1,7 +1,7 @@
 # Feature Specification: Testing Strategy & Fixtures
 
-**Feature Branch**: `004-testing-strategy-fixtures`
-**Created**: 2026-01-06
+**Feature Branch**: `002-testing-strategy`
+**Created**: 2026-01-06 (renamed from 004-testing-strategy-fixtures on 2026-01-07)
 **Status**: Draft
 **Input**: User description: "Define the testing strategy, test organization layers and feature validation. Establish test layer taxonomy (unit, integration, e2e, etc.) and their organizational structure. Define naming conventions for test files and test functions. Ensure feature specifications can reference standard test layers and fixture locations unambiguously, minimal happy-path integration tests exist covering end-to-end workflows, and testing conventions provide clear guidance on test naming, organization, and required assertions."
 

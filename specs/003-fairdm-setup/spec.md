@@ -1,8 +1,8 @@
 ## Feature Specification: Production-Ready Configuration via fairdm.conf
 
-**Feature Branch**: `002-production-config-fairdm-conf`  
-**Created**: 2026-01-02  
-**Status**: Draft  
+**Feature Branch**: `003-fairdm-setup`
+**Created**: 2026-01-02 (renamed from 002-production-config-fairdm-conf on 2026-01-07)
+**Status**: Draft
 **Input**: User description: "Goal: Deliver a clear, opinionated production configuration story using the fairdm.conf package. Scope: Define responsibilities and boundaries of fairdm.conf, provide patterns for safe settings overrides, and support PostgreSQL, Redis, container-based deployment, and pluggable addons without brittle coupling. Why now: A stable, production-ready configuration baseline is critical for existing and future portals to rely on FairDM with confidence."
 
 ## Clarifications
@@ -14,6 +14,7 @@
 - Q: For project-specific overrides (branding, feature flags, extra apps), where should portal teams put them? → A: In the portal’s settings module (e.g., `config/settings.py`) immediately after calling `fairdm.setup(...)`.
 - Q: When required configuration is missing/invalid at startup, should the error message include all detected problems or stop at the first one? → A: Report all missing/invalid items in a single startup error.
 - Q: If an addon listed in `fairdm.setup(addons=[...])` is misconfigured (e.g., missing `__fdm_setup_module__` or its setup module can’t be imported), what should happen? → A: Fail fast in `production`/`staging`, but warn and skip in `development`.
+
 ### Session 2026-01-02 (Architecture Clarification)
 
 - Q: How should the configuration architecture work? → A: Keep `fairdm/conf/settings/*` as the production baseline; `setup()` orchestrates loading them based on profile. The existing settings directory contains production-ready modular settings. Individual modules target specific production requirements (caching, media/static, database, etc.). No separate base.py/production.py files are needed.
@@ -21,6 +22,7 @@
 - Q: How should the settings/* modules be organized? → A: Consolidate into ~8-12 focused modules aligned with production concerns (database, cache, security, static/media, email, logging, apps/middleware, celery, auth). Rearrange, edit, and consolidate current settings modules within this directory for long-term maintainability.
 - Q: How should addon configuration be loaded? → A: Addons provide a setup module (e.g., `addon/conf.py`); `setup()` imports and executes it after loading base settings.
 - Q: How should validation errors be reported? → A: Collect all errors during validation, then raise single `ImproperlyConfigured` exception with all issues listed.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Stand up a production-ready portal (Priority: P1)
