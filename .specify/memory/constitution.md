@@ -1,17 +1,22 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 → 1.1.1
+- Version change: 1.1.1 → 1.2.0
 - Modified principles:
-	- Principle V: Strengthened testing requirement to "comprehensive automated tests".
-	- Development Workflow: Renamed "Testing Discipline" to "Comprehensive Testing Discipline" and "Documentation & Templates" to "Feature Documentation & Templates" for clarity.
-- Added sections: None
+	- Principle V: Restructured and strengthened as "Test-First Quality & Sustainability (NON-NEGOTIABLE)" with explicit test-first discipline (Red → Green → Refactor), FairDM-specific testing requirements (pytest-django, Cotton component testing patterns, pytest-playwright for UI), and 80% coverage mandate.
+- Added sections:
+	- Principle VI: "Documentation Critical" - New principle establishing documentation as part of framework surface area with mandatory usage examples, migration guides, and testable behavior descriptions.
 - Removed sections: None
-- Templates requiring updates (✅ updated / ⚠ pending):
-	- ✅ .specify/templates/plan-template.md (Compatible)
-	- ✅ .specify/templates/spec-template.md (Compatible)
-	- ✅ .specify/templates/tasks-template.md (Compatible)
-	- ✅ .specify/templates/checklist-template.md (Compatible)
-- Follow-up TODOs: None
+- Templates requiring updates (✓ updated / ⚠ pending):
+	- ✓ .specify/templates/plan-template.md (Constitution Check section references updated principles)
+	- ✓ .specify/templates/spec-template.md (Compatible - user scenarios align with test-first)
+	- ✓ .specify/templates/tasks-template.md (Compatible - task structure supports test-first workflow)
+	- ⚠ specs/004-testing-strategy-fixtures/spec.md (Must be referenced as canonical testing strategy)
+	- ⚠ .github/instructions/testing.instructions.md (Must align with constitutional testing requirements)
+	- ⚠ .github/instructions/copilot.instructions.md (Must reference Principle V and VI for test-first and documentation requirements)
+- Follow-up TODOs:
+	- Update developer documentation to reference constitutional testing requirements
+	- Create migration guide template that follows Principle VI requirements
+	- Ensure CI/CD enforces 80% coverage threshold for new features
 -->
 
 # FairDM Constitution
@@ -58,16 +63,48 @@ FairDM provides a coherent, modern stack so that a new portal is deployable, mai
 
 In the near term (while FairDM is primarily used by its original author), stability of core behavior through tests and documentation is the top priority; feature velocity and advanced capabilities SHOULD be delivered primarily through addons.
 
-### V. Quality, Sustainability, and Community
+### V. Test-First Quality & Sustainability (NON-NEGOTIABLE)
 
-FairDM is intended for long-lived research infrastructure. Code, documentation, and community processes must reflect that responsibility.
+FairDM is intended for long-lived research infrastructure. All behavior changes MUST be driven by tests written first, and code, documentation, and community processes must reflect that responsibility.
 
-- All core changes MUST include comprehensive automated tests appropriate to their scope (unit, integration, or functional) and MUST preserve or improve overall test reliability.
+**Test-First Discipline**:
+
+- Tests MUST be written and observed failing before implementation work begins (Red → Green → Refactor).
+- All new or changed Python behavior MUST have pytest coverage.
+- Django integration behavior MUST have pytest-django coverage with appropriate test database strategies.
+- Cotton component tests MUST use `django_cotton.render_component()` with pytest-django's `rf` fixture (NOT Template() or render_to_string).
+- User-visible/UI behavior MUST have pytest-playwright coverage when the change affects rendered output, interactions, or accessibility.
+- Pull requests MUST NOT be merged with failing tests, or without new/updated tests for behavior changes.
+- The only acceptable exception is a docs-only change (no runtime behavior impact).
+
+**Code Quality & Tooling**:
+
 - Type hints, static analysis, and style rules (e.g., Ruff, mypy) are REQUIRED for core framework code except where explicitly exempted in project-wide configuration.
+- Test organization MUST follow the documented test layer taxonomy (unit, integration, contract) and naming conventions.
+- **Test quality over coverage targets**: Coverage metrics are a guide, not a goal. Tests MUST be:
+  - **Meaningful**: Verify behavior and critical functionality, not just syntactical presence
+  - **Maintainable**: Easy to update when underlying code changes
+  - **Reliable**: Consistently pass or fail based on actual code correctness
+- Coverage tools SHOULD be used to identify untested code paths, but high coverage percentages alone do NOT guarantee quality.
+- New features SHOULD aim for thorough test coverage of critical paths and edge cases; reviewers MUST assess test quality and completeness, not just coverage numbers.
+
+**Documentation & Community**:
+
 - Documentation (developer, admin, and contributor guides) MUST be updated alongside new features or breaking changes so that research teams with modest technical skills can remain productive.
 - Accessibility, internationalisation readiness, and usability SHOULD be considered non-optional; regressions in these areas MUST be treated as bugs.
 - Community contributions MUST respect this constitution and the published contributor guidelines; maintainers MUST clearly communicate rationale for accepting or rejecting proposals with reference to these principles.
- - Privacy and protection of sensitive research data MUST be treated as first-class concerns: portals MUST be able to restrict access appropriately and MUST NOT require public exposure of data to use core features.
+- Privacy and protection of sensitive research data MUST be treated as first-class concerns: portals MUST be able to restrict access appropriately and MUST NOT require public exposure of data to use core features.
+
+### VI. Documentation Critical
+
+Documentation is part of the framework surface area and MUST be treated with the same rigor as code.
+
+- Every public setting, template block, Cotton component, and public API MUST be documented with at least one minimal usage example.
+- Any change to public behavior MUST include a documentation update in the same pull request.
+- Examples in documentation MUST be kept working and reflect the current recommended usage.
+- Documentation MUST describe expected behavior in testable terms (inputs, outputs, and constraints).
+- Breaking changes MUST include migration guides that provide concrete, step-by-step instructions for users upgrading from previous versions.
+- Documentation MUST be versioned alongside code releases so users can reference docs appropriate to their deployed version.
 
 ## Architecture & Stack Constraints
 
@@ -76,38 +113,37 @@ This section defines the non-negotiable architectural boundaries and technology 
 - **Language & Runtime**: FairDM core MUST be implemented in Python and target currently supported CPython versions as defined in the project documentation and pyproject configuration.
 - **Web Framework**: Django is the foundational web framework. Alternatives MAY be evaluated experimentally but MUST NOT replace Django for the core without a major-version governance decision and migration strategy.
 - **Data Storage**:
-	- The core data model MUST be relational and map to a SQL database; PostgreSQL is the reference implementation.
-	- Migrations for core models MUST be maintained in the framework codebase; user-defined models follow normal Django migration workflows.
+  - The core data model MUST be relational and map to a SQL database; PostgreSQL is the reference implementation.
+  - Migrations for core models MUST be maintained in the framework codebase; user-defined models follow normal Django migration workflows.
 - **Asynchronous Work**: Long-running or high-volume operations (e.g., imports, exports, heavy analysis) SHOULD be executed using Celery or a governance-approved equivalent, with clear task monitoring guidance.
 - **API Layer**: When REST or programmatic access is enabled, Django REST Framework (or a governance-approved successor) SHOULD be used, and generated APIs MUST honor FAIR metadata and permission rules.
 - **Frontend**:
-	- Server-rendered templates with Bootstrap 5, Cotton components, and small HTMX/Alpine.js enhancements are the default.
-	- Alternative frontends MAY be added as optional integrations but MUST NOT break or remove the server-rendered baseline.
+  - Server-rendered templates with Bootstrap 5, Cotton components, and small HTMX/Alpine.js enhancements are the default.
+  - Alternative frontends MAY be added as optional integrations but MUST NOT break or remove the server-rendered baseline.
 - **Configuration & Settings**:
-	- Environment-based configuration (e.g., django-environ) is REQUIRED for secrets and deployment-specific settings.
-	- Project scaffolding MUST favor patterns that are 12-factor compatible and reproducible via containerization.
+  - Environment-based configuration (e.g., django-environ) is REQUIRED for secrets and deployment-specific settings.
+  - Project scaffolding MUST favor patterns that are 12-factor compatible and reproducible via containerization.
 - **Testing & Tooling**:
-	- pytest and pytest-django are the canonical testing stack.
-	- Static analysis and formatting tooling (e.g., Ruff, mypy, djlint) as defined in pyproject.toml MUST be used for core development.
-
-Any proposal that requires deviating from these constraints MUST include an explicit impact analysis, migration path, and versioning plan, and MUST be treated as at least a MINOR, and likely MAJOR, constitutional change.
-
-### Core vs Addons
-
-To preserve a small, stable core while allowing rich ecosystems to grow around it, FairDM distinguishes between core responsibilities and addon responsibilities.
-
+  - pytest and pytest-django are the canonical testing stack.
+  - Test organization MUST follow the documented test layer taxonomy (unit: `tests/unit/{app}/test_{module}.py`, integration: `tests/integration/{app}/test_{module}.py`, contract: `tests/contract/{app}/test_{module}.py`).
+  - Fixture factories MUST use pytest fixtures and/or factory-boy for reusable test data.
+  - Integration tests MUST use transaction rollback for test isolation; test database MUST be created once per session.
+  - Cotton component tests MUST use `django_cotton.render_component()` with pytest-django fixtures.
+  - UI/interaction tests MUST use pytest-playwright for user-visible behavior validation.
+  - Coverage measurement SHOULD use coverage.py to identify untested code paths; coverage is a guide to find gaps, not a gate to merge.
+   	- Static analysis and formatting tooling (e.g., Ruff, mypy, djlint) as defined in pyproject.toml MUST be used for core development.
 - **Core MUST include**:
-	- The canonical data model backbone (Project, Dataset, Sample, Measurement, Contributor, Organization and closely related entities).
-	- Facilities to collect, validate, and store the metadata required for FAIR-compliant portals.
-	- Basic CRUD and editing flows for core entities, including permissions-aware creation, update, and deletion.
-	- Basic browsing, search, and download/access flows for data and metadata, respecting privacy and authorization constraints.
-	- Basic analytics and activity indicators that help administrators understand core usage and health (e.g., counts, simple trends), when they can be implemented generically.
+  - The canonical data model backbone (Project, Dataset, Sample, Measurement, Contributor, Organization and closely related entities).
+  - Facilities to collect, validate, and store the metadata required for FAIR-compliant portals.
+  - Basic CRUD and editing flows for core entities, including permissions-aware creation, update, and deletion.
+  - Basic browsing, search, and download/access flows for data and metadata, respecting privacy and authorization constraints.
+  - Basic analytics and activity indicators that help administrators understand core usage and health (e.g., counts, simple trends), when they can be implemented generically.
 
 - **Addons SHOULD provide** (examples, non-exhaustive):
-	- Advanced or domain-specific analytics, dashboards, and reporting.
-	- Community or collaboration features (e.g., discussions, comments) similar to fairdm-discussions and other pluggable apps.
-	- Deep integrations with external systems (e.g., discipline-specific repositories, bespoke visualization tools) that are not universally required.
-	- Highly specialized or domain-specific UI workflows that go beyond the generic portal patterns.
+  - Advanced or domain-specific analytics, dashboards, and reporting.
+  - Community or collaboration features (e.g., discussions, comments) similar to fairdm-discussions and other pluggable apps.
+  - Deep integrations with external systems (e.g., discipline-specific repositories, bespoke visualization tools) that are not universally required.
+  - Highly specialized or domain-specific UI workflows that go beyond the generic portal patterns.
 
 Core MAY offer lightweight hooks and extension points to support these addons but SHOULD avoid embedding domain-specific behavior that can live more appropriately in separate packages.
 
@@ -116,44 +152,48 @@ Core MAY offer lightweight hooks and extension points to support these addons bu
 This section governs how new capabilities are proposed, designed, and implemented within the FairDM project, including how the Speckit-based specification files are used.
 
 - **Specification First**:
-	- Non-trivial changes MUST start with a feature specification (spec.md) that articulates user stories, priorities, and measurable success criteria in business and research terms.
-	- User stories MUST be independently testable slices of value and ordered by priority (P1, P2, P3, …).
+  - Non-trivial changes MUST start with a feature specification (spec.md) that articulates user stories, priorities, and measurable success criteria in business and research terms.
+  - User stories MUST be independently testable slices of value and ordered by priority (P1, P2, P3, …).
 - **Planning & Constitution Check**:
-	- Each feature MUST include an implementation plan (plan.md) that records technical context, chosen architecture, and project structure.
-	- The “Constitution Check” section in plan.md MUST explicitly note how the design aligns with the Core Principles and record any intentional violations in the “Complexity Tracking” table with justification.
+  - Each feature MUST include an implementation plan (plan.md) that records technical context, chosen architecture, and project structure.
+  - The “Constitution Check” section in plan.md MUST explicitly note how the design aligns with the Core Principles and record any intentional violations in the “Complexity Tracking” table with justification.
 - **Task Breakdown**:
-	- Tasks (tasks.md) MUST be grouped by user story and structured so that each story can be implemented and tested independently where feasible.
-	- Shared foundational work (infrastructure, core models) MUST be captured as explicit blocking tasks before story-specific implementation.
-- **Comprehensive Testing Discipline**:
-	- Where tests are requested or appropriate, contract/integration tests SHOULD be written before or alongside implementation for critical user journeys.
-	- No change MAY be merged that causes the agreed test suite for the touched areas to fail.
-- **Feature Documentation & Templates**:
-	- Developer, admin, and contributor documentation MUST be updated when behavior, configuration, or workflows change in user-visible ways.
-	- Speckit templates (plan-template, spec-template, tasks-template, checklist-template, command templates when present) MUST remain consistent with this constitution; any divergence MUST be corrected as part of the change.
+  - Tasks (tasks.md) MUST be grouped by user story and structured so that each story can be implemented and tested independently where feasible.
+  - Shared foundational work (infrastructure, core models) MUST be captured as explicit blocking tasks before story-specific implementation.
+- **Test-First Discipline**:
+  - Tests MUST be written and observed failing before implementation work begins (Red → Green → Refactor) as defined in Principle V.
+  - Contract/integration tests SHOULD be written before or alongside implementation for critical user journeys.
+  - No change MAY be merged that causes the agreed test suite for the touched areas to fail.
+  - Pull requests without appropriate test coverage for behavior changes MUST NOT be merged (except docs-only changes).
+- **Documentation Critical**:
+  - Developer, admin, and contributor documentation MUST be updated when behavior, configuration, or workflows change in user-visible ways, as defined in Principle VI.
+  - Public APIs, settings, template blocks, and Cotton components MUST include usage examples.
+  - Breaking changes MUST include migration guides.
+  - Speckit templates (plan-template, spec-template, tasks-template, checklist-template, command templates when present) MUST remain consistent with this constitution; any divergence MUST be corrected as part of the change.
 
 ## Governance
 
 The constitution defines how FairDM is evolved and how compliance is enforced.
 
 - **Authority & Scope**:
-	- This constitution supersedes ad-hoc practices when they conflict.
-	- It applies to the core FairDM framework and any official demo or reference projects maintained in this repository.
-	- At present, final authority for constitutional changes and major core decisions rests with the original author as BDFL (Benevolent Dictator For Life), while explicitly preparing for a future, broader governance model.
+  - This constitution supersedes ad-hoc practices when they conflict.
+  - It applies to the core FairDM framework and any official demo or reference projects maintained in this repository.
+  - At present, final authority for constitutional changes and major core decisions rests with the original author as BDFL (Benevolent Dictator For Life), while explicitly preparing for a future, broader governance model.
 - **Amendments & Versioning**:
-	- Amendments MUST be made via pull request that clearly states the intended change, rationale, and expected impact on existing portals and contributors.
-	- Constitution versions MUST follow semantic versioning:
-		- **MAJOR**: Backward-incompatible governance or principle changes, or removal/redefinition of existing principles.
-		- **MINOR**: Addition of new principles or sections, or substantial expansion of existing guidance.
-		- **PATCH**: Clarifications, non-semantic wording changes, and typo fixes.
-	- Any change to this document MUST update the version, Last Amended date, and Sync Impact Report at the top of the file.
-	- The FairDM core package itself SHOULD follow semantic versioning. Occasional breaking changes to the core API and data model are permitted, but MUST be clearly versioned, documented, and accompanied by migration guidance; as adoption grows, the threshold for such changes SHOULD become increasingly strict and MAY lead to formal LTS policies.
+  - Amendments MUST be made via pull request that clearly states the intended change, rationale, and expected impact on existing portals and contributors.
+  - Constitution versions MUST follow semantic versioning:
+    - **MAJOR**: Backward-incompatible governance or principle changes, or removal/redefinition of existing principles.
+    - **MINOR**: Addition of new principles or sections, or substantial expansion of existing guidance.
+    - **PATCH**: Clarifications, non-semantic wording changes, and typo fixes.
+  - Any change to this document MUST update the version, Last Amended date, and Sync Impact Report at the top of the file.
+  - The FairDM core package itself SHOULD follow semantic versioning. Occasional breaking changes to the core API and data model are permitted, but MUST be clearly versioned, documented, and accompanied by migration guidance; as adoption grows, the threshold for such changes SHOULD become increasingly strict and MAY lead to formal LTS policies.
 - **Compliance & Review**:
-	- Code review for core changes MUST consider alignment with the Core Principles, Architecture & Stack Constraints, and Workflow rules defined here.
-	- When violations are accepted (e.g., for pragmatic reasons), they MUST be documented in the relevant plan.md “Complexity Tracking” section and, where long-lived, reflected in a future constitutional amendment.
-	- Runtime guidance for contributors and AI agents (e.g., .github/instructions/copilot.instructions.md and related files) MUST be kept consistent with this constitution.
+  - Code review for core changes MUST consider alignment with the Core Principles, Architecture & Stack Constraints, and Workflow rules defined here.
+  - When violations are accepted (e.g., for pragmatic reasons), they MUST be documented in the relevant plan.md “Complexity Tracking” section and, where long-lived, reflected in a future constitutional amendment.
+  - Runtime guidance for contributors and AI agents (e.g., .github/instructions/copilot.instructions.md and related files) MUST be kept consistent with this constitution.
 - **Transparency & Community Input**:
-	- Proposed constitutional changes SHOULD be discussed openly (e.g., via issues or discussions) before being merged.
-	- Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
-	- As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
+  - Proposed constitutional changes SHOULD be discussed openly (e.g., via issues or discussions) before being merged.
+  - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
+  - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.1.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-01-02
+**Version**: 1.2.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-01-06

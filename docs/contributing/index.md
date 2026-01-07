@@ -41,4 +41,5 @@ getting_started
 frontend_dev
 django_dev
 documentation-standards
+testing/index
 ```

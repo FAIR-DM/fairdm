@@ -2,11 +2,9 @@
 
 This document contains feature specifications that should be implemented in the FairDM framework packages. These specifications define reusable, generic capabilities for scientific data management portals that can be applied across different scientific domains.
 
-**Note:** These specifications were originally developed for the Global Heat Flow Database Portal but represent patterns and capabilities that should be extracted into the FairDM framework for reuse across other scientific data management projects.
-
 ---
 
-## Documentation Infrastructure & Conventions
+## Documentation Infrastructure & Conventions - Done (003)
 
 Define how documentation is authored, validated, and kept synchronized with governance and feature implementations. Establish the documentation information architecture distinguishing user guides, developer documentation, and governance materials. Define cross-linking strategies between governance documents and technical documentation. Establish a feature documentation checklist specifying what documentation must be updated when features ship. Define how specifications are referenced from documentation to enable traceability. Establish validation criteria including build processes, link checking, failure conditions, and minimum quality expectations. Ensure contributors can locate appropriate documentation locations, follow consistent checklists when shipping features, and execute repeatable documentation validation.
 

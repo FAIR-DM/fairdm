@@ -90,6 +90,7 @@ component_library/index
 
 create_a_plugin
 quality_control
+testing-portal-projects
 
 ```
 
