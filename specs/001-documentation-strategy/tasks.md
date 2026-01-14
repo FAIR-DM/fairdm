@@ -155,7 +155,7 @@
 
 - [ ] T047 [US5] Create `docs/contributing/documentation/conformance-audit.md` documenting audit process
 - [ ] T048 [US5] Add structure violation checks to conformance-audit.md
-- [ ] T049 [US5] Add missing cross-reference checks to conformance-audit.md  
+- [ ] T049 [US5] Add missing cross-reference checks to conformance-audit.md
 - [ ] T050 [US5] Add lifecycle marker checks to conformance-audit.md
 - [ ] T051 [US5] Add terminology consistency checks to conformance-audit.md
 - [ ] T052 [US5] Create audit report template

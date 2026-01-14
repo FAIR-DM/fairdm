@@ -106,6 +106,7 @@ snakeviz = "^2.2.2"
 django-browser-reload = "^1.21.0"
 fairdm-discussions = {git = "https://github.com/FAIR-DM/fairdm-discussions"}
 fairdm-rest-api = {git = "https://github.com/FAIR-DM/fairdm-rest-api"}
+pytest-benchmark = "^5.2.3"
 
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs", extras = ["pydata-sphinx-theme"]}

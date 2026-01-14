@@ -1,49 +1,50 @@
 """
-Placeholder module for model configuration classes.
+Re-export registry configuration classes for convenient imports.
 
-This module is referenced by fairdm.core but not yet fully implemented.
-These are temporary stubs to allow the test suite to run.
+This module provides a convenient single import point for configuration classes.
+Instead of importing from fairdm.registry.config, users can import from fairdm.config.
+
+Note: Imports are deferred to avoid circular dependencies during Django setup.
 """
 
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fairdm.registry.config import Authority, Citation, ModelConfiguration, ModelMetadata
+    from fairdm.registry.registry import register
+else:
+
+    def __getattr__(name):
+        """Lazy import to avoid circular dependencies."""
+        if name in ("Authority", "Citation", "ModelConfiguration", "ModelMetadata"):
+            from fairdm.registry.config import (
+                Authority,
+                Citation,
+                ModelConfiguration,
+                ModelMetadata,
+            )
+
+            globals().update(
+                {
+                    "Authority": Authority,
+                    "Citation": Citation,
+                    "ModelConfiguration": ModelConfiguration,
+                    "ModelMetadata": ModelMetadata,
+                }
+            )
+            return globals()[name]
+        elif name == "register":
+            from fairdm.registry.registry import register
+
+            globals()["register"] = register
+            return register
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-class Authority:
-    """Temporary stub for Authority class."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize with arbitrary keyword arguments."""
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-class Citation:
-    """Temporary stub for Citation class."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize with arbitrary keyword arguments."""
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-class ModelConfiguration:
-    """Temporary stub for ModelConfiguration class."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize with arbitrary keyword arguments."""
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-class ModelMetadata:
-    """Temporary stub for ModelMetadata class."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize with arbitrary keyword arguments."""
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-def register(*args: Any, **kwargs: Any) -> None:
-    """Temporary stub for register function."""
-    pass
+__all__ = [
+    "Authority",
+    "Citation",
+    "ModelConfiguration",
+    "ModelMetadata",
+    "register",
+]

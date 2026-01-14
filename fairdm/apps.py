@@ -13,7 +13,10 @@ class FairDMConfig(AppConfig):
         autodiscover_modules("config")
         autodiscover_modules("plugins")
 
+        # Import registry checks to register them with Django check framework
         from django_filters import compat
+
+        from fairdm.registry import checks  # noqa: F401
 
         compat.is_crispy = lambda: False
 

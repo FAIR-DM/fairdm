@@ -85,6 +85,17 @@ class FieldInspector:
         """
         return self._get_field_map().get(field_name)
 
+    def has_field(self, field_name: str) -> bool:
+        """Check if the model has a field with the given name.
+
+        Args:
+            field_name: Name of the field
+
+        Returns:
+            True if field exists, False otherwise
+        """
+        return field_name in self._get_field_map()
+
     def should_exclude_field(self, field_name: str) -> bool:
         """Determine if a field should be excluded from auto-detection.
 

@@ -81,10 +81,6 @@ else:
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
             "LOCATION": "select2-cache",
         },
-        "vocabularies": {
-            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-            "LOCATION": "vocabularies-cache",
-        },
     }
 
 # Tell select2 which cache configuration to use:

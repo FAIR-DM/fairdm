@@ -52,28 +52,23 @@ except Exception:
 # CACHE (Degrade to LocMem if Redis not configured)
 # =============================================================================
 
-# Get existing CACHES from baseline settings
-CACHES = globals().get("CACHES", {})
+# try:
+#     CACHES = {
+#         "default": env.cache("REDIS_URL"),
+#     }
+# except Exception:
+#     import warnings
 
-try:
-    redis_config = env.cache("REDIS_URL")
-    # Update all caches to use Redis
-    for cache_name in CACHES:
-        CACHES[cache_name] = redis_config.copy()
-        CACHES[cache_name]["LOCATION"] = redis_config["LOCATION"]
-except Exception:
-    import warnings
-
-    warnings.warn(
-        "REDIS_URL not set. Using LocMemCache for development. " "Set REDIS_URL to test Redis functionality.",
-        stacklevel=2,
-    )
-    # Update all caches to use LocMemCache
-    for cache_name in list(CACHES.keys()):
-        CACHES[cache_name] = {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": f"{cache_name}-cache",
-        }
+#     warnings.warn(
+#         "REDIS_URL not set. Using LocMemCache for development. " "Set REDIS_URL to test Redis functionality.",
+#         stacklevel=2,
+#     )
+#     CACHES = {
+#         "default": {
+#             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+#             "LOCATION": "unique-snowflake",
+#         }
+#     }
 
 # =============================================================================
 # CELERY (Degrade to eager execution if Redis not configured)
