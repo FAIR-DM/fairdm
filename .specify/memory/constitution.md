@@ -1,22 +1,21 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.1 → 1.2.0
-- Modified principles:
-	- Principle V: Restructured and strengthened as "Test-First Quality & Sustainability (NON-NEGOTIABLE)" with explicit test-first discipline (Red → Green → Refactor), FairDM-specific testing requirements (pytest-django, Cotton component testing patterns, pytest-playwright for UI), and 80% coverage mandate.
+- Version change: 1.2.0 → 1.3.0
+- Modified principles: None
 - Added sections:
-	- Principle VI: "Documentation Critical" - New principle establishing documentation as part of framework surface area with mandatory usage examples, migration guides, and testable behavior descriptions.
+	- Principle VII: "Living Demo & Reference Implementation" - New principle establishing fairdm_demo as a maintained reference application that demonstrates current best practices, stays synchronized with framework changes, and serves as executable documentation with docstrings linking to relevant documentation.
 - Removed sections: None
 - Templates requiring updates (✓ updated / ⚠ pending):
-	- ✓ .specify/templates/plan-template.md (Constitution Check section references updated principles)
-	- ✓ .specify/templates/spec-template.md (Compatible - user scenarios align with test-first)
-	- ✓ .specify/templates/tasks-template.md (Compatible - task structure supports test-first workflow)
-	- ⚠ specs/004-testing-strategy-fixtures/spec.md (Must be referenced as canonical testing strategy)
-	- ⚠ .github/instructions/testing.instructions.md (Must align with constitutional testing requirements)
-	- ⚠ .github/instructions/copilot.instructions.md (Must reference Principle V and VI for test-first and documentation requirements)
+	- ✓ .specify/templates/plan-template.md (Constitution Check should consider demo app updates)
+	- ✓ .specify/templates/spec-template.md (Compatible - specs should note demo app impact)
+	- ✓ .specify/templates/tasks-template.md (Compatible - tasks should include demo app updates when relevant)
+	- ⚠ .github/instructions/copilot.instructions.md (Should reference Principle VII for demo app maintenance)
+	- ⚠ docs/ (Documentation should reference demo app as working examples)
 - Follow-up TODOs:
-	- Update developer documentation to reference constitutional testing requirements
-	- Create migration guide template that follows Principle VI requirements
-	- Ensure CI/CD enforces 80% coverage threshold for new features
+	- Add docstrings to fairdm_demo models, views, and configuration linking to documentation
+	- Ensure demo app migrations stay current with core model changes
+	- Create CI check to verify demo app stays functional with framework changes
+	- Document demo app architecture and purpose in contributing guide
 -->
 
 # FairDM Constitution
@@ -106,6 +105,27 @@ Documentation is part of the framework surface area and MUST be treated with the
 - Breaking changes MUST include migration guides that provide concrete, step-by-step instructions for users upgrading from previous versions.
 - Documentation MUST be versioned alongside code releases so users can reference docs appropriate to their deployed version.
 
+### VII. Living Demo & Reference Implementation
+
+FairDM maintains a reference application (`fairdm_demo`) that serves as executable documentation, a testing ground for new features, and a model for portal developers.
+
+- The demo app MUST remain functional and up-to-date with the current framework version at all times.
+- When core models, APIs, or recommended patterns change, the demo app MUST be updated in the same pull request to reflect those changes.
+- Demo app code (models, views, configuration, filters, tables, options) SHOULD include comprehensive docstrings that explain the purpose, usage, and rationale for each component.
+- Docstrings in demo app code SHOULD link to relevant sections of the documentation using clear references (e.g., "See documentation: [Topic Name](path/to/docs/topic.md)") where applicable.
+- The demo app SHOULD demonstrate current best practices for:
+  - Model registration and configuration
+  - Custom Sample and Measurement types
+  - Integration with django-tables2, django-filter, and other framework components
+  - Permission handling and object-level access control
+  - Import/export configuration
+  - Plugin development and integration
+- The demo app MAY include examples that go beyond minimal usage to illustrate advanced patterns, but MUST maintain simplicity and clarity as its primary goals.
+- CI/CD pipelines MUST verify that the demo app remains functional (models migrate cleanly, basic pages render, no import errors) as part of the standard test suite.
+- Documentation SHOULD reference the demo app as working examples where appropriate, creating a bi-directional link between narrative documentation and executable code.
+
+**Rationale**: The demo app serves triple duty as (1) a smoke test that framework changes work in a realistic context, (2) a learning resource for new portal developers, and (3) a forcing function to ensure patterns recommended in documentation are actually usable. By treating it as a first-class artifact with constitutional protection, we ensure it doesn't drift out of sync and become misleading or broken.
+
 ## Architecture & Stack Constraints
 
 This section defines the non-negotiable architectural boundaries and technology choices that keep FairDM coherent and maintainable.
@@ -175,9 +195,9 @@ This section governs how new capabilities are proposed, designed, and implemente
 
 The constitution defines how FairDM is evolved and how compliance is enforced.
 
-- **Authority & Scope**:
+- **Governance & Scope**:
   - This constitution supersedes ad-hoc practices when they conflict.
-  - It applies to the core FairDM framework and any official demo or reference projects maintained in this repository.
+  - It applies to the core FairDM framework and any official demo or reference projects maintained in this repository (including `fairdm_demo`).
   - At present, final authority for constitutional changes and major core decisions rests with the original author as BDFL (Benevolent Dictator For Life), while explicitly preparing for a future, broader governance model.
 - **Amendments & Versioning**:
   - Amendments MUST be made via pull request that clearly states the intended change, rationale, and expected impact on existing portals and contributors.
@@ -196,4 +216,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.2.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-01-06
+**Version**: 1.3.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-01-08

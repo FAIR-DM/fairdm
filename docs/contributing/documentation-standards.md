@@ -418,20 +418,10 @@ This is a warning.
 ## FAQ
 
 **Q: Do I need to update documentation for every change?**
-A: Not every change requires documentation. Bug fixes and internal refactoring usually don't need docs updates. New features, configuration changes, and breaking changes always require documentation.
+A: Not every change requires documentation. Bug fixes and internal refactoring usually don't need docs updates. New features and configuration changes always require documentation.
 
 **Q: Which section should I update for a feature that affects multiple audiences?**
 A: Update all relevant sections. Use the feature documentation checklist to identify which sections need updates. A new model might need portal-development (configuration), portal-administration (permissions), and user-guide (usage).
-
-**Q: How do I handle deprecated features?**
-A: Mark the documentation section with a deprecation warning, explain the migration path to the replacement, and note the version when the feature will be removed. Use MyST admonitions:
-
-```markdown
-:::{warning}
-This feature is deprecated as of FairDM 2025.1 and will be removed in 2026.0.
-Use [New Feature](new-feature.md) instead.
-:::
-```
 
 **Q: How do I mark experimental features?**
 A: Add an experimental notice at the top of the page and note that the API may change:

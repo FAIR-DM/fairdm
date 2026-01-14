@@ -28,7 +28,17 @@ def modelresource_factory(model, resource_class=ModelResource, **kwargs):
 
 
 def serializer_factory(model, base_serializer, **kwargs):
-    meta = type("Meta", (base_serializer.Meta,), {"model": model, **kwargs})
+    # Create Meta class - check if base_serializer has Meta, otherwise create fresh
+    base_meta = getattr(base_serializer, "Meta", None)
+
+    # Ensure fields='__all__' is set if not provided
+    if "fields" not in kwargs and "exclude" not in kwargs:
+        kwargs["fields"] = "__all__"
+
+    if base_meta:
+        meta = type("Meta", (base_meta,), {"model": model, **kwargs})
+    else:
+        meta = type("Meta", (), {"model": model, **kwargs})
     return type(f"{model.__name__}Serializer", (base_serializer,), {"Meta": meta})
 
 

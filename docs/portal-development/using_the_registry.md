@@ -10,6 +10,134 @@ The global registry instance is available throughout your application:
 from fairdm.registry import registry
 ```
 
+## Introspection API (New)
+
+The FairDM registry provides convenient properties for programmatically discovering and iterating over registered models. This introspection API enables dynamic workflows and flexible data processing.
+
+### Iterate Over All Registered Samples
+
+```python
+# Get all registered Sample model classes
+for sample_model in registry.samples:
+    print(f"Sample: {sample_model.__name__}")
+    print(f"Module: {sample_model.__module__}")
+
+    # Get configuration for this model
+    config = registry.get_for_model(sample_model)
+    print(f"Display Name: {config.display_name}")
+    print(f"Fields: {config.fields}")
+    print("---")
+```
+
+### Iterate Over All Registered Measurements
+
+```python
+# Get all registered Measurement model classes
+for measurement_model in registry.measurements:
+    print(f"Measurement: {measurement_model.__name__}")
+    print(f"Module: {measurement_model.__module__}")
+
+    # Access the model's configuration
+    config = registry.get_for_model(measurement_model)
+    print(f"Display Name: {config.display_name}")
+    print(f"Description: {config.description}")
+    print("---")
+```
+
+### Access All Registered Models
+
+```python
+# Get all registered models (Samples + Measurements combined)
+all_models = list(registry.models)
+print(f"Total registered models: {len(all_models)}")
+
+for model_class in registry.models:
+    config = registry.get_for_model(model_class)
+    model_type = "Sample" if issubclass(model_class, Sample) else "Measurement"
+    print(f"{model_type}: {model_class.__name__} - {config.display_name}")
+```
+
+### Dynamic Model Discovery
+
+The introspection API is particularly useful for building dynamic UIs and processing workflows:
+
+```python
+from fairdm.core.models import Sample, Measurement
+
+def process_all_samples():
+    """Process all registered sample models dynamically."""
+    for sample_model in registry.samples:
+        # Get recent instances
+        recent_samples = sample_model.objects.filter(
+            created__gte=timezone.now() - timedelta(days=30)
+        )
+
+        print(f"Processing {len(recent_samples)} recent {sample_model.__name__} instances")
+
+        # Access auto-generated components
+        config = registry.get_for_model(sample_model)
+        form_class = config.form
+        table_class = config.table
+
+        # Dynamic processing based on model type
+        # ... your processing logic here
+
+def create_measurement_reports():
+    """Generate reports for all measurement types."""
+    for measurement_model in registry.measurements:
+        config = registry.get_for_model(measurement_model)
+
+        # Generate report using model's table configuration
+        report_data = measurement_model.objects.all()
+        table = config.table(report_data)
+
+        print(f"Generated report for {measurement_model.__name__}: {len(report_data)} records")
+```
+
+### Model Filtering and Selection
+
+```python
+# Filter models by specific criteria
+def get_models_with_geo_fields():
+    """Find all registered models that have geographic fields."""
+    geo_models = []
+
+    for model_class in registry.models:
+        # Check if model has geographic fields
+        for field in model_class._meta.get_fields():
+            if field.name in ['latitude', 'longitude', 'location', 'coordinates']:
+                geo_models.append(model_class)
+                break
+
+    return geo_models
+
+# Get models by app
+def get_models_by_app(app_label):
+    """Get all registered models from a specific Django app."""
+    app_models = []
+
+    for model_class in registry.models:
+        if model_class._meta.app_label == app_label:
+            app_models.append(model_class)
+
+    return app_models
+```
+
+### Integration with Django Admin
+
+```python
+from django.contrib import admin
+
+# Dynamically register all Sample models with custom admin
+for sample_model in registry.samples:
+    config = registry.get_for_model(sample_model)
+    admin_class = config.admin  # Auto-generated ModelAdmin
+
+    # Customize admin registration
+    if not admin.site.is_registered(sample_model):
+        admin.site.register(sample_model, admin_class)
+```
+
 ## Registry Overview
 
 Get a quick overview of all registered models:
@@ -85,7 +213,7 @@ samples = registry.samples
 for sample_info in samples:
     model_class = sample_info['class']
     config = sample_info['config']
-    
+
     print(f"Sample Model: {model_class.__name__}")
     print(f"Display Name: {config.display_name}")
     print(f"Description: {config.get_description()}")
@@ -101,10 +229,10 @@ from django.apps import apps
 # Get all sample model classes
 for sample_info in registry.samples:
     model_class = sample_info['class']
-    
+
     # Query all instances of this sample type
     instances = model_class.objects.all()
-    
+
     print(f"\n{model_class.__name__} instances:")
     for instance in instances[:5]:  # Show first 5
         print(f"  - {instance.name} (ID: {instance.id})")
@@ -144,7 +272,7 @@ measurements = registry.measurements
 for measurement_info in measurements:
     model_class = measurement_info['class']
     config = measurement_info['config']
-    
+
     print(f"Measurement Model: {model_class.__name__}")
     print(f"Display Name: {config.display_name}")
     print(f"Description: {config.get_description()}")
@@ -158,7 +286,7 @@ If you have models from multiple Django apps, you can filter by app label:
 ```python
 # Get models from a specific app
 myapp_models = [
-    model_info for model_info in registry.all 
+    model_info for model_info in registry.all
     if model_info['app_label'] == 'myproject'
 ]
 
@@ -208,12 +336,12 @@ if hasattr(config, 'get_table_class'):
 for model_info in registry.all:
     config = model_info['config']
     model_name = model_info['class'].__name__
-    
+
     print(f"\n{model_name} Field Configuration:")
     print(f"  List Fields: {config.get_list_fields()}")
     print(f"  Detail Fields: {config.get_detail_fields()}")
     print(f"  Filter Fields: {config.get_filter_fields()}")
-    
+
     if hasattr(config, 'private_fields') and config.private_fields:
         print(f"  Private Fields: {config.private_fields}")
 ```
@@ -230,20 +358,20 @@ from fairdm.registry import registry
 def registry_summary_view(request):
     """Admin view showing registry summary."""
     summary = registry.summarise(print_output=False)
-    
+
     html = "<h1>FairDM Registry Summary</h1>"
     html += f"<p>Total Registered Models: {summary['total_registered']}</p>"
-    
+
     html += f"<h2>Samples ({summary['samples']['count']})</h2><ul>"
     for model in summary['samples']['models']:
         html += f"<li><strong>{model['name']}</strong> - {model['display_name']}</li>"
     html += "</ul>"
-    
+
     html += f"<h2>Measurements ({summary['measurements']['count']})</h2><ul>"
     for model in summary['measurements']['models']:
         html += f"<li><strong>{model['name']}</strong> - {model['display_name']}</li>"
     html += "</ul>"
-    
+
     return HttpResponse(html)
 
 # Add to your admin URLs
@@ -253,9 +381,10 @@ def registry_summary_view(request):
 ## Best Practices
 
 1. **Cache Registry Queries**: If you're accessing the registry frequently, consider caching the results:
+
    ```python
    from django.core.cache import cache
-   
+
    def get_cached_samples():
        samples = cache.get('registry_samples')
        if samples is None:
@@ -265,6 +394,7 @@ def registry_summary_view(request):
    ```
 
 2. **Use Type Checking**: When iterating over models, check their type:
+
    ```python
    for model_info in registry.all:
        if model_info['type'] == 'sample':
@@ -276,6 +406,7 @@ def registry_summary_view(request):
    ```
 
 3. **Error Handling**: Always check if models exist before accessing them:
+
    ```python
    model_info = registry.get_for_model(MyModel)
    if model_info is not None:
@@ -284,6 +415,7 @@ def registry_summary_view(request):
    ```
 
 4. **Performance Considerations**: For large datasets, use select_related() and prefetch_related():
+
    ```python
    for measurement_info in registry.measurements:
        model_class = measurement_info['class']

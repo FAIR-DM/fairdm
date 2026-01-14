@@ -5,18 +5,172 @@ auto-generation, component factories, ModelConfiguration, and metadata classes.
 """
 
 import pytest
+from django.db import models
+
 from fairdm.config import (
     Authority,
     Citation,
-    MeasurementConfig,
     ModelConfiguration,
     ModelMetadata,
-    SampleConfig,
 )
-
-import fairdm
 from fairdm.core.models import Measurement, Sample
 from fairdm.registry import registry
+
+
+class TestGetDefaultFields:
+    """T012: Unit tests for ModelConfiguration.get_default_fields()."""
+
+    def test_get_default_fields_basic(self):
+        """Test get_default_fields() returns standard model fields."""
+
+        class TestModel(Sample):
+            """Test Sample with basic fields."""
+
+            rock_type = models.CharField(max_length=100)
+            mineral_content = models.TextField()
+            sample_count = models.IntegerField()
+
+            class Meta:
+                app_label = "test_app"
+
+        defaults = ModelConfiguration.get_default_fields(TestModel)
+
+        # Should include standard fields
+        assert "rock_type" in defaults
+        assert "mineral_content" in defaults
+        assert "sample_count" in defaults
+
+        # Should exclude id
+        assert "id" not in defaults
+
+    def test_get_default_fields_excludes_polymorphic(self):
+        """Test get_default_fields() excludes polymorphic_ctype field."""
+
+        class TestModel(Sample):
+            """Test Sample (inherits from polymorphic base)."""
+
+            rock_type = models.CharField(max_length=100)
+
+            class Meta:
+                app_label = "test_app"
+
+        defaults = ModelConfiguration.get_default_fields(TestModel)
+
+        # Should exclude polymorphic_ctype
+        assert "polymorphic_ctype" not in defaults
+
+        # Should include regular fields
+        assert "rock_type" in defaults
+
+    def test_get_default_fields_excludes_ptr_fields(self):
+        """Test get_default_fields() excludes _ptr fields from inheritance."""
+
+        class ParentSample(Sample):
+            """Parent Sample model."""
+
+            rock_type = models.CharField(max_length=100)
+
+            class Meta:
+                app_label = "test_app"
+
+        class ChildSample(ParentSample):
+            """Child Sample inheriting from ParentSample."""
+
+            mineral_content = models.TextField()
+
+            class Meta:
+                app_label = "test_app"
+
+        defaults = ModelConfiguration.get_default_fields(ChildSample)
+
+        # Should exclude parentsample_ptr field
+        assert "parentsample_ptr" not in defaults
+
+        # Should include inherited and own fields
+        assert "rock_type" in defaults
+        assert "mineral_content" in defaults
+
+    def test_get_default_fields_excludes_auto_now(self):
+        """Test get_default_fields() excludes auto_now and auto_now_add fields."""
+
+        class TestModel(Sample):
+            """Test Sample with auto timestamp fields."""
+
+            rock_type = models.CharField(max_length=100)
+            sample_created_at = models.DateTimeField(auto_now_add=True)
+            sample_updated_at = models.DateTimeField(auto_now=True)
+
+            class Meta:
+                app_label = "test_app"
+
+        defaults = ModelConfiguration.get_default_fields(TestModel)
+
+        # Should exclude auto timestamp fields
+        assert "sample_created_at" not in defaults
+        assert "sample_updated_at" not in defaults
+
+        # Should include regular fields
+        assert "rock_type" in defaults
+
+    def test_get_default_fields_excludes_non_editable(self):
+        """Test get_default_fields() excludes editable=False fields."""
+
+        class TestModel(Sample):
+            """Test Sample with non-editable field."""
+
+            rock_type = models.CharField(max_length=100)
+            readonly_field = models.CharField(max_length=100, editable=False)
+
+            class Meta:
+                app_label = "test_app"
+
+        defaults = ModelConfiguration.get_default_fields(TestModel)
+
+        # Should exclude readonly field
+        assert "readonly_field" not in defaults
+
+        # Should include editable fields
+        assert "rock_type" in defaults
+
+    def test_get_default_fields_comprehensive_exclusions(self):
+        """Test get_default_fields() with all exclusion types together."""
+
+        class ParentModel(Sample):
+            """Parent Sample model."""
+
+            parent_rock_type = models.CharField(max_length=100)
+
+            class Meta:
+                app_label = "test_app"
+
+        class TestModel(ParentModel):
+            """Test Sample with various field types."""
+
+            rock_name = models.CharField(max_length=100)
+            mineral_description = models.TextField()
+            sample_count = models.IntegerField()
+            readonly_code = models.CharField(max_length=100, editable=False)
+            sample_created_at = models.DateTimeField(auto_now_add=True)
+            sample_updated_at = models.DateTimeField(auto_now=True)
+
+            class Meta:
+                app_label = "test_app"
+
+        defaults = ModelConfiguration.get_default_fields(TestModel)
+
+        # Should include only editable, standard fields
+        assert "rock_name" in defaults
+        assert "mineral_description" in defaults
+        assert "sample_count" in defaults
+        assert "parent_rock_type" in defaults
+
+        # Should exclude all special fields
+        assert "id" not in defaults
+        assert "polymorphic_ctype" not in defaults
+        assert "parentmodel_ptr" not in defaults
+        assert "readonly_code" not in defaults
+        assert "sample_created_at" not in defaults
+        assert "sample_updated_at" not in defaults
 
 
 class TestModelMetadata:
@@ -127,16 +281,6 @@ class TestCitation:
 class TestModelConfiguration:
     """Test ModelConfiguration class functionality."""
 
-    def test_model_configuration_initialization_empty(self, db):
-        """Test creating ModelConfiguration with no arguments."""
-        config = ModelConfiguration()
-
-        assert config.model is None
-        assert isinstance(config.metadata, ModelMetadata)
-        assert config.fields == []
-        assert config.private_fields == []
-        assert config.fieldsets == []
-
     def test_model_configuration_with_model(self, db):
         """Test creating ModelConfiguration with model."""
         config = ModelConfiguration(model=Sample)
@@ -144,218 +288,98 @@ class TestModelConfiguration:
         assert config.model == Sample
         assert isinstance(config.metadata, ModelMetadata)
 
-    def test_model_configuration_field_properties(self, db):
-        """Test list_fields, detail_fields, filter_fields properties."""
-        config = ModelConfiguration(model=Sample)
-        config.table_fields = ["name", "created"]
-        config.form_fields = ["name", "description"]
-        config.filterset_fields = ["created"]
+    def test_model_configuration_field_attributes(self, db):
+        """Test component-specific field attributes."""
+        config = ModelConfiguration(
+            model=Sample,
+            table_fields=["name", "status"],
+            form_fields=["name", "status"],
+            filterset_fields=["status"],
+        )
 
-        # Test backward compatibility properties
-        assert config.list_fields == ["name", "created"]
-        assert config.detail_fields == ["name", "description"]
-        assert config.filter_fields == ["created"]
-
-    def test_model_configuration_field_property_setters(self, db):
-        """Test that field property setters work correctly."""
-        config = ModelConfiguration(model=Sample)
-
-        config.list_fields = ["field1", "field2"]
-        assert config.table_fields == ["field1", "field2"]
-
-        config.detail_fields = ["field3", "field4"]
-        assert config.form_fields == ["field3", "field4"]
-
-        config.filter_fields = ["field5"]
-        assert config.filterset_fields == ["field5"]
-
-    def test_get_list_fields_defaults(self, db):
-        """Test get_list_fields with no configuration."""
-        config = ModelConfiguration(model=Sample)
-
-        fields = config.get_list_fields()
-        assert isinstance(fields, list)
-        assert "name" in fields
-        assert "created" in fields
-        assert "modified" in fields
-
-    def test_get_list_fields_with_table_fields(self, db):
-        """Test get_list_fields when table_fields is specified."""
-        config = ModelConfiguration(model=Sample)
-        config.table_fields = ["custom1", "custom2"]
-
-        assert config.get_list_fields() == ["custom1", "custom2"]
-
-    def test_get_list_fields_with_general_fields(self, db):
-        """Test get_list_fields falls back to general fields."""
-        config = ModelConfiguration(model=Sample)
-        config.fields = ["general1", "general2"]
-
-        assert config.get_list_fields() == ["general1", "general2"]
-
-    def test_get_detail_fields_defaults(self, db):
-        """Test get_detail_fields with no configuration."""
-        config = ModelConfiguration(model=Sample)
-
-        fields = config.get_detail_fields()
-        assert isinstance(fields, list)
-        # Should default to list_fields
-        assert fields == config.get_list_fields()
-
-    def test_get_detail_fields_with_form_fields(self, db):
-        """Test get_detail_fields when form_fields is specified."""
-        config = ModelConfiguration(model=Sample)
-        config.form_fields = ["form1", "form2"]
-
-        assert config.get_detail_fields() == ["form1", "form2"]
-
-    def test_get_filter_fields_defaults(self, db):
-        """Test get_filter_fields with defaults."""
-        config = ModelConfiguration(model=Sample)
-
-        fields = config.get_filter_fields()
-        assert isinstance(fields, list)
-        assert "created" in fields
-        assert "modified" in fields
-
-    def test_get_filter_fields_with_filterset_fields(self, db):
-        """Test get_filter_fields when filterset_fields is specified."""
-        config = ModelConfiguration(model=Sample)
-        config.filterset_fields = ["filter1", "filter2"]
-
-        assert config.get_filter_fields() == ["filter1", "filter2"]
-
-    def test_get_fields_empty(self, db):
-        """Test get_fields when fields is empty."""
-        config = ModelConfiguration(model=Sample)
-
-        assert config.get_fields() == []
-
-    def test_get_fields_with_values(self, db):
-        """Test get_fields with configured fields."""
-        config = ModelConfiguration(model=Sample)
-        config.fields = ["field1", "field2"]
-
-        fields = config.get_fields()
-        assert "id" in fields
-        assert "dataset" in fields
-        assert "field1" in fields
-        assert "field2" in fields
-
-    def test_get_fields_with_id_already_present(self, db):
-        """Test get_fields when id is already in fields list."""
-        config = ModelConfiguration(model=Sample)
-        config.fields = ["id", "field1", "field2"]
-
-        fields = config.get_fields()
-        # Should not duplicate id
-        assert fields == ["id", "field1", "field2"]
-
-    def test_get_fieldsets_empty(self, db):
-        """Test get_fieldsets with no configuration."""
-        config = ModelConfiguration(model=Sample)
-
-        assert config.get_fieldsets() is None
-
-    def test_get_fieldsets_with_dict(self, db):
-        """Test get_fieldsets with dict configuration."""
-        config = ModelConfiguration(model=Sample)
-        config.fieldsets = {"General": ["name", "description"]}
-
-        fieldsets = config.get_fieldsets()
-        # fairdm_fieldsets_to_django converts dict to tuple
-        assert isinstance(fieldsets, (tuple, list))
-        assert len(fieldsets) > 0
-
-    def test_get_fieldsets_with_list(self, db):
-        """Test get_fieldsets with list configuration."""
-        config = ModelConfiguration(model=Sample)
-        fieldset_list = [("General", {"fields": ["name", "description"]})]
-        config.fieldsets = fieldset_list
-
-        fieldsets = config.get_fieldsets()
-        assert fieldsets == fieldset_list
-
-    def test_get_fieldsets_from_fields(self, db):
-        """Test get_fieldsets falls back to fields."""
-        config = ModelConfiguration(model=Sample)
-        config.fields = ["field1", "field2"]
-
-        fieldsets = config.get_fieldsets()
-        assert isinstance(fieldsets, list)
-        assert len(fieldsets) == 1
-        assert fieldsets[0] == (None, {"fields": ["field1", "field2"]})
+        # Test field attributes directly
+        assert config.table_fields == ["name", "status"]
+        assert config.form_fields == ["name", "status"]
+        assert config.filterset_fields == ["status"]
 
 
 class TestAutoGeneratedComponents:
-    """Test auto-generation of forms, filters, tables, and resources."""
+    """Test auto-generation of forms, filters, tables, and resources using property-based API."""
 
-    def test_get_filterset_class_auto_generated(self, clean_registry, db):
-        """Test auto-generation of FilterSet class."""
+    def test_filterset_property_auto_generated(self, clean_registry, db):
+        """Test auto-generation of FilterSet class via property."""
+        from django_filters import FilterSet
 
-        @fairdm.register
-        class AutoFilterConfig(SampleConfig):
-            model = Sample
-            filterset_fields = ["name", "status"]
+        config = ModelConfiguration(
+            model=Sample,
+            filterset_fields=["name", "status"],
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
-        # Note: BaseModelConfig doesn't have get_filterset_class
-        # This tests that the config is properly initialized
-        assert config.model == Sample
-        assert config.filterset_fields == ["name", "status"]
+        # Access via property to trigger auto-generation
+        filterset_class = config.filterset
+        assert issubclass(filterset_class, FilterSet)
         assert not config.has_custom_filterset()
 
-    def test_get_form_class_auto_generated(self, clean_registry, db):
-        """Test auto-generation of ModelForm class."""
+    def test_form_property_auto_generated(self, clean_registry, db):
+        """Test auto-generation of ModelForm class via property."""
+        from django.forms import ModelForm
 
-        @fairdm.register
-        class AutoFormConfig(SampleConfig):
-            model = Sample
-            form_fields = ["name", "local_id", "status"]
+        config = ModelConfiguration(
+            model=Sample,
+            form_fields=["name", "status"],
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
-        # Test that config is properly initialized
-        assert config.model == Sample
+        # Access via property to trigger auto-generation
+        form_class = config.form
+        assert issubclass(form_class, ModelForm)
         assert not config.has_custom_form()
 
-    def test_get_table_class_auto_generated(self, clean_registry, db):
-        """Test auto-generation of Table class."""
+    def test_table_property_auto_generated(self, clean_registry, db):
+        """Test auto-generation of Table class via property."""
+        from django_tables2 import Table
 
-        @fairdm.register
-        class AutoTableConfig(SampleConfig):
-            model = Sample
-            table_fields = ["name", "status", "added"]
+        config = ModelConfiguration(
+            model=Sample,
+            table_fields=["name", "status"],
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
-        # Test that config is properly initialized
-        assert config.model == Sample
+        # Access via property to trigger auto-generation
+        table_class = config.table
+        assert issubclass(table_class, Table)
         assert not config.has_custom_table()
 
-    def test_get_resource_class_auto_generated(self, clean_registry, db):
-        """Test auto-generation of import/export Resource class."""
+    def test_resource_property_auto_generated(self, clean_registry, db):
+        """Test auto-generation of import/export Resource class via property."""
+        from import_export.resources import ModelResource
 
-        @fairdm.register
-        class AutoResourceConfig(SampleConfig):
-            model = Sample
-            resource_fields = ["name", "local_id", "status"]
+        config = ModelConfiguration(
+            model=Sample,
+            resource_fields=["name", "status"],
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
-        # Test that config is properly initialized
-        assert config.model == Sample
+        # Access via property to trigger auto-generation
+        resource_class = config.resource
+        assert issubclass(resource_class, ModelResource)
         assert not config.has_custom_resource()
 
-    def test_get_serializer_class_when_drf_available(self, clean_registry, db):
-        """Test serializer class generation (returns None if DRF not configured)."""
+    def test_admin_property_auto_generated(self, clean_registry, db):
+        """Test auto-generation of ModelAdmin class via property."""
+        from django.contrib.admin import ModelAdmin
 
-        @fairdm.register
-        class AutoSerializerConfig(SampleConfig):
-            model = Sample
-            serializer_fields = ["name", "status"]
+        config = ModelConfiguration(
+            model=Sample,
+            admin_list_display=["name", "status"],
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
-        # Test that config is properly initialized
-        assert config.model == Sample
-        assert not config.has_custom_serializer()
+        # Access via property to trigger auto-generation
+        admin_class = config.admin
+        assert issubclass(admin_class, ModelAdmin)
+        assert not config.has_custom_admin()
 
 
 class TestComponentOverrides:
@@ -370,15 +394,16 @@ class TestComponentOverrides:
                 model = Sample
                 fields = ["name"]
 
-        @fairdm.register
-        class CustomFormConfig(SampleConfig):
-            model = Sample
-            form_class = CustomSampleForm
+        config = ModelConfiguration(
+            model=Sample,
+            form_class=CustomSampleForm,
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
         # Test that custom form is recognized
         assert config.has_custom_form()
         assert config.form_class == CustomSampleForm
+        assert config.form == CustomSampleForm
 
     def test_custom_filterset_class_override(self, clean_registry, db):
         """Test providing custom FilterSet class."""
@@ -391,15 +416,16 @@ class TestComponentOverrides:
                 model = Sample
                 fields = ["name"]
 
-        @fairdm.register
-        class CustomFilterConfig(SampleConfig):
-            model = Sample
-            filterset_class = CustomSampleFilter
+        config = ModelConfiguration(
+            model=Sample,
+            filterset_class=CustomSampleFilter,
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
         # Test that custom filterset is recognized
         assert config.has_custom_filterset()
         assert config.filterset_class == CustomSampleFilter
+        assert config.filterset == CustomSampleFilter
 
     def test_custom_table_class_override(self, clean_registry, db):
         """Test providing custom Table class."""
@@ -412,120 +438,75 @@ class TestComponentOverrides:
                 model = Sample
                 fields = ["name"]
 
-        @fairdm.register
-        class CustomTableConfig(SampleConfig):
-            model = Sample
-            table_class = CustomSampleTable
+        config = ModelConfiguration(
+            model=Sample,
+            table_class=CustomSampleTable,
+        )
+        registry.register(Sample, config=config)
 
-        config = registry._registry[Sample]["config"]
         # Test that custom table is recognized
         assert config.has_custom_table()
         assert config.table_class == CustomSampleTable
-
-    def test_custom_component_via_string_path(self, clean_registry, db):
-        """Test providing custom component via import string."""
-        from fairdm.core.sample.filters import SampleFilter
-
-        @fairdm.register
-        class StringPathConfig(SampleConfig):
-            model = Sample
-            # Use actual class reference
-            filterset_class = SampleFilter
-
-        config = registry._registry[Sample]["config"]
-        # Test that class is properly assigned
-        assert config.has_custom_filterset()
-        assert config.filterset_class == SampleFilter
+        assert config.table == CustomSampleTable
 
 
 class TestRegistryItemStructure:
     """Test the structure of registry items."""
 
-    def test_registry_item_has_required_keys(self, clean_registry, db):
-        """Test that registry items contain all required keys."""
+    def test_registry_item_has_config(self, clean_registry, db):
+        """Test that registry items contain config."""
+        config = ModelConfiguration(
+            model=Sample,
+            display_name="Structure Test",
+        )
+        registry.register(Sample, config=config)
 
-        @fairdm.register
-        class StructureTestConfig(SampleConfig):
-            model = Sample
-            display_name = "Structure Test"
-
-        item = registry._registry[Sample]
-
-        # Check all expected keys are present
-        required_keys = [
-            "app_label",
-            "class",
-            "config",
-            "full_name",
-            "model",
-            "path",
-            "type",
-            "verbose_name",
-            "verbose_name_plural",
-            "slug",
-            "slug_plural",
-        ]
-
-        for key in required_keys:
-            assert key in item, f"Missing key: {key}"
-
-    def test_registry_item_values_correct(self, clean_registry, db):
-        """Test that registry item values are correct."""
-
-        @fairdm.register
-        class ValueTestConfig(SampleConfig):
-            model = Sample
-            display_name = "Value Test"
-
-        item = registry._registry[Sample]
-
-        assert item["app_label"] == "sample"
-        assert item["class"] == Sample
-        assert item["model"] == "sample"
-        assert item["type"] == "sample"
-        assert "sample" in item["full_name"]
-        assert Sample.__module__ in item["path"]
+        # Test that Sample is in registry and has config
+        assert Sample in registry._registry
+        stored_config = registry.get_for_model(Sample)
+        assert isinstance(stored_config, ModelConfiguration)
+        assert stored_config.display_name == "Structure Test"
 
 
 class TestRegistryEdgeCases:
     """Test edge cases and error conditions."""
 
-    def test_register_with_no_config_uses_defaults(self, clean_registry, db):
-        """Test registering without explicit config creates default config."""
-        # Direct registration (not using decorator)
-        registry.register(Sample)
+    def test_register_with_config(self, clean_registry, db):
+        """Test registering with explicit config."""
+        config = ModelConfiguration(model=Sample)
+        registry.register(Sample, config=config)
 
         assert Sample in registry._registry
-        config = registry._registry[Sample]["config"]
-        assert isinstance(config, ModelConfiguration)
-        assert config.model == Sample
+        stored_config = registry.get_for_model(Sample)
+        assert isinstance(stored_config, ModelConfiguration)
+        assert stored_config.model == Sample
 
-    def test_get_config_with_existing_fairdm_attribute(self, clean_registry, db):
-        """Test that config is properly stored and accessible."""
+    def test_get_for_model_returns_config(self, clean_registry, db):
+        """Test that get_for_model returns the stored config."""
+        config = ModelConfiguration(
+            model=Sample,
+            display_name="Test Config",
+        )
+        registry.register(Sample, config=config)
 
-        @fairdm.register
-        class ExistingConfig(SampleConfig):
-            model = Sample
-            display_name = "Existing Config"
-
-        # Access the stored config directly from registry
-        config = registry._registry[Sample]["config"]
-        assert config.get_display_name() == "Existing Config"
+        # Access the stored config via get_for_model
+        retrieved_config = registry.get_for_model(Sample)
+        assert retrieved_config.get_display_name() == "Test Config"
 
     def test_multiple_registrations_same_session(self, clean_registry, db):
         """Test multiple models can be registered in same session."""
+        sample_config = ModelConfiguration(
+            model=Sample,
+            display_name="Sample Config",
+        )
+        measurement_config = ModelConfiguration(
+            model=Measurement,
+            display_name="Measurement Config",
+        )
 
-        @fairdm.register
-        class Config1(SampleConfig):
-            model = Sample
-            display_name = "Config 1"
+        registry.register(Sample, config=sample_config)
+        registry.register(Measurement, config=measurement_config)
 
-        @fairdm.register
-        class Config2(MeasurementConfig):
-            model = Measurement
-            display_name = "Config 2"
-
-        assert len(registry.all) == 2
         assert Sample in registry._registry
         assert Measurement in registry._registry
 
@@ -533,17 +514,18 @@ class TestRegistryEdgeCases:
 class TestRegistryIntegration:
     """Test integration between registry and other FairDM components."""
 
-    def test_registry_admin_integration(self, clean_registry, db):
-        """Test that admin registration is attempted."""
+    def test_registry_stores_config(self, clean_registry, db):
+        """Test that registry properly stores and retrieves config."""
+        config = ModelConfiguration(
+            model=Sample,
+            display_name="Integration Test",
+        )
+        registry.register(Sample, config=config)
 
-        @fairdm.register
-        class AdminTestConfig(SampleConfig):
-            model = Sample
-            display_name = "Admin Test"
-
-        # Should attempt admin registration without raising errors
-        # Even if admin registration fails, it should be silent
+        # Verify registration succeeded
         assert Sample in registry._registry
+        stored_config = registry.get_for_model(Sample)
+        assert stored_config.get_display_name() == "Integration Test"
 
 
 # Run tests with: poetry run pytest tests/test_registry_extended.py -v

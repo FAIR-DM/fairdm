@@ -35,6 +35,7 @@ Before getting started, please review the [FairDM Constitution](https://github.c
 
 before_you_start
 core_data_model
+registry-system
 views_module
 contribution_framework
 getting_started
@@ -42,5 +43,6 @@ frontend_dev
 django_dev
 documentation/index
 documentation-standards
+feature-documentation
 testing/index
 ```

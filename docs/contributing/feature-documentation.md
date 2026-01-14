@@ -122,14 +122,6 @@ Update:
 - **user-guide**: UI usage guide with screenshots
 - **portal-administration**: Permissions for UI features (if applicable)
 
-### Breaking Changes
-
-Update:
-
-- **developer-guide**: Migration guide with before/after examples
-- **portal-administration**: Deployment considerations
-- **contributing**: Note in release process/changelog
-
 ### Configuration Changes
 
 Update:

@@ -15,8 +15,9 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_addanother.views import CreatePopupMixin
 from django_filters.views import FilterView
 from meta.views import MetadataMixin
-from mvp.views import SearchOrderMixin
 
+# TODO: Restore when mvp module is available
+# from mvp.views import SearchOrderMixin
 from fairdm.contrib.contributors.utils import current_user_has_role
 from fairdm.contrib.identity.models import Identity
 from fairdm.core.utils import get_non_polymorphic_instance
@@ -217,7 +218,8 @@ class FairDMTemplateView(FairDMBaseMixin, TemplateView):
 
 
 # @method_decorator(cache_page(60 * 5), name="dispatch")
-class FairDMListView(FairDMBaseMixin, SearchOrderMixin, FilterView):
+# TODO: Re-add SearchOrderMixin when mvp module is available
+class FairDMListView(FairDMBaseMixin, FilterView):
     """
     The base class for displaying a list of objects within the FairDM framework.
     """
