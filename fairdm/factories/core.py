@@ -10,9 +10,9 @@ from fairdm.core.measurement.models import MeasurementDate, MeasurementDescripti
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import ProjectDate, ProjectDescription
 from fairdm.core.sample.models import SampleDate, SampleDescription
-from fairdm.utils.choices import Visibility
 
 from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
+from .contributors import UserFactory  # Import UserFactory for Project.owner
 
 
 class ProjectDescriptionFactory(DjangoModelFactory):
@@ -48,14 +48,14 @@ class ProjectFactory(DjangoModelFactory):
     # Basic fields
     name = Faker("sentence", nb_words=4, variable_nb_words=True)
     image = factory.django.ImageField(width=800, height=600)
-    visibility = FuzzyChoice(Visibility.values)
+    # visibility defaults to PRIVATE per model definition
     status = FuzzyChoice(ProjectStatus.values)
 
     # JSON fields - simplified approach
     funding = LazyAttribute(lambda obj: {"agency": "Sample Agency", "grant_number": "GRANT-2024-001", "amount": 50000})
 
-    # Relations - owner can be set manually or via trait
-    owner = None
+    # Relations - owner required for Project
+    owner = SubFactory(UserFactory)
 
 
 class DatasetDescriptionFactory(DjangoModelFactory):
@@ -92,7 +92,7 @@ class DatasetFactory(DjangoModelFactory):
     # Basic fields
     name = Faker("sentence", nb_words=3, variable_nb_words=True)
     image = factory.django.ImageField(width=800, height=600)
-    visibility = FuzzyChoice(Visibility.values)
+    # visibility defaults to PRIVATE per model definition
 
     # Relations - project can be passed in or auto-created
     project = SubFactory(ProjectFactory)

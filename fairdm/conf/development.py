@@ -30,23 +30,17 @@ ALLOWED_HOSTS = ["*"]
 # =============================================================================
 
 # Try to use PostgreSQL if DATABASE_URL is set, otherwise fall back to SQLite
-try:
-    DATABASES = {
-        "default": env.db("DATABASE_URL"),
+# try:
+#     DATABASES = {
+#         "default": env.db("DATABASE_URL"),
+#     }
+# except Exception:
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
-except Exception:
-    import warnings
-
-    warnings.warn(
-        "DATABASE_URL not set. Using SQLite for development. " "Set DATABASE_URL for PostgreSQL.",
-        stacklevel=2,
-    )
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+}
 
 # =============================================================================
 # CACHE (Degrade to LocMem if Redis not configured)

@@ -1,4 +1,5 @@
 import factory
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from factory.declarations import LazyAttribute, SubFactory
 from factory.django import DjangoModelFactory
@@ -10,6 +11,32 @@ from fairdm.contrib.contributors.models import (
     OrganizationMember,
     Person,
 )
+
+User = get_user_model()
+
+
+class UserFactory(DjangoModelFactory):
+    """Factory for creating Django User instances."""
+
+    class Meta:
+        model = User
+
+    username = factory.Sequence(lambda n: f"user{n}")
+    email = factory.Sequence(lambda n: f"user{n}@example.com")
+    first_name = "Test"
+    last_name = "User"
+    is_active = True
+    is_staff = False
+    is_superuser = False
+
+    @factory.post_generation
+    def password(obj, create, extracted, **kwargs):
+        """Set password after user creation."""
+        if not create:
+            return
+        password = extracted if extracted else "password123"
+        obj.set_password(password)
+        obj.save()
 
 
 class ContributorFactory(DjangoModelFactory):
