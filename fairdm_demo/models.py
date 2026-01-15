@@ -3,9 +3,273 @@ from fairdm.db import models
 
 # T033: Demo models showcasing different field types and patterns
 
+\"\"\"FairDM Demo App Models
+
+This module demonstrates recommended patterns for defining custom Sample and
+Measurement models in FairDM portals. It showcases various field types, metadata
+configurations, and relationship patterns.
+
+**Dataset Metadata Best Practices:**
+
+Datasets support rich FAIR metadata through related models. These examples show
+how to programmatically create metadata:
+
+1. **Literature Relationships (DatasetLiteratureRelation)**:
+
+   Use DataCite relationship types to link datasets with publications:
+
+   ```python
+   from fairdm.core.dataset.models import DatasetLiteratureRelation
+   from literature.models import LiteratureItem
+
+   # Create a literature reference
+   paper = LiteratureItem.objects.create(
+       title=\"XRF Analysis Methods\",
+       authors=\"Smith, J.; Doe, A.\",
+       year=2024
+   )
+
+   # Link to dataset with relationship type
+   DatasetLiteratureRelation.objects.create(
+       dataset=my_dataset,
+       literature_item=paper,
+       relationship_type=\"IsDocumentedBy\"  # DataCite vocabulary
+   )
+
+   # Available relationship types (DataCite Metadata Schema 4.4):
+   # IsCitedBy, Cites, IsSupplementTo, IsSupplementedBy, IsContinuedBy,
+   # Continues, IsDescribedBy, Describes, HasMetadata, IsMetadataFor,
+   # HasVersion, IsVersionOf, IsNewVersionOf, IsPreviousVersionOf, IsPartOf,
+   # HasPart, IsPublishedIn, IsReferencedBy, References, IsDocumentedBy,
+   # Documents, IsCompiledBy, Compiles, IsVariantFormOf, IsOriginalFormOf,
+   # IsIdenticalTo, IsReviewedBy, Reviews, IsDerivedFrom, IsSourceOf,
+   # IsRequiredBy, Requires, Obsoletes, IsObsoletedBy
+   ```
+
+2. **DOI Assignment (DatasetIdentifier)**:
+
+   Assign DOIs using the DatasetIdentifier model (NOT the reference field):
+
+   ```python
+   from fairdm.core.dataset.models import DatasetIdentifier
+
+   # Assign a DOI to a dataset
+   doi = DatasetIdentifier.objects.create(
+       related=my_dataset,
+       type=\"DOI\",
+       value=\"10.5061/dryad.12345\"
+   )
+
+   # Access DOI through convenience property
+   if my_dataset.doi:
+       print(f\"Dataset DOI: {my_dataset.doi}\")
+
+   # Query datasets by DOI
+   dataset = Dataset.objects.filter(
+       identifiers__type=\"DOI\",
+       identifiers__value=\"10.5061/dryad.12345\"
+   ).first()
+   ```
+
+3. **Other Metadata Types**:
+
+   ```python
+   from fairdm.core.dataset.models import (
+       DatasetDescription, DatasetDate, DatasetIdentifier
+   )
+
+   # Rich descriptions (one per type)
+   DatasetDescription.objects.create(
+       related=my_dataset,
+       type=\"Abstract\",
+       value=\"This dataset contains XRF measurements...\"
+   )
+   DatasetDescription.objects.create(
+       related=my_dataset,
+       type=\"Methods\",
+       value=\"Samples were analyzed using...\"
+   )
+
+   # Temporal metadata (one per type)
+   DatasetDate.objects.create(
+       related=my_dataset,
+       type=\"Created\",
+       value=\"2024-01-15\"  # PartialDate format: YYYY, YYYY-MM, or YYYY-MM-DD
+   )
+   DatasetDate.objects.create(
+       related=my_dataset,
+       type=\"Available\",
+       value=\"2024-06-01\"
+   )
+
+   # Additional identifiers (must be globally unique)
+   DatasetIdentifier.objects.create(
+       related=my_dataset,
+       type=\"ARK\",
+       value=\"ark:/12345/xyz123\"
+   )
+   ```
+**QuerySet Optimization Patterns (T145-T146):**
+
+FairDM provides optimized QuerySet methods to reduce N+1 query problems and
+improve performance. Use these patterns in your views and APIs:
+
+1. **Privacy-First Default**:
+
+   By default, Dataset.objects.all() EXCLUDES PRIVATE datasets:
+
+   ```python
+   # Default behavior - excludes PRIVATE datasets
+   public_datasets = Dataset.objects.all()  # Only PUBLIC and INTERNAL
+
+   # Explicit access to private datasets (opt-in)
+   all_datasets = Dataset.objects.with_private()  # Includes PRIVATE
+
+   # Use in views with permission checks
+   class DatasetListView(ListView):
+       def get_queryset(self):
+           qs = Dataset.objects.all()  # Privacy-first default
+
+           # Grant private access based on permissions
+           if self.request.user.has_perm('dataset.view_private'):
+               qs = qs.with_private()
+
+           return qs.with_related()  # Optimize queries
+   ```
+
+2. **Query Optimization with with_related()**:
+
+   Reduces N+1 queries by 80%+ when accessing related objects:
+
+   ```python
+   # WITHOUT optimization (naive) - 21 queries for 10 datasets
+   for ds in Dataset.objects.all():
+       print(ds.project.name)  # N+1 query!
+       print(ds.contributors.count())  # N+1 query!
+
+   # WITH optimization - only 3 queries for 10 datasets
+   for ds in Dataset.objects.with_related():
+       print(ds.project.name)  # No additional query
+       print(ds.contributors.count())  # No additional query
+
+   # Expected query counts:
+   # - 1 query: Main dataset query
+   # - 1 query: Prefetch projects
+   # - 1 query: Prefetch contributors
+   # Total: 3 queries (86% reduction)
+   ```
+
+3. **Lighter Optimization with with_contributors()**:
+
+   When you only need contributors (not projects), use the lighter method:
+
+   ```python
+   # Prefetch only contributors (2 queries instead of 3)
+   datasets = Dataset.objects.with_contributors()
+   for ds in datasets:
+       # Access contributors without additional queries
+       for contributor in ds.contributors.all():
+           print(f"Contributor: {contributor.person.name}")
+   ```
+
+4. **Method Chaining**:
+
+   All QuerySet methods can be chained in any order:
+
+   ```python
+   # Chain methods for complex queries
+   datasets = (
+       Dataset.objects
+       .with_private()  # Include private datasets
+       .filter(project=my_project)  # Filter by project
+       .exclude(visibility=Dataset.Visibility.INTERNAL)  # Exclude internal
+       .with_related()  # Optimize queries
+       .order_by('-modified')  # Order by most recent
+   )
+
+   # Chain with search and filtering
+   from fairdm.core.dataset.filters import DatasetFilter
+
+   filterset = DatasetFilter(
+       data=request.GET,
+       queryset=Dataset.objects.with_private().with_related()
+   )
+   filtered_datasets = filterset.qs  # Filtered and optimized
+   ```
+
+5. **Performance Monitoring**:
+
+   Verify query optimization with Django Debug Toolbar:
+
+   ```python
+   # In development, enable query logging
+   from django.conf import settings
+   settings.DEBUG = True
+
+   # Check query count with django-debug-toolbar
+   # Or use django.db.connection.queries
+   from django.db import connection
+   from django.test.utils import override_settings
+
+   @override_settings(DEBUG=True)
+   def view_datasets(request):
+       connection.queries_log.clear()
+
+       # Your query
+       datasets = list(Dataset.objects.with_related()[:10])
+
+       # Check query count
+       print(f"Queries executed: {len(connection.queries)}")
+       # Should be ≤3 queries regardless of result count
+   ```
+
+6. **Custom QuerySet for Your Models**:
+
+   Apply the same patterns to your custom Sample/Measurement models:
+
+   ```python
+   from django.db.models import QuerySet
+
+   class RockSampleQuerySet(QuerySet):
+       \"\"\"Custom QuerySet with optimization methods.\"\"\"
+
+       def with_location_data(self):
+           \"\"\"Prefetch location and related geographic data.\"\"\"
+           return self.select_related('location').prefetch_related(
+               'location__coordinates',
+               'location__region'
+           )
+
+       def with_measurements(self):
+           \"\"\"Prefetch all related measurements.\"\"\"
+           return self.prefetch_related('measurements')
+
+   class RockSample(Sample):
+       objects = RockSampleQuerySet.as_manager()
+       # ... fields ...
+
+   # Use in views
+   samples = RockSample.objects.with_location_data().with_measurements()
+   ```
+**Portal Developer Notes:**
+
+- All metadata models use the `related` field (not `dataset`) due to abstract
+  base classes
+- Metadata types are validated against controlled vocabularies (see Dataset model
+  class attributes: DATE_TYPES, DESCRIPTION_TYPES, IDENTIFIER_TYPES)
+- unique_together constraints ensure only one metadata entry per type per dataset
+- DOIs should be assigned via DatasetIdentifier, not the reference field
+- The reference field is for the primary data publication (LiteratureItem)
+
+See Also:
+    - Developer Guide > Models > Dataset Metadata
+    - Developer Guide > Registry > Metadata Configuration
+    - specs/006-core-datasets/quickstart.md
+\"\"\"
+
 
 class RockSample(Sample):
-    """Geological rock sample demonstrating basic Sample registration.
+    \"\"\"Geological rock sample demonstrating basic Sample registration.
 
     This model shows the minimal configuration approach - just define
     your fields and let FairDM auto-generate forms, tables, filters.

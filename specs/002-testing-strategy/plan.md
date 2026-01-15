@@ -263,7 +263,7 @@ class ProjectFactory(DjangoModelFactory):
     title = factory.Sequence(lambda n: f"Project {n}")
     slug = factory.LazyAttribute(lambda obj: obj.title.lower().replace(" ", "-"))
     description = factory.Faker("text", max_nb_chars=200)
-    owner = factory.SubFactory("fairdm.core.factories.UserFactory")  # Avoid circular import
+    owner = factory.SubFactory("fairdm.factories.UserFactory")  # Avoid circular import
     is_public = False
 
 
@@ -288,7 +288,7 @@ Downstream portal developers can use flat imports:
 
 Factories are declared in their respective app packages and re-exported here.
 """
-from fairdm.core.factories import (
+from fairdm.factories import (
     ProjectFactory,
     DatasetFactory,
     UserFactory,

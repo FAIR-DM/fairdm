@@ -2,6 +2,7 @@ from .contributors import (
     ContributorFactory,
     OrganizationFactory,
     PersonFactory,
+    UserFactory,
 )
 from .core import (
     DatasetFactory,
@@ -18,4 +19,5 @@ __all__ = [
     "PersonFactory",
     "ProjectFactory",
     "SampleFactory",
+    "UserFactory",
 ]
