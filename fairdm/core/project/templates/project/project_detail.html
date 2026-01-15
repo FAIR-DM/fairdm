@@ -1,0 +1,201 @@
+{% extends "layouts/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Project Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h1 class="display-4">{{ project.name }}</h1>
+          <div class="d-flex gap-3 mt-2">
+            <span class="badge bg-primary">
+              {{ project.get_status_display }}
+            </span>
+            <span class="badge {% if project.visibility == 1 %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ project.get_visibility_display }}
+            </span>
+          </div>
+        </div>
+        {% if can_edit_project %}
+        <div>
+          <a href="{% url 'project-update' uuid=project.uuid %}" class="btn btn-primary">
+            <i class="icon-edit"></i> {% trans "Edit Project" %}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Content -->
+  <div class="row">
+    <div class="col-12 col-lg-8">
+      <!-- Basic Information -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Project Information" %}</h3>
+        </div>
+        <div class="card-body">
+          <dl class="row">
+            <dt class="col-sm-3">{% trans "UUID" %}</dt>
+            <dd class="col-sm-9"><code>{{ project.uuid }}</code></dd>
+
+            <dt class="col-sm-3">{% trans "Owner" %}</dt>
+            <dd class="col-sm-9">{{ project.owner }}</dd>
+
+            <dt class="col-sm-3">{% trans "Created" %}</dt>
+            <dd class="col-sm-9">{{ project.created|date:"F j, Y" }}</dd>
+
+            <dt class="col-sm-3">{% trans "Modified" %}</dt>
+            <dd class="col-sm-9">{{ project.modified|date:"F j, Y" }}</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Descriptions -->
+      {% if project.descriptions.exists %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Descriptions" %}</h3>
+        </div>
+        <div class="card-body">
+          {% for description in project.descriptions.all %}
+          <div class="mb-3">
+            <h5>{{ description.type }}</h5>
+            <p>{{ description.value }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Dates -->
+      {% if project.dates.exists %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Important Dates" %}</h3>
+        </div>
+        <div class="card-body">
+          <dl class="row">
+            {% for date in project.dates.all %}
+            <dt class="col-sm-4">{{ date.type }}</dt>
+            <dd class="col-sm-8">{{ date.value|date:"F j, Y" }}</dd>
+            {% endfor %}
+          </dl>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Identifiers -->
+      {% if project.identifiers.exists %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Identifiers" %}</h3>
+        </div>
+        <div class="card-body">
+          <dl class="row">
+            {% for identifier in project.identifiers.all %}
+            <dt class="col-sm-4">{{ identifier.type }}</dt>
+            <dd class="col-sm-8">
+              <code>{{ identifier.value }}</code>
+            </dd>
+            {% endfor %}
+          </dl>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Funding -->
+      {% if project.funding %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Funding" %}</h3>
+        </div>
+        <div class="card-body">
+          {% for funding in project.funding %}
+          <div class="mb-3">
+            <h5>{{ funding.funderName }}</h5>
+            {% if funding.awardNumber %}
+            <p><strong>{% trans "Award Number" %}:</strong> {{ funding.awardNumber }}</p>
+            {% endif %}
+            {% if funding.awardTitle %}
+            <p><strong>{% trans "Award Title" %}:</strong> {{ funding.awardTitle }}</p>
+            {% endif %}
+            {% if funding.awardURI %}
+            <p><a href="{{ funding.awardURI }}" target="_blank">{% trans "View Award" %}</a></p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-12 col-lg-4">
+      <!-- Datasets -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Datasets" %}</h3>
+        </div>
+        <div class="card-body">
+          {% if project.datasets.exists %}
+          <ul class="list-unstyled">
+            {% for dataset in project.datasets.all %}
+            <li class="mb-2">
+              <a href="#">{{ dataset.name }}</a>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-muted">{% trans "No datasets yet." %}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Contributors -->
+      {% if project.contributors.exists %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Contributors" %}</h3>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled">
+            {% for contribution in project.contributors.all %}
+            <li class="mb-2">
+              {{ contribution.contributor }}
+              {% if contribution.roles.exists %}
+              <div class="small text-muted">
+                {% for role in contribution.roles.all %}
+                  {{ role.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              </div>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Keywords -->
+      {% if project.keywords.exists %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">{% trans "Keywords" %}</h3>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2">
+            {% for keyword in project.keywords.all %}
+            <span class="badge bg-secondary">{{ keyword }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

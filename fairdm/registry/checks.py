@@ -182,7 +182,7 @@ def _get_invalid_fields(model: type[models.Model], field_names: list[str]) -> li
 
     Args:
         model: Django model class
-        field_names: List of field names to validate
+        field_names: List of field names to validate (can contain strings or tuples)
 
     Returns:
         List of invalid field names
@@ -190,6 +190,14 @@ def _get_invalid_fields(model: type[models.Model], field_names: list[str]) -> li
     invalid = []
 
     for field_name in field_names:
+        # Handle tuples (e.g., from admin_list_display with callables)
+        if isinstance(field_name, tuple):
+            field_name = field_name[0]
+
+        # Skip non-string fields (e.g., callables)
+        if not isinstance(field_name, str):
+            continue
+
         try:
             # Handle related field paths like "author__name"
             if "__" in field_name:

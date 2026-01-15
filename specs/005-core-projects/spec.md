@@ -1,19 +1,19 @@
 # Feature Specification: Core Projects MVP
 
-**Feature Branch**: `005-core-projects`  
-**Created**: January 14, 2026  
-**Status**: Draft  
+**Feature Branch**: `005-core-projects`
+**Created**: January 14, 2026
+**Status**: Draft
 **Input**: User description: "Focus on the role of Projects within FairDM, targeting code within the fairdm.core.project app. Polish the Project model, ensure i18n compliance, create forms with proper help text and error handling, set up admin interface, configure filtering for portal users."
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Create and Configure Project (Priority: P1)
 
-A research team lead or project manager wants to create a new project record to establish the organizational container for their research initiative. They need to provide basic identification (name, description) and context (status, visibility, ownership) to make the project findable and properly attributed.
+A research team lead or project manager wants to create a new project record with a streamlined, minimal form (similar to creating a GitHub repository) containing only essential fields. They can then add detailed metadata through the edit interface after creation.
 
-**Why this priority**: This is the foundational capability - without the ability to create projects with core metadata, no other project features can be utilized. This represents the minimum viable functionality.
+**Why this priority**: This is the foundational capability - without the ability to quickly create projects with core metadata, no other project features can be utilized. Streamlined creation reduces friction and encourages adoption.
 
-**Independent Test**: Can be fully tested by navigating to the project creation interface, filling in required fields (name, status, visibility), and successfully saving a new project record that appears in the project list and detail views.
+**Independent Test**: Can be fully tested by navigating to the project creation interface, filling in only required fields (name, status, visibility), successfully saving a new project record, and then accessing the edit interface to add additional metadata.
 
 **Acceptance Scenarios**:
 
@@ -31,7 +31,7 @@ A research team lead or project manager wants to create a new project record to 
 
 ### User Story 2 - Add Rich Descriptive Metadata (Priority: P1)
 
-A researcher wants to add detailed contextual information about their project including multiple description types (abstract, methods, significance), date milestones (start date, end date, data collection periods), and identifiers (DOI, grant numbers) to make the project FAIR-compliant and discoverable.
+After creating a project, a researcher wants to add detailed contextual information including multiple description types (abstract, methods, significance), date milestones (start date, end date, data collection periods), and identifiers (DOI, grant numbers) to make the project FAIR-compliant and discoverable.
 
 **Why this priority**: Rich metadata is essential for FAIR principles (Findable, Accessible, Interoperable, Reusable). Without this, projects lack the context needed for discovery, citation, and reuse. This is core to FairDM's value proposition.
 
@@ -143,8 +143,8 @@ A portal user wants to find relevant projects by filtering on status, owner orga
 
 - What happens when a project name contains special characters or is extremely long (>255 characters)?
 - How does the system handle a project with no owner organization (orphaned projects)?
-- What happens when a user tries to add the same description type multiple times (e.g., two "Abstract" descriptions)?
-- How does the system handle date inconsistencies (e.g., end date before start date)?
+- What happens when a user tries to add the same description type multiple times (e.g., two "Abstract" descriptions)? **Resolution**: System enforces unique constraint per description type; frontend UI prevents selecting already-used types; backend validation returns clear error if constraint violated.
+- How does the system handle date inconsistencies (e.g., end date before start date)? **Resolution**: System blocks save and displays clear validation error requiring user to correct dates before proceeding.
 - What happens when a contributor is removed from the system but is still associated with projects?
 - How does the system handle visibility changes when a project has public datasets but is changed to private status?
 - What happens when attempting to create identical external identifiers (e.g., same DOI) for different projects?
@@ -158,7 +158,7 @@ A portal user wants to find relevant projects by filtering on status, owner orga
 
 - **FR-002**: System MUST generate a unique, short, human-readable identifier (UUID with prefix) for each project upon creation.
 
-- **FR-003**: System MUST support multiple description types (Abstract, Methods, Significance, etc.) for each project, each stored as a separate related record.
+- **FR-003**: System MUST support multiple description types (Abstract, Methods, Significance, etc.) for each project, each stored as a separate related record, with the constraint that only one description per type is allowed (enforced via unique constraint on project-type combination).
 
 - **FR-004**: System MUST allow users to add multiple date records to projects with typed date categories (Project Start, Project End, Data Collection Start, Data Collection End).
 
@@ -168,7 +168,7 @@ A portal user wants to find relevant projects by filtering on status, owner orga
 
 - **FR-007**: System MUST support project visibility levels including at minimum: Private (only team members), Organization (anyone in owning organization), Public (anyone).
 
-- **FR-008**: System MUST associate projects with an owning organization and optionally multiple contributing organizations.
+- **FR-008**: System MUST associate projects with an owning organization (required field). Projects MUST NOT be saved without an owner. The owner field SHOULD default to the creator's primary organization if available. System MAY support multiple contributing organizations (optional).
 
 - **FR-009**: System MUST allow users to associate contributors (people and organizations) with projects and assign roles from a controlled vocabulary (Principal Investigator, Co-Investigator, Data Manager, etc.).
 
@@ -188,11 +188,11 @@ A portal user wants to find relevant projects by filtering on status, owner orga
 
 - **FR-017**: System MUST provide a comprehensive admin interface for project management including search, filtering, inline editing of related metadata, and bulk operations.
 
-- **FR-018**: System MUST enforce object-level permissions allowing project owners and contributors with appropriate roles to edit project metadata while restricting access to others.
+- **FR-018**: System MUST enforce object-level permissions using a role-based model where: (1) Principal Investigators can edit all project fields including visibility and status, (2) Data Managers can edit metadata (descriptions, dates, identifiers, keywords) but not visibility or status, (3) other contributor roles have read-only access to projects they are associated with, (4) only project owners can delete projects.
 
 - **FR-019**: System MUST ensure all user-facing strings (field labels, help text, error messages, UI text) use Django's internationalization (i18n) framework for translation support.
 
-- **FR-020**: System MUST validate date ranges to ensure end dates are not before start dates, displaying appropriate warnings when inconsistencies are detected.
+- **FR-020**: System MUST validate date ranges to prevent saving when end dates are before start dates, displaying clear error messages that explain the issue and prevent form submission until corrected.
 
 - **FR-021**: System MUST prevent deletion of projects that have associated datasets unless explicitly forced by an administrator.
 
@@ -200,13 +200,13 @@ A portal user wants to find relevant projects by filtering on status, owner orga
 
 - **FR-023**: System MUST export project metadata in machine-readable formats (JSON-LD, DataCite JSON) including all descriptions, dates, identifiers, and contributor information.
 
-- **FR-024**: System MUST display project funding information when available, supporting structured funding data (funder, grant number, amount, period).
+- **FR-024**: System MUST display project funding information when available, using DataCite metadata schema structure for funding (funder name, funder identifier, award number, award title) to facilitate imports and cross-referencing with DataCite.
 
 - **FR-025**: System MUST optimize database queries for project lists using select_related and prefetch_related to minimize query count.
 
 ### Key Entities
 
-- **Project**: The top-level organizational container representing a research initiative. Core attributes include unique identifier (UUID), name, status, visibility, owner organization, funding information, and timestamps (created, modified). Related to: Organization (owner), Contributors (team members), Descriptions (multiple types), Dates (timeline), Identifiers (external IDs), Keywords (controlled vocabulary), Tags (free-form), Datasets (child records).
+- **Project**: The top-level organizational container representing a research initiative. Core attributes include unique identifier (UUID), name, status, visibility, owner organization, funding information (following DataCite metadata schema), and timestamps (created, modified). Related to: Organization (owner), Contributors (team members), Descriptions (multiple types), Dates (timeline), Identifiers (external IDs), Keywords (controlled vocabulary), Tags (free-form), Datasets (child records).
 
 - **Project Description**: Typed descriptions providing context about the project. Attributes include description type (from controlled vocabulary), text content, and ordering for display. Relationship: Many-to-one with Project.
 
@@ -220,7 +220,7 @@ A portal user wants to find relevant projects by filtering on status, owner orga
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can create a complete project record (name, status, visibility, owner, at least one description) in under 3 minutes from a blank form.
+- **SC-001**: Users can create a complete project record (name, status, visibility, owner, and at least one description of any type) in under 3 minutes starting from the project creation page, including the time to navigate to the edit page and add the description.
 
 - **SC-002**: Project list pages load with pagination showing 50 projects in under 1 second for datasets up to 10,000 projects.
 
@@ -239,3 +239,13 @@ A portal user wants to find relevant projects by filtering on status, owner orga
 - **SC-009**: Project metadata exports (JSON-LD, DataCite) include all required fields for external repository submission (DataCite, Zenodo, etc.) without manual editing.
 
 - **SC-010**: The admin interface supports bulk status changes for up to 100 projects simultaneously completing in under 5 seconds.
+
+## Clarifications
+
+### Session 2026-01-14
+
+- Q: What permission model should be used for project editing - who can perform what actions? → A: Role-based with standard set (PI can edit all fields, Data Manager can edit metadata but not visibility, team members read-only)
+- Q: What happens when a user tries to add the same description type multiple times? → A: Only one description per type allowed; database/model enforces uniqueness constraint; frontend UI prevents duplicate type selection; attempting to violate constraint returns validation error
+- Q: Should date inconsistencies (end date before start date) block save or just warn? → A: Block save - prevent saving project if end date is before start date; require correction before proceeding
+- Q: What structure should funding information follow? → A: DataCite metadata schema for funding to facilitate imports and cross-referencing with DataCite
+- Q: Can descriptions/dates/identifiers be added during initial project creation or only after? → A: Two-step workflow - initial creation streamlined with only required fields (like GitHub repo creation), then detailed metadata added through edit interface
