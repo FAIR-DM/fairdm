@@ -82,8 +82,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
 
-    username = factory.Sequence(lambda n: f"user{n}")
-    email = factory.LazyAttribute(lambda obj: f"{obj.username}@example.com")
+    email = factory.Sequence(lambda n: f"user{n}@example.com")
     first_name = "Test"
     last_name = "User"
     is_active = True
@@ -153,6 +152,20 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     slug = factory.Sequence(lambda n: f"project-{n}")
     description = factory.LazyAttribute(lambda obj: f"Description for {obj.title}")
     visibility = "public"  # Default visibility
+
+    @factory.lazy_attribute
+    def funding(self):
+        """Generate sample DataCite FundingReference schema data."""
+        return [
+            {
+                "funderName": "National Science Foundation",
+                "funderIdentifier": "https://ror.org/021nxhr62",
+                "funderIdentifierType": "ROR",
+                "awardNumber": "1234567",
+                "awardURI": "https://www.nsf.gov/awardsearch/showAward?AWD_ID=1234567",
+                "awardTitle": "Understanding Arctic Climate Change"
+            }
+        ]
 
 
 class DatasetFactory(factory.django.DjangoModelFactory):

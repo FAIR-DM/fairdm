@@ -173,6 +173,18 @@ DEBUG_TOOLBAR_CONFIG = {
 ROOT_URLCONF = "fairdm.conf.urls"
 
 # ==============================================================================
+# TEMPLATES
+# ==============================================================================
+# Remove mvp.context_processors.page_config which doesn't exist in test environment
+
+for template_config in TEMPLATES:
+    if "OPTIONS" in template_config and "context_processors" in template_config["OPTIONS"]:
+        template_config["OPTIONS"]["context_processors"] = [
+            cp for cp in template_config["OPTIONS"]["context_processors"]
+            if "mvp.context_processors" not in cp
+        ]
+
+# ==============================================================================
 # FACTORIES
 # ==============================================================================
 # Factory boy configuration for test data generation
