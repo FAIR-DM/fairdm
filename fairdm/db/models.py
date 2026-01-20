@@ -50,7 +50,7 @@ class PrefetchBase(models.base.ModelBase):
         return new_class
 
 
-class Model(PrefetchModel, LifecycleModelMixin, models.Model, metaclass=PrefetchBase):
+class Model(LifecycleModelMixin, PrefetchModel, metaclass=PrefetchBase):
     # class Model(models.Model):
     """
     An abstract Django model designed to replace `django.db.models.Model`. It provides additional functionality

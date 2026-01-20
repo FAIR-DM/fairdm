@@ -141,7 +141,7 @@ class DatasetFilter(BaseListFilter):
 
     visibility = django_filters.ChoiceFilter(
         field_name="visibility",
-        choices=Dataset.Visibility.choices,
+        choices=Dataset.VISIBILITY_CHOICES.choices,
         label="Visibility",
         help_text="Filter by visibility level",
         empty_label="All visibility levels",

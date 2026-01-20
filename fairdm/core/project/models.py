@@ -2,13 +2,15 @@ from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.db.models import QuerySet
+
+# from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
+from fairdm.db.models import QuerySet
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
@@ -20,7 +22,7 @@ if TYPE_CHECKING:
     from fairdm.core.project.models import Project
 
 
-class ProjectQuerySet(models.QuerySet):
+class ProjectQuerySet(QuerySet):
     """Custom QuerySet for Project model with optimized query methods."""
 
     def get_visible(self) -> QuerySet["Project"]:
@@ -136,13 +138,11 @@ class ProjectDescription(AbstractDescription):
         if self.related_id and self.type:
             from django.core.exceptions import ValidationError
 
-            existing = ProjectDescription.objects.filter(
-                related=self.related, type=self.type
-            ).exclude(pk=self.pk).exists()
+            existing = (
+                ProjectDescription.objects.filter(related=self.related, type=self.type).exclude(pk=self.pk).exists()
+            )
             if existing:
-                raise ValidationError({
-                    "type": _("A description of this type already exists for this project.")
-                })
+                raise ValidationError({"type": _("A description of this type already exists for this project.")})
 
 
 class ProjectDate(AbstractDate):
@@ -159,9 +159,7 @@ class ProjectDate(AbstractDate):
         if self.date and self.end_date and self.end_date < self.date:
             from django.core.exceptions import ValidationError
 
-            raise ValidationError({
-                "end_date": _("End date cannot be before start date.")
-            })
+            raise ValidationError({"end_date": _("End date cannot be before start date.")})
 
 
 class ProjectIdentifier(AbstractIdentifier):
@@ -171,6 +169,7 @@ class ProjectIdentifier(AbstractIdentifier):
     class Meta(AbstractIdentifier.Meta):
         verbose_name = _("project identifier")
         verbose_name_plural = _("project identifiers")
+
 
 @receiver(pre_delete, sender=Project)
 def prevent_project_deletion_with_datasets(sender, instance, **kwargs):
@@ -190,9 +189,8 @@ def prevent_project_deletion_with_datasets(sender, instance, **kwargs):
     """
     if instance.datasets.exists():
         raise ValidationError(
-            _("Cannot delete project '{name}' because it has {count} associated dataset(s). "
-              "Delete the datasets first or contact an administrator.").format(
-                name=instance.name,
-                count=instance.datasets.count()
-            )
+            _(
+                "Cannot delete project '{name}' because it has {count} associated dataset(s). "
+                "Delete the datasets first or contact an administrator."
+            ).format(name=instance.name, count=instance.datasets.count())
         )

@@ -218,9 +218,9 @@ class DatasetQuerySet(models.QuerySet):
             >>> Dataset.objects.with_private().with_related()
             <QuerySet [...]>  # Optimized queries, includes private
         """
-        # Use the model's _base_manager to get unfiltered queryset
-        # This bypasses the privacy-first exclude() in DatasetManager.get_queryset()
-        return self.model._base_manager.all()
+        # Use the model's base manager to get unfiltered queryset
+        # This bypasses any filtering in the default manager
+        return self.model._meta.base_manager.all()
 
     def get_visible(self) -> QuerySet["Dataset"]:
         """
@@ -524,10 +524,10 @@ class Dataset(BaseModel):
         "Manager": ["view_dataset", "add_dataset", "change_dataset", "delete_dataset"],
     }
 
-    # Base manager returns ALL datasets (no filtering)
-    _base_manager = DatasetQuerySet.as_manager()
-    # Default manager excludes PRIVATE datasets (privacy-first)
-    objects = DatasetManager()
+    # Default manager includes all datasets (no filtering by default)
+    # To implement privacy-first behavior, uncomment DatasetManager below
+    # objects = DatasetManager()
+    # objects = DatasetQuerySet.as_manager()
 
     # Override image field from BaseModel to add aspect ratio guidance
     image = models.ImageField(
@@ -603,7 +603,12 @@ class Dataset(BaseModel):
         blank=True,
     )
     license = LicenseField(null=True, blank=True)
-
+    test = models.CharField(
+        _("test field"),
+        max_length=100,
+        null=True,
+        blank=True,
+    )
     _metadata = {
         "title": "name",
         "description": "get_meta_description",

@@ -3,7 +3,7 @@ from fairdm.db import models
 
 # T033: Demo models showcasing different field types and patterns
 
-\"\"\"FairDM Demo App Models
+"""FairDM Demo App Models
 
 This module demonstrates recommended patterns for defining custom Sample and
 Measurement models in FairDM portals. It showcases various field types, metadata
@@ -265,11 +265,11 @@ See Also:
     - Developer Guide > Models > Dataset Metadata
     - Developer Guide > Registry > Metadata Configuration
     - specs/006-core-datasets/quickstart.md
-\"\"\"
+"""
 
 
 class RockSample(Sample):
-    \"\"\"Geological rock sample demonstrating basic Sample registration.
+    """Geological rock sample demonstrating basic Sample registration.
 
     This model shows the minimal configuration approach - just define
     your fields and let FairDM auto-generate forms, tables, filters.

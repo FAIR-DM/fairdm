@@ -7,7 +7,7 @@ This module provides a comprehensive admin interface for Dataset management with
 - Dynamic inline form limits based on vocabulary size
 - Bulk metadata export (JSON/DataCite format)
 - Security controls (no bulk visibility changes)
-- Autocomplete widgets on all ForeignKey/ManyToMany fields
+- Autocomplete widgets on ForeignKey fields
 - Readonly UUID and timestamps
 - License change warnings when DOI exists
 
@@ -22,8 +22,23 @@ from django.db import models
 from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget, Select2Widget
+from literature.models import LiteratureItem
 
 from .models import Dataset, DatasetDate, DatasetDescription, DatasetIdentifier
+
+
+# Register LiteratureItem admin for autocomplete support
+@admin.register(LiteratureItem)
+class LiteratureItemAdmin(admin.ModelAdmin):
+    """Minimal admin for LiteratureItem to enable autocomplete in DatasetAdmin.
+
+    This registration is required because DatasetAdmin uses autocomplete_fields
+    for the 'reference' ForeignKey field. The search_fields enable autocomplete
+    search functionality in the admin interface.
+    """
+
+    search_fields = ("title", "authors")
+    list_display = ("title",)
 
 
 class DescriptionInline(admin.StackedInline):
@@ -96,7 +111,7 @@ class DatasetAdmin(admin.ModelAdmin):
     list_display = ("name", "added", "modified", "has_data")
     list_filter = ("project", "license", "visibility")
     readonly_fields = ("uuid", "added", "modified")
-    autocomplete_fields = ("project", "reference", "contributors", "keywords")
+    autocomplete_fields = ("project", "reference")
 
     fieldsets = (
         (
@@ -112,21 +127,11 @@ class DatasetAdmin(admin.ModelAdmin):
         ),
         (
             _("Licensing & Attribution"),
-            {
-                "fields": (
-                    "license",
-                    "contributors",
-                )
-            },
+            {"fields": ("license",)},
         ),
         (
             _("Literature & References"),
-            {
-                "fields": (
-                    "reference",
-                    "related_literature",
-                )
-            },
+            {"fields": ("reference",)},
         ),
         (
             _("Metadata"),
