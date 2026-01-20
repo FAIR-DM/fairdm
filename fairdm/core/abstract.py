@@ -1,4 +1,4 @@
-from django.db.models import Manager, QuerySet
+from django.db.models import Manager, Model, QuerySet
 from django.urls import reverse
 from django.utils.decorators import classonlymethod
 
@@ -26,12 +26,12 @@ class BaseModel(models.Model):
         null=True,
         upload_to=default_image_path,
     )
-    name = models.CharField(_("name"), max_length=255)
+    name = models.CharField(_("name"), max_length=300)
 
     keywords = models.ManyToManyField(
         "research_vocabs.Concept",
         verbose_name=_("keywords"),
-        help_text=_("Controlled keywords for enhanced discoverability"),
+        help_text=_("Controlled keywords for discoverability"),
         blank=True,
     )
     tags = TaggableManager(through=TaggedItem, blank=True)
@@ -218,7 +218,7 @@ class GenericModelManager(Manager):
         return self.get_queryset().in_order()
 
 
-class GenericModel(models.Model):
+class GenericModel(Model):
     """A model that can be used to store generic information."""
 
     VOCABULARY = None

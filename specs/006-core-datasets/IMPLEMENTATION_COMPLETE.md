@@ -223,7 +223,7 @@ user.has_perm("fairdm_core.view_dataset", dataset)
 ### Decision 1: Privacy-First QuerySet (EC-5)
 
 - **Problem**: Default behavior should be secure, not require explicit filtering
-- **Solution**: Dual manager pattern (_base_manager unfiltered, objects filtered)
+- **Solution**: Dual manager pattern (base manager via _meta.base_manager, objects filtered)
 - **Result**: Secure by default, explicit opt-in for private access
 
 ### Decision 2: Database Indexes for Filters (EC-11)

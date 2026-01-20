@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db.models import QuerySet
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
@@ -9,6 +8,7 @@ from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.contrib.location.utils import bbox_for_dataset
 from fairdm.db import models
+from fairdm.db.models import QuerySet
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
@@ -98,7 +98,7 @@ class DatasetLiteratureRelation(models.Model):
         return f"{self.dataset} {self.get_relationship_type_display()} {self.literature_item}"
 
 
-class DatasetQuerySet(models.QuerySet):
+class DatasetQuerySet(QuerySet):
     """
     Custom QuerySet for Dataset model with privacy-first defaults and query optimization.
 
@@ -527,27 +527,7 @@ class Dataset(BaseModel):
     # Default manager includes all datasets (no filtering by default)
     # To implement privacy-first behavior, uncomment DatasetManager below
     # objects = DatasetManager()
-    # objects = DatasetQuerySet.as_manager()
-
-    # Override image field from BaseModel to add aspect ratio guidance
-    image = models.ImageField(
-        verbose_name=_("image"),
-        blank=True,
-        null=True,
-        upload_to="datasets/",
-        help_text=_(
-            "Dataset image for card displays and social media previews. "
-            "Recommended: 1920x1080px (16:9 aspect ratio). "
-            "Minimum: 800x450px. Maximum file size: 5MB."
-        ),
-    )
-
-    # Override name field from BaseModel to extend max_length
-    name = models.CharField(
-        _("name"),
-        max_length=300,
-        help_text=_("Dataset name (required, max 300 characters)"),
-    )
+    objects = DatasetQuerySet.as_manager()
 
     uuid = ShortUUIDField(
         editable=False,
@@ -576,11 +556,7 @@ class Dataset(BaseModel):
     project = models.ForeignKey(
         "project.Project",
         verbose_name=_("project"),
-        help_text=_(
-            "The project associated with the dataset. "
-            "Uses PROTECT to prevent accidental deletion of projects with datasets. "
-            "Orphaned datasets (project=null) are permitted but not encouraged."
-        ),
+        help_text=_("The project associated with the dataset."),
         related_name="datasets",
         on_delete=models.PROTECT,
         blank=True,
@@ -603,12 +579,7 @@ class Dataset(BaseModel):
         blank=True,
     )
     license = LicenseField(null=True, blank=True)
-    test = models.CharField(
-        _("test field"),
-        max_length=100,
-        null=True,
-        blank=True,
-    )
+
     _metadata = {
         "title": "name",
         "description": "get_meta_description",

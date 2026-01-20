@@ -25,7 +25,7 @@ This PR implements comprehensive FAIR-compliant dataset models, advanced filteri
 #### DatasetQuerySet & Manager (NEW)
 
 - **Privacy-First Default**: Default manager excludes PRIVATE datasets automatically
-- **with_private()**: Method for explicit private dataset access via `_base_manager`
+- **with_private()**: Method for explicit private dataset access via `_meta.base_manager`
 - **get_visible()**: Returns only PUBLIC datasets
 - **with_related()**: Optimizes queries with prefetch_related (86% reduction: 21→3 queries)
 - **with_contributors()**: Lighter optimization for contributor data only
@@ -366,12 +366,12 @@ After merging:
 
 ### Medium Priority
 
-5. **Demo app examples**: Verify examples are clear and follow best practices
+1. **Demo app examples**: Verify examples are clear and follow best practices
 2. **Factory patterns**: Confirm CC BY 4.0 default and DataCite examples
 3. **Admin interface**: Check dynamic inline limits and bulk actions
 4. **Documentation**: Review docstrings for clarity and completeness
 
 ### Low Priority
 
-9. **Code style**: Verify linting passes and type hints present
+1. **Code style**: Verify linting passes and type hints present
 2. **Test organization**: Confirm test file structure matches taxonomy

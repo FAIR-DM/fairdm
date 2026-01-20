@@ -152,7 +152,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.template.context_processors.static",
                 "fairdm.utils.context_processors.fairdm",
-                "mvp.context_processors.page_config",
+                "mvp.context_processors.mvp_config",
             ],
             "builtins": [
                 "django.templatetags.i18n",
