@@ -53,5 +53,6 @@ roles
 reviewing_content
 managing_users_and_permissions
 adjusting_dataset_access
+configuration-checks
 
 ```

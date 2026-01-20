@@ -52,7 +52,7 @@ if env("DJANGO_CACHE") and env("REDIS_URL"):
 elif env("DJANGO_CACHE"):
     # LocMemCache fallback - acceptable for development
     # Production will fail validation if this path is taken
-    logger.warning("Cache Configuration: LocMemCache fallback (not for production)")
+    logger.debug("Cache Configuration: LocMemCache fallback (not for production)")
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
@@ -70,7 +70,7 @@ elif env("DJANGO_CACHE"):
 
 else:
     # DummyCache - no caching at all (for testing only)
-    logger.warning("Cache Configuration: DummyCache (no caching)")
+    logger.debug("Cache Configuration: DummyCache (no caching)")
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",

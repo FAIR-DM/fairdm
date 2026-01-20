@@ -23,6 +23,14 @@
 - Q: How should addon configuration be loaded? → A: Addons provide a setup module (e.g., `addon/conf.py`); `setup()` imports and executes it after loading base settings.
 - Q: How should validation errors be reported? → A: Collect all errors during validation, then raise single `ImproperlyConfigured` exception with all issues listed.
 
+### Session 2026-01-20 (Configuration Checks Refactoring)
+
+- Q: How should configuration validation checks be integrated to avoid log noise during normal server operation? → A: Convert all checks to Django's check framework with severity levels.
+- Q: What tags should be used to categorize the configuration checks? → A: Use `django.core.checks.Tags.security` and `django.core.checks.Tags.database` plus custom `deploy` tag.
+- Q: Should checks adjust their behavior based on the environment profile (production/staging/development)? → A: No. Checks are deployment checks only and should validate production readiness regardless of current environment.
+- Q: What should happen to the existing `validate_services()` function? → A: Replace `validate_services()` entirely with check functions; remove the function.
+- Q: Where should the check functions be registered with Django? → A: Register checks in `fairdm.conf.apps.FairdmConfConfig.ready()` method.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Stand up a production-ready portal (Priority: P1)
@@ -92,7 +100,7 @@ An addon author wants to publish a reusable addon that integrates with the confi
 - **FR-009**: The configuration documentation MUST include a reference deployment story that demonstrates container-based deployment driven entirely by environment variables.
 - **FR-010**: The configuration layer MUST provide a structured way for addons to declare their configuration needs (for example, required settings and environment variables) so that portal teams can enable and configure addons without editing multiple unrelated files. Misconfigured addons MUST fail fast in `production`/`staging`, and MUST warn and be skipped in `development`.
 - **FR-011**: The configuration documentation MUST describe how addon configuration interacts with the baseline and override patterns to minimise brittle coupling.
-- **FR-012**: The configuration layer MUST surface clear, human-readable error messages when required configuration values are missing, invalid, or inconsistent across environments. In particular, the baseline MUST fail fast in `production` and `staging` when required backing services are missing/unreachable, and MUST degrade with prominent warnings in `development`. When failing fast, errors SHOULD report all detected missing/invalid items in a single startup error message.
+- **FR-012**: The configuration layer MUST surface clear, human-readable error messages when required configuration values are missing, invalid, or inconsistent across environments. Configuration validation MUST be integrated into Django's check framework with appropriate severity levels (ERROR, WARNING, INFO) to avoid log noise during normal server operation. Checks MUST be deployment checks that validate production readiness and MUST NOT be environment-aware; they should assess configuration against production standards regardless of the current environment. Checks MUST be tagged using Django's built-in tags (`django.core.checks.Tags.security`, `django.core.checks.Tags.database`, `django.core.checks.Tags.caching`) plus a custom `deploy` tag for production-critical checks. Production-critical checks (database, cache, secrets, security settings) MUST use ERROR severity and include the `deploy` tag to activate with `--deploy` mode. Development hints and recommendations SHOULD use WARNING or INFO severity without the `deploy` tag. The existing `validate_services()` function MUST be replaced entirely by individual check functions. Check registration MUST occur in the `fairdm.conf.apps.FairdmConfConfig.ready()` method following Django best practices. When reporting errors, the check framework SHOULD aggregate and present all detected issues together.
 - **FR-013**: The platform MUST recommend environment variables as the primary, canonical baseline mechanism for providing secrets (such as credentials and tokens) to the configuration layer, in a way that keeps these values out of source control and remains practical for common hosting environments.
 
 ### Key Entities *(include if feature involves data)*
