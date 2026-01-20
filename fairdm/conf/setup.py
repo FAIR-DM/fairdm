@@ -151,9 +151,9 @@ def setup(
         logger.info(f"Applying {len(overrides)} custom override(s)")
         caller_globals.update(overrides)
 
-    # Validate configuration
-    logger.info("Validating configuration...")
-    validate_services(env_profile, caller_globals)
+    # Note: Configuration validation is now handled by Django's check framework.
+    # Run `python manage.py check --deploy` to validate production readiness.
+    # The old validate_services() function is deprecated.
 
     logger.info("✅ Configuration complete")
 

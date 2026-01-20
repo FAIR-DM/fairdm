@@ -45,7 +45,7 @@ elif env("POSTGRES_DB"):
 else:
     # SQLite fallback - only acceptable in development
     # Production will fail validation if this path is taken
-    logger.warning("Database: SQLite fallback (not for production)")
+    logger.debug("Database: SQLite fallback (not for production)")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

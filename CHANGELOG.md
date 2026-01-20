@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Configuration Checks System (Spec 003)
+
+- **Django Check Framework Integration**: Migrated configuration validation from runtime logging to Django's check framework
+  - 8 production-readiness checks for database, cache, security, and Celery configuration
+  - Custom `DeployTags` class with 'deploy' tag for production-specific checks
+  - Error IDs: fairdm.E001, E003-E005, E100-E101, E200, E300-E301
+  - `python manage.py check --deploy` command for explicit production validation
+  - Tag-based filtering (--tag security, --tag database, --tag caches, --tag deploy)
+  - CI/CD friendly with proper exit codes and clear error messages
+  - Comprehensive documentation in `docs/portal-administration/configuration-checks.md`
+  - **Note**: Removed duplicate checks that Django already provides:
+    - SECRET_KEY 'insecure' check (use Django's security.W009)
+    - SECRET_KEY length check (use Django's security.W009)
+    - SECURE_SSL_REDIRECT check (use Django's security.W008)
+    - SESSION_COOKIE_SECURE check (use Django's security.W012)
+    - CSRF_COOKIE_SECURE check (use Django's security.W016)
+
+### Changed
+
+#### Configuration Validation Improvements (Spec 003)
+
+- **Removed runtime validation noise**: Configuration validation no longer runs automatically during setup
+  - Development workflow is cleaner without constant warning messages
+  - Validation is now explicit via `manage.py check` command
+  - Production deployments should run `python manage.py check --deploy` in CI/CD pipelines
+
+### Deprecated
+
+#### Legacy Configuration Functions (Spec 003)
+
+- **validate_services()**: Deprecated in favor of Django check framework
+  - Function still exists but emits DeprecationWarning
+  - Will be removed in a future version
+  - Use `python manage.py check --deploy` instead
+  - See migration guide in `docs/portal-administration/configuration-checks.md`
+
 #### Core Dataset Models & CRUD Operations (Spec 006)
 
 - **Dataset Model Enhancements**: Comprehensive FAIR-compliant dataset model
