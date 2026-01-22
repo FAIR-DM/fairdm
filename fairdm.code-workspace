@@ -4,32 +4,29 @@
 	// ========================================
 	// This workspace file provides recommended settings for FairDM framework contributors.
 	// It enforces coding standards and best practices used in the FairDM project.
-	
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../django-mvp"
 		}
 	],
-
 	// ========================================
 	// WORKSPACE SETTINGS
 	// ========================================
 	"settings": {
-
 		"terminal.integrated.env.windows": {
 			"PYTHONPATH": "../django-mvp;"
 			// Add additional paths as needed:
 			// "PYTHONPATH": "../fairdm;../django-accounts-center;../django-literature;../fairdm-discussions;"
 		},
-
-
 		// =====================================
 		// FILE ASSOCIATIONS
 		// =====================================
 		"files.associations": {
 			"**/templates/**/*.html": "django-html"
 		},
-
 		// Files to exclude from explorer and search
 		"files.exclude": {
 			"**/__pycache__": true,
@@ -42,14 +39,12 @@
 			"media/": true,
 			"static/": true
 		},
-
 		// =====================================
 		// PYTHON SETTINGS
 		// =====================================
 		// Python interpreter - target Python 3.13 as per pyproject.toml
 		"python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
 		"python.terminal.activateEnvironment": true,
-		
 		// Python analysis and type checking
 		"python.analysis.autoFormatStrings": true,
 		"python.analysis.autoImportCompletions": true,
@@ -68,7 +63,6 @@
 			"**/.ruff_cache",
 			"fairdm/conf/**"
 		],
-
 		// Python testing with pytest
 		"python.testing.pytestEnabled": true,
 		"python.testing.unittestEnabled": false,
@@ -76,7 +70,6 @@
 			"tests",
 			"--doctest-modules"
 		],
-
 		// Python language-specific settings (matches pyproject.toml ruff config)
 		"[python]": {
 			"editor.codeActionsOnSave": {
@@ -86,20 +79,19 @@
 			"editor.defaultFormatter": "charliermarsh.ruff",
 			"editor.formatOnSave": true,
 			"editor.formatOnType": true,
-			"editor.rulers": [120],  // Matches pyproject.toml line-length
-			"files.eol": "\n"  // Matches pyproject.toml line-ending = "lf"
+			"editor.rulers": [
+				120
+			], // Matches pyproject.toml line-length
+			"files.eol": "\n" // Matches pyproject.toml line-ending = "lf"
 		},
-
 		// Ruff settings (matches pyproject.toml configuration)
 		"ruff.lineLength": 120,
 		"ruff.fixAll": true,
 		"ruff.organizeImports": true,
-
 		// Mypy type checking
 		"mypy-type-checker.args": [
 			"--config-file=${workspaceFolder}/pyproject.toml"
 		],
-
 		// =====================================
 		// DJANGO SETTINGS
 		// =====================================
@@ -107,11 +99,9 @@
 		"emmet.includeLanguages": {
 			"django-html": "html"
 		},
-
 		// djlint configuration (uses settings from pyproject.toml)
 		"djlint.showInstallError": false,
-		"djlint.useEditorIndentation": false,  // Use djlint's own indent settings from pyproject.toml
-
+		"djlint.useEditorIndentation": false, // Use djlint's own indent settings from pyproject.toml
 		// Django HTML templates - djlint formatter
 		"[django-html]": {
 			"editor.codeActionsOnSave": {
@@ -119,11 +109,12 @@
 			},
 			"editor.defaultFormatter": "monosans.djlint",
 			"editor.formatOnSave": true,
-			"editor.rulers": [119],  // Matches pyproject.toml max_line_length
+			"editor.rulers": [
+				119
+			], // Matches pyproject.toml max_line_length
 			"editor.tabSize": 2,
 			"files.eol": "\n"
 		},
-
 		// =====================================
 		// JAVASCRIPT/TYPESCRIPT SETTINGS
 		// =====================================
@@ -136,17 +127,14 @@
 			"editor.insertSpaces": true,
 			"editor.tabSize": 2
 		},
-
 		// JavaScript formatting preferences
 		"javascript.format.insertSpaceAfterConstructor": true,
 		"javascript.format.semicolons": "remove",
 		"javascript.updateImportsOnFileMove.enabled": "always",
-
 		// TypeScript formatting preferences
 		"typescript.format.insertSpaceAfterConstructor": true,
 		"typescript.format.semicolons": "remove",
 		"typescript.updateImportsOnFileMove.enabled": "always",
-
 		// =====================================
 		// CSS/SASS/SCSS SETTINGS
 		// =====================================
@@ -155,7 +143,6 @@
 			"editor.formatOnSave": true,
 			"editor.tabSize": 2
 		},
-
 		// =====================================
 		// HTML SETTINGS
 		// =====================================
@@ -164,7 +151,6 @@
 			"editor.formatOnSave": true,
 			"editor.tabSize": 2
 		},
-
 		// =====================================
 		// JSON SETTINGS
 		// =====================================
@@ -173,7 +159,6 @@
 			"editor.formatOnSave": true,
 			"editor.tabSize": 2
 		},
-
 		// =====================================
 		// MARKDOWN SETTINGS
 		// =====================================
@@ -181,45 +166,41 @@
 			"editor.wordWrap": "on",
 			"editor.tabSize": 2
 		},
-
 		// =====================================
 		// GENERAL EDITOR SETTINGS
 		// =====================================
-		"editor.rulers": [120],
+		"editor.rulers": [
+			120
+		],
 		"editor.wordWrap": "on",
 		"editor.formatOnSave": true,
-		"editor.tabSize": 4,  // Default for Python
+		"editor.tabSize": 4, // Default for Python
 		"editor.insertSpaces": true,
 		"editor.trimAutoWhitespace": true,
 		"files.trimTrailingWhitespace": true,
 		"files.insertFinalNewline": true,
-		"files.eol": "\n",  // LF line endings (matches pyproject.toml)
-
+		"files.eol": "\n", // LF line endings (matches pyproject.toml)
 		// =====================================
 		// GIT SETTINGS
 		// =====================================
 		"git.autofetch": true,
 		"git.confirmSync": false,
 		"git.enableSmartCommit": true,
-
 		// =====================================
 		// TESTING SETTINGS
 		// =====================================
 		"testing.automaticallyOpenTestResults": "neverOpen",
 		"testing.openTesting": "neverOpen",
-
 		// =====================================
 		// DEBUGGING SETTINGS
 		// =====================================
 		"debug.inlineValues": "off",
 		"debug.terminal.clearBeforeReusing": true,
-
 		// =====================================
 		// SPELL CHECKING
 		// =====================================
 		"cSpell.enabled": false
 	},
-
 	// ========================================
 	// WORKSPACE TASKS
 	// ========================================
@@ -312,7 +293,6 @@
 			}
 		]
 	},
-
 	// ========================================
 	// RECOMMENDED EXTENSIONS
 	// ========================================
@@ -324,28 +304,23 @@
 			"ms-python.vscode-pylance",
 			"charliermarsh.ruff",
 			"ms-python.mypy-type-checker",
-			
 			// Django (maintained)
 			"batisteo.vscode-django",
 			"monosans.djlint",
-			
 			// Frontend (maintained)
 			"sibiraj-s.vscode-scss-formatter",
-			
 			// Git (maintained)
 			"github.vscode-pull-request-github",
-			
 			// Testing (maintained)
 			"littlefoxteam.vscode-python-test-adapter",
-			
 			// Code quality (maintained)
 			"editorconfig.editorconfig"
 		],
 		"unwantedRecommendations": [
 			// Deprecated or replaced extensions
-			"ms-python.black-formatter",  // Replaced by Ruff
-			"ms-python.isort",  // Replaced by Ruff
-			"matangover.mypy"  // Use ms-python.mypy-type-checker instead
+			"ms-python.black-formatter", // Replaced by Ruff
+			"ms-python.isort", // Replaced by Ruff
+			"matangover.mypy" // Use ms-python.mypy-type-checker instead
 		]
 	}
 }

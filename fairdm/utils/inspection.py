@@ -130,6 +130,24 @@ class FieldInspector:
         if hasattr(field, "auto_now_add") and field.auto_now_add:
             return True
 
+        # Exclude ManyToManyFields with custom through models
+        # (can't be in forms/fieldsets - Django admin error E013)
+        if isinstance(field, models.ManyToManyField):
+            try:
+                # Check if through model exists and is not auto-created
+                if hasattr(field, "remote_field") and hasattr(field.remote_field, "through"):
+                    through = field.remote_field.through
+                    if through is not None:
+                        # String reference means it's explicitly set (not auto-created)
+                        if isinstance(through, str):
+                            return True
+                        # Model class - check if auto_created
+                        if hasattr(through, "_meta") and not through._meta.auto_created:
+                            return True
+            except (AttributeError, TypeError):
+                # If we can't determine, be safe and exclude it
+                pass
+
         # Exclude non-editable fields (except ForeignKey which might be editable=False for admin)
         return not field.editable and not isinstance(field, self.RELATION_TYPES)
 

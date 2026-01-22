@@ -31,11 +31,11 @@
 
 **Purpose**: Branch setup, dependency verification, and structural preparation
 
-- [ ] T001 Create feature branch `007-core-samples` from main
-- [ ] T002 Verify django-polymorphic 3.1+ installed in poetry environment
-- [ ] T003 [P] Verify research-vocabs package available with controlled vocabularies
-- [ ] T004 [P] Verify shortuuid 1.0+ installed for UUID generation
-- [ ] T005 Review Feature 004 (registry) and Feature 006 (datasets) implementation for integration patterns
+- [X] T001 Create feature branch `007-core-samples` from main
+- [X] T002 Verify django-polymorphic 3.1+ installed in poetry environment
+- [X] T003 [P] Verify research-vocabs package available with controlled vocabularies
+- [X] T004 [P] Verify shortuuid 1.0+ installed for UUID generation
+- [X] T005 Review Feature 004 (registry) and Feature 006 (datasets) implementation for integration patterns
 
 ---
 
@@ -51,7 +51,7 @@
 - [X] T009 [P] Create SampleDescription model in fairdm/core/models/sample_description.py extending AbstractDescription
 - [X] T010 [P] Create SampleDate model in fairdm/core/models/sample_date.py extending AbstractDate
 - [X] T011 [P] Create SampleIdentifier model in fairdm/core/models/sample_identifier.py extending AbstractIdentifier with IGSN validation
-- [ ] T012 Generate and apply migrations for Sample, SampleRelation, and metadata models
+- [X] T012 Generate and apply migrations for Sample, SampleRelation, and metadata models
 - [X] T013 Update fairdm/core/sample/**init**.py to export new models
 
 **Checkpoint**: Sample model foundation complete - user story implementation can now proceed
@@ -70,26 +70,26 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T014 [P] [US1] Unit test for SampleQuerySet.with_related() in tests/unit/core/models/test_sample_queryset.py
-- [ ] T015 [P] [US1] Unit test for SampleQuerySet.with_metadata() in tests/unit/core/models/test_sample_queryset.py
-- [ ] T016 [P] [US1] Unit test for polymorphic Sample query returning correct subclass instances in tests/unit/core/models/test_sample_polymorphic.py
-- [ ] T017 [P] [US1] Integration test for custom sample type registration via Feature 004 registry in tests/integration/registry/test_sample_registration.py
-- [ ] T018 [US1] Integration test for auto-generated form/filter/table for custom sample type in tests/integration/registry/test_sample_components.py
+- [X] T014 [P] [US1] Unit test for SampleQuerySet.with_related() in tests/unit/core/models/test_sample_queryset.py
+- [X] T015 [P] [US1] Unit test for SampleQuerySet.with_metadata() in tests/unit/core/models/test_sample_queryset.py
+- [X] T016 [P] [US1] Unit test for polymorphic Sample query returning correct subclass instances in tests/unit/core/models/test_sample_polymorphic.py
+- [X] T017 [P] [US1] Integration test for custom sample type registration via Feature 004 registry in tests/integration/registry/test_sample_registration.py
+- [X] T018 [US1] Integration test for auto-generated form/filter/table for custom sample type in tests/integration/registry/test_sample_components.py
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Implement SampleQuerySet.with_related() prefetching dataset, location, contributors in fairdm/core/managers/sample.py
-- [ ] T020 [P] [US1] Implement SampleQuerySet.with_metadata() prefetching descriptions, dates, identifiers in fairdm/core/managers/sample.py
-- [ ] T021 [US1] Implement SampleQuerySet.by_relationship() filtering by relationship type in fairdm/core/managers/sample.py
-- [ ] T022 [US1] Add registry integration hooks to Sample model for auto-component generation in fairdm/core/models/sample.py
-- [ ] T023 [US1] Verify polymorphic queries work correctly (Sample.objects.all() returns subclass instances)
-- [ ] T024 [P] [US1] Create RockSample demo model in fairdm_demo/models.py with mineral_type, hardness, grain_size fields
-- [ ] T025 [P] [US1] Create WaterSample demo model in fairdm_demo/models.py with ph_level, temperature, dissolved_oxygen fields
-- [ ] T026 [US1] Generate and apply migrations for demo sample types
-- [ ] T027 [US1] Register RockSample in fairdm_demo/config.py using Feature 004 registry patterns with fields configuration
-- [ ] T028 [US1] Register WaterSample in fairdm_demo/config.py using Feature 004 registry patterns with fields configuration
-- [ ] T029 [US1] Verify auto-generated forms for RockSample/WaterSample handle both base and custom fields correctly
-- [ ] T030 [US1] Update fairdm_demo/factories.py with RockSampleFactory and WaterSampleFactory for testing
+- [X] T019 [P] [US1] Implement SampleQuerySet.with_related() prefetching dataset, location, contributors in fairdm/core/managers/sample.py
+- [X] T020 [P] [US1] Implement SampleQuerySet.with_metadata() prefetching descriptions, dates, identifiers in fairdm/core/managers/sample.py
+- [X] T021 [US1] Implement SampleQuerySet.by_relationship() filtering by relationship type in fairdm/core/managers/sample.py
+- [X] T022 [US1] Add registry integration hooks to Sample model for auto-component generation in fairdm/core/models/sample.py
+- [X] T023 [US1] Verify polymorphic queries work correctly (Sample.objects.all() returns subclass instances)
+- [X] T024 [P] [US1] Create RockSample demo model in fairdm_demo/models.py with mineral_type, hardness, grain_size fields
+- [X] T025 [P] [US1] Create WaterSample demo model in fairdm_demo/models.py with ph_level, temperature, dissolved_oxygen fields
+- [X] T026 [US1] Generate and apply migrations for demo sample types
+- [X] T027 [US1] Register RockSample in fairdm_demo/config.py using Feature 004 registry patterns with fields configuration
+- [X] T028 [US1] Register WaterSample in fairdm_demo/config.py using Feature 004 registry patterns with fields configuration
+- [X] T029 [US1] Verify auto-generated forms for RockSample/WaterSample handle both base and custom fields correctly
+- [X] T030 [US1] Update fairdm_demo/factories.py with RockSampleFactory and WaterSampleFactory for testing
 
 **Checkpoint**: Polymorphic samples with registry integration fully functional
 
@@ -103,26 +103,26 @@
 
 ### Tests for User Story 2
 
-- [ ] T031 [P] [US2] Admin integration test for sample search functionality in tests/integration/admin/test_sample_admin_search.py
-- [ ] T032 [P] [US2] Admin integration test for sample filtering (dataset, status, location) in tests/integration/admin/test_sample_admin_filters.py
-- [ ] T033 [US2] Admin integration test for inline metadata editing (descriptions, dates, identifiers) in tests/integration/admin/test_sample_admin_inlines.py
+- [X] T031 [P] [US2] Admin integration test for sample search functionality in tests/integration/core/test_sample_admin.py (TestSampleAdminSearch class)
+- [X] T032 [P] [US2] Admin integration test for sample filtering (dataset, status, location) in tests/integration/core/test_sample_admin.py (TestSampleAdminFilters class)
+- [X] T033 [US2] Admin integration test for inline metadata editing (descriptions, dates, identifiers) in tests/integration/core/test_sample_admin.py (TestSampleAdminInlines class)
 
 ### Implementation for User Story 2
 
-- [ ] T034 [US2] Create SampleAdmin base class in fairdm/core/admin/sample.py with search_fields (name, local_id, uuid)
-- [ ] T035 [US2] Add list_filter configuration to SampleAdmin (dataset, status, polymorphic_ctype) in fairdm/core/admin/sample.py
-- [ ] T036 [US2] Add list_display configuration showing name, local_id, dataset, status, sample_type, added in fairdm/core/admin/sample.py
-- [ ] T037 [P] [US2] Create DescriptionInline for SampleDescription in fairdm/core/admin/sample.py with tabular format
-- [ ] T038 [P] [US2] Create DateInline for SampleDate in fairdm/core/admin/sample.py with tabular format
-- [ ] T039 [P] [US2] Create IdentifierInline for SampleIdentifier in fairdm/core/admin/sample.py with tabular format
-- [ ] T040 [P] [US2] Create RelationshipInline for SampleRelation in fairdm/core/admin/sample.py with autocomplete foreign keys
-- [ ] T041 [US2] Add inlines to SampleAdmin (descriptions, dates, identifiers, relationships) with max_num limits dynamically calculated from vocabulary sizes (FR-048)
-- [ ] T042 [US2] Configure autocomplete_fields for dataset and location in SampleAdmin
-- [ ] T043 [US2] Add polymorphic type column display in admin list view
-- [ ] T044 [US2] Register SampleAdmin with admin.site.register() in fairdm/core/admin/**init**.py
-- [ ] T045 [P] [US2] Create RockSampleAdmin extending SampleAdmin in fairdm_demo/admin.py
-- [ ] T046 [P] [US2] Create WaterSampleAdmin extending SampleAdmin in fairdm_demo/admin.py
-- [ ] T047 [US2] Register RockSampleAdmin and WaterSampleAdmin in fairdm_demo/admin.py
+- [X] T034 [US2] Create SampleAdmin base class in fairdm/core/sample/admin.py with search_fields (name, local_id, uuid) - already existed
+- [X] T035 [US2] Add list_filter configuration to SampleAdmin (dataset, status, polymorphic_ctype) in fairdm/core/sample/admin.py - already existed
+- [X] T036 [US2] Add list_display configuration showing name, local_id, dataset, status, sample_type, added in fairdm/core/sample/admin.py - enhanced with sample_type method
+- [X] T037 [P] [US2] Create DescriptionInline for SampleDescription in fairdm/core/sample/admin.py with tabular format - already existed
+- [X] T038 [P] [US2] Create DateInline for SampleDate in fairdm/core/sample/admin.py with tabular format - already existed
+- [X] T039 [P] [US2] Create IdentifierInline for SampleIdentifier in fairdm/core/sample/admin.py with tabular format - already existed
+- [X] T040 [P] [US2] Create RelationshipInline for SampleRelation in fairdm/core/sample/admin.py with autocomplete foreign keys - already existed as SampleRelationInline
+- [X] T041 [US2] Add inlines to SampleAdmin (descriptions, dates, identifiers, relationships) with max_num limits dynamically calculated from vocabulary sizes (FR-048) - already existed
+- [X] T042 [US2] Configure autocomplete_fields for dataset and location in SampleAdmin
+- [X] T043 [US2] Add polymorphic type column display in admin list view
+- [X] T044 [US2] Register SampleAdmin with admin.site.register() in fairdm/core/apps.py - already handled by register_sample_children method
+- [X] T045 [P] [US2] Create RockSampleAdmin extending SampleAdmin in fairdm_demo/admin.py
+- [X] T046 [P] [US2] Create WaterSampleAdmin extending SampleAdmin in fairdm_demo/admin.py
+- [X] T047 [US2] Register RockSampleAdmin and WaterSampleAdmin in fairdm_demo/admin.py
 
 **Checkpoint**: Admin interface complete with full CRUD, search, filtering, and inline editing
 

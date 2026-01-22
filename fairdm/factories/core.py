@@ -12,7 +12,7 @@ from fairdm.core.project.models import ProjectDate, ProjectDescription
 from fairdm.core.sample.models import SampleDate, SampleDescription
 
 from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
-from .contributors import UserFactory  # Import UserFactory for Project.owner
+from .contributors import OrganizationFactory  # Import OrganizationFactory for Project.owner
 
 
 class ProjectDescriptionFactory(DjangoModelFactory):
@@ -54,8 +54,8 @@ class ProjectFactory(DjangoModelFactory):
     # JSON fields - simplified approach
     funding = LazyAttribute(lambda obj: {"agency": "Sample Agency", "grant_number": "GRANT-2024-001", "amount": 50000})
 
-    # Relations - owner required for Project
-    owner = SubFactory(UserFactory)
+    # Relations - owner required for Project (Organization, not Person)
+    owner = SubFactory(OrganizationFactory)
 
 
 class DatasetDescriptionFactory(DjangoModelFactory):

@@ -424,3 +424,110 @@ After customizing admin interfaces, test:
 
 See: `tests/integration/core/dataset/test_admin.py` for comprehensive admin tests.
 """
+
+
+# ============================================================================
+# Demo Sample Admin Classes
+# ============================================================================
+
+
+from fairdm.core.sample.admin import SampleChildAdmin
+
+from .models import RockSample, WaterSample
+
+
+@admin.register(RockSample)
+class RockSampleAdmin(SampleChildAdmin):
+    """Admin interface for RockSample model.
+
+    Extends SampleAdmin to add custom fields and filters specific to geological
+    rock samples. Demonstrates how to customize the base SampleAdmin for
+    domain-specific sample types.
+
+    Custom Features:
+        - Additional list display: rock_type, mineral_content
+        - Custom filters: rock_type, hardness range
+        - Enhanced search: mineral_content
+        - Fieldset for geological properties
+
+    See Also:
+        - fairdm.core.sample.admin.SampleAdmin: Base admin class
+        - docs/portal-development/admin/sample-admin.md: Admin customization guide
+    """
+
+    base_model = RockSample
+    show_in_index = True  # Show in main admin index
+
+    # Add rock-specific fields to list display
+    list_display = SampleChildAdmin.list_display + ["rock_type", "mineral_content"]
+
+    # Add rock-specific filters
+    list_filter = SampleChildAdmin.list_filter + ["rock_type"]
+
+    # Add rock-specific search fields
+    search_fields = SampleChildAdmin.search_fields + ["mineral_content"]
+
+    # Extend base_fieldsets to include geological properties
+    fieldsets = (
+        (
+            "Geological Properties",
+            {
+                "fields": [
+                    "rock_type",
+                    "mineral_content",
+                    "weight_grams",
+                    "hardness_mohs",
+                    "collection_date",
+                ],
+            },
+        ),
+    )
+
+
+@admin.register(WaterSample)
+class WaterSampleAdmin(SampleChildAdmin):
+    """Admin interface for WaterSample model.
+
+    Extends SampleAdmin to add custom fields and filters specific to water
+    quality samples. Demonstrates how to customize the base SampleAdmin for
+    environmental monitoring applications.
+
+    Custom Features:
+        - Additional list display: water_source, ph_level, temperature
+        - Custom filters: water_source, ph range
+        - Enhanced search: water_source
+        - Fieldset for water quality parameters
+
+    See Also:
+        - fairdm.core.sample.admin.SampleAdmin: Base admin class
+        - docs/portal-development/admin/sample-admin.md: Admin customization guide
+    """
+
+    base_model = WaterSample
+    show_in_index = True  # Show in main admin index
+
+    # Add water-specific fields to list display
+    list_display = SampleChildAdmin.list_display + ["water_source", "ph_level", "temperature_celsius"]
+
+    # Add water-specific filters
+    list_filter = SampleChildAdmin.list_filter + ["water_source"]
+
+    # Add water-specific search fields
+    search_fields = SampleChildAdmin.search_fields + ["water_source"]
+
+    # Extend base_fieldsets to include water quality parameters
+    fieldsets = (
+        (
+            "Water Quality Parameters",
+            {
+                "fields": [
+                    "water_source",
+                    "temperature_celsius",
+                    "ph_level",
+                    "turbidity_ntu",
+                    "dissolved_oxygen_mg_l",
+                    "conductivity_us_cm",
+                ],
+            },
+        ),
+    )

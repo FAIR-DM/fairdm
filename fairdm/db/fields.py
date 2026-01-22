@@ -44,7 +44,16 @@ class QuantityField(fields.QuantityField):
 
 class PartialDateField(BasePartialDateField):
     def formfield(self, **kwargs):
-        # Specify the form field to use for this model field
-        defaults = {"form_class": PartialDateField}
+        # Import here to avoid circular import
+        from fairdm.forms import PartialDateField as PartialDateFormField
+
+        # Build the default arguments for the form field
+        defaults = {
+            "required": not self.blank,
+            "label": self.verbose_name.capitalize() if self.verbose_name else None,
+            "help_text": self.help_text,
+        }
         defaults.update(kwargs)
-        return super().formfield(**defaults)
+
+        # Return an instance of our custom form field
+        return PartialDateFormField(**defaults)

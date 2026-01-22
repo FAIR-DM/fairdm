@@ -16,12 +16,15 @@ User = get_user_model()
 
 
 class UserFactory(DjangoModelFactory):
-    """Factory for creating Django User instances."""
+    """Factory for creating Django User instances.
+
+    Note: Person model uses email as USERNAME_FIELD, not username.
+    The username field is set to __str__ property in Person model.
+    """
 
     class Meta:
         model = User
 
-    username = factory.Sequence(lambda n: f"user{n}")
     email = factory.Sequence(lambda n: f"user{n}@example.com")
     first_name = "Test"
     last_name = "User"

@@ -74,7 +74,6 @@ django-taggit = "^6.1.0"
 django-waffle = "^5.0.0"
 django-addanother = "^2.2.2"
 django-render-fields = {git = "https://github.com/SamuelJennings/django-render-fields"}
-django-admin-site-search = "^1.1.0"
 django-autocomplete-light = "^3.12.1"
 django-braces = "^1.17.0"
 django-auto-prefetch = "^1.12.0"

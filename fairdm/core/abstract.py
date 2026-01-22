@@ -160,9 +160,14 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):
 
     @classproperty
     def config(cls):
-        """Gets the FairDM configuration object for a class or instance from the registry."""
-        if registry_item := registry.get_for_model(cls):
-            return registry_item
+        """Gets the FairDM configuration object for a class or instance from the registry.
+
+        Returns None if the model is not registered.
+        """
+        try:
+            return registry.get_for_model(cls)
+        except KeyError:
+            return None
 
     class Meta:
         abstract = True

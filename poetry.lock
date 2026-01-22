@@ -1169,20 +1169,6 @@ files = [
 docs = ["markdown-include", "mdx-gh-links (>=0.4)", "mkdocs (>=1.6.1)", "mkdocs-awesome-pages-plugin (>=2.9.3)", "mkdocs-material (>=9.5.36)", "mkdocstrings-python"]
 
 [[package]]
-name = "django-admin-site-search"
-version = "1.1.0"
-description = "A search (cmd+k) modal, for the Django admin UI, that searches your entire site."
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "django_admin_site_search-1.1.0-py3-none-any.whl", hash = "sha256:fee2318007f87ca2e996d10ead82aa11bdb1858caa7aa23758a164bcc2b0eab3"},
-    {file = "django_admin_site_search-1.1.0.tar.gz", hash = "sha256:86bd0c2a132ae0db353c29eb3eebe9ca92e9208db09f43ee99b30aaba03a4cf4"},
-]
-
-[package.dependencies]
-django = ">=3.2"
-
-[[package]]
 name = "django-admin-sortable2"
 version = "2.3"
 description = "Generic drag-and-drop sorting for the List, the Stacked- and the Tabular-Inlines Views in the Django Admin"
@@ -6827,4 +6813,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "1c9ed9cf3a080448fa5cad6cf1afda126dc8352fb2465a0022c8e23017413133"
+content-hash = "3f327ced16933b42790c2c83ebe03b35eb0557bebf3cccffdd7815da09968d45"

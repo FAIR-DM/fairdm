@@ -23,7 +23,6 @@ BASE_DIR = globals()["BASE_DIR"]
 INSTALLED_APPS = [
     # Admin apps (must come early)
     "adminactions",
-    "admin_site_search",
     "admin_extra_buttons",
     "fairdm.contrib.admin.apps.FairDMAdminConfig",
     "dal",

@@ -1,7 +1,6 @@
 import os
 import tempfile
 
-from admin_site_search.views import AdminSiteSearchView
 from django import forms
 from django.contrib import admin, messages
 from django.core.management import call_command
@@ -16,7 +15,7 @@ class FixtureUploadForm(forms.Form):
     fixture_file = forms.FileField(label="Select a fixture file")
 
 
-class CustomAdminSite(AdminSiteSearchView, admin.AdminSite):
+class CustomAdminSite(admin.AdminSite):
     site_header = _("Portal Administration")
     site_title = _("Portal Administration")
     index_title = _("Portal Administration")

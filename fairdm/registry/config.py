@@ -186,8 +186,8 @@ class ModelConfiguration:
     resource_class: type[ModelResource] | None = None
     """Custom import_export Resource class. Completely replaces auto-generation."""
 
-    admin_class: type["ModelAdmin"] | None = None
-    """Custom Django Admin ModelAdmin class. Completely replaces auto-generation."""
+    admin_class: type["ModelAdmin"] | str | None = None
+    """Custom Django Admin ModelAdmin class or dotted import path. Completely replaces auto-generation."""
 
     # Metadata
     display_name: str = ""
@@ -203,32 +203,44 @@ class ModelConfiguration:
         #   class MyConfig(ModelConfiguration):
         #       model = MyModel
         #       table_class = MyTable
-        
+
         # List of attributes that should be copied from class to instance
         class_attrs = [
-            "model", "metadata", "fields", "exclude",
-            "table_fields", "form_fields", "filterset_fields", 
-            "serializer_fields", "resource_fields", "admin_list_display",
-            "form_class", "table_class", "filterset_class",
-            "serializer_class", "resource_class", "admin_class",
-            "display_name", "description"
+            "model",
+            "metadata",
+            "fields",
+            "exclude",
+            "table_fields",
+            "form_fields",
+            "filterset_fields",
+            "serializer_fields",
+            "resource_fields",
+            "admin_list_display",
+            "form_class",
+            "table_class",
+            "filterset_class",
+            "serializer_class",
+            "resource_class",
+            "admin_class",
+            "display_name",
+            "description",
         ]
-        
+
         for attr_name in class_attrs:
             # Get instance value
             instance_value = getattr(self, attr_name)
-            
+
             # Check if there's a class-level value that differs from the default
             if hasattr(self.__class__, attr_name):
                 class_value = getattr(self.__class__, attr_name)
-                
+
                 # Determine if we should use the class value:
                 # - For model: if instance is None
                 # - For strings: if instance is empty string
                 # - For lists: if instance is empty list (default_factory creates new empty list)
                 # - For None-defaulting attrs: if instance is None
                 should_use_class_value = False
-                
+
                 if attr_name == "model":
                     should_use_class_value = instance_value is None and class_value is not None
                 elif attr_name in ("display_name", "description"):
@@ -242,7 +254,7 @@ class ModelConfiguration:
                 else:
                     # For component-specific fields and custom classes (all default to None)
                     should_use_class_value = instance_value is None and class_value is not None
-                
+
                 if should_use_class_value:
                     object.__setattr__(self, attr_name, class_value)
 
@@ -259,6 +271,9 @@ class ModelConfiguration:
 
         # Validate field names (T030)
         self._validate_fields()
+
+        # Validate admin class inheritance for polymorphic models
+        self._validate_admin_inheritance()
 
     def _validate_fields(self):
         """Validate that all field names exist on the model (T030).
@@ -312,6 +327,51 @@ class ModelConfiguration:
 
                     raise FieldValidationError(error_msg, model=self.model)
 
+    def _validate_admin_inheritance(self):
+        """Validate that polymorphic models use correct admin base classes.
+
+        For Sample subclasses, admin_class must inherit from SampleChildAdmin.
+        For Measurement subclasses, admin_class must inherit from MeasurementAdmin (child).
+
+        Raises:
+            ConfigurationError: If admin_class doesn't inherit from required base
+        """
+        # Only validate if admin_class is explicitly provided
+        if self.admin_class is None:
+            return
+
+        assert self.model is not None  # Validated in __post_init__
+
+        # Get the admin class (may be string reference)
+        admin_cls = self._get_class(self.admin_class)
+
+        # Import base model classes to check inheritance
+        try:
+            from fairdm.core.admin import MeasurementAdmin as MeasurementChildAdmin
+            from fairdm.core.models import Measurement, Sample
+            from fairdm.core.sample.admin import SampleChildAdmin
+        except ImportError:
+            # Core models not available (testing scenario), skip validation
+            return
+
+        # Check Sample subclass
+        if issubclass(self.model, Sample) and self.model is not Sample:
+            if not issubclass(admin_cls, SampleChildAdmin):
+                raise ConfigurationError(
+                    f"Admin class for Sample subclass {self.model.__name__} must inherit from "
+                    f"SampleChildAdmin. Got {admin_cls.__name__} instead. "
+                    f"Change your admin class to: class {admin_cls.__name__}(SampleChildAdmin): ..."
+                )
+
+        # Check Measurement subclass
+        if issubclass(self.model, Measurement) and self.model is not Measurement:
+            if not issubclass(admin_cls, MeasurementChildAdmin):
+                raise ConfigurationError(
+                    f"Admin class for Measurement subclass {self.model.__name__} must inherit from "
+                    f"MeasurementAdmin (the child admin base class). Got {admin_cls.__name__} instead. "
+                    f"Change your admin class to: class {admin_cls.__name__}(MeasurementAdmin): ..."
+                )
+
     @classmethod
     def get_default_fields(cls, model: type["models.Model"]) -> list[str]:
         """Get smart default field list for a model (T010).
@@ -328,6 +388,8 @@ class ModelConfiguration:
         Returns:
             List of field names suitable for auto-generation
         """
+        from django.db import models
+
         excluded_names = {"id", "polymorphic_ctype", "polymorphic_ctype_id"}
         fields = []
 
@@ -353,6 +415,22 @@ class ModelConfiguration:
             # Skip reverse relations (ManyToOneRel, ManyToManyRel)
             if hasattr(field, "related_name") and not hasattr(field, "column"):
                 continue
+
+            # Skip ManyToMany fields with custom through models (admin.E013)
+            if isinstance(field, models.ManyToManyField):
+                try:
+                    if hasattr(field, "remote_field") and hasattr(field.remote_field, "through"):
+                        through = field.remote_field.through
+                        if through is not None:
+                            # String reference means explicitly set (not auto-created)
+                            if isinstance(through, str):
+                                continue
+                            # Model class - check if auto_created
+                            if hasattr(through, "_meta") and not through._meta.auto_created:
+                                continue
+                except (AttributeError, TypeError):
+                    # If we can't determine, be safe and exclude it
+                    continue
 
             fields.append(field.name)
 
@@ -417,16 +495,16 @@ class ModelConfiguration:
 
     def _flatten_fields(self, field_list: list[str | tuple[str, ...]] | None) -> list[str]:
         """Flatten a field list that may contain tuples for grouping.
-        
+
         Args:
             field_list: List that may contain strings or tuples of strings
-            
+
         Returns:
             Flattened list containing only strings
         """
         if not field_list:
             return []
-        
+
         flat_list = []
         for item in field_list:
             if isinstance(item, (tuple, list)):

@@ -1,11 +1,7 @@
-from contextlib import suppress
-
 from django.apps import AppConfig, apps
-from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.config import Authority, Citation
-from fairdm.registry import registry as fairdm_registry
 
 
 class FairDMCoreConfig(AppConfig):
@@ -23,9 +19,6 @@ class FairDMCoreConfig(AppConfig):
     )
     repository_url = "https://github.com/FAIR-DM/fairdm"
 
-    def ready(self) -> None:
-        return super().ready()
-
     def register_core_models(self):
         from fairdm.core.models import Measurement, Sample
         from fairdm.registry import registry
@@ -35,9 +28,7 @@ class FairDMCoreConfig(AppConfig):
                 registry.register(model)
 
     def register_sample_children(self):
-        from .admin import SampleAdmin
+        pass
 
-        # Register all subclasses of Sample with the admin site
-        for model in fairdm_registry.samples:
-            with suppress(admin.sites.AlreadyRegistered):
-                admin.site.register(model["class"], SampleAdmin)
+        # Child models should be registered individually with their own admin classes
+        # (either in their app's admin.py or via the registry system)

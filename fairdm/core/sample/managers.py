@@ -87,9 +87,7 @@ class SampleQuerySet(PolymorphicQuerySet):
         from .models import SampleRelation
 
         # Get sample IDs that participate in relationships of this type
-        relationship_ids = SampleRelation.objects.filter(relationship_type=relationship_type).values_list(
-            "source_id", "target_id"
-        )
+        relationship_ids = SampleRelation.objects.filter(type=relationship_type).values_list("source_id", "target_id")
 
         # Flatten the list of (source, target) tuples to get unique sample IDs
         sample_ids = set()

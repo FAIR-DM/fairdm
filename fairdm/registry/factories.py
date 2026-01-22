@@ -452,25 +452,46 @@ class AdminFactory(ComponentFactory):
         fields = self.get_fields()
         inspector = FieldInspector(self.model)
 
+        # Determine the correct admin base class for polymorphic models first
+        # as this affects what attributes we set
+        admin_base = self._get_admin_base_class()
+
         # Build admin class attributes
         attrs = {
             "model": self.model,
             "list_display": self._get_list_display(fields, inspector),
             "search_fields": self._get_search_fields(fields, inspector),
             "list_filter": self._get_list_filter(fields, inspector),
-            "readonly_fields": self._get_readonly_fields(inspector),
         }
+
+        # Handle readonly_fields - merge with base class if inheriting from polymorphic admin
+        if admin_base is not admin.ModelAdmin:
+            # Merge base class readonly_fields with auto-generated ones
+            base_readonly = getattr(admin_base, "readonly_fields", [])
+            auto_readonly = self._get_readonly_fields(inspector)
+            # Combine and deduplicate
+            merged_readonly = list(dict.fromkeys(list(base_readonly) + auto_readonly))
+            attrs["readonly_fields"] = merged_readonly
+        else:
+            attrs["readonly_fields"] = self._get_readonly_fields(inspector)
 
         # Add date hierarchy if model has date fields
         date_hierarchy = self._get_date_hierarchy(inspector)
         if date_hierarchy:
             attrs["date_hierarchy"] = date_hierarchy
 
-        # Add fieldsets if we have enough fields
-        if len(fields) > 6:
-            attrs["fieldsets"] = self._get_fieldsets(fields, inspector)
+        # Add required attrs for polymorphic child admins
+        if admin_base is not admin.ModelAdmin:
+            attrs["base_model"] = self.model
+            attrs["show_in_index"] = True
+            # Don't add fields/fieldsets - the base class already has them
+            # and Django doesn't allow both to be set
         else:
-            attrs["fields"] = fields
+            # For standard ModelAdmin, add fieldsets or fields
+            if len(fields) > 6:
+                attrs["fieldsets"] = self._get_fieldsets(fields, inspector)
+            else:
+                attrs["fields"] = fields
 
         # Determine app_label based on model inheritance
         app_label = self._get_admin_app_label()
@@ -480,7 +501,7 @@ class AdminFactory(ComponentFactory):
 
         # Create the admin class
         admin_class_name = f"{self.model.__name__}Admin"
-        admin_class = type(admin_class_name, (admin.ModelAdmin,), attrs)
+        admin_class = type(admin_class_name, (admin_base,), attrs)
 
         return admin_class
 
@@ -618,7 +639,7 @@ class AdminFactory(ComponentFactory):
 
         return None
 
-    def _get_fieldsets(self, fields: list[str], inspector: FieldInspector) -> list[tuple[str | None, dict]]:
+    def _get_fieldsets(self, fields: list[str], inspector: FieldInspector) -> tuple[tuple[str | None, dict], ...]:
         """Get fieldsets for admin form grouping.
 
         Args:
@@ -626,7 +647,7 @@ class AdminFactory(ComponentFactory):
             inspector: FieldInspector instance
 
         Returns:
-            List of fieldset tuples
+            Tuple of fieldset tuples (django-polymorphic expects tuples, not lists)
         """
         fieldsets = []
 
@@ -659,7 +680,8 @@ class AdminFactory(ComponentFactory):
         if meta_fields:
             fieldsets.append(("Metadata", {"fields": meta_fields, "classes": ["collapse"]}))
 
-        return fieldsets if fieldsets else [(None, {"fields": fields})]
+        # Convert to tuple - django-polymorphic requires tuples for fieldsets concatenation
+        return tuple(fieldsets) if fieldsets else ((None, {"fields": fields}),)
 
     def _get_admin_app_label(self) -> str | None:
         """Determine the app_label for admin grouping based on model inheritance.
@@ -678,6 +700,38 @@ class AdminFactory(ComponentFactory):
         except (ImportError, TypeError):
             pass
         return None
+
+    def _get_admin_base_class(self) -> type[admin.ModelAdmin]:
+        """Determine the correct admin base class for polymorphic models.
+
+        For Sample subclasses, returns SampleChildAdmin.
+        For Measurement subclasses, returns MeasurementAdmin (child admin).
+        Otherwise returns standard ModelAdmin.
+
+        Returns:
+            Admin base class appropriate for the model
+        """
+        try:
+            from fairdm.core.measurement.models import Measurement
+            from fairdm.core.sample.models import Sample
+
+            # Check if this is a Sample subclass (but not the base Sample itself)
+            if issubclass(self.model, Sample) and self.model is not Sample:
+                from fairdm.core.sample.admin import SampleChildAdmin
+
+                return SampleChildAdmin
+
+            # Check if this is a Measurement subclass (but not the base Measurement itself)
+            if issubclass(self.model, Measurement) and self.model is not Measurement:
+                from fairdm.core.admin import MeasurementAdmin
+
+                return MeasurementAdmin
+
+        except (ImportError, TypeError):
+            pass
+
+        # Default to standard ModelAdmin
+        return admin.ModelAdmin
 
 
 class SerializerFactory(ComponentFactory):

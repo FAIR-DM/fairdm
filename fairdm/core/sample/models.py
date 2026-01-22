@@ -1,8 +1,10 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.db import models as django_models
 from django.utils.functional import classproperty
 
 # from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext_lazy as _
+from polymorphic.managers import PolymorphicManager
 from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
 
@@ -12,6 +14,7 @@ from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, Ba
 from ..choices import SampleStatus
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
+from .managers import SampleQuerySet
 
 
 class Sample(BasePolymorphicModel):
@@ -77,6 +80,18 @@ class Sample(BasePolymorphicModel):
     # GENERIC RELATIONS
     contributors = GenericRelation("contributors.Contribution")
 
+    # MANY-TO-MANY RELATIONSHIPS
+    related = models.ManyToManyField(
+        "self",
+        through="SampleRelation",
+        symmetrical=False,
+        related_name="related_from",
+        blank=True,
+    )
+
+    # CUSTOM MANAGER
+    objects = PolymorphicManager.from_queryset(SampleQuerySet)()
+
     class Meta:
         verbose_name = _("sample")
         verbose_name_plural = _("samples")
@@ -88,6 +103,49 @@ class Sample(BasePolymorphicModel):
 
     def __str__(self):
         return f"{self.name}"
+
+    def get_all_relationships(self):
+        """Get all SampleRelation objects where this sample is source or target.
+
+        Returns:
+            QuerySet: All SampleRelation objects involving this sample
+
+        Example:
+            >>> sample = Sample.objects.get(uuid="s_abc123")
+            >>> relationships = sample.get_all_relationships()
+            >>> for rel in relationships:
+            >>>     print(f"{rel.source} {rel.type} {rel.target}")
+        """
+        return SampleRelation.objects.filter(django_models.Q(source=self) | django_models.Q(target=self))
+
+    def get_related_samples(self, relationship_type=None):
+        """Get all samples related to this sample.
+
+        Args:
+            relationship_type: Optional filter for specific relationship type
+                             (e.g., "child_of")
+
+        Returns:
+            QuerySet: Sample objects related to this sample
+
+        Example:
+            >>> parent = Sample.objects.get(uuid="s_abc123")
+            >>> children = parent.get_related_samples(relationship_type="child_of")
+        """
+        relationships = self.get_all_relationships()
+
+        if relationship_type:
+            relationships = relationships.filter(type=relationship_type)
+
+        # Get sample IDs from both source and target, excluding self
+        related_ids = set()
+        for rel in relationships:
+            if rel.source_id != self.id:
+                related_ids.add(rel.source_id)
+            if rel.target_id != self.id:
+                related_ids.add(rel.target_id)
+
+        return Sample.objects.filter(id__in=related_ids)
 
     @classproperty
     def type_of(self):

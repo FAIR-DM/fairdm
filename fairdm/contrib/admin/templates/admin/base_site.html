@@ -1,15 +1,6 @@
 {% extends "admin/base_site.html" %}
-{% block extrahead %}
-  {% include 'admin_site_search/head.html' %}
-  {{ block.super }}
-{% endblock %}
+{% block extrahead %}{{ block.super }}{% endblock %}
 
-{% block footer %}
-  {{ block.super }}
-  {% include 'admin_site_search/modal.html' %}
-{% endblock %}
+{% block footer %}{{ block.super }}{% endblock %}
 
-{% block usertools %}
-  {% include 'admin_site_search/button.html' %}
-  {{ block.super }}
-{% endblock %}
+{% block usertools %}{{ block.super }}{% endblock %}

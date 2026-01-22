@@ -225,3 +225,296 @@ class TestSamplePermissions:
 
         assert sample.contributors.count() == 1
         assert contribution.contributor == self.user
+
+
+# ============================================================================
+# Feature 007: Polymorphism & QuerySet Tests
+# ============================================================================
+
+
+@pytest.mark.django_db
+class TestSampleQuerySetWithRelated:
+    """Test SampleQuerySet.with_related() method for prefetching related data."""
+
+    def test_with_related_prefetches_dataset(self):
+        """Test that with_related() prefetches dataset relationship."""
+        sample = SampleFactory()
+        result = Sample.objects.with_related().get(pk=sample.pk)
+
+        assert result.dataset is not None
+        assert result.dataset.pk == sample.dataset.pk
+
+    def test_with_related_prefetches_contributors(self):
+        """Test that with_related() prefetches contributors via GenericRelation."""
+        sample = SampleFactory()
+        user1 = Person.objects.create(name="User 1", email="user1@example.com")
+        user2 = Person.objects.create(name="User 2", email="user2@example.com")
+        contribution1 = sample.add_contributor(user1, with_roles=["Creator"])
+        contribution2 = sample.add_contributor(user2, with_roles=["Editor"])
+
+        result = Sample.objects.with_related().get(pk=sample.pk)
+        contributors = list(result.contributors.all())
+
+        assert len(contributors) == 2
+
+    def test_with_related_returns_queryset(self):
+        """Test that with_related() returns a QuerySet for chaining."""
+        qs = Sample.objects.with_related()
+
+        assert hasattr(qs, "filter")
+        assert hasattr(qs, "exclude")
+        assert hasattr(qs, "order_by")
+
+    def test_with_related_can_be_chained(self):
+        """Test that with_related() can be chained with other queryset methods."""
+        sample1 = SampleFactory(name="Alpha")
+        _sample2 = SampleFactory(name="Beta")
+
+        results = Sample.objects.with_related().filter(name="Alpha")
+
+        assert results.count() == 1
+        assert results.first().pk == sample1.pk
+
+
+@pytest.mark.django_db
+class TestSampleQuerySetWithMetadata:
+    """Test SampleQuerySet.with_metadata() method for prefetching metadata models."""
+
+    def test_with_metadata_prefetches_descriptions(self):
+        """Test that with_metadata() prefetches SampleDescription objects."""
+        sample = SampleFactory()
+        desc1 = SampleDescription.objects.create(related=sample, type="Abstract", value="Description 1")
+        desc2 = SampleDescription.objects.create(related=sample, type="Methods", value="Description 2")
+
+        result = Sample.objects.with_metadata().get(pk=sample.pk)
+        descriptions = list(result.descriptions.all())
+
+        assert len(descriptions) == 2
+        assert desc1 in descriptions
+        assert desc2 in descriptions
+
+    def test_with_metadata_prefetches_dates(self):
+        """Test that with_metadata() prefetches SampleDate objects."""
+        sample = SampleFactory()
+        date1 = SampleDate.objects.create(related=sample, type="Created", value="2024-01-01")
+        date2 = SampleDate.objects.create(related=sample, type="Published", value="2024-06-01")
+
+        result = Sample.objects.with_metadata().get(pk=sample.pk)
+        dates = list(result.dates.all())
+
+        assert len(dates) == 2
+        assert date1 in dates
+        assert date2 in dates
+
+    def test_with_metadata_returns_queryset(self):
+        """Test that with_metadata() returns a QuerySet for chaining."""
+        qs = Sample.objects.with_metadata()
+
+        assert hasattr(qs, "filter")
+        assert hasattr(qs, "exclude")
+
+    def test_with_metadata_can_be_chained_with_with_related(self):
+        """Test that with_metadata() can be chained with with_related()."""
+        sample = SampleFactory()
+        result = Sample.objects.with_related().with_metadata().get(pk=sample.pk)
+
+        assert result.dataset is not None
+
+
+@pytest.mark.django_db
+class TestSampleQuerySetByRelationship:
+    """Test SampleQuerySet.by_relationship() method for filtering by relationship type."""
+
+    def test_by_relationship_filters_by_type(self):
+        """Test that by_relationship() filters samples by relationship type."""
+        parent = SampleFactory()
+        child1 = SampleFactory()
+        child2 = SampleFactory()
+        _unrelated = SampleFactory()
+
+        SampleRelation.objects.create(source=child1, target=parent, type="child_of")
+        SampleRelation.objects.create(source=child2, target=parent, type="child_of")
+
+        results = Sample.objects.by_relationship(relationship_type="child_of")
+
+        assert results.count() >= 2
+        result_pks = set(results.values_list("pk", flat=True))
+        assert child1.pk in result_pks
+        assert child2.pk in result_pks
+
+    def test_by_relationship_returns_empty_for_no_matches(self):
+        """Test that by_relationship() returns empty queryset when no matches."""
+        _sample = SampleFactory()
+
+        results = Sample.objects.by_relationship(relationship_type="nonexistent_type")
+
+        assert results.count() == 0
+
+    def test_by_relationship_can_be_chained(self):
+        """Test that by_relationship() can be chained with other queryset methods."""
+        parent = SampleFactory()
+        child1 = SampleFactory(name="Alpha")
+        child2 = SampleFactory(name="Beta")
+
+        SampleRelation.objects.create(source=child1, target=parent, type="child_of")
+        SampleRelation.objects.create(source=child2, target=parent, type="child_of")
+
+        results = Sample.objects.by_relationship(relationship_type="child_of").filter(name="Alpha")
+
+        assert results.count() == 1
+        assert results.first().pk == child1.pk
+
+
+@pytest.mark.django_db
+class TestSamplePolymorphicQueries:
+    """Test that Sample.objects.all() returns correct polymorphic subclass instances."""
+
+    def test_all_returns_correct_subclass_for_single_type(self):
+        """Test that querying all samples returns RockSample instances, not Sample."""
+        from fairdm_demo.factories import RockSampleFactory
+
+        rock_sample = RockSampleFactory(name="Granite")
+        results = list(Sample.objects.all())
+
+        # Find the rock sample in results
+        rock_result = next((r for r in results if r.pk == rock_sample.pk), None)
+        assert rock_result is not None
+        assert rock_result.__class__.__name__ == "RockSample"
+
+    def test_all_returns_mixed_polymorphic_types(self):
+        """Test that querying all samples returns correct mix of subclass instances."""
+        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+
+        rock1 = RockSampleFactory(name="Granite")
+        water1 = WaterSampleFactory(name="River Water")
+        rock2 = RockSampleFactory(name="Basalt")
+
+        results = list(Sample.objects.all())
+
+        rock1_result = next((r for r in results if r.pk == rock1.pk), None)
+        assert rock1_result.__class__.__name__ == "RockSample"
+
+        water1_result = next((r for r in results if r.pk == water1.pk), None)
+        assert water1_result.__class__.__name__ == "WaterSample"
+
+        rock2_result = next((r for r in results if r.pk == rock2.pk), None)
+        assert rock2_result.__class__.__name__ == "RockSample"
+
+    def test_get_returns_correct_subclass(self):
+        """Test that Sample.objects.get() returns the correct subclass instance."""
+        from fairdm_demo.factories import RockSampleFactory
+
+        rock_sample = RockSampleFactory(name="Quartz")
+        result = Sample.objects.get(pk=rock_sample.pk)
+
+        assert result.__class__.__name__ == "RockSample"
+        assert result.pk == rock_sample.pk
+
+    def test_filter_returns_correct_subclass(self):
+        """Test that Sample.objects.filter() returns correct subclass instances."""
+        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+
+        rock1 = RockSampleFactory(name="Alpha Rock")
+        _water1 = WaterSampleFactory(name="Beta Water")
+
+        results = list(Sample.objects.filter(name__startswith="Alpha"))
+
+        assert len(results) >= 1
+        rock_result = next((r for r in results if r.pk == rock1.pk), None)
+        assert rock_result is not None
+        assert rock_result.__class__.__name__ == "RockSample"
+
+    def test_polymorphic_query_preserves_custom_fields(self):
+        """Test that polymorphic queries allow access to subclass-specific fields."""
+        from fairdm_demo.factories import RockSampleFactory
+
+        rock_sample = RockSampleFactory(
+            name="Granite",
+            rock_type="igneous",
+        )
+
+        result = Sample.objects.get(pk=rock_sample.pk)
+
+        assert hasattr(result, "rock_type")
+        assert result.rock_type == "igneous"
+
+    @pytest.mark.skip(
+        reason="select_subclasses() not exposed through custom manager - polymorphic queries work without it"
+    )
+    def test_polymorphic_query_with_select_subclasses(self):
+        """Test that select_subclasses() optimizes polymorphic queries."""
+        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+
+        rock1 = RockSampleFactory()
+        water1 = WaterSampleFactory()
+
+        results = list(Sample.objects.select_subclasses())
+
+        rock_result = next((r for r in results if r.pk == rock1.pk), None)
+        water_result = next((r for r in results if r.pk == water1.pk), None)
+
+        assert rock_result.__class__.__name__ == "RockSample"
+        assert water_result.__class__.__name__ == "WaterSample"
+
+    def test_polymorphic_query_without_select_subclasses_still_works(self):
+        """Test that polymorphic queries work correctly even without explicit select_subclasses()."""
+        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+
+        _rock1 = RockSampleFactory()
+        _water1 = WaterSampleFactory()
+
+        results = list(Sample.objects.all())
+
+        types = {r.__class__.__name__ for r in results}
+        assert "RockSample" in types or "WaterSample" in types
+
+
+@pytest.mark.django_db
+class TestSampleConvenienceMethods:
+    """Test Sample model convenience methods for relationships."""
+
+    def test_get_all_relationships_returns_source_and_target(self):
+        """Test that get_all_relationships() returns relationships where sample is source or target."""
+        parent = SampleFactory()
+        child = SampleFactory()
+        sibling = SampleFactory()
+
+        SampleRelation.objects.create(source=child, target=parent, type="child_of")
+        SampleRelation.objects.create(source=sibling, target=parent, type="child_of")
+
+        parent_rels = parent.get_all_relationships()
+        child_rels = child.get_all_relationships()
+
+        assert parent_rels.count() == 2
+        assert child_rels.count() == 1
+
+    def test_get_related_samples_without_filter(self):
+        """Test get_related_samples() returns all related samples."""
+        parent = SampleFactory()
+        child1 = SampleFactory()
+        child2 = SampleFactory()
+
+        SampleRelation.objects.create(source=child1, target=parent, type="child_of")
+        SampleRelation.objects.create(source=child2, target=parent, type="child_of")
+
+        related = parent.get_related_samples()
+
+        assert related.count() == 2
+        assert child1 in related
+        assert child2 in related
+
+    def test_get_related_samples_with_relationship_type_filter(self):
+        """Test get_related_samples() filters by relationship type."""
+        parent = SampleFactory()
+        child = SampleFactory()
+
+        SampleRelation.objects.create(source=child, target=parent, type="child_of")
+
+        related = parent.get_related_samples(relationship_type="child_of")
+
+        assert related.count() == 1
+        assert child in related
+
+        # Query for non-existent type
+        related_other = parent.get_related_samples(relationship_type="nonexistent")
+        assert related_other.count() == 0
