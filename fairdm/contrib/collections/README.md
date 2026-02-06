@@ -58,7 +58,7 @@ The collections app is self-contained and integrates with the core FairDM framew
 
 1. **Registry**: Uses `fairdm.registry` to discover registered Sample and Measurement models
 2. **Import/Export**: Integrates with `fairdm.contrib.import_export` for data export functionality
-3. **Menus**: Uses `fairdm.menus.SiteNavigation` for navigation integration
+3. **Menus**: Uses `fairdm.menus.AppMenu` for navigation integration
 4. **Plugins**: Extends the FairDM plugin system to provide tabular views in detail pages
 
 ## Usage

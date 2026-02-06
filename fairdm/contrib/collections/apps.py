@@ -1,6 +1,8 @@
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
+from fairdm.menus import AppMenu
+
 
 class CollectionsConfig(AppConfig):
     """Configuration for the Collections app."""
@@ -22,46 +24,27 @@ class CollectionsConfig(AppConfig):
         """
         from flex_menu import MenuItem
 
-        from fairdm.menus import SiteNavigation
         from fairdm.registry import registry
 
         # Get the "Data" menu item using the proper API
-        data_menu = SiteNavigation.get("Data")
-        if not data_menu:
-            return
-
-        # Get the "Data Collections" header using the proper API
-        collections_header = data_menu.get("Data Collections")
-        if not collections_header:
-            return
-
-        sample_collection = MenuItem(
-            name=_("Sample Collections"),
-            extra_context={"icon": "sample"},
-        )
+        sample_menu = AppMenu.get("Samples")
 
         for model_class in registry.samples:
             config = registry.get_for_model(model_class)
-            sample_collection.append(
+            sample_menu.append(
                 MenuItem(
                     name=config.get_verbose_name_plural(),
                     view_name=f"{config.get_slug()}-collection",
                 )
             )
 
-        measurement_collection = MenuItem(
-            name=_("Measurement Collections"),
-            extra_context={"icon": "measurement"},
-        )
+        measurement_menu = AppMenu.get("Measurements")
 
         for model_class in registry.measurements:
             config = registry.get_for_model(model_class)
-            measurement_collection.append(
+            measurement_menu.append(
                 MenuItem(
                     name=config.get_verbose_name_plural(),
                     view_name=f"{config.get_slug()}-collection",
                 )
             )
-
-        data_menu.append(sample_collection)
-        data_menu.append(measurement_collection)

@@ -3,9 +3,10 @@ from django.views.generic import RedirectView
 from django_tables2.views import SingleTableMixin
 
 from fairdm.contrib.import_export.utils import export_choices
-from fairdm.menus import SiteNavigation
 from fairdm.registry import registry
 from fairdm.views import FairDMListView, FairDMTemplateView
+
+# from fairdm.menus import AppMenu
 
 
 class DataTableView(SingleTableMixin, FairDMListView):
@@ -27,7 +28,7 @@ class DataTableView(SingleTableMixin, FairDMListView):
 
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
-        context["collection_menu"] = SiteNavigation.get("Data Collections")
+        # context["collection_menu"] = AppMenu.get("Data Collections")
         context["export_choices"] = export_choices
 
         # Determine collection type (sample or measurement)

@@ -20,9 +20,9 @@ Usage:
     {# Actor Avatar #}
     <div class="flex-shrink-0">
       {% if activity.actor.get_absolute_url %}
-        <c-widgets.avatar :contributor="activity.actor"
-                          size="48"
-                          class="rounded-circle" />
+        <c-avatar :user="activity.actor"
+                  size="48"
+                  class="rounded-circle" />
       {% else %}
         <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
              style="width: 48px;

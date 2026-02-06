@@ -1,0 +1,74 @@
+{% extends "layouts/base.html" %}
+{% load static i18n cotton %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags widget_tweaks %}
+
+{% block body_class %}
+  application-layout collection-layout
+{% endblock body_class %}
+
+{% block content %}
+  <div class="main-layout h-100 d-flex flex-column">
+    <!-- Toolbar Component -->
+    <c-collection.toolbar :collections="available_collections"
+                          :current_name="current_model_verbose_name_plural"
+                          :search_field="filter.form.search" />
+    <!-- Main Content - Table -->
+    <div class="flex-grow-1 overflow-auto">{% render_table table %}</div>
+    <!-- Footer Component -->
+    <c-collection.footer :page_obj="page_obj" :table="table" />
+  </div>
+  <!-- Filter Offcanvas -->
+  <div class="offcanvas offcanvas-end"
+       tabindex="-1"
+       id="filterOffcanvas"
+       aria-labelledby="filterOffcanvasLabel">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title" id="filterOffcanvasLabel">
+        <c-icon name="filter" class="me-2" />
+        {% trans "Filters" %}
+      </h5>
+      <button type="button"
+              class="btn-close"
+              data-bs-dismiss="offcanvas"
+              aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <form id="filterForm"
+            action="{{ request.path }}"
+            method="get">
+        <!-- Hidden search input that gets submitted -->
+        {% if filter.form.search %}
+          {% render_field filter.form.search type="hidden" id="search-hidden" %}
+        {% else %}
+          <input type="hidden"
+                 name="search"
+                 id="search-hidden"
+                 value="{{ request.GET.search|default:'' }}" />
+        {% endif %}
+        <!-- Hidden ordering input that gets submitted -->
+        {% if filter.form.o %}
+          {% render_field filter.form.o type="hidden" id="ordering-hidden" %}
+        {% endif %}
+        <!-- Render all other filter fields -->
+        {% for field in filter.form %}
+          {% if field.name != "o" and field.name != "search" %}{{ field|as_crispy_field }}{% endif %}
+        {% endfor %}
+        <div class="d-grid gap-2 mt-3">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <c-icon name="filter" class="me-1" />
+            {% trans "Apply Filters" %}
+          </button>
+          <button type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  onclick="clearAllFilters()">
+            <c-icon name="cancel" class="me-1" />
+            {% trans "Clear Filters" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Page Information Modal -->
+  {% include "partials/page_info_modal.html" %}
+{% endblock content %}
