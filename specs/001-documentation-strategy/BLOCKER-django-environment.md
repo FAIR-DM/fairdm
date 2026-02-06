@@ -7,24 +7,24 @@
 ## Error Summary
 
 ```
-ImportError: cannot import name 'SiteNavigation' from 'mvp.menus'
+ImportError: cannot import name 'AppMenu' from 'mvp.menus'
 (C:\Users\jennings\Documents\repos\django-mvp\mvp\menus.py)
 ```
 
 **Location**: `fairdm/menus/menus.py:5`
 
 ```python
-from mvp.menus import SiteNavigation
+from mvp.menus import AppMenu
 ```
 
 ## Root Cause
 
 The FairDM documentation build depends on Django setup (`docs/conf.py` imports Django settings and calls `django.setup()`). During Django app initialization, `fairdm.apps.FairdmConfig.ready()` calls `autodiscover_modules("plugins")`, which triggers imports of all plugin modules, including `fairdm/menus/menus.py`.
 
-This module tries to import `SiteNavigation` from `mvp.menus`, but that import fails, likely because:
+This module tries to import `AppMenu` from `mvp.menus`, but that import fails, likely because:
 
 1. `django-mvp` is a local development package not installed in the environment
-2. The `mvp.menus` module doesn't export `SiteNavigation`
+2. The `mvp.menus` module doesn't export `AppMenu`
 3. There's a version mismatch between what FairDM expects and what's installed
 
 ## Impact
@@ -42,7 +42,7 @@ Check if `django-mvp` is properly installed and has the expected API:
 ```powershell
 poetry show django-mvp
 # or
-poetry run python -c "from mvp.menus import SiteNavigation; print(SiteNavigation)"
+poetry run python -c "from mvp.menus import AppMenu; print(AppMenu)"
 ```
 
 If missing, install or update:
@@ -59,11 +59,11 @@ Modify `fairdm/menus/menus.py` to gracefully handle missing mvp:
 
 ```python
 try:
-    from mvp.menus import SiteNavigation
+    from mvp.menus import AppMenu
 except ImportError:
     # Provide a fallback for documentation builds
     from flex_menu import Menu
-    SiteNavigation = Menu("main")
+    AppMenu = Menu("main")
 ```
 
 ### Option 3: Skip menu initialization during docs build

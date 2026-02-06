@@ -76,8 +76,8 @@ Successfully completed foundational infrastructure for FairDM documentation stra
 
 6. **T011**: Test documentation build
     - **CRITICAL FIX**: Resolved Django import error in fairdm/menus/menus.py
-      - Changed: `from mvp.menus import SiteNavigation` (didn't exist)
-      - To: `from flex_menu import Menu, MenuItem; SiteNavigation = Menu("main")`
+      - Changed: `from mvp.menus import AppMenu` (didn't exist)
+      - To: `from flex_menu import Menu, MenuItem; AppMenu = Menu("main")`
     - ✅ Sphinx build now works: `poetry run sphinx-build -b html docs docs/_build/html`
     - Build completes with 54 warnings (missing images, toctree issues, orphaned docs)
 
@@ -99,19 +99,19 @@ Successfully completed foundational infrastructure for FairDM documentation stra
 
 ### Django Import Error Fix
 
-**Problem**: `ImportError: cannot import name 'SiteNavigation' from 'mvp.menus'`
+**Problem**: `ImportError: cannot import name 'AppMenu' from 'mvp.menus'`
 
-**Root Cause**: fairdm/menus/menus.py was importing SiteNavigation from django-mvp, but that module only provides `Menu` and `AppMenu` classes, not a SiteNavigation instance.
+**Root Cause**: fairdm/menus/menus.py was importing AppMenu from django-mvp, but that module only provides `Menu` and `AppMenu` classes, not a AppMenu instance.
 
-**Solution**: Create SiteNavigation as a Menu instance directly in fairdm:
+**Solution**: Create AppMenu as a Menu instance directly in fairdm:
 
 ```python
 # Before (broken):
-from mvp.menus import SiteNavigation
+from mvp.menus import AppMenu
 
 # After (working):
 from flex_menu import Menu, MenuItem
-SiteNavigation = Menu("main")
+AppMenu = Menu("main")
 ```
 
 **Impact**: This unblocked ALL Sphinx documentation builds, enabling T011 and T012 completion.
@@ -177,7 +177,7 @@ SiteNavigation = Menu("main")
 
 ### Modified Files
 
-1. `fairdm/menus/menus.py` - Fixed Django import error (SiteNavigation creation)
+1. `fairdm/menus/menus.py` - Fixed Django import error (AppMenu creation)
 2. `specs/001-documentation-strategy/tasks.md` - Marked T001-T012 complete
 
 ### Files Verified Exist
