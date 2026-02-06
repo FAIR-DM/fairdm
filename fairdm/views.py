@@ -15,6 +15,7 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_addanother.views import CreatePopupMixin
 from django_filters.views import FilterView
 from meta.views import MetadataMixin
+from mvp.views import MVPListViewMixin
 
 # TODO: Restore when mvp module is available
 # from mvp.views import SearchOrderMixin
@@ -219,21 +220,14 @@ class FairDMTemplateView(FairDMBaseMixin, TemplateView):
 
 # @method_decorator(cache_page(60 * 5), name="dispatch")
 # TODO: Re-add SearchOrderMixin when mvp module is available
-class FairDMListView(FairDMBaseMixin, FilterView):
+class FairDMListView(FairDMBaseMixin, MVPListViewMixin, FilterView):
     """
     The base class for displaying a list of objects within the FairDM framework.
     """
 
-    template_name = "layouts/list_view.html"
-    template_name_suffix = "_list"
+    template_name = "mvp/list_view.html"
     paginate_by = 20
-    grid_config = {
-        "cols": 1,
-        "gap": 2,
-        "card": "project.card",
-        "empty_message": _("No results found."),
-    }
-    page = {}
+    grid = {"cols": 1, "gap": 2}
 
     # def get_filterset_kwargs(self, filterset_class):
     #     """Override to apply search and ordering to the base queryset before filtering."""

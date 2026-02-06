@@ -1,0 +1,21 @@
+{% load crispy_forms_tags %}
+
+<c-vars card_template />
+<c-page sidebar_expand="md">
+  <c-page.content>
+    <c-app.main.content-header>
+      <h1>{{ title }}</h1>
+    </c-app.main.content-header>
+    <c-grid cols="1" gap="4">
+      {% for object in object_list %}
+        <div class="col">
+          {% include card_template %}
+          {% comment %} {{ card }} {% endcomment %}
+        </div>
+        {% comment %} {% empty %} {% endcomment %}
+        {% comment %} <c-list.empty-state /> {% endcomment %}
+      {% endfor %}
+    </c-grid>
+  </c-page.content>
+  <c-sidebar.filter />
+</c-page>

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block main %}
+  <c-page :attrs="page_config">
+    {% block content %}
+    {% endblock content %}
+
+  </c-page>
+{% endblock main %}

@@ -8,368 +8,325 @@
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 {% endblock css %}
 
-{% block content %}
-  <div class="container py-5">
-    {# Welcome Section #}
-    <div class="row mb-5">
-      <div class="col-lg-8 mx-auto text-center">
-        {% if home_config.logo %}
-          <img src="{% static 'img/brand/logo.svg' %}"
-               alt="{{ config.site_name }}"
-               class="mb-4"
-               style="max-height: 120px" />
-        {% endif %}
-        {% if home_config.title %}<h1 class="display-4 mb-3">{{ home_config.title|safe }}</h1>{% endif %}
-        {% if home_config.lead %}<p class="lead text-muted mb-4">{{ home_config.lead|safe }}</p>{% endif %}
-        {% if user.is_authenticated %}
-          <div class="d-flex gap-2 justify-content-center flex-wrap">
-            <a href="{% url 'project-create' %}"
-               class="btn btn-primary">
-              <c-icon name="add" class="me-1" />
-              {% trans "Create Project" %}
-            </a>
-            <a href="{% url 'dataset-create' %}"
-               class="btn btn-outline-primary">
-              <c-icon name="dataset" class="me-1" />
-              {% trans "Create Dataset" %}
-            </a>
-          </div>
-        {% else %}
-          <div class="d-flex gap-2 justify-content-center flex-wrap">
-            <a href="{% url 'account_login' %}"
-               class="btn btn-primary">
-              <c-icon name="login" class="me-1" />
-              {% trans "Sign In" %}
-            </a>
-            {% if config.allow_registration %}
-              <a href="{% url 'account_signup' %}"
-                 class="btn btn-outline-primary">
-                <c-icon name="person_add" class="me-1" />
-                {% trans "Register" %}
-              </a>
-            {% endif %}
-          </div>
-        {% endif %}
-      </div>
-    </div>
-    {# Two Column Layout #}
-    <c-dashboard gap="3" reverse>
-      {# Main Content #}
-      {% block statistics %}
-        <c-card title="{% trans 'Statistics' %}">
-          <div class="row row-cols-2 row-cols-md-4 g-3">
-            <div class="col">
-              <c-detail.stat-box label="{% trans 'Projects' %}"
-                                 value="{{ stats.projects }}"
-                                 color="project" />
-            </div>
-            <div class="col">
-              <c-detail.stat-box label="{% trans 'Datasets' %}"
-                                 value="{{ stats.datasets }}"
-                                 color="dataset" />
-            </div>
-            <div class="col">
-              <c-detail.stat-box label="{% trans 'Samples' %}"
-                                 value="{{ stats.samples }}"
-                                 color="sample" />
-            </div>
-            <div class="col">
-              <c-detail.stat-box label="{% trans 'Measurements' %}"
-                                 value="{{ stats.measurements }}"
-                                 color="measurement" />
-            </div>
-          </div>
-        </c-card>
-      {% endblock statistics %}
-
-      {% block data_types %}
-        <c-card title="{% trans "What We Collect" %}"
-                icon="database">
-          <c-slot name="actions">
-            <c-card.action href="#"
-                           text="{% trans 'View data collections' %}"
-                           icon="arrow_right" />
-          </c-slot>
-          <div class="row">
-            <div class="col-md-6">
-              <h6 class="text-muted small text-uppercase mb-3">
-                <c-icon name="sample" class="me-1" />
-                {% trans "Sample Types" %}
-              </h6>
-              <c-list-group flush>
-                {% for sample_type in sample_types %}
-                  <c-list-group.item class="py-2">
-                    <a href="{{ sample_type.url }}"
-                       class="text-decoration-none d-flex justify-content-between align-items-center small">
-                      <span>{{ sample_type.name }}</span>
-                      <c-badge class="bg-sample text-white"
-                               text="{{ sample_type.count }}" />
-                    </a>
-                  </c-list-group.item>
-                {% empty %}
-                  <p class="text-muted small mb-0">{% trans "No sample types registered" %}</p>
-                {% endfor %}
-              </c-list-group>
-            </div>
-            <div class="col-md-6">
-              <h6 class="text-muted small text-uppercase mb-3">
-                <c-icon name="analytics" class="me-1" />
-                {% trans "Measurement Types" %}
-              </h6>
-              <c-list-group flush>
-                {% for measurement_type in measurement_types %}
-                  <c-list-group.item class="py-2">
-                    <a href="{{ measurement_type.url }}"
-                       class="text-decoration-none d-flex justify-content-between align-items-center small">
-                      <span>{{ measurement_type.name }}</span>
-                      <c-badge class="bg-measurement text-white"
-                               text="{{ measurement_type.count }}" />
-                    </a>
-                  </c-list-group.item>
-                {% empty %}
-                  <p class="text-muted small mb-0">{% trans "No measurement types registered" %}</p>
-                {% endfor %}
-              </c-list-group>
-            </div>
-          </div>
-        </c-card>
-      {% endblock data_types %}
-
-      {% block getting_started %}
-        <c-card title="{% trans "Getting Started" %}" icon="help">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <div class="d-flex align-items-start">
-                <div class="flex-shrink-0">
-                  <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                    <c-icon name="project" size="24" class="text-primary" />
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6>{% trans "Create a Project" %}</h6>
-                  <p class="text-muted small mb-0">
-                    {% trans "Start by creating a project to organize your research data and collaborate with your team." %}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="d-flex align-items-start">
-                <div class="flex-shrink-0">
-                  <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                    <c-icon name="dataset" size="24" class="text-success" />
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6>{% trans "Add Datasets" %}</h6>
-                  <p class="text-muted small mb-0">
-                    {% trans "Upload and document your datasets with rich metadata to ensure they are findable and reusable." %}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="d-flex align-items-start">
-                <div class="flex-shrink-0">
-                  <div class="bg-info bg-opacity-10 rounded-circle p-3">
-                    <c-icon name="sample" size="24" class="text-info" />
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6>{% trans "Record Samples" %}</h6>
-                  <p class="text-muted small mb-0">
-                    {% trans "Document physical samples and specimens with detailed metadata and relationships." %}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="d-flex align-items-start">
-                <div class="flex-shrink-0">
-                  <div class="bg-warning bg-opacity-10 rounded-circle p-3">
-                    <c-icon name="analytics" size="24" class="text-warning" />
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6>{% trans "Add Measurements" %}</h6>
-                  <p class="text-muted small mb-0">
-                    {% trans "Attach measurements and analyses to your samples with full provenance tracking." %}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </c-card>
-      {% endblock getting_started %}
-
-      {% block community %}
-        <c-card title="{% trans 'Community' %}"
-                icon="people"
-                class="mb-4">
-          <c-slot name="actions">
-            <c-card.action href="{% url 'community-dashboard' %}"
-                           text="{% trans 'Learn more' %}"
-                           icon="arrow_right" />
-          </c-slot>
-          <div class="row g-3">
-            <div class="col-md-4 col-6">
-              <c-detail.stat-box icon="users"
-                                 label="{% trans 'Active Members' %}"
-                                 value="{{ stats.active_members }}"
-                                 color="primary" />
-            </div>
-            <div class="col-md-4 col-6">
-              <c-detail.stat-box icon="user-check"
-                                 label="{% trans 'Contributors' %}"
-                                 value="{{ stats.contributors }}"
-                                 color="success" />
-            </div>
-            <div class="col-md-4 col-12">
-              <c-detail.stat-box icon="briefcase"
-                                 label="{% trans 'Organizations' %}"
-                                 value="{{ stats.organizations }}"
-                                 color="primary" />
-            </div>
-          </div>
-        </c-card>
-      {% endblock community %}
-
-      {% block featured %}
-        {# Featured Content Slider (if configured) #}
-        {% if theme_options.home.featured %}
-          <c-card title="{% trans "Featured" %}" icon="star">
-            <c-fdm.dashboard.slider id="featured-content">
-              {% for item in theme_options.home.featured %}<c-component :is="item" />{% endfor %}
-            </c-fdm.dashboard.slider>
-          </c-card>
-        {% endif %}
-      {% endblock featured %}
-
-      {# Sidebar #}
-      <c-slot name="sidebar">
-        {% block about %}
-          {# About Portal #}
-          {% if config.portal_description %}
-            <c-card title="{% trans "About This Portal" %}"
-                    icon="info">
-              <p class="mb-0">{{ config.portal_description }}</p>
-            </c-card>
-          {% endif %}
-        {% endblock about %}
-
-        {% block quick_links %}
-          {# Quick Links #}
-          <c-card title="{% trans "Quick Links" %}" icon="link">
-            <c-list-group flush>
-              <c-list-group.item class="py-2">
-                <a href="{% url 'project-list' %}"
-                   class="text-decoration-none d-flex justify-content-between align-items-center small">
-                  <span>
-                    <c-icon name="project" class="me-2" size="16" />
-                  {% trans "Browse Projects" %}</span>
-                  <c-badge class="bg-project text-white"
-                           text="{{ stats.projects }}" />
-                </a>
-              </c-list-group.item>
-              <c-list-group.item class="py-2">
-                <a href="{% url 'dataset-list' %}"
-                   class="text-decoration-none d-flex justify-content-between align-items-center small">
-                  <span>
-                    <c-icon name="dataset" class="me-2" size="16" />
-                  {% trans "Browse Datasets" %}</span>
-                  <c-badge class="bg-dataset text-white"
-                           text="{{ stats.datasets }}" />
-                </a>
-              </c-list-group.item>
-              {% if sample_types %}
-                <c-list-group.item class="py-2">
-                  <a href="{{ first_sample_url }}"
-                     class="text-decoration-none d-flex justify-content-between align-items-center small">
-                    <span>
-                      <c-icon name="sample" class="me-2" size="16" />
-                    {% trans "Browse Samples" %}</span>
-                    <c-badge class="bg-sample text-white"
-                             text="{{ stats.samples }}" />
-                  </a>
-                </c-list-group.item>
-              {% endif %}
-              {% if measurement_types %}
-                <c-list-group.item class="py-2">
-                  <a href="{{ first_measurement_url }}"
-                     class="text-decoration-none d-flex justify-content-between align-items-center small">
-                    <span>
-                      <c-icon name="analytics" class="me-2" size="16" />
-                    {% trans "Browse Measurements" %}</span>
-                    <c-badge class="bg-measurement text-white"
-                             text="{{ stats.measurements }}" />
-                  </a>
-                </c-list-group.item>
-              {% endif %}
-            </c-list-group>
-          </c-card>
-        {% endblock quick_links %}
-
-        {% block recent_projects %}
-          {# Recent Projects #}
-          <c-card title="{% trans "Recent Projects" %}"
-                  icon="project">
-            <c-slot name="actions">
-              <c-card.action href="{% url 'project-list' %}"
-                             text="{% trans 'View all projects' %}"
-                             icon="arrow_right" />
-            </c-slot>
-            <c-list-group flush>
-              {% for project in recent_projects %}
-                <c-list-group.item class="py-2">
-                  <a href="{{ project.get_absolute_url }}"
-                     class="text-decoration-none d-block">
-                    <div class="small text-muted">{{ project.added|date:"M d, Y" }}</div>
-                    <div class="small">{{ project.name }}</div>
-                  </a>
-                </c-list-group.item>
-              {% empty %}
-                <c-list-group.item class="py-3">
-                  <p class="text-muted small text-center mb-0">
-                    <c-icon name="info" class="me-1" size="16" />
-                    {% trans "No recent projects yet" %}
-                  </p>
-                </c-list-group.item>
-              {% endfor %}
-            </c-list-group>
-          </c-card>
-        {% endblock recent_projects %}
-
-        {% block recent_datasets %}
-          {# Recent Datasets #}
-          <c-card title="{% trans "Recent Datasets" %}"
-                  icon="dataset">
-            <c-slot name="actions">
-              <c-card.action href="{% url 'dataset-list' %}"
-                             text="{% trans 'View all datasets' %}"
-                             icon="arrow_right" />
-            </c-slot>
-            <c-list-group flush>
-              {% for dataset in recent_datasets %}
-                <c-list-group.item class="py-2">
-                  <a href="{{ dataset.get_absolute_url }}"
-                     class="text-decoration-none d-block">
-                    <div class="small text-muted">{{ dataset.added|date:"M d, Y" }}</div>
-                    <div class="small">{{ dataset.name }}</div>
-                  </a>
-                </c-list-group.item>
-              {% empty %}
-                <c-list-group.item class="py-3">
-                  <p class="text-muted small text-center mb-0">
-                    <c-icon name="info" class="me-1" size="16" />
-                    {% trans "No recent datasets yet" %}
-                  </p>
-                </c-list-group.item>
-              {% endfor %}
-            </c-list-group>
-          </c-card>
-        {% endblock recent_datasets %}
-
+{% block main %}
+  <c-hero title="{{ home_config.title|safe }}"
+          lead="{{ home_config.lead|safe }}">
+    {% if home_config.logo %}
+      <c-slot name="top">
+        <img src="{% static 'img/brand/logo.svg' %}"
+             alt="{{ config.site_name }}"
+             class="mb-4"
+             style="height: 130px" />
       </c-slot>
-    </c-dashboard>
+    {% endif %}
+    <c-slot name="actions">
+      {% if user.is_authenticated %}
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+          <a href="{% url 'project-create' %}"
+             class="btn btn-lg btn-primary">
+            <c-icon name="add" class="me-1" />
+            {% trans "Create Project" %}
+          </a>
+          <a href="{% url 'dataset-create' %}"
+             class="btn btn-lg btn-outline-primary">
+            <c-icon name="dataset" class="me-1" />
+            {% trans "Create Dataset" %}
+          </a>
+        </div>
+      {% else %}
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+          <a href="{% url 'account_login' %}"
+             class="btn btn-lg btn-primary">
+            <c-icon name="login" class="me-1" />
+            {% trans "Sign In" %}
+          </a>
+          {% if config.allow_registration %}
+            <a href="{% url 'account_signup' %}"
+               class="btn btn-lg btn-outline-primary">
+              <c-icon name="person_add" class="me-1" />
+              {% trans "Register" %}
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </c-slot>
+  </c-hero>
+  <div class="container-fluid">
+    <c-grid cols=1 md=3 lg=4 gap=2>
+      <c-grid.col>
+        <c-widgets.type-c label="{% trans "Projects" %}"
+                          value="{{ stats.projects }}"
+                          icon="project"
+                          variant="primary"
+                          link="{% url "project-list" %}"
+                          link_text="{% trans "Browse Projects" %}"
+                          link_icon="arrow_right" />
+      </c-grid.col>
+      <c-grid.col>
+        <c-widgets.type-c label="{% trans "Datasets" %}"
+                          value="{{ stats.datasets }}"
+                          icon="dataset"
+                          variant="success"
+                          link="{% url "dataset-list" %}"
+                          link_text="{% trans "Browse Datasets" %}"
+                          link_icon="arrow_right" />
+      </c-grid.col>
+      <c-grid.col>
+        <c-widgets.type-c label="{% trans "Samples" %}"
+                          value="{{ stats.samples }}"
+                          icon="sample"
+                          variant="warning"
+                          link_variant="dark"
+                          link="{% url "sample-stats" %}" />
+      </c-grid.col>
+      <c-grid.col>
+        <c-widgets.type-c label="{% trans "Measurements" %}"
+                          value="{{ stats.measurements }}"
+                          icon="measurement"
+                          variant="danger"
+                          link="{% url "measurement-stats" %}" />
+      </c-grid.col>
+    </c-grid>
   </div>
-{% endblock content %}
+  <c-page class="gap-3">
+    <c-page.content>
+      <c-grid gap=3>
+        <c-grid.col class="vstack gap-3"
+                    width="12"
+                    :responsive="{'lg': '9'}">
+          {% block about %}
+            {# About Portal #}
+            {% if config.portal_description %}
+              <c-card title="{% trans "About This Portal" %}"
+                      icon="info">
+                <p class="mb-0">{{ config.portal_description }}</p>
+              </c-card>
+            {% endif %}
+          {% endblock about %}
+
+          {% block getting_started %}
+            <c-card title="{% trans "Getting Started" %}" icon="help">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0">
+                      <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                        <c-icon name="project" size="24" class="text-primary" />
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h6>{% trans "Create a Project" %}</h6>
+                      <p class="text-muted small mb-0">
+                        {% trans "Start by creating a project to organize your research data and collaborate with your team." %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0">
+                      <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                        <c-icon name="dataset" size="24" class="text-success" />
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h6>{% trans "Add Datasets" %}</h6>
+                      <p class="text-muted small mb-0">
+                        {% trans "Upload and document your datasets with rich metadata to ensure they are findable and reusable." %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0">
+                      <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                        <c-icon name="sample" size="24" class="text-info" />
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h6>{% trans "Record Samples" %}</h6>
+                      <p class="text-muted small mb-0">
+                        {% trans "Document physical samples and specimens with detailed metadata and relationships." %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0">
+                      <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                        <c-icon name="analytics" size="24" class="text-warning" />
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h6>{% trans "Add Measurements" %}</h6>
+                      <p class="text-muted small mb-0">
+                        {% trans "Attach measurements and analyses to your samples with full provenance tracking." %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </c-card>
+          {% endblock getting_started %}
+
+          {% block featured %}
+            {# Featured Content Slider (if configured) #}
+            {% if theme_options.home.featured %}
+              <c-card title="{% trans "Featured" %}" icon="star">
+                {% comment %} <c-fdm.dashboard.slider id="featured-content">
+            {% for item in theme_options.home.featured %}<c-component :is="item" />{% endfor %}
+                </c-fdm.dashboard.slider> {% endcomment %}
+              </c-card>
+            {% endif %}
+          {% endblock featured %}
+
+        </c-grid.col>
+        <c-grid.col class="vstack gap-3"
+                    width="12"
+                    :responsive="{'lg': '3'}">
+          {% block quick_links %}
+            {# Quick Links #}
+            <c-card title="{% trans "Quick Links" %}" icon="link">
+              <c-list-group flush>
+                <c-list-group.item class="py-2">
+                  <a href="{% url 'project-list' %}"
+                     class="text-decoration-none d-flex justify-content-between align-items-center small">
+                    <span>
+                      <c-icon name="project" class="me-2" size="16" />
+                    {% trans "Browse Projects" %}</span>
+                    <c-badge class="bg-project text-white"
+                             text="{{ stats.projects }}" />
+                  </a>
+                </c-list-group.item>
+                <c-list-group.item class="py-2">
+                  <a href="{% url 'dataset-list' %}"
+                     class="text-decoration-none d-flex justify-content-between align-items-center small">
+                    <span>
+                      <c-icon name="dataset" class="me-2" size="16" />
+                    {% trans "Browse Datasets" %}</span>
+                    <c-badge class="bg-dataset text-white"
+                             text="{{ stats.datasets }}" />
+                  </a>
+                </c-list-group.item>
+                {% if sample_types %}
+                  <c-list-group.item class="py-2">
+                    <a href="{{ first_sample_url }}"
+                       class="text-decoration-none d-flex justify-content-between align-items-center small">
+                      <span>
+                        <c-icon name="sample" class="me-2" size="16" />
+                      {% trans "Browse Samples" %}</span>
+                      <c-badge class="bg-sample text-white"
+                               text="{{ stats.samples }}" />
+                    </a>
+                  </c-list-group.item>
+                {% endif %}
+                {% if measurement_types %}
+                  <c-list-group.item class="py-2">
+                    <a href="{{ first_measurement_url }}"
+                       class="text-decoration-none d-flex justify-content-between align-items-center small">
+                      <span>
+                        <c-icon name="analytics" class="me-2" size="16" />
+                      {% trans "Browse Measurements" %}</span>
+                      <c-badge class="bg-measurement text-white"
+                               text="{{ stats.measurements }}" />
+                    </a>
+                  </c-list-group.item>
+                {% endif %}
+              </c-list-group>
+            </c-card>
+          {% endblock quick_links %}
+
+          {% block community %}
+            <c-card title="{% trans 'Community' %}" icon="people">
+              <c-slot name="actions">
+                <c-card.tools href="{% url 'community-dashboard' %}"
+                              text="{% trans 'Learn more' %}"
+                              icon="arrow_right" />
+              </c-slot>
+              <div class="vstack g-3">
+                <c-widgets.type-a label="{% trans 'Active Members' %}"
+                                  value="{{ stats.active_members }}"
+                                  icon="member"
+                                  variant="primary" />
+                <c-widgets.type-a label="{% trans 'Personal Contributors' %}"
+                                  value="{{ stats.contributors }}"
+                                  icon="person"
+                                  variant="success" />
+                <c-widgets.type-a label="{% trans 'Organizations' %}"
+                                  value="{{ stats.organizations }}"
+                                  icon="organization"
+                                  variant="secondary" />
+              </div>
+            </c-card>
+          {% endblock community %}
+
+          {% block recent_projects %}
+            {# Recent Projects #}
+            <c-card title="{% trans "Recent Projects" %}"
+                    icon="project">
+              <c-slot name="actions">
+                <c-card.tools href="{% url 'project-list' %}"
+                              text="{% trans 'View all projects' %}"
+                              icon="arrow_right" />
+              </c-slot>
+              <c-list-group flush>
+                {% for project in recent_projects %}
+                  <c-list-group.item class="py-2">
+                    <a href="{{ project.get_absolute_url }}"
+                       class="text-decoration-none d-block">
+                      <div class="small text-muted">{{ project.added|date:"M d, Y" }}</div>
+                      <div class="small">{{ project.name }}</div>
+                    </a>
+                  </c-list-group.item>
+                {% empty %}
+                  <c-list-group.item class="py-3">
+                    <p class="text-muted small text-center mb-0">
+                      <c-icon name="info" class="me-1" size="16" />
+                      {% trans "No recent projects yet" %}
+                    </p>
+                  </c-list-group.item>
+                {% endfor %}
+              </c-list-group>
+            </c-card>
+          {% endblock recent_projects %}
+
+          {% block recent_datasets %}
+            {# Recent Datasets #}
+            <c-card title="{% trans "Recent Datasets" %}"
+                    icon="dataset">
+              <c-slot name="actions">
+                <c-card.tools href="{% url 'dataset-list' %}"
+                              text="{% trans 'View all datasets' %}"
+                              icon="arrow_right" />
+              </c-slot>
+              <c-list-group flush>
+                {% for dataset in recent_datasets %}
+                  <c-list-group.item class="py-2">
+                    <a href="{{ dataset.get_absolute_url }}"
+                       class="text-decoration-none d-block">
+                      <div class="small text-muted">{{ dataset.added|date:"M d, Y" }}</div>
+                      <div class="small">{{ dataset.name }}</div>
+                    </a>
+                  </c-list-group.item>
+                {% empty %}
+                  <c-list-group.item class="py-3">
+                    <p class="text-muted small text-center mb-0">
+                      <c-icon name="info" class="me-1" size="16" />
+                      {% trans "No recent datasets yet" %}
+                    </p>
+                  </c-list-group.item>
+                {% endfor %}
+              </c-list-group>
+            </c-card>
+          {% endblock recent_datasets %}
+
+        </c-grid.col>
+      </c-grid>
+    </c-page.content>
+    {# Sidebar #}
+    {% comment %} <c-page.sidebar>
+    </c-page.sidebar> {% endcomment %}
+  </c-page>
+{% endblock main %}

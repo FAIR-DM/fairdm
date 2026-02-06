@@ -1,69 +1,70 @@
-<article class="card h-100 border-0 shadow-sm card-hover {% if object_type == 'project' %}border-start border-project border-3{% elif object_type == 'dataset' %}border-start border-dataset border-3{% elif object_type == 'sample' %}border-start border-sample border-3{% elif object_type == 'measurement' %}border-start border-measurement border-3{% endif %}">
-  {% if image %}
-    <!-- Mobile Image (shown on mobile, hidden on desktop) -->
-    <img src="{{ image.url }}"
-         class="card-image-mobile d-md-none"
-         alt="{{ title }}"
-         width="300"
-         height="200" />
-  {% endif %}
-  <div class="card-body">
-    {% if image %}
-      <!-- Desktop Image (hidden on mobile, shown on desktop) -->
-      <img src="{{ image.url }}"
-           class="card-image-desktop d-none d-md-block"
-           alt="{{ title }}"
-           width="300"
-           height="200" />
-    {% endif %}
-    <div class="d-flex justify-content-between align-items-start mb-2">
-      <small class="text-muted">
-        <c-icon name="date" class="me-1" />
-        {{ date|date:"F j, Y" }}
-      </small>
-      {% if badge_text %}
-        <span class="badge {% if object_type == 'sample' %}bg-primary{% elif object_type == 'dataset' %}bg-success{% elif object_type == 'measurement' %}bg-warning text-dark{% elif object_type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
-          {{ badge_text }}
-        </span>
-      {% endif %}
-    </div>
-    <h5 class="card-title mb-2 text-truncate-2">
-      <a href="{{ object.get_absolute_url }}"
-         class="text-decoration-none text-reset">{{ object.title }}</a>
-    </h5>
-    {% if subtitle %}<h6 class="card-subtitle mb-3 text-muted text-truncate-2">{{ subtitle }}</h6>{% endif %}
-    <p class="card-text text-muted text-truncate-6">{{ description|default:"No description available." }}</p>
-    <button class="btn expand-btn btn-sm mb-3"
-            onclick="toggleExpand(this)">
-      <c-icon name="chevron_down" class="me-1" />
-      {% trans "Show more" %}
-    </button>
-    {% if tags.all %}
-      <div class="d-flex flex-wrap gap-1 mb-3">
-        {% for tag in tags.all %}
-          <c-badge variant="light"
-                   class="text-dark"
-                   text="{{ tag.name }}" />
-        {% endfor %}
+<c-card :header="False" variant="{{ object_type }}">
+  <div class="row g-0">
+    <div class="col-md-4">
+      <div class="card">
+        {% if not image %}
+          <img src="{{ image.url }}"
+               class="card-img"
+               alt="{{ title }}" />
+        {% else %}
+          <img src="https://placehold.net/600x400.png"
+               class="card-img"
+               alt="{{ title }}" />
+        {% endif %}
       </div>
-    {% endif %}
-    <small class="text-muted">
-      {% if contributor %}
-        <c-icon name="person" class="me-1" />
-        {{ contributor.get_full_name|default:contributor.username }}
-      {% endif %}
-      {% if organization %}
-        <span class="mx-2">•</span>
-        <c-icon name="organization" class="me-1" />
-        {{ organization.name }}
-      {% endif %}
-    </small>
+    </div>
+    <div class="col-md-8">
+      <div class="card-body py-0">
+        <div class="card-title w-100 d-flex justify-content-between align-items-center">
+          <h1 class="fs-3">{{ object.title }}</h1>
+          <div class="actions">
+            {% comment %} <c-action :condition="user == object" text="{% trans "Edit" %}" variant="primary" icon="edit" small /> {% endcomment %}
+          </div>
+        </div>
+        <p class="card-text text-muted">{{ subtitle }}</p>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          {% if badge_text %}
+            <span class="badge {% if object_type == 'sample' %}bg-primary{% elif object_type == 'dataset' %}bg-success{% elif object_type == 'measurement' %}bg-warning text-dark{% elif object_type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
+              {{ badge_text }}
+            </span>
+          {% endif %}
+        </div>
+        <p class="card-text text-muted text-truncate-6">{{ description|default:"No description available." }}</p>
+        {% if tags.all %}
+          <div class="d-flex flex-wrap gap-1 mb-3">
+            {% for tag in tags.all %}
+              <c-badge variant="light"
+                       class="text-dark"
+                       text="{{ tag.name }}" />
+            {% endfor %}
+          </div>
+        {% endif %}
+        <small class="text-muted">
+          {% if contributor %}
+            <c-icon name="person" class="me-1" />
+            {{ contributor.get_full_name|default:contributor.username }}
+          {% endif %}
+          {% if organization %}
+            <span class="mx-2">•</span>
+            <c-icon name="organization" class="me-1" />
+            {{ organization.name }}
+          {% endif %}
+        </small>
+      </div>
+    </div>
   </div>
-  <div class="card-footer bg-transparent border-0 pt-0">
-    <a href="{{ object.get_absolute_url }}"
-       class="btn btn-link btn-sm">
-      <c-icon name="arrow_right" class="me-1" />
+  <c-slot name="footer_start">
+    <c-action href="{{ object.get_absolute_url }}"
+              icon="arrow_right"
+              reverse
+              subtle>
       {% trans "View Details" %}
-    </a>
-  </div>
-</article>
+    </c-action>
+  </c-slot>
+  <c-slot name="footer_end">
+    <span class="text-muted small ms-auto">
+      <c-icon name="date" class="me-1" />
+      {{ date|date:"F j, Y" }}
+    </span>
+  </c-slot>
+</c-card>

@@ -1,181 +1,168 @@
 {% extends "fairdm/plugin.html" %}
 {% load fairdm humanize %}
 
-{% block plugin %}
-  {% trans "There's nothing here yet." as empty_text %}
-  <c-dashboard>
-    {% block overview_main %}
-      {% block statistics %}
-        {# Statistics #}
-        <c-card title="{% trans 'Statistics' %}" icon="analytics">
-          <div class="row g-3">
-            {% block statistics_content %}
-            {% endblock statistics_content %}
-
+{% block content %}
+  <c-page.content class="vstack gap-2">
+    {% block page_content_header %}
+      <c-card.page-header title="{{ object }}" subtitle="Placeholder">
+        <c-slot name="content_left">
+          <div class="card">
+            <img src="{{ object.image.url }}"
+                 class="card-img"
+                 alt="{{ object }}" />
+            <div class="card-img-overlay"></div>
           </div>
-        </c-card>
-      {% endblock statistics %}
+        </c-slot>
+        <c-slot name="info_boxes">
+          {% block info_boxes %}
+          {% endblock info_boxes %}
 
-      {% block keywords %}
-        <c-card title="{% trans 'Keywords' %}"
-                icon="keywords"
-                edit_url="{% plugin_url 'keywords' %}">
-          <div class="d-flex flex-wrap gap-2">
-            {% for keyword in object.keywords.all %}
-              <c-badge variant="light"
-                       class="text-dark border"
-                       :text="keyword.label" />
-            {% empty %}
+        </c-slot>
+      </c-card.page-header>
+    {% endblock page_content_header %}
+
+    {% block page_content %}
+      <c-card title="{% trans "Abstract" %}"
+              icon="file_text"
+              edit_url="{% plugin_url 'descriptions' %}">
+        {% with object.descriptions.in_order as descriptions %}
+          <p class="card-text">
+            {% if descriptions %}
+              {{ descriptions.0.value }}
+            {% else %}
               {{ empty_text }}
-            {% endfor %}
-          </div>
-        </c-card>
-      {% endblock keywords %}
-
-      {% block descriptions %}
-        <c-card title="{% trans 'About' %}"
-                icon="file_text"
-                edit_url="{% plugin_url 'descriptions' %}">
-          {% with object.descriptions.in_order as descriptions %}
-            <p class="card-text">
-              {% if descriptions %}
-                {{ descriptions.0.value }}
-              {% else %}
-                {{ empty_text }}
-              {% endif %}
-            </p>
-            {% if descriptions|length > 1 %}
-              <c-modal id="descriptionModal"
-                       class="modal-lg"
-                       centered
-                       scrollable>
-                <c-modal.header title="{% trans "Description" %}" />
-                <c-modal.body>
-                  {% for description in descriptions %}
-                    <div class="mb-3">
-                      <h6 class="text-muted small text-uppercase mb-2">{{ description.type }}</h6>
-                      <p class="card-text">{{ description.value }}</p>
-                    </div>
-                  {% endfor %}
-                </c-modal.body>
-              </c-modal>
             {% endif %}
-            <c-slot name="actions">
-              <c-card.action text="{% trans "Continue Reading" %}"
-                             icon="arrow_right"
-                             data-bs-toggle="modal"
-                             data-bs-target="#descriptionModal" />
-            </c-slot>
-          {% endwith %}
-        </c-card>
-      {% endblock descriptions %}
-
-      {% block contributors %}
-        <c-card title="{% trans 'Contributors' %}" icon="people">
-          <c-list-group flush>
-            {% for contribution in object.contributors.all %}
-              <c-list-group.item>
-                <c-contribution.list-item :contribution="contribution" />
-              </c-list-group.item>
-            {% empty %}
-              {{ empty_text }}
+          </p>
+          {% if descriptions|length > 1 %}
+            <c-modal id="descriptionModal"
+                     class="modal-lg"
+                     centered
+                     scrollable>
+              <c-modal.header title="{% trans "Description" %}" />
+              <c-modal.body>
+                {% for description in descriptions %}
+                  <div class="mb-3">
+                    <h6 class="text-muted small text-uppercase mb-2">{{ description.type }}</h6>
+                    <p class="card-text">{{ description.value }}</p>
+                  </div>
+                {% endfor %}
+              </c-modal.body>
+            </c-modal>
+          {% endif %}
+          {% comment %} <c-slot name="actions">
+              <c-card.action text="{% trans "Continue Reading" %}" icon="arrow_right" data-bs-toggle="modal" data-bs-target="#descriptionModal" />
+          </c-slot> {% endcomment %}
+        {% endwith %}
+      </c-card>
+      <c-card title="{% trans "Contributors" %}" icon="people">
+        <c-list-group flush>
+          {% for contribution in object.contributors.all %}
+            <c-list-group.item>
+              <c-contribution.list-item :contribution="contribution" />
+            </c-list-group.item>
+          {% empty %}
+            {{ empty_text }}
+          {% endfor %}
+        </c-list-group>
+        <c-slot name="actions">
+          {% comment %} <c-card.action href="{% plugin_url "contributors" %}" /> {% endcomment %}
+        </c-slot>
+      </c-card>
+      <c-card title="{% trans "Recent Activity" %}"
+              icon="activity">
+        <c-slot name="actions">
+          {% comment %} <c-card.action href="{% plugin_url 'activity' %}" icon="arrow_right" /> {% endcomment %}
+        </c-slot>
+        {% if recent_activities %}
+          <div class="d-flex flex-column gap-2">
+            {% for activity in recent_activities %}
+              <div class="d-flex gap-2 align-items-start pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                {# Activity Icon #}
+                <div class="flex-shrink-0">
+                  {% if activity.verb == "created" %}
+                    <c-icon name="add" class="text-success" size="16" />
+                  {% elif activity.verb == "updated" or activity.verb == "modified" %}
+                    <c-icon name="update" class="text-primary" size="16" />
+                  {% elif activity.verb == "deleted" %}
+                    <c-icon name="delete" class="text-danger" size="16" />
+                  {% else %}
+                    <c-icon name="activity" class="text-secondary" size="16" />
+                  {% endif %}
+                </div>
+                {# Activity Content #}
+                <div class="flex-grow-1 min-w-0">
+                  <div class="small">
+                    {% if activity.actor.get_absolute_url %}
+                      <a href="{{ activity.actor.get_absolute_url }}"
+                         class="fw-semibold text-decoration-none">{{ activity.actor }}</a>
+                    {% elif activity.actor %}
+                      <span class="fw-semibold">{{ activity.actor }}</span>
+                    {% else %}
+                      <span class="fw-semibold text-muted">{% trans "System" %}</span>
+                    {% endif %}
+                    <span class="text-muted">{{ activity.verb }}</span>
+                    {% if activity.target %}
+                      {% if activity.target.get_absolute_url %}
+                        <a href="{{ activity.target.get_absolute_url }}"
+                           class="text-decoration-none">{{ activity.target|truncatewords:5 }}</a>
+                      {% else %}
+                        {{ activity.target|truncatewords:5 }}
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                  <div class="text-muted" style="font-size: 0.75rem;">
+                    <c-icon name="time" size="12" class="me-1" />
+                    {{ activity.timestamp|naturaltime }}
+                  </div>
+                </div>
+              </div>
             {% endfor %}
-          </c-list-group>
-          <c-slot name="actions">
-            <c-card.action href="{% plugin_url "contributors" %}" />
-          </c-slot>
+          </div>
+        {% else %}
+          <p class="text-muted small mb-0">{{ empty_text }}</p>
+        {% endif %}
+      </c-card>
+    {% endblock page_content %}
+
+  </c-page.content>
+  <c-page.sidebar class="vstack gap-2 py-3 collapse">
+    {% block page_sidebar %}
+      {% block quick_info %}
+        {# Quick Info #}
+        <c-card title="{% trans 'Quick Info' %}" icon="info">
+          <dl class="mb-0">
+            {% block quick_info_items %}
+            {% endblock quick_info_items %}
+
+          </dl>
         </c-card>
-      {% endblock contributors %}
-    {% endblock overview_main %}
+      {% endblock quick_info %}
 
-    <c-slot name="sidebar">
-      {# Sidebar #}
-      {% block overview_sidebar %}
-        {% block quick_info %}
-          {# Quick Info #}
-          <c-card title="{% trans 'Quick Info' %}" icon="info">
-            <dl class="mb-0">
-              {% block quick_info_items %}
-              {% endblock quick_info_items %}
-
-            </dl>
-          </c-card>
-        {% endblock quick_info %}
-
-        {% block key_dates %}
-          <c-card title="{% trans 'Key Dates' %}"
-                  icon="calendar"
-                  edit_url="{% plugin_url 'key-dates' %}">
-            <dl class="mb-0">
-              {% for date in object.dates.all %}
+      <c-card title="{% trans 'Key Dates' %}"
+              icon="calendar"
+              edit_url="{% plugin_url 'key-dates' %}">
+        <dl class="mb-0">
+          {% comment %} {% for date in object.dates.all %}
                 <c-detail.info-item label="{{ date.type }}" text="{{ date.value }}" />
               {% empty %}
                 {{ empty_text }}
-              {% endfor %}
-            </dl>
-          </c-card>
-        {% endblock key_dates %}
+          {% endfor %} {% endcomment %}
+        </dl>
+      </c-card>
+      <c-card title="{% trans 'Keywords' %}"
+              icon="keywords"
+              edit_url="{% plugin_url 'keywords' %}">
+        <div class="d-flex flex-wrap gap-2">
+          {% for keyword in object.keywords.all %}
+            <c-badge variant="light"
+                     class="text-dark border"
+                     :text="keyword.label" />
+          {% empty %}
+            {{ empty_text }}
+          {% endfor %}
+        </div>
+      </c-card>
+    {% endblock page_sidebar %}
 
-        {% block recent_activity %}
-          {# Recent Activity #}
-          <c-card title="{% trans 'Recent Activity' %}"
-                  icon="activity">
-            <c-slot name="actions">
-              <c-card.action href="{% plugin_url 'activity' %}"
-                             icon="arrow_right" />
-            </c-slot>
-            {% if recent_activities %}
-              <div class="d-flex flex-column gap-2">
-                {% for activity in recent_activities %}
-                  <div class="d-flex gap-2 align-items-start pb-2 {% if not forloop.last %}border-bottom{% endif %}">
-                    {# Activity Icon #}
-                    <div class="flex-shrink-0">
-                      {% if activity.verb == "created" %}
-                        <c-icon name="add" class="text-success" size="16" />
-                      {% elif activity.verb == "updated" or activity.verb == "modified" %}
-                        <c-icon name="update" class="text-primary" size="16" />
-                      {% elif activity.verb == "deleted" %}
-                        <c-icon name="delete" class="text-danger" size="16" />
-                      {% else %}
-                        <c-icon name="activity" class="text-secondary" size="16" />
-                      {% endif %}
-                    </div>
-                    {# Activity Content #}
-                    <div class="flex-grow-1 min-w-0">
-                      <div class="small">
-                        {% if activity.actor.get_absolute_url %}
-                          <a href="{{ activity.actor.get_absolute_url }}"
-                             class="fw-semibold text-decoration-none">{{ activity.actor }}</a>
-                        {% elif activity.actor %}
-                          <span class="fw-semibold">{{ activity.actor }}</span>
-                        {% else %}
-                          <span class="fw-semibold text-muted">{% trans "System" %}</span>
-                        {% endif %}
-                        <span class="text-muted">{{ activity.verb }}</span>
-                        {% if activity.target %}
-                          {% if activity.target.get_absolute_url %}
-                            <a href="{{ activity.target.get_absolute_url }}"
-                               class="text-decoration-none">{{ activity.target|truncatewords:5 }}</a>
-                          {% else %}
-                            {{ activity.target|truncatewords:5 }}
-                          {% endif %}
-                        {% endif %}
-                      </div>
-                      <div class="text-muted" style="font-size: 0.75rem;">
-                        <c-icon name="time" size="12" class="me-1" />
-                        {{ activity.timestamp|naturaltime }}
-                      </div>
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <p class="text-muted small mb-0">{{ empty_text }}</p>
-            {% endif %}
-          </c-card>
-        {% endblock recent_activity %}
-      {% endblock overview_sidebar %}
-
-    </c-slot>
-  </c-dashboard>
-{% endblock plugin %}
+  </c-page.sidebar>
+{% endblock content %}

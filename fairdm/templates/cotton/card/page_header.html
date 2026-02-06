@@ -1,0 +1,35 @@
+<c-card :header="False" footer_class="bg-body">
+  <div class="row g-0">
+    <div class="col-md-4 p-3 text-center">{{ content_left }}</div>
+    <div class="col-md-8">
+      <div class="card-body">
+        <div class="card-title w-100 d-flex justify-content-between align-items-center">
+          <h1 class="fs-3">{{ title }}</h1>
+          <c-action :condition="user == object"
+                    text="{% trans "Edit" %}"
+                    variant="primary"
+                    icon="edit"
+                    small />
+        </div>
+        <p class="card-text text-muted">{{ subtitle }}</p>
+        {{ extra_title }}
+        <div class="border-top pt-2">
+          <div class="d-flex justify-content-between align-items-center">{{ info_boxes }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <c-slot name="footer">
+    <div class="d-flex justify-content-around">
+      <c-action class="btn-link text-decoration-none"
+                icon="add"
+                text="{% trans "Follow" %}" />
+      <c-action class="btn-link text-decoration-none {% if not object.can_contact %}disabled{% endif %}"
+                icon="email"
+                text="{% trans "Contact" %}" />
+      <c-action class="btn-link text-decoration-none"
+                icon="share"
+                text="{% trans "Share" %}" />
+    </div>
+  </c-slot>
+</c-card>

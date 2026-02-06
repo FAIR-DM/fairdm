@@ -1,7 +1,0 @@
-{% load flex_menu %}
-
-<c-page.navigation.top.dropdown text="{{ label }}" active="{{ selected }}">
-  {% for child in children %}
-    {% render_item child renderer=renderer %}
-  {% endfor %}
-</c-page.navigation.top.dropdown>

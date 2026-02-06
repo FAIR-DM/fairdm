@@ -1,4 +1,4 @@
-{% extends "layouts/detail_view.html" %}
+{% extends "detail_view.html" %}
 {% load static flex_menu %}
 
 {% block extra_css %}
@@ -11,18 +11,13 @@
   {{ plugin_media.js }}
 {% endblock extra_js %}
 
-{% block content %}
-  <!-- Colored Top Border based on Object Type -->
-  <div class="border-top border-3 border-{{ base_model_name }}"
-       style="height: 3px"></div>
-  {{ block.super }}
-{% endblock content %}
+{% block header_tray %}
+  {% render_menu menus.explore renderer="nav" uuid=base_object.uuid instance=object %}
+{% endblock header_tray %}
 
-{% block page_content %}
-  {% block plugin %}
-    {% trans "If you're seeing this, you haven't created a template for your plugin yet!" %}
-  {% endblock plugin %}
-{% endblock page_content %}
+{% block content %}
+  {% trans "If you're seeing this, you haven't created a template for your plugin yet!" %}
+{% endblock content %}
 
 {% block sidebar_content %}
   <!-- Explore Section -->

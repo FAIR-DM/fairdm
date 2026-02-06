@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block main %}
+  <c-page sidebar_expand="md">
+    <c-page.content>
+      <c-page.header title="{{ title }}">
+        <c-slot name="end">
+          <c-navbar.widgets.search />
+          <c-page.toolbar.sidebar-widget icon="filter" />
+        </c-slot>
+      </c-page.header>
+      <c-grid cols="1" gap="4">
+        {% for object in object_list %}
+          <div class="col">{% include card_template %}</div>
+        {% empty %}
+          <c-list.empty-state />
+        {% endfor %}
+      </c-grid>
+    </c-page.content>
+    <c-sidebar.filter />
+  </c-page>
+{% endblock main %}

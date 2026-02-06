@@ -1,32 +1,45 @@
 {% extends "mvp/base.html" %}
+{% block extra_css %}
+  {{ block.super }}
+  <script type="text/javascript"
+          src="{% url 'javascript-catalog' %}"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  <script src="//unpkg.com/alpinejs" defer></script>
+{% endblock extra_css %}
+
 {% block app %}
-  <c-app :fixed_sidebar="fixed_sidebar"
-         :fixed_header="fixed_header"
-         :fixed_footer="fixed_footer"
-         :sidebar_collapsible="sidebar_collapsible"
-         :collapsed="collapsed"
-         :fill="fill"
-         sidebar_expand="{{ breakpoint }}">
+  <c-app fixed_sidebar
+         fixed_header
+         sidebar_collapsible
+         sidebar_expand="lg">
     <c-app.header>
       <c-slot name="right">
+        <c-navbar.widgets.search />
         <c-navbar.widgets.fullscreen />
         <c-navbar.widgets.theme-switcher />
+        <c-navbar.widgets.user show_name="never" />
+      </c-slot>
+      <c-slot name="tray">
+        {% block header_tray %}
+        {% endblock header_tray %}
+
       </c-slot>
     </c-app.header>
-    <c-app.sidebar />
+    <c-app.sidebar brand_logo="{% static "img/brand/logo.svg" %}"
+                   brand_icon="{% static "img/brand/icon.svg" %}"
+                   brand_text="FairDM" />
+    {% comment %} <c-slot name="footer">
+        <c-dac.sidebar.footer />
+    </c-slot> {% endcomment %}
+    {% comment %} </c-app.sidebar> {% endcomment %}
     <c-app.main>
-      <c-page :fixed_header="page_fixed_header"
-              :fixed_footer="page_fixed_footer"
-              :fixed_sidebar="page_fixed_sidebar"
-              sidebar_expand="md">
-        <c-demo.page.toolbar text="Inner Layout Demo" />
-        {% block content %}
-        {% endblock content %}
+      {% block main %}
+      {% endblock main %}
 
-        <c-demo.page.sidebar border />
-        <c-demo.page.footer />
-      </c-page>
     </c-app.main>
-    <c-app.footer />
+    {% comment %} <c-app.footer /> {% endcomment %}
   </c-app>
 {% endblock app %}
