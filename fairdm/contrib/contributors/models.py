@@ -507,6 +507,9 @@ class Person(AbstractUser, Contributor):
                     {"identifiers": _(f"Invalid ORCID format: {orcid.value}. Expected format: 0000-0000-0000-0000")}
                 )
 
+    def orcid(self):
+        return self.identifiers.filter(type="ORCID").first()
+
     def get_provider(self, provider: str):
         qs = self.socialaccount_set.filter(provider=provider)  # type: ignore[attr-defined]
         return qs.get() if qs else None
@@ -624,6 +627,19 @@ class Person(AbstractUser, Contributor):
     def is_data_admin(self):
         """Check if the contributor is a data administrator."""
         return self.is_superuser or self.groups.filter(name="Data Administrators").exists()
+
+    def get_location_display(self):
+        """Get a human-readable location string."""
+        aff = self.primary_affiliation()
+        if aff and aff.organization:
+            org = aff.organization
+            parts = []
+            if org.city:
+                parts.append(org.city)
+            if org.country:
+                parts.append(org.country.name)
+            return ", ".join(parts)
+        return None
 
 
 class OrganizationMember(models.Model):
@@ -834,6 +850,15 @@ class Organization(Contributor):
             },
             default=float,
         )
+
+    def get_location_display(self):
+        """Get a human-readable location string."""
+        parts = []
+        if self.city:
+            parts.append(self.city)
+        if self.country:
+            parts.append(self.country.name)
+        return ", ".join(parts) if parts else None
 
 
 class Contribution(LifecycleModelMixin, OrderedModel):

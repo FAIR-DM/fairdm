@@ -2,13 +2,9 @@
 
 {% with obj as contributor %}
   <c-card class="overflow-hidden h-100">
-    <div class="card-img ratio ratio-1x1">
-      <c-widgets.avatar :contributor="obj" only />
-    </div>
+    <c-avatar :contributor="obj" only />
     <c-card.body class="card-img-overlay">
-      <c-widgets.follow :object="obj"
-                        class="border-0 position-absolute top-0 end-0 fs-6 z-2"
-                        :show_text="False" />
+      {% comment %} <c-widgets.follow :object="obj" class="border-0 position-absolute top-0 end-0 fs-6 z-2" :show_text="False" /> {% endcomment %}
       <a href="{{ obj.get_absolute_url }}"
          class="stretched-link"></a>
       {{ slot }}

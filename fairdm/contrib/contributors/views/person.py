@@ -70,6 +70,7 @@ class ContributorBaseListView(FairDMListView):
         "responsive": {"md": 2},
         "card": "contributor.card.person",
     }
+    card_template = "contributors/contributor_card.html"
 
     def get_queryset(self):
         return super().get_queryset().filter(is_superuser=False)
@@ -77,7 +78,7 @@ class ContributorBaseListView(FairDMListView):
 
 class ContributorListView(ContributorBaseListView):
     model = Person
-    title = _("All Contributors")
+    title = _("People")
     filterset_class = PersonFilter
     queryset = Person.contributors.all()
     heading_config = {
@@ -135,19 +136,6 @@ class ContributorListView(ContributorBaseListView):
                 person.is_followed = False
 
         return context
-
-
-class ActiveMemberListView(ContributorListView):
-    title = _("Active Members")
-    queryset = Person.contributors.filter(is_active=True)
-    heading_config = {
-        "icon": "people",
-        "title": _("Active Members"),
-        "description": _(
-            "Active members are contributors who have created a personal account within the portal. "
-            "They are engaged with the community and may be involved in ongoing projects or discussions."
-        ),
-    }
 
 
 class CodeOfConduct(MetadataMixin, LoginRequiredMixin, TemplateView):

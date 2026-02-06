@@ -1,10 +1,9 @@
 from .community import CommunityDashboardView
 from .generic import ContributorContactView, ContributorListView
 from .organization import OrganizationCreateView, OrganizationListView
-from .person import ActiveMemberListView, PersonCreateView, PortalTeamView
+from .person import PersonCreateView, PortalTeamView
 
 __all__ = [
-    "ActiveMemberListView",
     "CommunityDashboardView",
     "ContributorContactView",
     "ContributorListView",

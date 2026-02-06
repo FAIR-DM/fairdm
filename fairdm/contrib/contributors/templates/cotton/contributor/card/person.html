@@ -5,9 +5,9 @@
     <c-card.body class="p-2">
       <div class="row">
         <div class="col-3 d-flex flex-column gap-2">
-          <c-widgets.avatar class="overflow-hidden rounded"
-                            :contributor="obj"
-                            only />
+          <c-avatar class="overflow-hidden rounded"
+                    :contributor="obj"
+                    only />
           <c-components.link href="{{ obj.get_absolute_url }}"
                              text="{% trans "Profile" %}"
                              icon="arrow_right"

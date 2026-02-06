@@ -25,6 +25,7 @@ class OrganizationListView(FairDMListView):
         "responsive": {"md": 3},
         "card": "contributor.card.organization",
     }
+    card_template = "contributors/contributor_card.html"
 
 
 class OrganizationCreateView(FairDMCreateView):

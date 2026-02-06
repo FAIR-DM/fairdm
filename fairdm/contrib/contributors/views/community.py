@@ -4,14 +4,12 @@ import json
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.db.models import Count
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from fairdm.views import FairDMTemplateView
 
-from ..choices import DefaultGroups
 from ..models import Contribution, Contributor, Organization, OrganizationMember, Person
 
 User = get_user_model()
@@ -81,19 +79,19 @@ class CommunityDashboardView(FairDMTemplateView):
             }
         )
 
-        # === Portal Team Statistics ===
-        portal_admins = Group.objects.get(name=DefaultGroups.PORTAL_ADMIN).user_set.count()
-        data_admins = Group.objects.get(name=DefaultGroups.DATA_ADMIN).user_set.count()
-        developers = Group.objects.get(name=DefaultGroups.DEVELOPERS).user_set.count()
+        # # === Portal Team Statistics ===
+        # portal_admins = Group.objects.get(name=DefaultGroups.PORTAL_ADMIN).user_set.count()
+        # data_admins = Group.objects.get(name=DefaultGroups.DATA_ADMIN).user_set.count()
+        # developers = Group.objects.get(name=DefaultGroups.DEVELOPERS).user_set.count()
 
-        context.update(
-            {
-                "portal_admins": portal_admins,
-                "data_admins": data_admins,
-                "developers": developers,
-                "total_staff": portal_admins + data_admins + developers,
-            }
-        )
+        # context.update(
+        #     {
+        #         "portal_admins": portal_admins,
+        #         "data_admins": data_admins,
+        #         "developers": developers,
+        #         "total_staff": portal_admins + data_admins + developers,
+        #     }
+        # )
 
         # === Contribution Statistics ===
         total_contributions = Contribution.objects.count()

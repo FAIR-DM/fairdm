@@ -1,6 +1,6 @@
 {% load fairdm guardian_tags %}
 
-<c-contributor.card.person_alt :obj="obj.contributor">
+<c-contributor.card.person-alt :obj="obj.contributor">
   {% if can_modify_contributor %}
     <c-components.dropdown class="fs-6 fw-semibold border-0 z-2"
                            dropdown_class="position-absolute top-0 start-0 z-2"
@@ -17,4 +17,4 @@
                                   text="{% trans "Remove" %}" />
     </c-components.dropdown>
   {% endif %}
-</c-contributor.card.person_alt>
+</c-contributor.card.person-alt>

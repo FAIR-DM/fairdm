@@ -1,250 +1,216 @@
-{% extends "layouts/base.html" %}
+{% extends "base.html" %}
 {% load i18n cotton %}
 
-{% block content %}
-  <div class="container">
-    {# Page Header #}
-    <c-detail.header title="{% trans 'Community Dashboard' %}"
-                     icon="people"
-                     subtitle="{% trans 'Overview of our research community including contributors, organizations, collaborations, and recent activity.' %}" />
-    {# Overview Statistics #}
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <c-detail.stat-box value="{{ total_contributors }}"
-                           label="{% trans 'Total Contributors' %}"
-                           icon="people"
-                           color="primary" />
+{% block main %}
+  <c-page>
+    <c-page.content class="d-flex flex-column gap-3">
+      {# Page Header #}
+      {% comment %} <c-detail.header title="{% trans 'Community Dashboard' %}" icon="people" subtitle="{% trans 'Overview of our research community including contributors, organizations, collaborations, and recent activity.' %}" /> {% endcomment %}
+      {# Overview Statistics #}
+      <c-app.main.content-header>
+        <h1>{{ title }}</h1>
+      </c-app.main.content-header>
+      <div class="row">
+        <div class="col-md-3">
+          <c-widgets.type-a value="{{ total_contributors }}"
+                            label="{% trans "Total Contributors" %}"
+                            icon="people"
+                            variant="primary" />
+        </div>
+        <div class="col-md-3">
+          <c-widgets.type-a value="{{ active_contributors }}"
+                            label="{% trans "Active Contributors" %}"
+                            icon="person"
+                            variant="success" />
+        </div>
+        <div class="col-md-3">
+          <c-widgets.type-a value="{{ total_users }}"
+                            label="{% trans "Registered Users" %}"
+                            icon="person"
+                            variant="info" />
+        </div>
+        <div class="col-md-3">
+          <c-widgets.type-a value="{{ total_staff }}"
+                            label="{% trans "Portal Team" %}"
+                            icon="person"
+                            variant="warning" />
+        </div>
       </div>
-      <div class="col-md-3">
-        <c-detail.stat-box value="{{ active_contributors }}"
-                           label="{% trans 'Active Contributors' %}"
-                           icon="person"
-                           color="success" />
+      {# Contributor Breakdown #}
+      <div class="row">
+        <div class="col-lg-8">
+          <c-card title="{% trans 'Community Growth' %}"
+                  maximizable
+                  icon="analytics"
+                  class="h-100">
+            <div style="position: relative; height: 300px;">
+              <canvas id="growthChart"></canvas>
+            </div>
+          </c-card>
+        </div>
+        <div class="col-lg-4">
+          <c-card title="{% trans 'Contributor Types' %}"
+                  icon="pie-chart"
+                  class="h-100">
+            <canvas id="contributorTypeChart"></canvas>
+          </c-card>
+        </div>
       </div>
-      <div class="col-md-3">
-        <c-detail.stat-box value="{{ total_users }}"
-                           label="{% trans 'Registered Users' %}"
-                           icon="person"
-                           color="info" />
+      {# Detailed Statistics #}
+      <div class="row">
+        {# People & Organizations #}
+        <div class="col-lg-6">
+          <c-card title="{% trans 'Contributors' %}" icon="people">
+            <div class="row g-3">
+              <div class="col-6">
+                <c-widgets.type-d label="{% trans "People" %}"
+                                  value="{{ total_people }}"
+                                  icon="person"
+                                  variant="primary" />
+              </div>
+              <div class="col-6">
+                <c-widgets.type-d label="{% trans "Organizations" %}"
+                                  value="{{ total_organizations }}"
+                                  icon="organization"
+                                  variant="success" />
+              </div>
+            </div>
+          </c-card>
+        </div>
+        {# Users & Portal Team #}
+        <div class="col-lg-6">
+          <c-card title="{% trans 'Portal Users' %}"
+                  icon="person-badge">
+            {% comment %} <c-slot name="actions">
+            <c-card.action href="{% url 'active-member-list' %}" text="{% trans 'View active members' %}" icon="arrow_right" />
+            </c-slot> {% endcomment %}
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="border rounded p-3 text-center">
+                  <div class="h3 mb-1 text-primary">{{ verified_users }}</div>
+                  <small class="text-muted">
+                    <c-icon name="verified" class="me-1" />
+                    {% trans "Verified Users" %}
+                  </small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="border rounded p-3 text-center">
+                  <div class="h3 mb-1 text-success">{{ recent_users }}</div>
+                  <small class="text-muted">
+                    <c-icon name="timeline" class="me-1" />
+                    {% trans "New (30 days)" %}
+                  </small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="border rounded p-3 text-center">
+                  <div class="h4 mb-1 text-danger">{{ portal_admins }}</div>
+                  <small class="text-muted">{% trans "Admins" %}</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="border rounded p-3 text-center">
+                  <div class="h4 mb-1 text-info">{{ data_admins }}</div>
+                  <small class="text-muted">{% trans "Data" %}</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="border rounded p-3 text-center">
+                  <div class="h4 mb-1 text-warning">{{ developers }}</div>
+                  <small class="text-muted">{% trans "Devs" %}</small>
+                </div>
+              </div>
+            </div>
+          </c-card>
+        </div>
       </div>
-      <div class="col-md-3">
-        <c-detail.stat-box value="{{ total_staff }}"
-                           label="{% trans 'Portal Team' %}"
-                           icon="person"
-                           color="warning" />
+      {# Contributions & Organizations #}
+      <div class="row">
+        <div class="col-lg-6">
+          <c-card title="{% trans 'Contributions' %}"
+                  icon="file_text">
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">{% trans "Total Contributions" %}</span>
+                <strong class="h5 mb-0 text-primary">{{ total_contributions }}</strong>
+              </div>
+            </div>
+            <hr class="my-3" />
+            <h6 class="text-muted mb-3">{% trans "By Type" %}</h6>
+            <div class="list-group list-group-flush">
+              {% for item in contribution_breakdown %}
+                <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                  <span class="text-capitalize">{{ item.content_type__model }}</span>
+                  <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </c-card>
+        </div>
+        <div class="col-lg-6">
+          <c-card title="{% trans 'Organizations' %}"
+                  icon="organization">
+            {% comment %} <c-slot name="actions">
+            <c-card.action href="{% url 'organization-list' %}" text="{% trans 'View all organizations' %}" icon="arrow_right" />
+            </c-slot> {% endcomment %}
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <div class="border rounded p-3 text-center">
+                  <div class="h3 mb-1 text-primary">{{ total_affiliations }}</div>
+                  <small class="text-muted">{% trans "Total Affiliations" %}</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="border rounded p-3 text-center">
+                  <div class="h3 mb-1 text-success">{{ current_affiliations }}</div>
+                  <small class="text-muted">{% trans "Current" %}</small>
+                </div>
+              </div>
+            </div>
+            <hr class="my-3" />
+            <h6 class="text-muted mb-3">{% trans "Top Countries" %}</h6>
+            <div style="position: relative; height: 250px;">
+              <canvas id="countryChart"></canvas>
+            </div>
+          </c-card>
+        </div>
       </div>
-    </div>
-    {# Contributor Breakdown #}
-    <div class="row g-4 mb-4">
-      <div class="col-lg-8">
-        <c-card title="{% trans 'Community Growth' %}"
-                icon="analytics"
-                class="h-100">
-          <div style="position: relative; height: 300px;">
-            <canvas id="growthChart"></canvas>
-          </div>
-        </c-card>
-      </div>
-      <div class="col-lg-4">
-        <c-card title="{% trans 'Contributor Types' %}"
-                icon="pie-chart"
-                class="h-100">
-          <canvas id="contributorTypeChart"></canvas>
-        </c-card>
-      </div>
-    </div>
-    {# Detailed Statistics #}
-    <div class="row g-4 mb-4">
-      {# People & Organizations #}
-      <div class="col-lg-6">
-        <c-card title="{% trans 'Contributors' %}" icon="people">
-          <c-slot name="actions">
-            <c-card.action href="{% url 'person-list' %}"
-                           text="{% trans 'View all contributors' %}"
-                           icon="arrow_right" />
-          </c-slot>
-          <div class="row g-3">
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-primary">{{ total_people }}</div>
-                <small class="text-muted">
+      {# Top Contributors #}
+      <div class="row">
+        <div class="col-lg-12">
+          <c-card title="{% trans "Top Contributors" %}"
+                  icon="award"
+                  tight
+                  maximizable>
+            <c-slot name="tools">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active"
+                        id="people-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#people-table"
+                        type="button"
+                        role="tab"
+                        aria-controls="people-table"
+                        aria-selected="true">
                   <c-icon name="person" class="me-1" />
                   {% trans "People" %}
-                </small>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-success">{{ total_organizations }}</div>
-                <small class="text-muted">
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link"
+                        id="organizations-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#organizations-table"
+                        type="button"
+                        role="tab"
+                        aria-controls="organizations-table"
+                        aria-selected="false">
                   <c-icon name="organization" class="me-1" />
                   {% trans "Organizations" %}
-                </small>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-info">{{ contributors_with_identifiers }}</div>
-                <small class="text-muted">
-                  <c-icon name="identifier" class="me-1" />
-                  {% trans "With Identifiers" %}
-                </small>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-warning">{{ orcid_count }}</div>
-                <small class="text-muted">
-                  {% comment %} <c-icon name="orcid" renderer="svg" class="me-1" /> {% endcomment %}
-                  {% trans "ORCID iDs" %}
-                </small>
-              </div>
-            </div>
-          </div>
-        </c-card>
-      </div>
-      {# Users & Portal Team #}
-      <div class="col-lg-6">
-        <c-card title="{% trans 'Portal Users' %}"
-                icon="person-badge">
-          <c-slot name="actions">
-            <c-card.action href="{% url 'active-member-list' %}"
-                           text="{% trans 'View active members' %}"
-                           icon="arrow_right" />
-          </c-slot>
-          <div class="row g-3">
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-primary">{{ verified_users }}</div>
-                <small class="text-muted">
-                  <c-icon name="verified" class="me-1" />
-                  {% trans "Verified Users" %}
-                </small>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-success">{{ recent_users }}</div>
-                <small class="text-muted">
-                  <c-icon name="timeline" class="me-1" />
-                  {% trans "New (30 days)" %}
-                </small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="border rounded p-3 text-center">
-                <div class="h4 mb-1 text-danger">{{ portal_admins }}</div>
-                <small class="text-muted">{% trans "Admins" %}</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="border rounded p-3 text-center">
-                <div class="h4 mb-1 text-info">{{ data_admins }}</div>
-                <small class="text-muted">{% trans "Data" %}</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="border rounded p-3 text-center">
-                <div class="h4 mb-1 text-warning">{{ developers }}</div>
-                <small class="text-muted">{% trans "Devs" %}</small>
-              </div>
-            </div>
-          </div>
-        </c-card>
-      </div>
-    </div>
-    {# Contributions & Organizations #}
-    <div class="row g-4 mb-4">
-      <div class="col-lg-6">
-        <c-card title="{% trans 'Contributions' %}"
-                icon="file_text">
-          <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="text-muted">{% trans "Total Contributions" %}</span>
-              <strong class="h5 mb-0 text-primary">{{ total_contributions }}</strong>
-            </div>
-          </div>
-          <hr class="my-3" />
-          <h6 class="text-muted mb-3">{% trans "By Type" %}</h6>
-          <div class="list-group list-group-flush">
-            {% for item in contribution_breakdown %}
-              <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                <span class="text-capitalize">{{ item.content_type__model }}</span>
-                <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-              </div>
-            {% endfor %}
-          </div>
-        </c-card>
-      </div>
-      <div class="col-lg-6">
-        <c-card title="{% trans 'Organizations' %}"
-                icon="organization">
-          <c-slot name="actions">
-            <c-card.action href="{% url 'organization-list' %}"
-                           text="{% trans 'View all organizations' %}"
-                           icon="arrow_right" />
-          </c-slot>
-          <div class="row g-3 mb-3">
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-primary">{{ total_affiliations }}</div>
-                <small class="text-muted">{% trans "Total Affiliations" %}</small>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="border rounded p-3 text-center">
-                <div class="h3 mb-1 text-success">{{ current_affiliations }}</div>
-                <small class="text-muted">{% trans "Current" %}</small>
-              </div>
-            </div>
-          </div>
-          <hr class="my-3" />
-          <h6 class="text-muted mb-3">{% trans "Top Countries" %}</h6>
-          <div style="position: relative; height: 250px;">
-            <canvas id="countryChart"></canvas>
-          </div>
-        </c-card>
-      </div>
-    </div>
-    {# Top Contributors #}
-    <div class="row g-4">
-      <div class="col-lg-12">
-        <div class="card mb-4">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="card-title mb-0">
-                <c-icon name="award" class="text-primary me-2" />
-                {% trans "Top Contributors" %}
-              </h5>
-              <ul class="nav nav-pills nav-pills-sm" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active"
-                          id="people-tab"
-                          data-bs-toggle="tab"
-                          data-bs-target="#people-table"
-                          type="button"
-                          role="tab"
-                          aria-controls="people-table"
-                          aria-selected="true">
-                    <c-icon name="person" class="me-1" />
-                    {% trans "People" %}
-                  </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link"
-                          id="organizations-tab"
-                          data-bs-toggle="tab"
-                          data-bs-target="#organizations-table"
-                          type="button"
-                          role="tab"
-                          aria-controls="organizations-table"
-                          aria-selected="false">
-                    <c-icon name="organization" class="me-1" />
-                    {% trans "Organizations" %}
-                  </button>
-                </li>
-              </ul>
-            </div>
+                </button>
+              </li>
+            </c-slot>
             <div class="tab-content">
               {# People Table #}
               <div class="tab-pane fade show active"
@@ -327,13 +293,12 @@
                 </div>
               </div>
             </div>
-          </div>
+          </c-card>
         </div>
       </div>
-    </div>
-  </div>
-  {# Close container #}
-{% endblock content %}
+    </c-page.content>
+  </c-page>
+{% endblock main %}
 
 {% block extra_js %}
   {{ block.super }}

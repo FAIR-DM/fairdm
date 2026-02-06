@@ -1,19 +1,19 @@
-<c-card class="shadow align-items-center text-center {{ contributor.type }}"
-        body_class="px-1 py-3 vstack align-items-center">
-  <span class="text-secondary position-absolute top-0 end-0 me-2 mt-1"
-        data-bs-toggle="tooltip"
-        data-bs-html="true"
-        data-bs-placement="bottom"
-        data-bs-custom-class="text-start">{% icon "info" %}</span>
-  {% if contributor.get_default_identifier %}
-    <span class="position-absolute top-0 start-0 ms-2 mt-1 z-1">
-      <c-contributor.icon :contributor="contributor" />
-    </span>
-  {% endif %}
-  <c-widgets.avatar :contributor="contributor" class="w-75" only />
-  <h5 class="card-title fs-6 mt-1 mb-3">{{ contributor }}</h5>
-  <c-components.button class="btn btn-primary"
-                       href="{{ contributor.get_absolute_url }}">
-    {% trans "View profile" %}
-  </c-components.button>
-</c-card>
+{% load i18n %}
+
+<c-vars class text_light />
+<div class="card border-0 shadow-none {{ class }}">
+  <div class="card-body d-flex flex-column align-items-center gap-2">
+    <c-avatar :user="object"
+              badge_text="{% if object.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}"
+              badge_variant="{% if object.is_active %}success{% else %}warning{% endif %}" />
+    <h5 class="card-title {% if text_light %}text-light{% endif %}">{{ object }}</h5>
+    {% if object.orcid %}
+      <a href="{{ object.get_absolute_url }}"
+         class="link-secondary {% if text_light %}text-light{% endif %} link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+        <c-icon name="orcid" />
+        {{ object.orcid.value }}
+      </a>
+    {% endif %}
+  </div>
+  {% if footer %}<div class="card-footer border-0 bg-body">{{ footer }}</div>{% endif %}
+</div>

@@ -6,7 +6,7 @@
       <c-contributor.icon :contributor="contributor" />
     </span>
   {% endif %}
-  <c-widgets.avatar :contributor="contributor" class="w-100" only />
+  <c-avatar :contributor="contributor" class="w-100" only />
   <h5 class="card-title fs-6 mt-1 mb-3">{{ contributor }}</h5>
   <c-components.button class="btn btn-primary"
                        href="{{ contributor.get_absolute_url }}">

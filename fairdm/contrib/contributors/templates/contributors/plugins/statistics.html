@@ -1,41 +1,43 @@
 {% extends "fairdm/plugin.html" %}
 {% load i18n %}
 
-{% block plugin %}
-  <div class="row g-4">
-    {# Total Contributions Overview #}
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body text-center">
-          <h2 class="display-3 text-primary mb-2">{{ total_contributions }}</h2>
-          <p class="text-muted text-uppercase">{% trans "Total Contributions" %}</p>
+{% block content %}
+  <c-page.content class="vstack gap-2">
+    <div class="row g-4">
+      {# Total Contributions Overview #}
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body text-center">
+            <h2 class="display-3 text-primary mb-2">{{ total_contributions }}</h2>
+            <p class="text-muted text-uppercase">{% trans "Total Contributions" %}</p>
+          </div>
+        </div>
+      </div>
+      {# Contributions by Type #}
+      <div class="col-12">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <c-icon name="project" class="me-2" />
+              {% trans "Contributions by Type" %}
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if contributions_by_type %}
+              <div class="list-group list-group-flush">
+                {% for type_name, count in contributions_by_type.items %}
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ type_name|title }}</span>
+                    <c-badge variant="primary" pill :text="count" />
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted mb-0">{% trans "No contributions yet." %}</p>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
-    {# Contributions by Type #}
-    <div class="col-12">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="mb-0">
-            <c-icon name="project" class="me-2" />
-            {% trans "Contributions by Type" %}
-          </h5>
-        </div>
-        <div class="card-body">
-          {% if contributions_by_type %}
-            <div class="list-group list-group-flush">
-              {% for type_name, count in contributions_by_type.items %}
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                  <span>{{ type_name|title }}</span>
-                  <c-badge variant="primary" pill :text="count" />
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="text-muted mb-0">{% trans "No contributions yet." %}</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-{% endblock plugin %}
+  </c-page.content>
+{% endblock content %}

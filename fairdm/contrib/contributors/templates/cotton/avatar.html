@@ -1,0 +1,9 @@
+<c-vars badge_text badge_variant="primary" />
+<div class="position-relative d-inline-block">
+  <img src="https://randomuser.me/api/portraits/men/64.jpg"
+       class="rounded-circle img-thumbnail"
+       alt="{{ user }} {% trans "Profile Picture" %}" />
+  {% if badge_text %}
+    <span class="position-absolute bottom-0 end-0 translate-middle-y badge rounded-pill bg-{{ badge_variant }} border border-white">{{ badge_text }}</span>
+  {% endif %}
+</div>

@@ -1,8 +1,22 @@
 {% extends "fairdm/plugin.html" %}
-{% load i18n static crispy_forms_tags cotton fairdm %}
+{% load i18n static crispy_forms_tags fairdm %}
 
-{% block plugin %}
-  <c-dashboard>
+{% block content %}
+  <c-page.content>
+    <c-page.header title="{{ title }}" gap=1>
+      <c-slot name="end">
+        <c-navbar.widgets.search />
+        <c-action icon="sort" text="{% trans "Sort by" %}" />
+        <c-action icon="add"
+                  text="{% trans "Add Contributor" %}"
+                  hx-get="{% plugin_url 'contribution-quick-add' %}"
+                  hx-target="#contribution-modal-content"
+                  hx-swap="innerHTML"
+                  data-bs-toggle="modal"
+                  data-bs-target="#contributionModal" />
+        <c-page.toolbar.sidebar-widget icon="filter" />
+      </c-slot>
+    </c-page.header>
     <c-list-group flush id="contributors-list">
       {% for contribution in object_list %}
         <c-list-group.item class="contributor-item"
@@ -52,79 +66,64 @@
         </c-list-group.item>
       {% endfor %}
     </c-list-group>
-    <c-slot name="sidebar">
-      <c-card title="{% trans "Actions" %}" icon="plus">
-        <div class="d-grid gap-2">
-          <button class="btn btn-primary btn-sm"
-                  hx-get="{% plugin_url 'contribution-quick-add' %}"
-                  hx-target="#contribution-modal-content"
-                  hx-swap="innerHTML"
-                  data-bs-toggle="modal"
-                  data-bs-target="#contributionModal">
-            <i class="bi bi-person-plus me-2"></i>{% trans "Add Contributor" %}
-          </button>
+  </c-page.content>
+  <c-page.sidebar class="vstack gap-2 py-3">
+    <c-card title="{% trans "Contributor Type" %}"
+            icon="filter">
+      <div class="d-flex flex-column gap-2">
+        <div class="form-check">
+          <input class="form-check-input"
+                 type="radio"
+                 name="contributor-filter"
+                 id="filter-person"
+                 value="person"
+                 checked />
+          <label class="form-check-label" for="filter-person">
+            <i class="bi bi-person"></i> {% trans "People" %}
+          </label>
         </div>
-      </c-card>
-      <c-card title="{% trans "Contributor Type" %}"
-              icon="filter"
-              class="mt-3">
-        <div class="d-flex flex-column gap-2">
+        <div class="form-check">
+          <input class="form-check-input"
+                 type="radio"
+                 name="contributor-filter"
+                 id="filter-organization"
+                 value="organization" />
+          <label class="form-check-label"
+                 for="filter-organization">
+            <i class="bi bi-building"></i> {% trans "Organizations" %}
+          </label>
+        </div>
+      </div>
+    </c-card>
+    {% if available_roles %}
+      <c-card title="{% trans "Role" %}" icon="tag">
+        <div class="d-flex flex-column gap-2"
+             id="role-filters">
           <div class="form-check">
             <input class="form-check-input"
                    type="radio"
-                   name="contributor-filter"
-                   id="filter-person"
-                   value="person"
+                   name="role-filter"
+                   id="role-all"
+                   value="all"
                    checked />
-            <label class="form-check-label" for="filter-person">
-              <i class="bi bi-person"></i> {% trans "People" %}
-            </label>
+            <label class="form-check-label" for="role-all">{% trans "All Roles" %}</label>
           </div>
-          <div class="form-check">
-            <input class="form-check-input"
-                   type="radio"
-                   name="contributor-filter"
-                   id="filter-organization"
-                   value="organization" />
-            <label class="form-check-label"
-                   for="filter-organization">
-              <i class="bi bi-building"></i> {% trans "Organizations" %}
-            </label>
-          </div>
-        </div>
-      </c-card>
-      {% if available_roles %}
-        <c-card title="{% trans "Role" %}"
-                icon="tag"
-                class="mt-3">
-          <div class="d-flex flex-column gap-2"
-               id="role-filters">
-            <div class="form-check">
+          {% for role_name, role_label, ctype in available_roles %}
+            <div class="form-check role-option"
+                 data-for-ctype="{{ ctype }}">
               <input class="form-check-input"
                      type="radio"
                      name="role-filter"
-                     id="role-all"
-                     value="all"
-                     checked />
-              <label class="form-check-label" for="role-all">{% trans "All Roles" %}</label>
+                     id="role-{{ role_name }}"
+                     value="{{ role_name }}" />
+              <label class="form-check-label"
+                     for="role-{{ role_name }}">{{ role_label }}</label>
             </div>
-            {% for role_name, role_label, ctype in available_roles %}
-              <div class="form-check role-option"
-                   data-for-ctype="{{ ctype }}">
-                <input class="form-check-input"
-                       type="radio"
-                       name="role-filter"
-                       id="role-{{ role_name }}"
-                       value="{{ role_name }}" />
-                <label class="form-check-label"
-                       for="role-{{ role_name }}">{{ role_label }}</label>
-              </div>
-            {% endfor %}
-          </div>
-        </c-card>
-      {% endif %}
-    </c-slot>
-  </c-dashboard>
+          {% endfor %}
+        </div>
+      </c-card>
+    {% endif %}
+  </c-page.sidebar>
   {# Modal for add/edit/delete contribution forms #}
   <c-modal id="contributionModal" size="lg">
     {% comment %} <c-modal.body>
@@ -132,7 +131,7 @@
     </c-modal.body> {% endcomment %}
     <div id="contribution-modal-content">{# Content loaded via HTMX #}</div>
   </c-modal>
-{% endblock plugin %}
+{% endblock content %}
 
 {% block extra_js %}
   {{ block.super }}

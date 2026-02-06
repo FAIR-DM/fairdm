@@ -1,291 +1,210 @@
-{% extends "fairdm/plugin.html" %}
+{% extends "plugins/overview.html" %}
 {% load fairdm humanize i18n martortags static easy_icons %}
 
-{% block page_header %}
-  {# Custom header for Person with avatar, name, ORCID, and primary affiliation #}
-  <div class="person-header py-4 mb-4">
-    <div class="d-flex flex-column flex-md-row align-items-center gap-3 gap-md-4">
-      {# Avatar #}
-      <div class="position-relative flex-shrink-0">
-        {% if object.image %}
-          <img src="{{ object.image.url }}"
-               alt="{{ object.name }}"
-               class="rounded-circle object-fit-cover"
-               width="120"
-               height="120" />
-        {% else %}
-          <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
-               style="width: 120px;
-                      height: 120px">
-            <c-icon name="person"
-                    class="text-white"
-                    style="font-size: 3rem" />
-          </div>
-        {% endif %}
+{% block page_content_header %}
+  <c-card.page-header title="{{ object }}">
+    <c-slot name="subtitle">
+      <c-icon name="organization" />
+      {% with object.primary_affiliation.organization as org %}
+        <c-link href="{{ org.get_absolute_url }}"
+                subtle
+                variant="secondary">
+          {{ org }}
+        </c-link>
+      {% endwith %}
+    </c-slot>
+    <c-slot name="extra_title">
+      <p class="card-text text-muted">
+        <c-icon name="location" />
+        {{ object.get_location_display }}
+      </p>
+    </c-slot>
+    <c-slot name="content_left">
+      <c-person-card>
+        <c-slot name="footer">
+          {% if object.is_active %}
+            <span class="text-muted"><strong>{% trans "Member Since" %}:</strong> {{ object.date_joined|date:"M, Y" }}</span>
+          {% endif %}
+        </c-slot>
+      </c-person-card>
+    </c-slot>
+    <c-slot name="info_boxes">
+      <c-widgets.type-a label="{% trans "Projects" %}"
+                        icon="project"
+                        :number="object.projects.count"
+                        variant="primary" />
+      <div class="vr mx-3"></div>
+      <c-widgets.type-a label="{% trans "Datasets" %}"
+                        icon="dataset"
+                        :value="object.datasets.count"
+                        variant="success" />
+      <div class="vr mx-3"></div>
+      <c-widgets.type-a label="{% trans "Followers" %}"
+                        icon="people"
+                        :value="object.datasets.count"
+                        variant="warning" />
+    </c-slot>
+    <div class="card-footer bg-body">
+      <div class="d-flex justify-content-around">
+        <c-action class="btn-link text-decoration-none"
+                  icon="add"
+                  text="{% trans "Follow" %}" />
+        <c-action class="btn-link text-decoration-none"
+                  icon="email"
+                  text="{% trans "Contact" %}" />
+        <c-action class="btn-link text-decoration-none"
+                  icon="share"
+                  text="{% trans "Share" %}" />
       </div>
-      {# Name, ORCID, ROR, and primary affiliation #}
-      <div class="flex-grow-1 text-center text-md-start">
-        <h4>{{ object.name }}</h4>
-        {# ORCID - authenticated (solid icon) or unauthenticated (outline icon) #}
-        {% if orcid_identifier %}
-          <div>
-            <a href="https://orcid.org/{{ orcid_identifier.value }}"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="text-decoration-none d-inline-flex align-items-center gap-2"
-               title="{% trans "View ORCID Profile" %}">
-              {% if object.orcid_is_authenticated %}
-                {# Authenticated ORCID - solid green icon #}
-                {% icon "orcid" width="24" height="24" renderer="svg" %}
-              {% else %}
-                {# Unauthenticated ORCID - outline only #}
-                {% icon "orcid_unauthenticated" width="24" height="24" renderer="svg" %}
-              {% endif %}
-              <span class="text-muted">{{ orcid_identifier.value }}</span>
-            </a>
-          </div>
-        {% endif %}
-        {# ROR - if available #}
-        {% for identifier in object.identifiers.all %}
-          {% if identifier.type == "ROR" %}
+    </div>
+  </c-card.page-header>
+{% endblock page_content_header %}
+
+{% block page_content %}
+  <c-card title="{% trans "About" %}"
+          icon="file_text"
+          edit_url="{% if object == request.user %}{% plugin_url "profile" %}{% endif %}">
+    {% if object.profile %}
+      <p class="card-text">{{ object.profile|safe_markdown }}</p>
+    {% else %}
+      <p class="text-muted">{{ empty_text }}</p>
+    {% endif %}
+  </c-card>
+{% endblock page_content %}
+
+{# Sidebar #}
+{% block page_sidebar %}
+  <c-card title="{% trans "Affiliations" %}"
+          icon="organization"
+          edit_url="{% if object == request.user %}{% plugin_url 'affiliations' %}{% endif %}">
+    <c-list-group flush>
+      {% for membership in object.current_affiliations %}
+        <c-list-group.item>
+          <div class="d-flex w-100 justify-content-between align-items-start">
             <div>
-              <a href="https://ror.org/{{ identifier.value }}"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 class="text-decoration-none d-inline-flex align-items-center gap-2"
-                 title="{% trans "View ROR Profile" %}">
-                {% icon "ror" width="24" height="24" renderer="svg" %}
-                <span class="text-muted">{{ identifier.value }}</span>
-              </a>
-            </div>
-          {% endif %}
-        {% endfor %}
-        {# Primary affiliation #}
-        {% with primary_affiliation=object.primary_affiliation %}
-          {% if primary_affiliation %}
-            <p class="text-muted mb-0">
-              <c-icon name="organization" class="me-1" />
-              {% if primary_affiliation.organization.get_absolute_url %}
-                <a href="{{ primary_affiliation.organization.get_absolute_url }}"
-                   class="text-decoration-none text-muted">{{ primary_affiliation.organization.name }}</a>
-              {% else %}
-                {{ primary_affiliation.organization.name }}
+              <h6 class="mb-1">
+                {% if membership.organization.get_absolute_url %}
+                  <a href="{{ membership.organization.get_absolute_url }}"
+                     class="text-decoration-none">{{ membership.organization.name }}</a>
+                {% else %}
+                  {{ membership.organization.name }}
+                {% endif %}
+              </h6>
+              {% if membership.is_primary %}
+                <small class="text-muted">
+                  <c-badge variant="primary"
+                           size="sm"
+                           :text="{% trans "Primary" %}" />
+                </small>
               {% endif %}
-            </p>
-          {% endif %}
-        {% endwith %}
-      </div>
-    </div>
-  </div>
-{% endblock page_header %}
-
-{% block plugin %}
-  {% trans "There's nothing here yet." as empty_text %}
-  <div class="row g-4">
-    {# Main content area #}
-    <div class="col-lg-8">
-      {% block overview_main %}
-        {% block bio %}
-          <c-card title="{% trans "About" %}"
-                  icon="person-lines-fill"
-                  edit_url="{% if object == request.user %}{% plugin_url "profile" %}{% endif %}">
-            {% if object.profile %}
-              <p class="card-text">{{ object.profile|safe_markdown }}</p>
-            {% else %}
-              <p class="text-muted">{{ empty_text }}</p>
-            {% endif %}
-          </c-card>
-        {% endblock bio %}
-
-        {% block contributions %}
-          {# Contributions Statistics #}
-          <c-card title="{% trans "Contributions" %}"
-                  icon="analytics">
-            {% if contributions_by_type %}
-              <div class="row g-3">
-                {% for model_name, count in contributions_by_type.items %}
-                  <div class="col-sm-6 col-md-4">
-                    <div class="text-center p-3 bg-light rounded">
-                      <div class="display-6 fw-bold text-primary">{{ count }}</div>
-                      <div class="text-muted small text-uppercase mt-1">{{ model_name }}</div>
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <p class="text-muted mb-0">{{ empty_text }}</p>
-            {% endif %}
-          </c-card>
-        {% endblock contributions %}
-
-        {% block research_interests %}
-          {# Research Interests / Keywords #}
-          <c-card title="{% trans "Research Interests" %}"
-                  icon="keywords"
-                  edit_url="{% if object == request.user %}{% plugin_url "keywords" %}{% endif %}">
-            <div class="d-flex flex-wrap gap-2">
-              {% for keyword in object.keywords.all %}
-                <c-badge variant="light"
-                         class="text-dark border"
-                         :text="keyword" />
-              {% empty %}
-                {{ empty_text }}
-              {% endfor %}
             </div>
-          </c-card>
-        {% endblock research_interests %}
-
-        {% block affiliations %}
-          {# Current Affiliations #}
-          <c-card title="{% trans "Affiliations" %}"
-                  icon="organization"
-                  edit_url="{% if object == request.user %}{% plugin_url 'affiliations' %}{% endif %}">
-            <c-list-group flush>
-              {% for membership in object.current_affiliations %}
-                <c-list-group.item>
-                  <div class="d-flex w-100 justify-content-between align-items-start">
-                    <div>
-                      <h6 class="mb-1">
-                        {% if membership.organization.get_absolute_url %}
-                          <a href="{{ membership.organization.get_absolute_url }}"
-                             class="text-decoration-none">{{ membership.organization.name }}</a>
-                        {% else %}
-                          {{ membership.organization.name }}
-                        {% endif %}
-                      </h6>
-                      {% if membership.is_primary %}
-                        <small class="text-muted">
-                          <c-badge variant="primary"
-                                   size="sm"
-                                   :text="{% trans "Primary" %}" />
-                        </small>
-                      {% endif %}
-                    </div>
-                  </div>
-                </c-list-group.item>
-              {% empty %}
-                {{ empty_text }}
-              {% endfor %}
-            </c-list-group>
-          </c-card>
-        {% endblock affiliations %}
-      {% endblock overview_main %}
-
-    </div>
-    {# Sidebar #}
-    <div class="col-lg-4">
-      {% block overview_sidebar %}
-        {% block identifiers %}
-          {# External Identifiers #}
-          <c-card title="{% trans "Identifiers" %}"
-                  icon="identifier"
-                  edit_url="{% if object == request.user %}{% plugin_url "identifiers" %}{% endif %}">
-            <dl class="mb-0">
-              {% for identifier in object.identifiers.all %}
-                <c-detail.info-item label="{{ identifier.type }}">
+          </div>
+        </c-list-group.item>
+      {% empty %}
+        {{ empty_text }}
+      {% endfor %}
+    </c-list-group>
+  </c-card>
+  <c-card title="{% trans "Identifiers" %}"
+          icon="identifier"
+          edit_url="{% if object == request.user %}{% plugin_url "identifiers" %}{% endif %}">
+    <dl class="mb-0">
+      {% for identifier in object.identifiers.all %}
+        {% comment %} <c-detail.info-item label="{{ identifier.type }}">
                   {% if identifier.get_absolute_url %}
-                    <a href="{{ identifier.get_absolute_url }}"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="text-decoration-none">
+                    <a href="{{ identifier.get_absolute_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                       {{ identifier.value }}
                       <c-icon name="external_link" size="12" class="ms-1" />
                     </a>
                   {% else %}
                     {{ identifier.value }}
                   {% endif %}
-                </c-detail.info-item>
-              {% empty %}
-                <p class="text-muted small mb-0">{{ empty_text }}</p>
-              {% endfor %}
-            </dl>
-          </c-card>
-        {% endblock identifiers %}
-
-        {% block external_links %}
-          {# External Links #}
-          <c-card title="{% trans "Links" %}" icon="link">
-            {% if object.links %}
-              <div class="d-flex flex-column gap-2">
-                {% for link in object.links %}
-                  <a href="{{ link }}"
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     class="text-decoration-none text-truncate">
-                    <c-icon name="external_link" size="14" class="me-1" />
-                    {{ link }}
-                  </a>
-                {% endfor %}
-              </div>
-            {% else %}
-              <p class="text-muted small mb-0">{{ empty_text }}</p>
-            {% endif %}
-          </c-card>
-        {% endblock external_links %}
-
-        {% block alternative_names %}
-          {# Alternative Names #}
-          {% if object.alternative_names %}
-            <c-card title="{% trans "Also Known As" %}"
-                    icon="person-badge">
-              <div class="d-flex flex-wrap gap-2">
-                {% for alt_name in object.alternative_names %}
-                  <c-badge variant="light"
-                           class="text-dark border"
-                           :text="alt_name" />
-                {% endfor %}
-              </div>
-            </c-card>
-          {% endif %}
-        {% endblock alternative_names %}
-
-        {% block account_info %}
-          {# Account Status (only visible to the person themselves) #}
-          {% if object == request.user %}
-            <c-card title="{% trans "Account Status" %}"
-                    icon="shield-check">
-              <dl class="mb-0">
-                <c-detail.info-item label="{% trans "Account Type" %}">
+        </c-detail.info-item> {% endcomment %}
+      {% empty %}
+        <p class="text-muted small mb-0">{{ empty_text }}</p>
+      {% endfor %}
+    </dl>
+  </c-card>
+  <c-card title="{% trans "Links" %}" icon="link">
+    {% if object.links %}
+      <div class="d-flex flex-column gap-2">
+        {% for link in object.links %}
+          <a href="{{ link }}"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="text-decoration-none text-truncate">
+            <c-icon name="external_link" size="14" class="me-1" />
+            {{ link }}
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted small mb-0">{{ empty_text }}</p>
+    {% endif %}
+  </c-card>
+  <c-card title="{% trans "Research Interests" %}"
+          icon="keywords"
+          edit_url="{% if object == request.user %}{% plugin_url "keywords" %}{% endif %}">
+    <div class="d-flex flex-wrap gap-2">
+      {% for keyword in object.keywords.all %}
+        <c-badge variant="light"
+                 class="text-dark border"
+                 :text="keyword" />
+      {% empty %}
+        {{ empty_text }}
+      {% endfor %}
+    </div>
+  </c-card>
+  {# Alternative Names #}
+  {% if object.alternative_names %}
+    <c-card title="{% trans "Also Known As" %}"
+            icon="person-badge">
+      <div class="d-flex flex-wrap gap-2">
+        {% for alt_name in object.alternative_names %}
+          <c-badge variant="light"
+                   class="text-dark border"
+                   :text="alt_name" />
+        {% endfor %}
+      </div>
+    </c-card>
+  {% endif %}
+  {# Account Status (only visible to the person themselves) #}
+  {% if object == request.user %}
+    <c-card title="{% trans "Account Status" %}"
+            icon="shield-check">
+      <dl class="mb-0">
+        {% comment %} <c-detail.info-item label="{% trans "Account Type" %}">
                   {% if object.is_staff %}
                     <c-badge variant="danger" :text="{% trans "Staff" %}" />
                   {% elif object.is_active %}
                     <c-badge variant="success" :text="{% trans "Active" %}" />
                   {% else %}
-                    <c-badge variant="secondary"
-                             :text="{% trans "Inactive" %}" />
+                    <c-badge variant="secondary" :text="{% trans "Inactive" %}" />
                   {% endif %}
                 </c-detail.info-item>
-                <c-detail.info-item label="{% trans "Member Since" %}"
-                                    text="{{ object.date_joined|date:'F Y' }}" />
+                <c-detail.info-item label="{% trans "Member Since" %}" text="{{ object.date_joined|date:'F Y' }}" />
                 {% if object.last_login %}
-                  <c-detail.info-item label="{% trans "Last Login" %}"
-                                      text="{{ object.last_login|naturaltime }}" />
-                {% endif %}
-              </dl>
-            </c-card>
-          {% endif %}
-        {% endblock account_info %}
-
-        {% block sync_info %}
-          {# Sync Information (only visible to the person themselves) #}
-          {% if object == request.user and object.last_synced %}
-            <c-card title="{% trans "Data Synchronization" %}"
-                    icon="arrow-repeat">
-              <dl class="mb-0">
-                <c-detail.info-item label="{% trans "Last Synced" %}"
-                                    text="{{ object.last_synced|date:'F d, Y' }}" />
-              </dl>
-              <div class="mt-2">
-                <small class="text-muted">
-                  <c-icon name="info" size="14" class="me-1" />
-                  {% trans "Profile data synchronized from external sources." %}
-                </small>
-              </div>
-            </c-card>
-          {% endif %}
-        {% endblock sync_info %}
-      {% endblock overview_sidebar %}
-
-    </div>
-  </div>
-{% endblock plugin %}
+                  <c-detail.info-item label="{% trans "Last Login" %}" text="{{ object.last_login|naturaltime }}" />
+        {% endif %} {% endcomment %}
+      </dl>
+    </c-card>
+  {% endif %}
+  {% block sync_info %}
+    {# Sync Information (only visible to the person themselves) #}
+    {% if object == request.user and object.last_synced %}
+      <c-card title="{% trans "Data Synchronization" %}"
+              icon="arrow-repeat">
+        <dl class="mb-0">
+          <c-detail.info-item label="{% trans "Last Synced" %}"
+                              text="{{ object.last_synced|date:'F d, Y' }}" />
+        </dl>
+        <div class="mt-2">
+          <small class="text-muted">
+            <c-icon name="info" size="14" class="me-1" />
+            {% trans "Profile data synchronized from external sources." %}
+          </small>
+        </div>
+      </c-card>
+    {% endif %}
+  {% endblock sync_info %}
+{% endblock page_sidebar %}
