@@ -89,6 +89,8 @@ class DatasetListView(FairDMListView):
     model = Dataset
     filterset_class = DatasetFilter
     title = _("Datasets")
+    list_item_template = "dataset/dataset_card.html"
+    page = {}
     order_by = (
         ("-added", _("Newest First")),
         ("added", _("Oldest First")),
@@ -118,7 +120,6 @@ class DatasetListView(FairDMListView):
         "Search and filter thousands of open-access research datasets by topic, field, or format. Access high-quality "
         "data to support your research projects."
     )
-    card_template = "dataset/dataset_card.html"
 
     def get_queryset(self) -> QuerySet[Dataset]:
         """Return the queryset of visible datasets with prefetched contributors.

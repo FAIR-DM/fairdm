@@ -113,6 +113,13 @@ class ProjectListView(FairDMListView):
 
     model = Project
     filterset_class = ProjectFilter
+    list_item_template = "project/project_card.html"
+    search_fields = ["uuid", "name"]
+    order_by = [
+        ("name", _("Name (A-Z)")),
+        ("-name", _("Name (Z-A)")),
+    ]
+
     title = _("Research Projects")
     description = _(
         "Discover past, present and future research projects shared by our community to see what other are working on."
@@ -125,7 +132,6 @@ class ProjectListView(FairDMListView):
     }
 
     image = static("img/stock/project.jpg")
-    card_template = "project/project_card.html"
 
     def get_queryset(self) -> QuerySet[Project]:
         """Return the queryset of visible projects with prefetched contributors.
@@ -169,6 +175,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         # Check if user has change permission
         if not self.request.user.has_perm("change_project", project):
             from django.core.exceptions import PermissionDenied
+
             raise PermissionDenied("You do not have permission to edit this project.")
 
         return project
@@ -216,8 +223,6 @@ class ProjectDetailView(DetailView):
             PermissionDenied: If user lacks permission to view private project.
         """
         from django.core.exceptions import PermissionDenied
-        from django.contrib.auth import REDIRECT_FIELD_NAME
-        from django.contrib.auth.views import redirect_to_login
 
         uuid = self.kwargs.get("uuid")
         project = get_object_or_404(Project, uuid=uuid)
@@ -254,8 +259,8 @@ class ProjectDetailView(DetailView):
 
         # Check if user has permission to edit
         if self.request.user.is_authenticated:
-            context['can_edit_project'] = self.request.user.has_perm('change_project', self.object)
+            context["can_edit_project"] = self.request.user.has_perm("change_project", self.object)
         else:
-            context['can_edit_project'] = False
+            context["can_edit_project"] = False
 
         return context

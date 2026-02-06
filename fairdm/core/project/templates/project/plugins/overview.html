@@ -9,38 +9,38 @@
   </a>
 {% endblock detail_actions %}
 
-{% block statistics_content %}
-  <div class="col-md-4">
-    <c-detail.stat-box value="{{ dataset_count }}"
-                       color="dataset"
-                       label="{% trans 'Datasets' %}" />
-  </div>
-  <div class="col-md-4">
-    <c-detail.stat-box value="{{ project.samples.count }}"
-                       label="{% trans 'Samples' %}"
-                       color="sample" />
-  </div>
-  <div class="col-md-4">
-    <c-detail.stat-box value="{{ project.measurements.count }}"
-                       label="{% trans 'Measurements' %}"
-                       color="measurement" />
-  </div>
-{% endblock statistics_content %}
+{% block info_boxes %}
+  <c-widgets.type-a label="{% trans 'Datasets' %}"
+                    class="mb-0"
+                    value="{{ dataset_count|default:"0" }}"
+                    icon="dataset"
+                    variant="success"
+                    link="{% plugin_url "datasets" %}" />
+  <div class="vr mx-3"></div>
+  <c-widgets.type-a label="{% trans 'Samples' %}"
+                    class="mb-0"
+                    value="{{ project.samples.count|default:"0" }}"
+                    icon="sample"
+                    variant="warning" />
+  <div class="vr mx-3"></div>
+  <c-widgets.type-a label="{% trans 'Measurements' %}"
+                    class="mb-0"
+                    value="{{ project.measurements.count|default:"0" }}"
+                    icon="measurement"
+                    variant="danger" />
+{% endblock info_boxes %}
 
-{% block overview_main %}
+{% block page_content %}
   {{ block.super }}
-  {# Funding Information #}
   {% if project.funding %}
     <c-card title="{% trans 'Funding' %}" icon="funding">
       <p class="card-text">{{ project.funding }}</p>
     </c-card>
   {% endif %}
-{% endblock overview_main %}
+{% endblock page_content %}
 
 {% block quick_info_items %}
-  <c-detail.info-item label="{% trans 'Status' %}"
-                      value="{{ project.get_status_display }}"
-                      badge="{{ project.get_status_display|lower }}" />
+  {% comment %} <c-detail.info-item label="{% trans 'Status' %}" value="{{ project.get_status_display }}" badge="{{ project.get_status_display|lower }}" /> {% endcomment %}
   <dt class="text-muted small text-uppercase mb-1">{% trans "Visibility" %}</dt>
   <dd class="mb-3">
     <c-badge variant="secondary">
@@ -49,13 +49,11 @@
       {{ project.get_visibility_display }}
     </c-badge>
   </dd>
-  {% if project.owner %}
-    <c-detail.info-item label="{% trans 'Owner' %}"
-                        value="{{ project.owner }}" />
+  {% comment %} {% if project.owner %}
+    <c-detail.info-item label="{% trans 'Owner' %}" value="{{ project.owner }}" />
   {% endif %}
-  <c-detail.info-item label="{% trans 'Created' %}"
-                      value="{{ project.created|date:'N j, Y' }}" />
-  <dt class="text-muted small text-uppercase mb-1">{% trans "Last Modified" %}</dt>
+  <c-detail.info-item label="{% trans 'Created' %}" value="{{ project.created|date:'N j, Y' }}" />
+  <dt class="text-muted small text-uppercase mb-1">{% trans "Last Modified" %}</dt> {% endcomment %}
   <dd class="mb-0">
     {{ project.modified|date:"N j, Y" }}
   </dd>
