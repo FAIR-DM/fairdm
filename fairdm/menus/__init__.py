@@ -1,3 +1,3 @@
-from .menus import SiteNavigation
+from .menus import AppMenu
 
-__all__ = ["SiteNavigation"]
+__all__ = ["AppMenu"]
