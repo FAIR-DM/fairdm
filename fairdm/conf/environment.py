@@ -2,8 +2,6 @@ from environ import Env
 
 env = Env(
     # when False, discussion tabs are hidden from the detail views
-    FAIRDM_SHOW_DATA_TABLES=(bool, True),
-    # when False, data tables are hidden from the UI (useful for portals that don't make use of Sample or Measurement models)
     FAIRDM_ALLOW_PUBLIC_REGISTRATION=(bool, True),
     # when False, registrations are only allowed by invitation
     # DJANGO

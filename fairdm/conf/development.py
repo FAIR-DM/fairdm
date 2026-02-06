@@ -9,6 +9,16 @@ Applied after loading settings/* modules when DJANGO_ENV=development.
 env = globals()["env"]
 BASE_DIR = globals()["BASE_DIR"]
 
+INSTALLED_APPS = globals().get("INSTALLED_APPS", [])
+MIDDLEWARE = globals().get("MIDDLEWARE", [])
+
+INSTALLED_APPS += [
+    "django_browser_reload",
+]
+
+MIDDLEWARE += [
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
+]
 # =============================================================================
 # DEVELOPMENT CONVENIENCE OVERRIDES
 # =============================================================================
@@ -114,7 +124,8 @@ STORAGES = {
 
 # Disable compression in development
 COMPRESS_ENABLED = False
-COMPRESS_OFFLINE = False
+# COMPRESS_OFFLINE = False
+
 
 # =============================================================================
 # DJANGO DEBUG TOOLBAR
@@ -124,11 +135,9 @@ COMPRESS_OFFLINE = False
 try:
     import debug_toolbar  # noqa: F401
 
-    INSTALLED_APPS = globals().get("INSTALLED_APPS", [])
     if "debug_toolbar" not in INSTALLED_APPS:
         INSTALLED_APPS.insert(0, "debug_toolbar")
 
-    MIDDLEWARE = globals().get("MIDDLEWARE", [])
     if "debug_toolbar.middleware.DebugToolbarMiddleware" not in MIDDLEWARE:
         MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
 

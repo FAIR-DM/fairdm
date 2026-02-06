@@ -48,6 +48,8 @@ WAFFLE_CREATE_MISSING_SAMPELS = True
 # Custom renderers for FairDM navigation menus
 FLEX_MENUS = {
     "renderers": {
+        "adminlte": "mvp.renderers.AdminLTERenderer",
+        "nav": "mvp.renderers.NavRenderer",
         "navbar": "mvp.renderers.NavbarRenderer",
         "mobile_navbar": "mvp.renderers.MobileNavbarRenderer",
         "sidebar": "mvp.renderers.SidebarRenderer",
@@ -66,6 +68,9 @@ EASY_ICONS = {
         "config": {
             "tag": "i",
         },
+        "packs": [
+            "mvp.utils.BS5_ICONS",
+        ],
         "icons": {
             # Core Actions
             "add": "bi bi-plus-circle",
@@ -82,7 +87,6 @@ EASY_ICONS = {
             "hide": "bi bi-eye-slash",
             "share": "bi bi-share",
             # Navigation
-            "menu": "bi bi-list",
             "menu_vertical": "bi bi-three-dots-vertical",
             "menu_horizontal": "bi bi-three-dots",
             "chevron_left": "bi bi-chevron-left",
@@ -91,22 +95,18 @@ EASY_ICONS = {
             "chevron_down": "bi bi-chevron-down",
             "chevron_expand": "bi bi-chevron-expand",
             "arrow_left": "bi bi-arrow-left",
-            "arrow_right": "bi bi-arrow-right",
             "arrow_up": "bi bi-arrow-up",
             "arrow_down": "bi bi-arrow-down",
             "external_link": "bi bi-box-arrow-up-right",
             # Search & Filter
-            "search": "bi bi-search",
-            "filter": "bi bi-funnel",
             "filter_active": "bi bi-funnel-fill",
-            "sort": "bi bi-sort-down",
+            "submit": "bi bi-check-lg",
             "funding": "bi bi-cash-coin",
             # Data & Content Types
             "project": "bi bi-layers",
             "dataset": "bi bi-folder",
             "sample": "bi bi-droplet",
             "measurement": "bi bi-rulers",
-            "table": "bi bi-table",
             "data": "bi bi-table",
             "chart": "bi bi-bar-chart",
             "analytics": "bi bi-graph-up",
@@ -125,10 +125,9 @@ EASY_ICONS = {
             "import": "bi bi-box-arrow-in-down",
             "export": "bi bi-box-arrow-up",
             "file": "bi bi-file-earmark",
-            "file_text": "bi bi-file_text",
+            "file_text": "bi bi-file-text",
             # People & Organizations
-            "person": "bi bi-person",
-            "people": "bi bi-people",
+            "member": "bi bi-person-fill",
             "organization": "bi bi-building",
             # Location & Geography
             "location": "bi bi-geo-alt",
@@ -149,13 +148,10 @@ EASY_ICONS = {
             "link": "bi bi-link-45deg",
             "relationships": "bi bi-diagram-3",
             # Settings & Configuration
-            "settings": "bi bi-gear",
             "preferences": "bi bi-sliders",
             "administration": "bi bi-tools",
             "permissions": "bi bi-shield-check",
             "verified": "bi bi-patch-check",
-            # UI Elements
-            "sidebar": "bi bi-layout-sidebar",
             "grid": "bi bi-grid",
             "list_view": "bi bi-list",
             "card_view": "bi bi-grid-3x2",
@@ -194,17 +190,12 @@ EASY_ICONS = {
             "database_fill": "bi bi-database-fill",
             "database-fill": "bi bi-database-fill",
             # Theme
-            "theme_light": "bi bi-sun",
-            "theme_dark": "bi bi-moon",
-            "theme_auto": "bi bi-circle-half",
             # Social & External
-            "github": "bi bi-github",
             "linkedin": "bi bi-linkedin",
             "whatsapp": "bi bi-whatsapp",
             "x_twitter": "bi bi-twitter-x",
             # Auth
             "login": "bi bi-box-arrow-in-right",
-            "logout": "bi bi-box-arrow-right",
             "password": "bi bi-key",
             "mfa": "bi bi-shield-lock",
             "account": "bi bi-person-circle",

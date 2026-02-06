@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "fairdm.contrib.activity_stream",
     "fairdm.utils",
     "fairdm.contrib.identity",
+    "mvp",
     "actstream",
     # "configuration",
     "polymorphic",
@@ -71,7 +72,6 @@ INSTALLED_APPS = [
     "allauth.usersessions",
     "invitations",
     # UTILITIES
-    # "django_better_admin_arrayfield",
     "compressor",
     "dbbackup",
     # "django_celery_beat",  # celery based task manager
@@ -228,8 +228,8 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # django-tables2: Table rendering template
-DJANGO_TABLES2_TEMPLATE = "collections/table.html"
-
+# DJANGO_TABLES2_TEMPLATE = "collections/table.html"
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-mvp.html"
 # django-accounts-center: Avatar URL retrieval
 ACCOUNT_MANAGEMENT_GET_AVATAR_URL = "fairdm.contrib.contributors.utils.get_contributor_avatar"
 

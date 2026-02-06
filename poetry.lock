@@ -1608,7 +1608,7 @@ test = ["tox"]
 
 [[package]]
 name = "django-easy-icons"
-version = "0.4.0"
+version = "0.5.0"
 description = "Easy, flexible icons for Django"
 optional = false
 python-versions = "^3.10"
@@ -1622,7 +1622,7 @@ django = "*"
 type = "git"
 url = "https://github.com/SamuelJennings/django-easy-icons"
 reference = "HEAD"
-resolved_reference = "aca2c9f0c9486a40b6559bbe9ac7e58fc696c4ae"
+resolved_reference = "20afd030298ee1da829c9d7d66f4b53915e0232d"
 
 [[package]]
 name = "django-entangled"
@@ -1990,9 +1990,13 @@ django = ">=4.2,<6.0"
 django-compressor = "^4.5.1"
 django-cotton = ">=2.3.1"
 django-cotton-bs5 = "^0.5.1"
-django-easy-icons = "^0.4.0"
+django-easy-icons = ">=0.5"
 django-flex-menus = "^0.4.1"
 django-libsass = "^0.9"
+
+[package.extras]
+all = ["django-tables2 (>=2.8.0,<3.0.0)"]
+django-tables2 = ["django-tables2 (>=2.8.0,<3.0.0)"]
 
 [package.source]
 type = "directory"
@@ -6842,4 +6846,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "78a5fd4594594a07b83617d5e6b02733b341d28b64effcc3affcc642f4249f4b"
+content-hash = "a31fad421d94d3683dc5adbc1f911a66970769fc4c4b02b043c0a5626161049f"
