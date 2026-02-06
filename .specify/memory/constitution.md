@@ -1,21 +1,13 @@
 <!--
 Sync Impact Report
-- Version change: 1.2.0 → 1.3.0
-- Modified principles: None
-- Added sections:
-	- Principle VII: "Living Demo & Reference Implementation" - New principle establishing fairdm_demo as a maintained reference application that demonstrates current best practices, stays synchronized with framework changes, and serves as executable documentation with docstrings linking to relevant documentation.
+- Version change: 1.3.0 → 1.3.1
+- Modified principles:
+	- Principle V: "Test-First Quality & Sustainability" - Updated test organization requirement from "documented test layer taxonomy (unit, integration, contract)" to reference the flat mirror structure documented in "Architecture & Stack Constraints > Testing & Tooling". This aligns the principle with the actual implemented and documented structure where unit and integration tests live together mirroring source code layout.
+- Added sections: None
 - Removed sections: None
 - Templates requiring updates (✓ updated / ⚠ pending):
-	- ✓ .specify/templates/plan-template.md (Constitution Check should consider demo app updates)
-	- ✓ .specify/templates/spec-template.md (Compatible - specs should note demo app impact)
-	- ✓ .specify/templates/tasks-template.md (Compatible - tasks should include demo app updates when relevant)
-	- ⚠ .github/instructions/copilot.instructions.md (Should reference Principle VII for demo app maintenance)
-	- ⚠ docs/ (Documentation should reference demo app as working examples)
-- Follow-up TODOs:
-	- Add docstrings to fairdm_demo models, views, and configuration linking to documentation
-	- Ensure demo app migrations stay current with core model changes
-	- Create CI check to verify demo app stays functional with framework changes
-	- Document demo app architecture and purpose in contributing guide
+	- ✓ All templates remain compatible - the flat test structure was already implemented and documented in Architecture section
+- Follow-up TODOs: None - change is a clarification aligning principle text with existing documented practice
 -->
 
 # FairDM Constitution
@@ -71,15 +63,13 @@ FairDM is intended for long-lived research infrastructure. All behavior changes 
 - Tests MUST be written and observed failing before implementation work begins (Red → Green → Refactor).
 - All new or changed Python behavior MUST have pytest coverage.
 - Django integration behavior MUST have pytest-django coverage with appropriate test database strategies.
-- Cotton component tests MUST use `django_cotton.render_component()` with pytest-django's `rf` fixture (NOT Template() or render_to_string).
-- User-visible/UI behavior MUST have pytest-playwright coverage when the change affects rendered output, interactions, or accessibility.
 - Pull requests MUST NOT be merged with failing tests, or without new/updated tests for behavior changes.
 - The only acceptable exception is a docs-only change (no runtime behavior impact).
 
 **Code Quality & Tooling**:
 
 - Type hints, static analysis, and style rules (e.g., Ruff, mypy) are REQUIRED for core framework code except where explicitly exempted in project-wide configuration.
-- Test organization MUST follow the documented test layer taxonomy (unit, integration, contract) and naming conventions.
+- Test organization MUST mirror the source code structure as documented in "Architecture & Stack Constraints > Testing & Tooling", with unit and integration tests living together in a flat structure rather than separated into subdirectories.
 - **Test quality over coverage targets**: Coverage metrics are a guide, not a goal. Tests MUST be:
   - **Meaningful**: Verify behavior and critical functionality, not just syntactical presence
   - **Maintainable**: Easy to update when underlying code changes
@@ -145,13 +135,12 @@ This section defines the non-negotiable architectural boundaries and technology 
   - Project scaffolding MUST favor patterns that are 12-factor compatible and reproducible via containerization.
 - **Testing & Tooling**:
   - pytest and pytest-django are the canonical testing stack.
-  - Test organization MUST follow the documented test layer taxonomy (unit: `tests/unit/{app}/test_{module}.py`, integration: `tests/integration/{app}/test_{module}.py`, contract: `tests/contract/{app}/test_{module}.py`).
+  - Test organization MUST mirror the `fairdm/` source code structure with `test_` prefixes at each level (e.g., `fairdm/core/project/models.py` → `tests/test_core/test_project/test_models.py`).
   - Fixture factories MUST use pytest fixtures and/or factory-boy for reusable test data.
-  - Integration tests MUST use transaction rollback for test isolation; test database MUST be created once per session.
-  - Cotton component tests MUST use `django_cotton.render_component()` with pytest-django fixtures.
-  - UI/interaction tests MUST use pytest-playwright for user-visible behavior validation.
+  - Tests MUST use transaction rollback for isolation; test database MUST be created once per session.
+  - Performance tests MUST NOT use wall-clock timing assertions; use deterministic guards (e.g., query-count assertions via `django_assert_num_queries`) instead.
   - Coverage measurement SHOULD use coverage.py to identify untested code paths; coverage is a guide to find gaps, not a gate to merge.
-    - Static analysis and formatting tooling (e.g., Ruff, mypy, djlint) as defined in pyproject.toml MUST be used for core development.
+  - Static analysis and formatting tooling (e.g., Ruff, mypy, djlint) as defined in pyproject.toml MUST be used for core development.
 - **Core MUST include**:
   - The canonical data model backbone (Project, Dataset, Sample, Measurement, Contributor, Organization and closely related entities).
   - Facilities to collect, validate, and store the metadata required for FAIR-compliant portals.
@@ -216,4 +205,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.3.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-01-08
+**Version**: 1.3.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-02-06
