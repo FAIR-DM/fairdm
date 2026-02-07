@@ -461,6 +461,10 @@ poetry run pytest tests/integration/docs/test_documentation_validation.py -v
 
 All three must pass for a PR to merge.
 
+## Historical Note
+
+This skill file supersedes the original `specs/001-documentation-strategy` spec (created January 2026, removed February 2026). The skill format provides more maintainable, agent-friendly documentation of FairDM's documentation conventions.
+
 ## Context7 Libraries
 
 When writing documentation that references specific tools or libraries, fetch current docs:

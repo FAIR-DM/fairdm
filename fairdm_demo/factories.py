@@ -63,7 +63,7 @@ relation = DatasetLiteratureRelationFactory(
 
 - Developer Guide > Testing > Factory Best Practices
 - Developer Guide > Testing > Fixture Generation
-- specs/006-core-datasets/quickstart.md
+- specs/004-core-datasets/quickstart.md
 """
 
 import factory

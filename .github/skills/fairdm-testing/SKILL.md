@@ -179,3 +179,7 @@ Key configuration (already set up — do not modify without reason):
 5. Mark DB-accessing tests with `@pytest.mark.django_db`
 6. Run `poetry run pytest <test_file>` to verify
 7. Ensure coverage does not decrease
+
+## Historical Note
+
+This skill file supersedes the original `specs/002-testing-strategy` spec (created January 2026, removed February 2026). The skill format provides more maintainable, agent-friendly documentation of FairDM's testing conventions.

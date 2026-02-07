@@ -51,20 +51,20 @@ With optional anchor for specific sections:
 **Basic spec reference**:
 
 ```markdown
-See [Spec: Documentation Strategy](../../specs/001-documentation-strategy/spec.md)
+See [Spec: Registry System](../../specs/002-fairdm-registry/spec.md)
 for complete requirements.
 ```
 
-**Rendered**: See [Spec: Documentation Strategy](../../specs/001-documentation-strategy/spec.md) for complete requirements.
+**Rendered**: See [Spec: Registry System](../../specs/002-fairdm-registry/spec.md) for complete requirements.
 
 **Spec reference with anchor**:
 
 ```markdown
-The [information architecture](../../specs/001-documentation-strategy/spec.md#fr-008)
-is immutable and defines four primary documentation sections.
+The [registration API](../../specs/002-fairdm-registry/spec.md#registration-api)
+provides explicit model configuration.
 ```
 
-**Rendered**: The [information architecture](../../specs/001-documentation-strategy/spec.md#fr-008) is immutable and defines four primary documentation sections.
+**Rendered**: The [registration API](../../specs/002-fairdm-registry/spec.md#registration-api) provides explicit model configuration.
 
 **Multiple spec references**:
 
@@ -289,7 +289,7 @@ principle:
 2. Create feature checklist (see [Feature Checklist Workflow](../documentation/feature-checklist-workflow.md))
 3. Write tests before implementation
 4. Implement feature
-5. Document feature following [Documentation Strategy](../../specs/001-documentation-strategy/spec.md)
+5. Document feature following established documentation conventions
 
 Each feature must have a completed checklist that links back to its specification.
 ```
@@ -405,7 +405,6 @@ See [Validation Rules](./validation-rules.md) for complete CI/CD integration det
 - [Feature Checklist Workflow](./feature-checklist-workflow.md) - When and where to add cross-references
 - [Information Architecture](./information-architecture.md) - Understanding documentation structure
 - [Validation Rules](./validation-rules.md) - Automated quality checks for cross-references
-- [Spec: Documentation Strategy](../../specs/001-documentation-strategy/spec.md) - Requirements that define these patterns
 
 ## Questions & Troubleshooting
 
@@ -426,10 +425,10 @@ Example:
 
 ```markdown
 <!-- Good - in contributing/development/ -->
-See [implementation plan](../../specs/001-documentation-strategy/plan.md)
+See [implementation plan](../../specs/002-fairdm-registry/plan.md)
 
 <!-- Bad - in portal-development/ -->
-See [implementation plan](../../specs/001-documentation-strategy/plan.md)
+See [implementation plan](../../specs/002-fairdm-registry/plan.md)
 ```
 
 **Q: Do I need to add cross-references to every page?**
@@ -442,12 +441,12 @@ A: No. Cross-references are mandatory for:
 
 User guides and portal administration docs rarely need cross-references.
 
-**Q: How do I link to a specific requirement in a spec (like FR-008)?**
+**Q: How do I link to a specific requirement in a spec (like FR-001)?**
 
 A: Use the heading anchor:
 
 ```markdown
-[requirement FR-008](../../specs/001-documentation-strategy/spec.md#fr-008-information-architecture-immutability)
+[requirement FR-001](../../specs/002-fairdm-registry/spec.md#fr-001-explicit-registration)
 ```
 
 The anchor is auto-generated from the heading text. Check the rendered HTML to verify the exact anchor.

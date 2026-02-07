@@ -2,10 +2,6 @@
 
 FairDM is an open-source Django-based framework designed to help research teams build modern, FAIR-compliant data portals without needing to write complex web application code from scratch. Whether you're evaluating FairDM for a new project or deepening your understanding of its architecture, this section provides the essential context you need.
 
-```{seealso}
-**Documentation Strategy**: This documentation structure follows the [Documentation Strategy](../../specs/001-documentation-strategy/spec.md) specification, which defines the immutable information architecture and validation requirements.
-```
-
 ```{tip}
 **Evaluating FairDM?** If you're a developer assessing whether FairDM fits your research community's needs, start with the [Getting Started guide](../portal-development/getting_started.md) for a hands-on walkthrough. Then return here to understand the principles that guide the framework's design.
 ```

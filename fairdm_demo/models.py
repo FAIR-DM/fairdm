@@ -264,7 +264,7 @@ improve performance. Use these patterns in your views and APIs:
 See Also:
     - Developer Guide > Models > Dataset Metadata
     - Developer Guide > Registry > Metadata Configuration
-    - specs/006-core-datasets/quickstart.md
+    - specs/004-core-datasets/quickstart.md
 """
 
 

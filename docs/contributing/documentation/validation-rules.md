@@ -612,7 +612,6 @@ Test configuration in `tests/integration/docs/test_documentation_validation.py`:
 - [Information Architecture](./information-architecture.md) — Where documentation belongs
 - [Feature Checklist Workflow](./feature-checklist-workflow.md) — How to create and complete checklists
 - [Cross-Reference Patterns](./cross-references.md) — Linking to specs and constitution
-- [Spec: Documentation Strategy](../../specs/001-documentation-strategy/spec.md) — Requirements and rationale
 
 ---
 

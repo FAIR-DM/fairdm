@@ -371,4 +371,4 @@ print(f"Total registered models: {len(all_models)}")
 
 ---
 
-*This changelog documents registry system enhancements delivered in the 004-fairdm-registry feature branch.*
+*This changelog documents registry system enhancements delivered in the 002-fairdm-registry feature branch.*

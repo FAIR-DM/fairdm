@@ -492,7 +492,7 @@ class Dataset(BaseModel):
     **See Also**:
 
     - Developer Guide > Permissions > Object-Level Access
-    - specs/006-core-datasets/research/image-aspect-ratios.md
+    - specs/004-core-datasets/research/image-aspect-ratios.md
 
     **Metadata Models:**
 
@@ -505,7 +505,7 @@ class Dataset(BaseModel):
     See Also:
         - docs/portal-development/models/dataset.md
         - docs/user-guide/datasets/creating-datasets.md
-        - specs/006-core-datasets/data-model.md
+        - specs/004-core-datasets/data-model.md
     """
 
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Dataset")

@@ -6,7 +6,7 @@ This module implements the three-tier field resolution algorithm:
 3. Parent fields (e.g., list_fields) → use as fallback
 4. Smart defaults (ModelConfiguration.get_default_fields()) → final fallback
 
-See specs/004-fairdm-registry/data-model.md Section 4 for algorithm specification.
+See specs/002-fairdm-registry/data-model.md Section 4 for algorithm specification.
 """
 
 from collections.abc import Callable
