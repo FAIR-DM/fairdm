@@ -35,8 +35,8 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-poetry-env
+      - name: Set up Poetry env
+        uses: SamuelJennings/cached-poetry-action@v1
 
       - name: Install and Build 🔧
         run: |

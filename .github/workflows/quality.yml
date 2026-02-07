@@ -22,8 +22,8 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-poetry-env
+      - name: Set up Poetry env
+        uses: SamuelJennings/cached-poetry-action@v1
 
       - name: Run checks
         run: poetry run invoke check
