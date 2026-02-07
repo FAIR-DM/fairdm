@@ -11,6 +11,8 @@
 
 FairDM makes it trivial for research teams to define domain-specific sample and measurement models and run a fully functional data portal without writing views, URL routing, or frontend code.
 
+# Test setup
+
 ---
 
 ## 🎯 What is FairDM?
