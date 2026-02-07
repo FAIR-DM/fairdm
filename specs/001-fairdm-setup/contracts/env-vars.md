@@ -1,6 +1,6 @@
 # Contract: Environment Variables (fairdm.conf)
 
-**Feature**: specs/002-production-config-fairdm-conf/spec.md  
+**Feature**: specs/002-production-config-fairdm-conf/spec.md
 **Date**: 2026-01-02
 
 This contract defines the supported environment variables for configuring a FairDM portal via `fairdm.conf`.

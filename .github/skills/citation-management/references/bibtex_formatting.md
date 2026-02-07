@@ -891,13 +891,13 @@ doi = {10.1038/nature12345}
 
 BibTeX formatting essentials:
 
-✓ **Choose correct entry type** (@article, @book, etc.)  
-✓ **Include all required fields**  
-✓ **Use `and` for multiple authors**  
-✓ **Protect capitalization** with braces  
-✓ **Use `--` for page ranges**  
-✓ **Include DOI** for modern papers  
-✓ **Validate syntax** before compilation  
+✓ **Choose correct entry type** (@article, @book, etc.)
+✓ **Include all required fields**
+✓ **Use `and` for multiple authors**
+✓ **Protect capitalization** with braces
+✓ **Use `--` for page ranges**
+✓ **Include DOI** for modern papers
+✓ **Validate syntax** before compilation
 
 Use formatting tools to ensure consistency:
 ```bash

@@ -1,6 +1,6 @@
 # Contract: Settings Sections Layout (fairdm.conf)
 
-**Feature**: specs/002-production-config-fairdm-conf/spec.md  
+**Feature**: specs/002-production-config-fairdm-conf/spec.md
 **Date**: 2026-01-02
 
 This contract defines the responsibilities and boundaries of the FairDM configuration sections.

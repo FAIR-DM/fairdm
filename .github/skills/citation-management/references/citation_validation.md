@@ -772,11 +772,11 @@ title = {Study of H\textsubscript{2}O}  % H₂O
 
 Validation ensures citation quality:
 
-✓ **Accuracy**: DOIs resolve, metadata correct  
-✓ **Completeness**: All required fields present  
-✓ **Consistency**: Proper formatting throughout  
-✓ **No duplicates**: Each paper cited once  
-✓ **Valid syntax**: BibTeX compiles without errors  
+✓ **Accuracy**: DOIs resolve, metadata correct
+✓ **Completeness**: All required fields present
+✓ **Consistency**: Proper formatting throughout
+✓ **No duplicates**: Each paper cited once
+✓ **Valid syntax**: BibTeX compiles without errors
 
 **Always validate** before final submission!
 

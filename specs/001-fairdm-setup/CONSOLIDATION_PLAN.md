@@ -170,7 +170,7 @@ These settings are addon/library-specific and should remain as separate files th
 ### Phase 2: Create Add-on Module (Optional)
 10. Create `fairdm_addons.py` by merging:
     - icons.py
-    - markdown.py  
+    - markdown.py
     - theme_options.py
     - page_config.py
     - fairdm.py

@@ -1,16 +1,16 @@
 {% extends "fairdm/plugin.html" %}
 {% load i18n static crispy_forms_tags cotton %}
 
-{# 
+{#
   Generic FormSet Template for InlineFormSetPlugin
-  
+
   This template provides a standard layout for editing related objects using
   InlineFormSetView from django-extra-views. It includes:
   - Crispy forms rendering for each form in the formset
   - Management form (required by Django formsets)
   - Cancel and Save buttons with proper form submission
   - Media (CSS/JS) handling for formset widgets
-  
+
   Used by: InlineFormSetPlugin and subclasses (Identifiers, Affiliations, etc.)
 #}
 {% block extra_css %}

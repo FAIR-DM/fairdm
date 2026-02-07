@@ -249,10 +249,10 @@ Use parentheses for complex logic:
 ```
 (diabetes OR "diabetes mellitus") AND (treatment OR therapy)
 
-("CRISPR" OR "gene editing") AND ("therapeutic" OR "therapy") 
+("CRISPR" OR "gene editing") AND ("therapeutic" OR "therapy")
   AND 2020:2024[Publication Date]
 
-(cancer OR neoplasm) AND (immunotherapy OR "immune checkpoint inhibitor") 
+(cancer OR neoplasm) AND (immunotherapy OR "immune checkpoint inhibitor")
   AND ("clinical trial"[Publication Type] OR "randomized controlled trial"[Publication Type])
 ```
 
@@ -522,7 +522,7 @@ Concept 2: "Drug Therapy"[MeSH] OR treatment OR therapy OR medication
 Concept 3: "Treatment Outcome"[MeSH] OR outcome OR efficacy OR effectiveness
 
 # 3. Combine with AND
-("Diabetes Mellitus"[MeSH] OR diabetes OR diabetic) 
+("Diabetes Mellitus"[MeSH] OR diabetes OR diabetic)
   AND ("Drug Therapy"[MeSH] OR treatment OR therapy OR medication)
   AND ("Treatment Outcome"[MeSH] OR outcome OR efficacy OR effectiveness)
 
@@ -537,13 +537,13 @@ AND humans[MeSH Terms]
 
 ```
 # Specific disease + clinical trials
-"Alzheimer Disease"[MeSH] 
-  AND ("Clinical Trial"[Publication Type] 
+"Alzheimer Disease"[MeSH]
+  AND ("Clinical Trial"[Publication Type]
        OR "Randomized Controlled Trial"[Publication Type])
   AND 2020:2024[Publication Date]
 
 # Specific drug trials
-"Metformin"[MeSH] 
+"Metformin"[MeSH]
   AND "Diabetes Mellitus, Type 2"[MeSH]
   AND "Randomized Controlled Trial"[Publication Type]
 ```
@@ -552,11 +552,11 @@ AND humans[MeSH Terms]
 
 ```
 # Systematic reviews on topic
-"CRISPR-Cas Systems"[MeSH] 
+"CRISPR-Cas Systems"[MeSH]
   AND ("Systematic Review"[Publication Type] OR "Meta-Analysis"[Publication Type])
 
 # Reviews in high-impact journals
-cancer immunotherapy 
+cancer immunotherapy
   AND "Review"[Publication Type]
   AND ("Nature"[Journal] OR "Science"[Journal] OR "Cell"[Journal])
 ```
@@ -565,12 +565,12 @@ cancer immunotherapy
 
 ```
 # Papers from last year
-"machine learning"[Title/Abstract] 
+"machine learning"[Title/Abstract]
   AND "drug discovery"[Title/Abstract]
   AND 2024[Publication Date]
 
 # Recent papers in specific journal
-"CRISPR"[Title/Abstract] 
+"CRISPR"[Title/Abstract]
   AND "Nature"[Journal]
   AND 2023:2024[Publication Date]
 ```
@@ -589,12 +589,12 @@ cancer immunotherapy
 
 ```
 # Meta-analyses and systematic reviews
-(diabetes OR "diabetes mellitus") 
+(diabetes OR "diabetes mellitus")
   AND (treatment OR therapy)
   AND ("Meta-Analysis"[Publication Type] OR "Systematic Review"[Publication Type])
 
 # RCTs only
-cancer immunotherapy 
+cancer immunotherapy
   AND "Randomized Controlled Trial"[Publication Type]
   AND 2020:2024[Publication Date]
 ```
@@ -703,17 +703,17 @@ python scripts/extract_metadata.py \
    ```
    # Step 1: Basic search
    diabetes
-   
+
    # Step 2: Add specificity
    "Diabetes Mellitus, Type 2"[MeSH]
-   
+
    # Step 3: Add treatment
    "Diabetes Mellitus, Type 2"[MeSH] AND "Metformin"[MeSH]
-   
+
    # Step 4: Add study type
-   "Diabetes Mellitus, Type 2"[MeSH] AND "Metformin"[MeSH] 
+   "Diabetes Mellitus, Type 2"[MeSH] AND "Metformin"[MeSH]
      AND "Clinical Trial"[Publication Type]
-   
+
    # Step 5: Add date range
    ... AND 2020:2024[Publication Date]
    ```
@@ -778,7 +778,7 @@ python scripts/extract_metadata.py \
 
 ### Issue: MeSH Term Not Found
 
-**Solution**: 
+**Solution**:
 - Check spelling
 - Use MeSH Browser
 - Try related terms
@@ -821,11 +821,11 @@ python scripts/format_bibtex.py results.bib \
 
 PubMed provides authoritative biomedical literature search:
 
-✓ **Curated content**: MeSH indexing, quality control  
-✓ **Precise search**: Field tags, MeSH terms, filters  
-✓ **Programmatic access**: E-utilities API  
-✓ **Free access**: No subscription required  
-✓ **Comprehensive**: 35M+ citations, daily updates  
+✓ **Curated content**: MeSH indexing, quality control
+✓ **Precise search**: Field tags, MeSH terms, filters
+✓ **Programmatic access**: E-utilities API
+✓ **Free access**: No subscription required
+✓ **Comprehensive**: 35M+ citations, daily updates
 
 Key strategies:
 - Use MeSH terms for precise searching
