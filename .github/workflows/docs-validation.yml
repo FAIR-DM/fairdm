@@ -60,7 +60,7 @@ jobs:
         id: check-internal-links
         run: |
           echo "Checking links with sphinx-build -b linkcheck..."
-          poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+          poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck || true
 
           # Parse linkcheck output for internal link failures
           if [ -f "docs/_build/linkcheck/output.txt" ]; then

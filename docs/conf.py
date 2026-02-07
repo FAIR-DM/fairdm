@@ -87,15 +87,20 @@ linkcheck_ignore = [
     r'http://127.0.0.1:\d+/',
     r'https?://example\.(com|org|net)',
     # Ignore temporary or flaky external sites (add as needed)
+    # Ignore sites that consistently fail or are slow
+    r'https://unesdoc\.unesco\.org/.*',  # Returns 403 Forbidden
+    r'https://docs\.fairdm\.org.*',  # DNS resolution fails (domain not registered yet)
+    r'https://vocabularies\.example\.org.*',  # Example domain
+    r'https://github\.com/.*/discussions.*',  # GitHub discussions may not be enabled
 ]
 
 # Treat internal link failures as hard errors
 linkcheck_allowed_redirects = {}
 
 # External links: check but don't fail build (warnings only handled in CI)
-linkcheck_timeout = 30
-linkcheck_retries = 2
-linkcheck_workers = 5
+linkcheck_timeout = 10  # Reduced from 30 to speed up checks
+linkcheck_retries = 1  # Reduced from 2 to speed up checks
+linkcheck_workers = 10  # Increased from 5 to parallelize better
 
 # MyST Parser configuration for cross-references
 myst_enable_extensions = [

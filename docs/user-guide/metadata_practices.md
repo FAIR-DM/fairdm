@@ -82,13 +82,6 @@ When you encounter a dropdown field:
 
 **Example**: If your portal has a controlled vocabulary for rock types, always select from the dropdown rather than typing "granite" manually in a free-text field.
 
-```{seealso}
-For discipline-specific controlled vocabularies, see:
-- [Research Vocabularies](https://vocabularies.example.org) (link to your portal's vocabulary service if available)
-- [IGSN Sample Types](https://www.geosamples.org/help/sampletypes)
-- [CF Standard Names](http://cfconventions.org/standard-names.html) (for climate/ocean/atmosphere data)
-```
-
 ## Record Provenance and Methods
 
 **Provenance** is the history of a sample or measurement—where it came from, who collected it, how it was processed, and how it was analyzed.
@@ -108,10 +101,10 @@ For discipline-specific controlled vocabularies, see:
 - **Document calibration and QA/QC**: Include calibration standards, blanks, replicates, etc.
 - **Note instrument settings**: If relevant, record settings like detection limits, wavelengths, etc.
 
-**Example (Good Provenance)**:  
+**Example (Good Provenance)**:
 Method: *Water pH measured using Hach HQ40d handheld meter (serial #12345), calibrated with NIST-traceable pH 4.0, 7.0, and 10.0 buffers immediately prior to measurement. Measurement precision ±0.05 pH units based on replicate measurements (n=3) of field blank.*
 
-**Example (Insufficient Provenance)**:  
+**Example (Insufficient Provenance)**:
 Method: *pH meter*
 
 ```{important}

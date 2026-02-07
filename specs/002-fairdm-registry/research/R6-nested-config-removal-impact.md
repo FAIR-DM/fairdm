@@ -1,7 +1,7 @@
 # Research Finding R6: Nested Config Removal Impact
 
-**Research Task**: Analyze impact of removing FormConfig, TableConfig, FiltersConfig, AdminConfig dataclasses  
-**Date**: 2026-01-12  
+**Research Task**: Analyze impact of removing FormConfig, TableConfig, FiltersConfig, AdminConfig dataclasses
+**Date**: 2026-01-12
 **Spec Reference**: [spec.md](spec.md) - Q9 clarification
 
 ## Executive Summary
@@ -21,30 +21,37 @@
 **Primary Usage Files**:
 
 1. **[fairdm/registry/config.py](../../fairdm/registry/config.py)** (Line 16)
+
    ```python
    from fairdm.registry.components import AdminConfig, FiltersConfig, FormConfig, TableConfig
    ```
+
    - Imports all 4 nested config classes
    - Uses them in `ModelConfiguration.__init__()` to initialize nested config objects
    - References in 8 locations (initialization + getter methods)
 
 2. **[fairdm/registry/factories.py](../../fairdm/registry/factories.py)** (Line 18)
+
    ```python
    from fairdm.registry.components import AdminConfig, FiltersConfig, FormConfig, TableConfig
    ```
+
    - Type hints for factory constructors (`FormFactory.__init__(config: FormConfig)`)
    - Field resolution logic checks `config.fields`, `config.exclude` attributes
    - References in 4 factory classes
 
 3. **[tests/test_registry/test_component_factories.py](../../tests/test_registry/test_component_factories.py)** (Line 13)
+
    ```python
    from fairdm.config_components import FiltersConfig, FormConfig, TableConfig
    ```
+
    - Test fixtures instantiate config classes: `config = FormConfig(fields=['name'])`
    - Tests validate factory behavior with various config options
    - References in ~20 test methods
 
 **No Direct Usage**:
+
 - **fairdm_demo/config.py**: Does NOT import nested configs, uses legacy API
 - **Test files**: Only `test_component_factories.py` uses them directly
 
@@ -59,12 +66,12 @@ class ModelConfiguration:
     table: TableConfig | None = None
     filters: FiltersConfig | None = None
     admin: AdminConfig | None = None
-    
+
     # Legacy component classes (for backwards compatibility)
     form_class = None
     table_class = None
     filterset_class = None
-    
+
     def __init__(self, model=None):
         # Initialize nested configs if not provided
         if self.form is None:
@@ -75,7 +82,7 @@ class ModelConfiguration:
             self.filters = FiltersConfig()
         if self.admin is None:
             self.admin = AdminConfig()
-        
+
         # Handle legacy form_class/table_class/filterset_class
         if self.form_class is not None and self.form.form_class is None:
             self.form.form_class = self.form_class
@@ -92,7 +99,7 @@ class FormFactory(ComponentFactory):
     def __init__(self, model: type[models.Model], config: FormConfig, parent_fields: list[str] | None = None):
         super().__init__(model, config)
         self.parent_fields = parent_fields
-    
+
     def get_fields(self) -> list[str] | str:
         # Check if config specifies fields
         if self.config.fields is not None:
@@ -119,13 +126,13 @@ class FormFactory(ComponentFactory):
 @register
 class CustomSampleConfig(ModelConfiguration):
     model = CustomSample
-    
+
     # Legacy component-specific field lists (NOT nested configs)
     table_fields = ["name", "char_field", "boolean_field", "date_field", "added"]
     form_fields = ["name", "char_field", "text_field", "integer_field", ...]
     filterset_fields = ["char_field", "boolean_field", "date_field", "added"]
     resource_fields = ["name", "char_field", "text_field", ...]
-    
+
     # Direct custom class overrides (NOT nested configs)
     filterset_class = CustomSampleFilter
     table_class = CustomSampleTable
@@ -158,13 +165,13 @@ from fairdm.registry.components import TableConfig, FormConfig
 class MySampleConfig(ModelConfiguration):
     model = MySample
     fields = ["name", "location"]  # Parent fields
-    
+
     # Nested config with component-specific overrides
     table = TableConfig(
         fields=["name"],  # Override parent fields
         orderable=True
     )
-    
+
     form = FormConfig(
         form_class=MyCustomForm  # Full custom override
     )
@@ -177,10 +184,10 @@ class MySampleConfig(ModelConfiguration):
 class MySampleConfig(ModelConfiguration):
     model = MySample
     fields = ["name", "location"]  # Parent fields used by ALL components
-    
+
     # Direct custom class override (no nested config)
     form_class = MyCustomForm
-    
+
     # For advanced table options, provide custom Table class
     table_class = MyCustomTable  # Define orderable in class Meta
 ```
@@ -191,7 +198,7 @@ class MySampleConfig(ModelConfiguration):
 @register
 class MySampleConfig(ModelConfiguration):
     model = MySample
-    
+
     # Component-specific field lists (legacy pattern, still works)
     table_fields = ["name"]
     form_fields = ["name", "location"]
@@ -221,7 +228,7 @@ class ModelConfiguration:
     table: TableConfig | None = None
     filters: FiltersConfig | None = None
     admin: AdminConfig | None = None
-    
+
     def __init__(self, model=None):
         # Detect if user provided nested configs
         if any([
@@ -233,7 +240,7 @@ class ModelConfiguration:
                 "Nested config attributes (form, table, filters, admin) are deprecated. "
                 "Use parent 'fields' attribute for shared fields, or provide custom "
                 "classes directly (form_class, table_class, etc.). "
-                "See migration guide: https://docs.fairdm.org/migration/nested-configs",
+                "See migration guide: https://fairdm.org/migration/nested-configs",
                 DeprecationWarning,
                 stacklevel=2
             )
@@ -259,6 +266,7 @@ class ModelConfiguration:
 - Tests validate factory behavior with config options
 
 **Migration**:
+
 ```python
 # BEFORE
 config = FormConfig(fields=['name', 'collected_at'])
@@ -275,13 +283,14 @@ factory = FormFactory(SampleModel, config=None, parent_fields=['name', 'collecte
 ### 5.2 New Tests Needed
 
 1. **Test parent fields inheritance**:
+
    ```python
    def test_form_uses_parent_fields_when_no_custom_class():
        config = ModelConfiguration()
        config.model = MySample
        config.fields = ['name', 'location']
        config.form_class = None  # No custom class
-       
+
        form_class = config.get_form_class()
        form = form_class()
        assert 'name' in form.fields
@@ -289,13 +298,14 @@ factory = FormFactory(SampleModel, config=None, parent_fields=['name', 'collecte
    ```
 
 2. **Test custom class override bypasses fields**:
+
    ```python
    def test_custom_form_class_ignores_parent_fields():
        config = ModelConfiguration()
        config.model = MySample
        config.fields = ['name']  # Should be ignored
        config.form_class = MyCustomForm  # Defines own fields
-       
+
        form_class = config.get_form_class()
        assert form_class == MyCustomForm
    ```
@@ -307,6 +317,7 @@ factory = FormFactory(SampleModel, config=None, parent_fields=['name', 'collecte
 ### 6.1 What WILL Break Immediately
 
 **Direct Nested Config Instantiation** (LOW IMPACT):
+
 ```python
 # This will fail after removal
 from fairdm.registry.components import FormConfig
@@ -319,6 +330,7 @@ config = FormConfig(fields=['name'])  # ❌ ImportError
 ### 6.2 What WILL Continue Working
 
 **Legacy API in fairdm_demo** (HIGH USAGE):
+
 ```python
 @register
 class MySampleConfig(ModelConfiguration):
@@ -327,6 +339,7 @@ class MySampleConfig(ModelConfiguration):
 ```
 
 **New API Pattern** (TARGET PATTERN):
+
 ```python
 @register
 class MySampleConfig(ModelConfiguration):
@@ -341,11 +354,13 @@ class MySampleConfig(ModelConfiguration):
 ### 7.1 Option A: Keep Nested Configs (REJECTED)
 
 **Pros**:
+
 - Zero breaking changes
 - Existing tests continue working
 - More explicit field overrides per component
 
 **Cons**:
+
 - Violates spec decision Q9 (nested configs not needed)
 - Extra layer of indirection for simple use cases
 - Confusing for new users (parent fields vs nested config fields)
@@ -356,10 +371,12 @@ class MySampleConfig(ModelConfiguration):
 ### 7.2 Option B: Immediate Removal (REJECTED)
 
 **Pros**:
+
 - Cleaner codebase immediately
 - Forces migration to new API
 
 **Cons**:
+
 - Breaks existing tests without warning
 - No migration period for external users
 - Violates backwards compatibility principle
@@ -369,12 +386,14 @@ class MySampleConfig(ModelConfiguration):
 ### 7.3 Option C: Deprecation + Removal (SELECTED)
 
 **Pros**:
+
 - Clear migration path with warnings
 - Gives users time to adapt
 - Follows semantic versioning best practices
 - Backwards compatible during deprecation period
 
 **Cons**:
+
 - Requires maintaining deprecated code for 1 release
 - More complex implementation (detection + warnings)
 
@@ -387,12 +406,14 @@ class MySampleConfig(ModelConfiguration):
 ### 8.1 File Removal Checklist
 
 **Phase 1 (Deprecation - v0.8.0)**:
+
 - [x] Add deprecation warnings in `ModelConfiguration.__init__()`
 - [ ] Update documentation with migration guide
 - [ ] Add migration examples to quickstart.md
 - [ ] Update docstrings in config.py
 
 **Phase 2 (Removal - v0.9.0)**:
+
 - [ ] Remove nested config dataclasses from [components.py](../../fairdm/registry/components.py)
 - [ ] Remove imports from [config.py](../../fairdm/registry/config.py) and [factories.py](../../fairdm/registry/factories.py)
 - [ ] Update factory type hints to accept `dict | None` instead of config objects
@@ -403,6 +424,7 @@ class MySampleConfig(ModelConfiguration):
 ### 8.2 Factory Signature Changes
 
 **Before**:
+
 ```python
 class FormFactory(ComponentFactory):
     def __init__(self, model: type[models.Model], config: FormConfig, parent_fields: list[str] | None = None):
@@ -410,6 +432,7 @@ class FormFactory(ComponentFactory):
 ```
 
 **After**:
+
 ```python
 class FormFactory(ComponentFactory):
     def __init__(self, model: type[models.Model], parent_fields: list[str] | None = None, custom_class: type | None = None):
@@ -421,6 +444,7 @@ class FormFactory(ComponentFactory):
 ### 8.3 Demo App Updates
 
 **[fairdm_demo/config.py](../../fairdm_demo/config.py)** - NO CHANGES REQUIRED:
+
 - Already uses legacy API pattern (component-specific fields)
 - Already provides direct custom class overrides
 - Will benefit from deprecation warnings if future updates use nested configs
@@ -443,34 +467,37 @@ class RockSampleConfig(ModelConfiguration):
 ### 9.2 Custom Form Migration
 
 **Before (with nested config)**:
+
 ```python
 @register
 class RockSampleConfig(ModelConfiguration):
     model = RockSample
     fields = ['name', 'location']
-    
+
     form = FormConfig(form_class=RockSampleForm)
 ```
 
 **After (direct override)**:
+
 ```python
 @register
 class RockSampleConfig(ModelConfiguration):
     model = RockSample
     fields = ['name', 'location']
-    
+
     form_class = RockSampleForm  # Direct attribute
 ```
 
 ### 9.3 Component-Specific Fields Migration
 
 **Before (nested config with field override)**:
+
 ```python
 @register
 class RockSampleConfig(ModelConfiguration):
     model = RockSample
     fields = ['name', 'location', 'description']
-    
+
     table = TableConfig(
         fields=['name', 'location'],  # Fewer fields than parent
         orderable=True
@@ -480,12 +507,13 @@ class RockSampleConfig(ModelConfiguration):
 **After (two options)**:
 
 **Option 1: Custom Table Class** (RECOMMENDED):
+
 ```python
 @register
 class RockSampleConfig(ModelConfiguration):
     model = RockSample
     fields = ['name', 'location', 'description']
-    
+
     table_class = RockSampleTable  # Define fields + orderable in Meta
 
 # Define table class separately
@@ -497,11 +525,12 @@ class RockSampleTable(Table):
 ```
 
 **Option 2: Legacy Component Fields** (BACKWARDS COMPATIBLE):
+
 ```python
 @register
 class RockSampleConfig(ModelConfiguration):
     model = RockSample
-    
+
     table_fields = ['name', 'location']  # Legacy attribute
     form_fields = ['name', 'location', 'description']  # Different fields
 ```
