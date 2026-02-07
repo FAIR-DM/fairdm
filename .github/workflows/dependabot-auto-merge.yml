@@ -1,0 +1,101 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Auto-Merge Safe Updates
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Determine if auto-merge is safe
+        id: should-merge
+        run: |
+          UPDATE_TYPE="${{ steps.metadata.outputs.update-type }}"
+          DEPENDENCY_NAME="${{ steps.metadata.outputs.dependency-names }}"
+          PACKAGE_ECOSYSTEM="${{ steps.metadata.outputs.package-ecosystem }}"
+
+          echo "Update type: $UPDATE_TYPE"
+          echo "Dependency: $DEPENDENCY_NAME"
+          echo "Ecosystem: $PACKAGE_ECOSYSTEM"
+
+          # Critical packages requiring manual review
+          CRITICAL_PACKAGES="django|celery|gunicorn|psycopg2|djangorestframework"
+
+          SHOULD_MERGE=false
+          REASON=""
+
+          # GitHub Actions - minor/patch safe
+          if [[ "$PACKAGE_ECOSYSTEM" == "github-actions" ]] && [[ "$UPDATE_TYPE" =~ ^version-update:semver-(minor|patch)$ ]]; then
+            SHOULD_MERGE=true
+            REASON="GitHub Actions $UPDATE_TYPE update"
+
+          # Dev dependencies - all updates safe
+          elif [[ "$DEPENDENCY_NAME" =~ (pytest|mypy|ruff|pre-commit|black|isort|coverage|factory-boy|faker|deptry) ]]; then
+            SHOULD_MERGE=true
+            REASON="Development dependency"
+
+          # Patch updates - safe for non-critical packages
+          elif [[ "$UPDATE_TYPE" == "version-update:semver-patch" ]] && ! [[ "$DEPENDENCY_NAME" =~ $CRITICAL_PACKAGES ]]; then
+            SHOULD_MERGE=true
+            REASON="Patch update for non-critical package"
+
+          else
+            REASON="Requires manual review (critical package or major/minor update)"
+          fi
+
+          echo "should-merge=$SHOULD_MERGE" >> $GITHUB_OUTPUT
+          echo "reason=$REASON" >> $GITHUB_OUTPUT
+          echo "Decision: $SHOULD_MERGE - $REASON"
+
+      - name: Wait for CI to complete
+        if: steps.should-merge.outputs.should-merge == 'true'
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'CI Success'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
+      - name: Enable auto-merge
+        if: steps.should-merge.outputs.should-merge == 'true'
+        run: |
+          gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
+          gh pr review --approve "${{ github.event.pull_request.number }}" --body "✅ Auto-approving: ${{ steps.should-merge.outputs.reason }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on manual review required
+        if: steps.should-merge.outputs.should-merge == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 👀 Manual Review Required
+
+              **Reason:** ${{ steps.should-merge.outputs.reason }}
+
+              This dependency update requires manual review before merging.
+
+              Please:
+              1. Review the changelog
+              2. Check for breaking changes
+              3. Verify tests pass
+              4. Merge when ready`
+            });

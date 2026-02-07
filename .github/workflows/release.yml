@@ -1,0 +1,168 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v2025.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  # ============================================
+  # Build & Validate
+  # ============================================
+  build:
+    name: Build Distribution
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Poetry env
+        uses: SamuelJennings/cached-poetry-action@v1
+        with:
+          python-version: '3.13'
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            VERSION="${{ inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION#v}"
+
+      - name: Build package
+        run: poetry build
+
+      - name: Verify package
+        run: |
+          pip install twine
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 5
+
+  # ============================================
+  # Create GitHub Release
+  # ============================================
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          configuration: '.github/release-changelog-config.json'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          name: FairDM ${{ needs.build.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: dist/*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'rc') }}
+
+  # ============================================
+  # Publish to PyPI
+  # ============================================
+  pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [build, github-release]
+    environment:
+      name: pypi
+      url: https://pypi.org/project/fairdm/
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # ============================================
+  # Publish to Docker Hub
+  # ============================================
+  # docker:
+  #   name: Publish to Docker Hub
+  #   runs-on: ubuntu-latest
+  #   needs: [build, github-release]
+  #   if: false  # Disabled - using GitHub Packages instead
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  #     - name: Extract metadata
+  #       id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: fairdm/fairdm
+  #         tags: |
+  #           type=semver,pattern={{version}}
+  #           type=semver,pattern={{major}}.{{minor}}
+  #           type=raw,value=latest,enable=${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') }}
+
+  #     - name: Build and push
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         platforms: linux/amd64,linux/arm64
+  #         push: true
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max

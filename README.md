@@ -1,11 +1,11 @@
 # FairDM
 
-[![Github Build](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml)
-[![Github Docs](https://github.com/FAIR-DM/fairdm/actions/workflows/docs.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/docs.yml)
-[![CodeCov](https://codecov.io/gh/FAIR-DM/fairdm/branch/main/graph/badge.svg?token=0Q18CLIKZE)](https://codecov.io/gh/FAIR-DM/fairdm)
+[![CI](https://github.com/FAIR-DM/fairdm/actions/workflows/ci.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/ci.yml)
+[![Documentation](https://readthedocs.org/projects/fairdm/badge/?version=latest)](https://fairdm.readthedocs.io/en/latest/)
+[![PyPI](https://img.shields.io/pypi/v/fairdm)](https://pypi.org/project/fairdm/)
+[![codecov](https://codecov.io/gh/FAIR-DM/fairdm/branch/main/graph/badge.svg?token=0Q18CLIKZE)](https://codecov.io/gh/FAIR-DM/fairdm)
 ![GitHub](https://img.shields.io/github/license/FAIR-DM/fairdm)
 ![GitHub last commit](https://img.shields.io/github/last-commit/FAIR-DM/fairdm)
-![PyPI](https://img.shields.io/pypi/v/fairdm)
 
 > **A Django-based framework for building FAIR research data portals with minimal code**
 

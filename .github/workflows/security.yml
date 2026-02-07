@@ -1,0 +1,77 @@
+name: Security
+
+on:
+  schedule:
+    # Run every Monday at 9:00 UTC
+    - cron: '0 9 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - 'poetry.lock'
+      - 'pyproject.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # ============================================
+  # Dependency Audit
+  # ============================================
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Export requirements
+        run: |
+          poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+      - name: Run safety check
+        run: |
+          pip install safety
+          safety check -r requirements.txt --full-report
+        continue-on-error: true
+
+      - name: Run pip-audit
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+        continue-on-error: true
+
+  # ============================================
+  # CodeQL Analysis
+  # ============================================
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: +security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"

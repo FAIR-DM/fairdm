@@ -1,0 +1,14 @@
+# Documentation dependencies
+# This file is used by ReadTheDocs
+
+# Core Sphinx
+sphinx>=7.0
+pydata-sphinx-theme>=0.15.0
+sphinxcontrib-bibtex>=2.6.0
+myst-parser>=2.0.0
+sphinx-copybutton>=0.5.0
+sphinx-design>=0.5.0
+toml>=0.10.2
+
+# Install the package itself (for autodoc)
+-e ..
