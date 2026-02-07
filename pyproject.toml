@@ -80,7 +80,7 @@ django-auto-prefetch = "^1.12.0"
 django-lifecycle = "^1.2.4"
 sentry-sdk = {extras = ["django"], version = "^2.30.0"}
 django-guardian = "^3.0.3"
-django-countries = "^7.6.1"
+django-countries = "^8.2.0"
 martor = "^1.7.11"
 django-accounts-center = {git = "https://github.com/SamuelJennings/django-accounts-center"}
 django-polymorphic = "^4.1.0"
