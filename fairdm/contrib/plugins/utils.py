@@ -29,7 +29,7 @@ def check_has_edit_permission(request, instance, **kwargs):
         return True
 
     if instance:
-        perm = f"change_{instance._meta.model_name}"
+        perm = f"{instance._meta.app_label}.change_{instance._meta.model_name}"
         has_perm = request.user.has_perm(perm, instance)
         return has_perm
 
