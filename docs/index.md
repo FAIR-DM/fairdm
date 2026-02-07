@@ -1,6 +1,6 @@
 ```{figure} _static/fairdm_light.svg
 :align: center
-:target: www.fairdm.org
+:target: https://www.fairdm.org
 :width: 100%
 ```
 
