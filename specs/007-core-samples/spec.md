@@ -151,7 +151,7 @@ As a developer building sample views, I want optimized QuerySet methods that pre
 
 #### Model & Data Integrity
 
-- **FR-001**: Sample model MUST inherit from BasePolymorphicModel to support domain-specific sample types via django-polymorphic.
+- **FR-001**: Sample model MUST inherit from BasePolymorphicModel to support domain-specific sample types via django-polymorphic. Direct instantiation of base Sample model MUST be prevented - only polymorphic subclass instances (RockSample, WaterSample, etc.) can be created. Forms and admin MUST enforce this constraint.
 - **FR-002**: Sample model MUST include unique UUID identifier with 's' prefix for stable internal referencing using ShortUUID.
 - **FR-003**: Sample model MUST support local_id field for dataset-creator specified identifiers (duplicates allowed across datasets).
 - **FR-004**: Sample model MUST include status field using controlled vocabulary from FairDMSampleStatus (e.g., available, in_use, stored, destroyed, unknown). Sample model SHOULD include material field to specify primary material/substance (e.g., rock, water, soil, sediment, tissue, air) using controlled vocabulary where available.
@@ -260,17 +260,18 @@ As a portal developer, I need base form and filter mixins that provide common sa
 
 #### Filters
 
-- **FR-032**: SampleFilter MUST extend BaseListFilter providing consistent filtering interface.
+- **FR-032**: SampleFilter MUST extend django_filters.FilterSet providing consistent filtering interface.
 - **FR-033**: SampleFilter MUST support filtering by status (exact match or multiple choice).
 - **FR-034**: SampleFilter MUST support filtering by dataset (exact match or choice).
 - **FR-035**: SampleFilter MUST support filtering by polymorphic sample type.
 - **FR-036**: SampleFilter MUST support filtering by description content via cross-relationship filter.
 - **FR-037**: SampleFilter MUST support filtering by sample date types via cross-relationship filter.
-- **FR-038**: SampleFilter SHOULD use generic search field that matches across name, local_id, uuid rather than individual text filters.
+- **FR-038**: SampleFilter MUST provide generic search field that matches across name, local_id, uuid rather than individual text filters for improved user experience.
 - **FR-039**: Filters SHOULD provide SampleFilterMixin with common sample filter configurations for reuse in custom sample type filters.
 
 #### Admin Interface
 
+- **FR-040**: SampleAdmin MUST be registered with Django admin site and handle polymorphic sample types correctly.
 - **FR-041**: SampleAdmin MUST provide search by name, local_id, and UUID for quick sample location.
 - **FR-042**: SampleAdmin MUST provide list_display showing name, dataset, status, polymorphic type, added, and modified dates.
 - **FR-043**: SampleAdmin MUST provide list_filter for dataset, status, polymorphic type, and location.
@@ -308,10 +309,9 @@ As a portal developer, I need base form and filter mixins that provide common sa
 - **FR-066**: SampleFilterMixin MUST have unit tests verifying filter configuration and integration with custom sample type filters.
 - **FR-067**: SampleAdmin MUST have integration tests for: search, filters, polymorphic type handling, inline editing, dynamic inline limits, and widget functionality.
 - **FR-068**: All tests MUST use factory-boy factories from fairdm.factories for test data generation.
-- **FR-069**: Test organization MUST follow the testing strategy: unit tests in tests/unit/core/, integration tests in tests/integration/core/.
+- **FR-069**: Test organization MUST mirror source code structure in tests/test_core/test_sample/ as documented in Architecture & Stack Constraints > Testing & Tooling, with unit and integration tests living together in flat structure.
 - **FR-070**: Tests MUST verify registry integration works correctly for polymorphic sample types without duplicating Feature 004 test coverage.
-- **FR-071**: Sample status transitions MUST be unrestricted - any status can change to any other status without validation (e.g., "destroyed" can become "available").
-- **FR-072**: Base Sample model instances MUST NOT be creatable directly - only polymorphic subclass instances (RockSample, WaterSample, etc.) can be created. Forms and admin MUST prevent base Sample creation.
+- **FR-071**: Sample status transitions MUST be unrestricted - any status can change to any other status without validation (e.g., "destroyed" can become "available"). This edge case MUST have explicit test coverage.
 
 ### Key Entities
 

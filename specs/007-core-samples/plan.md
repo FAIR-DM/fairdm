@@ -24,7 +24,7 @@ Cleanup and enhancement of the `fairdm.core.sample` app focusing on models, mode
 - shortuuid 1.0+ (unique identifiers)
 
 **Storage**: PostgreSQL (primary target, Django ORM migrations)
-**Testing**: pytest + pytest-django (unit, integration, contract tests following FairDM test taxonomy)
+**Testing**: pytest + pytest-django (flat test structure mirroring source code as per Architecture & Stack Constraints > Testing & Tooling)
 **Target Platform**: Linux server (containerized deployment, Django WSGI application)
 **Project Type**: Django app within monolithic FairDM framework
 **Performance Goals**:
@@ -87,8 +87,10 @@ Cleanup and enhancement of the `fairdm.core.sample` app focusing on models, mode
 
 - Comprehensive test requirements (FR-061 through FR-070)
 - Test-first discipline for all model/form/filter/admin behavior
-- Test organization follows FairDM taxonomy (unit/integration/contract)
+- Test organization mirrors source code structure (flat, no layer subdirectories) as per Architecture & Stack Constraints > Testing & Tooling
 - Factory-boy for test data generation
+- Per-method query-count assertions for database performance
+- See [fairdm-testing skill](../../.github/skills/fairdm-testing/SKILL.md) for pytest conventions and patterns
 - Status: **COMPLIANT** - Tests must be written before implementation
 
 ### Principle VI: Documentation Critical ✅
@@ -96,6 +98,7 @@ Cleanup and enhancement of the `fairdm.core.sample` app focusing on models, mode
 - All public forms, filters, admin configurations must be documented
 - Mixins require usage examples
 - Migration guides for any breaking changes to Sample model
+- See [fairdm-documentation skill](../../.github/skills/fairdm-documentation/SKILL.md) for MyST Markdown syntax, audience guidelines, and citation requirements
 - Status: **COMPLIANT** - Documentation updates required with code changes
 
 ### Principle VII: Living Demo & Reference Implementation ✅
@@ -150,20 +153,15 @@ fairdm_demo/
 └── admin.py                       # Example custom admin for sample types
 
 tests/
-├── unit/
-│   └── core/
-│       ├── test_sample_model.py
-│       ├── test_sample_queryset.py
-│       ├── test_sample_form.py
-│       └── test_sample_filter.py
-├── integration/
-│   └── core/
-│       ├── test_sample_admin.py
-│       ├── test_sample_registry.py
-│       └── test_sample_relationships.py
-└── contract/
-    └── core/
-        └── test_sample_crud.py
+└── test_core/
+    └── test_sample/
+        ├── test_models.py              # Sample model, queryset, polymorphic behavior
+        ├── test_forms.py               # SampleFormMixin, auto-generated forms
+        ├── test_filters.py             # SampleFilterMixin, auto-generated filters
+        ├── test_admin.py               # SampleAdmin integration tests
+        ├── test_registry.py            # Sample registration and auto-generation
+        ├── test_relationships.py       # Dataset relationships, polymorphic queries
+        └── test_crud.py                # End-to-end CRUD flows
 ```
 
 **Structure Decision**: Django app enhancement within existing `fairdm/core/` structure. This is core framework functionality, not a new app. Demo app (`fairdm_demo/`) updated to demonstrate polymorphic sample usage and registration patterns.

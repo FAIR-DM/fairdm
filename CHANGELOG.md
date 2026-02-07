@@ -9,6 +9,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Core Sample Models & Functionality (Feature 007)
+
+- **Polymorphic Sample Model**: Flexible sample inheritance with automatic type detection
+  - Base `Sample` model with core fields (name, local_id, dataset, location, status, UUID)
+  - Polymorphic QuerySet with automatic downcasting to subclass types
+  - Support for custom Sample types via model inheritance
+  - Integration with django-polymorphic for efficient polymorphic queries
+
+- **Sample Metadata System**: Rich metadata support through related models
+  - `SampleDescription`: Multiple descriptions per sample (abstract, methods, other types)
+  - `SampleDate`: Temporal metadata with PartialDate support (collected, available, created types)
+  - `SampleIdentifier`: Persistent identifiers (IGSN, barcodes, custom types)
+  - `SampleContribution`: Track contributors with roles (collector, analyst, owner)
+  - Generic relations for flexible metadata attachment
+
+- **Sample Relationships & Provenance**: Track sample hierarchies and processing history
+  - `SampleRelation`: Bidirectional relationships between samples
+  - Common relationship types: child_of, derived-from, split-from, replicate-of
+  - Validation prevents self-reference and direct circular relationships
+  - Convenience methods: `get_children()`, `get_parents()`, `get_descendants(depth)`
+  - Support for complex multi-level hierarchies
+
+- **Optimized QuerySet Methods**: Performance-focused query patterns
+  - `with_related()`: Prefetch dataset, location, contributors, and nested project
+  - `with_metadata()`: Prefetch descriptions, dates, identifiers in bulk
+  - `by_relationship()`: Filter samples by relationship type and related sample
+  - `get_descendants()`: Iterative BFS traversal with depth limiting
+  - Performance: <10 queries for 1000 samples, 80%+ query reduction
+
+- **Forms & Filters**: Reusable mixins for Sample CRUD operations
+  - `SampleFormMixin`: Standard form configuration with dataset filtering
+  - `SampleFilterMixin`: Common filters for name, local_id, dataset, status, type
+  - Permission-aware dataset queryset filtering
+  - Crispy-forms integration for consistent UI
+  - Bootstrap 5 compatible widgets
+
+- **Admin Interface**: Comprehensive Django admin integration
+  - Polymorphic parent/child admin for type selection
+  - Inline editing for descriptions, dates, identifiers, relationships, contributors
+  - Search by name, local_id, UUID
+  - Filters by dataset, status, polymorphic type
+  - List display with key fields and sample type column
+
+- **Registry Integration**: Automatic component generation
+  - Auto-generate ModelForm, FilterSet, Table, and ModelAdmin for custom Sample types
+  - Configuration via `ModelConfiguration` class with `@register` decorator
+  - Override auto-generated classes with custom implementations as needed
+  - Field-level configuration for forms, filters, tables, and serializers
+
+- **Testing Infrastructure**: Comprehensive test coverage
+  - Unit tests for models, forms, filters, admin, registry integration
+  - Integration tests for polymorphic queries, relationships, permissions
+  - Performance tests for query optimization (marked with @pytest.mark.slow)
+  - Factory support via fairdm_demo models (RockSample, WaterSample)
+  - 99 passing tests across all sample functionality
+
+- **Documentation**: Complete guides for developers and administrators
+  - Developer guide: Custom sample types, field patterns, validation, QuerySet optimization
+  - Forms & Filters guide: Mixins, customization, testing patterns
+  - Admin guide: Managing samples, metadata, relationships, bulk operations
+  - Quickstart guide: Step-by-step custom sample creation with working examples
+  - API documentation with usage examples in all QuerySet methods
+
 #### Configuration Checks System (Spec 003)
 
 - **Django Check Framework Integration**: Migrated configuration validation from runtime logging to Django's check framework

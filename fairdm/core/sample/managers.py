@@ -25,7 +25,7 @@ class SampleQuerySet(PolymorphicQuerySet):
         """Prefetch commonly accessed related objects.
 
         Optimizes queries by prefetching:
-        - dataset (ForeignKey)
+        - dataset (ForeignKey) and nested project
         - location (ForeignKey)
         - contributors (GenericRelation)
 
@@ -39,6 +39,7 @@ class SampleQuerySet(PolymorphicQuerySet):
         """
         return self.select_related(
             "dataset",
+            "dataset__project",  # Also prefetch nested project
             "location",
         ).prefetch_related(
             "contributors",
@@ -69,31 +70,50 @@ class SampleQuerySet(PolymorphicQuerySet):
             "identifiers",
         )
 
-    def by_relationship(self, relationship_type):
-        """Filter samples by their relationship type.
+    def by_relationship(self, related_to=None, relationship_type=None):
+        """Filter samples by their relationship to another sample.
 
         Args:
+            related_to: Optional sample instance to filter relationships
             relationship_type: The type of relationship to filter by
-                             (e.g., 'parent-child', 'derived-from', 'split-from')
+                             (e.g., 'child_of', 'derived-from', 'split-from')
 
         Returns:
             SampleQuerySet: Filtered queryset containing only samples with
-                          the specified relationship type
+                          the specified relationship criteria
 
         Example:
-            >>> # Get all samples that have parent-child relationships
-            >>> samples = Sample.objects.by_relationship("parent-child")
+            >>> # Get all samples with child_of relationships to parent
+            >>> parent = Sample.objects.get(uuid="s_abc123")
+            >>> children = Sample.objects.by_relationship(
+            >>>     related_to=parent,
+            >>>     relationship_type="child_of"
+            >>> )
+            >>>
+            >>> # Get all samples that have any parent-child relationships
+            >>> samples = Sample.objects.by_relationship(relationship_type="child_of")
         """
         from .models import SampleRelation
 
-        # Get sample IDs that participate in relationships of this type
-        relationship_ids = SampleRelation.objects.filter(type=relationship_type).values_list("source_id", "target_id")
+        queryset = SampleRelation.objects.all()
 
-        # Flatten the list of (source, target) tuples to get unique sample IDs
-        sample_ids = set()
-        for source_id, target_id in relationship_ids:
-            sample_ids.add(source_id)
-            sample_ids.add(target_id)
+        # Filter by relationship type if provided
+        if relationship_type:
+            queryset = queryset.filter(type=relationship_type)
+
+        # Filter by related sample if provided
+        if related_to:
+            # Get samples where related_to is the target (i.e., get children)
+            queryset = queryset.filter(target=related_to)
+            # Return the sources (children)
+            sample_ids = queryset.values_list("source_id", flat=True)
+        else:
+            # Get all samples involved in these relationships
+            relationship_ids = queryset.values_list("source_id", "target_id")
+            sample_ids = set()
+            for source_id, target_id in relationship_ids:
+                sample_ids.add(source_id)
+                sample_ids.add(target_id)
 
         return self.filter(id__in=sample_ids)
 

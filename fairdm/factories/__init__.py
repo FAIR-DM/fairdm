@@ -9,6 +9,8 @@ from .core import (
     MeasurementFactory,
     ProjectFactory,
     SampleFactory,
+    SampleIdentifierFactory,
+    SampleRelationFactory,
 )
 
 __all__ = [
@@ -19,5 +21,7 @@ __all__ = [
     "PersonFactory",
     "ProjectFactory",
     "SampleFactory",
+    "SampleIdentifierFactory",
+    "SampleRelationFactory",
     "UserFactory",
 ]

@@ -69,7 +69,7 @@ class SampleChildAdmin(PolymorphicChildModelAdmin):
         to automatically add subclass-specific fields.
     """
 
-    list_display = ["name", "dataset", "status", "sample_type", "location"]
+    list_display = ["name", "dataset", "status", "sample_type", "location", "added", "modified"]
     list_filter = ["status", "added"]
     search_fields = ["name", "local_id", "uuid"]
     readonly_fields = ["uuid", "added", "modified"]
@@ -115,7 +115,7 @@ class SampleChildAdmin(PolymorphicChildModelAdmin):
         """Display the polymorphic type of the sample."""
         return obj.get_real_instance_class()._meta.verbose_name
 
-    sample_type.short_description = "Sample Type"
+    sample_type.short_description = "Sample Type"  # type: ignore[attr-defined]
 
 
 @admin.register(Sample)
@@ -138,7 +138,7 @@ class SampleParentAdmin(PolymorphicParentModelAdmin):
     """
 
     base_model = Sample
-    list_display = ["name", "dataset", "status", "sample_type", "location"]
+    list_display = ["name", "dataset", "status", "sample_type", "location", "added", "modified"]
     list_filter = [PolymorphicChildModelFilter, "status", "added"]
     search_fields = ["name", "local_id", "uuid"]
 
@@ -146,7 +146,7 @@ class SampleParentAdmin(PolymorphicParentModelAdmin):
         """Display the polymorphic type of the sample."""
         return obj.get_real_instance_class()._meta.verbose_name
 
-    sample_type.short_description = "Sample Type"
+    sample_type.short_description = "Sample Type"  # type: ignore[attr-defined]
 
     def get_child_models(self):
         """Dynamically get all registered Sample subclasses."""
