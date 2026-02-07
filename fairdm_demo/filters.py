@@ -79,8 +79,10 @@ See `docs/portal-development/registry/configuration.md` for details.
 
 import django_filters
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
-from fairdm.core.filters import SampleFilter
+from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
+from fairdm_demo.models import RockSample, WaterSample
 
 from .models import CustomSample
 
@@ -484,3 +486,152 @@ class MySampleConfig(ModelConfiguration):
     filterset_class = MySampleFilter  # Your custom filter
 ```
 """
+
+
+# =============================================================================
+# Sample Filters
+# =============================================================================
+
+
+class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
+    """FilterSet for RockSample model with geological filtering capabilities.
+
+    Extends SampleFilterMixin to provide both common sample filters and
+    rock-specific filters including:
+    - All common filters from SampleFilterMixin (status, dataset, search, etc.)
+    - rock_type: Filter by geological rock type (igneous, sedimentary, metamorphic)
+    - mineral_content: Search in mineral composition text
+    - grain_size: Filter by grain size category
+
+    Example:
+        # In a view
+        filterset = RockSampleFilter(
+            request.GET,
+            queryset=RockSample.objects.all()
+        )
+        filtered_rocks = filterset.qs
+    """
+
+    # Rock type filter - choice field
+    rock_type = django_filters.ChoiceFilter(
+        field_name="rock_type",
+        label=_("Rock Type"),
+        choices=[
+            ("", _("Any rock type")),
+            ("igneous", _("Igneous")),
+            ("sedimentary", _("Sedimentary")),
+            ("metamorphic", _("Metamorphic")),
+        ],
+        empty_label=None,  # We provide custom empty option
+    )
+
+    # Mineral content search
+    mineral_content = django_filters.CharFilter(
+        field_name="mineral_content",
+        lookup_expr="icontains",
+        label=_("Mineral Content"),
+    )
+
+    # Grain size filter
+    grain_size = django_filters.ChoiceFilter(
+        field_name="grain_size",
+        label=_("Grain Size"),
+        choices=[
+            ("", _("Any grain size")),
+            ("fine", _("Fine")),
+            ("medium", _("Medium")),
+            ("coarse", _("Coarse")),
+        ],
+        empty_label=None,
+    )
+
+    class Meta(SampleFilterMixin.Meta):
+        """Meta configuration for RockSampleFilter."""
+
+        model = RockSample
+        fields = SampleFilterMixin.Meta.fields + [
+            "rock_type",
+            "mineral_content",
+            "grain_size",
+        ]
+
+
+class WaterSampleFilter(SampleFilterMixin, django_filters.FilterSet):
+    """FilterSet for WaterSample model with water quality filtering capabilities.
+
+    Extends SampleFilterMixin to provide both common sample filters and
+    water-specific filters including:
+    - All common filters from SampleFilterMixin (status, dataset, search, etc.)
+    - source_type: Filter by water source type (river, lake, groundwater, etc.)
+    - ph_level: Range filter for pH values
+    - temperature: Range filter for temperature measurements
+    - dissolved_oxygen: Range filter for DO levels
+
+    Example:
+        # In a view
+        filterset = WaterSampleFilter(
+            request.GET,
+            queryset=WaterSample.objects.all()
+        )
+        filtered_water = filterset.qs
+    """
+
+    # Source type filter (using actual field name: water_source)
+    water_source = django_filters.CharFilter(
+        field_name="water_source",
+        lookup_expr="icontains",
+        label=_("Water Source"),
+    )
+
+    # pH level range filters
+    ph_min = django_filters.NumberFilter(
+        field_name="ph_level",
+        lookup_expr="gte",
+        label=_("pH minimum"),
+    )
+
+    ph_max = django_filters.NumberFilter(
+        field_name="ph_level",
+        lookup_expr="lte",
+        label=_("pH maximum"),
+    )
+
+    # Temperature range filters
+    temp_min = django_filters.NumberFilter(
+        field_name="temperature_celsius",
+        lookup_expr="gte",
+        label=_("Temperature min (°C)"),
+    )
+
+    temp_max = django_filters.NumberFilter(
+        field_name="temperature_celsius",
+        lookup_expr="lte",
+        label=_("Temperature max (°C)"),
+    )
+
+    # Dissolved oxygen range filters
+    do_min = django_filters.NumberFilter(
+        field_name="dissolved_oxygen_mg_l",
+        lookup_expr="gte",
+        label=_("DO minimum (mg/L)"),
+    )
+
+    do_max = django_filters.NumberFilter(
+        field_name="dissolved_oxygen_mg_l",
+        lookup_expr="lte",
+        label=_("DO maximum (mg/L)"),
+    )
+
+    class Meta(SampleFilterMixin.Meta):
+        """Meta configuration for WaterSampleFilter."""
+
+        model = WaterSample
+        fields = SampleFilterMixin.Meta.fields + [
+            "water_source",
+            "ph_min",
+            "ph_max",
+            "temp_min",
+            "temp_max",
+            "do_min",
+            "do_max",
+        ]

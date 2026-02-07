@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
@@ -17,7 +19,9 @@ def check_has_edit_permission(request, instance, **kwargs):
 @plugins.register(Sample)
 class Overview(OverviewPlugin):
     menu_item = plugins.PluginMenuItem(name=_("Overview"), category=plugins.EXPLORE, icon="view")
-    fieldsets = []
+
+
+fieldsets: list[tuple[str | None, dict[str, Any]]] = []
 
 
 class SampleManagementMixin:

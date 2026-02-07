@@ -9,7 +9,7 @@ from fairdm.core.dataset.models import DatasetDate, DatasetDescription
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import ProjectDate, ProjectDescription
-from fairdm.core.sample.models import SampleDate, SampleDescription
+from fairdm.core.sample.models import SampleDate, SampleDescription, SampleIdentifier, SampleRelation
 
 from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
 from .contributors import OrganizationFactory  # Import OrganizationFactory for Project.owner
@@ -132,6 +132,17 @@ class SampleDateFactory(DjangoModelFactory):
     value = Faker("partial_date")
 
 
+class SampleIdentifierFactory(DjangoModelFactory):
+    """Factory for creating SampleIdentifier instances."""
+
+    class Meta:
+        model = SampleIdentifier
+
+    type = "DOI"  # Default identifier type
+    value = Faker("bothify", text="10.####/sample-?????")
+    # related field will be set by the caller
+
+
 class SampleFactory(DjangoModelFactory):
     """Factory for creating Sample instances.
 
@@ -192,3 +203,18 @@ class MeasurementFactory(DjangoModelFactory):
     # Create dataset first, then create sample in that dataset
     dataset = SubFactory(DatasetFactory)
     sample = SubFactory(SampleFactory, dataset=LazyAttribute(lambda o: o.factory_parent.dataset))
+
+
+class SampleRelationFactory(DjangoModelFactory):
+    """Factory for creating SampleRelation instances.
+
+    Creates a typed relationship between two samples.
+    Both source and target samples must be provided or will be auto-created.
+    """
+
+    class Meta:
+        model = SampleRelation
+
+    type = "child_of"  # Default relationship type
+    source = SubFactory(SampleFactory)
+    target = SubFactory(SampleFactory)

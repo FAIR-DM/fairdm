@@ -30,7 +30,8 @@ from django.utils.translation import gettext_lazy as _
 from fairdm.registry import ModelConfiguration, register
 from fairdm.registry.config import Authority, Citation, ModelMetadata
 
-from .filters import CustomSampleFilter
+# Import filters lazily to avoid app registry issues
+# from .filters import CustomSampleFilter
 from .models import (
     CustomParentSample,
     CustomSample,
@@ -114,8 +115,8 @@ class CustomSampleConfig(ModelConfiguration):
         keywords=[],
     )
 
-    # Use custom classes for specific components
-    filterset_class = CustomSampleFilter
+    # Use custom classes for specific components (using string references to avoid import issues)
+    filterset_class = "fairdm_demo.filters.CustomSampleFilter"
     table_class = CustomSampleTable
 
     # Field configuration for different components

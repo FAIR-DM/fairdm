@@ -99,11 +99,11 @@ from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 from licensing.models import License
 
 from fairdm.core.models import Project
+from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.forms import ModelForm
 
-# Commented out example - uncomment and adapt for your models
-# from fairdm_demo.models import RockSample, XRFMeasurement
-
+# Import demo models for sample forms
+from fairdm_demo.models import RockSample, WaterSample
 
 # ============================================================================
 # Example 1: Form with Request-Based Queryset Filtering
@@ -454,3 +454,147 @@ After creating forms, test:
 
 See: `tests/unit/core/dataset/test_form.py` for comprehensive form tests.
 """
+
+
+# ============================================================================
+# Concrete Sample Forms Using SampleFormMixin (Phase 5 - US3)
+# ============================================================================
+
+
+class RockSampleForm(SampleFormMixin, ModelForm):
+    """Form for creating and editing Rock Sample instances.
+
+    Inherits widget configuration, request handling, and crispy forms setup
+    from SampleFormMixin. Adds rock-specific field configurations.
+
+    Features:
+        - Pre-configured Select2 widget for dataset
+        - Permission-based dataset filtering
+        - Default status value ('available')
+        - Add another functionality for dataset
+        - Internationalized help text
+        - DateInput widget for collection_date
+
+    Usage:
+        # In a view with request context
+        form = RockSampleForm(request=request, data=request.POST)
+
+        # For editing existing sample
+        form = RockSampleForm(request=request, instance=rock_sample)
+    """
+
+    class Meta:
+        model = RockSample
+        fields = [
+            "name",
+            "dataset",
+            "local_id",
+            "status",
+            "location",
+            "rock_type",
+            "mineral_content",
+            "weight_grams",
+            "hardness_mohs",
+            "collection_date",
+            "image",
+            "tags",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Enter sample name...")}),
+            "local_id": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("Optional local identifier...")}
+            ),
+            "rock_type": forms.Select(attrs={"class": "form-select"}),
+            "mineral_content": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3, "placeholder": _("List primary minerals...")}
+            ),
+            "weight_grams": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+            "hardness_mohs": forms.NumberInput(attrs={"class": "form-control", "min": "1", "max": "10", "step": "0.1"}),
+            "collection_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+        help_text = {
+            "name": _("A unique, descriptive name for this rock sample."),
+            "dataset": _("The dataset this sample belongs to."),
+            "local_id": _("Optional local identifier used in your laboratory."),
+            "status": _("Current status of the sample."),
+            "location": _("Geographic location where the sample was collected."),
+            "rock_type": _("Classification of the rock (igneous, sedimentary, metamorphic)."),
+            "mineral_content": _("Primary minerals present in the sample."),
+            "weight_grams": _("Sample weight in grams."),
+            "hardness_mohs": _("Hardness on the Mohs scale (1-10)."),
+            "collection_date": _("Date when the sample was collected."),
+            "image": _("Optional photo of the sample."),
+            "tags": _("Keywords or tags for categorization."),
+        }
+
+
+class WaterSampleForm(SampleFormMixin, ModelForm):
+    """Form for creating and editing Water Sample instances.
+
+    Inherits widget configuration, request handling, and crispy forms setup
+    from SampleFormMixin. Adds water quality specific field configurations.
+
+    Features:
+        - Pre-configured Select2 widget for dataset
+        - Permission-based dataset filtering
+        - Default status value ('available')
+        - Add another functionality for dataset
+        - Internationalized help text
+        - Appropriate input widgets for numeric fields
+
+    Usage:
+        # In a view with request context
+        form = WaterSampleForm(request=request, data=request.POST)
+
+        # For editing existing sample
+        form = WaterSampleForm(request=request, instance=water_sample)
+    """
+
+    class Meta:
+        model = WaterSample
+        fields = [
+            "name",
+            "dataset",
+            "local_id",
+            "status",
+            "location",
+            "water_source",
+            "temperature_celsius",
+            "ph_level",
+            "turbidity_ntu",
+            "dissolved_oxygen_mg_l",
+            "conductivity_us_cm",
+            "image",
+            "tags",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Enter sample name...")}),
+            "local_id": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("Optional local identifier...")}
+            ),
+            "water_source": forms.Select(attrs={"class": "form-select"}),
+            "temperature_celsius": forms.NumberInput(
+                attrs={"class": "form-control", "min": "-50", "max": "100", "step": "0.1"}
+            ),
+            "ph_level": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "14", "step": "0.01"}),
+            "turbidity_ntu": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+            "dissolved_oxygen_mg_l": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+            "conductivity_us_cm": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.1"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+        help_text = {
+            "name": _("A unique, descriptive name for this water sample."),
+            "dataset": _("The dataset this sample belongs to."),
+            "local_id": _("Optional local identifier used in your laboratory."),
+            "status": _("Current status of the sample."),
+            "location": _("Geographic location where the sample was collected."),
+            "water_source": _("Type of water source (river, lake, groundwater, etc.)."),
+            "temperature_celsius": _("Water temperature in degrees Celsius."),
+            "ph_level": _("pH level on a 0-14 scale."),
+            "turbidity_ntu": _("Turbidity measured in Nephelometric Turbidity Units (NTU)."),
+            "dissolved_oxygen_mg_l": _("Dissolved oxygen concentration in mg/L."),
+            "conductivity_us_cm": _("Electrical conductivity in microsiemens per centimeter (µS/cm)."),
+            "image": _("Optional photo of the water sample or sampling location."),
+            "tags": _("Keywords or tags for categorization."),
+        }

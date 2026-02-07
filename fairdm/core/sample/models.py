@@ -7,6 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.managers import PolymorphicManager
 from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
+from taggit.managers import TaggableManager
+from taggit.models import GenericTaggedItemBase, TagBase
 
 from fairdm.db import models
 
@@ -15,6 +17,31 @@ from ..choices import SampleStatus
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
 from .managers import SampleQuerySet
+
+
+class SampleTag(TagBase):
+    """Custom Tag model for Sample free-text tags."""
+
+    class Meta:
+        verbose_name = _("sample tag")
+        verbose_name_plural = _("sample tags")
+
+
+class SampleTaggedItem(GenericTaggedItemBase):
+    """Custom through model for Sample tags to avoid conflicts with keywords."""
+
+    tag = models.ForeignKey(
+        SampleTag,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_items",
+    )
+
+    class Meta:
+        verbose_name = _("tagged sample")
+        verbose_name_plural = _("tagged samples")
+        indexes = [
+            django_models.Index(fields=["content_type", "object_id"]),
+        ]
 
 
 class Sample(BasePolymorphicModel):
@@ -89,6 +116,21 @@ class Sample(BasePolymorphicModel):
         blank=True,
     )
 
+    # TAGGING
+    keywords = TaggableManager(
+        verbose_name=_("keywords"),
+        help_text=_("Keywords from controlled vocabularies for categorization"),
+        blank=True,
+        related_name="sample_keywords",
+    )
+    tags = TaggableManager(
+        verbose_name=_("tags"),
+        help_text=_("Free-text tags for flexible categorization"),
+        blank=True,
+        related_name="sample_tags",
+        through=SampleTaggedItem,
+    )
+
     # CUSTOM MANAGER
     objects = PolymorphicManager.from_queryset(SampleQuerySet)()
 
@@ -99,10 +141,37 @@ class Sample(BasePolymorphicModel):
         default_related_name = "samples"
         permissions = [
             *CORE_PERMISSIONS,
+            ("import_data", "Can import sample data"),
         ]
 
     def __str__(self):
         return f"{self.name}"
+
+    def clean(self):
+        """Validate that Sample is not instantiated directly (only subclasses).
+
+        Raises:
+            ValidationError: If attempting to create base Sample instance
+        """
+        super().clean()
+        from django.core.exceptions import ValidationError
+
+        # Prevent direct instantiation of base Sample model
+        if self.__class__ == Sample:
+            raise ValidationError(
+                _("Cannot create base Sample instances directly. Please use a specific sample type subclass.")
+            )
+
+    def get_absolute_url(self):
+        """Get the absolute URL for this sample.
+
+        Returns:
+            str: URL path to sample detail view (placeholder for future implementation)
+        """
+        from django.urls import reverse
+
+        # Placeholder - will be implemented when views are created
+        return reverse("sample:detail", kwargs={"uuid": self.uuid})
 
     def get_all_relationships(self):
         """Get all SampleRelation objects where this sample is source or target.
@@ -147,6 +216,85 @@ class Sample(BasePolymorphicModel):
 
         return Sample.objects.filter(id__in=related_ids)
 
+    def get_children(self):
+        """Get all child samples (samples where this is the target of 'child_of' relationship).
+
+        Returns:
+            QuerySet: Sample objects that are children of this sample
+
+        Example:
+            >>> parent = Sample.objects.get(uuid="s_abc123")
+            >>> children = parent.get_children()
+            >>> for child in children:
+            >>>     print(f"{child.name} is a child of {parent.name}")
+        """
+        # Children are samples where this sample is the target of a "child_of" relationship
+        child_ids = SampleRelation.objects.filter(target=self, type="child_of").values_list("source_id", flat=True)
+        return Sample.objects.filter(id__in=child_ids)
+
+    def get_parents(self):
+        """Get all parent samples (samples where this is the source of 'child_of' relationship).
+
+        Returns:
+            QuerySet: Sample objects that are parents of this sample
+
+        Example:
+            >>> child = Sample.objects.get(uuid="s_abc123")
+            >>> parents = child.get_parents()
+            >>> for parent in parents:
+            >>>     print(f"{child.name} is a child of {parent.name}")
+        """
+        # Parents are samples where this sample is the source of a "child_of" relationship
+        parent_ids = SampleRelation.objects.filter(source=self, type="child_of").values_list("target_id", flat=True)
+        return Sample.objects.filter(id__in=parent_ids)
+
+    def get_descendants(self, depth=None):
+        """Get all descendant samples with optional depth limit.
+
+        Uses iterative breadth-first traversal to find descendants. Prevents
+        infinite loops by tracking visited samples.
+
+        Args:
+            depth: Maximum depth to traverse (None = unlimited). Depth 1 returns
+                  only direct children, depth 2 includes grandchildren, etc.
+
+        Returns:
+            QuerySet: All descendant Sample objects within depth limit
+
+        Example:
+            >>> root = Sample.objects.get(uuid="s_abc123")
+            >>> direct_children = root.get_descendants(depth=1)
+            >>> all_descendants = root.get_descendants()
+        """
+        if depth is not None and depth < 1:
+            return Sample.objects.none()
+
+        descendants = set()
+        current_level = {self.id}
+        visited = {self.id}
+        current_depth = 0
+
+        while current_level and (depth is None or current_depth < depth):
+            # Get children of current level
+            child_ids = set(
+                SampleRelation.objects.filter(target_id__in=current_level, type="child_of").values_list(
+                    "source_id", flat=True
+                )
+            )
+
+            # Remove already visited to prevent cycles
+            child_ids = child_ids - visited
+
+            if not child_ids:
+                break
+
+            descendants.update(child_ids)
+            visited.update(child_ids)
+            current_level = child_ids
+            current_depth += 1
+
+        return Sample.objects.filter(id__in=descendants)
+
     @classproperty
     def type_of(self):
         return Sample
@@ -167,6 +315,20 @@ class SampleDescription(AbstractDescription):
     VOCABULARY = FairDMDescriptions.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
+    def clean(self):
+        """Validate description_type against FairDMDescriptions vocabulary.
+
+        Raises:
+            ValidationError: If type is not in DESCRIPTION_TYPES vocabulary
+        """
+        super().clean()
+        from django.core.exceptions import ValidationError
+
+        if self.type:
+            valid_types = [item["id"] for item in self.VOCABULARY]
+            if self.type not in valid_types:
+                raise ValidationError({"type": _("Description type must be from FairDM Sample description vocabulary")})
+
 
 class SampleDate(AbstractDate):
     """Important dates associated with a Sample.
@@ -178,6 +340,20 @@ class SampleDate(AbstractDate):
     VOCABULARY = FairDMDates.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
+    def clean(self):
+        """Validate date_type against FairDMDates vocabulary.
+
+        Raises:
+            ValidationError: If type is not in DATE_TYPES vocabulary
+        """
+        super().clean()
+        from django.core.exceptions import ValidationError
+
+        if self.type:
+            valid_types = [item["id"] for item in self.VOCABULARY]
+            if self.type not in valid_types:
+                raise ValidationError({"type": _("Date type must be from FairDM Sample date vocabulary")})
+
 
 class SampleIdentifier(AbstractIdentifier):
     """External identifiers for a Sample.
@@ -188,6 +364,31 @@ class SampleIdentifier(AbstractIdentifier):
 
     VOCABULARY = FairDMIdentifiers()
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
+
+    def clean(self):
+        """Validate identifier_type and IGSN format.
+
+        Raises:
+            ValidationError: If type is not in IDENTIFIER_TYPES vocabulary
+                           or if IGSN format is invalid
+        """
+        super().clean()
+        import re
+
+        from django.core.exceptions import ValidationError
+
+        if self.type:
+            valid_types = [item["id"] for item in self.VOCABULARY]
+            if self.type not in valid_types:
+                raise ValidationError({"type": _("Identifier type must be from FairDM identifier vocabulary")})
+
+        # Validate IGSN format: 10273/[A-Z0-9]{9,}
+        if self.type == "IGSN" and self.value:
+            igsn_pattern = r"^10273/[A-Z0-9]{9,}$"
+            if not re.match(igsn_pattern, self.value):
+                raise ValidationError(
+                    {"value": _("IGSN identifier must match format: 10273/[A-Z0-9]{{9,}} (e.g., 10273/ABCD123456789)")}
+                )
 
 
 class SampleRelation(models.Model):
@@ -201,8 +402,10 @@ class SampleRelation(models.Model):
         source: The sample initiating the relationship
         target: The sample being related to
 
-    Note:
-        TODO: create a custom manager that gets the related samples based on the type of relation
+    Validation:
+        - Prevents self-reference (sample cannot relate to itself)
+        - Prevents direct circular relationships (A→B and B→A with same type)
+        - Enforces unique_together constraint on (source, target, type)
     """
 
     RELATION_TYPES = [
@@ -223,3 +426,35 @@ class SampleRelation(models.Model):
     )
     added = None
     modified = None
+
+    class Meta:
+        unique_together = [("source", "target", "type")]
+        verbose_name = _("sample relationship")
+        verbose_name_plural = _("sample relationships")
+
+    def __str__(self):
+        """Return string representation of relationship."""
+        return f"{self.source} {self.type} {self.target}"
+
+    def clean(self):
+        """Validate relationship to prevent self-reference and circular relationships."""
+        from django.core.exceptions import ValidationError
+
+        # 1. Prevent self-reference
+        if self.source_id and self.target_id and self.source_id == self.target_id:
+            raise ValidationError(_("Sample cannot relate to itself"))
+
+        # 2. Prevent direct circular relationships (A→B and B→A with same type)
+        if self.source_id and self.target_id and self.type:
+            # Check if reverse relationship already exists
+            if (
+                SampleRelation.objects.filter(source_id=self.target_id, target_id=self.source_id, type=self.type)
+                .exclude(pk=self.pk)
+                .exists()
+            ):
+                raise ValidationError(
+                    _(
+                        f"Circular relationship detected: {self.target} already "
+                        f"has {self.type} relationship to {self.source}"
+                    )
+                )

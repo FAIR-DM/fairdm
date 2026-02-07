@@ -346,6 +346,80 @@ class TestRockSample:
         assert isinstance(samples.first(), RockSample)
 ```
 
+## Query Optimization
+
+Use built-in QuerySet methods to optimize database queries:
+
+### Prefetch Related Data
+
+```python
+# Bad: N+1 queries
+samples = RockSample.objects.all()
+for sample in samples:
+    print(sample.dataset.name)  # Query per sample!
+    print(sample.location.name)  # Another query per sample!
+
+# Good: Prefetch in bulk
+samples = RockSample.objects.with_related()
+for sample in samples:
+    print(sample.dataset.name)  # No additional query
+    print(sample.location.name)  # No additional query
+```
+
+### Prefetch Metadata
+
+```python
+# Prefetch descriptions, dates, identifiers in bulk
+samples = RockSample.objects.with_metadata()
+for sample in samples:
+    descriptions = list(sample.descriptions.all())  # No query
+    dates = list(sample.dates.all())  # No query
+    identifiers = list(sample.identifiers.all())  # No query
+```
+
+### Chain Optimizations
+
+```python
+# Combine optimization methods
+samples = (
+    RockSample.objects
+    .with_related()  # Prefetch dataset, location, contributors
+    .with_metadata()  # Prefetch descriptions, dates, identifiers
+    .filter(dataset=my_dataset)
+    .order_by('name')
+)
+
+# Now iterate with minimal queries
+for sample in samples:
+    print(f"{sample.name} from {sample.dataset.name}")
+    for desc in sample.descriptions.all():
+        print(f"  - {desc.value}")
+```
+
+### Performance Goals
+
+For optimal performance, aim for:
+
+- **<10 queries** for 1000 samples with `with_related()`
+- **<200ms** query time for large result sets
+- **80% query reduction** compared to unoptimized queries
+
+Test query counts using Django's query debugging:
+
+```python
+from django.test.utils import CaptureQueriesContext
+from django.db import connection
+
+with CaptureQueriesContext(connection) as context:
+    samples = list(RockSample.objects.with_related()[:100])
+    for sample in samples:
+        _ = sample.dataset.name
+        _ = list(sample.contributors.all())
+
+print(f"Total queries: {len(context.captured_queries)}")
+# Should be ~3-5 queries for 100 samples
+```
+
 ## Demo App Examples
 
 See `fairdm_demo/` for complete working examples:
