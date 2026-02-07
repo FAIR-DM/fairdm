@@ -455,11 +455,9 @@ poetry run sphinx-build -W -b html docs docs/_build/html
 # Link check
 poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
 
-# Checklist validation (if feature spec exists)
-poetry run pytest tests/integration/docs/test_documentation_validation.py -v
 ```
 
-All three must pass for a PR to merge.
+Both must pass for a PR to merge.
 
 ## Historical Note
 
