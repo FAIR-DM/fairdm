@@ -215,7 +215,7 @@ class TestPluginRegistry:
     @pytest.mark.django_db
     def test_register_with_non_model_raises_error(self, clean_plugin_registry):
         """Test that registering a non-model raises TypeError."""
-        with pytest.raises(TypeError, match=r"plugins\.register expects a Django Model subclass"):
+        with pytest.raises(TypeError, match=r"plugins\.register expects Django Model subclasses"):
 
             @clean_plugin_registry.register("NotAModel")
             class BadPlugin(FairDMPlugin):
