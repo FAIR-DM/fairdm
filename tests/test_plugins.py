@@ -179,19 +179,19 @@ class TestPluginMenuItem:
 
     def test_create_menu_item_with_icon(self):
         """Test creating a menu item with an icon."""
-        menu_item = PluginMenuItem(name="Test", icon="star")
+        menu_item = PluginMenuItem(name="Test", category="explore", icon="star")
 
         assert menu_item.name == "Test"
+        assert menu_item.category == "explore"
         assert menu_item.icon == "star"
-        assert menu_item.extra_context["icon"] == "star"
 
     def test_create_menu_item_without_icon(self):
         """Test creating a menu item without an icon."""
-        menu_item = PluginMenuItem(name="Test")
+        menu_item = PluginMenuItem(name="Test", category="actions")
 
         assert menu_item.name == "Test"
+        assert menu_item.category == "actions"
         assert menu_item.icon == ""
-        assert menu_item.extra_context["icon"] == ""
 
 
 class TestPluginRegistry:

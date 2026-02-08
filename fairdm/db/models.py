@@ -1,4 +1,4 @@
-from django.db.models import *  # noqa: F403  # isort:skip
+from django.db.models import *  # isort:skip
 
 from auto_prefetch import ForeignKey, Manager, OneToOneField, QuerySet  # type: ignore[assignment]
 from auto_prefetch import Model as PrefetchModel
