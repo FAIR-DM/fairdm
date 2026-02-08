@@ -18,7 +18,7 @@ def class_to_slug(name: str | object | type) -> str:
         name_str = name
 
     # Split CamelCase / PascalCase into words with spaces
-    split = re.sub(r"(?<!^)(?=[A-Z])\", \" ", name_str)
+    split = re.sub(r"(?<!^)(?=[A-Z])", " ", name_str)
     # Use Django's slugify
     return slugify(split)
 

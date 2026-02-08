@@ -505,7 +505,7 @@ class ModelConfiguration:
         if not field_list:
             return []
 
-        flat_list = []
+        flat_list: list[str] = []
         for item in field_list:
             if isinstance(item, (tuple, list)):
                 flat_list.extend(item)

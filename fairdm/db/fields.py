@@ -42,7 +42,7 @@ class QuantityField(fields.QuantityField):
         return models.FloatField.formfield(self, **kwargs)
 
 
-class PartialDateField(BasePartialDateField):
+class PartialDateField(BasePartialDateField):  # type: ignore[misc]
     def formfield(self, **kwargs):
         # Import here to avoid circular import
         from fairdm.forms import PartialDateField as PartialDateFormField

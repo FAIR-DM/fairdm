@@ -3,6 +3,7 @@ from __future__ import annotations
 from django import urls
 from django.db.models.base import Model as Model
 from django.forms.widgets import Media
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 from .config import PluginConfig, PluginMenuItem
@@ -107,8 +108,6 @@ class FairDMPlugin:
         Returns:
             list[dict[str, str]]: List of breadcrumb dictionaries
         """
-        from django.utils.functional import Promise
-
         breadcrumbs: list[dict[str, str | Promise]] = []
 
         # Only generate breadcrumbs if we have a base_object

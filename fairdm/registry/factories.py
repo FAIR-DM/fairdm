@@ -793,7 +793,7 @@ class SerializerFactory(ComponentFactory):
         except ImportError:
             return {}
 
-        nested = {}
+        nested: dict[str, type] = {}
         fields = self.get_fields()
 
         for field_name in fields:

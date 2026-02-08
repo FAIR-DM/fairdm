@@ -1,6 +1,6 @@
-from django.db.models import *  # isort:skip
+from django.db.models import *  # noqa: F403  # isort:skip
 
-from auto_prefetch import ForeignKey, Manager, OneToOneField, QuerySet
+from auto_prefetch import ForeignKey, Manager, OneToOneField, QuerySet  # type: ignore[assignment]
 from auto_prefetch import Model as PrefetchModel
 from django.db import models
 from django.db.models import __all__ as django_models_all
@@ -50,7 +50,7 @@ class PrefetchBase(models.base.ModelBase):
         return new_class
 
 
-class Model(LifecycleModelMixin, PrefetchModel, metaclass=PrefetchBase):
+class Model(LifecycleModelMixin, PrefetchModel, metaclass=PrefetchBase):  # type: ignore[misc]
     # class Model(models.Model):
     """
     An abstract Django model designed to replace `django.db.models.Model`. It provides additional functionality
