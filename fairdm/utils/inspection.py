@@ -51,8 +51,8 @@ class FieldInspector:
             model: The Django model class to inspect
         """
         self.model = model
-        self._fields_cache = None
-        self._field_map_cache = None
+        self._fields_cache: list[Field[Any, Any]] | None = None
+        self._field_map_cache: dict[str, Field[Any, Any]] | None = None
 
     def _get_all_fields(self) -> list[Field]:
         """Get all fields from the model including inherited ones.

@@ -90,7 +90,7 @@ class Config:
     resource_kwargs: dict = {}
     """Additional keyword arguments to pass to the ModelResource class."""
 
-    export_fields = []
+    export_fields: list[str] = []
 
     fields: list[str] = []
 

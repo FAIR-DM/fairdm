@@ -83,7 +83,7 @@ class FairDMPlugin:
             return Media(self.__class__.Media)
         return Media()
 
-    def get_breadcrumbs(self) -> list[dict[str, str]]:
+    def get_breadcrumbs(self) -> list[dict[str, str | Promise]]:
         """
         Return a list of breadcrumb items for navigation.
 
@@ -107,7 +107,9 @@ class FairDMPlugin:
         Returns:
             list[dict[str, str]]: List of breadcrumb dictionaries
         """
-        breadcrumbs = []
+        from django.utils.functional import Promise
+
+        breadcrumbs: list[dict[str, str | Promise]] = []
 
         # Only generate breadcrumbs if we have a base_object
         if not hasattr(self, "base_object") or not self.base_object:
