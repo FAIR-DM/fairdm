@@ -182,7 +182,6 @@ improve performance. Use these patterns in your views and APIs:
        Dataset.objects
        .with_private()  # Include private datasets
        .filter(project=my_project)  # Filter by project
-       .exclude(visibility=Dataset.Visibility.INTERNAL)  # Exclude internal
        .with_related()  # Optimize queries
        .order_by('-modified')  # Order by most recent
    )
