@@ -329,11 +329,11 @@ class DatasetEnhancedFormExample(ModelForm):
                 license_field.initial = cc_by_license
 
         # Set keywords queryset
-        keywords_field = self.fields.get("keywords")
-        if keywords_field:
-            from fairdm.contrib.dicts.models import Term
-
-            keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
+        # NOTE: Dataset model does not currently have a keywords field
+        # keywords_field = self.fields.get("keywords")
+        # if keywords_field:
+        #     from fairdm.contrib.dicts.models import Term
+        #     keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
 
         # Pre-populate DOI if editing existing instance
         if self.instance and self.instance.pk:
