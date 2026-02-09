@@ -122,3 +122,7 @@ epub_author = "FAIR-DM"
 epub_publisher = "FAIR-DM"
 epub_copyright = "2023, FAIR-DM"
 
+# Use custom template for index page
+html_additional_pages = {
+    'index': 'index.html',
+}
