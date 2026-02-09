@@ -419,3 +419,4 @@ class TestFactoryIntegration:
         projects = ProjectFactory.create_batch(3)
         assert len(projects) == 3
         assert all(isinstance(p, Project) for p in projects)
+

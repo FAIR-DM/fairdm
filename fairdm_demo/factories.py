@@ -72,7 +72,7 @@ from licensing.models import License
 from fairdm.factories import MeasurementFactory, SampleFactory
 
 # Import dataset-specific factories from core
-from fairdm.factories.core import DatasetDescriptionFactory, DatasetFactory
+from fairdm.factories.core import DatasetFactory
 
 from .models import CustomParentSample, CustomSample, ExampleMeasurement, RockSample, WaterSample
 
@@ -379,53 +379,53 @@ def example_dataset_with_multiple_literature_relations():
 # ============================================================================
 
 
-def example_complete_dataset():
-    """
-    Example: Creating a complete dataset with all metadata types.
+# def example_complete_dataset():
+#     """
+#     Example: Creating a complete dataset with all metadata types.
 
-    This demonstrates a realistic dataset with:
-    - License (CC BY 4.0 default)
-    - DOI identifier
-    - Literature relation
-    - Descriptions (abstract, methods)
-    - Dates (created, published)
-    - Samples and measurements
-    """
-    from tests.factories import (
-        DatasetDateFactory,
-        DatasetLiteratureRelationFactory,
-        LiteratureItemFactory,
-    )
+#     This demonstrates a realistic dataset with:
+#     - License (CC BY 4.0 default)
+#     - DOI identifier
+#     - Literature relation
+#     - Descriptions (abstract, methods)
+#     - Dates (created, published)
+#     - Samples and measurements
+#     """
+#     from tests.factories import (
+#         DatasetDateFactory,
+#         DatasetLiteratureRelationFactory,
+#         LiteratureItemFactory,
+#     )
 
-    # Create base dataset
-    dataset = DatasetFactory(
-        name="Geological Survey 2024: XRF Analysis of Rock Samples",
-        visibility=DatasetFactory._meta.model.Visibility.PUBLIC,
-    )
+#     # Create base dataset
+#     dataset = DatasetFactory(
+#         name="Geological Survey 2024: XRF Analysis of Rock Samples",
+#         visibility=DatasetFactory._meta.model.Visibility.PUBLIC,
+#     )
 
-    # Add DOI
-    DatasetIdentifierFactory(related=dataset, type="DOI", value="10.5061/dryad.geo2024")
+#     # Add DOI
+#     DatasetIdentifierFactory(related=dataset, type="DOI", value="10.5061/dryad.geo2024")
 
-    # Add descriptions
-    DatasetDescriptionFactory(
-        related=dataset, type="Abstract", value="This dataset contains X-ray fluorescence (XRF) measurements..."
-    )
+#     # Add descriptions
+#     DatasetDescriptionFactory(
+#         related=dataset, type="Abstract", value="This dataset contains X-ray fluorescence (XRF) measurements..."
+#     )
 
-    DatasetDescriptionFactory(
-        related=dataset, type="Methods", value="Samples were collected using standard field procedures..."
-    )
+#     DatasetDescriptionFactory(
+#         related=dataset, type="Methods", value="Samples were collected using standard field procedures..."
+#     )
 
-    # Add dates
-    DatasetDateFactory(related=dataset, type="Created", value="2024-01-15")
+#     # Add dates
+#     DatasetDateFactory(related=dataset, type="Created", value="2024-01-15")
 
-    DatasetDateFactory(related=dataset, type="Published", value="2024-06-01")
+#     DatasetDateFactory(related=dataset, type="Published", value="2024-06-01")
 
-    # Link literature
-    paper = LiteratureItemFactory(title="XRF Analysis Protocols for Geological Samples", year=2024)
-    DatasetLiteratureRelationFactory(dataset=dataset, literature_item=paper, relationship_type="IsDocumentedBy")
+#     # Link literature
+#     paper = LiteratureItemFactory(title="XRF Analysis Protocols for Geological Samples", year=2024)
+#     DatasetLiteratureRelationFactory(dataset=dataset, literature_item=paper, relationship_type="IsDocumentedBy")
 
-    # Add samples and measurements
-    sample = CustomSampleFactory(dataset=dataset)
-    ExampleMeasurementFactory(sample=sample)
+#     # Add samples and measurements
+#     sample = CustomSampleFactory(dataset=dataset)
+#     ExampleMeasurementFactory(sample=sample)
 
-    return dataset
+#     return dataset

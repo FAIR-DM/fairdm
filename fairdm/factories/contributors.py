@@ -106,9 +106,17 @@ class ContributionFactory(DjangoModelFactory):
         exclude = ["content_object"]
 
     contributor = SubFactory(PersonFactory)
+    content_object = None  # Must be passed as parameter
 
     # These will be set based on content_object
-    content_type = LazyAttribute(
-        lambda o: ContentType.objects.get_for_model(o.content_object) if o.content_object else None
-    )
-    object_id = LazyAttribute(lambda o: o.content_object.id if o.content_object else None)
+    @factory.lazy_attribute
+    def content_type(self):
+        if self.content_object:
+            return ContentType.objects.get_for_model(self.content_object)
+        return None
+
+    @factory.lazy_attribute
+    def object_id(self):
+        if self.content_object:
+            return self.content_object.id
+        return None
