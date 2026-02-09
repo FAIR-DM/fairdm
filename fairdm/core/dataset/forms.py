@@ -207,18 +207,18 @@ class DatasetForm(ModelForm):
                 project_field.queryset = Project.objects.none()
 
         # Set reference queryset (literature items)
-        reference_field = self.fields.get("reference")
-        if reference_field:
-            from fairdm.contrib.literature.models import LiteratureItem
+        # reference_field = self.fields.get("reference")
+        # if reference_field:
+        #     from fairdm.contrib.literature.models import LiteratureItem
 
-            reference_field.queryset = LiteratureItem.objects.all()
+        #     reference_field.queryset = LiteratureItem.objects.all()
 
         # Set keywords queryset
-        keywords_field = self.fields.get("keywords")
-        if keywords_field:
-            from fairdm.contrib.dicts.models import Term
-
-            keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
+        # NOTE: Dataset model does not currently have a keywords field
+        # keywords_field = self.fields.get("keywords")
+        # if keywords_field:
+        #     from fairdm.contrib.dicts.models import Term
+        #     keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
 
         # Pre-populate DOI field if editing existing dataset with DOI
         if self.instance and self.instance.pk:
