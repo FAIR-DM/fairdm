@@ -1484,14 +1484,14 @@ tests = ["akismet", "coverage", "tomli ; python_full_version < \"3.11.0a7\""]
 
 [[package]]
 name = "django-content-license"
-version = "0.2.3"
+version = "0.3.0"
 description = "Store license information alongside your Django data models"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "django_content_license-0.2.3-py3-none-any.whl", hash = "sha256:f32c834b7cf21c5d12d60927ab03a5ddf4e2660ea37b169a3c076f5be991f42a"},
-    {file = "django_content_license-0.2.3.tar.gz", hash = "sha256:2b938ca030270fe8236872bb195571d3b24721b9d68e410d681a9ee5b74cc03c"},
+    {file = "django_content_license-0.3.0-py3-none-any.whl", hash = "sha256:1169348a3c2f32d7d890243ea6896a8d32a4240c70eb47a17389be1c29c4b8c2"},
+    {file = "django_content_license-0.3.0.tar.gz", hash = "sha256:47526e23759a87b859a478aa9d4bec5387ca6c0d80b2e1c152ae27892b7f3025"},
 ]
 
 [package.dependencies]
@@ -7155,4 +7155,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "8b764ffaf9f20700177e8335429d970db65db0f17e585b5c76e60ade9b779d92"
+content-hash = "d4504837083da5418abe779d031194ba0f0a8c940828d353a6c560914a167763"
