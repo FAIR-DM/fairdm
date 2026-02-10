@@ -2,7 +2,12 @@ from crispy_forms.helper import FormHelper
 from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
 
-from fairdm.contrib.generic.forms import CoreInlineFormset, DateForm, DescriptionForm, KeywordForm
+from fairdm.contrib.generic.forms import (
+    CoreInlineFormset,
+    DateForm,
+    DescriptionForm,
+    KeywordForm,
+)
 from fairdm.plugins import FairDMPlugin
 from fairdm.views import FairDMModelFormMixin, FairDMUpdateView
 

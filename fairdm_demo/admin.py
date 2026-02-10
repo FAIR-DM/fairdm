@@ -404,7 +404,11 @@ class WaterSampleAdmin(SampleChildAdmin):
     show_in_index = True  # Show in main admin index
 
     # Add water-specific fields to list display
-    list_display = SampleChildAdmin.list_display + ["water_source", "ph_level", "temperature_celsius"]
+    list_display = SampleChildAdmin.list_display + [
+        "water_source",
+        "ph_level",
+        "temperature_celsius",
+    ]
 
     # Add water-specific filters
     list_filter = SampleChildAdmin.list_filter + ["water_source"]

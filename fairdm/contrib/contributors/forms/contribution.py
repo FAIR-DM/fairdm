@@ -6,7 +6,12 @@ from django_addanother.widgets import AddAnotherWidgetWrapper
 from django_select2.forms import HeavySelect2MultipleWidget, HeavySelect2Widget
 from research_vocabs.models import Concept
 
-from fairdm.contrib.contributors.models import Contribution, Contributor, Organization, Person
+from fairdm.contrib.contributors.models import (
+    Contribution,
+    Contributor,
+    Organization,
+    Person,
+)
 from fairdm.forms import Form, ModelForm
 
 from .widgets import ContributorSelect2Widget, OrcidInputWidget
@@ -57,7 +62,15 @@ class PersonCreateForm(ModelForm):
 
     class Meta:
         model = Person
-        fields = ["from_orcid", "name", "first_name", "last_name", "affiliations", "is_primary", "is_current"]
+        fields = [
+            "from_orcid",
+            "name",
+            "first_name",
+            "last_name",
+            "affiliations",
+            "is_primary",
+            "is_current",
+        ]
         help_texts = {
             "name": _(
                 "Full name as it should appear in citations. If blank, will be generated from first and last name."

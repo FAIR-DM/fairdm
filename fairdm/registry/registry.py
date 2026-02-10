@@ -213,7 +213,10 @@ class FairDMRegistry:
             ConfigurationError: If model_class is not a Sample or Measurement subclass.
             DuplicateRegistrationError: If model_class is already registered.
         """
-        from fairdm.registry.exceptions import ConfigurationError, DuplicateRegistrationError
+        from fairdm.registry.exceptions import (
+            ConfigurationError,
+            DuplicateRegistrationError,
+        )
 
         # Validate that this is a Sample or Measurement subclass
         try:
@@ -222,7 +225,8 @@ class FairDMRegistry:
 
             if not (issubclass(model_class, Sample) or issubclass(model_class, Measurement)):
                 raise ConfigurationError(
-                    f"{model_class.__name__} must inherit from Sample or Measurement", model=model_class
+                    f"{model_class.__name__} must inherit from Sample or Measurement",
+                    model=model_class,
                 )
         except ImportError as e:
             raise ImportError(
@@ -335,7 +339,9 @@ class FairDMRegistry:
         return summary
 
     def get_config(
-        self, model_class: type[Model], config: ModelConfiguration | type[ModelConfiguration] | None = None
+        self,
+        model_class: type[Model],
+        config: ModelConfiguration | type[ModelConfiguration] | None = None,
     ) -> ModelConfiguration:
         """
         Builds a configuration instance from the registered config class.

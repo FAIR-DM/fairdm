@@ -39,24 +39,24 @@
 {% endblock overview_main %}
 
 {% block quick_info_items %}
-  {% comment %} <c-detail.info-item label="{% trans 'Project' %}">
+  {% comment %} <c-info-item label="{% trans 'Project' %}">
     <a href="{{ dataset.project.get_absolute_url }}" class="text-decoration-none">{{ dataset.project|truncatechars:50 }}</a>
-  </c-detail.info-item>
-  <c-detail.info-item label="{% trans 'Visibility' %}">
+  </c-info-item>
+  <c-info-item label="{% trans 'Visibility' %}">
     <c-badge variant="secondary">
       <c-icon name="{{ dataset.visibility|yesno:'visible,private' }}" class="me-1" />
       {{ dataset.get_visibility_display }}
     </c-badge>
-  </c-detail.info-item>
+  </c-info-item>
   {% if dataset.license %}
-    <c-detail.info-item label="{% trans 'License' %}">
+    <c-info-item label="{% trans 'License' %}">
       <a href="{{ dataset.license.url }}" target="_blank" class="text-decoration-none">{{ dataset.license }}</a>
-    </c-detail.info-item>
+    </c-info-item>
   {% endif %}
   {% if dataset.reference %}
-    <c-detail.info-item label="{% trans 'Data Reference' %}">
+    <c-info-item label="{% trans 'Data Reference' %}">
       <a href="{{ dataset.reference.get_absolute_url }}" class="text-decoration-none">{{ dataset.reference.title|truncatewords:10 }}</a>
-    </c-detail.info-item>
+    </c-info-item>
   {% endif %} {% endcomment %}
 {% endblock quick_info_items %}
 

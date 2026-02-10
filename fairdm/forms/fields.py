@@ -24,7 +24,7 @@ class PartialDateWidget(forms.SelectDateWidget):
         if isinstance(value, PartialDate):
             return {
                 "year": value.date.year,
-                "month": value.date.month if value.precision >= PartialDate.MONTH else None,
+                "month": (value.date.month if value.precision >= PartialDate.MONTH else None),
                 "day": value.date.day if value.precision == PartialDate.DAY else None,
             }
         return {"year": None, "month": None, "day": None}

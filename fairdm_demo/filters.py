@@ -158,7 +158,9 @@ class RockSampleFilterExample(SampleFilter):
     """
 
     search = django_filters.CharFilter(
-        method="filter_search", label="Search", help_text="Search across sample name, UUID, location, and rock type"
+        method="filter_search",
+        label="Search",
+        help_text="Search across sample name, UUID, location, and rock type",
     )
 
     # Standard filters
@@ -257,7 +259,9 @@ class XRFMeasurementFilterExample(SampleFilter):
 
     # Generic search
     search = django_filters.CharFilter(
-        method="filter_search", label="Search", help_text="Search across measurement name and UUID"
+        method="filter_search",
+        label="Search",
+        help_text="Search across measurement name and UUID",
     )
 
     # Cross-relationship filter - filter by description type
@@ -327,7 +331,9 @@ class DatasetFilterExample(SampleFilter):
     """
 
     search = django_filters.CharFilter(
-        method="filter_search", label="Search", help_text="Search across multiple fields"
+        method="filter_search",
+        label="Search",
+        help_text="Search across multiple fields",
     )
 
     # Example: Filter by related project

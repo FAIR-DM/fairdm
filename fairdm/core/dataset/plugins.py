@@ -2,7 +2,11 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
+from fairdm.contrib.generic.plugins import (
+    DescriptionsPlugin,
+    KeyDatesPlugin,
+    KeywordsPlugin,
+)
 from fairdm.core.plugins import (
     DeleteObjectPlugin,
     EditPlugin,

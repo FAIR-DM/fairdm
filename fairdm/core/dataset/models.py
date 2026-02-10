@@ -13,7 +13,12 @@ from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
 from ..utils import CORE_PERMISSIONS
-from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
+from ..vocabularies import (
+    FairDMDates,
+    FairDMDescriptions,
+    FairDMIdentifiers,
+    FairDMRoles,
+)
 
 if TYPE_CHECKING:
     from fairdm.core.dataset.models import Dataset

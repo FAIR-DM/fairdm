@@ -128,7 +128,9 @@ class DatasetFilter(BaseListFilter):
     """
 
     search = django_filters.CharFilter(
-        method="filter_search", label="Search", help_text="Search across dataset name, UUID, and keywords"
+        method="filter_search",
+        label="Search",
+        help_text="Search across dataset name, UUID, and keywords",
     )
 
     project = django_filters.ModelChoiceFilter(

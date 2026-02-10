@@ -8,7 +8,13 @@ from import_export.admin import ImportExportModelAdmin
 
 from fairdm.db import models
 
-from .models import Contributor, ContributorIdentifier, Organization, OrganizationMember, Person
+from .models import (
+    Contributor,
+    ContributorIdentifier,
+    Organization,
+    OrganizationMember,
+    Person,
+)
 from .resources import PersonResource
 
 

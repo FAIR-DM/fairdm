@@ -138,7 +138,10 @@ class FairDMPlugin:
 
         # Point to public list view
         breadcrumbs.append(
-            {"text": _(f"All {model_verbose_name_plural.title()}"), "href": urls.reverse(f"{model_name}-list")}
+            {
+                "text": _(f"All {model_verbose_name_plural.title()}"),
+                "href": urls.reverse(f"{model_name}-list"),
+            }
         )
 
         # Second breadcrumb: Object overview with truncated name
@@ -148,7 +151,10 @@ class FairDMPlugin:
             object_str = object_str[:27] + "..."
 
         breadcrumbs.append(
-            {"text": object_str, "href": urls.reverse(f"{namespace}:overview", kwargs={"uuid": base_object.uuid})}
+            {
+                "text": object_str,
+                "href": urls.reverse(f"{namespace}:overview", kwargs={"uuid": base_object.uuid}),
+            }
         )
 
         # Third breadcrumb: Current page title (no href)

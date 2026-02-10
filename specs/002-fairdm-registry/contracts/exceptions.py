@@ -167,9 +167,7 @@ class DuplicateRegistrationError(RegistryError):
         self.original_location = original_location
         self.new_location = new_location
 
-        message = (
-            f"{model.__name__} already registered at {original_location}. " f"Each model can only be registered once."
-        )
+        message = f"{model.__name__} already registered at {original_location}. Each model can only be registered once."
 
         if new_location:
             message += f" Attempted duplicate registration from {new_location}."
@@ -265,7 +263,7 @@ class FieldResolutionError(RegistryError):
         self.model = model
         self.failed_at = failed_at
 
-        message = f"Cannot resolve field path '{field_path}' on {model.__name__}. " f"Failed at '{failed_at}'."
+        message = f"Cannot resolve field path '{field_path}' on {model.__name__}. Failed at '{failed_at}'."
 
         super().__init__(message)
 

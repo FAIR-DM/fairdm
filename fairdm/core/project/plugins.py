@@ -6,7 +6,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
+from fairdm.contrib.generic.plugins import (
+    DescriptionsPlugin,
+    KeyDatesPlugin,
+    KeywordsPlugin,
+)
 from fairdm.core.plugins import (
     DeleteObjectPlugin,
     EditPlugin,

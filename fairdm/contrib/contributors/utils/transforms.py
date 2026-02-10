@@ -8,7 +8,12 @@ and various external metadata formats (DataCite, Schema.org, CSL-JSON, ORCID, RO
 import decimal
 from typing import Any
 
-from fairdm.contrib.contributors.models import Contributor, ContributorIdentifier, Organization, Person
+from fairdm.contrib.contributors.models import (
+    Contributor,
+    ContributorIdentifier,
+    Organization,
+    Person,
+)
 
 
 class BaseTransform:
@@ -114,7 +119,7 @@ class DataCiteTransform(BaseTransform):
         """
         data = {
             "name": contributor.name,
-            "nameType": "Organizational" if isinstance(contributor, Organization) else "Personal",
+            "nameType": ("Organizational" if isinstance(contributor, Organization) else "Personal"),
         }
 
         # Add name identifiers (ORCID/ROR)
@@ -124,7 +129,7 @@ class DataCiteTransform(BaseTransform):
                 {
                     "nameIdentifier": default_id.value,
                     "nameIdentifierScheme": default_id.type,
-                    "schemeURI": default_id.get_url() if hasattr(default_id, "get_url") else None,
+                    "schemeURI": (default_id.get_url() if hasattr(default_id, "get_url") else None),
                 }
             )
 
@@ -505,11 +510,11 @@ class ORCIDTransform(BaseTransform):
             },
             "person": {
                 "name": {
-                    "credit-name": {"value": contributor.name} if contributor.name else None,
-                    "given-names": {"value": contributor.first_name} if contributor.first_name else None,
-                    "family-name": {"value": contributor.last_name} if contributor.last_name else None,
+                    "credit-name": ({"value": contributor.name} if contributor.name else None),
+                    "given-names": ({"value": contributor.first_name} if contributor.first_name else None),
+                    "family-name": ({"value": contributor.last_name} if contributor.last_name else None),
                 },
-                "biography": {"content": contributor.profile} if contributor.profile else None,
+                "biography": ({"content": contributor.profile} if contributor.profile else None),
             },
         }
 

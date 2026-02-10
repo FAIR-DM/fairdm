@@ -74,7 +74,13 @@ from fairdm.factories import MeasurementFactory, SampleFactory
 # Import dataset-specific factories from core
 from fairdm.factories.core import DatasetFactory
 
-from .models import CustomParentSample, CustomSample, ExampleMeasurement, RockSample, WaterSample
+from .models import (
+    CustomParentSample,
+    CustomSample,
+    ExampleMeasurement,
+    RockSample,
+    WaterSample,
+)
 
 # ============================================================================
 # Example 1: Basic Sample Factory
@@ -184,9 +190,23 @@ class RockSampleFactory(SampleFactory):
             "Chlorite, Garnet, Staurolite",
         ],
     )
-    weight_grams = factory.Faker("pyfloat", left_digits=3, right_digits=2, positive=True, min_value=10, max_value=999)
+    weight_grams = factory.Faker(
+        "pyfloat",
+        left_digits=3,
+        right_digits=2,
+        positive=True,
+        min_value=10,
+        max_value=999,
+    )
     collection_date = factory.Faker("date_between", start_date="-2y", end_date="today")
-    hardness_mohs = factory.Faker("pydecimal", left_digits=1, right_digits=1, positive=True, min_value=1, max_value=10)
+    hardness_mohs = factory.Faker(
+        "pydecimal",
+        left_digits=1,
+        right_digits=1,
+        positive=True,
+        min_value=1,
+        max_value=10,
+    )
 
     class Meta:
         model = RockSample
@@ -202,7 +222,10 @@ class WaterSampleFactory(SampleFactory):
     See: Developer Guide > Testing > Sample Factories
     """
 
-    water_source = factory.Faker("random_element", elements=["river", "lake", "groundwater", "ocean", "stream", "pond"])
+    water_source = factory.Faker(
+        "random_element",
+        elements=["river", "lake", "groundwater", "ocean", "stream", "pond"],
+    )
     temperature_celsius = factory.Faker("pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=35)
     ph_level = factory.Faker("pydecimal", left_digits=1, right_digits=2, min_value=4, max_value=10)
     turbidity_ntu = factory.Faker("pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=100)
@@ -359,11 +382,19 @@ def example_dataset_with_multiple_literature_relations():
 
     # Methods paper
     methods_paper = LiteratureItemFactory(title="Field Collection Methods", year=2023)
-    DatasetLiteratureRelationFactory(dataset=dataset, literature_item=methods_paper, relationship_type="IsDocumentedBy")
+    DatasetLiteratureRelationFactory(
+        dataset=dataset,
+        literature_item=methods_paper,
+        relationship_type="IsDocumentedBy",
+    )
 
     # Results paper (dataset supplements this paper)
     results_paper = LiteratureItemFactory(title="Geological Formation Analysis Results", year=2024)
-    DatasetLiteratureRelationFactory(dataset=dataset, literature_item=results_paper, relationship_type="IsSupplementTo")
+    DatasetLiteratureRelationFactory(
+        dataset=dataset,
+        literature_item=results_paper,
+        relationship_type="IsSupplementTo",
+    )
 
     # Source dataset (this dataset derived from it)
     source_paper = LiteratureItemFactory(title="Original Field Survey Data", year=2022)

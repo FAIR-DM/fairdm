@@ -103,7 +103,9 @@ class ContributorListView(ContributorBaseListView):
 
         # Step 3: Prefetch ORCID social accounts
         orcid_accounts_prefetch = Prefetch(
-            "socialaccount_set", queryset=SocialAccount.objects.filter(provider="orcid"), to_attr="orcid_accounts"
+            "socialaccount_set",
+            queryset=SocialAccount.objects.filter(provider="orcid"),
+            to_attr="orcid_accounts",
         )
 
         # Step 4: Get the content type for follow lookups (cached)

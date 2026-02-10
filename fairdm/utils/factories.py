@@ -72,7 +72,10 @@ class AutoGenerationFactories:
 
         # Create form using modelform_factory
         form_class = modelform_factory(
-            model_class, form=ModelForm, fields=fields, **getattr(config, "form_options", {})
+            model_class,
+            form=ModelForm,
+            fields=fields,
+            **getattr(config, "form_options", {}),
         )
 
         return form_class
@@ -97,7 +100,9 @@ class AutoGenerationFactories:
 
         # Create filterset using filterset_factory
         filterset_class = filterset_factory(
-            model_class, fields=filter_fields, **getattr(config, "filterset_options", {})
+            model_class,
+            fields=filter_fields,
+            **getattr(config, "filterset_options", {}),
         )
 
         return filterset_class
@@ -131,7 +136,9 @@ class AutoGenerationFactories:
         # Add actions column for detail link
         if "actions" in fields:
             table_class.actions = tables.TemplateColumn(
-                template_name="fairdm/tables/actions_column.html", verbose_name="Actions", orderable=False
+                template_name="fairdm/tables/actions_column.html",
+                verbose_name="Actions",
+                orderable=False,
             )
 
         return table_class
@@ -171,12 +178,18 @@ class AutoGenerationFactories:
                 fields = "__all__"
 
             # Create Meta class
-            meta_attrs = {"model": model_class, "fields": fields, **getattr(config, "serializer_options", {})}
+            meta_attrs = {
+                "model": model_class,
+                "fields": fields,
+                **getattr(config, "serializer_options", {}),
+            }
             meta_class = type("Meta", (), meta_attrs)
 
             # Create serializer class
             serializer_class = type(
-                f"{model_class.__name__}Serializer", (serializers.ModelSerializer,), {"Meta": meta_class}
+                f"{model_class.__name__}Serializer",
+                (serializers.ModelSerializer,),
+                {"Meta": meta_class},
             )
 
             return serializer_class

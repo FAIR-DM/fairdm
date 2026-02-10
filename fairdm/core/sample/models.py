@@ -10,10 +10,20 @@ from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
 
-from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BasePolymorphicModel
+from ..abstract import (
+    AbstractDate,
+    AbstractDescription,
+    AbstractIdentifier,
+    BasePolymorphicModel,
+)
 from ..choices import SampleStatus
 from ..utils import CORE_PERMISSIONS
-from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
+from ..vocabularies import (
+    FairDMDates,
+    FairDMDescriptions,
+    FairDMIdentifiers,
+    FairDMRoles,
+)
 from .managers import SampleQuerySet
 
 

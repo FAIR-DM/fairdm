@@ -411,7 +411,9 @@ class WaterSample(Sample):
 
 class CustomParentSample(Sample):
     char_field = models.CharField(
-        "Character Field", max_length=200, help_text="Enter a string of up to 200 characters."
+        "Character Field",
+        max_length=200,
+        help_text="Enter a string of up to 200 characters.",
     )
 
     class Meta:
@@ -421,7 +423,11 @@ class CustomParentSample(Sample):
 
 class CustomSample(Sample):
     char_field = models.CharField(
-        "Character Field", max_length=200, help_text="Enter a string of up to 200 characters.", blank=True, null=True
+        "Character Field",
+        max_length=200,
+        help_text="Enter a string of up to 200 characters.",
+        blank=True,
+        null=True,
     )
     text_field = models.TextField("Text Field", help_text="Enter a large amount of text.", blank=True, null=True)
     integer_field = models.IntegerField("Integer Field", help_text="Enter an integer.", blank=True, null=True)
@@ -429,16 +435,26 @@ class CustomSample(Sample):
         "Big Integer Field", help_text="Enter a large integer.", blank=True, null=True
     )
     positive_integer_field = models.PositiveIntegerField(
-        "Positive Integer Field", help_text="Enter a positive integer.", blank=True, null=True
+        "Positive Integer Field",
+        help_text="Enter a positive integer.",
+        blank=True,
+        null=True,
     )
     positive_small_integer_field = models.PositiveSmallIntegerField(
-        "Positive Small Integer Field", help_text="Enter a small positive integer.", blank=True, null=True
+        "Positive Small Integer Field",
+        help_text="Enter a small positive integer.",
+        blank=True,
+        null=True,
     )
     small_integer_field = models.SmallIntegerField(
         "Small Integer Field", help_text="Enter a small integer.", blank=True, null=True
     )
     boolean_field = models.BooleanField(
-        "Boolean Field", default=False, help_text="Select True or False.", blank=True, null=True
+        "Boolean Field",
+        default=False,
+        help_text="Select True or False.",
+        blank=True,
+        null=True,
     )
     date_field = models.DateField("Date Field", help_text="Select a date.", blank=True, null=True)
     date_time_field = models.DateTimeField(
@@ -446,7 +462,12 @@ class CustomSample(Sample):
     )
     time_field = models.TimeField("Time Field", help_text="Select a time.", blank=True, null=True)
     decimal_field = models.DecimalField(
-        "Decimal Field", max_digits=5, decimal_places=2, help_text="Enter a decimal number.", blank=True, null=True
+        "Decimal Field",
+        max_digits=5,
+        decimal_places=2,
+        help_text="Enter a decimal number.",
+        blank=True,
+        null=True,
     )
     float_field = models.FloatField("Float Field", help_text="Enter a floating point number.", blank=True, null=True)
 
@@ -466,7 +487,11 @@ class ExampleMeasurement(Measurement):
 
     # standard django fields
     char_field = models.CharField(
-        "Character Field", max_length=200, help_text="Enter a string of up to 200 characters.", blank=True, null=True
+        "Character Field",
+        max_length=200,
+        help_text="Enter a string of up to 200 characters.",
+        blank=True,
+        null=True,
     )
     text_field = models.TextField("Text Field", help_text="Enter a large amount of text.", blank=True, null=True)
     integer_field = models.IntegerField("Integer Field", help_text="Enter an integer.", blank=True, null=True)
@@ -474,16 +499,26 @@ class ExampleMeasurement(Measurement):
         "Big Integer Field", help_text="Enter a large integer.", blank=True, null=True
     )
     positive_integer_field = models.PositiveIntegerField(
-        "Positive Integer Field", help_text="Enter a positive integer.", blank=True, null=True
+        "Positive Integer Field",
+        help_text="Enter a positive integer.",
+        blank=True,
+        null=True,
     )
     positive_small_integer_field = models.PositiveSmallIntegerField(
-        "Positive Small Integer Field", help_text="Enter a small positive integer.", blank=True, null=True
+        "Positive Small Integer Field",
+        help_text="Enter a small positive integer.",
+        blank=True,
+        null=True,
     )
     small_integer_field = models.SmallIntegerField(
         "Small Integer Field", help_text="Enter a small integer.", blank=True, null=True
     )
     boolean_field = models.BooleanField(
-        "Boolean Field", default=False, help_text="Select True or False.", blank=True, null=True
+        "Boolean Field",
+        default=False,
+        help_text="Select True or False.",
+        blank=True,
+        null=True,
     )
     date_field = models.DateField("Date Field", help_text="Select a date.", blank=True, null=True)
     date_time_field = models.DateTimeField(
@@ -491,7 +526,12 @@ class ExampleMeasurement(Measurement):
     )
     time_field = models.TimeField("Time Field", help_text="Select a time.", blank=True, null=True)
     decimal_field = models.DecimalField(
-        "Decimal Field", max_digits=5, decimal_places=2, help_text="Enter a decimal number.", blank=True, null=True
+        "Decimal Field",
+        max_digits=5,
+        decimal_places=2,
+        help_text="Enter a decimal number.",
+        blank=True,
+        null=True,
     )
     float_field = models.FloatField("Float Field", help_text="Enter a floating point number.", blank=True, null=True)
 
@@ -506,7 +546,10 @@ class XRFMeasurement(Measurement):
 
     element = models.CharField("Element", max_length=10, help_text="Chemical element symbol (e.g., Si, Al, Fe)")
     concentration_ppm = models.DecimalField(
-        "Concentration (ppm)", max_digits=10, decimal_places=2, help_text="Element concentration in parts per million"
+        "Concentration (ppm)",
+        max_digits=10,
+        decimal_places=2,
+        help_text="Element concentration in parts per million",
     )
     detection_limit_ppm = models.DecimalField(
         "Detection Limit (ppm)",
@@ -517,10 +560,15 @@ class XRFMeasurement(Measurement):
         help_text="Analytical detection limit in parts per million",
     )
     instrument_model = models.CharField(
-        "Instrument Model", max_length=100, blank=True, help_text="XRF instrument model used for analysis"
+        "Instrument Model",
+        max_length=100,
+        blank=True,
+        help_text="XRF instrument model used for analysis",
     )
     measurement_conditions = models.TextField(
-        "Measurement Conditions", blank=True, help_text="Analytical conditions (voltage, current, atmosphere, etc.)"
+        "Measurement Conditions",
+        blank=True,
+        help_text="Analytical conditions (voltage, current, atmosphere, etc.)",
     )
 
     class Meta:
@@ -536,9 +584,16 @@ class ICP_MS_Measurement(Measurement):
     and advanced field validation patterns.
     """
 
-    isotope = models.CharField("Isotope", max_length=20, help_text="Isotope notation (e.g., 207Pb, 206Pb, 238U)")
+    isotope = models.CharField(
+        "Isotope",
+        max_length=20,
+        help_text="Isotope notation (e.g., 207Pb, 206Pb, 238U)",
+    )
     counts_per_second = models.DecimalField(
-        "Counts per Second", max_digits=15, decimal_places=2, help_text="Raw instrument counts per second"
+        "Counts per Second",
+        max_digits=15,
+        decimal_places=2,
+        help_text="Raw instrument counts per second",
     )
     concentration_ppb = models.DecimalField(
         "Concentration (ppb)",
@@ -557,13 +612,23 @@ class ICP_MS_Measurement(Measurement):
         help_text="Analytical uncertainty as percentage",
     )
     dilution_factor = models.DecimalField(
-        "Dilution Factor", max_digits=8, decimal_places=2, default=1.0, help_text="Sample dilution factor applied"
+        "Dilution Factor",
+        max_digits=8,
+        decimal_places=2,
+        default=1.0,
+        help_text="Sample dilution factor applied",
     )
     internal_standard = models.CharField(
-        "Internal Standard", max_length=20, blank=True, help_text="Internal standard isotope used for drift correction"
+        "Internal Standard",
+        max_length=20,
+        blank=True,
+        help_text="Internal standard isotope used for drift correction",
     )
     analysis_date = models.DateTimeField(
-        "Analysis Date", null=True, blank=True, help_text="Date and time of ICP-MS analysis"
+        "Analysis Date",
+        null=True,
+        blank=True,
+        help_text="Date and time of ICP-MS analysis",
     )
 
     class Meta:

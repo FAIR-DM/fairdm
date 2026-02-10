@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
-from .models import Project, ProjectDescription, ProjectDate, ProjectIdentifier
+from .models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
 
 
 class DescriptionInline(admin.StackedInline):
@@ -93,7 +93,13 @@ class ProjectAdmin(admin.ModelAdmin):
     )
 
     # Bulk actions
-    actions = ["make_concept", "make_active", "make_completed", "export_json", "export_datacite"]
+    actions = [
+        "make_concept",
+        "make_active",
+        "make_completed",
+        "export_json",
+        "export_datacite",
+    ]
 
     @admin.action(description=_("Mark selected projects as Concept"))
     def make_concept(self, request, queryset):
@@ -122,7 +128,9 @@ class ProjectAdmin(admin.ModelAdmin):
                 "uuid": str(project.uuid),
                 "name": project.name,
                 "status": project.status,
-                "visibility": project.visibility.value if hasattr(project.visibility, "value") else project.visibility,
+                "visibility": (
+                    project.visibility.value if hasattr(project.visibility, "value") else project.visibility
+                ),
                 "added": project.added.isoformat() if project.added else None,
                 "modified": project.modified.isoformat() if project.modified else None,
             }

@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 
 # from django.contrib.gis.utils import LayerMapping
 from django.contrib.postgres.aggregates import JSONBAgg
+
 from fairdm.db.gis.functions import AsGeoFeature
 
 

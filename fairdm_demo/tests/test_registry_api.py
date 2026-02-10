@@ -151,7 +151,12 @@ class TestDemoRegistryIntrospection:
         # Add measurement choices
         for measurement_model in registry.measurements:
             config = registry.get_for_model(measurement_model)
-            model_choices.append((measurement_model.__name__, config.display_name or measurement_model.__name__))
+            model_choices.append(
+                (
+                    measurement_model.__name__,
+                    config.display_name or measurement_model.__name__,
+                )
+            )
 
         # Verify choices were created
         assert len(model_choices) == len(DEMO_REGISTERED_MODELS)

@@ -141,7 +141,7 @@
               edit_url="{% plugin_url 'key-dates' %}">
         <dl class="mb-0">
           {% comment %} {% for date in object.dates.all %}
-                <c-detail.info-item label="{{ date.type }}" text="{{ date.value }}" />
+                <c-info-item label="{{ date.type }}" text="{{ date.value }}" />
               {% empty %}
                 {{ empty_text }}
           {% endfor %} {% endcomment %}

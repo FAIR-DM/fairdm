@@ -110,7 +110,11 @@ class Config:
         # merge fairdm, app_config and inherited_config with priority in that order
         # Priority order: fairdm > app_config > inherited_config
         if inherited is not None:
-            merged = {**inherited.config.__dict__, **app_config.__dict__, **fairdm.__dict__}
+            merged = {
+                **inherited.config.__dict__,
+                **app_config.__dict__,
+                **fairdm.__dict__,
+            }
         else:
             merged = {**app_config.__dict__, **fairdm.__dict__}
 
@@ -168,7 +172,10 @@ class Config:
         """
         fields = getattr(self, "form_fields", "__all__")
         return factories.modelform_factory(
-            self.model, form=self._get_class(self.form_class), fields=fields, **self.form_kwargs
+            self.model,
+            form=self._get_class(self.form_class),
+            fields=fields,
+            **self.form_kwargs,
         )
 
     def get_serializer_class(self) -> type[ModelSerializer]:

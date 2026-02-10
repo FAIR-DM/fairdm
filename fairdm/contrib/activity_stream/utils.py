@@ -12,7 +12,11 @@ from django.db.models import Model
 
 
 def create_activity(
-    actor: User, verb: str, target: Model | None = None, action_object: Model | None = None, description: str = ""
+    actor: User,
+    verb: str,
+    target: Model | None = None,
+    action_object: Model | None = None,
+    description: str = "",
 ):
     """
     Create an activity in the activity stream.

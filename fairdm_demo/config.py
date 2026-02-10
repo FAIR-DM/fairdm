@@ -474,7 +474,13 @@ class ICP_MS_MeasurementConfig(ModelConfiguration):
             text="FairDM Demo Team (2026). ICP-MS Analytical Protocol. FairDM Demo Portal.",
             doi="https://doi.org/10.5281/zenodo.demo.icpms",
         ),
-        keywords=["ICP-MS", "isotope analysis", "mass spectrometry", "trace elements", "geochronology"],
+        keywords=[
+            "ICP-MS",
+            "isotope analysis",
+            "mass spectrometry",
+            "trace elements",
+            "geochronology",
+        ],
     )
     fields = [
         ("isotope", "counts_per_second"),

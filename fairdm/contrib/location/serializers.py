@@ -1,10 +1,11 @@
 from collections import OrderedDict
 
-from fairdm.api.serializers import BaseSerializerMixin
 from rest_framework import serializers
 from rest_framework.fields import Field as Field
 from rest_framework.serializers import LIST_SERIALIZER_KWARGS, ListSerializer
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+
+from fairdm.api.serializers import BaseSerializerMixin
 
 
 class PointSerializer(BaseSerializerMixin, serializers.ModelSerializer):

@@ -2,11 +2,21 @@
 
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
-from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelFilter, PolymorphicParentModelAdmin
+from polymorphic.admin import (
+    PolymorphicChildModelAdmin,
+    PolymorphicChildModelFilter,
+    PolymorphicParentModelAdmin,
+)
 
 from fairdm.contrib.contributors.models import Contribution
 
-from .models import Sample, SampleDate, SampleDescription, SampleIdentifier, SampleRelation
+from .models import (
+    Sample,
+    SampleDate,
+    SampleDescription,
+    SampleIdentifier,
+    SampleRelation,
+)
 
 
 class SampleDescriptionInline(admin.StackedInline):
@@ -69,7 +79,15 @@ class SampleChildAdmin(PolymorphicChildModelAdmin):
         to automatically add subclass-specific fields.
     """
 
-    list_display = ["name", "dataset", "status", "sample_type", "location", "added", "modified"]
+    list_display = [
+        "name",
+        "dataset",
+        "status",
+        "sample_type",
+        "location",
+        "added",
+        "modified",
+    ]
     list_filter = ["status", "added"]
     search_fields = ["name", "local_id", "uuid"]
     readonly_fields = ["uuid", "added", "modified"]
@@ -138,7 +156,15 @@ class SampleParentAdmin(PolymorphicParentModelAdmin):
     """
 
     base_model = Sample
-    list_display = ["name", "dataset", "status", "sample_type", "location", "added", "modified"]
+    list_display = [
+        "name",
+        "dataset",
+        "status",
+        "sample_type",
+        "location",
+        "added",
+        "modified",
+    ]
     list_filter = [PolymorphicChildModelFilter, "status", "added"]
     search_fields = ["name", "local_id", "uuid"]
 

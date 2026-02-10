@@ -402,7 +402,12 @@ class Command(BaseCommand):
 
     def _add_descriptions(self, obj, description_model, count):
         """Add description objects to a model instance."""
-        description_types = ["Abstract", "Methods", "Technical Info", "Table of Contents"]
+        description_types = [
+            "Abstract",
+            "Methods",
+            "Technical Info",
+            "Table of Contents",
+        ]
         # Use sample to avoid duplicates (UniqueConstraint on related+type)
         selected_types = random.sample(description_types, min(count, len(description_types)))
         for desc_type in selected_types:
@@ -414,7 +419,14 @@ class Command(BaseCommand):
 
     def _add_dates(self, obj, date_model, count):
         """Add date objects to a model instance."""
-        date_types = ["Created", "Updated", "Issued", "Submitted", "Accepted", "Available"]
+        date_types = [
+            "Created",
+            "Updated",
+            "Issued",
+            "Submitted",
+            "Accepted",
+            "Available",
+        ]
         # Use sample to avoid duplicates (UniqueConstraint on related+type)
         selected_types = random.sample(date_types, min(count, len(date_types)))
         for date_type in selected_types:

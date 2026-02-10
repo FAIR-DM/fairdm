@@ -467,7 +467,7 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
         spec = importlib.util.find_spec(module_path)
         if spec is None or spec.origin is None:
             raise ModuleNotFoundError(f"No module named '{module_path}'")
-        
+
         return True
     except (ImportError, ModuleNotFoundError) as e:
         error_msg = f"Addon '{addon_name}' setup module '{module_path}' could not be found: {e}"
