@@ -204,7 +204,7 @@ class GenericModelQuerySet(QuerySet):
 
         def sort_key(item):
             try:
-                return vocabulary_order.index(item.type)  # type: ignore[attr-defined]
+                return vocabulary_order.index(item.type)
             except ValueError:
                 # If type not in vocabulary, sort to end
                 return len(vocabulary_order)
@@ -252,7 +252,7 @@ class GenericModel(Model):
 
     def __init_subclass__(cls):
         if cls.VOCABULARY is not None:
-            cls.type.field.choices = cls.VOCABULARY.choices  # type: ignore[attr-defined]
+            cls.type.field.choices = cls.VOCABULARY.choices
 
         # if cls.FOR is not None:
         #     # if not hasattr(cls._meta, "db_table") or cls._meta.db_table is None:
@@ -261,7 +261,7 @@ class GenericModel(Model):
         return super().__init_subclass__()
 
     def __str__(self):
-        return f"{self.type}: {self.value}"  # Display the type and a preview of the text  # type: ignore[attr-defined]
+        return f"{self.type}: {self.value}"  # Display the type and a preview of the text
 
     def __repr__(self):
         return f"<{self}>"

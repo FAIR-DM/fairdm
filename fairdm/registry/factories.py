@@ -754,7 +754,7 @@ class SerializerFactory(ComponentFactory):
             from rest_framework import serializers
         except ImportError:
             # DRF not installed, return placeholder
-            return type  # type: ignore
+            return type
 
         fields = self.get_fields()
 
@@ -832,7 +832,7 @@ class ResourceFactory(ComponentFactory):
             from import_export import resources
         except ImportError:
             # django-import-export not installed, return placeholder
-            return type  # type: ignore
+            return type
 
         fields = self.get_fields()
 
