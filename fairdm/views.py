@@ -11,11 +11,11 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView, TemplateView
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.edit import DeleteView
 from django_addanother.views import CreatePopupMixin
 from django_filters.views import FilterView
 from meta.views import MetadataMixin
-from mvp.views import MVPListViewMixin
+from mvp.views import MVPCreateView, MVPListViewMixin, MVPUpdateView
 
 # TODO: Restore when mvp module is available
 # from mvp.views import SearchOrderMixin
@@ -23,7 +23,7 @@ from fairdm.contrib.contributors.utils import current_user_has_role
 from fairdm.contrib.identity.models import Identity
 from fairdm.core.utils import get_non_polymorphic_instance
 from fairdm.forms import Form
-from fairdm.utils import assign_all_model_perms, get_model_class
+from fairdm.utils import get_model_class
 
 # =============================================================================
 # VIEW MIXINS
@@ -341,7 +341,7 @@ class FairDMDetailView(FairDMBaseMixin, DetailView):
         return f"{value} · {title}"
 
 
-class FairDMCreateView(FairDMModelFormMixin, CreateView):
+class FairDMCreateView(FairDMModelFormMixin, MVPCreateView):
     """
     The base class for creating objects within the FairDM framework.
     """
@@ -354,25 +354,8 @@ class FairDMCreateView(FairDMModelFormMixin, CreateView):
         },
     }
 
-    def get_template_names(self):
-        templates = super().get_template_names()
-        return templates
 
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        self.assign_permissions()
-
-        return response
-
-    def assign_permissions(self):
-        """
-        Assign permissions to the user after creating the object.
-        This method can be overridden in subclasses to customize permission assignment.
-        """
-        assign_all_model_perms(self.request.user, self.object)
-
-
-class FairDMUpdateView(FairDMModelFormMixin, UpdateView):
+class FairDMUpdateView(FairDMModelFormMixin, MVPUpdateView):
     """
     The base class for creating objects within the FairDM framework.
     """

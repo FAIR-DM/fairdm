@@ -1,14 +1,12 @@
 """Tests for the Sample model, views, and forms."""
 
 import pytest
-from django.test import Client, TestCase
 from django.urls import reverse
 
-from fairdm.contrib.contributors.models import Person
 from fairdm.core.models import Sample
 from fairdm.core.sample.forms import SampleForm
 from fairdm.core.sample.models import SampleDate, SampleDescription, SampleRelation
-from fairdm.factories.core import DatasetFactory, SampleFactory
+from fairdm.factories import DatasetFactory, PersonFactory, SampleFactory
 
 
 @pytest.mark.django_db
@@ -90,10 +88,7 @@ class TestSampleModel:
     def test_add_contributor(self):
         """Test adding a contributor to a sample."""
         sample = SampleFactory()
-        user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
+        user = PersonFactory()
 
         contribution = sample.add_contributor(user, with_roles=["Creator"])
 
@@ -145,7 +140,8 @@ class TestSampleRelation:
 
 
 @pytest.mark.skip(reason="Phase 5 (US3 - Forms) not yet implemented")
-class TestSampleForm(TestCase):
+@pytest.mark.django_db
+class TestSampleForm:
     """Tests for the SampleForm."""
 
     def test_form_valid_data(self):
@@ -183,22 +179,12 @@ class TestSampleForm(TestCase):
 class TestSampleViews:
     """Tests for Sample views."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_sample_detail_view_accessible(self):
+    def test_sample_detail_view_accessible(self, client):
         """Test that sample detail view is accessible."""
         sample = SampleFactory()
         # Note: URL pattern may vary, adjust as needed
         try:
-            response = self.client.get(reverse("sample:detail", kwargs={"uuid": sample.uuid}))
+            response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
             assert response.status_code in [200, 302, 404]  # May vary based on permissions
         except Exception:
             # URL may not be configured or may require different namespace
@@ -209,23 +195,13 @@ class TestSampleViews:
 class TestSamplePermissions:
     """Tests for Sample permissions and access control."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_sample_contributor_relationship(self):
+    def test_sample_contributor_relationship(self, user):
         """Test that samples can have contributors."""
         sample = SampleFactory()
-        contribution = sample.add_contributor(self.user, with_roles=["Creator"])
+        contribution = sample.add_contributor(user, with_roles=["Creator"])
 
         assert sample.contributors.count() == 1
-        assert contribution.contributor == self.user
+        assert contribution.contributor == user
 
 
 # ============================================================================
@@ -248,10 +224,10 @@ class TestSampleQuerySetWithRelated:
     def test_with_related_prefetches_contributors(self):
         """Test that with_related() prefetches contributors via GenericRelation."""
         sample = SampleFactory()
-        user1 = Person.objects.create(name="User 1", email="user1@example.com")
-        user2 = Person.objects.create(name="User 2", email="user2@example.com")
-        contribution1 = sample.add_contributor(user1, with_roles=["Creator"])
-        contribution2 = sample.add_contributor(user2, with_roles=["Editor"])
+        user1 = PersonFactory()
+        user2 = PersonFactory()
+        sample.add_contributor(user1, with_roles=["Creator"])
+        sample.add_contributor(user2, with_roles=["Editor"])
 
         result = Sample.objects.with_related().get(pk=sample.pk)
         contributors = list(result.contributors.all())

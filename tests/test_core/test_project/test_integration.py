@@ -1,14 +1,12 @@
 """Tests for the Project model, views, and forms."""
 
 import pytest
-from django.test import Client, TestCase
 from django.urls import reverse
 
-from fairdm.contrib.contributors.models import Person
 from fairdm.core.models import Project
 from fairdm.core.project.forms import ProjectForm
 from fairdm.core.project.models import ProjectDate, ProjectDescription
-from fairdm.factories.core import ProjectFactory
+from fairdm.factories import PersonFactory, ProjectFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -87,10 +85,7 @@ class TestProjectModel:
     def test_add_contributor(self):
         """Test adding a contributor to a project."""
         project = ProjectFactory()
-        user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
+        user = PersonFactory()
 
         contribution = project.add_contributor(user, with_roles=["Creator"])
 
@@ -99,7 +94,8 @@ class TestProjectModel:
         assert project.contributors.filter(pk=contribution.pk).exists()
 
 
-class TestProjectForm(TestCase):
+@pytest.mark.django_db
+class TestProjectForm:
     """Tests for the ProjectForm."""
 
     def test_form_valid_data(self):
@@ -142,59 +138,46 @@ class TestProjectForm(TestCase):
 class TestProjectViews:
     """Tests for Project views."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_project_list_view_accessible(self):
+    def test_project_list_view_accessible(self, client):
         """Test that project list view is accessible."""
-        response = self.client.get(reverse("project-list"))
+        response = client.get(reverse("project-list"))
 
         assert response.status_code == 200
 
-    def test_project_list_view_shows_public_projects(self):
+    def test_project_list_view_shows_public_projects(self, client):
         """Test that only public projects are shown in list view."""
         public_project = ProjectFactory(visibility=Visibility.PUBLIC)
         private_project = ProjectFactory(visibility=Visibility.PRIVATE)
 
-        response = self.client.get(reverse("project-list"))
+        response = client.get(reverse("project-list"))
 
         # Check that public project is visible
         assert public_project.name.encode() in response.content
         # Check that private project is not visible
         assert private_project.name.encode() not in response.content
 
-    def test_project_create_view_requires_authentication(self):
+    def test_project_create_view_requires_authentication(self, client):
         """Test that project creation requires login."""
-        response = self.client.get(reverse("project-create"))
+        response = client.get(reverse("project-create"))
 
         # Should redirect to login
         assert response.status_code == 302
 
-    def test_project_create_view_accessible_when_authenticated(self):
+    def test_project_create_view_accessible_when_authenticated(self, authenticated_client):
         """Test that authenticated users can access project create view."""
-        self.client.force_login(self.user)
-        response = self.client.get(reverse("project-create"))
+        response = authenticated_client.get(reverse("project-create"))
 
         assert response.status_code == 200
 
-    def test_project_create_view_creates_project(self):
+    def test_project_create_view_creates_project(self, authenticated_client):
         """Test that submitting project create form creates a project."""
-        self.client.force_login(self.user)
-
         form_data = {
             "name": "New Test Project",
             "visibility": Visibility.PUBLIC,
             "status": 0,
         }
 
-        response = self.client.post(reverse("project-create"), data=form_data)
+        response = authenticated_client.post(reverse("project-create"), data=form_data)
 
         # Check redirect after successful creation
         assert response.status_code == 302
@@ -204,10 +187,10 @@ class TestProjectViews:
         assert project is not None
         assert project.visibility == Visibility.PUBLIC
 
-    def test_project_detail_view_accessible(self):
+    def test_project_detail_view_accessible(self, client):
         """Test that project detail view is accessible."""
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = self.client.get(reverse("project:overview", kwargs={"uuid": project.uuid}))
+        response = client.get(reverse("project:overview", kwargs={"uuid": project.uuid}))
 
         assert response.status_code == 200
         assert project.name.encode() in response.content
@@ -217,17 +200,7 @@ class TestProjectViews:
 class TestProjectPermissions:
     """Tests for Project permissions and access control."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_anonymous_user_cannot_create_project(self):
+    def test_anonymous_user_cannot_create_project(self, client):
         """Test that anonymous users cannot create projects."""
         form_data = {
             "name": "Test Project",
@@ -235,24 +208,22 @@ class TestProjectPermissions:
             "status": 0,
         }
 
-        response = self.client.post(reverse("project-create"), data=form_data)
+        response = client.post(reverse("project-create"), data=form_data)
 
         # Should redirect to login
         assert response.status_code == 302
         # Check that redirect URL contains 'login'
         assert "login" in response["Location"]
 
-    def test_project_creator_becomes_contributor(self):
+    def test_project_creator_becomes_contributor(self, authenticated_client):
         """Test that project creator is automatically added as contributor."""
-        self.client.force_login(self.user)
-
         form_data = {
             "name": "Test Project",
             "visibility": Visibility.PUBLIC,
             "status": 0,
         }
 
-        self.client.post(reverse("project-create"), data=form_data)
+        authenticated_client.post(reverse("project-create"), data=form_data)
 
         project = Project.objects.filter(name="Test Project").first()
         if project:

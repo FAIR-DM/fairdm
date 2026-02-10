@@ -71,6 +71,7 @@ from .contributors import (
     UserFactory,
 )
 from .core import (
+    DatasetDescriptionFactory,
     DatasetFactory,
     MeasurementFactory,
     ProjectFactory,
@@ -81,6 +82,7 @@ from .core import (
 
 __all__ = [
     "ContributorFactory",
+    "DatasetDescriptionFactory",
     "DatasetFactory",
     "MeasurementFactory",
     "OrganizationFactory",

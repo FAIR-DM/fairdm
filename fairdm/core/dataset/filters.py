@@ -148,7 +148,7 @@ class DatasetFilter(BaseListFilter):
     )
 
     description_type = django_filters.CharFilter(
-        field_name="descriptions__description_type",
+        field_name="descriptions__type",
         lookup_expr="exact",
         label="Description Type",
         help_text="Filter by description type (e.g., ABSTRACT, METHODS)",

@@ -1545,22 +1545,21 @@ django = ">=4.2,<7.0"
 
 [[package]]
 name = "django-cotton-bs5"
-version = "0.5.1"
+version = "0.6.2"
 description = "Bootstrap 5 components for use with Django Cotton."
 optional = false
-python-versions = "<4.0,>=3.10"
+python-versions = "<4,>=3.10"
 groups = ["main"]
 files = [
-    {file = "django_cotton_bs5-0.5.1-py3-none-any.whl", hash = "sha256:22f5f86f50b2fdc3d68faf06134033bc37bc76ed606cdf5ac399eaf46f31f554"},
-    {file = "django_cotton_bs5-0.5.1.tar.gz", hash = "sha256:3a4fd81cddf9ed386ccbc60e5bfec6537cf37b64d0752b53727d08087b8cdbeb"},
+    {file = "django_cotton_bs5-0.6.2-py3-none-any.whl", hash = "sha256:5abeb152c1e594ec6a78d0bd3481e2fe8a027cf377e0984cf121c27ca74e5ce6"},
+    {file = "django_cotton_bs5-0.6.2.tar.gz", hash = "sha256:361637e6f75140a34396491fe861bbd72345abcfe7aea52202eac2a3dccb4689"},
 ]
 
 [package.dependencies]
-django-cotton = ">=2.3.1"
-django-libsass = ">=0.9,<0.10"
+django-cotton = ">=2.6.1,<3.0.0"
 
 [package.extras]
-django-compressor = ["django-compressor (>=4.5.1,<5.0.0)"]
+django-compressor = ["django-compressor (>=4.5.1,<5.0.0)", "django-libsass (>=0.9,<0.10)"]
 
 [[package]]
 name = "django-countries"
@@ -2088,7 +2087,7 @@ develop = false
 django = ">=4.2,<6.0"
 django-compressor = "^4.5.1"
 django-cotton = ">=2.3.1"
-django-cotton-bs5 = "^0.5.1"
+django-cotton-bs5 = "^0.6.2"
 django-easy-icons = ">=0.5"
 django-flex-menus = "^0.4.1"
 django-libsass = "^0.9"
@@ -2101,7 +2100,7 @@ django-tables2 = ["django-tables2 (>=2.8.0,<3.0.0)"]
 type = "git"
 url = "https://github.com/SamuelJennings/django-mvp"
 reference = "HEAD"
-resolved_reference = "ddb024904742eb2bd453702b30ac403e2ded3ccf"
+resolved_reference = "0c4c370350552cb6a19ec09ef816c0ea4f578407"
 
 [[package]]
 name = "django-ordered-model"
@@ -2185,18 +2184,19 @@ testing = ["pytest (>=6.1)", "pytest-cov (>=2.1)", "pytest-django (>=0.4)", "tox
 
 [[package]]
 name = "django-polymorphic"
-version = "4.10.4"
+version = "4.11.0"
 description = "Seamless polymorphic inheritance for Django models."
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "django_polymorphic-4.10.4-py3-none-any.whl", hash = "sha256:0e36517f72dbbfd659f153e3241ac7afd74b039103090ddef997a5bcd812cb9b"},
-    {file = "django_polymorphic-4.10.4.tar.gz", hash = "sha256:a020c8d4b0d75ba44ad0a253589a823db9fe521fcbd1a7f121f9eefcbb9ec51f"},
+    {file = "django_polymorphic-4.11.0-py3-none-any.whl", hash = "sha256:14d2fabe2df7123e0d153286d0d3e63967e4962a29d400f282bdc455e28c9c5a"},
+    {file = "django_polymorphic-4.11.0.tar.gz", hash = "sha256:04b2f496f43121d83db78574b64e1326f1fa2e8a4cd1b667dfbeb87bddd945c6"},
 ]
 
 [package.dependencies]
 django = ">=4.2"
+typing-extensions = ">=4.12.0"
 
 [[package]]
 name = "django-redis"
@@ -7155,4 +7155,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "d4504837083da5418abe779d031194ba0f0a8c940828d353a6c560914a167763"
+content-hash = "d105ecd2528827fffc95e0a0a2cb3aa8245e7d732b2884b5345648527f2aa7a5"

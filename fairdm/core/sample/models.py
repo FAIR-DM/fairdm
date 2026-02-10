@@ -129,7 +129,7 @@ class Sample(BasePolymorphicModel):
         from django.urls import reverse
 
         # Placeholder - will be implemented when views are created
-        return reverse("sample:detail", kwargs={"uuid": self.uuid})
+        return reverse("sample:overview", kwargs={"uuid": self.uuid})
 
     def get_all_relationships(self):
         """Get all SampleRelation objects where this sample is source or target.

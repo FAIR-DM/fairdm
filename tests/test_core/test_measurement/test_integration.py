@@ -1,14 +1,12 @@
 """Tests for the Measurement model, views, and forms."""
 
 import pytest
-from django.test import Client, TestCase
 from django.urls import reverse
 
-from fairdm.contrib.contributors.models import Person
 from fairdm.core.measurement.forms import MeasurementForm
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Measurement
-from fairdm.factories.core import MeasurementFactory, SampleFactory
+from fairdm.factories import MeasurementFactory, PersonFactory, SampleFactory
 
 
 @pytest.mark.django_db
@@ -88,10 +86,7 @@ class TestMeasurementModel:
     def test_add_contributor(self):
         """Test adding a contributor to a measurement."""
         measurement = MeasurementFactory()
-        user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
+        user = PersonFactory()
 
         contribution = measurement.add_contributor(user, with_roles=["Creator"])
 
@@ -100,7 +95,8 @@ class TestMeasurementModel:
         assert measurement.contributors.filter(pk=contribution.pk).exists()
 
 
-class TestMeasurementForm(TestCase):
+@pytest.mark.django_db
+class TestMeasurementForm:
     """Tests for the MeasurementForm."""
 
     def test_form_initialization(self):
@@ -131,22 +127,12 @@ class TestMeasurementForm(TestCase):
 class TestMeasurementViews:
     """Tests for Measurement views."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_measurement_detail_view_accessible(self):
+    def test_measurement_detail_view_accessible(self, client):
         """Test that measurement detail view is accessible."""
         measurement = MeasurementFactory()
         # Note: URL pattern may vary, adjust as needed
         try:
-            response = self.client.get(reverse("measurement:detail", kwargs={"uuid": measurement.uuid}))
+            response = client.get(reverse("measurement:overview", kwargs={"uuid": measurement.uuid}))
             assert response.status_code in [200, 302, 404]  # May vary based on permissions
         except Exception:
             # URL may not be configured or may require different namespace
@@ -157,20 +143,10 @@ class TestMeasurementViews:
 class TestMeasurementPermissions:
     """Tests for Measurement permissions and access control."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_measurement_contributor_relationship(self):
+    def test_measurement_contributor_relationship(self, user):
         """Test that measurements can have contributors."""
         measurement = MeasurementFactory()
-        contribution = measurement.add_contributor(self.user, with_roles=["Creator"])
+        contribution = measurement.add_contributor(user, with_roles=["Creator"])
 
         assert measurement.contributors.count() == 1
-        assert contribution.contributor == self.user
+        assert contribution.contributor == user

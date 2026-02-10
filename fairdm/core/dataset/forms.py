@@ -16,7 +16,7 @@ from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django_addanother.widgets import AddAnotherWidgetWrapper
-from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
+from django_select2.forms import ModelSelect2Widget
 from licensing.models import License
 
 from fairdm.core.models import Project
@@ -124,6 +124,7 @@ class DatasetForm(ModelForm):
         ),
     )
 
+    # Note: reference field queryset is set in __init__ to avoid AppRegistryNotReady
     reference = forms.ModelChoiceField(
         queryset=None,  # Set in __init__
         label=_("Data Publication"),
@@ -138,23 +139,6 @@ class DatasetForm(ModelForm):
                 attrs={"data-placeholder": _("Select a publication...")},
             ),
             reverse_lazy("literature-create"),
-        ),
-    )
-
-    keywords = forms.ModelMultipleChoiceField(
-        queryset=None,  # Set in __init__
-        label=_("Keywords"),
-        help_text=_(
-            "Add keywords to help others find this dataset. Keywords improve "
-            "searchability and enable better dataset discovery."
-        ),
-        required=False,
-        widget=ModelSelect2MultipleWidget(
-            search_fields=["name__icontains"],
-            attrs={
-                "data-placeholder": _("Select keywords..."),
-                "data-tags": "true",  # Allow creating new keywords
-            },
         ),
     )
 
@@ -178,7 +162,7 @@ class DatasetForm(ModelForm):
 
     class Meta:
         model = Dataset
-        fields = ["name", "image", "project", "license", "reference", "keywords"]
+        fields = ["name", "image", "project", "license", "reference", "doi"]
 
     def __init__(self, request=None, *args, **kwargs):
         """Initialize form with optional request parameter for permission filtering.
@@ -198,27 +182,37 @@ class DatasetForm(ModelForm):
 
         # Filter project queryset based on user permissions
         project_field = self.fields.get("project")
-        if project_field:
-            if self.request and hasattr(self.request, "user") and self.request.user.is_authenticated:
+        if project_field and self.request:
+            # Only filter if request is provided
+            if hasattr(self.request, "user") and self.request.user is not None and self.request.user.is_authenticated:
                 # Show only user's accessible projects
                 project_field.queryset = self.request.user.projects.all()
             else:
-                # Anonymous or no request - show no projects (prevents data leakage)
+                # Anonymous user - show no projects (prevents data leakage)
                 project_field.queryset = Project.objects.none()
+        # If no request provided, leave queryset as-is (all projects)
 
         # Set reference queryset (literature items)
-        # reference_field = self.fields.get("reference")
-        # if reference_field:
-        #     from fairdm.contrib.literature.models import LiteratureItem
+        # Note: literature app is optional, handle gracefully if not installed
+        reference_field = self.fields.get("reference")
+        if reference_field:
+            try:
+                from literature.models import LiteratureItem
 
-        #     reference_field.queryset = LiteratureItem.objects.all()
+                reference_field.queryset = LiteratureItem.objects.all()
+            except (ImportError, LookupError):
+                # Literature app not installed - try via apps registry
+                from django.apps import apps
 
-        # Set keywords queryset
-        # NOTE: Dataset model does not currently have a keywords field
-        # keywords_field = self.fields.get("keywords")
-        # if keywords_field:
-        #     from fairdm.contrib.dicts.models import Term
-        #     keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
+                try:
+                    LiteratureItem = apps.get_model("literature", "LiteratureItem")
+                    reference_field.queryset = LiteratureItem.objects.all()
+                except LookupError:
+                    # Model doesn't exist - remove field and update Meta.fields
+                    del self.fields["reference"]
+                    # Update Meta.fields to exclude reference
+                    if hasattr(self.Meta, "fields") and "reference" in self.Meta.fields:
+                        self.Meta.fields = [f for f in self.Meta.fields if f != "reference"]
 
         # Pre-populate DOI field if editing existing dataset with DOI
         if self.instance and self.instance.pk:

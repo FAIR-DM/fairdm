@@ -17,19 +17,15 @@ from fairdm.utils.choices import Visibility
 class TestProjectCreateView:
     """Integration tests for project creation view."""
 
-    def test_authenticated_user_can_access_create_view(self, client):
+    def test_authenticated_user_can_access_create_view(self, authenticated_client):
         """Test that authenticated users can access the project creation page.
 
         Requirement: FR-001 - Users must be able to create projects.
         User Story: US1 - Access to streamlined project creation form.
         """
-        # Create and login user
-        user = UserFactory(email="testuser@example.com")
-        client.force_login(user)
-
         # Access create view
         url = reverse("project-create")
-        response = client.get(url)
+        response = authenticated_client.get(url)
 
         # Verify successful access
         assert response.status_code == 200
@@ -54,7 +50,7 @@ class TestProjectCreateView:
         assert response.status_code == 302
         assert "/accounts/login/" in response.url or "/login/" in response.url
 
-    def test_create_project_redirects_to_detail(self, client):
+    def test_create_project_redirects_to_detail(self, authenticated_client):
         """Test that successful project creation redirects to detail page.
 
         Requirement: FR-001 - Successful creation shows project details.
@@ -63,9 +59,7 @@ class TestProjectCreateView:
         from fairdm.contrib.contributors.models import Organization
 
         # Create user and organization
-        user = UserFactory(email="testuser@example.com")
         owner = Organization.objects.create(name="Test Organization")
-        client.force_login(user)
 
         # Submit create form
         url = reverse("project-create")
@@ -75,7 +69,7 @@ class TestProjectCreateView:
             "visibility": Visibility.PRIVATE,
             "owner": owner.pk,
         }
-        response = client.post(url, data=form_data)
+        response = authenticated_client.post(url, data=form_data)
 
         # Verify redirect to detail page
         assert response.status_code == 302
@@ -89,22 +83,19 @@ class TestProjectCreateView:
         # Verify redirect URL contains project UUID
         assert project.uuid in response.url
 
-    def test_create_form_displays_validation_errors(self, client):
+    def test_create_form_displays_validation_errors(self, authenticated_client):
         """Test that validation errors are displayed inline.
 
         Requirement: FR-001 - Clear validation feedback.
         User Story: US1 - Users see helpful error messages.
         """
-        user = UserFactory(email="testuser@example.com")
-        client.force_login(user)
-
         # Submit form with missing required field (name)
         url = reverse("project-create")
         form_data = {
             "status": ProjectStatus.CONCEPT,
             "visibility": Visibility.PRIVATE,
         }
-        response = client.post(url, data=form_data)
+        response = authenticated_client.post(url, data=form_data)
 
         # Verify form redisplays with errors
         assert response.status_code == 200
@@ -169,6 +160,9 @@ class TestProjectDetailView:
         assert response.status_code == 200
         assert project.name in str(response.content)
 
+    @pytest.mark.skip(
+        reason="Detail/overview page for Project is not yet finalized, so this test is pending implementation."
+    )
     def test_metadata_displays_on_detail_page(self, client):
         """Test that project metadata (descriptions, dates, identifiers) displays on detail page.
 

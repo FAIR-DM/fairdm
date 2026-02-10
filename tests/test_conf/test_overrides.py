@@ -227,6 +227,8 @@ REDIS_URL=redis://localhost:6379/5
         )
 
         settings_file = tmp_path / "settings.py"
+        # Use Path.as_posix() to avoid Windows backslash escaping issues
+        custom_env_posix = custom_env.as_posix()
         settings_file.write_text(
             f"""
 import os
@@ -237,7 +239,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 import fairdm
 
-fairdm.setup(env_file="{custom_env}")
+fairdm.setup(env_file='{custom_env_posix}')
 """
         )
 

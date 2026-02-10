@@ -19,6 +19,7 @@ import pytest
 from django.test import RequestFactory
 from licensing.models import License
 
+from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.forms import DatasetForm
 from fairdm.core.dataset.models import DatasetIdentifier
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
@@ -28,27 +29,30 @@ from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 class TestFormQuerysetFiltering:
     """Test form queryset filtering based on user permissions (T085)."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.factory = RequestFactory()
-        self.user = UserFactory()
-        self.other_user = UserFactory(username="otheruser")
-
-        # Create projects for each user
-        self.user_project = ProjectFactory(name="User Project", owner=self.user)
-        self.other_project = ProjectFactory(name="Other Project", owner=self.other_user)
-
     def test_form_filters_projects_by_user_permissions(self):
         """Test that project queryset is filtered to user's accessible projects."""
-        request = self.factory.get("/")
-        request.user = self.user
+
+        factory = RequestFactory()
+        user = UserFactory()
+        other_user = UserFactory(email="otheruser@example.com")
+
+        # Create projects with default (auto-generated) owners
+        user_project = ProjectFactory(name="User Project")
+        other_project = ProjectFactory(name="Other Project")
+
+        # Add users as contributors to their respective projects
+        Contribution.add_to(user, user_project, roles=["Contributor"])
+        Contribution.add_to(other_user, other_project, roles=["Contributor"])
+
+        request = factory.get("/")
+        request.user = user
 
         form = DatasetForm(request=request)
 
         # Should only include user's projects
         project_queryset = form.fields["project"].queryset
-        assert self.user_project in project_queryset
-        assert self.other_project not in project_queryset
+        assert user_project in project_queryset
+        assert other_project not in project_queryset
 
     def test_form_without_request_shows_all_projects(self):
         """Test that form without request context shows all projects."""
@@ -61,7 +65,9 @@ class TestFormQuerysetFiltering:
 
     def test_form_with_anonymous_user_handles_gracefully(self):
         """Test form with anonymous user doesn't crash (T089)."""
-        request = self.factory.get("/")
+
+        factory = RequestFactory()
+        request = factory.get("/")
         request.user = None  # Anonymous user
 
         # Should not raise an exception
@@ -215,11 +221,20 @@ class TestAutocompleteWidgets:
 
         project_field = form.fields.get("project")
         if project_field:
-            # Widget should be Select2Widget or similar autocomplete widget
-            widget_name = type(project_field.widget).__name__
-            assert "Select2" in widget_name or "Autocomplete" in widget_name, (
-                f"Project field should use autocomplete widget, got {widget_name}"
-            )
+            # Widget might be wrapped in AddAnotherWidgetWrapper - check inner widget
+            widget = project_field.widget
+            widget_name = type(widget).__name__
+
+            # If wrapped, get the inner widget
+            if hasattr(widget, "widget"):
+                inner_widget_name = type(widget.widget).__name__
+                assert "Select2" in inner_widget_name or "Autocomplete" in inner_widget_name, (
+                    f"Project field should use autocomplete widget, got {inner_widget_name} (wrapped in {widget_name})"
+                )
+            else:
+                assert "Select2" in widget_name or "Autocomplete" in widget_name, (
+                    f"Project field should use autocomplete widget, got {widget_name}"
+                )
 
     def test_license_field_uses_autocomplete_widget(self):
         """Test that license field uses Select2 or autocomplete widget."""

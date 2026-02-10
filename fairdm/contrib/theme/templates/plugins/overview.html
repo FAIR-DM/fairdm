@@ -7,9 +7,7 @@
       <c-card.page-header title="{{ object }}" subtitle="Placeholder">
         <c-slot name="content_left">
           <div class="card">
-            <img src="{{ object.image.url }}"
-                 class="card-img"
-                 alt="{{ object }}" />
+            {% comment %} <img src="{{ object.image.url }}" class="card-img" alt="{{ object }}" /> {% endcomment %}
             <div class="card-img-overlay"></div>
           </div>
         </c-slot>

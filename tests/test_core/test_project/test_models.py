@@ -12,10 +12,9 @@ Test-First Approach (Red-Green-Refactor):
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 
-from fairdm.core.project.models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
 from fairdm.core.choices import ProjectStatus
+from fairdm.core.project.models import Project, ProjectDescription
 from fairdm.utils.choices import Visibility
 
 
@@ -36,10 +35,7 @@ class TestProjectModel:
 
         # Create project with minimal required fields
         project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Verify project was created successfully
@@ -61,17 +57,11 @@ class TestProjectModel:
         owner = Organization.objects.create(name="Test Organization")
 
         project1 = Project.objects.create(
-            name="Project 1",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Project 1", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         project2 = Project.objects.create(
-            name="Project 2",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Project 2", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Verify UUIDs are unique
@@ -99,10 +89,7 @@ class TestProjectModel:
 
         for status in valid_statuses:
             project = Project.objects.create(
-                name=f"Project {status}",
-                status=status,
-                visibility=Visibility.PRIVATE,
-                owner=owner
+                name=f"Project {status}", status=status, visibility=Visibility.PRIVATE, owner=owner
             )
             assert project.status == status
 
@@ -124,10 +111,7 @@ class TestProjectModel:
 
         for visibility in valid_visibilities:
             project = Project.objects.create(
-                name=f"Project {visibility}",
-                status=ProjectStatus.CONCEPT,
-                visibility=visibility,
-                owner=owner
+                name=f"Project {visibility}", status=ProjectStatus.CONCEPT, visibility=visibility, owner=owner
             )
             assert project.visibility == visibility
 
@@ -143,10 +127,7 @@ class TestProjectModel:
         owner = Organization.objects.create(name="Test Organization")
 
         project = Project.objects.create(
-            name="Project with Dataset",
-            status=ProjectStatus.IN_PROGRESS,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Project with Dataset", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Add a dataset to the project
@@ -180,25 +161,14 @@ class TestProjectDescriptionModel:
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Create first description
-        desc1 = ProjectDescription.objects.create(
-            related=project,
-            type="Abstract",
-            value="First abstract"
-        )
+        desc1 = ProjectDescription.objects.create(related=project, type="Abstract", value="First abstract")
 
         # Attempt to create duplicate type should fail at validation
-        desc2 = ProjectDescription(
-            related=project,
-            type="Abstract",
-            value="Second abstract"
-        )
+        desc2 = ProjectDescription(related=project, type="Abstract", value="Second abstract")
 
         with pytest.raises(ValidationError) as exc_info:
             desc2.clean()
@@ -221,15 +191,12 @@ class TestProjectDateModel:
         ProjectDate should add an optional end_date field for ranges.
         This test will fail until end_date field is added to the model.
         """
+
         from fairdm.contrib.contributors.models import Organization
-        from datetime import date
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Skip this test until end_date field is added to ProjectDate model

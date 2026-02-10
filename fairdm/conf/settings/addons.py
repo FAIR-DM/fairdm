@@ -50,10 +50,10 @@ FLEX_MENUS = {
     "renderers": {
         "adminlte": "mvp.renderers.AdminLTERenderer",
         "nav": "mvp.renderers.NavRenderer",
-        "navbar": "mvp.renderers.NavbarRenderer",
-        "mobile_navbar": "mvp.renderers.MobileNavbarRenderer",
-        "sidebar": "mvp.renderers.SidebarRenderer",
-        "dropdown": "mvp.renderers.DropdownRenderer",
+        # "navbar": "mvp.renderers.NavbarRenderer",
+        # "mobile_navbar": "mvp.renderers.MobileNavbarRenderer",
+        # "sidebar": "mvp.renderers.SidebarRenderer",
+        # "dropdown": "mvp.renderers.DropdownRenderer",
     }
 }
 

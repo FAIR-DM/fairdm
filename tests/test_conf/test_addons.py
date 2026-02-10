@@ -218,21 +218,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 import fairdm
 
-# Get initial INSTALLED_APPS count
-fairdm.setup()
-initial_app_count = len(INSTALLED_APPS)
-
-# Now load with addon
-from importlib import reload
-import fairdm.conf.setup
-reload(fairdm.conf.setup)
-
 fairdm.setup(addons=["tests.test_conf.dummy_addon"])
-addon_app_count = len(INSTALLED_APPS)
-
-# Addon should have added at least one app
-assert addon_app_count > initial_app_count
-assert "tests.test_conf.dummy_addon" in INSTALLED_APPS
 """
         )
 
@@ -243,7 +229,7 @@ assert "tests.test_conf.dummy_addon" in INSTALLED_APPS
             test_settings = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(test_settings)
 
-            # Verification happens inside the test file
+            # Verify addon app was added
             assert "tests.test_conf.dummy_addon" in test_settings.INSTALLED_APPS
 
 
@@ -264,7 +250,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 import fairdm
 
-# Load addon
 fairdm.setup(addons=["tests.test_conf.dummy_addon"])
 """
         )
@@ -293,9 +278,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 import fairdm
 
 fairdm.setup(addons=["tests.test_conf.dummy_addon"])
-
-# Verify addon's custom logger was added
-assert "dummy_addon" in LOGGING["loggers"]
 """
         )
 
@@ -306,5 +288,5 @@ assert "dummy_addon" in LOGGING["loggers"]
             test_settings = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(test_settings)
 
-            # Verification happens inside the test file
+            # Verify addon's custom logger was added
             assert "dummy_addon" in test_settings.LOGGING["loggers"]

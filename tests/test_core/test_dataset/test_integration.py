@@ -1,14 +1,12 @@
 """Tests for the Dataset model, views, and forms."""
 
 import pytest
-from django.test import Client, TestCase
 from django.urls import reverse
 
-from fairdm.contrib.contributors.models import Person
 from fairdm.core.dataset.forms import DatasetForm
 from fairdm.core.dataset.models import DatasetDate, DatasetDescription
 from fairdm.core.models import Dataset
-from fairdm.factories.core import DatasetFactory, ProjectFactory
+from fairdm.factories import DatasetFactory, PersonFactory, ProjectFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -112,10 +110,7 @@ class TestDatasetModel:
     def test_add_contributor(self):
         """Test adding a contributor to a dataset."""
         dataset = DatasetFactory()
-        user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
+        user = PersonFactory()
 
         contribution = dataset.add_contributor(user, with_roles=["Creator"])
 
@@ -132,16 +127,21 @@ class TestDatasetModel:
         assert dataset in project.datasets.all()
 
 
-class TestDatasetForm(TestCase):
+@pytest.mark.django_db
+class TestDatasetForm:
     """Tests for the DatasetForm."""
 
     def test_form_valid_data(self):
         """Test form validation with valid data."""
+        from licensing.models import License
+
         project = ProjectFactory()
+        license = License.objects.get_or_create(name="CC BY 4.0")[0]
 
         form_data = {
             "name": "Test Dataset",
             "project": project.pk,
+            "license": license.pk,
         }
         form = DatasetForm(data=form_data)
 
@@ -160,61 +160,49 @@ class TestDatasetForm(TestCase):
 class TestDatasetViews:
     """Tests for Dataset views."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_dataset_list_view_accessible(self):
+    def test_dataset_list_view_accessible(self, client):
         """Test that dataset list view is accessible."""
-        response = self.client.get(reverse("dataset-list"))
+        response = client.get(reverse("dataset-list"))
 
         assert response.status_code == 200
 
-    def test_dataset_list_view_shows_public_datasets(self):
+    def test_dataset_list_view_shows_public_datasets(self, client):
         """Test that only public datasets are shown in list view."""
         public_dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         private_dataset = DatasetFactory(visibility=Visibility.PRIVATE)
 
-        response = self.client.get(reverse("dataset-list"))
+        response = client.get(reverse("dataset-list"))
 
         # Check that public dataset is visible
         assert public_dataset.name.encode() in response.content
         # Check that private dataset is not visible
         assert private_dataset.name.encode() not in response.content
 
-    def test_dataset_create_view_requires_authentication(self):
+    def test_dataset_create_view_requires_authentication(self, client):
         """Test that dataset creation requires login."""
-        response = self.client.get(reverse("dataset-create"))
+        response = client.get(reverse("dataset-create"))
 
         # Should redirect to login
         assert response.status_code == 302
 
-    def test_dataset_create_view_accessible_when_authenticated(self):
+    def test_dataset_create_view_accessible_when_authenticated(self, authenticated_client):
         """Test that authenticated users can access dataset create view."""
-        self.client.force_login(self.user)
-        response = self.client.get(reverse("dataset-create"))
+        response = authenticated_client.get(reverse("dataset-create"))
 
         assert response.status_code == 200
 
-    def test_dataset_create_view_with_project_param(self):
+    def test_dataset_create_view_with_project_param(self, authenticated_client):
         """Test dataset creation with project parameter in URL."""
-        self.client.force_login(self.user)
         project = ProjectFactory()
 
-        response = self.client.get(reverse("dataset-create"), {"project": project.pk})
+        response = authenticated_client.get(reverse("dataset-create"), {"project": project.pk})
 
         assert response.status_code == 200
 
-    def test_dataset_detail_view_accessible(self):
+    def test_dataset_detail_view_accessible(self, client):
         """Test that dataset detail view is accessible."""
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = self.client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
 
         assert response.status_code == 200
         assert dataset.name.encode() in response.content
@@ -224,41 +212,28 @@ class TestDatasetViews:
 class TestDatasetPermissions:
     """Tests for Dataset permissions and access control."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.client = Client()
-        self.user = Person.objects.create(
-            name="Test User",
-            email="test@example.com",
-        )
-        self.user.set_password("testpass123")
-        self.user.save()
-
-    def test_anonymous_user_cannot_create_dataset(self):
+    def test_anonymous_user_cannot_create_dataset(self, client):
         """Test that anonymous users cannot create datasets."""
         form_data = {
             "name": "Test Dataset",
         }
 
-        response = self.client.post(reverse("dataset-create"), data=form_data)
+        response = client.post(reverse("dataset-create"), data=form_data)
 
         # Should redirect to login
         assert response.status_code == 302
         # Check that redirect URL contains 'login'
         assert "login" in response["Location"]
 
-    def test_dataset_creator_becomes_contributor(self):
+    def test_dataset_creator_becomes_contributor(self, authenticated_client):
         """Test that dataset creator is automatically added as contributor."""
-        self.client.force_login(self.user)
-
         form_data = {
             "name": "Test Dataset",
         }
 
-        self.client.post(reverse("dataset-create"), data=form_data)
+        authenticated_client.post(reverse("dataset-create"), data=form_data)
 
         dataset = Dataset.objects.filter(name="Test Dataset").first()
         if dataset:
             # Check that the dataset has contributors
             assert dataset.contributors.count() > 0
-

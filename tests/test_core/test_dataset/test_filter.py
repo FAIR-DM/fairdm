@@ -40,6 +40,7 @@ from licensing.models import License
 from fairdm.core.dataset.filters import DatasetFilter
 from fairdm.core.dataset.models import Dataset
 from fairdm.factories import (
+    DatasetDescriptionFactory,
     DatasetFactory,
     ProjectFactory,
 )
@@ -144,7 +145,9 @@ class TestVisibilityFilter:
         DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
 
         # Act
-        filterset = DatasetFilter(data={"visibility": Dataset.VISIBILITY_CHOICES.PUBLIC}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"visibility": Dataset.VISIBILITY_CHOICES.PUBLIC}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -158,7 +161,9 @@ class TestVisibilityFilter:
         ds_private = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
 
         # Act
-        filterset = DatasetFilter(data={"visibility": Dataset.VISIBILITY_CHOICES.PRIVATE}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"visibility": Dataset.VISIBILITY_CHOICES.PRIVATE}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -322,7 +327,8 @@ class TestMultipleFilterCombinations:
 
         # Act
         filterset = DatasetFilter(
-            data={"search": "Geological", "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC}, queryset=Dataset.objects.all()
+            data={"search": "Geological", "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC},
+            queryset=Dataset.objects.all(),
         )
 
         # Assert
@@ -342,7 +348,9 @@ class TestMultipleFilterCombinations:
 
         # Create datasets that don't match all criteria
         DatasetFactory(name="Other", license=cc_by, project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-        DatasetFactory(name="Geological Survey", license=cc_by, project=project, visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
+        DatasetFactory(
+            name="Geological Survey", license=cc_by, project=project, visibility=Dataset.VISIBILITY_CHOICES.PRIVATE
+        )
 
         # Act
         filterset = DatasetFilter(
@@ -452,4 +460,3 @@ class TestFilterFormRendering:
 
         # Assert
         assert filterset.is_valid()
-

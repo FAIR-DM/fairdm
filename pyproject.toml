@@ -89,7 +89,6 @@ django-setup-tools = "^0.2.5"
 django-flex-menus = "^0.4.0"
 django-easy-icons = "^0.5.0"
 django-cotton = ">=2.3.1"
-django-cotton-bs5 = "^0.5.0"
 django-mvp = {git = "https://github.com/SamuelJennings/django-mvp"}
 django-hijack = "^3.7.4"
 tablib = {extras = ["ods", "xlsx"], version = "^3.9.0"}
