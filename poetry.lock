@@ -2861,13 +2861,13 @@ resolved_reference = "511af64fcaeeacfdcab59ce5c54e9d85463c5404"
 
 [[package]]
 name = "fairdm-docs"
-version = "0.0.1"
-description = "Template code for consistent docs across projects"
+version = "1.0.0"
+description = "Standardized documentation configuration and tooling for FairDM-powered research data portals"
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.11"
 groups = ["docs"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 markdown = "*"
@@ -2879,19 +2879,18 @@ sphinx-autodoc2 = ">=0.5"
 sphinx-comments = ">=0.0.3"
 sphinx-copybutton = ">=0.5"
 sphinx-design = ">=0.6"
-sphinx-exec-code = "^0.16"
-sphinxcontrib-bibtex = "^2.6.3"
+sphinx-exec-code = ">=0.16,<0.17"
+sphinxcontrib-bibtex = ">=2.6.3,<3.0.0"
 sphinxext-opengraph = ">=0.9"
+typer = ">=0.12.0"
 
 [package.extras]
 pydata-sphinx-theme = ["pydata-sphinx-theme (>=0.16.1)"]
 sphinx-book-theme = ["sphinx-book-theme (>1.1)"]
 
 [package.source]
-type = "git"
-url = "https://github.com/FAIR-DM/fairdm-docs"
-reference = "HEAD"
-resolved_reference = "8d88d99077f9ec1f655a41bd45caea0e336d0635"
+type = "directory"
+url = "../fairdm-docs"
 
 [[package]]
 name = "fairdm-rest-api"
@@ -5652,7 +5651,7 @@ version = "14.3.2"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
 python-versions = ">=3.8.0"
-groups = ["dev"]
+groups = ["dev", "docs"]
 files = [
     {file = "rich-14.3.2-py3-none-any.whl", hash = "sha256:08e67c3e90884651da3239ea668222d19bea7b589149d8014a21c633420dbb69"},
     {file = "rich-14.3.2.tar.gz", hash = "sha256:e712f11c1a562a11843306f5ed999475f09ac31ffb64281f73ab29ffdda8b3b8"},
@@ -5964,6 +5963,18 @@ starlite = ["starlite (>=1.48)"]
 statsig = ["statsig (>=0.55.3)"]
 tornado = ["tornado (>=6)"]
 unleash = ["UnleashClient (>=6.0.1)"]
+
+[[package]]
+name = "shellingham"
+version = "1.5.4"
+description = "Tool to Detect Surrounding Shell"
+optional = false
+python-versions = ">=3.7"
+groups = ["docs"]
+files = [
+    {file = "shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"},
+    {file = "shellingham-1.5.4.tar.gz", hash = "sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de"},
+]
 
 [[package]]
 name = "shortuuid"
@@ -6500,6 +6511,24 @@ docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,<8.2)", "pytest-mock", "pytest-mypy-testing"]
 
 [[package]]
+name = "typer"
+version = "0.21.1"
+description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
+optional = false
+python-versions = ">=3.9"
+groups = ["docs"]
+files = [
+    {file = "typer-0.21.1-py3-none-any.whl", hash = "sha256:7985e89081c636b88d172c2ee0cfe33c253160994d47bdfdc302defd7d1f1d01"},
+    {file = "typer-0.21.1.tar.gz", hash = "sha256:ea835607cd752343b6b2b7ce676893e5a0324082268b48f27aa058bdb7d2145d"},
+]
+
+[package.dependencies]
+click = ">=8.0.0"
+rich = ">=10.11.0"
+shellingham = ">=1.3.0"
+typing-extensions = ">=3.7.4.3"
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.9.0.20260124"
 description = "Typing stubs for python-dateutil"
@@ -7034,4 +7063,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "f9e506a5f6aa177c9eec183efe94e45b39ecd9640f3d0cae9822e93e2477b33f"
+content-hash = "cf61e3349021b28f56108a67434a9029a046249d2a7f3fd99d650b50608208b8"

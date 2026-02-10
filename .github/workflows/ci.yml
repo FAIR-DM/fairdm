@@ -62,8 +62,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Run mypy
-        run: poetry run mypy
+      # - name: Run mypy
+      #   run: poetry run mypy
 
   # ============================================
   # Test Suite

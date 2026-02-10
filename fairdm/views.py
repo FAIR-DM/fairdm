@@ -122,9 +122,9 @@ class FairDMModelFormMixin(
             retrieval to that method. Otherwise, it falls back to the superclass implementation.
     """
 
-    model = None
-    form_class = None
-    fields = None
+    model: Model | None = None
+    form_class: Form | None = None
+    fields: list = []
 
     def post(self, request, *args, **kwargs):
         """This is here so the method_decorator works correctly."""

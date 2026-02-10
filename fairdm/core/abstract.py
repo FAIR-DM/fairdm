@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
 from research_vocabs.models import Concept
+from research_vocabs.vocabularies import VocabularyBuilder
 from taggit.managers import TaggableManager
 
 from fairdm.contrib.contributors.choices import IdentifierLookup
@@ -226,7 +227,7 @@ class GenericModelManager(Manager):
 class GenericModel(Model):
     """A model that can be used to store generic information."""
 
-    VOCABULARY = None
+    VOCABULARY: VocabularyBuilder | None = None
     modified = None
     added = None
     # FOR = None

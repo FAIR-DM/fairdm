@@ -123,7 +123,7 @@ fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
 pytest-benchmark = "^5.2.3"
 
 [tool.poetry.group.docs.dependencies]
-fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs", extras = [
+fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
     "pydata-sphinx-theme",
 ] }
 toml = "^0.10.2"
@@ -394,3 +394,9 @@ commands =
     pytest --doctest-modules tests --cov --cov-config=pyproject.toml --cov-report=xml
     mypy
 """
+
+[tool.fairdm.docs]
+port = 8010                   # Live server port (default: 5000)
+verbosity = "quiet"           # Options: "full", "quiet", "errors-only"
+django = true                 # Enable Django integration (default: false)
+theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")
