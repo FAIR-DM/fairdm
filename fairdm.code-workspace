@@ -12,7 +12,7 @@
 		// 	"path": "../django-content-license"
 		// },
 		// {
-		// 	"path": "../django-cotton-bs5"
+		// 	"path": "../django-mvp"
 		// },
 		// {
 		// 	"path": "../django-accounts-center"
@@ -43,7 +43,9 @@
 			"**/.hypothesis": true,
 			"htmlcov": true,
 			"media/": true,
-			"static/": true
+			"static/": true,
+			"**/*.pyc": true,
+			"**/migrations/__pycache__": true
 		},
 		// =====================================
 		// PYTHON SETTINGS
@@ -62,11 +64,14 @@
 			"**/docs",
 			"**/dist",
 			"**/migrations",
+			"**/fixtures",
 			"**/venv",
 			"**/.venv",
 			"**/.pytest_cache",
 			"**/.mypy_cache",
 			"**/.ruff_cache",
+			"**/.github",
+			"**/.specify",
 			"fairdm/conf/**"
 		],
 		// Python testing with pytest
@@ -230,7 +235,7 @@
 			{
 				"label": "Run Linting (Ruff)",
 				"type": "shell",
-				"command": "poetry run ruff check .",
+				"command": "poetry run ruff check fairdm fairdm_demo tests",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -240,7 +245,17 @@
 			{
 				"label": "Format Code (Ruff)",
 				"type": "shell",
-				"command": "poetry run ruff format .",
+				"command": "poetry run ruff format fairdm fairdm_demo tests",
+				"group": "build",
+				"presentation": {
+					"reveal": "always",
+					"panel": "shared"
+				}
+			},
+			{
+				"label": "Run Pre-commit",
+				"type": "shell",
+				"command": "poetry run pre-commit run --all-files",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",

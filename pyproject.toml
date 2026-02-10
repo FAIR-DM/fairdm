@@ -134,7 +134,7 @@ requires = ['poetry-core (>=2.0,<3.0)']
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 exclude = [
     ".bzr",
     ".direnv",
@@ -315,28 +315,63 @@ skip_covered = false
 
 
 [tool.deptry]
-extend_exclude = ["tasks.py", "docs", ".*tests"]
-ignore_transitive = ["toml"]
-# deptry checks imports but doesn't detect apps in djangos installed_apps settings. These must be listed here to avoid dependency errors.
-ignore_obsolete = [
+extend_exclude = [
+    "tasks.py",
+    "docs",
+    ".*tests",
+    "tests/",
+    "fairdm_demo/tests/",
+    "fairdm/factories/",
+]
+
+# Map Django package names to their import names
+known_first_party = ["fairdm", "fairdm_demo"]
+
+# Package to module name mappings for Django packages that use different import names
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = "pint", django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-jsonfield-toolkit = "jsonfield_toolkit", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
+
+# Ignore specific dependency issues for packages used in Django settings/templates/config
+per_rule_ignores = { DEP002 = [
+    "crispy-bootstrap5",
+    "django-activity-stream",
+    "django-admin-extra-buttons",
     "django-adminactions",
+    "django-allauth",
     "django-celery-beat",
+    "django-classy-tags",
+    "django-cleanup",
     "django-compressor",
-    "django-cors-headers",
+    "django-crispy-forms",
     "django-dbbackup",
     "django-htmx",
+    "django-invitations",
     "django-libsass",
-    "django-nested-admin",
-    "django-postgres-metrics",
+    "django-redis",
     "django-social-share",
-    "django-spaghetti-and-meatballs",
-    "django-tellme",
+    "django-storages",
+    "django-widget-tweaks",
+    "django-render-fields",
+    "django-accounts-center",
+    "django-setup-tools",
+    "flower",
     "gunicorn",
     "psycopg2-binary",
     "redis",
     "whitenoise",
-    "django-laboratory",
-]
+    "tablib",
+], DEP003 = [
+    "debug_toolbar",
+    "requests",
+    "rest_framework",
+    "rest_framework_gis",
+    "partial_date",
+    "quantityfield",
+    "factory",
+    "faker",
+] }
+
+# PEP621 dev dependency groups (currently using Poetry, so this doesn't apply)
+# pep621_dev_dependency_groups = ["test", "dev", "docs"]
 
 
 [tool.tox]
