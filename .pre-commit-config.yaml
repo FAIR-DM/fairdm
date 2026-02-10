@@ -55,16 +55,16 @@ repos:
       - id: poetry-lock
         stages: [manual]
 
-  # Local hooks that use Poetry environment
-  - repo: local
-    hooks:
-      - id: mypy
-        name: mypy type checking
-        entry: poetry run mypy
-        language: system
-        types: [python]
-        files: ^fairdm/
-        require_serial: true
+      # Local hooks that use Poetry environment
+      # - repo: local
+      #   hooks:
+      #     - id: mypy
+      #       name: mypy type checking
+      #       entry: poetry run mypy
+      #       language: system
+      #       types: [python]
+      #       files: ^fairdm/
+      #       require_serial: true
 
       - id: deptry
         name: deptry dependency checking

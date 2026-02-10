@@ -2861,7 +2861,7 @@ resolved_reference = "511af64fcaeeacfdcab59ce5c54e9d85463c5404"
 
 [[package]]
 name = "fairdm-docs"
-version = "1.0.0"
+version = "0.3.0"
 description = "Standardized documentation configuration and tooling for FairDM-powered research data portals"
 optional = false
 python-versions = ">=3.11"
