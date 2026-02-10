@@ -264,6 +264,7 @@ exclude = [
     "tests/settings.py",
     "fairdm/conf/*",
     "fairdm/contrib/*",
+    ".*/plugins\\.py$",
 ]
 mypy_path = "./fairdm/"
 plugins = ["mypy_django_plugin.main"]
