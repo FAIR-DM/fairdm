@@ -6,7 +6,6 @@ from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
 from shortuuid.django_fields import ShortUUIDField
 
-from fairdm.contrib.location.utils import bbox_for_dataset
 from fairdm.db import models
 from fairdm.db.models import QuerySet
 from fairdm.utils.choices import Visibility
@@ -608,6 +607,8 @@ class Dataset(BaseModel):
 
     @cached_property
     def bbox(self):
+        from fairdm.contrib.location.utils import bbox_for_dataset
+
         return bbox_for_dataset(self)
 
 
