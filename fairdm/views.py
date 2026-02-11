@@ -124,7 +124,7 @@ class FairDMModelFormMixin(
 
     model: Model | None = None
     form_class: Form | None = None
-    fields: list = []
+    fields = None
 
     def post(self, request, *args, **kwargs):
         """This is here so the method_decorator works correctly."""
