@@ -121,11 +121,13 @@ snakeviz = "^2.2.2"
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
 pytest-benchmark = "^5.2.3"
+fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
 
 [tool.poetry.group.docs.dependencies]
-fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
-    "pydata-sphinx-theme",
-] }
+# fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
+#     "pydata-sphinx-theme",
+# ] }
+# Note: Path dependencies don't work in CI. Use git URL or install separately for local dev
 toml = "^0.10.2"
 sphinxcontrib-bibtex = "^2.6.3"
 
