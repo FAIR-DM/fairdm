@@ -128,7 +128,7 @@ class AutoGenerationFactories:
             list_fields = [f.name for f in model_class._meta.fields if f.name in default_fields]
 
         # Always add an actions column
-        fields = list_fields + ["actions"]
+        fields = [*list_fields, "actions"]
 
         # Create table using table_factory
         table_class = table_factory(model_class, fields=fields, **getattr(config, "table_options", {}))
@@ -192,7 +192,7 @@ class AutoGenerationFactories:
                 {"Meta": meta_class},
             )
 
-            return serializer_class
+            return serializer_class  # noqa: TRY300
 
         except ImportError:
             # DRF not available

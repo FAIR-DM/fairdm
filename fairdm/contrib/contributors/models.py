@@ -189,7 +189,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         help_text=_("The date and time this record was last modified."),
     )
 
-    class Meta:  # type: ignore
+    class Meta:  # type: ignore[no-redef]
         ordering = ["name"]
         verbose_name = _("contributor")
         verbose_name_plural = _("contributors")

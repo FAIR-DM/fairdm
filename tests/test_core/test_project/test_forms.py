@@ -11,7 +11,6 @@ Test-First Approach (Red-Green-Refactor):
 """
 
 import pytest
-from django.core.exceptions import ValidationError
 
 from fairdm.core.choices import ProjectStatus
 from fairdm.utils.choices import Visibility
@@ -118,17 +117,14 @@ class TestProjectEditForm:
         User Story: US1 - Validation prevents premature publication.
         """
         from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.models import Project
         from fairdm.core.project.forms import ProjectEditForm
+        from fairdm.core.project.models import Project
 
         owner = Organization.objects.create(name="Test Organization")
 
         # Create a concept project
         project = Project.objects.create(
-            name="Concept Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Concept Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Attempt to set visibility to PUBLIC while status is CONCEPT
@@ -156,17 +152,14 @@ class TestProjectEditForm:
         User Story: US1 - Full editing capability for active projects.
         """
         from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.models import Project
         from fairdm.core.project.forms import ProjectEditForm
+        from fairdm.core.project.models import Project
 
         owner = Organization.objects.create(name="Test Organization")
 
         # Create an active project
         project = Project.objects.create(
-            name="Active Project",
-            status=ProjectStatus.IN_PROGRESS,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Active Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Edit to make public (allowed for active projects)
@@ -203,29 +196,19 @@ class TestProjectDescriptionForm:
         Implementation: T043 - Form validation for description type uniqueness.
         """
         from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.models import Project, ProjectDescription
         from fairdm.core.project.forms import ProjectDescriptionForm
+        from fairdm.core.project.models import Project, ProjectDescription
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Create first description of type "Abstract"
-        ProjectDescription.objects.create(
-            related=project,
-            type="Abstract",
-            value="Existing abstract"
-        )
+        ProjectDescription.objects.create(related=project, type="Abstract", value="Existing abstract")
 
         # Attempt to create second description with same type should fail
-        form_data = {
-            "type": "Abstract",
-            "value": "Duplicate abstract"
-        }
+        form_data = {"type": "Abstract", "value": "Duplicate abstract"}
 
         form = ProjectDescriptionForm(data=form_data)
         form.instance.related = project
@@ -279,15 +262,12 @@ class TestProjectIdentifierForm:
         would need to be extended or changed.
         """
         from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.models import Project
         from fairdm.core.project.forms import ProjectIdentifierForm
+        from fairdm.core.project.models import Project
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner
+            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 
         # Test with valid ISNI identifier

@@ -5,6 +5,8 @@ from django.contrib.gis.measure import Distance
 from django.core.exceptions import ValidationError
 from django.db.models import F, Max, Min
 
+from .models import Point
+
 # from rest_framework_gis.filters import DistanceToPointFilter
 # from fairdm.contrib.samples.serializers import SampleGeojsonSerializer
 
@@ -26,11 +28,11 @@ def normalize_coordinate(value, precision=5, coerce=str):
     """
     try:
         dec = Decimal(str(value))
-    except Exception:
-        raise ValidationError(f"Invalid coordinate value: {value}")
+    except Exception as err:
+        raise ValidationError(f"Invalid coordinate value: {value}") from err
 
     # Count number of actual decimal places
-    decimal_places = -dec.as_tuple().exponent if dec.as_tuple().exponent < 0 else 0
+    -dec.as_tuple().exponent if dec.as_tuple().exponent < 0 else 0
 
     # if decimal_places < 5:
     # raise ValidationError("Coordinates must be at least 5 decimal places")
@@ -52,7 +54,7 @@ def serialize_dataset_samples(self, dataset):
 
 def get_sites_within(location, radius=25):
     """Gets nearby sites within {radius} km radius"""
-    qs = Point.objects.filter(point__distance_lt=(location.point, Distance(km=radius)))
+    Point.objects.filter(point__distance_lt=(location.point, Distance(km=radius)))
 
 
 def locations_for_dataset(dataset):

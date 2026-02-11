@@ -25,11 +25,11 @@ class PersonResource(resources.ModelResource):
     def after_save_instance(self, instance, row, **kwargs):
         org = None
         if ror_id := row.get("ror_id"):
-            org, created = update_or_create_from_ror(ror_id, name=row.get("affiliation"))
+            org, _ = update_or_create_from_ror(ror_id, name=row.get("affiliation"))
 
         elif row.get("affiliation") and not ror_id:
             # If no ROR ID is provided, we can still create a new organization based on the name provided in the affiliation column
-            org, created = Organization.objects.get_or_create(name=row["affiliation"])
+            org, _created = Organization.objects.get_or_create(name=row["affiliation"])
 
         if org:
             # Link person to organization

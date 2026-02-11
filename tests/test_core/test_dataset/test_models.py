@@ -240,7 +240,7 @@ class TestDatasetUUID:
 
     def test_uuid_immutable_after_creation(self):
         """UUID field is marked editable=False."""
-        dataset = DatasetFactory()
+        DatasetFactory()
         uuid_field = Dataset._meta.get_field("uuid")
 
         assert uuid_field.editable is False
@@ -291,4 +291,3 @@ class TestDatasetHasDataProperty:
         # Should use EXISTS query (efficient)
         assert result is False
         assert len(context.captured_queries) <= 2  # Max 2 queries (samples + measurements)
-

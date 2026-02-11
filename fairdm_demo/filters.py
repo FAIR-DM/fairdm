@@ -555,7 +555,8 @@ class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
         """Meta configuration for RockSampleFilter."""
 
         model = RockSample
-        fields = SampleFilterMixin.Meta.fields + [
+        fields = [
+            *SampleFilterMixin.Meta.fields,
             "rock_type",
             "mineral_content",
             "grain_size",
@@ -632,7 +633,8 @@ class WaterSampleFilter(SampleFilterMixin, django_filters.FilterSet):
         """Meta configuration for WaterSampleFilter."""
 
         model = WaterSample
-        fields = SampleFilterMixin.Meta.fields + [
+        fields = [
+            *SampleFilterMixin.Meta.fields,
             "water_source",
             "ph_min",
             "ph_max",

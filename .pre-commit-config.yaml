@@ -49,7 +49,7 @@ repos:
 
   # Poetry validation (manual only)
   - repo: https://github.com/python-poetry/poetry
-    rev: "1.8.5"
+    rev: "2.3.2"
     hooks:
       - id: poetry-check
       - id: poetry-lock

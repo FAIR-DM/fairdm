@@ -356,13 +356,13 @@ class RockSampleAdmin(SampleChildAdmin):
     show_in_index = True  # Show in main admin index
 
     # Add rock-specific fields to list display
-    list_display = SampleChildAdmin.list_display + ["rock_type", "mineral_content"]
+    list_display = [*SampleChildAdmin.list_display, "rock_type", "mineral_content"]
 
     # Add rock-specific filters
-    list_filter = SampleChildAdmin.list_filter + ["rock_type"]
+    list_filter = [*SampleChildAdmin.list_filter, "rock_type"]
 
     # Add rock-specific search fields
-    search_fields = SampleChildAdmin.search_fields + ["mineral_content"]
+    search_fields = [*SampleChildAdmin.search_fields, "mineral_content"]
 
     # Extend base_fieldsets to include geological properties
     fieldsets = (
@@ -404,17 +404,18 @@ class WaterSampleAdmin(SampleChildAdmin):
     show_in_index = True  # Show in main admin index
 
     # Add water-specific fields to list display
-    list_display = SampleChildAdmin.list_display + [
+    list_display = [
+        *SampleChildAdmin.list_display,
         "water_source",
         "ph_level",
         "temperature_celsius",
     ]
 
     # Add water-specific filters
-    list_filter = SampleChildAdmin.list_filter + ["water_source"]
+    list_filter = [*SampleChildAdmin.list_filter, "water_source"]
 
     # Add water-specific search fields
-    search_fields = SampleChildAdmin.search_fields + ["water_source"]
+    search_fields = [*SampleChildAdmin.search_fields, "water_source"]
 
     # Extend base_fieldsets to include water quality parameters
     fieldsets = (

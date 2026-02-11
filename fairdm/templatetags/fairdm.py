@@ -4,6 +4,7 @@ from django.db import models
 
 # import flatattrs
 from django.template.loader import render_to_string
+from django.urls import reverse
 from literature import utils
 from pint.delegates.formatter.plain import PrettyFormatter
 from quantityfield import settings as qsettings

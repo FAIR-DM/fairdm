@@ -107,13 +107,15 @@ class FairDMRegistry:
             # Handle string format: "app_label.ModelName"
             try:
                 app_label, model_name = model_reference.split(".", 1)
-            except ValueError:
-                raise ValueError(f"Invalid model reference format '{model_reference}'. Expected 'app_label.model_name'")
+            except ValueError as err:
+                raise ValueError(
+                    f"Invalid model reference format '{model_reference}'. Expected 'app_label.model_name'"
+                ) from err
 
             try:
                 model_cls = apps.get_model(app_label, model_name)
-            except LookupError:
-                raise LookupError(f"Model '{model_reference}' not found in Django apps")
+            except LookupError as err:
+                raise LookupError(f"Model '{model_reference}' not found in Django apps") from err
         else:
             # Assume it's a model class
             model_cls = model_reference
@@ -146,7 +148,7 @@ class FairDMRegistry:
         """
         try:
             self.get_for_model(model_reference)
-            return True
+            return True  # noqa: TRY300
         except (KeyError, ValueError, LookupError):
             return False
 
@@ -160,7 +162,7 @@ class FairDMRegistry:
         """
         from fairdm.core.sample.models import Sample
 
-        return [model for model in self._registry.keys() if issubclass(model, Sample)]
+        return [model for model in self._registry if issubclass(model, Sample)]
 
     @property
     def measurements(self) -> list[type["Measurement"]]:
@@ -172,7 +174,7 @@ class FairDMRegistry:
         """
         from fairdm.core.measurement.models import Measurement
 
-        return [model for model in self._registry.keys() if issubclass(model, Measurement)]
+        return [model for model in self._registry if issubclass(model, Measurement)]
 
     @property
     def models(self) -> list[type[Model]]:
@@ -256,7 +258,7 @@ class FairDMRegistry:
             # Get admin class from config
             admin_class = config_instance.get_admin_class()
             admin.site.register(model_class, admin_class)
-        except Exception:
+        except Exception:  # noqa: S110
             # Model already registered or admin not available - this is expected
             # Silently ignore admin registration failures as they are non-critical
             pass

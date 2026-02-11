@@ -237,7 +237,7 @@ class TestSampleQuerySetOptimizations:
                 _ = list(s.descriptions.all())
                 _ = list(s.dates.all())
 
-        queries_without = len(context_without.captured_queries)
+        len(context_without.captured_queries)
 
         # Test with optimization
         with CaptureQueriesContext(connection) as context_with:
@@ -261,13 +261,13 @@ class TestSampleQuerySetOptimizations:
         from fairdm_demo.models import RockSample, WaterSample
 
         # Create mixed sample types
-        rock = RockSample.objects.create(
+        RockSample.objects.create(
             name="Rock Sample",
             dataset=dataset,
             rock_type="igneous",
             collection_date=date.today(),
         )
-        water = WaterSample.objects.create(
+        WaterSample.objects.create(
             name="Water Sample",
             dataset=dataset,
             water_source="lake",

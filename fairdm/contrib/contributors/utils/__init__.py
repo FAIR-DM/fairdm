@@ -66,13 +66,13 @@ __all__ = [
     "csljson_to_contributor",
     # Helper functions
     "current_user_has_role",
-    "get_contributor_avatar",
-    "update_or_create_contribution",
     # API functions (delegated to Transform classes)
     "fetch_orcid_data_from_api",
     "fetch_ror_data_from_api",
+    "get_contributor_avatar",
     "get_or_create_from_orcid",
     "get_or_create_from_ror",
+    "update_or_create_contribution",
     "update_or_create_from_orcid",
     "update_or_create_from_ror",
 ]

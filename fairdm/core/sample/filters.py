@@ -155,4 +155,4 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         """Meta configuration for SampleFilter."""
 
         model = Sample
-        fields = SampleFilterMixin.Meta.fields + ["date_after", "date_before"]
+        fields = [*SampleFilterMixin.Meta.fields, "date_after", "date_before"]

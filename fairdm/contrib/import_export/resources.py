@@ -90,7 +90,7 @@ class MeasurementResource(BaseFairDMResource):
         dataset = row.get("dataset")
         obj_id = row.get("id")
         name = row.get("name")
-        sample = row.get("sample")
+        row.get("sample")
 
         if obj_id:
             return self._meta.model.objects.filter(id=obj_id).first()

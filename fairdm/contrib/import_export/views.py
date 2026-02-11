@@ -8,7 +8,6 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import FormView
 from django_downloadview import VirtualDownloadView
 
 from fairdm import plugins
@@ -178,7 +177,7 @@ class DataImportView(BaseImportExportView):
         if not input_format:
             return None
 
-        encoding = None if input_format.is_binary() else self.from_encoding
+        None if input_format.is_binary() else self.from_encoding
         # Open the file in text mode and read the content
         file_content = file.read()  # Decode bytes to string
 
@@ -239,10 +238,7 @@ class DataExportView(VirtualDownloadView, BaseImportExportView):
     form_class = ExportForm
 
     def get_file(self):
-        if self.request.POST.get("template"):
-            qs = self.resource_model.objects.none()
-        else:
-            qs = self.get_resource_qs()
+        qs = self.resource_model.objects.none() if self.request.POST.get("template") else self.get_resource_qs()
 
         tablib_dataset = self.get_resource().export(queryset=qs)
         return ContentFile(

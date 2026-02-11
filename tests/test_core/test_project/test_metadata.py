@@ -39,24 +39,17 @@ class TestProjectDescriptions:
         # Create project
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Research Project",
-            status=ProjectStatus.IN_PROGRESS,
-            visibility=Visibility.PUBLIC,
-            owner=owner
+            name="Research Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
         )
 
         # Add Abstract description
-        abstract = ProjectDescription.objects.create(
-            related=project,
-            type="Abstract",
-            value="This project studies the impact of X on Y using Z methodology."
+        ProjectDescription.objects.create(
+            related=project, type="Abstract", value="This project studies the impact of X on Y using Z methodology."
         )
 
         # Add Methods description
-        methods = ProjectDescription.objects.create(
-            related=project,
-            type="Methods",
-            value="We collected samples from 10 sites and analyzed them using XRF."
+        ProjectDescription.objects.create(
+            related=project, type="Methods", value="We collected samples from 10 sites and analyzed them using XRF."
         )
 
         # Verify both descriptions exist
@@ -99,24 +92,21 @@ class TestProjectDates:
         # Create project
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Time-Bound Project",
-            status=ProjectStatus.IN_PROGRESS,
-            visibility=Visibility.PUBLIC,
-            owner=owner
+            name="Time-Bound Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
         )
 
         # Add start date
-        start_date = ProjectDate.objects.create(
+        ProjectDate.objects.create(
             related=project,
             type="Start",
-            value="2024-01-01"  # PartialDateField expects string format
+            value="2024-01-01",  # PartialDateField expects string format
         )
 
         # Add end date
-        end_date = ProjectDate.objects.create(
+        ProjectDate.objects.create(
             related=project,
             type="End",
-            value="2025-12-31"  # PartialDateField expects string format
+            value="2025-12-31",  # PartialDateField expects string format
         )
 
         # Verify both dates exist
@@ -160,24 +150,15 @@ class TestProjectIdentifiers:
         # Create project
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Funded Project",
-            status=ProjectStatus.IN_PROGRESS,
-            visibility=Visibility.PUBLIC,
-            owner=owner
+            name="Funded Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
         )
 
         # Add ISNI identifier
-        isni = ProjectIdentifier.objects.create(
-            related=project,
-            type="ISNI",
-            value="0000 0001 2283 4400"
-        )
+        ProjectIdentifier.objects.create(related=project, type="ISNI", value="0000 0001 2283 4400")
 
         # Add Crossref Funder ID (like a grant number)
-        funder = ProjectIdentifier.objects.create(
-            related=project,
-            type="CROSSREF_FUNDER_ID",
-            value="https://doi.org/10.13039/100000001"
+        ProjectIdentifier.objects.create(
+            related=project, type="CROSSREF_FUNDER_ID", value="https://doi.org/10.13039/100000001"
         )
 
         # Verify both identifiers exist

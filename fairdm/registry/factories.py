@@ -158,7 +158,7 @@ class FormFactory(ComponentFactory):
 
                 # File/Image fields already have good defaults
 
-            except Exception:
+            except Exception:  # noqa: S110
                 # Skip fields that can't be resolved
                 pass
 
@@ -278,7 +278,7 @@ class TableFactory(ComponentFactory):
                 elif isinstance(field, models.BooleanField):
                     columns[field_name] = tables.BooleanColumn()
 
-            except Exception:
+            except Exception:  # noqa: S110
                 # Skip fields that can't be resolved
                 pass
 
@@ -425,7 +425,7 @@ class FilterFactory(ComponentFactory):
                 elif isinstance(field, (models.CharField, models.TextField)):
                     filter_overrides[field_name] = filters.CharFilter(lookup_expr="icontains")
 
-            except Exception:
+            except Exception:  # noqa: S110
                 # Skip fields that can't be resolved
                 pass
 
@@ -764,7 +764,7 @@ class SerializerFactory(ComponentFactory):
         # Create Meta class
         meta_attrs = {
             "model": self.model,
-            "fields": ["id"] + fields,  # Include ID by default
+            "fields": ["id", *fields],  # Include ID by default
         }
         Meta = type("Meta", (), meta_attrs)
 
@@ -805,7 +805,7 @@ class SerializerFactory(ComponentFactory):
                     # Use StringRelatedField for simple nesting
                     nested[field_name] = serializers.StringRelatedField()
 
-            except Exception:
+            except Exception:  # noqa: S110
                 # Skip fields that can't be resolved
                 pass
 
@@ -839,8 +839,8 @@ class ResourceFactory(ComponentFactory):
         # Create Meta class
         meta_attrs = {
             "model": self.model,
-            "fields": ["id"] + fields,  # Include ID by default
-            "export_order": ["id"] + fields,
+            "fields": ["id", *fields],  # Include ID by default
+            "export_order": ["id", *fields],
         }
         Meta = type("Meta", (), meta_attrs)
 
@@ -887,7 +887,7 @@ class ResourceFactory(ComponentFactory):
                     else:
                         fk_widgets[field_name] = widgets.ForeignKeyWidget(field.related_model, "pk")
 
-            except Exception:
+            except Exception:  # noqa: S110
                 # Skip fields that can't be resolved
                 pass
 

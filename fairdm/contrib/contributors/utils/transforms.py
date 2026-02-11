@@ -494,11 +494,11 @@ class ORCIDTransform(BaseTransform):
             dict: ORCID-formatted person data
 
         Raises:
-            ValueError: If contributor is not a Person instance
+            TypeError: If contributor is not a Person instance
         """
         if not isinstance(contributor, Person):
             msg = "ORCID export only supports Person instances"
-            raise ValueError(msg)
+            raise TypeError(msg)
 
         # Get ORCID identifier
         orcid = contributor.get_default_identifier()
@@ -735,7 +735,7 @@ class RORTransform(BaseTransform):
         """
         if not isinstance(contributor, Organization):
             msg = "ROR export only supports Organization instances"
-            raise ValueError(msg)
+            raise TypeError(msg)
 
         # Get ROR identifier
         ror = contributor.get_default_identifier()
@@ -811,7 +811,7 @@ class RORTransform(BaseTransform):
         if lat is not None and lon is not None:
             from fairdm.contrib.location.models import Point
 
-            point, created = Point.objects.get_or_create(
+            point, _created = Point.objects.get_or_create(
                 x=decimal.Decimal(str(lon)),
                 y=decimal.Decimal(str(lat)),
             )

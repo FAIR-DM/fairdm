@@ -47,6 +47,7 @@ dependencies = [
     'django-split-settings (>=1.2.0,<2.0.0)',
     'django-storages[boto3] (>=1.14.2,<2.0.0)',
     'django-tables2 (>=2.7.0,<3.0.0)',
+    'defusedxml (>=0.7.0,<0.8.0)',
     'easy-thumbnails (>=2.10,<3.0)',
     'flower (>=2.0.1,<3.0.0)',
     'gunicorn (>=23.0.0,<24.0.0)',
@@ -122,6 +123,7 @@ fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
 pytest-benchmark = "^5.2.3"
 fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
+ruff = "^0.15.0"
 
 [tool.poetry.group.docs.dependencies]
 # fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
@@ -216,10 +218,47 @@ ignore = [
     "F403",
     "F405",
     "C901",
+    # === COMMENTED OUT - NEED TO FIX PROPERLY ===
+    # # Allow assert statements in registry config (type narrowing)
+    # "S101",
+    # # Allow try-except-pass in factory/registry code
+    # "S110",
+    # # Allow try-except-continue
+    # "S112",
+    # # Nested if statements are sometimes clearer
+    # "SIM102",
+    # # contextlib.suppress is not always clearer
+    # "SIM105",
+    # # Allow concatenation instead of unpacking (clearer in some cases)
+    # "RUF005",
+    # # Allow unused loop variables (common in iteration)
+    # "B007",
+    # # Allow redefinition in __init__ (field pattern)
+    # "F811",
 ]
 exclude = ["fairdm/conf/*"]
+
 [tool.ruff.lint.per-file-ignores]
-"**/tests/*" = ["S101", "S105"]
+"**/tests/*" = [
+    "S101",   # Allow assert statements in tests
+    "S105",   # Allow hardcoded passwords in tests
+    "S106",   # Allow hardcoded passwords in arguments in tests
+    "S108",   # Allow insecure temp file usage in tests
+    "F821",   # Allow undefined names (common in test fixtures/factories)
+    "F841",   # Allow unused local variables in tests
+    "A001",   # Allow shadowing builtins in tests (e.g., license, id)
+    "B017",   # Allow asserting on Exception in tests
+    "E402",   # Allow module level imports not at top (pytest markers)
+    "RUF043", # Allow unescaped regex patterns in pytest.raises
+]
+"**/fairdm_demo/*" = [
+    "F841", # Unused variables in demo/example code
+    "E402", # Import ordering in admin (after register decorators)
+]
+"fairdm/conf/*" = [
+    "F405", # Star imports in config files
+    "F403", # Star imports in config files
+]
 
 [tool.ruff.format]
 docstring-code-format = true

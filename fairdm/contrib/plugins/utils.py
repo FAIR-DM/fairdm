@@ -8,14 +8,7 @@ from django.utils.text import slugify
 
 
 def class_to_slug(name: str | object | type) -> str:
-    name_str: str
-    if not isinstance(name, str):
-        if hasattr(name, "__name__"):
-            name_str = name.__name__  # type: ignore[attr-defined,unused-ignore]
-        else:
-            name_str = str(name)
-    else:
-        name_str = name
+    name_str = (name.__name__ if hasattr(name, "__name__") else str(name)) if not isinstance(name, str) else name  # type: ignore[attr-defined,unused-ignore]
 
     # Split CamelCase / PascalCase into words with spaces
     split = re.sub(r"(?<!^)(?=[A-Z])", " ", name_str)

@@ -29,7 +29,7 @@ class TestAdminSearchByNameAndUUID:
     def test_search_by_exact_name(self, admin_client):
         """Test searching for dataset by exact name match."""
         # Create test datasets
-        dataset1 = DatasetFactory(name="Climate Research Data")
+        DatasetFactory(name="Climate Research Data")
         DatasetFactory(name="Ocean Temperature Readings")
         DatasetFactory(name="Solar Energy Measurements")
 
@@ -118,7 +118,7 @@ class TestAdminListDisplayFields:
 
     def test_list_display_shows_has_data_property(self, admin_client):
         """Test that has_data property appears in admin list display."""
-        dataset = DatasetFactory(name="Test Dataset")
+        DatasetFactory(name="Test Dataset")
 
         url = reverse("admin:dataset_dataset_changelist")
         response = admin_client.get(url)
@@ -291,7 +291,7 @@ class TestInlineDescriptionEditing:
             "_continue": "Save and continue editing",
         }
 
-        response = admin_client.post(url, data=form_data)
+        admin_client.post(url, data=form_data)
 
         # Check that description was updated
         existing_desc.refresh_from_db()

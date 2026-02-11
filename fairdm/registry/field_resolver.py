@@ -109,7 +109,7 @@ class FieldResolver:
                 field = self.model._meta.get_field(field_name)
                 if field_predicate(field_name, field):
                     filtered_fields.append(field_name)
-            except Exception:
+            except Exception:  # noqa: S112
                 # If field doesn't exist or predicate fails, skip it
                 continue
 
@@ -151,7 +151,7 @@ class FieldResolver:
         """
         try:
             self.model._meta.get_field(field_name)
-            return True
+            return True  # noqa: TRY300
         except Exception:
             return False
 

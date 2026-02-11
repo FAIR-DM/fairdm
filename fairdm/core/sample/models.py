@@ -413,7 +413,7 @@ class SampleRelation(models.Model):
             raise ValidationError(_("Sample cannot relate to itself"))
 
         # 2. Prevent direct circular relationships (A→B and B→A with same type)
-        if self.source_id and self.target_id and self.type:
+        if self.source_id and self.target_id and self.type:  # noqa: SIM102
             # Check if reverse relationship already exists
             if (
                 SampleRelation.objects.filter(source_id=self.target_id, target_id=self.source_id, type=self.type)

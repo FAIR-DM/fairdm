@@ -199,12 +199,7 @@ class TestDemoRegistryIntrospection:
             config = registry.get_for_model(model_class)
 
             # Only access components we need
-            if hasattr(config, "form_class") and config.form_class:
-                # Use custom form class
-                form = config.form_class
-            else:
-                # Use auto-generated form
-                form = config.form
+            form = config.form_class if hasattr(config, "form_class") and config.form_class else config.form
 
             assert form is not None
             print(f"{model_class.__name__} uses form: {form.__name__}")

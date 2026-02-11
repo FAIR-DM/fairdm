@@ -296,7 +296,7 @@ class TestPerformanceOptimization:
 
     def test_with_related_reduces_queries_by_80_percent(self):
         """with_related() should significantly reduce queries vs naive access.
-        
+
         Expects 70%+ reduction in total queries, eliminating N+1 patterns.
         With 10 datasets: naive ~12 queries, optimized ~3 queries (75% reduction).
         """

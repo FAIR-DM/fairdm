@@ -147,7 +147,7 @@ class Config:
             return None
 
         if "id" not in self.fields:
-            return ["id", "dataset"] + self.fields
+            return ["id", "dataset", *self.fields]
         return self.fields
 
     def get_filterset_class(self) -> type[FilterSet]:

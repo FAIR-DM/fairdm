@@ -165,7 +165,7 @@ class TestProjectDescriptionModel:
         )
 
         # Create first description
-        desc1 = ProjectDescription.objects.create(related=project, type="Abstract", value="First abstract")
+        ProjectDescription.objects.create(related=project, type="Abstract", value="First abstract")
 
         # Attempt to create duplicate type should fail at validation
         desc2 = ProjectDescription(related=project, type="Abstract", value="Second abstract")
@@ -195,7 +195,7 @@ class TestProjectDateModel:
         from fairdm.contrib.contributors.models import Organization
 
         owner = Organization.objects.create(name="Test Organization")
-        project = Project.objects.create(
+        Project.objects.create(
             name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
 

@@ -107,14 +107,14 @@ class FairDMDescriptions(VocabularyBuilder):
     SeriesInformation = Concept(
         prefLabel=_("Series Information"),
         definition=_(
-            "Information about the dataset’s relationship to a series of datasets or a broader collection. This may include volume or issue numbers, hierarchical relationships, or references to a parent dataset."
+            "Information about the dataset's relationship to a series of datasets or a broader collection. This may include volume or issue numbers, hierarchical relationships, or references to a parent dataset."
         ),
     )
 
     TechnicalInfo = Concept(
         prefLabel=_("Technical Information"),
         definition=_(
-            "Details about the dataset’s technical specifications, including file formats, data structures, encoding standards, storage requirements, and any dependencies on specific software or hardware."
+            "Details about the dataset's technical specifications, including file formats, data structures, encoding standards, storage requirements, and any dependencies on specific software or hardware."
         ),
     )
     Introduction = Concept(

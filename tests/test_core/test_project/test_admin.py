@@ -14,7 +14,7 @@ class TestAdminSearchByName:
     def test_search_by_exact_name(self, admin_client):
         """Test searching for project by exact name match."""
         # Create test projects
-        project1 = ProjectFactory(name="Climate Research Study")
+        ProjectFactory(name="Climate Research Study")
         ProjectFactory(name="Ocean Temperature Analysis")
         ProjectFactory(name="Solar Energy Project")
 
@@ -57,7 +57,7 @@ class TestAdminFilterByStatus:
     def test_filter_by_concept_status(self, admin_client):
         """Test filtering projects by concept status."""
         # Create projects with different statuses
-        concept_project = ProjectFactory(name="Concept Project", status=0)
+        ProjectFactory(name="Concept Project", status=0)
         ProjectFactory(name="Active Project", status=1)
         ProjectFactory(name="Completed Project", status=2)
 
@@ -74,8 +74,8 @@ class TestAdminFilterByStatus:
         """Test filtering projects by visibility."""
         from fairdm.utils.choices import Visibility
 
-        public_project = ProjectFactory(name="Public Project", visibility=Visibility.PUBLIC)
-        private_project = ProjectFactory(name="Private Project", visibility=Visibility.PRIVATE)
+        ProjectFactory(name="Public Project", visibility=Visibility.PUBLIC)
+        ProjectFactory(name="Private Project", visibility=Visibility.PRIVATE)
 
         url = reverse("admin:project_project_changelist")
         response = admin_client.get(url, {"visibility__exact": str(Visibility.PUBLIC.value)})

@@ -4,8 +4,6 @@ from django.db import models
 from partial_date import PartialDateField as BasePartialDateField
 from quantityfield import fields
 
-from fairdm.forms import PartialDateField
-
 
 class BigIntegerQuantityField(fields.BigIntegerQuantityField):
     to_number_type = int

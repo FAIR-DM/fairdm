@@ -41,7 +41,7 @@ class TestProjectPermissions:
             "visibility": Visibility.PRIVATE,
             "owner": owner.pk,
         }
-        response = client.post(url, data=form_data)
+        client.post(url, data=form_data)
 
         # Get created project
         project = Project.objects.get(name="Creator's Project")
@@ -73,7 +73,7 @@ class TestProjectPermissions:
         from fairdm.core.project.models import Project
 
         # Create owner and project
-        owner_user = UserFactory(email="owner@example.com")
+        UserFactory(email="owner@example.com")
         owner_org = Organization.objects.create(name="Owner Organization")
 
         project = Project.objects.create(
