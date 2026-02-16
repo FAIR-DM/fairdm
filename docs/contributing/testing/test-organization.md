@@ -447,5 +447,5 @@ Testing API endpoints in unit test layer.
 
 - [Pytest Documentation](https://docs.pytest.org/)
 - [Pytest-Django Documentation](https://pytest-django.readthedocs.io/)
-- [Test Naming Contract](../../../specs/004-testing-strategy-fixtures/contracts/test-naming-contract.md)
-- [Test Organization Contract](../../../specs/004-testing-strategy-fixtures/contracts/test-organization-contract.md)
+- [Testing Overview](index.md) - FairDM testing conventions
+- [Test Layers](test-layers.md) - Understanding different test types

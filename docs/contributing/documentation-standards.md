@@ -109,7 +109,7 @@ Feature specifications follow the **Speckit** structure in `specs/###-feature-na
 
 **When to reference**: Link to specs when documenting features to provide rationale and full context
 
-**Cross-reference pattern**: `[spec](../../specs/003-docs-infrastructure/spec.md)`
+**Cross-reference pattern**: `[spec](../../specs/002-fairdm-registry/spec.md)`
 
 ---
 
@@ -160,10 +160,10 @@ Feature specifications follow the **Speckit** structure in `specs/###-feature-na
 
 ```markdown
 This registration API was designed to support domain-driven modeling
-([spec](../../specs/002-registry-api/spec.md)).
+([spec](../../specs/002-fairdm-registry/spec.md)).
 
-For details on the validation requirements, see the
-[feature specification](../../specs/003-validation-infrastructure/spec.md#validation-requirements).
+For details on the dataset requirements, see the
+[feature specification](../../specs/004-core-datasets/spec.md#dataset-requirements).
 ```
 
 **Guidelines**:

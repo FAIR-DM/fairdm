@@ -490,7 +490,7 @@ Creating database objects in unit tests slows them down.
 ```{seealso}
 - Review [Database Strategy](database-strategy.md) for transaction management in integration tests
 - See [Fixture Factory Example](examples/fixture-factory-example.md) for complete working examples
-- Check [Fixture Factory Contract](../../../specs/004-testing-strategy-fixtures/contracts/fixture-factory-contract.md) for factory standards
+- Follow FairDM testing conventions for factory patterns
 - Read [Test Layers](test-layers.md) to understand when to use `.build()` vs `.create()`
 - Learn [Running Tests](running-tests.md) CLI options for fixture-related debugging
 ```

@@ -316,4 +316,4 @@ Only testing happy path.
 
 - [Test Layers: Unit Tests](../test-layers.md#unit-tests)
 - [Test Quality: Meaningful Tests](../test-quality.md#meaningful-tests)
-- [Test Naming Contract](../../../../specs/004-testing-strategy-fixtures/contracts/test-naming-contract.md)
+- [Test Organization](../test-organization.md)

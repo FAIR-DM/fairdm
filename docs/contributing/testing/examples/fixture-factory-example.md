@@ -499,7 +499,7 @@ def test_url_generation():
 ```{seealso}
 - Review [Fixtures & Factories Guide](../fixtures.md) for more patterns
 - Check [Database Strategy](../database-strategy.md) for transaction management
-- See [Fixture Factory Contract](../../../../specs/004-testing-strategy-fixtures/contracts/fixture-factory-contract.md) for standards
+- Follow factory-boy best practices as documented in the Fixtures Guide
 ```
 
 ## References

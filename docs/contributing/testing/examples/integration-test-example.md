@@ -436,4 +436,4 @@ Integration tests taking > 5 seconds.
 
 - [Test Layers: Integration Tests](../test-layers.md#integration-tests)
 - [Test Quality: Reliable Tests](../test-quality.md#reliable-tests)
-- [Test Organization Contract](../../../../specs/004-testing-strategy-fixtures/contracts/test-organization-contract.md)
+- [Test Organization](../test-organization.md)

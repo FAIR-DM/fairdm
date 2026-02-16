@@ -523,4 +523,4 @@ Only testing current schema.
 
 - [Test Layers: Contract Tests](../test-layers.md#contract-tests)
 - [DRF Testing Documentation](https://www.django-rest-framework.org/api-guide/testing/)
-- [Test Organization Contract](../../../../specs/004-testing-strategy-fixtures/contracts/test-organization-contract.md)
+- [Test Organization](../test-organization.md)

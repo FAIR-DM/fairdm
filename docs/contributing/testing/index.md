@@ -164,12 +164,12 @@ New to FairDM testing? Follow these steps:
 - Explore [Fixtures & Factories](fixtures.md) for reusable test data patterns
 ```
 
-## Contracts & Standards
+## Testing Standards
 
-FairDM testing follows formal contracts to ensure consistency:
+FairDM testing follows formal conventions to ensure consistency:
 
-- [Test Naming Contract](../../../specs/004-testing-strategy-fixtures/contracts/test-naming-contract.md) - Mandatory naming conventions for test files and functions
-- [Test Organization Contract](../../../specs/004-testing-strategy-fixtures/contracts/test-organization-contract.md) - Directory structure and file placement rules
-- [Fixture Factory Contract](../../../specs/004-testing-strategy-fixtures/contracts/fixture-factory-contract.md) - Factory-boy patterns and fixture organization
+- **Test Naming**: Follow pytest conventions with descriptive names (see [Test Organization](test-organization.md))
+- **Test Structure**: Organize by type (unit, integration, functional) and module
+- **Fixtures**: Use factory-boy patterns documented in [Fixtures Guide](fixtures.md)
 
-These contracts are **binding** - all tests must follow these conventions to ensure discoverability, maintainability, and consistent contributor experience.
+These standards are **binding** - all tests must follow these conventions to ensure discoverability, maintainability, and consistent contributor experience.
