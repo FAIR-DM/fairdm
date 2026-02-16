@@ -94,7 +94,7 @@ EASY_ICONS = {
             "chevron_up": "bi bi-chevron-up",
             "chevron_down": "bi bi-chevron-down",
             "chevron_expand": "bi bi-chevron-expand",
-            "arrow_left": "bi bi-arrow-left",
+            "arrow-left": "bi bi-arrow-left",
             "arrow_up": "bi bi-arrow-up",
             "arrow_down": "bi bi-arrow-down",
             "external_link": "bi bi-box-arrow-up-right",

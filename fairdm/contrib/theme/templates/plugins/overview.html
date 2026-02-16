@@ -48,7 +48,7 @@
             </c-modal>
           {% endif %}
           {% comment %} <c-slot name="actions">
-              <c-card.action text="{% trans "Continue Reading" %}" icon="arrow_right" data-bs-toggle="modal" data-bs-target="#descriptionModal" />
+              <c-card.action text="{% trans "Continue Reading" %}" icon="arrow-right" data-bs-toggle="modal" data-bs-target="#descriptionModal" />
           </c-slot> {% endcomment %}
         {% endwith %}
       </c-card>
@@ -69,7 +69,7 @@
       <c-card title="{% trans "Recent Activity" %}"
               icon="activity">
         <c-slot name="actions">
-          {% comment %} <c-card.action href="{% plugin_url 'activity' %}" icon="arrow_right" /> {% endcomment %}
+          {% comment %} <c-card.action href="{% plugin_url 'activity' %}" icon="arrow-right" /> {% endcomment %}
         </c-slot>
         {% if recent_activities %}
           <div class="d-flex flex-column gap-2">

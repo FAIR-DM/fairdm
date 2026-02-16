@@ -60,7 +60,7 @@
                           variant="primary"
                           link="{% url "project-list" %}"
                           link_text="{% trans "Browse Projects" %}"
-                          link_icon="arrow_right" />
+                          link_icon="arrow-right" />
       </c-grid.col>
       <c-grid.col>
         <c-widgets.type-c label="{% trans "Datasets" %}"
@@ -69,7 +69,7 @@
                           variant="success"
                           link="{% url "dataset-list" %}"
                           link_text="{% trans "Browse Datasets" %}"
-                          link_icon="arrow_right" />
+                          link_icon="arrow-right" />
       </c-grid.col>
       <c-grid.col>
         <c-widgets.type-c label="{% trans "Samples" %}"
@@ -243,7 +243,7 @@
               <c-slot name="actions">
                 <c-card.tools href="{% url 'community-dashboard' %}"
                               text="{% trans 'Learn more' %}"
-                              icon="arrow_right" />
+                              icon="arrow-right" />
               </c-slot>
               <div class="vstack g-3">
                 <c-widgets.type-a label="{% trans 'Active Members' %}"
@@ -269,7 +269,7 @@
               <c-slot name="actions">
                 <c-card.tools href="{% url 'project-list' %}"
                               text="{% trans 'View all projects' %}"
-                              icon="arrow_right" />
+                              icon="arrow-right" />
               </c-slot>
               <c-list-group flush>
                 {% for project in recent_projects %}
@@ -299,7 +299,7 @@
               <c-slot name="actions">
                 <c-card.tools href="{% url 'dataset-list' %}"
                               text="{% trans 'View all datasets' %}"
-                              icon="arrow_right" />
+                              icon="arrow-right" />
               </c-slot>
               <c-list-group flush>
                 {% for dataset in recent_datasets %}

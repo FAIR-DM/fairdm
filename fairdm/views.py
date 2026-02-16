@@ -349,7 +349,7 @@ class FairDMCreateView(FairDMModelFormMixin, MVPCreateView):
     form_config = {
         "submit_button": {
             "text": _("Create & enter"),
-            "icon": "arrow_right",
+            "icon": "arrow-right",
             "icon_position": "end",
         },
     }

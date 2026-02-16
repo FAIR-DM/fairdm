@@ -33,7 +33,7 @@
         <p class="card-text text-muted mb-4">{{ object.profile|truncatewords:100 }}</p>
         <div class="d-flex gap-3 mb-4">
           <c-button text="{% trans "View Profile" %}"
-                    icon="arrow_right"
+                    icon="arrow-right"
                     reverse
                     href="{{ object.get_absolute_url }}"
                     variant="primary" />
