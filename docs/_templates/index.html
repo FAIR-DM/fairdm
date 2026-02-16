@@ -63,57 +63,57 @@
 </head>
 
 <body>
-  <div class="home-container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-content">
-        <div class="row align-items-center">
-          <div class="col-lg-7">
-            <div class="hero-badge">
-              <i class="fas fa-rocket"></i>
-              <span>Open Source • Production Ready • FAIR-First</span>
-            </div>
-            <h1 class="hero-title">
-              Build <span class="hero-gradient-text">FAIR Research Portals</span> Without The Boilerplate
-            </h1>
-            <p class="hero-subtitle">
-              FairDM is a modern Django framework that transforms how research teams build data portals. Configure your
-              domain models, and we generate the entire portal—forms, APIs, permissions, and more.
-            </p>
-            <div class="hero-buttons">
-              <a href="{{ pathto('portal-development/getting_started') }}" class="btn-hero-primary">
-                <i class="fas fa-rocket me-2"></i>Get Started
-              </a>
-              <a href="https://github.com/FAIR-DM/fairdm" class="btn-hero-secondary" target="_blank">
-                <i class="fab fa-github me-2"></i>View on GitHub
-              </a>
-            </div>
-            <div class="hero-stats">
-              <div class="hero-stat">
-                <div class="hero-stat-value">100%</div>
-                <div class="hero-stat-label">Open Source</div>
-              </div>
-              <div class="hero-stat">
-                <div class="hero-stat-value">FAIR</div>
-                <div class="hero-stat-label">Principles Built-in</div>
-              </div>
-              <div class="hero-stat">
-                <div class="hero-stat-value">Django</div>
-                <div class="hero-stat-label">Powered</div>
-              </div>
-            </div>
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <div class="hero-badge">
+            <i class="fas fa-rocket"></i>
+            <span>Open Source • Production Ready • FAIR-First</span>
           </div>
-          <div class="col-lg-5">
-            <div class="hero-visual">
-              <pre class="hero-code-block"><code id="typed-code"></code></pre>
+          <h1 class="hero-title">
+            Build <span class="hero-gradient-text">FAIR Research Portals</span> Without The Boilerplate
+          </h1>
+          <p class="hero-subtitle">
+            FairDM is a modern Django framework that transforms how research teams build data portals. Configure your
+            domain models, and we generate the entire portal—forms, APIs, permissions, and more.
+          </p>
+          <div class="hero-buttons">
+            <a href="{{ pathto('portal-development/getting_started') }}" class="btn-hero-primary">
+              <i class="fas fa-rocket me-2"></i>Get Started
+            </a>
+            <a href="https://github.com/FAIR-DM/fairdm" class="btn-hero-secondary" target="_blank">
+              <i class="fab fa-github me-2"></i>View on GitHub
+            </a>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="hero-stat-value">100%</div>
+              <div class="hero-stat-label">Open Source</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-value">FAIR</div>
+              <div class="hero-stat-label">Principles Built-in</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-value">Django</div>
+              <div class="hero-stat-label">Powered</div>
             </div>
           </div>
         </div>
+        <div class="col-lg-5">
+          <div class="hero-visual">
+            <pre class="hero-code-block"><code id="typed-code"></code></pre>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Features Section -->
-    <section class="features-section">
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="container">
       <div class="section-header">
         <div class="section-badge">Why FairDM</div>
         <h2 class="section-title">Built for Modern Research</h2>
@@ -207,10 +207,11 @@
           </a>
         </div>
       </div>
-    </section>
+  </section>
 
-    <!-- Roles Section -->
-    <section class="roles-section">
+  <!-- Roles Section -->
+  <section class="roles-section">
+    <div class="container">
       <div class="section-header">
         <div class="section-badge">Documentation</div>
         <h2 class="section-title">Find Your Path</h2>
@@ -272,51 +273,53 @@
           </a>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- CTA Section -->
-    <section class="cta-section">
-      <div class="cta-content">
-        <h2 class="cta-title">Ready to Build Your Research Portal?</h2>
-        <p class="cta-description">
-          Join research teams worldwide who are using FairDM to build modern, FAIR-compliant data portals. Get started
-          in minutes.
-        </p>
-        <div class="cta-buttons">
-          <a href="{{ pathto('portal-development/getting_started') }}" class="btn-hero-primary">
-            <i class="fas fa-rocket me-2"></i>Get Started Now
-          </a>
-          <a href="{{ pathto('overview/index') }}" class="btn-hero-secondary">
-            <i class="fas fa-book me-2"></i>Learn More
-          </a>
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2 class="cta-title">Ready to Build Your Research Portal?</h2>
+      <p class="cta-description">
+        Join research teams worldwide who are using FairDM to build modern, FAIR-compliant data portals. Get started
+        in minutes.
+      </p>
+      <div class="cta-buttons">
+        <a href="{{ pathto('portal-development/getting_started') }}" class="btn-hero-primary">
+          <i class="fas fa-rocket me-2"></i>Get Started Now
+        </a>
+        <a href="{{ pathto('overview/index') }}" class="btn-hero-secondary">
+          <i class="fas fa-book me-2"></i>Learn More
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supporters Section -->
+  <section class="supporters-section">
+    <div class="supporters-content">
+      <div class="section-badge">Supported By</div>
+      <h2 class="section-title">Our Supporters</h2>
+      <p class="section-description">
+        FairDM's development is supported by leading research institutions committed to FAIR data principles.
+      </p>
+      <div class="supporters-logos">
+        <a href="https://www.gfz-potsdam.de/" class="supporter-logo" target="_blank" rel="noopener">
+          <img src="{{ pathto('_static/GFZ_logo.png', 1) }}" alt="GFZ German Research Centre for Geosciences">
+          <span class="supporter-name">GFZ Potsdam</span>
+        </a>
+        <div class="supporter-logo">
+          <img src="{{ pathto('_static/world_map.png', 1) }}" alt="World Heat Flow Database"
+            style="max-width: 150px; opacity: 0.7;">
+          <span class="supporter-name">World Heat Flow Database</span>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Supporters Section -->
-    <section class="supporters-section">
-      <div class="supporters-content">
-        <div class="section-badge">Supported By</div>
-        <h2 class="section-title">Our Supporters</h2>
-        <p class="section-description">
-          FairDM's development is supported by leading research institutions committed to FAIR data principles.
-        </p>
-        <div class="supporters-logos">
-          <a href="https://www.gfz-potsdam.de/" class="supporter-logo" target="_blank" rel="noopener">
-            <img src="{{ pathto('_static/GFZ_logo.png', 1) }}" alt="GFZ German Research Centre for Geosciences">
-            <span class="supporter-name">GFZ Potsdam</span>
-          </a>
-          <div class="supporter-logo">
-            <img src="{{ pathto('_static/world_map.png', 1) }}" alt="World Heat Flow Database"
-              style="max-width: 150px; opacity: 0.7;">
-            <span class="supporter-name">World Heat Flow Database</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
       <div class="footer-links">
         <a href="{{ pathto('portal-development/index') }}" class="footer-link">Developer Guide</a>
         <a href="{{ pathto('portal-administration/index') }}" class="footer-link">Admin Guide</a>
@@ -337,8 +340,8 @@
       <div class="footer-copyright">
         &copy; 2024 FAIR-DM. Released under MIT License. Built with ❤️ for the research community.
       </div>
-    </footer>
-  </div>
+    </div>
+  </footer>
 
   <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"

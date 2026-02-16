@@ -1,10 +1,13 @@
-from django.urls import include, path
+from django.urls import path
 
 from .views import MeasurementDetailView
 
+app_name = "measurement"
+
 urlpatterns = [
     path(
-        "measurements/<str:uuid>/",
-        include((MeasurementDetailView.get_urls(), "measurement")),
+        "<str:uuid>/",
+        MeasurementDetailView.as_view(),
+        name="overview",
     ),
 ]

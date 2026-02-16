@@ -103,35 +103,338 @@ This makes the system flexible and powerful across disciplines—whether you're 
 
 ## Understanding the `Measurement` Model
 
-A **Measurement** in FairDM represents a result or observation made **on a sample**. Think of it as the data you collect *from* a sample—like a weight, pH reading, chemical composition, or even an image analysis.
+A **Measurement** in FairDM represents a result or observation made **on a sample**. Think of it as the data you collect *from* a sample—like a weight, pH reading, chemical composition, image analysis, or laboratory test result.
 
-Like samples, measurements are **polymorphic**, which means they can be **extended** to include additional fields specific to your scientific needs.
+Like samples, measurements are **polymorphic**, which means they can be **extended** to include additional fields specific to your scientific needs. However, measurements have unique characteristics that distinguish them from samples:
+
+- **Measurements always reference a sample** - they cannot exist independently
+- **Measurements belong to a dataset** - which may differ from the sample's dataset (enabling cross-dataset workflows)
+- **Measurements are polymorphic** - different measurement types (XRF, ICP-MS, microscopy) can coexist with different field structures
+- **Measurements have optimized querysets** - for efficient loading of related data (sample, dataset, metadata)
+
+### Measurement Model Architecture
+
+The `Measurement` model extends the core `SampleMetadataBase` class, giving it all the standard metadata capabilities (descriptions, dates, identifiers, contributors, tags) plus measurement-specific features:
+
+```python
+from fairdm.core import Measurement
+
+class XRFMeasurement(Measurement):
+    """X-ray fluorescence measurement for elemental analysis."""
+    element = models.CharField(max_length=10)
+    concentration_ppm = models.FloatField()
+    detection_limit_ppm = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "XRF Measurement"
+```
+
+**Key features:**
+- Inherits from `Measurement` base model (polymorphic)
+- Automatically gets `sample` and `dataset` foreign keys
+- Includes all FAIR metadata fields (descriptions, dates, identifiers)
+- Can add domain-specific fields (element, concentration, etc.)
+
+### Entity Relationship Diagram
+
+The following diagram shows the core measurement model structure and relationships:
+
+```{mermaid}
+erDiagram
+    Project ||--o{ Dataset : contains
+    Dataset ||--o{ Sample : contains
+    Dataset ||--o{ Measurement : contains
+    Sample ||--o{ Measurement : "measured by"
+
+    Measurement ||--o{ MeasurementDescription : "has"
+    Measurement ||--o{ MeasurementDate : "has"
+    Measurement ||--o{ MeasurementIdentifier : "has"
+    Measurement ||--o{ Contribution : "has"
+
+    Measurement {
+        uuid id PK
+        string name
+        uuid sample_id FK
+        uuid dataset_id FK
+        datetime added
+        datetime modified
+        image image
+    }
+
+    Sample {
+        uuid id PK
+        string name
+        uuid dataset_id FK
+    }
+
+    Dataset {
+        uuid id PK
+        string name
+        uuid project_id FK
+    }
+
+    Project {
+        uuid id PK
+        string name
+    }
+
+    MeasurementDescription {
+        int id PK
+        string type
+        text value
+        uuid measurement_id FK
+    }
+
+    MeasurementDate {
+        int id PK
+        string type
+        string value
+        uuid measurement_id FK
+    }
+
+    MeasurementIdentifier {
+        int id PK
+        string type
+        string value
+        uuid measurement_id FK
+    }
+
+    Contribution {
+        int id PK
+        uuid contributor_id FK
+        string roles
+        int order
+    }
+```
+
+**Key relationships:**
+- **Measurement → Sample**: Every measurement references exactly one sample (required)
+- **Measurement → Dataset**: Every measurement belongs to exactly one dataset (can differ from sample's dataset)
+- **Measurement ↔ Metadata**: One-to-many relationships with descriptions, dates, and identifiers
+- **Sample → Dataset**: Samples belong to datasets (establishing ownership and permissions)
+
+### Polymorphic Measurement Types
+
+FairDM supports multiple measurement types through polymorphic inheritance. Here's how different measurement types relate:
+
+```{mermaid}
+classDiagram
+    class Measurement {
+        <<abstract>>
+        +uuid id
+        +string name
+        +Sample sample
+        +Dataset dataset
+        +image image
+        +get_value() string
+    }
+
+    class XRFMeasurement {
+        +string element
+        +float concentration_ppm
+        +float detection_limit_ppm
+        +get_value() "X ppm Element"
+    }
+
+    class pHMeasurement {
+        +float ph_value
+        +float temperature_c
+        +string instrument
+        +get_value() "pH X @ Y°C"
+    }
+
+    class MicroscopyMeasurement {
+        +string microscope_type
+        +int magnification
+        +float scale_bar_microns
+        +file image
+        +get_value() "Type Xmag"
+    }
+
+    class ICP_MS_Measurement {
+        +string isotope
+        +float counts_per_second
+        +float concentration_ppb
+        +string standard_used
+        +get_value() "X ppb Isotope"
+    }
+
+    Measurement <|-- XRFMeasurement
+    Measurement <|-- pHMeasurement
+    Measurement <|-- MicroscopyMeasurement
+    Measurement <|-- ICP_MS_Measurement
+```
+
+**How polymorphic measurements work:**
+- All types share the base `Measurement` table (single table inheritance)
+- Each type adds custom fields specific to that analysis method
+- Query all measurements: `Measurement.objects.all()` returns all types
+- Query specific type: `XRFMeasurement.objects.all()` returns only XRF measurements
+- Admin interface automatically routes to type-specific forms and displays type-specific fields
+
+### Relationship Flows: Measurement-Sample-Dataset
+
+Measurements have two key relationships that enable flexible research workflows:
+
+#### Standard Flow: Measurement in Same Dataset as Sample
+
+```
+Project
+  └─ Dataset A
+      ├─ Sample 1
+      └─ Measurement 1 (references Sample 1, belongs to Dataset A)
+```
+
+This is the typical workflow where measurements are stored in the same dataset as their samples.
+
+#### Cross-Dataset Flow: Measurement in Different Dataset
+
+```
+Project
+  ├─ Dataset A (Sample Collection)
+  │   └─ Sample 1 (collected 2024-01-15)
+  └─ Dataset B (Laboratory Analysis)
+      └─ Measurement 1 (references Sample 1 from Dataset A, belongs to Dataset B)
+```
+
+The following diagram visualizes cross-dataset measurement workflows:
+
+```{mermaid}
+graph TB
+    subgraph Project["Project: Regional Geology Study"]
+        subgraph DatasetA["Dataset A: Field Samples 2023"]
+            S1[Sample: RS-001]
+            S2[Sample: RS-002]
+            S3[Sample: RS-003]
+        end
+
+        subgraph DatasetB["Dataset B: XRF Analysis 2024"]
+            M1[Measurement: XRF-RS001-Fe]
+            M2[Measurement: XRF-RS001-Si]
+            M3[Measurement: XRF-RS002-Fe]
+        end
+
+        subgraph DatasetC["Dataset C: ICP-MS Analysis 2024"]
+            M4[Measurement: ICPMS-RS001-U238]
+            M5[Measurement: ICPMS-RS003-Th232]
+        end
+    end
+
+    S1 -.->|measured by| M1
+    S1 -.->|measured by| M2
+    S2 -.->|measured by| M3
+    S1 -.->|measured by| M4
+    S3 -.->|measured by| M5
+
+    style S1 fill:#e3f2fd
+    style S2 fill:#e3f2fd
+    style S3 fill:#e3f2fd
+    style M1 fill:#fff9c4
+    style M2 fill:#fff9c4
+    style M3 fill:#fff9c4
+    style M4 fill:#ffe0b2
+    style M5 fill:#ffe0b2
+```
+
+**Why cross-dataset linking matters:**
+- **Separation of concerns**: Sample collection metadata separate from analysis metadata
+- **Different teams**: Field team manages samples, lab team manages measurements
+- **Different timelines**: Samples collected years before analysis
+- **Permission boundaries**: Lab team can add measurements without editing sample dataset
+- **Provenance tracking**: Clear lineage showing which dataset performed which analyses
+
+### Polymorphic Measurement Pattern
+
+Measurements use Django's polymorphic models to support multiple measurement types in a single table structure:
+
+**Benefits:**
+- Query all measurements regardless of type: `Measurement.objects.all()`
+- Filter by specific type: `XRFMeasurement.objects.all()`
+- Admin interface shows type-specific fields automatically
+- Type-safe: `isinstance(measurement, XRFMeasurement)` works correctly
+
+**Type selection in admin:**
+When creating a measurement, portal admins see a dropdown with all registered measurement types (XRF Measurement, ICP-MS Measurement, etc.). Selecting a type loads the appropriate form with type-specific fields.
+
+### Measurement Lifecycle
+
+```{mermaid}
+flowchart LR
+    A[Sample Collected] --> B[Measurement Created]
+    B --> C[Measurement Edited]
+    C --> D[Metadata Added]
+    D --> E[Published]
+
+    style A fill:#e3f2fd
+    style B fill:#fff9c4
+    style C fill:#fff9c4
+    style D fill:#fff9c4
+    style E fill:#c8e6c9
+```
+
+**1. Sample Collected** - Sample exists in a dataset
+**2. Measurement Created** - Linked to sample and dataset
+**3. Measurement Edited** - Values and metadata updated
+**4. Metadata Added** - Descriptions, dates, identifiers, contributors
+**5. Published** - Dataset made public (if desired)
 
 ### What does a Measurement include?
 
 Each measurement records:
 
-- **A name**: A descriptive title of what the measurement is.
-- **An image**: (Optional) A visual representation related to the measurement (e.g., microscope image).
-- **Keywords and tags**: Help categorize and improve discoverability.
-- **A dataset**: All measurements are tied to a dataset for traceability.
-- **A sample**: Every measurement must be linked to the **sample it was taken from**.
-- **Timestamps**: Automatically track when the measurement was created and last modified.
-- **Contributors**: Optionally record who performed or contributed to the measurement.
-- **Descriptions**: Structured descriptions explaining what the measurement represents and how it was produced.
+- **A name**: A descriptive title of what the measurement is (e.g., "XRF Analysis - Iron Content")
+- **An image**: (Optional) A visual representation related to the measurement (e.g., spectrum plot)
+- **Keywords and tags**: Help categorize and improve discoverability
+- **A dataset**: All measurements are tied to a dataset for traceability
+- **A sample**: Every measurement must be linked to the **sample it was measured from** (can be cross-dataset)
+- **Timestamps**: Automatically track when the measurement was created and last modified
+- **Contributors**: Optionally record who performed or contributed to the measurement
+- **Descriptions**: Structured descriptions explaining what the measurement represents and how it was produced
+  - Uses measurement-specific vocabulary types (`measured`, `method`, `protocol`, etc.)
+- **Dates**: Structured dates for measurement events (analysis date, calibration date, etc.)
+  - Uses measurement-specific vocabulary types (`analyzed`, `calibrated`, etc.)
+- **Identifiers**: External IDs or references (lab notebook IDs, instrument IDs, etc.)
 
 ### Can I extend the Measurement model?
 
-**Yes.** The Measurement model is designed to be flexible. You can create your own custom measurement types by subclassing the base `Measurement` model.
+**Yes.** The Measurement model is designed to be flexible and domain-specific. You can create your own custom measurement types by subclassing the base `Measurement` model.
 
-For example, you could define a `pHMeasurement` model that adds:
+**Example: pH Measurement**
+```python
+class pHMeasurement(Measurement):
+    """pH measurement with temperature compensation."""
+    ph_value = models.FloatField(help_text="Measured pH value")
+    temperature_c = models.FloatField(help_text="Temperature at measurement (°C)")
+    instrument = models.CharField(max_length=100)
 
-- pH value
-- Temperature at measurement
-- Instrument used
+    def get_value(self):
+        return f"pH {self.ph_value} at {self.temperature_c}°C"
+```
 
-Or a `SpectralMeasurement` model with:
+**Example: Spectral Measurement**
+```python
+class SpectralMeasurement(Measurement):
+    """Spectroscopic measurement with wavelength range."""
+    min_wavelength_nm = models.FloatField(help_text="Minimum wavelength (nm)")
+    max_wavelength_nm = models.FloatField(help_text="Maximum wavelength (nm)")
+    resolution = models.FloatField(help_text="Resolution (nm)")
+    spectrum_file = models.FileField(upload_to="spectra/")
 
-- Wavelength range
-- Resolution
-- File upload for the spectrum data
+    def get_value(self):
+        return f"{self.min_wavelength_nm}-{self.max_wavelength_nm} nm ({self.resolution} nm resolution)"
+```
+
+**Registration with FairDM:**
+After defining your measurement type, register it with the FairDM registry to enable automatic admin, forms, filters, and API endpoints:
+
+```python
+from fairdm.registry import register
+from fairdm.registry.config import ModelConfiguration
+
+@register
+class XRFMeasurementConfig(ModelConfiguration):
+    model = XRFMeasurement
+    fields = ["name", "sample", "dataset", "element", "concentration_ppm"]
+```
+
+See the [Measurement Development Guide](../portal-development/measurements.md) for complete implementation details

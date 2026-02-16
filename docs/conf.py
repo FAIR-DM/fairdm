@@ -57,6 +57,10 @@ html_context = {
 }
 
 # exclude_patterns = ["apidocs/index.rst"]
+extensions = [*extensions, 'sphinxcontrib.mermaid']
+
+# mermaid_fullscreen = True
+mermaid_d3_zoom = True
 
 # # despite the fact that extensions is declared in docs/conf.py, and is definitely available here (see print(extensions)),
 # # the build will not work without declaring the extensions variable here as well.

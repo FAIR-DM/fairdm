@@ -49,6 +49,7 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
     "guardian.backends.ObjectPermissionBackend",
     "fairdm.core.sample.permissions.SamplePermissionBackend",  # Sample permission inheritance
+    "fairdm.core.measurement.permissions.MeasurementPermissionBackend",  # Measurement permission inheritance
 ]
 
 

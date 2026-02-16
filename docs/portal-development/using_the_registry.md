@@ -378,7 +378,310 @@ def registry_summary_view(request):
 # admin.site.register_view('registry-summary/', registry_summary_view, name='Registry Summary')
 ```
 
-## Best Practices
+## Measurement-Specific Registration
+
+Measurements have additional configuration options beyond basic model registration. This section covers measurement-specific patterns and configurations.
+
+### Base Measurement Configuration Fields
+
+When registering measurements, you can configure these model-specific options:
+
+```python
+from fairdm.registry import register
+from fairdm.registry.config import ModelConfiguration
+from myapp.models import XRFMeasurement
+
+@register
+class XRFMeasurementConfig(ModelConfiguration):
+    model = XRFMeasurement
+
+    # Core Configuration
+    display_name = "XRF Measurement"
+    description = "X-ray fluorescence elemental analysis"
+
+    # Field Sets
+    fields = ["name", "sample", "dataset", "element", "concentration_ppm"]  # General use
+    list_fields = ["name", "sample", "element", "concentration_ppm"]  # Admin list view
+    detail_fields = ["name", "sample", "dataset", "element", "concentration_ppm", "detection_limit_ppm"]  # Forms
+    filterset_fields = ["element", "dataset", "sample"]  # Filter sidebar
+
+    # Admin Configuration
+    search_fields = ["name", "element", "sample__name"]
+    ordering = ["-created"]
+
+    # Custom Components (Optional)
+    form_class = None  # Use auto-generated form
+    table_class = None  # Use auto-generated table
+    filterset_class = None  # Use auto-generated filterset
+    admin_class = None  # Use auto-generated admin
+```
+
+**Field Set Priority:**
+
+1. If `list_fields` is specified, it's used for admin list view
+2. If `list_fields` is not specified, falls back to `fields`
+3. If neither is specified, uses model's first 5 fields
+
+The same logic applies for `detail_fields` and `filterset_fields`.
+
+### Polymorphic Admin Validation Rules
+
+Measurements use polymorphic models, which have special validation rules in the admin:
+
+**Rule 1: Child admin must inherit from `MeasurementChildAdmin`**
+
+```python
+from fairdm.core.measurement.admin import MeasurementChildAdmin
+
+class XRFMeasurementAdmin(MeasurementChildAdmin):
+    # Configuration for XRFMeasurement specifically
+    list_display = ["name", "sample", "element", "concentration_ppm"]
+```
+
+**Rule 2: Don't register polymorphic parent directly**
+
+```python
+# ❌ BAD
+from fairdm.core import Measurement
+admin.site.register(Measurement, SomeAdmin)
+
+# ✅ GOOD - Register specific types only
+from myapp.models import XRFMeasurement
+admin.site.register(XRFMeasurement, XRFMeasurementAdmin)
+```
+
+The parent `Measurement` model is registered automatically with `MeasurementParentAdmin` which provides the type selection interface.
+
+**Rule 3: Fieldsets must only include fields that exist on the specific model**
+
+```python
+class XRFMeasurementAdmin(MeasurementChildAdmin):
+    fieldsets = [
+        ("Basic", {
+            "fields": ["name", "sample", "dataset"]  # ✅ These exist on all measurements
+        }),
+        ("XRF Data", {
+            "fields": ["element", "concentration_ppm"]  # ✅ These exist on XRFMeasurement
+        }),
+        # ❌ DON'T include fields from other measurement types
+        # ("ICP-MS Data", {
+        #     "fields": ["isotope"]  # ❌ This is ICP_MS_Measurement only
+        # }),
+    ]
+```
+
+**Rule 4: Use `base_form` for polymorphic types**
+
+If you need custom validation that applies to all measurement types:
+
+```python
+from fairdm.core.measurement.forms import MeasurementFormMixin
+
+class CustomMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+    def clean(self):
+        # Custom validation for all measurements
+        cleaned_data = super().clean()
+        # Your validation here
+        return cleaned_data
+
+class XRFMeasurementAdmin(MeasurementChildAdmin):
+    form = CustomMeasurementForm
+```
+
+### QuerySet Optimization for Measurements
+
+When working with measurements, use the built-in QuerySet methods:
+
+```python
+# Get measurement configuration
+from myapp.models import XRFMeasurement
+config = registry.get_for_model(XRFMeasurement)
+
+# Access the model class
+model_class = config.model
+
+# Use optimized querysets
+measurements = model_class.objects.with_related()  # Loads sample, dataset
+measurements = model_class.objects.with_metadata()  # Loads descriptions, dates, identifiers
+measurements = model_class.objects.with_related().with_metadata()  # Both
+```
+
+### Measurement Registration Examples
+
+**Example 1: Minimal Configuration**
+
+```python
+@register
+class SimpleMeasurementConfig(ModelConfiguration):
+    model = SimpleMeasurement
+    fields = ["name", "sample", "dataset", "value", "unit"]
+```
+
+Auto-generates:
+
+- Admin with list/detail views
+- ModelForm for create/edit
+- FilterSet for sidebar filtering
+- Table for list display
+
+**Example 2: Full Configuration**
+
+```python
+@register
+class AdvancedMeasurementConfig(ModelConfiguration):
+    model = AdvancedMeasurement
+
+    # Display names
+    display_name = "Advanced Measurement"
+    description = "Complex measurement with multiple analysis steps"
+
+    # Field configuration
+    list_fields = ["name", "sample", "method", "result", "dataset"]
+    detail_fields = ["name", "sample", "dataset", "method", "result", "uncertainty", "quality_flag"]
+    filterset_fields = {
+        "method": ["exact"],
+        "quality_flag": ["exact"],
+        "dataset": ["exact"],
+        "created": ["gte", "lte"],
+    }
+    search_fields = ["name", "sample__name", "method"]
+
+    # Admin configuration
+    ordering = ["-created", "name"]
+    list_filter = ["method", "quality_flag", "dataset"]
+
+    # Custom components
+    form_class = AdvancedMeasurementForm
+    table_class = AdvancedMeasurementTable
+    filterset_class = AdvancedMeasurementFilter
+```
+
+**Example 3: Measurement with Custom Admin**
+
+```python
+# First define custom admin
+class SpectroscopyMeasurementAdmin(MeasurementChildAdmin):
+    list_display = ["name", "sample", "wavelength_range", "resolution", "dataset"]
+
+    fieldsets = [
+        ("Identification", {
+            "fields": ["name", "sample", "dataset"]
+        }),
+        ("Spectroscopy Parameters", {
+            "fields": ["min_wavelength_nm", "max_wavelength_nm", "resolution", "instrument"]
+        }),
+        ("Data Files", {
+            "fields": ["spectrum_file"],
+            "classes": ["collapse"]
+        }),
+    ]
+
+    def wavelength_range(self, obj):
+        return f"{obj.min_wavelength_nm}-{obj.max_wavelength_nm} nm"
+    wavelength_range.short_description = "Wavelength Range"
+
+# Then register with custom admin reference
+@register
+class SpectroscopyMeasurementConfig(ModelConfiguration):
+    model = SpectroscopyMeasurement
+    fields = ["name", "sample", "dataset", "min_wavelength_nm", "max_wavelength_nm"]
+    admin_class = SpectroscopyMeasurementAdmin  # Reference custom admin
+```
+
+### Troubleshooting
+
+**Problem: Measurement not appearing in admin**
+
+Check these common issues:
+
+1. **Migrations not run**
+
+   ```bash
+   poetry run python manage.py makemigrations
+   poetry run python manage.py migrate
+   ```
+
+2. **Model not registered**
+
+   ```python
+   # Verify registration
+   from fairdm.registry import registry
+   config = registry.get_for_model(YourMeasurement)
+   if config is None:
+       print("Not registered!")
+   ```
+
+3. **Import error in models.py**
+
+   ```python
+   # Make sure base import works
+   from fairdm.core import Measurement  # Should not error
+   ```
+
+**Problem: Admin shows wrong fields for measurement type**
+
+Cause: Polymorphic type confusion
+
+Solution: Ensure correct admin base class:
+
+```python
+# ✅ Correct
+class YourMeasurementAdmin(MeasurementChildAdmin):
+    pass
+
+# ❌ Wrong
+class YourMeasurementAdmin(admin.ModelAdmin):  # Missing polymorphic handling
+    pass
+```
+
+**Problem: Registration validation errors**
+
+Example error: `"Field 'nonexistent_field' does not exist on model YourMeasurement"`
+
+Solution: Check that all fields in your configuration exist on the model:
+
+```python
+@register
+class YourMeasurementConfig(ModelConfiguration):
+    model = YourMeasurement
+    fields = ["name", "sample", "dataset", "your_field"]  # All must exist
+```
+
+**Problem: N+1 queries in admin list**
+
+Cause: Not using optimized querysets
+
+Solution: Override `get_queryset` in admin:
+
+```python
+class YourMeasurementAdmin(MeasurementChildAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).with_related()
+```
+
+**Problem: Type dropdown empty when creating measurement**
+
+Cause: No measurement types registered
+
+Solution: Check registry:
+
+```python
+from fairdm.registry import registry
+print("Registered measurements:", len(list(registry.measurements)))
+for model in registry.measurements:
+    print(f"  - {model.__name__}")
+```
+
+If empty, ensure your `config.py` is being imported (check `apps.py`):
+
+```python
+# myapp/apps.py
+class MyAppConfig(AppConfig):
+    name = 'myapp'
+
+    def ready(self):
+        import myapp.config  # Trigger registration
+```
 
 1. **Cache Registry Queries**: If you're accessing the registry frequently, consider caching the results:
 
@@ -421,5 +724,99 @@ def registry_summary_view(request):
        model_class = measurement_info['class']
        instances = model_class.objects.select_related('sample', 'dataset')
    ```
+
+## REST API Support
+
+**Current Status**: The FairDM registry auto-generates Django REST Framework serializers for registered models, but a full REST API with ViewSets and URL routing is not yet implemented.
+
+**What's Available Now:**
+
+The registry creates serializers for each registered model:
+
+```python
+from fairdm.registry import registry
+
+# Access auto-generated serializer
+config = registry.get_for_model(MyMeasurement)
+serializer_class = config.serializer
+
+# Use in your own views
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+class MyMeasurementAPIView(APIView):
+    def get(self, request):
+        measurements = MyMeasurement.objects.all()
+        serializer = serializer_class(measurements, many=True)
+        return Response(serializer.data)
+```
+
+**Custom Serializers:**
+
+You can provide custom serializers in your configuration:
+
+```python
+from rest_framework import serializers
+from fairdm.registry import register
+from fairdm.registry.config import ModelConfiguration
+
+class MyMeasurementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MyMeasurement
+        fields = ["id", "name", "sample", "dataset", "element", "concentration_ppm"]
+        read_only_fields = ["id"]
+
+@register
+class MyMeasurementConfig(ModelConfiguration):
+    model = MyMeasurement
+    serializer_class = MyMeasurementSerializer  # Use custom serializer
+```
+
+**Planned Features:**
+
+A full REST API module is planned for a future release, which will include:
+
+- Auto-generated ModelViewSets for all registered models
+- Automatic URL routing configuration
+- Polymorphic API endpoints (measurements by type)
+- Filtering, searching, and pagination support
+- Nested serializers for relationships (sample → measurements, dataset → samples)
+- Permission integration with object-level access control
+- API documentation generation
+
+For more information, see the [project roadmap](../../roadmap.md).
+
+**Current Workaround:**
+
+If you need a REST API now, you can create ViewSets manually:
+
+```python
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
+class MyMeasurementViewSet(viewsets.ModelViewSet):
+    """API endpoint for MyMeasurement."""
+    queryset = MyMeasurement.objects.with_related()
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        # Use registry-generated serializer
+        config = registry.get_for_model(MyMeasurement)
+        return config.serializer
+```
+
+Then add to your URLs:
+
+```python
+from rest_framework.routers import DefaultRouter
+from myapp.api import MyMeasurementViewSet
+
+router = DefaultRouter()
+router.register(r'measurements/xrf', MyMeasurementViewSet, basename='xrf-measurement')
+
+urlpatterns = [
+    path('api/', include(router.urls)),
+]
+```
 
 The registry system provides a powerful foundation for building data-driven applications that can adapt to your evolving data models. Use these patterns to create flexible, maintainable code that works with any combination of registered Sample and Measurement models.

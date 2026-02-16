@@ -1,13 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: 1.3.0 → 1.3.1
+- Version change: 1.3.1 → 1.3.2
 - Modified principles:
-	- Principle V: "Test-First Quality & Sustainability" - Updated test organization requirement from "documented test layer taxonomy (unit, integration, contract)" to reference the flat mirror structure documented in "Architecture & Stack Constraints > Testing & Tooling". This aligns the principle with the actual implemented and documented structure where unit and integration tests live together mirroring source code layout.
-- Added sections: None
+	- Development Workflow & Quality Gates: Added new subsection "Implementation Validation & Quality Checkpoints" defining mandatory validation practices during feature implementation (Django system checks, demo app testing, documentation currency, validation frequency).
+- Added sections: "Implementation Validation & Quality Checkpoints" under Development Workflow & Quality Gates
 - Removed sections: None
 - Templates requiring updates (✓ updated / ⚠ pending):
-	- ✓ All templates remain compatible - the flat test structure was already implemented and documented in Architecture section
-- Follow-up TODOs: None - change is a clarification aligning principle text with existing documented practice
+	- ⚠ Speckit command templates should be reviewed to integrate validation checkpoints (e.g., `speckit.implement` could run system checks between phases)
+	- ⚠ Checklist templates may benefit from explicit validation checkpoint items
+- Follow-up TODOs:
+	- Consider adding validation checkpoint automation to speckit.implement workflow
+	- Update agent instructions (.github/instructions/copilot.instructions.md) to reference new validation requirements
 -->
 
 # FairDM Constitution
@@ -174,6 +177,20 @@ This section governs how new capabilities are proposed, designed, and implemente
   - Contract/integration tests SHOULD be written before or alongside implementation for critical user journeys.
   - No change MAY be merged that causes the agreed test suite for the touched areas to fail.
   - Pull requests without appropriate test coverage for behavior changes MUST NOT be merged (except docs-only changes).
+- **Implementation Validation & Quality Checkpoints**:
+  - **Django System Checks**: `python manage.py check` MUST be run and pass between completing user stories or major implementation phases to catch configuration errors (model validation, admin field references, vocabulary collection references, etc.) before they surface as runtime errors.
+  - **Demo App Testing**: When changes affect core models, admin classes, registry behavior, or recommended patterns, the demo app implementation MUST be tested after the changes:
+    - Create or update tests in `fairdm_demo/tests/` to verify the demo app's usage of new/changed features works correctly.
+    - Run demo app tests (e.g., `pytest fairdm_demo/tests/`) and ensure all tests pass before considering the feature complete.
+    - Admin views SHOULD be tested by making HTTP requests to list, add, and change views to ensure they load without errors.
+  - **Documentation Currency**: Documentation MUST be updated as features are implemented, not deferred to the end:
+    - When implementing a user story that changes behavior visible to portal developers, admins, or contributors, update the relevant documentation section (developer-guide/, portal-administration/, or user-guide/) in the same pull request.
+    - New public APIs, settings, template blocks, or components MUST be documented with usage examples before the feature is considered complete.
+    - Breaking changes MUST include migration guidance documenting the upgrade path from the previous version.
+  - **Validation Frequency**: For multi-phase feature implementations:
+    - Run system checks after completing each phase or user story, not just at the end.
+    - When a phase modifies models, admin, or registry, test the demo app immediately to catch integration issues early.
+    - Update documentation incrementally as capabilities are added, ensuring docs reflect the current state of the implementation.
 - **Documentation Critical**:
   - Developer, admin, and contributor documentation MUST be updated when behavior, configuration, or workflows change in user-visible ways, as defined in Principle VI.
   - Public APIs, settings, template blocks, and Cotton components MUST include usage examples.
@@ -205,4 +222,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.3.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-02-06
+**Version**: 1.3.2 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-02-10
