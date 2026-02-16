@@ -60,7 +60,6 @@ before_you_begin
 setting_up
 project_directory
 committing_to_github
-documentation
 
 ```
 
@@ -79,8 +78,6 @@ using_the_registry
 :caption: Customisation
 :maxdepth: 2
 
-customise/logo
-customise/theme
 component_library/index
 ```
 
@@ -102,6 +99,5 @@ testing-portal-projects
 configuration
 emails
 social_accounts
-deployment_guide/production
 
 ```

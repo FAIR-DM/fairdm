@@ -4,5 +4,4 @@
 :maxdepth: 2
 
 samples
-measurements
 ```
