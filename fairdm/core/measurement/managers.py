@@ -51,7 +51,7 @@ class MeasurementQuerySet(PolymorphicQuerySet):
             >>> # will not trigger additional queries
             >>>
             >>> # Chain with additional prefetching for deep nested data:
-            >>> measurements = Measurement.objects.with_related().select_related('sample__dataset')
+            >>> measurements = Measurement.objects.with_related().select_related("sample__dataset")
         """
         return self.select_related(
             "sample",
@@ -74,7 +74,7 @@ class MeasurementQuerySet(PolymorphicQuerySet):
         Example:
             >>> measurements = Measurement.objects.with_metadata()
             >>> for measurement in measurements:
-            >>>     # These accesses don't trigger additional queries
+            >>> # These accesses don't trigger additional queries
             >>>     descriptions = measurement.descriptions.all()
             >>>     dates = measurement.dates.all()
             >>>     identifiers = measurement.identifiers.all()

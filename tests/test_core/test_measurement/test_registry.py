@@ -159,7 +159,7 @@ class TestPolymorphicMeasurementQueries:
         assert len(measurements) == 3
 
         # Each should be correctly typed (don't assume order)
-        types = set(type(m).__name__ for m in measurements)
+        types = {type(m).__name__ for m in measurements}
         assert "ExampleMeasurement" in types
         assert "XRFMeasurement" in types
         assert "ICP_MS_Measurement" in types

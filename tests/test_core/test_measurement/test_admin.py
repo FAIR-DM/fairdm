@@ -150,7 +150,12 @@ class TestMeasurementAdminFilters:
             name="XRF", sample=sample, dataset=sample.dataset, element="Si", concentration_ppm=250000.0
         )
         icp = ICP_MS_Measurement.objects.create(
-            name="ICP-MS", sample=sample, dataset=sample.dataset, isotope="207Pb", counts_per_second=15000.0, concentration_ppb=120.5
+            name="ICP-MS",
+            sample=sample,
+            dataset=sample.dataset,
+            isotope="207Pb",
+            counts_per_second=15000.0,
+            concentration_ppb=120.5,
         )
 
         xrf_type = ContentType.objects.get_for_model(XRFMeasurement)

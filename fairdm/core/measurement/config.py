@@ -38,6 +38,7 @@ class BaseMeasurementConfiguration(ModelConfiguration):
         from fairdm.core.measurement.config import BaseMeasurementConfiguration
         from fairdm.registry import register
 
+
         @register
         class XRFMeasurementConfig(BaseMeasurementConfiguration):
             model = XRFMeasurement
