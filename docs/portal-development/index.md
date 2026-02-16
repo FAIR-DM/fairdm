@@ -43,8 +43,8 @@ The Getting Started guide will walk you through:
 
 For implementation details and rationale behind FairDM features, see the feature specifications:
 
-- [Documentation Infrastructure](../../specs/003-docs-infrastructure/spec.md) - How documentation is organized and validated
-- [Production Configuration](../../specs/002-production-config-fairdm-conf/spec.md) - Configuration system and deployment settings
+- [Core Projects](../../specs/003-core-projects/spec.md) - Project model and management features
+- [FairDM Registry](../../specs/002-fairdm-registry/spec.md) - Model registration system
 - [All Specifications](../../specs/) - Complete list of feature specs
 
 These specifications provide full context on design decisions, user stories, and acceptance criteria for documented features.
