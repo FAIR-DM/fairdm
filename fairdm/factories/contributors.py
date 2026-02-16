@@ -96,9 +96,12 @@ class OrganizationMembershipFactory(DjangoModelFactory):
 class ContributionFactory(DjangoModelFactory):
     """Factory for creating Contribution instances.
 
-    The content_object must be provided when creating a Contribution.
+    The content_object can optionally be provided when creating a Contribution.
+    If not provided, a default Project will be created.
+
     Example:
-        contribution = ContributionFactory(content_object=my_project, contributor=my_person)
+        contribution = ContributionFactory()  # Creates with default Project
+        contribution = ContributionFactory(content_object=my_dataset)  # Custom object
     """
 
     class Meta:
@@ -107,8 +110,22 @@ class ContributionFactory(DjangoModelFactory):
 
     contributor = SubFactory(PersonFactory)
 
+    # Create a default Project if content_object is not provided
+    @factory.lazy_attribute
+    def content_object(self):
+        from fairdm.factories import ProjectFactory
+
+        return ProjectFactory()
+
     # These will be set based on content_object
-    content_type = LazyAttribute(
-        lambda o: ContentType.objects.get_for_model(o.content_object) if o.content_object else None
-    )
-    object_id = LazyAttribute(lambda o: o.content_object.id if o.content_object else None)
+    @factory.lazy_attribute
+    def content_type(self):
+        if self.content_object:
+            return ContentType.objects.get_for_model(self.content_object)
+        return None
+
+    @factory.lazy_attribute
+    def object_id(self):
+        if self.content_object:
+            return self.content_object.id
+        return None

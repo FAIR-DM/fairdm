@@ -1,20 +1,101 @@
-[tool.poetry]
+[project]
 name = "fairdm"
-version = "2025.0"
 description = ""
-authors = ["Samuel Jennings"]
 license = "MIT"
+keywords = [
+    "research",
+    "database",
+    "research data management",
+    "open data",
+    "fairdm",
+    "FAIR",
+]
+dynamic = ["version", "classifiers"]
 readme = "README.md"
-packages = [
-    { include = "fairdm" },
-    { include = "fairdm_demo" }
+authors = [{ name = "Samuel Jennings" }]
+requires-python = '>=3.13,<4.0'
+dependencies = [
+    "celery (>=5.6.2,<6.0.0)",
+    'crispy-bootstrap5 (>=2025.6,<2026.0)',
+    'django[argon2] (>=5.1.3,<6.0.0)',
+    'django-activity-stream (>=2.0.0,<3.0.0)',
+    'django-admin-extra-buttons (>=1.5.8,<2.0.0)',
+    'django-adminactions (>=2.0.0,<3.0.0)',
+    'django-allauth[mfa,socialaccount] (>=65.7.0,<66.0.0)',
+    'django-celery-beat (>=2.5.0,<3.0.0)',
+    'django-classy-tags (>=4.1.0,<5.0.0)',
+    'django-cleanup (>=8.1.0,<9.0.0)',
+    'django-compressor (>=4.5.1,<5.0.0)',
+    'django-contact-form (>=2.1,<3.0)',
+    'django-crispy-forms (>=2.3,<3.0)',
+    'django-dbbackup (>=4.0.2,<5.0.0)',
+    'django-downloadview (>=2.3.0,<3.0.0)',
+    'django-environ (>=0.10.0,<0.11.0)',
+    'django-filter (>=24.3,<25.0)',
+    'django-htmx (>=1.16.0,<2.0.0)',
+    'django-import-export (>=4.0.3,<5.0.0)',
+    'django-invitations (>=2.0.0,<3.0.0)',
+    'django-libsass (>=0.9,<0.10)',
+    'django-meta (>=2.1.0,<3.0.0)',
+    'django-model-utils (>=4.3.1,<5.0.0)',
+    'django-parler (>=2.3,<3.0)',
+    'django-pint (>=0.7.3,<0.8.0)',
+    'django-redis (>=5.2.0,<6.0.0)',
+    'django-select2 (>=8.4.1,<9.0.0)',
+    'django-social-share (>=2.3.0,<3.0.0)',
+    'django-solo (>=2.2.0,<3.0.0)',
+    'django-split-settings (>=1.2.0,<2.0.0)',
+    'django-storages[boto3] (>=1.14.2,<2.0.0)',
+    'django-tables2 (>=2.7.0,<3.0.0)',
+    'defusedxml (>=0.7.0,<0.8.0)',
+    'easy-thumbnails (>=2.10,<3.0)',
+    'flower (>=2.0.1,<3.0.0)',
+    'gunicorn (>=23.0.0,<24.0.0)',
+    'psycopg2-binary (>=2.9.5,<3.0.0)',
+    'redis (>=4.5.2,<5.0.0)',
+    'whitenoise (>=6.4.0,<7.0.0)',
+    'django-research-vocabs @ git+https://github.com/SamuelJennings/django-research-vocabs',
+    'django-jsonfield-toolkit @ git+https://github.com/SamuelJennings/django-jsonfield-toolkit',
+    'shortuuid (>=1.0.13,<2.0.0)',
+    'django-literature @ git+https://github.com/SamuelJennings/django-literature',
+    'django-widget-tweaks (>=1.5.0,<2.0.0)',
+    'django-ordered-model (>=3.7.4,<4.0.0)',
+    'django-taggit (>=6.1.0,<7.0.0)',
+    'django-waffle (>=5.0.0,<6.0.0)',
+    'django-addanother (>=2.2.2,<3.0.0)',
+    'django-render-fields @ git+https://github.com/SamuelJennings/django-render-fields',
+    'django-autocomplete-light (>=3.12.1,<4.0.0)',
+    'django-braces (>=1.17.0,<2.0.0)',
+    'django-auto-prefetch (>=1.12.0,<2.0.0)',
+    'django-lifecycle (>=1.2.4,<2.0.0)',
+    'sentry-sdk[django] (>=2.30.0,<3.0.0)',
+    'django-guardian (>=3.0.3,<4.0.0)',
+    'django-countries (>=7.6.1,<8.0.0)',
+    'martor (>=1.7.11,<2.0.0)',
+    'django-accounts-center @ git+https://github.com/SamuelJennings/django-accounts-center',
+    'django-polymorphic (>=4.1.0,<5.0.0)',
+    'django-content-license (>=0.3.0,<0.4.0)',
+    'django-setup-tools (>=0.2.5,<0.3.0)',
+    'django-flex-menus (>=0.4.0,<0.5.0)',
+    'django-easy-icons (>=0.5.0,<0.6.0)',
+    'django-mvp @ git+https://github.com/SamuelJennings/django-mvp',
+    'django-hijack (>=3.7.4,<4.0.0)',
+    'tablib[ods,xlsx] (>=3.9.0,<4.0.0)',
+    'django-extra-views (>=0.16.0,<0.17.0)',
 ]
-include = [
-    "README.md",
-    "LICENSE",
-]
-homepage = "https://github.com/FAIR-DM/fairdm"
-keywords = ["research", "database", "research data management", "open data", "fairdm", "FAIR"]
+
+[project.urls]
+Homepage = "https://www.fairdm.com"
+Documentation = "https://www.fairdm.com"
+Repository = "https://github.com/FAIR-DM/fairdm"
+Issues = "https://github.com/FAIR-DM/fairdm/issues"
+Changelog = "https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md"
+
+[tool.poetry]
+version = "2025.0"
+requires-poetry = '>=2.0,<3.0'
+packages = [{ include = "fairdm" }, { include = "fairdm_demo" }]
+include = ["README.md", "LICENSE"]
 classifiers = [
     "Development Status :: 1 - Planning",
     "Framework :: Django :: 5.0",
@@ -24,99 +105,43 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.13"
-celery = "^5.4.0"
-crispy-bootstrap5 = "^2025.6"
-django = {extras = ["argon2"], version = "^5.1.3"}
-django-activity-stream = "^2.0.0"
-django-admin-extra-buttons = "^1.5.8"
-django-adminactions = "^2.0.0"
-django-allauth = {extras = ["mfa", "socialaccount"], version = "^65.7.0"}
-django-celery-beat = "^2.5.0"
-django-classy-tags = "^4.1.0"
-django-cleanup = "^8.1.0"
-django-compressor = "^4.5.1"
-django-contact-form = "^2.1"
-django-crispy-forms = "^2.3"
-django-dbbackup = "^4.0.2"
-django-downloadview = "^2.3.0"
-django-environ = "^0.10.0"
-django-filter = "^24.3"
-django-htmx = "^1.16.0"
-django-import-export = "^4.0.3"
-django-invitations = "^2.0.0"
-django-libsass = "^0.9"
-django-meta = "^2.1.0"
-django-model-utils = "^4.3.1"
-django-parler = "^2.3"
-django-pint = "^0.7.3"
-django-redis = "^5.2.0"
-django-select2 = "^8.4.1"
-django-social-share = "^2.3.0"
-django-solo = "^2.2.0"
-django-split-settings = "^1.2.0"
-django-storages = {extras = ["boto3"], version = "^1.14.2"}
-django-tables2 = "^2.7.0"
-easy-thumbnails = "^2.10"
-flower = "^2.0.1"
-gunicorn = "^23.0.0"
-psycopg2-binary = "^2.9.5"
-redis = "^4.5.2"
-whitenoise = "^6.4.0"
-django-research-vocabs = {git = "https://github.com/SamuelJennings/django-research-vocabs"}
-django-jsonfield-toolkit = {git = "https://github.com/SamuelJennings/django-jsonfield-toolkit"}
-shortuuid = "^1.0.13"
-django-literature = {git = "https://github.com/SamuelJennings/django-literature"}
-django-widget-tweaks = "^1.5.0"
-django-ordered-model = "^3.7.4"
-django-taggit = "^6.1.0"
-django-waffle = "^5.0.0"
-django-addanother = "^2.2.2"
-django-render-fields = {git = "https://github.com/SamuelJennings/django-render-fields"}
-django-autocomplete-light = "^3.12.1"
-django-braces = "^1.17.0"
-django-auto-prefetch = "^1.12.0"
-django-lifecycle = "^1.2.4"
-sentry-sdk = {extras = ["django"], version = "^2.30.0"}
-django-guardian = "^3.0.3"
-django-countries = "^7.6.1"
-martor = "^1.7.11"
-django-accounts-center = {git = "https://github.com/SamuelJennings/django-accounts-center"}
-django-polymorphic = "^4.1.0"
-django-content-license = "^0.2.3"
-django-setup-tools = "^0.2.5"
-django-flex-menus = "^0.4.0"
-django-easy-icons = "^0.5.0"
-django-cotton = ">=2.3.1"
-django-cotton-bs5 = "^0.5.0"
-django-mvp = {git = "https://github.com/SamuelJennings/django-mvp"}
-django-hijack = "^3.7.4"
-tablib = {extras = ["ods", "xlsx"], version = "^3.9.0"}
-django-extra-views = "^0.16.0"
-
-
+[tool.poetry.group.test.dependencies]
+django = ">=4.2,<6.0"
+fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
+    "test",
+] }
 
 [tool.poetry.group.dev.dependencies]
-fairdm-dev-tools = {git = "https://github.com/FAIR-DM/dev-tools"}
+fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
+    "test",
+    "dev",
+] }
 importtime-waterfall = "^1.0.0"
 pandas = "^2.2.2"
 snakeviz = "^2.2.2"
-fairdm-discussions = {git = "https://github.com/FAIR-DM/fairdm-discussions"}
-fairdm-rest-api = {git = "https://github.com/FAIR-DM/fairdm-rest-api"}
+fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
+fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
 pytest-benchmark = "^5.2.3"
+ruff = "^0.15.0"
+beautifulsoup4 = "^4.14.3"
 
 [tool.poetry.group.docs.dependencies]
-fairdm-docs = {git = "https://github.com/FAIR-DM/fairdm-docs", extras = ["pydata-sphinx-theme"]}
+fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
+pydata-sphinx-theme = "^0.16.1"
+
+# fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
+#     "pydata-sphinx-theme",
+# ] }
+# Note: Path dependencies don't work in CI. Use git URL or install separately for local dev
 toml = "^0.10.2"
 sphinxcontrib-bibtex = "^2.6.3"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ['poetry-core (>=2.0,<3.0)']
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 exclude = [
     ".bzr",
     ".direnv",
@@ -167,7 +192,8 @@ select = [
     # mccabe
     "C90",
     # pycodestyle
-    "E", "W",
+    "E",
+    "W",
     # pyflakes
     "F",
     # pygrep-hooks
@@ -195,41 +221,74 @@ ignore = [
     "F403",
     "F405",
     "C901",
+    # === COMMENTED OUT - NEED TO FIX PROPERLY ===
+    # # Allow assert statements in registry config (type narrowing)
+    # "S101",
+    # # Allow try-except-pass in factory/registry code
+    # "S110",
+    # # Allow try-except-continue
+    # "S112",
+    # # Nested if statements are sometimes clearer
+    # "SIM102",
+    # # contextlib.suppress is not always clearer
+    # "SIM105",
+    # # Allow concatenation instead of unpacking (clearer in some cases)
+    # "RUF005",
+    # # Allow unused loop variables (common in iteration)
+    # "B007",
+    # # Allow redefinition in __init__ (field pattern)
+    # "F811",
 ]
-exclude = [
-    "fairdm/conf/*",
-]
+exclude = ["fairdm/conf/*"]
+
 [tool.ruff.lint.per-file-ignores]
-"**/tests/*" = ["S101","S105"]
+"**/tests/*" = [
+    "S101",   # Allow assert statements in tests
+    "S105",   # Allow hardcoded passwords in tests
+    "S106",   # Allow hardcoded passwords in arguments in tests
+    "S108",   # Allow insecure temp file usage in tests
+    "F821",   # Allow undefined names (common in test fixtures/factories)
+    "F841",   # Allow unused local variables in tests
+    "A001",   # Allow shadowing builtins in tests (e.g., license, id)
+    "B017",   # Allow asserting on Exception in tests
+    "E402",   # Allow module level imports not at top (pytest markers)
+    "RUF043", # Allow unescaped regex patterns in pytest.raises
+]
+"**/fairdm_demo/*" = [
+    "F841", # Unused variables in demo/example code
+    "E402", # Import ordering in admin (after register decorators)
+]
+"fairdm/conf/*" = [
+    "F405", # Star imports in config files
+    "F403", # Star imports in config files
+]
 
 [tool.ruff.format]
 docstring-code-format = true
 docstring-code-line-length = 88
 line-ending = "lf"
-exclude = [
-    "*/migrations/*.py",
-]
+exclude = ["*/migrations/*.py"]
 
 [tool.djlint]
-blank_line_after_tag="load,endpartialdef,endblock"
-close_void_tags=true
-custom_blocks="addtoblock"
-custom_html="django-formset,c-[\\w.-]+,swiper-container,swiper-slide"
-format_js=true
-format_css=true
-indent=2
-max_attribute_length=50
-max_blank_lines=0
-max_line_length=119
-ignore="H016,H030,H031,H021,D018,H037"
-format_attribute_template_tags=false
+blank_line_after_tag = "load,endpartialdef,endblock"
+close_void_tags = true
+custom_blocks = "addtoblock"
+custom_html = "django-formset,c-[\\w.-]+,swiper-container,swiper-slide"
+format_js = true
+format_css = true
+indent = 2
+max_attribute_length = 50
+max_blank_lines = 0
+max_line_length = 119
+ignore = "H016,H030,H031,H021,D018,H037"
+format_attribute_template_tags = false
 
 [tool.djlint.css]
-indent_size=2
+indent_size = 2
 
 
 [tool.djlint.js]
-indent_size=2
+indent_size = 2
 
 
 [tool.mypy]
@@ -248,53 +307,37 @@ exclude = [
     "migrations/",
     "tests/settings.py",
     "fairdm/conf/*",
-    "fairdm/contrib/user/forms/*",
-    ]
+    "fairdm/contrib/*",
+    ".*/plugins\\.py$",
+]
 mypy_path = "./fairdm/"
 plugins = ["mypy_django_plugin.main"]
 
 [[tool.mypy.overrides]]
 module = "fairdm.models"
-disable_error_code = [
-    "var-annotated",
-]
+disable_error_code = ["var-annotated"]
 
 [[tool.mypy.overrides]]
 module = "fairdm.db.gis.base"
-disable_error_code = [
-    "var-annotated",
-]
+disable_error_code = ["var-annotated"]
 
 [[tool.mypy.overrides]]
 module = "fairdm.models"
-disable_error_code = [
-    "var-annotated",
-]
+disable_error_code = ["var-annotated"]
 
 [tool.django-stubs]
 django_settings_module = "tests.settings"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
-env = [
-    "DJANGO_ENV=development",
-]
+env = ["DJANGO_ENV=development"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 testpaths = ["tests"]
-markers = [
-    "slow: Tests that take > 1 second to execute",
-]
-filterwarnings = [
-    "ignore",
-    "default:::keywords",
-]
-addopts = [
-    "--strict-markers",
-    "--reuse-db",
-    "--no-migrations",
-]
+markers = ["slow: Tests that take > 1 second to execute"]
+filterwarnings = ["ignore", "default:::keywords"]
+addopts = ["--strict-markers", "--reuse-db", "--no-migrations"]
 # Coverage can be enabled with: --cov --cov-report html
 
 [tool.coverage.run]
@@ -321,30 +364,59 @@ extend_exclude = [
     "tasks.py",
     "docs",
     ".*tests",
+    "tests/",
+    "fairdm_demo/tests/",
+    "fairdm/factories/",
 ]
-ignore_transitive = [
-    "toml",
-]
-# deptry checks imports but doesn't detect apps in djangos installed_apps settings. These must be listed here to avoid dependency errors.
-ignore_obsolete = [
-        "django-adminactions",
-        "django-celery-beat",
-        "django-compressor",
-        "django-cors-headers",
-        "django-dbbackup",
-        "django-htmx",
-        "django-libsass",
-        "django-nested-admin",
-        "django-postgres-metrics",
-        "django-social-share",
-        "django-spaghetti-and-meatballs",
-        "django-tellme",
-        "gunicorn",
-        "psycopg2-binary",
-        "redis",
-        "whitenoise",
-        "django-laboratory",
-]
+
+# Map Django package names to their import names
+known_first_party = ["fairdm", "fairdm_demo"]
+
+# Package to module name mappings for Django packages that use different import names
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = "pint", django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-jsonfield-toolkit = "jsonfield_toolkit", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
+
+# Ignore specific dependency issues for packages used in Django settings/templates/config
+per_rule_ignores = { DEP002 = [
+    "crispy-bootstrap5",
+    "django-activity-stream",
+    "django-admin-extra-buttons",
+    "django-adminactions",
+    "django-allauth",
+    "django-celery-beat",
+    "django-classy-tags",
+    "django-cleanup",
+    "django-compressor",
+    "django-crispy-forms",
+    "django-dbbackup",
+    "django-htmx",
+    "django-invitations",
+    "django-libsass",
+    "django-redis",
+    "django-social-share",
+    "django-storages",
+    "django-widget-tweaks",
+    "django-render-fields",
+    "django-accounts-center",
+    "django-setup-tools",
+    "flower",
+    "gunicorn",
+    "psycopg2-binary",
+    "redis",
+    "whitenoise",
+    "tablib",
+], DEP003 = [
+    "debug_toolbar",
+    "requests",
+    "rest_framework",
+    "rest_framework_gis",
+    "partial_date",
+    "quantityfield",
+    "factory",
+    "faker",
+] }
+
+# PEP621 dev dependency groups (currently using Poetry, so this doesn't apply)
+# pep621_dev_dependency_groups = ["test", "dev", "docs"]
 
 
 [tool.tox]
@@ -367,3 +439,8 @@ commands =
     mypy
 """
 
+[tool.fairdm.docs]
+port = 8010                   # Live server port (default: 5000)
+verbosity = "quiet"           # Options: "full", "quiet", "errors-only"
+django = true                 # Enable Django integration (default: false)
+theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")

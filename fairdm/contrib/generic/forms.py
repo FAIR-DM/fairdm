@@ -215,7 +215,7 @@ class KeywordForm(forms.ModelForm):
                 tags_value = self.cleaned_data["tags"]
                 if tags_value:
                     # TagWidget returns a list of tag names
-                    instance.tags.set(*tags_value.split(",") if isinstance(tags_value, str) else tags_value)
+                    instance.tags.set(*(tags_value.split(",") if isinstance(tags_value, str) else tags_value))
                 else:
                     # Clear tags if empty
                     instance.tags.clear()

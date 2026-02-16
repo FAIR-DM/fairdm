@@ -193,7 +193,9 @@ class CommunityDashboardView(FairDMTemplateView):
             contributors_count = Contributor.objects.filter(added__gte=month_start, added__lt=month_end).count()
 
             users_count = User.objects.filter(
-                date_joined__gte=month_start, date_joined__lt=month_end, is_superuser=False
+                date_joined__gte=month_start,
+                date_joined__lt=month_end,
+                is_superuser=False,
             ).count()
 
             monthly_data.append(

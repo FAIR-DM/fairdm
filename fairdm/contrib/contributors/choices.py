@@ -25,7 +25,8 @@ class CREDiT(VocabularyBuilder):
         definition=_("Ideas; formulation or evolution of overarching research goals and aims."),
     )
     DATA_CURATION = Concept(
-        prefLabel=_("Data Curation"), definition=_("Management activities to maintain research data.")
+        prefLabel=_("Data Curation"),
+        definition=_("Management activities to maintain research data."),
     )
     FORMAL_ANALYSIS = Concept(
         prefLabel=_("Formal Analysis"),
@@ -38,10 +39,12 @@ class CREDiT(VocabularyBuilder):
         definition=_("Obtaining financial support for the project leading to this publication."),
     )
     INVESTIGATION = Concept(
-        prefLabel=_("Investigation"), definition=_("Conducting a research and investigation process.")
+        prefLabel=_("Investigation"),
+        definition=_("Conducting a research and investigation process."),
     )
     METHODOLOGY = Concept(
-        prefLabel=_("Methodology"), definition=_("Development or design of methodology; creation of models.")
+        prefLabel=_("Methodology"),
+        definition=_("Development or design of methodology; creation of models."),
     )
     PROJECT_ADMINISTRATION = Concept(
         prefLabel=_("Project Administration"),

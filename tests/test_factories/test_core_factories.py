@@ -27,7 +27,7 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_project_factory_creates_instance(self):
         """Test ProjectFactory creates valid instances with relationships."""
-        project = ProjectFactory()
+        project = ProjectFactory(descriptions=2, dates=1)
 
         self.assertIsInstance(project, Project)
         self.assertIsNotNone(project.pk)
@@ -41,7 +41,7 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_dataset_factory_creates_instance(self):
         """Test DatasetFactory creates valid instances with relationships."""
-        dataset = DatasetFactory()
+        dataset = DatasetFactory(descriptions=2, dates=1)
 
         self.assertIsInstance(dataset, Dataset)
         self.assertIsNotNone(dataset.pk)
@@ -56,7 +56,7 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_sample_factory_creates_instance(self):
         """Test SampleFactory creates valid instances with relationships."""
-        sample = SampleFactory()
+        sample = SampleFactory(descriptions=2, dates=1)
 
         self.assertIsInstance(sample, Sample)
         self.assertIsNotNone(sample.pk)
@@ -71,7 +71,7 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_measurement_factory_creates_instance(self):
         """Test MeasurementFactory creates valid instances with relationships."""
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(descriptions=2, dates=1)
 
         self.assertIsInstance(measurement, Measurement)
         self.assertIsNotNone(measurement.pk)
@@ -180,8 +180,8 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_batch_creation_works(self):
         """Test that factories support batch creation."""
-        projects = ProjectFactory.create_batch(3)
-        datasets = DatasetFactory.create_batch(3)
+        projects = ProjectFactory.create_batch(3, descriptions=2, dates=1)
+        datasets = DatasetFactory.create_batch(3, descriptions=2, dates=1)
 
         self.assertEqual(len(projects), 3)
         self.assertEqual(len(datasets), 3)
@@ -239,3 +239,74 @@ class TestCoreFactoriesBasic(TestCase):
         self.assertEqual(len(set(dataset_pks)), 3)
         self.assertEqual(len(set(sample_pks)), 3)
         self.assertEqual(len(set(measurement_pks)), 3)
+
+
+class TestFactoryVocabularyValidation(TestCase):
+    """Test that factories validate types against model VOCABULARY."""
+
+    def test_project_factory_rejects_invalid_description_types(self):
+        """Test ProjectFactory raises error for invalid description types."""
+        with self.assertRaises(ValueError) as cm:
+            ProjectFactory(descriptions=1, descriptions__types=["InvalidType"])
+
+        self.assertIn("Invalid description types", str(cm.exception))
+        self.assertIn("InvalidType", str(cm.exception))
+
+    def test_project_factory_rejects_invalid_date_types(self):
+        """Test ProjectFactory raises error for invalid date types."""
+        with self.assertRaises(ValueError) as cm:
+            ProjectFactory(dates=1, dates__types=["InvalidType"])
+
+        self.assertIn("Invalid date types", str(cm.exception))
+        self.assertIn("InvalidType", str(cm.exception))
+
+    def test_dataset_factory_rejects_invalid_description_types(self):
+        """Test DatasetFactory raises error for invalid description types."""
+        with self.assertRaises(ValueError) as cm:
+            DatasetFactory(descriptions=1, descriptions__types=["InvalidType"])
+
+        self.assertIn("Invalid description types", str(cm.exception))
+
+    def test_sample_factory_rejects_invalid_description_types(self):
+        """Test SampleFactory raises error for invalid description types."""
+        with self.assertRaises(ValueError) as cm:
+            SampleFactory(descriptions=1, descriptions__types=["InvalidType"])
+
+        self.assertIn("Invalid description types", str(cm.exception))
+
+    def test_measurement_factory_rejects_invalid_description_types(self):
+        """Test MeasurementFactory raises error for invalid description types."""
+        with self.assertRaises(ValueError) as cm:
+            MeasurementFactory(descriptions=1, descriptions__types=["InvalidType"])
+
+        self.assertIn("Invalid description types", str(cm.exception))
+
+    def test_factories_accept_valid_vocabulary_types(self):
+        """Test factories accept all valid types from VOCABULARY."""
+        # Test with valid types from vocabularies
+        project = ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Introduction"])
+        dataset = DatasetFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
+
+        self.assertEqual(ProjectDescription.objects.filter(related=project).count(), 2)
+        self.assertEqual(DatasetDescription.objects.filter(related=dataset).count(), 2)
+
+        # Verify the types were used
+        desc_types = list(ProjectDescription.objects.filter(related=project).values_list("type", flat=True))
+        self.assertIn("Abstract", desc_types)
+        self.assertIn("Introduction", desc_types)
+
+    def test_factories_use_vocabulary_defaults(self):
+        """Test factories use defaults from model VOCABULARY when no types specified."""
+        project = ProjectFactory(descriptions=2)
+
+        # Should create 2 descriptions with first 2 types from VOCABULARY
+        descriptions = ProjectDescription.objects.filter(related=project)
+        self.assertEqual(descriptions.count(), 2)
+
+        # Types should be from the model's VOCABULARY
+        desc_types = list(descriptions.values_list("type", flat=True))
+        vocab_values = ProjectDescription.VOCABULARY.values
+
+        # The created types should be in the vocabulary
+        for dtype in desc_types:
+            self.assertIn(dtype, vocab_values)

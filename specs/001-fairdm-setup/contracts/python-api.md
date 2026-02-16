@@ -1,6 +1,6 @@
 # Contract: Python API & Addon Integration (fairdm.setup)
 
-**Feature**: specs/002-production-config-fairdm-conf/spec.md  
+**Feature**: specs/002-production-config-fairdm-conf/spec.md
 **Date**: 2026-01-02
 
 This contract defines the stable Python integration points for portal projects and addons.

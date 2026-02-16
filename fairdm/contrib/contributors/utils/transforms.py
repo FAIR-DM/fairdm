@@ -8,7 +8,12 @@ and various external metadata formats (DataCite, Schema.org, CSL-JSON, ORCID, RO
 import decimal
 from typing import Any
 
-from fairdm.contrib.contributors.models import Contributor, ContributorIdentifier, Organization, Person
+from fairdm.contrib.contributors.models import (
+    Contributor,
+    ContributorIdentifier,
+    Organization,
+    Person,
+)
 
 
 class BaseTransform:
@@ -114,7 +119,7 @@ class DataCiteTransform(BaseTransform):
         """
         data = {
             "name": contributor.name,
-            "nameType": "Organizational" if isinstance(contributor, Organization) else "Personal",
+            "nameType": ("Organizational" if isinstance(contributor, Organization) else "Personal"),
         }
 
         # Add name identifiers (ORCID/ROR)
@@ -124,7 +129,7 @@ class DataCiteTransform(BaseTransform):
                 {
                     "nameIdentifier": default_id.value,
                     "nameIdentifierScheme": default_id.type,
-                    "schemeURI": default_id.get_url() if hasattr(default_id, "get_url") else None,
+                    "schemeURI": (default_id.get_url() if hasattr(default_id, "get_url") else None),
                 }
             )
 
@@ -489,11 +494,11 @@ class ORCIDTransform(BaseTransform):
             dict: ORCID-formatted person data
 
         Raises:
-            ValueError: If contributor is not a Person instance
+            TypeError: If contributor is not a Person instance
         """
         if not isinstance(contributor, Person):
             msg = "ORCID export only supports Person instances"
-            raise ValueError(msg)
+            raise TypeError(msg)
 
         # Get ORCID identifier
         orcid = contributor.get_default_identifier()
@@ -505,11 +510,11 @@ class ORCIDTransform(BaseTransform):
             },
             "person": {
                 "name": {
-                    "credit-name": {"value": contributor.name} if contributor.name else None,
-                    "given-names": {"value": contributor.first_name} if contributor.first_name else None,
-                    "family-name": {"value": contributor.last_name} if contributor.last_name else None,
+                    "credit-name": ({"value": contributor.name} if contributor.name else None),
+                    "given-names": ({"value": contributor.first_name} if contributor.first_name else None),
+                    "family-name": ({"value": contributor.last_name} if contributor.last_name else None),
                 },
-                "biography": {"content": contributor.profile} if contributor.profile else None,
+                "biography": ({"content": contributor.profile} if contributor.profile else None),
             },
         }
 
@@ -730,7 +735,7 @@ class RORTransform(BaseTransform):
         """
         if not isinstance(contributor, Organization):
             msg = "ROR export only supports Organization instances"
-            raise ValueError(msg)
+            raise TypeError(msg)
 
         # Get ROR identifier
         ror = contributor.get_default_identifier()
@@ -806,7 +811,7 @@ class RORTransform(BaseTransform):
         if lat is not None and lon is not None:
             from fairdm.contrib.location.models import Point
 
-            point, created = Point.objects.get_or_create(
+            point, _created = Point.objects.get_or_create(
                 x=decimal.Decimal(str(lon)),
                 y=decimal.Decimal(str(lat)),
             )

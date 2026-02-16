@@ -7,41 +7,24 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.managers import PolymorphicManager
 from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
-from taggit.managers import TaggableManager
-from taggit.models import GenericTaggedItemBase, TagBase
 
 from fairdm.db import models
 
-from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BasePolymorphicModel
+from ..abstract import (
+    AbstractDate,
+    AbstractDescription,
+    AbstractIdentifier,
+    BasePolymorphicModel,
+)
 from ..choices import SampleStatus
 from ..utils import CORE_PERMISSIONS
-from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
+from ..vocabularies import (
+    FairDMDates,
+    FairDMDescriptions,
+    FairDMIdentifiers,
+    FairDMRoles,
+)
 from .managers import SampleQuerySet
-
-
-class SampleTag(TagBase):
-    """Custom Tag model for Sample free-text tags."""
-
-    class Meta:
-        verbose_name = _("sample tag")
-        verbose_name_plural = _("sample tags")
-
-
-class SampleTaggedItem(GenericTaggedItemBase):
-    """Custom through model for Sample tags to avoid conflicts with keywords."""
-
-    tag = models.ForeignKey(
-        SampleTag,
-        on_delete=models.CASCADE,
-        related_name="%(app_label)s_%(class)s_items",
-    )
-
-    class Meta:
-        verbose_name = _("tagged sample")
-        verbose_name_plural = _("tagged samples")
-        indexes = [
-            django_models.Index(fields=["content_type", "object_id"]),
-        ]
 
 
 class Sample(BasePolymorphicModel):
@@ -116,21 +99,6 @@ class Sample(BasePolymorphicModel):
         blank=True,
     )
 
-    # TAGGING
-    keywords = TaggableManager(
-        verbose_name=_("keywords"),
-        help_text=_("Keywords from controlled vocabularies for categorization"),
-        blank=True,
-        related_name="sample_keywords",
-    )
-    tags = TaggableManager(
-        verbose_name=_("tags"),
-        help_text=_("Free-text tags for flexible categorization"),
-        blank=True,
-        related_name="sample_tags",
-        through=SampleTaggedItem,
-    )
-
     # CUSTOM MANAGER
     objects = PolymorphicManager.from_queryset(SampleQuerySet)()
 
@@ -171,7 +139,7 @@ class Sample(BasePolymorphicModel):
         from django.urls import reverse
 
         # Placeholder - will be implemented when views are created
-        return reverse("sample:detail", kwargs={"uuid": self.uuid})
+        return reverse("sample:overview", kwargs={"uuid": self.uuid})
 
     def get_all_relationships(self):
         """Get all SampleRelation objects where this sample is source or target.
@@ -445,7 +413,7 @@ class SampleRelation(models.Model):
             raise ValidationError(_("Sample cannot relate to itself"))
 
         # 2. Prevent direct circular relationships (A→B and B→A with same type)
-        if self.source_id and self.target_id and self.type:
+        if self.source_id and self.target_id and self.type:  # noqa: SIM102
             # Check if reverse relationship already exists
             if (
                 SampleRelation.objects.filter(source_id=self.target_id, target_id=self.source_id, type=self.type)

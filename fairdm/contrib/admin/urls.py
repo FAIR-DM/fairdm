@@ -9,5 +9,5 @@ site.add_action(actions.export_as_fixture, "export_as_fixture")
 # site.add_action(actions.merge, "merge_selected")
 
 urlpatterns = [
-    path(settings.ADMIN_URL, admin.site.urls),
+    path(getattr(settings, "ADMIN_URL", "admin/"), admin.site.urls),
 ]

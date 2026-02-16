@@ -1,7 +1,11 @@
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
+from fairdm.contrib.generic.plugins import (
+    DescriptionsPlugin,
+    KeyDatesPlugin,
+    KeywordsPlugin,
+)
 from fairdm.core.plugins import EditPlugin, OverviewPlugin
 from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.utils.utils import user_guide

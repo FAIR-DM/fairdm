@@ -2,25 +2,25 @@
 {% load i18n cotton %}
 
 {% block quick_info_items %}
-  <c-detail.info-item label="{% trans 'Project' %}">
+  <c-info-item label="{% trans 'Project' %}">
     <a href="{{ sample.dataset.project.get_absolute_url }}"
        class="text-decoration-none">{{ sample.dataset.project|truncatechars:50 }}</a>
-  </c-detail.info-item>
-  <c-detail.info-item label="{% trans 'Dataset' %}">
+  </c-info-item>
+  <c-info-item label="{% trans 'Dataset' %}">
     <a href="{{ sample.dataset.get_absolute_url }}"
        class="text-decoration-none">{{ sample.dataset|truncatechars:50 }}</a>
-  </c-detail.info-item>
+  </c-info-item>
   {% if sample.local_id %}
-    <c-detail.info-item label="{% trans 'Local ID' %}"
-                        text="{{ sample.local_id }}" />
+    <c-info-item label="{% trans 'Local ID' %}"
+                 text="{{ sample.local_id }}" />
   {% endif %}
-  <c-detail.info-item label="{% trans 'UUID' %}"
-                      text="{{ sample.uuid }}" />
-  <c-detail.info-item label="{% trans 'Status' %}">
+  <c-info-item label="{% trans 'UUID' %}"
+               text="{{ sample.uuid }}" />
+  <c-info-item label="{% trans 'Status' %}">
     <c-badge variant="secondary">
       {{ sample.get_status_display }}
     </c-badge>
-  </c-detail.info-item>
+  </c-info-item>
 {% endblock quick_info_items %}
 
 {% block overview_main %}
@@ -51,7 +51,7 @@
         <div class="card-footer bg-transparent">
           <a href="#" class="text-decoration-none">
             {% trans "View all" %} {{ sample.measurements.count }} {% trans "measurements" %}
-            <c-icon name="arrow_right" />
+            <c-icon name="arrow-right" />
           </a>
         </div>
       {% endif %}
@@ -70,8 +70,8 @@
           <code>{{ sample.location.latitude }}, {{ sample.location.longitude }}</code>
         </dd>
         {% if sample.location.elevation %}
-          <c-detail.info-item label="{% trans 'Elevation' %}"
-                              value="{{ sample.location.elevation }} m" />
+          <c-info-item label="{% trans 'Elevation' %}"
+                       value="{{ sample.location.elevation }} m" />
         {% endif %}
         <dt class="text-muted small text-uppercase mb-1">{% trans "Map" %}</dt>
         <dd class="mb-0">
@@ -88,8 +88,8 @@
             icon="calendar-event">
       <dl class="mb-0">
         {% if sample.collection_date %}
-          <c-detail.info-item label="{% trans 'Date' %}"
-                              value="{{ sample.collection_date|date:'N j, Y' }}" />
+          <c-info-item label="{% trans 'Date' %}"
+                       value="{{ sample.collection_date|date:'N j, Y' }}" />
         {% endif %}
         {% if sample.collector %}
           <dt class="text-muted small text-uppercase mb-1">{% trans "Collector" %}</dt>

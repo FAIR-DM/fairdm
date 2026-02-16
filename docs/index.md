@@ -52,7 +52,7 @@ For more on the distinction between portal users and framework contributors, see
 
 ### [Overview](overview/index.md)
 
-Learn more about FairDM's vision, FAIR-first philosophy, core architecture, design principles, and the [FairDM Constitution](../.specify/memory/constitution.md). This section provides essential context for understanding how FairDM approaches research data management.
+**For evaluators and stakeholders** seeking high-level context on FairDM's vision, FAIR-first philosophy, core architecture, design principles, and the [FairDM Constitution](../.specify/memory/constitution.md).
 
 **Start here if**: You're evaluating FairDM or need high-level context
 
@@ -62,11 +62,55 @@ Learn more about FairDM's vision, FAIR-first philosophy, core architecture, desi
 
 FairDM follows a governance model defined in the [FairDM Constitution](../.specify/memory/constitution.md), which establishes five core principles:
 
-- [I. FAIR-First Research Portals](../.specify/memory/constitution.md#i-fair-first-research-portals) - Every feature improves or maintains FAIR characteristics
-- [II. Domain-Driven, Declarative Modeling](../.specify/memory/constitution.md#ii-domain-driven-declarative-modeling) - Research communities define schemas declaratively
-- [III. Configuration Over Custom Plumbing](../.specify/memory/constitution.md#iii-configuration-over-custom-plumbing) - Focus on domain modeling, not web plumbing
-- [IV. Opinionated, Production-Grade Defaults](../.specify/memory/constitution.md#iv-opinionated-production-grade-defaults) - Coherent modern stack with sensible defaults
-- [V. Quality, Sustainability, and Community](../.specify/memory/constitution.md#v-quality-sustainability-and-community) - Long-lived research infrastructure with comprehensive testing
+::::{grid} 1 2 2 3
+:gutter: 3
+
+:::{grid-item-card} {octicon}`shield-check;1.5em` FAIR by Design
+:link: overview/fair-by-design
+:link-type: doc
+
+Every feature improves or maintains FAIR characteristics
++++
+[Learn More →](overview/fair-by-design)
+:::
+
+:::{grid-item-card} {octicon}`package;1.5em` Domain-Driven, Declarative Modeling
+:link: overview/domain-driven-modeling
+:link-type: doc
+
+Research communities define schemas declaratively
++++
+[Learn More →](overview/domain-driven-modeling)
+:::
+
+:::{grid-item-card} {octicon}`gear;1.5em` Configuration Over Custom Plumbing
+:link: overview/configuration-over-code
+:link-type: doc
+
+Focus on domain modeling, not web plumbing
++++
+[Learn More →](overview/configuration-over-code)
+:::
+
+:::{grid-item-card} {octicon}`star;1.5em` Opinionated, Production-Grade Defaults
+:link: overview/opinionated-defaults
+:link-type: doc
+
+Coherent modern stack with sensible defaults
++++
+[Learn More →](overview/opinionated-defaults)
+:::
+
+:::{grid-item-card} {octicon}`people;1.5em` Quality, Sustainability, and Community
+:link: overview/quality-and-sustainability
+:link-type: doc
+
+Long-lived research infrastructure with comprehensive testing
++++
+[Learn More →](overview/quality-and-sustainability)
+:::
+
+::::
 
 Feature specifications and implementation plans are maintained in the [`specs/` directory](https://github.com/FAIR-DM/fairdm/tree/main/specs).
 

@@ -93,8 +93,11 @@ def setup(
 
     # Load all env files
     for env_path in env_files_to_load:
-        environ.Env.read_env(env_path)
-        logger.debug(f"Loaded environment file: {env_path}")
+        # Use overwrite=True for custom env files to allow explicit overrides
+        # Base files (stack.env, stack.{profile}.env) respect existing env vars
+        is_custom_file = env_path == env_file
+        environ.Env.read_env(env_path, overwrite=is_custom_file)
+        logger.debug(f"Loaded environment file: {env_path} (overwrite={is_custom_file})")
 
     # Inject essential variables into caller's namespace
     caller_globals.update(

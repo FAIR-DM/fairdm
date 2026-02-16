@@ -271,7 +271,7 @@ Within each primary section, you MAY create subdirectories to organize content. 
 Use relative links to reference feature specifications:
 
 ```markdown
-For implementation details, see the [Custom Model Registration Specification](../../specs/005-custom-model-registration/spec.md).
+For implementation details, see the [FairDM Registry Specification](../../specs/002-fairdm-registry/spec.md).
 ```
 
 **Pattern**: `[descriptive text](../../specs/###-feature-name/spec.md)`

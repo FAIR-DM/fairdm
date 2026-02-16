@@ -11,7 +11,13 @@ from django.contrib.auth.models import User
 from django.db.models import Model
 
 
-def create_activity(actor: User, verb: str, target: Model = None, action_object: Model = None, description: str = ""):
+def create_activity(
+    actor: User,
+    verb: str,
+    target: Model | None = None,
+    action_object: Model | None = None,
+    description: str = "",
+):
     """
     Create an activity in the activity stream.
 
@@ -70,7 +76,7 @@ def is_following(user: User, obj: Model) -> bool:
     return Follow.objects.is_following(user, obj)
 
 
-def get_object_activities(obj: Model, limit: int = None):
+def get_object_activities(obj: Model, limit: int | None = None):
     """
     Get all activities related to an object.
 

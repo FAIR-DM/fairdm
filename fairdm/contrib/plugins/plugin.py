@@ -3,6 +3,7 @@ from __future__ import annotations
 from django import urls
 from django.db.models.base import Model as Model
 from django.forms.widgets import Media
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 from .config import PluginConfig, PluginMenuItem
@@ -83,7 +84,7 @@ class FairDMPlugin:
             return Media(self.__class__.Media)
         return Media()
 
-    def get_breadcrumbs(self) -> list[dict[str, str]]:
+    def get_breadcrumbs(self) -> list[dict[str, str | Promise]]:
         """
         Return a list of breadcrumb items for navigation.
 
@@ -107,7 +108,7 @@ class FairDMPlugin:
         Returns:
             list[dict[str, str]]: List of breadcrumb dictionaries
         """
-        breadcrumbs = []
+        breadcrumbs: list[dict[str, str | Promise]] = []
 
         # Only generate breadcrumbs if we have a base_object
         if not hasattr(self, "base_object") or not self.base_object:
@@ -137,7 +138,10 @@ class FairDMPlugin:
 
         # Point to public list view
         breadcrumbs.append(
-            {"text": _(f"All {model_verbose_name_plural.title()}"), "href": urls.reverse(f"{model_name}-list")}
+            {
+                "text": _(f"All {model_verbose_name_plural.title()}"),
+                "href": urls.reverse(f"{model_name}-list"),
+            }
         )
 
         # Second breadcrumb: Object overview with truncated name
@@ -147,7 +151,10 @@ class FairDMPlugin:
             object_str = object_str[:27] + "..."
 
         breadcrumbs.append(
-            {"text": object_str, "href": urls.reverse(f"{namespace}:overview", kwargs={"uuid": base_object.uuid})}
+            {
+                "text": object_str,
+                "href": urls.reverse(f"{namespace}:overview", kwargs={"uuid": base_object.uuid}),
+            }
         )
 
         # Third breadcrumb: Current page title (no href)

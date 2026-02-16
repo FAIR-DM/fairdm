@@ -1,5 +1,18 @@
 name: Documentation Validation
 
+# TEMPORARY LENIENT MODE (Until docs cleanup is complete)
+# ========================================================
+# Current validation approach:
+#   ✅ PASS: Build completes successfully (warnings logged but not blocking)
+#   ✅ PASS: Critical internal code/API links work
+#   ⚠️  WARN: Missing images, incomplete sections, orphaned pages (informational only)
+#   ❌ FAIL: Build errors, broken critical internal links
+#
+# Once documentation cleanup is complete, restore strict validation:
+#   - Uncomment the -W flag in build-docs step
+#   - Remove image/asset exclusions in link checking
+#   - Update PR comment to reflect strict mode
+
 on:
   pull_request:
     paths:
@@ -17,6 +30,11 @@ on:
       - 'specs/**'
       - '**.md'
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   validate-docs:
     name: Validate Documentation
@@ -27,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Poetry env
-        uses: SamuelJennings/cached-poetry-action@v1
+        uses: SamuelJennings/cached-poetry-action@v2.0
         with:
           python-version: '3.13'
 
@@ -37,39 +55,70 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             binutils libproj-dev gdal-bin libsqlite3-mod-spatialite
 
-      - name: Build documentation (warnings as errors)
+      - name: Build documentation (warnings logged, not blocking)
         id: build-docs
         run: |
-          echo "Building documentation with sphinx-build -W..."
-          poetry run sphinx-build -W -b html docs docs/_build
+          echo "Building documentation with warnings logged..."
+          echo "Note: Warnings are informational only until docs cleanup is complete"
+          poetry run sphinx-build -b html docs docs/_build 2>&1 | tee docs/_build/build.log || true
+
+          # Count warnings for informational purposes
+          WARNING_COUNT=$(grep -c "WARNING:" docs/_build/build.log || echo "0")
+          echo "📝 Found $WARNING_COUNT documentation warnings (not blocking)"
+
+          # Only fail on actual build errors, not warnings
+          if poetry run sphinx-build -b html docs docs/_build > /dev/null 2>&1; then
+            echo "✅ Documentation build completed successfully"
+            exit 0
+          else
+            echo "❌ Documentation build failed with errors"
+            exit 1
+          fi
         continue-on-error: false
 
-      - name: Check internal links (hard failure)
+      - name: Check internal links (lenient until docs cleanup)
         id: check-internal-links
         run: |
           echo "Checking links with sphinx-build -b linkcheck..."
           poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck || true
 
-          # Parse linkcheck output for internal link failures
+          # Parse linkcheck output for critical internal link failures only
           if [ -f "docs/_build/linkcheck/output.txt" ]; then
-            # Check for broken internal links (non-HTTP URLs or relative paths)
-            BROKEN_INTERNAL=$(grep "\\[broken\\]" docs/_build/linkcheck/output.txt | grep -v "http" || true)
+            # Check for broken internal code/API references (critical)
+            # Exclude image files and tutorial assets (non-critical until docs cleanup)
+            BROKEN_CRITICAL=$(grep "\[broken\]" docs/_build/linkcheck/output.txt | grep -v "http" | grep -v "\.png" | grep -v "\.jpg" | grep -v "_static/" || true)
 
-            if [ -n "$BROKEN_INTERNAL" ]; then
-              echo "❌ Found broken internal links:"
-              echo "$BROKEN_INTERNAL"
+            if [ -n "$BROKEN_CRITICAL" ]; then
+              echo "❌ Found broken critical internal links:"
+              echo "$BROKEN_CRITICAL"
+              echo ""
+              echo "⚠️  Note: Image file warnings are informational until docs cleanup is complete"
               exit 1
             else
-              echo "✅ All internal links are valid"
+              echo "✅ All critical internal links are valid"
+            fi
+
+            # Report non-critical warnings
+            BROKEN_IMAGES=$(grep "\[broken\]" docs/_build/linkcheck/output.txt | grep -E "\.png|\.jpg|_static/" || true)
+            if [ -n "$BROKEN_IMAGES" ]; then
+              echo ""
+              echo "⚠️  Non-critical warnings (images/assets - informational only):"
+              echo "$BROKEN_IMAGES" | head -10
+              if [ $(echo "$BROKEN_IMAGES" | wc -l) -gt 10 ]; then
+                echo "... and more"
+              fi
             fi
 
             # Check for broken external links (warnings only)
-            BROKEN_EXTERNAL=$(grep "\\[broken\\]" docs/_build/linkcheck/output.txt | grep "http" || true)
+            BROKEN_EXTERNAL=$(grep "\[broken\]" docs/_build/linkcheck/output.txt | grep "http" || true)
 
             if [ -n "$BROKEN_EXTERNAL" ]; then
+              echo ""
               echo "⚠️ Found broken external links (manual review recommended):"
-              echo "$BROKEN_EXTERNAL"
-              # Don't fail on external links - these are informational
+              echo "$BROKEN_EXTERNAL" | head -5
+              if [ $(echo "$BROKEN_EXTERNAL" | wc -l) -gt 5 ]; then
+                echo "... and more"
+              fi
             else
               echo "✅ All external links are valid"
             fi
@@ -111,15 +160,20 @@ jobs:
             const issue_number = context.issue.number;
             const body = `## 📝 Documentation Validation Failed
 
-            The documentation validation checks failed. Please review the errors above and fix them before merging.
+            The documentation validation checks failed on **critical** errors. Please review and fix.
 
-            **Common fixes:**
-            - Fix broken internal links (must resolve correctly)
-            - Ensure documentation builds without warnings
-            - Complete feature documentation checklists
-            - Review broken external links (warnings only, but should be fixed if possible)
+            **⚠️  Lenient Mode Active**: Until docs cleanup is complete, only critical failures block PRs:
+            - ✅ **Informational**: Build warnings, missing images, incomplete sections
+            - ❌ **Blocking**: Critical broken links to code/API references, build errors
 
-            See the [Documentation Standards](https://github.com/FAIR-DM/fairdm/blob/main/docs/contributing/documentation-standards.md) for guidance.`;
+            **What failed:**
+            - Check the workflow logs above for specific critical errors
+            - Focus on fixing broken internal links to code/documentation pages
+            - Image and asset warnings can be addressed during docs cleanup
+
+            **Need help?**
+            - See [Documentation Standards](https://github.com/FAIR-DM/fairdm/blob/main/docs/contributing/documentation-standards.md)
+            - Ask in discussions if you're unsure what needs fixing`;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,

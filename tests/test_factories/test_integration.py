@@ -21,8 +21,8 @@ class TestFactoryIntegration(TestCase):
         principal_investigator = PersonFactory(first_name="Dr. Jane", last_name="Smith")
         research_institution = OrganizationFactory(name="University Research Center")
 
-        # Create project with basic info (without automatic contributors)
-        project = ProjectFactory(name="Climate Change Research Project", contributors=[])
+        # Create project with basic info
+        project = ProjectFactory(name="Climate Change Research Project")
 
         # Add contributors to project
         ContributionFactory(contributor=principal_investigator, content_object=project)
@@ -102,8 +102,8 @@ class TestFactoryIntegration(TestCase):
         organization = OrganizationFactory()
         contributor_as_person = ContributorFactory()  # Creates Person by default
 
-        # Create project (without automatic contributors)
-        project = ProjectFactory(contributors=[])
+        # Create project
+        project = ProjectFactory()
 
         # Add all contributors to project
         contributions = [
@@ -178,21 +178,21 @@ class TestFactoryIntegration(TestCase):
 
     def test_related_factory_relationships(self):
         """Test that related factories create proper relationships."""
-        # Create a project (which should create descriptions and dates)
-        project = ProjectFactory()
+        # Create a project with explicit opt-in for descriptions and dates
+        project = ProjectFactory(descriptions=2, dates=1)
 
         # Verify related objects were created
         self.assertTrue(project.descriptions.exists())
         self.assertTrue(project.dates.exists())
 
         # Verify we have the expected number
-        self.assertEqual(project.descriptions.count(), 2)  # As defined in factory
-        self.assertEqual(project.dates.count(), 1)  # As defined in factory
+        self.assertEqual(project.descriptions.count(), 2)
+        self.assertEqual(project.dates.count(), 1)
 
     def test_factory_batch_creation_performance(self):
         """Test batch creation of related factories."""
-        # Create multiple projects with all related objects
-        projects = ProjectFactory.create_batch(5)
+        # Create multiple projects with all related objects (opt-in)
+        projects = ProjectFactory.create_batch(5, descriptions=2, dates=1)
 
         # Verify all projects have related objects
         for project in projects:

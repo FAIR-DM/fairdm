@@ -19,10 +19,17 @@ urlpatterns = [
                 path("", CommunityDashboardView.as_view(), name="community-dashboard"),
                 path("portal-team/", PortalTeamView.as_view(), name="portal-team"),
                 path("people/", ContributorListView.as_view(), name="people-list"),
-                path("organizations/", OrganizationListView.as_view(), name="organization-list"),
+                path(
+                    "organizations/",
+                    OrganizationListView.as_view(),
+                    name="organization-list",
+                ),
                 path("add-person/", PersonCreateView.as_view(), name="person-create"),
             ]
         ),
     ),
-    path("contributor/<str:uuid>/", include((registry.get_view_for_model(Contributor).get_urls(), "contributor"))),
+    path(
+        "contributor/<str:uuid>/",
+        include((registry.get_view_for_model(Contributor).get_urls(), "contributor")),
+    ),
 ]

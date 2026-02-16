@@ -7,10 +7,20 @@ from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
 
-from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BasePolymorphicModel
+from ..abstract import (
+    AbstractDate,
+    AbstractDescription,
+    AbstractIdentifier,
+    BasePolymorphicModel,
+)
 from ..managers import PolymorphicManager
 from ..utils import CORE_PERMISSIONS
-from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
+from ..vocabularies import (
+    FairDMDates,
+    FairDMDescriptions,
+    FairDMIdentifiers,
+    FairDMRoles,
+)
 
 
 class Measurement(BasePolymorphicModel):

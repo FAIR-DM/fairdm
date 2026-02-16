@@ -1,3 +1,5 @@
+import contextlib
+
 from django.urls import path, reverse
 from django.views.generic import RedirectView
 from django_tables2.views import SingleTableMixin
@@ -33,7 +35,6 @@ class DataTableView(SingleTableMixin, FairDMListView):
 
         # Determine collection type (sample or measurement)
         is_sample = self.model in registry.samples
-        is_measurement = self.model in registry.measurements
 
         context["collection_type"] = "sample" if is_sample else "measurement"
         context["collection_type_verbose"] = "Sample" if is_sample else "Measurement"
@@ -203,16 +204,12 @@ class CollectionsOverview(FairDMTemplateView):
         total_measurements = 0
 
         for sample_model in registry.samples:
-            try:
+            with contextlib.suppress(Exception):
                 total_samples += sample_model.objects.count()
-            except Exception:
-                pass
 
         for measurement_model in registry.measurements:
-            try:
+            with contextlib.suppress(Exception):
                 total_measurements += measurement_model.objects.count()
-            except Exception:
-                pass
 
         context.update(
             {

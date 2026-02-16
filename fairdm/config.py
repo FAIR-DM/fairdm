@@ -10,7 +10,12 @@ Note: Imports are deferred to avoid circular dependencies during Django setup.
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fairdm.registry.config import Authority, Citation, ModelConfiguration, ModelMetadata
+    from fairdm.registry.config import (
+        Authority,
+        Citation,
+        ModelConfiguration,
+        ModelMetadata,
+    )
     from fairdm.registry.registry import register
 else:
 

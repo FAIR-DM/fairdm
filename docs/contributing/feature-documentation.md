@@ -42,7 +42,7 @@ When documenting a feature, link back to its specification to provide full conte
 
 ```markdown
 This registration API was designed to support domain-driven modeling
-([spec](../../specs/002-registry-api/spec.md)).
+([spec](../../specs/002-fairdm-registry/spec.md)).
 ```
 
 ### Linking to Constitution
@@ -79,7 +79,7 @@ The checklist helps you:
 - Verify all required content is complete
 - Link to updated documentation pages
 
-**Example completed checklist**: See [this feature's checklist](../../specs/003-docs-infrastructure/checklists/documentation.md)
+**Example completed checklist**: See [example spec structure](../../specs/003-core-projects/spec.md)
 
 ---
 

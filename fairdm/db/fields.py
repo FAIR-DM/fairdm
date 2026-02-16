@@ -4,8 +4,6 @@ from django.db import models
 from partial_date import PartialDateField as BasePartialDateField
 from quantityfield import fields
 
-from fairdm.forms import PartialDateField
-
 
 class BigIntegerQuantityField(fields.BigIntegerQuantityField):
     to_number_type = int
@@ -42,7 +40,7 @@ class QuantityField(fields.QuantityField):
         return models.FloatField.formfield(self, **kwargs)
 
 
-class PartialDateField(BasePartialDateField):
+class PartialDateField(BasePartialDateField):  # type: ignore[no-redef]
     def formfield(self, **kwargs):
         # Import here to avoid circular import
         from fairdm.forms import PartialDateField as PartialDateFormField

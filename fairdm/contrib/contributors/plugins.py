@@ -2,7 +2,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
-from django.views.generic import DeleteView, FormView, ListView, TemplateView, UpdateView
+from django.views.generic import (
+    DeleteView,
+    FormView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
 from django_filters import FilterSet
 
 from fairdm import plugins
@@ -25,7 +31,14 @@ from .forms.contribution import QuickAddContributionForm, UpdateContributionForm
 from .forms.forms import AffiliationForm, UserIdentifierForm, UserIdentifierFormSet
 from .forms.organization import OrganizationProfileForm
 from .forms.person import UserProfileForm
-from .models import Contribution, Contributor, ContributorIdentifier, Organization, OrganizationMember, Person
+from .models import (
+    Contribution,
+    Contributor,
+    ContributorIdentifier,
+    Organization,
+    OrganizationMember,
+    Person,
+)
 
 
 @plugins.register(Contributor)

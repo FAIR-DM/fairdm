@@ -24,7 +24,10 @@ class FairDMCoreConfig(AppConfig):
         from fairdm.registry import registry
 
         for model in apps.get_models():
-            if issubclass(model, Sample | Measurement) and model not in [Sample, Measurement]:
+            if issubclass(model, Sample | Measurement) and model not in [
+                Sample,
+                Measurement,
+            ]:
                 registry.register(model)
 
     def register_sample_children(self):

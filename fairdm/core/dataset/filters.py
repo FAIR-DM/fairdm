@@ -128,7 +128,9 @@ class DatasetFilter(BaseListFilter):
     """
 
     search = django_filters.CharFilter(
-        method="filter_search", label="Search", help_text="Search across dataset name, UUID, and keywords"
+        method="filter_search",
+        label="Search",
+        help_text="Search across dataset name, UUID, and keywords",
     )
 
     project = django_filters.ModelChoiceFilter(
@@ -148,7 +150,7 @@ class DatasetFilter(BaseListFilter):
     )
 
     description_type = django_filters.CharFilter(
-        field_name="descriptions__description_type",
+        field_name="descriptions__type",
         lookup_expr="exact",
         label="Description Type",
         help_text="Filter by description type (e.g., ABSTRACT, METHODS)",

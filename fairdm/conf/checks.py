@@ -441,7 +441,11 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
 
 def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -> bool:
     """
-    Validate that an addon's setup module can be imported.
+    Validate that an addon's setup module can be found.
+
+    Note: We only check if the module can be found, not imported, because
+    addon setup modules are designed to be executed via split_settings.include()
+    which provides them with the necessary scope (INSTALLED_APPS, etc.).
 
     Args:
         addon_name: The name of the addon package
@@ -457,12 +461,16 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
     is_production_like = env_profile in ("production", "staging")
 
     try:
-        from importlib import import_module
+        import importlib.util
 
-        import_module(module_path)
+        # Only check if the module spec can be found, don't actually import it
+        spec = importlib.util.find_spec(module_path)
+        if spec is None or spec.origin is None:
+            raise ModuleNotFoundError(f"No module named '{module_path}'")
+
         return True
-    except ImportError as e:
-        error_msg = f"Addon '{addon_name}' setup module '{module_path}' could not be imported: {e}"
+    except (ImportError, ModuleNotFoundError) as e:
+        error_msg = f"Addon '{addon_name}' setup module '{module_path}' could not be found: {e}"
 
         if is_production_like:
             raise ImproperlyConfigured(error_msg) from e
@@ -470,7 +478,7 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
             logger.debug(f"⚠️  {error_msg} (skipping in development)")
             return False
     except Exception as e:
-        error_msg = f"Addon '{addon_name}' setup module '{module_path}' raised an error: {e}"
+        error_msg = f"Addon '{addon_name}' setup module '{module_path}' validation failed: {e}"
 
         if is_production_like:
             raise ImproperlyConfigured(error_msg) from e

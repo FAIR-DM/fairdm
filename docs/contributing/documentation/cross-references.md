@@ -69,8 +69,8 @@ provides explicit model configuration.
 **Multiple spec references**:
 
 ```markdown
-This feature builds on the [Registry System](../../specs/003-registry-system/spec.md)
-and follows patterns from the [Plugin Architecture](../../specs/005-plugin-architecture/spec.md).
+This feature builds on the [Registry System](../../specs/002-fairdm-registry/spec.md)
+and follows patterns from the [Core Projects](../../specs/003-core-projects/spec.md).
 ```
 
 ### Validation Rules

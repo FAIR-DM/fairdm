@@ -107,10 +107,10 @@ class ProjectFilter(BaseListFilter):
             if vocabularies:
                 # Add vocabulary filter names to Meta.fields
                 vocab_fields = [f"keywords_{import_string(vocab).__name__}" for vocab in vocabularies]
-                self._meta.fields = list(self._meta.fields) + vocab_fields
+                self._meta.fields = [*list(self._meta.fields), *vocab_fields]
             else:
                 # Add generic keywords field
-                self._meta.fields = list(self._meta.fields) + ["keywords"]
+                self._meta.fields = [*list(self._meta.fields), "keywords"]
             self._form = super().form
         return self._form
 

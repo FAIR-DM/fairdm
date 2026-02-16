@@ -97,14 +97,14 @@
 {% endblock overview_main %}
 
 {% block quick_info_items %}
-  <c-detail.info-item label="{% trans 'UUID' %}"
-                      value="{{ measurement.uuid }}"
-                      code="True" />
-  <c-detail.info-item label="{% trans 'Type' %}"
-                      value="{{ measurement.get_polymorphic_type_name }}"
-                      badge="primary" />
-  <c-detail.info-item label="{% trans 'Added' %}"
-                      value="{{ measurement.added|date:'N j, Y' }}" />
+  <c-info-item label="{% trans 'UUID' %}"
+               value="{{ measurement.uuid }}"
+               code="True" />
+  <c-info-item label="{% trans 'Type' %}"
+               value="{{ measurement.get_polymorphic_type_name }}"
+               badge="primary" />
+  <c-info-item label="{% trans 'Added' %}"
+               value="{{ measurement.added|date:'N j, Y' }}" />
   <dt class="text-muted small text-uppercase mb-1">{% trans "Last Modified" %}</dt>
   <dd class="mb-0">
     {{ measurement.modified|date:"N j, Y" }}
@@ -119,8 +119,8 @@
             icon="analytics">
       <dl class="mb-0">
         {% if measurement.unit %}
-          <c-detail.info-item label="{% trans 'Unit' %}"
-                              value="{{ measurement.unit }}" />
+          <c-info-item label="{% trans 'Unit' %}"
+                       value="{{ measurement.unit }}" />
         {% endif %}
         {% if measurement.uncertainty %}
           <dt class="text-muted small text-uppercase mb-1">{% trans "Uncertainty" %}</dt>

@@ -15,11 +15,8 @@ The admin interface follows FAIR data principles and enforces deliberate,
 individual visibility changes to prevent accidental exposure of private datasets.
 """
 
-import json
-
 from django.contrib import admin, messages
 from django.db import models
-from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget, Select2Widget
 from literature.models import LiteratureItem
@@ -44,35 +41,47 @@ class LiteratureItemAdmin(admin.ModelAdmin):
 class DescriptionInline(admin.StackedInline):
     """Inline admin for Dataset descriptions.
 
-    The max_num is dynamically set in DatasetAdmin.get_formset() based on the
-    number of available description types in the vocabulary. This prevents users
-    from adding more descriptions than there are valid types, ensuring data
-    quality and preventing form confusion.
+    The max_num is dynamically set based on the number of available description
+    types in the vocabulary. This prevents users from adding more descriptions
+    than there are valid types, ensuring data quality and preventing form confusion.
 
     For example, if there are 6 description types (Abstract, Methods, etc.),
     max_num will be set to 6, allowing one description of each type.
     """
 
     model = DatasetDescription
+    fk_name = "related"
     extra = 0
-    # max_num is set dynamically in DatasetAdmin.get_formset()
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Dynamically set max_num based on vocabulary size."""
+        formset = super().get_formset(request, obj, **kwargs)
+        vocabulary_size = len(Dataset.DESCRIPTION_TYPES.choices)
+        formset.max_num = vocabulary_size
+        return formset
 
 
 class DateInline(admin.StackedInline):
     """Inline admin for Dataset dates.
 
-    The max_num is dynamically set in DatasetAdmin.get_formset() based on the
-    number of available date types in the vocabulary (Created, Submitted,
-    Available, etc.). This prevents users from adding more dates than there
-    are valid types.
+    The max_num is dynamically set based on the number of available date types
+    in the vocabulary (Created, Submitted, Available, etc.). This prevents users
+    from adding more dates than there are valid types.
 
     The unique_together constraint on (related, type) ensures only one date of
     each type can exist per dataset.
     """
 
     model = DatasetDate
+    fk_name = "related"
     extra = 0
-    # max_num is set dynamically in DatasetAdmin.get_formset()
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Dynamically set max_num based on vocabulary size."""
+        formset = super().get_formset(request, obj, **kwargs)
+        vocabulary_size = len(Dataset.DATE_TYPES.choices)
+        formset.max_num = vocabulary_size
+        return formset
 
 
 @admin.register(Dataset)
@@ -160,36 +169,6 @@ class DatasetAdmin(admin.ModelAdmin):
         models.OneToOneField: {"widget": Select2Widget},
     }
 
-    def get_formset(self, request, obj=None, **kwargs):
-        """Dynamically set max_num for inline formsets based on vocabulary size.
-
-        For DescriptionInline and DateInline, this method sets max_num to match
-        the number of available choices in the vocabulary. This prevents users
-        from creating more inline forms than there are valid types, improving
-        UX and preventing validation errors.
-
-        Args:
-            request: The current HTTP request
-            obj: The Dataset instance being edited (None for add view)
-            **kwargs: Additional arguments including 'inline' for inline formsets
-
-        Returns:
-            The formset class with dynamically adjusted max_num
-        """
-        inline = kwargs.get("inline")
-        formset = super().get_formset(request, obj, **kwargs)
-
-        if inline == DescriptionInline:
-            # Set max_num to number of description types
-            vocabulary_size = len(Dataset.DESCRIPTION_TYPES.choices)
-            formset.max_num = vocabulary_size
-        elif inline == DateInline:
-            # Set max_num to number of date types
-            vocabulary_size = len(Dataset.DATE_TYPES.choices)
-            formset.max_num = vocabulary_size
-
-        return formset
-
     def save_model(self, request, obj, form, change):
         """Save the dataset and display license change warning if DOI exists.
 
@@ -223,93 +202,3 @@ class DatasetAdmin(admin.ModelAdmin):
                 )
 
         super().save_model(request, obj, form, change)
-
-    @admin.action(description=_("Export metadata (JSON)"))
-    def export_metadata_json(self, request, queryset):
-        """Export dataset metadata as JSON.
-
-        Exports selected datasets with comprehensive metadata including:
-        - Basic information (name, UUID, visibility)
-        - Timestamps (added, modified)
-        - Relationships (project, contributors)
-        - Metadata (descriptions, dates, identifiers)
-
-        Args:
-            request: The current HTTP request
-            queryset: QuerySet of selected Dataset instances
-
-        Returns:
-            HttpResponse with JSON content
-        """
-        datasets_data = []
-
-        for dataset in queryset.select_related("project").prefetch_related(
-            "descriptions", "dates", "identifiers", "contributors"
-        ):
-            dataset_dict = {
-                "name": dataset.name,
-                "uuid": str(dataset.uuid),
-                "visibility": dataset.get_visibility_display(),
-                "added": dataset.added.isoformat(),
-                "modified": dataset.modified.isoformat(),
-                "project": dataset.project.name if dataset.project else None,
-                "license": str(dataset.license) if dataset.license else None,
-                "has_data": dataset.has_data,
-                "descriptions": [
-                    {
-                        "type": desc.get_type_display(),
-                        "value": desc.value,
-                    }
-                    for desc in dataset.descriptions.all()
-                ],
-                "dates": [
-                    {
-                        "type": date.get_type_display(),
-                        "value": str(date.value),
-                    }
-                    for date in dataset.dates.all()
-                ],
-                "identifiers": [
-                    {
-                        "type": ident.get_type_display(),
-                        "value": ident.value,
-                    }
-                    for ident in dataset.identifiers.all()
-                ],
-            }
-            datasets_data.append(dataset_dict)
-
-        response = HttpResponse(
-            json.dumps(datasets_data, indent=2),
-            content_type="application/json",
-        )
-        response["Content-Disposition"] = 'attachment; filename="datasets_metadata.json"'
-        return response
-
-    actions = ["export_metadata_json"]
-
-    # Explicitly remove any bulk visibility change actions if they exist
-    # This is a security feature to prevent accidental exposure of private datasets
-    def get_actions(self, request):
-        """Override to ensure no bulk visibility change actions are available.
-
-        This method filters out any actions that might change dataset visibility
-        in bulk. Visibility changes must be deliberate and individual to prevent
-        accidental exposure of sensitive research data.
-        """
-        actions = super().get_actions(request)
-
-        # Remove any visibility-related bulk actions
-        visibility_action_patterns = [
-            "make_public",
-            "make_private",
-            "change_visibility",
-            "bulk_make_public",
-            "bulk_make_private",
-            "bulk_change_visibility",
-        ]
-
-        for pattern in visibility_action_patterns:
-            actions.pop(pattern, None)
-
-        return actions

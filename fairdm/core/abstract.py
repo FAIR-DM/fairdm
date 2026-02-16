@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
 from research_vocabs.models import Concept
+from research_vocabs.vocabularies import VocabularyBuilder
 from taggit.managers import TaggableManager
 
 from fairdm.contrib.contributors.choices import IdentifierLookup
@@ -204,7 +205,7 @@ class GenericModelQuerySet(QuerySet):
 
         def sort_key(item):
             try:
-                return vocabulary_order.index(item.type)  # type: ignore[attr-defined]
+                return vocabulary_order.index(item.type)
             except ValueError:
                 # If type not in vocabulary, sort to end
                 return len(vocabulary_order)
@@ -226,7 +227,7 @@ class GenericModelManager(Manager):
 class GenericModel(Model):
     """A model that can be used to store generic information."""
 
-    VOCABULARY = None
+    VOCABULARY: VocabularyBuilder | None = None
     modified = None
     added = None
     # FOR = None
@@ -252,7 +253,7 @@ class GenericModel(Model):
 
     def __init_subclass__(cls):
         if cls.VOCABULARY is not None:
-            cls.type.field.choices = cls.VOCABULARY.choices  # type: ignore[attr-defined]
+            cls.type.field.choices = cls.VOCABULARY.choices
 
         # if cls.FOR is not None:
         #     # if not hasattr(cls._meta, "db_table") or cls._meta.db_table is None:
@@ -261,7 +262,7 @@ class GenericModel(Model):
         return super().__init_subclass__()
 
     def __str__(self):
-        return f"{self.type}: {self.value}"  # Display the type and a preview of the text  # type: ignore[attr-defined]
+        return f"{self.type}: {self.value}"  # Display the type and a preview of the text
 
     def __repr__(self):
         return f"<{self}>"
