@@ -32,12 +32,12 @@
         </div>
         <p class="card-text text-muted mb-4">{{ object.profile|truncatewords:100 }}</p>
         <div class="d-flex gap-3 mb-4">
-          <c-action text="{% trans "View Profile" %}"
+          <c-button text="{% trans "View Profile" %}"
                     icon="arrow_right"
                     reverse
                     href="{{ object.get_absolute_url }}"
                     variant="primary" />
-          <c-action text="{% trans "Follow" %}"
+          <c-button text="{% trans "Follow" %}"
                     icon="add"
                     outline
                     :condition="user.is_authenticated"

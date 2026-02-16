@@ -18,7 +18,7 @@
         <div class="card-title w-100 d-flex justify-content-between align-items-center">
           <h1 class="fs-3">{{ object.title }}</h1>
           <div class="actions">
-            {% comment %} <c-action :condition="user == object" text="{% trans "Edit" %}" variant="primary" icon="edit" small /> {% endcomment %}
+            {% comment %} <c-button :condition="user == object" text="{% trans "Edit" %}" variant="primary" icon="edit" small /> {% endcomment %}
           </div>
         </div>
         <p class="card-text text-muted">{{ subtitle }}</p>
@@ -54,12 +54,12 @@
     </div>
   </div>
   <c-slot name="footer_start">
-    <c-action href="{{ object.get_absolute_url }}"
+    <c-button href="{{ object.get_absolute_url }}"
               icon="arrow_right"
               reverse
               subtle>
       {% trans "View Details" %}
-    </c-action>
+    </c-button>
   </c-slot>
   <c-slot name="footer_end">
     <span class="text-muted small ms-auto">

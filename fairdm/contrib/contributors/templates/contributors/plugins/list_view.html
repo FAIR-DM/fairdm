@@ -6,8 +6,8 @@
     <c-page.header title="{{ title }}" gap=1>
       <c-slot name="end">
         <c-navbar.widgets.search />
-        <c-action icon="sort" text="{% trans "Sort by" %}" />
-        <c-action icon="add"
+        <c-button icon="sort" text="{% trans "Sort by" %}" />
+        <c-button icon="add"
                   text="{% trans "Add Contributor" %}"
                   hx-get="{% plugin_url 'contribution-quick-add' %}"
                   hx-target="#contribution-modal-content"
