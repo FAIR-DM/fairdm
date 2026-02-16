@@ -22,11 +22,6 @@
 	// WORKSPACE SETTINGS
 	// ========================================
 	"settings": {
-		"terminal.integrated.env.windows": {
-			"PYTHONPATH": "../django-mvp;../django-accounts-center;"
-			// Add additional paths as needed:
-			// "PYTHONPATH": "../fairdm;../django-accounts-center;../django-literature;../fairdm-discussions;"
-		},
 		// =====================================
 		// FILE ASSOCIATIONS
 		// =====================================
@@ -95,8 +90,11 @@
 		"ruff.fixAll": true,
 		"ruff.organizeImports": true,
 		// Mypy type checking
-		"mypy-type-checker.args": [
-			"--config-file=${workspaceFolder}/pyproject.toml"
+		// "mypy.configFile": "${workspaceFolder}/pyproject.toml",
+		"mypy.runUsingActiveInterpreter": true,
+		// "mypy.dmypyExecutable": "poetry",
+		"mypy.targets": [
+			"fairdm"
 		],
 		// =====================================
 		// DJANGO SETTINGS
