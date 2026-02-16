@@ -11,6 +11,8 @@ import os
 from importlib import import_module
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 logger = logging.getLogger(__name__)
 
 # Global registry for addon URLs
@@ -83,6 +85,9 @@ def discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[st
             except (ModuleNotFoundError, ValueError) as e:
                 logger.error(f"❌ Could not locate setup module '{setup_module_path}' for addon '{addon_name}': {e}")
 
+        except ImproperlyConfigured:
+            # Re-raise configuration errors (production/staging fail-fast)
+            raise
         except ImportError as e:
             logger.error(f"❌ Could not import addon '{addon_name}': {e}")
         except Exception as e:
