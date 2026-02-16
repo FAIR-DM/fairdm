@@ -1,5 +1,6 @@
 from typing import Any
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
@@ -16,7 +17,7 @@ from .models import Dataset
 DatasetDetailView = plugins.registry.get_or_create_view_for_model(Dataset)
 
 
-class DatasetCreateView(FairDMCreateView):
+class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
     """View for creating new Dataset instances.
 
     Handles dataset creation with automatic contributor assignment. The user

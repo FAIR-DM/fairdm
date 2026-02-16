@@ -6,14 +6,18 @@ from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
 from shortuuid.django_fields import ShortUUIDField
 
-from fairdm.contrib.location.utils import bbox_for_dataset
 from fairdm.db import models
 from fairdm.db.models import QuerySet
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
 from ..utils import CORE_PERMISSIONS
-from ..vocabularies import FairDMDates, FairDMDescriptions, FairDMIdentifiers, FairDMRoles
+from ..vocabularies import (
+    FairDMDates,
+    FairDMDescriptions,
+    FairDMIdentifiers,
+    FairDMRoles,
+)
 
 if TYPE_CHECKING:
     from fairdm.core.dataset.models import Dataset
@@ -218,9 +222,9 @@ class DatasetQuerySet(QuerySet):
             >>> Dataset.objects.with_private().with_related()
             <QuerySet [...]>  # Optimized queries, includes private
         """
-        # Use the model's base manager to get unfiltered queryset
-        # This bypasses any filtering in the default manager
-        return self.model._meta.base_manager.all()
+        # Return a new DatasetQuerySet with all() to include private datasets
+        # Using self.all() ensures we get the right queryset class with all methods
+        return DatasetQuerySet(self.model, using=self._db).all()
 
     def get_visible(self) -> QuerySet["Dataset"]:
         """
@@ -603,6 +607,8 @@ class Dataset(BaseModel):
 
     @cached_property
     def bbox(self):
+        from fairdm.contrib.location.utils import bbox_for_dataset
+
         return bbox_for_dataset(self)
 
 

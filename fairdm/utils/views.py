@@ -1,3 +1,5 @@
+import contextlib
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -125,16 +127,12 @@ class HomeView(FairDMTemplateView):
 
         # Count samples and measurements from registered models
         for sample_model in registry.samples:
-            try:
+            with contextlib.suppress(Exception):
                 stats["samples"] += sample_model.objects.count()
-            except Exception:
-                pass
 
         for measurement_model in registry.measurements:
-            try:
+            with contextlib.suppress(Exception):
                 stats["measurements"] += measurement_model.objects.count()
-            except Exception:
-                pass
 
         context["stats"] = stats
 

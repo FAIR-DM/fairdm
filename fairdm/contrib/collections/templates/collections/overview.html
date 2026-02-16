@@ -65,7 +65,7 @@
                   <a href="{% url 'samples-overview' %}"
                      class="btn btn-outline-primary">
                     {% trans "Explore Samples" %}
-                    <c-icon name="arrow_right" class="ms-1" />
+                    <c-icon name="arrow-right" class="ms-1" />
                   </a>
                 {% else %}
                   <p class="text-muted small mb-0">{% trans "No sample types registered yet." %}</p>
@@ -106,7 +106,7 @@
                   <a href="{% url 'measurements-overview' %}"
                      class="btn btn-outline-primary">
                     {% trans "Explore Measurements" %}
-                    <c-icon name="arrow_right" class="ms-1" />
+                    <c-icon name="arrow-right" class="ms-1" />
                   </a>
                 {% else %}
                   <p class="text-muted small mb-0">{% trans "No measurement types registered yet." %}</p>
@@ -148,7 +148,7 @@
                 <c-slot name="actions">
                   <c-card.action href="{% url 'samples-overview' %}"
                                  text="{% trans 'View all sample types' %}"
-                                 icon="arrow_right" />
+                                 icon="arrow-right" />
                 </c-slot>
               {% endif %}
             </c-card>
@@ -182,7 +182,7 @@
                 <c-slot name="actions">
                   <c-card.action href="{% url 'measurements-overview' %}"
                                  text="{% trans 'View all measurement types' %}"
-                                 icon="arrow_right" />
+                                 icon="arrow-right" />
                 </c-slot>
               {% endif %}
             </c-card>

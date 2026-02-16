@@ -6,7 +6,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import DescriptionsPlugin, KeyDatesPlugin, KeywordsPlugin
+from fairdm.contrib.generic.plugins import (
+    DescriptionsPlugin,
+    KeyDatesPlugin,
+    KeywordsPlugin,
+)
 from fairdm.core.plugins import (
     DeleteObjectPlugin,
     EditPlugin,
@@ -27,7 +31,7 @@ class Overview(OverviewPlugin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        project = self.base_object  # type: ignore[attr-defined]
+        project = self.base_object
 
         context.update(
             {
@@ -57,7 +61,7 @@ class Export(plugins.FairDMPlugin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        project = self.base_object  # type: ignore[attr-defined]
+        project = self.base_object
 
         context.update(
             {
@@ -77,7 +81,7 @@ class Settings(plugins.FairDMPlugin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        project = self.base_object  # type: ignore[attr-defined]
+        project = self.base_object
 
         context.update(
             {

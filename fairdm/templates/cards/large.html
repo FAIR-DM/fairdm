@@ -32,13 +32,13 @@
   </div>
   <c-slot name="footer">
     <div class="d-flex justify-content-around">
-      <c-action class="btn-link text-decoration-none"
+      <c-button class="btn-link text-decoration-none"
                 icon="add"
                 text="{% trans "Follow" %}" />
-      <c-action class="btn-link text-decoration-none {% if not object.can_contact %}disabled{% endif %}"
+      <c-button class="btn-link text-decoration-none {% if not object.can_contact %}disabled{% endif %}"
                 icon="email"
                 text="{% trans "Contact" %}" />
-      <c-action class="btn-link text-decoration-none"
+      <c-button class="btn-link text-decoration-none"
                 icon="share"
                 text="{% trans "Share" %}" />
     </div>

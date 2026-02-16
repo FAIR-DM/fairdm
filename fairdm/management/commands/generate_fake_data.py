@@ -123,7 +123,7 @@ class Command(BaseCommand):
         sample_factories = []
         measurement_factories = []
 
-        for model_path, factory_path in factories_config.items():
+        for _, factory_path in factories_config.items():
             try:
                 # Import the factory class
                 module_path, class_name = factory_path.rsplit(".", 1)
@@ -295,10 +295,10 @@ class Command(BaseCommand):
 
         # Create datasets for this project
         num_datasets = random.randint(min_datasets, max_datasets)
-        for j in range(num_datasets):
+        for _ in range(num_datasets):
             self._create_dataset(
                 project,
-                j + 1,
+                random.randint(1, num_datasets),
                 all_contributors,
                 factories,
                 min_samples,
@@ -340,7 +340,7 @@ class Command(BaseCommand):
         samples = []
 
         if factories["sample_factories"]:
-            for k in range(num_samples):
+            for _ in range(num_samples):
                 sample = self._create_sample(dataset, factories["sample_factories"])
                 samples.append(sample)
         else:
@@ -350,7 +350,7 @@ class Command(BaseCommand):
         num_measurements = random.randint(min_measurements, max_measurements)
 
         if factories["measurement_factories"]:
-            for m in range(num_measurements):
+            for _ in range(num_measurements):
                 # Randomly associate measurements with samples in this dataset
                 related_sample = random.choice(samples) if samples else None
                 self._create_measurement(dataset, related_sample, factories["measurement_factories"])
@@ -369,7 +369,7 @@ class Command(BaseCommand):
             sample_factories: List of (factory_class, model_class) tuples
         """
         # Randomly select a factory from the available sample factories
-        factory_class, model_class = random.choice(sample_factories)
+        factory_class, _model_class = random.choice(sample_factories)
 
         # Create sample instance using the selected factory
         sample = factory_class(dataset=dataset)
@@ -389,7 +389,7 @@ class Command(BaseCommand):
             measurement_factories: List of (factory_class, model_class) tuples
         """
         # Randomly select a factory from the available measurement factories
-        factory_class, model_class = random.choice(measurement_factories)
+        factory_class, _model_class = random.choice(measurement_factories)
 
         # Create measurement instance using the selected factory
         measurement = factory_class(dataset=dataset, sample=sample)
@@ -402,7 +402,12 @@ class Command(BaseCommand):
 
     def _add_descriptions(self, obj, description_model, count):
         """Add description objects to a model instance."""
-        description_types = ["Abstract", "Methods", "Technical Info", "Table of Contents"]
+        description_types = [
+            "Abstract",
+            "Methods",
+            "Technical Info",
+            "Table of Contents",
+        ]
         # Use sample to avoid duplicates (UniqueConstraint on related+type)
         selected_types = random.sample(description_types, min(count, len(description_types)))
         for desc_type in selected_types:
@@ -414,7 +419,14 @@ class Command(BaseCommand):
 
     def _add_dates(self, obj, date_model, count):
         """Add date objects to a model instance."""
-        date_types = ["Created", "Updated", "Issued", "Submitted", "Accepted", "Available"]
+        date_types = [
+            "Created",
+            "Updated",
+            "Issued",
+            "Submitted",
+            "Accepted",
+            "Available",
+        ]
         # Use sample to avoid duplicates (UniqueConstraint on related+type)
         selected_types = random.sample(date_types, min(count, len(date_types)))
         for date_type in selected_types:

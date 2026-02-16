@@ -1,3 +1,5 @@
+from typing import Any
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Layout
 from django import forms
@@ -100,7 +102,7 @@ class FairDMFormMixin:
     Mixin class that can be
     """
 
-    _custom_conf = {}
+    _custom_conf: dict[str, Any] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -201,7 +203,7 @@ class Form(FairDMFormMixin, forms.Form, metaclass=FairDMFormMetaclass):
             partial_date_fields.PartialDateField: PartialDateField,
         }
         explicit_fields = True
-        form_attrs = {
+        form_attrs: dict[str, Any] = {
             "x-data": {},
         }
 
@@ -217,6 +219,6 @@ class ModelForm(FairDMFormMixin, forms.ModelForm, metaclass=FairDMModelFormMetac
             partial_date_fields.PartialDateField: PartialDateField,
         }
         explicit_fields = True
-        form_attrs = {
+        form_attrs: dict[str, Any] = {
             "x-data": {},
         }

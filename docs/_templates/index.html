@@ -1,0 +1,367 @@
+{# This template completely overrides the default Sphinx index page #}
+{# It provides a custom landing page while maintaining Sphinx build context #}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- SEO Meta Tags -->
+  <title>FairDM - Modern FAIR Research Data Portal Framework | Open Source Django</title>
+  <meta name="description"
+    content="FairDM is a cutting-edge Django framework for building FAIR-compliant research data portals. Configuration-driven, production-ready, and built for researchers by researchers.">
+  <meta name="keywords"
+    content="FAIR data, research data management, Django framework, data portal, scientific data, research infrastructure, open science, metadata management">
+  <meta name="author" content="FAIR-DM">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://fairdm.org/">
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://docs.fairdm.org/">
+  <meta property="og:title" content="FairDM - Modern FAIR Research Data Portal Framework">
+  <meta property="og:description"
+    content="Build production-ready FAIR research portals without writing boilerplate. Configuration-driven, Django-powered, open source.">
+  <meta property="og:image" content="{{ pathto('_static/fairdm_original.svg', 1) }}">
+  <meta property="og:site_name" content="FairDM">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FairDM - Modern FAIR Research Data Portal Framework">
+  <meta name="twitter:description"
+    content="Build production-ready FAIR research portals without writing boilerplate. Configuration-driven, Django-powered, open source.">
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#08376B">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="{{ pathto('_static/home-page.css', 1) }}">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <!-- Typed.js for typing animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.10/typed.min.js"
+    integrity="sha512-hIlMpy2enepx9maXZF1gn0hsvPLerXoLHdb095CmRY5HG3bZfN7XPBZ14g+TUDH1aGgfLyPHmY9/zuU53smuMw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+
+  </style>
+</head>
+
+<body>
+  <div class="home-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="row align-items-center">
+          <div class="col-lg-7">
+            <div class="hero-badge">
+              <i class="fas fa-rocket"></i>
+              <span>Open Source • Production Ready • FAIR-First</span>
+            </div>
+            <h1 class="hero-title">
+              Build <span class="hero-gradient-text">FAIR Research Portals</span> Without The Boilerplate
+            </h1>
+            <p class="hero-subtitle">
+              FairDM is a modern Django framework that transforms how research teams build data portals. Configure your
+              domain models, and we generate the entire portal—forms, APIs, permissions, and more.
+            </p>
+            <div class="hero-buttons">
+              <a href="{{ pathto('portal-development/getting_started') }}" class="btn-hero-primary">
+                <i class="fas fa-rocket me-2"></i>Get Started
+              </a>
+              <a href="https://github.com/FAIR-DM/fairdm" class="btn-hero-secondary" target="_blank">
+                <i class="fab fa-github me-2"></i>View on GitHub
+              </a>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <div class="hero-stat-value">100%</div>
+                <div class="hero-stat-label">Open Source</div>
+              </div>
+              <div class="hero-stat">
+                <div class="hero-stat-value">FAIR</div>
+                <div class="hero-stat-label">Principles Built-in</div>
+              </div>
+              <div class="hero-stat">
+                <div class="hero-stat-value">Django</div>
+                <div class="hero-stat-label">Powered</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="hero-visual">
+              <pre class="hero-code-block"><code id="typed-code"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="section-header">
+        <div class="section-badge">Why FairDM</div>
+        <h2 class="section-title">Built for Modern Research</h2>
+        <p class="section-description">
+          FairDM eliminates repetitive web development so researchers can focus on their data, not their tech stack.
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3 class="feature-title">FAIR by Design</h3>
+          <p class="feature-description">
+            Built from the ground up to enforce FAIR principles—Findable, Accessible, Interoperable, and Reusable data.
+            Metadata, permissions, and APIs are baked in.
+          </p>
+          <a href="{{ pathto('overview/fair-by-design') }}" class="role-link"
+            style="color: var(--fairdm-cyan); margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; text-decoration: none;">
+            Learn More <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-code"></i>
+          </div>
+          <h3 class="feature-title">Configuration-Driven</h3>
+          <p class="feature-description">
+            Register your domain models with simple configuration classes. FairDM automatically generates forms, views,
+            APIs, and admin interfaces. No boilerplate required.
+          </p>
+          <a href="{{ pathto('overview/configuration-over-code') }}" class="role-link"
+            style="color: var(--fairdm-cyan); margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; text-decoration: none;">
+            Learn More <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-rocket"></i>
+          </div>
+          <h3 class="feature-title">Production-Ready</h3>
+          <p class="feature-description">
+            Opinionated defaults, comprehensive testing, Docker support, and modern CI/CD workflows. Deploy confidently
+            with battle-tested infrastructure.
+          </p>
+          <a href="{{ pathto('overview/opinionated-defaults') }}" class="role-link"
+            style="color: var(--fairdm-cyan); margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; text-decoration: none;">
+            Learn More <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-plug"></i>
+          </div>
+          <h3 class="feature-title">Extensible Plugins</h3>
+          <p class="feature-description">
+            Extend functionality with a powerful plugin system. Add custom panels, integrate analysis tools, or create
+            domain-specific workflows.
+          </p>
+          <a href="{{ pathto('overview/introduction') }}" class="role-link"
+            style="color: var(--fairdm-cyan); margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; text-decoration: none;">
+            Learn More <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-database"></i>
+          </div>
+          <h3 class="feature-title">Domain-Driven Models</h3>
+          <p class="feature-description">
+            Define polymorphic Samples and Measurements that reflect your research domain. Full Django ORM power with
+            sensible conventions.
+          </p>
+          <a href="{{ pathto('overview/domain-driven-modeling') }}" class="role-link"
+            style="color: var(--fairdm-cyan); margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; text-decoration: none;">
+            Learn More <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3 class="feature-title">Collaborative Workflows</h3>
+          <p class="feature-description">
+            Built-in object-level permissions, role-based access control, and team management. Share data securely
+            within and across organizations.
+          </p>
+          <a href="{{ pathto('overview/quality-and-sustainability') }}" class="role-link"
+            style="color: var(--fairdm-cyan); margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; text-decoration: none;">
+            Learn More <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roles Section -->
+    <section class="roles-section">
+      <div class="section-header">
+        <div class="section-badge">Documentation</div>
+        <h2 class="section-title">Find Your Path</h2>
+        <p class="section-description">
+          Choose the documentation guide that matches your role and needs.
+        </p>
+      </div>
+      <div class="roles-grid">
+        <div class="role-card role-developer">
+          <div class="role-icon-wrapper">
+            <i class="fas fa-laptop-code"></i>
+          </div>
+          <h3 class="role-title">Developer Guide</h3>
+          <p class="role-description">
+            Build and deploy a new FairDM-powered research portal. Learn setup, configuration, model definition, and
+            production deployment.
+          </p>
+          <a href="{{ pathto('portal-development/index') }}" class="role-link">
+            Start Building <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="role-card role-admin">
+          <div class="role-icon-wrapper">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <h3 class="role-title">Admin Guide</h3>
+          <p class="role-description">
+            Manage an existing FairDM portal. Handle users, permissions, datasets, and ensure FAIR-compliant metadata
+            quality.
+          </p>
+          <a href="{{ pathto('portal-administration/index') }}" class="role-link">
+            Manage Portal <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="role-card role-user">
+          <div class="role-icon-wrapper">
+            <i class="fas fa-user-edit"></i>
+          </div>
+          <h3 class="role-title">User Guide</h3>
+          <p class="role-description">
+            Contribute data to an existing portal. Learn how to add samples, measurements, and follow FAIR metadata
+            practices.
+          </p>
+          <a href="{{ pathto('user-guide/index') }}" class="role-link">
+            Contribute Data <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div class="role-card role-contributor">
+          <div class="role-icon-wrapper">
+            <i class="fas fa-code-branch"></i>
+          </div>
+          <h3 class="role-title">Contributing Guide</h3>
+          <p class="role-description">
+            Contribute to the FairDM framework itself. Understand architecture, set up dev environment, and submit pull
+            requests.
+          </p>
+          <a href="{{ pathto('contributing/index') }}" class="role-link">
+            Contribute Code <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="cta-content">
+        <h2 class="cta-title">Ready to Build Your Research Portal?</h2>
+        <p class="cta-description">
+          Join research teams worldwide who are using FairDM to build modern, FAIR-compliant data portals. Get started
+          in minutes.
+        </p>
+        <div class="cta-buttons">
+          <a href="{{ pathto('portal-development/getting_started') }}" class="btn-hero-primary">
+            <i class="fas fa-rocket me-2"></i>Get Started Now
+          </a>
+          <a href="{{ pathto('overview/index') }}" class="btn-hero-secondary">
+            <i class="fas fa-book me-2"></i>Learn More
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supporters Section -->
+    <section class="supporters-section">
+      <div class="supporters-content">
+        <div class="section-badge">Supported By</div>
+        <h2 class="section-title">Our Supporters</h2>
+        <p class="section-description">
+          FairDM's development is supported by leading research institutions committed to FAIR data principles.
+        </p>
+        <div class="supporters-logos">
+          <a href="https://www.gfz-potsdam.de/" class="supporter-logo" target="_blank" rel="noopener">
+            <img src="{{ pathto('_static/GFZ_logo.png', 1) }}" alt="GFZ German Research Centre for Geosciences">
+            <span class="supporter-name">GFZ Potsdam</span>
+          </a>
+          <div class="supporter-logo">
+            <img src="{{ pathto('_static/world_map.png', 1) }}" alt="World Heat Flow Database"
+              style="max-width: 150px; opacity: 0.7;">
+            <span class="supporter-name">World Heat Flow Database</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="{{ pathto('portal-development/index') }}" class="footer-link">Developer Guide</a>
+        <a href="{{ pathto('portal-administration/index') }}" class="footer-link">Admin Guide</a>
+        <a href="{{ pathto('user-guide/index') }}" class="footer-link">User Guide</a>
+        <a href="{{ pathto('contributing/index') }}" class="footer-link">Contributing</a>
+        <a href="{{ pathto('more/support') }}" class="footer-link">Support</a>
+        <a href="https://github.com/FAIR-DM/fairdm" class="footer-link" target="_blank">GitHub</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://github.com/FAIR-DM/fairdm" class="footer-social-link" target="_blank" aria-label="GitHub">
+          <i class="fab fa-github"></i>
+        </a>
+        <a href="https://github.com/FAIR-DM/fairdm/discussions" class="footer-social-link" target="_blank"
+          aria-label="Discussions">
+          <i class="fas fa-comments"></i>
+        </a>
+      </div>
+      <div class="footer-copyright">
+        &copy; 2024 FAIR-DM. Released under MIT License. Built with ❤️ for the research community.
+      </div>
+    </footer>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+
+  <!-- Typed.js Animation -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      new Typed('#typed-code', {
+        strings: [
+          `<span class="code-comment"># Define your domain models</span>\n<span class="code-keyword">class</span> <span class="code-class">RockSample</span>(<span class="code-type">fairdm.Sample</span>):\n    name = models.<span class="code-field">CharField</span>(max_length=<span class="code-string">100</span>)\n    location = models.<span class="code-field">CharField</span>(max_length=<span class="code-string">200</span>)\n    rock_type = models.<span class="code-field">CharField</span>(max_length=<span class="code-string">50</span>)\n    collection_date = models.<span class="code-field">DateField</span>()\n\n<span class="code-keyword">class</span> <span class="code-class">Density</span>(<span class="code-type">fairdm.Measurement</span>):\n    sample = models.<span class="code-field">ForeignKey</span>(RockSample)\n    value = models.<span class="code-field">DecimalField</span>()\n    unit = <span class="code-string">"g/cm³"</span>\n    uncertainty = models.<span class="code-field">DecimalField</span>()\n\n<span class="code-comment"># ✨ Register with FairDM</span>\n<span class="code-decorator">@fairdm.register</span>\n<span class="code-keyword">class</span> <span class="code-class">RockSampleConfig</span>:\n    model = RockSample\n    fields = [<span class="code-string">"name"</span>, <span class="code-string">"location"</span>, <span class="code-string">"rock_type"</span>]\n\n<span class="code-comment"># FairDM auto-generates:</span>\n<span class="code-comment"># • Forms & validation</span>\n<span class="code-comment"># • REST API endpoints</span>\n<span class="code-comment"># • Admin interface</span>\n<span class="code-comment"># • Permissions & workflows</span>`
+        ],
+        typeSpeed: 15,
+        backSpeed: 0,
+        startDelay: 500,
+        loop: false,
+        showCursor: true,
+        cursorChar: '|',
+        contentType: 'html'
+      })
+    });
+  </script>
+</body>
+
+</html>

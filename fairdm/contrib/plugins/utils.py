@@ -8,11 +8,10 @@ from django.utils.text import slugify
 
 
 def class_to_slug(name: str | object | type) -> str:
-    if not isinstance(name, str):
-        name = name.__name__
+    name_str = (name.__name__ if hasattr(name, "__name__") else str(name)) if not isinstance(name, str) else name  # type: ignore[attr-defined,unused-ignore]
 
     # Split CamelCase / PascalCase into words with spaces
-    split = re.sub(r"(?<!^)(?=[A-Z])", " ", name)
+    split = re.sub(r"(?<!^)(?=[A-Z])", " ", name_str)
     # Use Django's slugify
     return slugify(split)
 
@@ -29,7 +28,7 @@ def check_has_edit_permission(request, instance, **kwargs):
         return True
 
     if instance:
-        perm = f"change_{instance._meta.model_name}"
+        perm = f"{instance._meta.app_label}.change_{instance._meta.model_name}"
         has_perm = request.user.has_perm(perm, instance)
         return has_perm
 

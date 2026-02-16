@@ -12,7 +12,10 @@ env = Env(
     DJANGO_CACHE=(bool, True),
     DJANGO_DEBUG=(bool, False),
     DJANGO_READ_DOT_ENV_FILE=(bool, False),
-    DJANGO_SECRET_KEY=(str, "django-insecure-qQN1YqvsY7dQ1xtdhLavAeXn1mUEAI0Wu8vkDbodEqRKkJbHyMEQS5F"),
+    DJANGO_SECRET_KEY=(
+        str,
+        "django-insecure-qQN1YqvsY7dQ1xtdhLavAeXn1mUEAI0Wu8vkDbodEqRKkJbHyMEQS5F",
+    ),
     DJANGO_SITE_DOMAIN=(str, "localhost:8000"),
     DJANGO_SITE_ID=(int, 1),
     DJANGO_SITE_NAME=(str, "FairDM Demo"),

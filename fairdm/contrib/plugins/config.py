@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from django.db.models.base import Model as Model
 
@@ -36,7 +38,7 @@ class PluginConfig:
     url_name: str | None = None  # Custom URL name (auto-generated if not provided)
 
     # Permissions
-    check: callable | None = None  # Permission check function
+    check: Callable[..., Any] | None = None  # Permission check function
 
     # Documentation
     about: str | None = None  # Description shown on the page
@@ -53,7 +55,7 @@ class PluginConfig:
         return PluginMenuItem(
             name=self.menu or self.title,
             category=self.category,
-            icon=self.icon,
+            icon=self.icon or "",
         )
 
     def get_url_name_from_path(self, plugin_name: str) -> str:

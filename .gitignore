@@ -9,7 +9,9 @@ xtemplates/
 # webpack-stats.json
 docs/_build
 docs/apidocs
-test*
+/test*
+!tests/
+!tests/test*
 tmp*
 temp*.*
 

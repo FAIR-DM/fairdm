@@ -1,7 +1,7 @@
 import io
 import zipfile
-from xml.dom import minidom
 
+from defusedxml.minidom import parseString
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
@@ -37,7 +37,7 @@ def build_metadata(dataset, request):
     template_name = "publishing/datacite44.xml"
     uri = request.build_absolute_uri(dataset.get_absolute_url())
     xml = render_to_string(template_name, {"dataset": dataset, "uri": uri}, request=request)
-    dom = minidom.parseString(xml)
+    dom = parseString(xml)
     return dom.toprettyxml(indent="  ")
 
 

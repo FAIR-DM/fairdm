@@ -329,11 +329,11 @@ class DatasetEnhancedFormExample(ModelForm):
                 license_field.initial = cc_by_license
 
         # Set keywords queryset
-        keywords_field = self.fields.get("keywords")
-        if keywords_field:
-            from fairdm.contrib.dicts.models import Term
-
-            keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
+        # NOTE: Dataset model does not currently have a keywords field
+        # keywords_field = self.fields.get("keywords")
+        # if keywords_field:
+        #     from fairdm.contrib.dicts.models import Term
+        #     keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
 
         # Pre-populate DOI if editing existing instance
         if self.instance and self.instance.pk:
@@ -500,13 +500,25 @@ class RockSampleForm(SampleFormMixin, ModelForm):
             "tags",
         ]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Enter sample name...")}),
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Enter sample name..."),
+                }
+            ),
             "local_id": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("Optional local identifier...")}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Optional local identifier..."),
+                }
             ),
             "rock_type": forms.Select(attrs={"class": "form-select"}),
             "mineral_content": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": _("List primary minerals...")}
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": _("List primary minerals..."),
+                }
             ),
             "weight_grams": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
             "hardness_mohs": forms.NumberInput(attrs={"class": "form-control", "min": "1", "max": "10", "step": "0.1"}),
@@ -569,13 +581,26 @@ class WaterSampleForm(SampleFormMixin, ModelForm):
             "tags",
         ]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Enter sample name...")}),
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Enter sample name..."),
+                }
+            ),
             "local_id": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("Optional local identifier...")}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Optional local identifier..."),
+                }
             ),
             "water_source": forms.Select(attrs={"class": "form-select"}),
             "temperature_celsius": forms.NumberInput(
-                attrs={"class": "form-control", "min": "-50", "max": "100", "step": "0.1"}
+                attrs={
+                    "class": "form-control",
+                    "min": "-50",
+                    "max": "100",
+                    "step": "0.1",
+                }
             ),
             "ph_level": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "14", "step": "0.01"}),
             "turbidity_ntu": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),

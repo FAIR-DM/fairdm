@@ -138,7 +138,12 @@ class InlineFormSetPlugin(FairDMPlugin, FairDMModelFormMixin, InlineFormSetView)
     title = _("Edit Related Objects")
     slug_url_kwarg = "uuid"
     slug_field = "uuid"
-    factory_kwargs = {"extra": 1, "max_num": None, "can_order": False, "can_delete": True}
+    factory_kwargs = {
+        "extra": 1,
+        "max_num": None,
+        "can_order": False,
+        "can_delete": True,
+    }
     display_as_table = False
 
     def get_template_names(self):

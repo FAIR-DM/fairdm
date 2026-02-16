@@ -2,7 +2,11 @@
 
 from django.urls import path
 
-from .views import ConceptAutocomplete, ContributorAutocomplete, OrganizationAutocomplete
+from .views import (
+    ConceptAutocomplete,
+    ContributorAutocomplete,
+    OrganizationAutocomplete,
+)
 
 app_name = "autocomplete"
 

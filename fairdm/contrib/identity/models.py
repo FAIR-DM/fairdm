@@ -109,7 +109,7 @@ class Authority(BrandAssets, SingletonModel, TranslatableModel):
 class Identity(BrandAssets, SingletonModel, TranslatableModel):
     """Portal identity configuration including branding and metadata."""
 
-    keywords = models.ManyToManyField(
+    keywords: models.ManyToManyField = models.ManyToManyField(
         "research_vocabs.Concept",
         verbose_name=_("Keywords"),
         help_text=_("A set of keywords from controlled vocabularies describing the portal."),

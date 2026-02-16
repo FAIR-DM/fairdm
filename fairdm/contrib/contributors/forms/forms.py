@@ -108,7 +108,10 @@ class AffiliationForm(forms.ModelForm):
             from .models import OrganizationMember
 
             has_managers = instance.organization.memberships.filter(
-                type__in=[OrganizationMember.MembershipType.OWNER, OrganizationMember.MembershipType.ADMIN]
+                type__in=[
+                    OrganizationMember.MembershipType.OWNER,
+                    OrganizationMember.MembershipType.ADMIN,
+                ]
             ).exists()
 
             # Set type based on whether organization has managers

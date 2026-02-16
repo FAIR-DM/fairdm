@@ -27,7 +27,8 @@ The examples in this module illustrate:
 
 from django.utils.translation import gettext_lazy as _
 
-from fairdm.registry import ModelConfiguration, register
+import fairdm
+from fairdm.registry import ModelConfiguration
 from fairdm.registry.config import Authority, Citation, ModelMetadata
 
 # Import filters lazily to avoid app registry issues
@@ -45,7 +46,7 @@ from .models import (
 from .tables import CustomSampleTable
 
 
-@register
+@fairdm.register
 class CustomParentSampleConfig(ModelConfiguration):
     """
     Example configuration demonstrating rich metadata and authority information.
@@ -82,7 +83,7 @@ class CustomParentSampleConfig(ModelConfiguration):
     # table_class = SampleTable
 
 
-@register
+@fairdm.register
 class CustomSampleConfig(ModelConfiguration):
     """
     Advanced configuration with custom component classes and component-specific fields.
@@ -156,7 +157,7 @@ class CustomSampleConfig(ModelConfiguration):
     ]
 
 
-@register
+@fairdm.register
 class ExampleMeasurementConfig(ModelConfiguration):
     model = ExampleMeasurement
     metadata = ModelMetadata(
@@ -204,7 +205,7 @@ class ExampleMeasurementConfig(ModelConfiguration):
 #      quickstart.md for setup instructions
 
 
-@register
+@fairdm.register
 class RockSampleConfig(ModelConfiguration):
     """Demonstrates minimal registry configuration with auto-generation.
 
@@ -257,7 +258,7 @@ class RockSampleConfig(ModelConfiguration):
 # See: Developer Guide > Registry > Component-Specific Configuration
 
 
-@register
+@fairdm.register
 class SoilSampleConfig(ModelConfiguration):
     """Demonstrates component-specific field configuration.
 
@@ -335,7 +336,7 @@ class SoilSampleConfig(ModelConfiguration):
 # See: Developer Guide > Registry > Custom Components
 
 
-@register
+@fairdm.register
 class WaterSampleConfig(ModelConfiguration):
     """Demonstrates custom component override (future enhancement).
 
@@ -348,7 +349,7 @@ class WaterSampleConfig(ModelConfiguration):
         from .forms import WaterSampleForm
         from .tables import WaterSampleTable
 
-        @register
+        @fairdm.register
         class WaterSampleConfig(ModelConfiguration):
             form_class = WaterSampleForm  # Custom widgets
             # table_class = WaterSampleTable  # Color-coded pH (not implemented in demo)
@@ -420,7 +421,7 @@ DEMO_REGISTERED_MODELS = [
 # Additional measurement model registrations demonstrating different patterns
 
 
-@register
+@fairdm.register
 class XRFMeasurementConfig(ModelConfiguration):
     """
     XRF measurement configuration demonstrating measurement-specific patterns.
@@ -453,7 +454,7 @@ class XRFMeasurementConfig(ModelConfiguration):
     # table_class = MeasurementTable  # Not implemented in demo
 
 
-@register
+@fairdm.register
 class ICP_MS_MeasurementConfig(ModelConfiguration):
     """
     ICP-MS measurement configuration with advanced field patterns.
@@ -473,7 +474,13 @@ class ICP_MS_MeasurementConfig(ModelConfiguration):
             text="FairDM Demo Team (2026). ICP-MS Analytical Protocol. FairDM Demo Portal.",
             doi="https://doi.org/10.5281/zenodo.demo.icpms",
         ),
-        keywords=["ICP-MS", "isotope analysis", "mass spectrometry", "trace elements", "geochronology"],
+        keywords=[
+            "ICP-MS",
+            "isotope analysis",
+            "mass spectrometry",
+            "trace elements",
+            "geochronology",
+        ],
     )
     fields = [
         ("isotope", "counts_per_second"),

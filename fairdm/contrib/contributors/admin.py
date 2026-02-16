@@ -2,13 +2,19 @@ from allauth.account.models import EmailAddress
 from dal import autocomplete
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
+from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
 
 from fairdm.db import models
 
-from .models import Contributor, ContributorIdentifier, Organization, OrganizationMember, Person
+from .models import (
+    Contributor,
+    ContributorIdentifier,
+    Organization,
+    OrganizationMember,
+    Person,
+)
 from .resources import PersonResource
 
 
@@ -46,7 +52,6 @@ class IdentifierInline(admin.StackedInline):
 #     model = Organization
 #     fields = ["profile"]
 #     extra = 0
-from hijack.contrib.admin import HijackUserAdminMixin
 
 
 @admin.register(Person)

@@ -2,8 +2,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from fairdm.forms import ModelForm
 from fairdm.core.choices import ProjectStatus
+from fairdm.forms import ModelForm
 from fairdm.utils.choices import Visibility
 
 from .models import Project
@@ -70,10 +70,12 @@ class ProjectCreateForm(ModelForm):
         label=_("Project name"),
         max_length=255,
         help_text=_("A clear, descriptive name for your project."),
-        widget=forms.TextInput(attrs={
-            "placeholder": _("e.g., Arctic Climate Study 2024"),
-            "class": "form-control",
-        }),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": _("e.g., Arctic Climate Study 2024"),
+                "class": "form-control",
+            }
+        ),
     )
 
     status = forms.ChoiceField(
@@ -95,6 +97,7 @@ class ProjectCreateForm(ModelForm):
     owner = forms.ModelChoiceField(
         label=_("Owner organization"),
         queryset=None,  # Set in __init__
+        required=False,
         help_text=_("The organization that owns this project."),
         widget=forms.Select(attrs={"class": "form-control"}),
     )
@@ -108,6 +111,7 @@ class ProjectCreateForm(ModelForm):
         super().__init__(*args, **kwargs)
         # Set owner queryset to all organizations
         from fairdm.contrib.contributors.models import Organization
+
         self.fields["owner"].queryset = Organization.objects.all()
 
 
@@ -159,11 +163,13 @@ class ProjectEditForm(ModelForm):
         label=_("Funding information"),
         required=False,
         help_text=_("DataCite FundingReference schema (JSON format)."),
-        widget=forms.Textarea(attrs={
-            "class": "form-control",
-            "rows": 10,
-            "placeholder": _('[\n  {\n    "funderName": "...",\n    "awardNumber": "..."\n  }\n]'),
-        }),
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 10,
+                "placeholder": _('[\n  {\n    "funderName": "...",\n    "awardNumber": "..."\n  }\n]'),
+            }
+        ),
     )
 
     class Meta:
@@ -174,6 +180,7 @@ class ProjectEditForm(ModelForm):
         """Initialize form and set owner queryset."""
         super().__init__(*args, **kwargs)
         from fairdm.contrib.contributors.models import Organization
+
         self.fields["owner"].queryset = Organization.objects.all()
 
     def clean(self):
@@ -194,12 +201,14 @@ class ProjectEditForm(ModelForm):
 
         # Rule: Concept projects must remain private
         if status == ProjectStatus.CONCEPT and visibility == Visibility.PUBLIC:
-            raise ValidationError({
-                "visibility": _(
-                    "Concept projects cannot be made public. "
-                    "Change the status to 'Planning' or 'In Progress' before making the project public."
-                )
-            })
+            raise ValidationError(
+                {
+                    "visibility": _(
+                        "Concept projects cannot be made public. "
+                        "Change the status to 'Planning' or 'In Progress' before making the project public."
+                    )
+                }
+            )
 
         return cleaned_data
 
@@ -234,14 +243,17 @@ class ProjectDescriptionForm(ModelForm):
     value = forms.CharField(
         label=_("Description"),
         help_text=_("Provide the description text."),
-        widget=forms.Textarea(attrs={
-            "class": "form-control",
-            "rows": 5,
-        }),
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 5,
+            }
+        ),
     )
 
     class Meta:
         from .models import ProjectDescription
+
         model = ProjectDescription
         fields = ["type", "value"]
 
@@ -249,6 +261,7 @@ class ProjectDescriptionForm(ModelForm):
         """Initialize form and set type choices from vocabulary."""
         super().__init__(*args, **kwargs)
         from .models import ProjectDescription
+
         # Set type choices from model vocabulary
         self.fields["type"].choices = ProjectDescription.VOCABULARY.choices
 
@@ -261,17 +274,20 @@ class ProjectDescriptionForm(ModelForm):
         if self.instance.related_id and description_type:
             from .models import ProjectDescription
 
-            existing = ProjectDescription.objects.filter(
-                related=self.instance.related,
-                type=description_type
-            ).exclude(pk=self.instance.pk).exists()
+            existing = (
+                ProjectDescription.objects.filter(related=self.instance.related, type=description_type)
+                .exclude(pk=self.instance.pk)
+                .exists()
+            )
 
             if existing:
-                raise ValidationError({
-                    "type": _("A description of type '{type}' already exists for this project.").format(
-                        type=description_type
-                    )
-                })
+                raise ValidationError(
+                    {
+                        "type": _("A description of type '{type}' already exists for this project.").format(
+                            type=description_type
+                        )
+                    }
+                )
 
         return cleaned_data
 
@@ -310,10 +326,12 @@ class ProjectDateForm(ModelForm):
     value = forms.CharField(
         label=_("Date"),
         help_text=_("Date in YYYY, YYYY-MM, or YYYY-MM-DD format."),
-        widget=forms.TextInput(attrs={
-            "class": "form-control",
-            "placeholder": _("e.g., 2024-01-01"),
-        }),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": _("e.g., 2024-01-01"),
+            }
+        ),
     )
 
     # Note: end_date field would be added here when model supports it
@@ -321,6 +339,7 @@ class ProjectDateForm(ModelForm):
 
     class Meta:
         from .models import ProjectDate
+
         model = ProjectDate
         fields = ["type", "value"]
 
@@ -328,6 +347,7 @@ class ProjectDateForm(ModelForm):
         """Initialize form and set type choices from vocabulary."""
         super().__init__(*args, **kwargs)
         from .models import ProjectDate
+
         # Set type choices from model vocabulary
         self.fields["type"].choices = ProjectDate.VOCABULARY.choices
 
@@ -382,14 +402,17 @@ class ProjectIdentifierForm(ModelForm):
         label=_("Identifier value"),
         max_length=255,
         help_text=_("The unique identifier value."),
-        widget=forms.TextInput(attrs={
-            "class": "form-control",
-            "placeholder": _("e.g., 10.1000/example.doi.12345"),
-        }),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": _("e.g., 10.1000/example.doi.12345"),
+            }
+        ),
     )
 
     class Meta:
         from .models import ProjectIdentifier
+
         model = ProjectIdentifier
         fields = ["type", "value"]
 
@@ -397,6 +420,6 @@ class ProjectIdentifierForm(ModelForm):
         """Initialize form and set type choices from vocabulary."""
         super().__init__(*args, **kwargs)
         from .models import ProjectIdentifier
+
         # Set type choices from model vocabulary
         self.fields["type"].choices = ProjectIdentifier.VOCABULARY.choices
-

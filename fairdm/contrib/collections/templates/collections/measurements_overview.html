@@ -132,16 +132,16 @@
           <c-card title="{% trans 'Collection Statistics' %}"
                   icon="analytics">
             <dl class="mb-0 small">
-              <c-detail.info-item label="{% trans 'Largest Collection' %}">
+              <c-info-item label="{% trans 'Largest Collection' %}">
                 {% with largest=measurement_types|first %}{{ largest.name }} ({{ largest.count }}){% endwith %}
-              </c-detail.info-item>
-              <c-detail.info-item label="{% trans 'Smallest Collection' %}">
+              </c-info-item>
+              <c-info-item label="{% trans 'Smallest Collection' %}">
                 {% with smallest=measurement_types|last %}{{ smallest.name }} ({{ smallest.count }}){% endwith %}
-              </c-detail.info-item>
-              <c-detail.info-item label="{% trans 'Total Measurement Types' %}"
-                                  text="{{ total_measurement_types }}" />
-              <c-detail.info-item label="{% trans 'Total Measurement Records' %}"
-                                  text="{{ total_measurements }}" />
+              </c-info-item>
+              <c-info-item label="{% trans 'Total Measurement Types' %}"
+                           text="{{ total_measurement_types }}" />
+              <c-info-item label="{% trans 'Total Measurement Records' %}"
+                           text="{{ total_measurements }}" />
             </dl>
           </c-card>
         {% endif %}
@@ -151,7 +151,7 @@
           <div class="d-grid gap-2 small">
             <a href="{% url 'data-collections' %}"
                class="btn btn-sm btn-outline-secondary">
-              <c-icon name="arrow_left" size="14" class="me-1" />
+              <c-icon name="arrow-left" size="14" class="me-1" />
               {% trans "Back to Collections" %}
             </a>
             {% if total_sample_types > 0 %}

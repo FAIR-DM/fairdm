@@ -205,12 +205,12 @@
             <c-card title="{% trans "Location" %}" icon="location">
               <dl class="mb-0">
                 {% if object.city %}
-                  <c-detail.info-item label="{% trans "City" %}"
-                                      text="{{ object.city }}" />
+                  <c-info-item label="{% trans "City" %}"
+                               text="{{ object.city }}" />
                 {% endif %}
                 {% if object.country %}
-                  <c-detail.info-item label="{% trans "Country" %}"
-                                      text="{{ object.country.name }}" />
+                  <c-info-item label="{% trans "Country" %}"
+                               text="{{ object.country.name }}" />
                 {% endif %}
               </dl>
             </c-card>
@@ -223,7 +223,7 @@
                   icon="identifier">
             <dl class="mb-0">
               {% for identifier in object.identifiers.all %}
-                <c-detail.info-item label="{{ identifier.type }}">
+                <c-info-item label="{{ identifier.type }}">
                   {% if identifier.get_absolute_url %}
                     <a href="{{ identifier.get_absolute_url }}"
                        target="_blank"
@@ -235,7 +235,7 @@
                   {% else %}
                     {{ identifier.value }}
                   {% endif %}
-                </c-detail.info-item>
+                </c-info-item>
               {% empty %}
                 <p class="text-muted small mb-0">{{ empty_text }}</p>
               {% endfor %}
@@ -311,7 +311,7 @@
             <c-card title="{% trans "Established" %}"
                     icon="calendar-event">
               <dl class="mb-0">
-                <c-detail.info-item text="{{ object.established|date:'Y' }}" />
+                <c-info-item text="{{ object.established|date:'Y' }}" />
               </dl>
             </c-card>
           {% endif %}

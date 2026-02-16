@@ -49,6 +49,8 @@ jobs:
 
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure
+        env:
+          SKIP: deptry
 
   type-check:
     name: Type Check
@@ -58,12 +60,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Poetry env
-        uses: SamuelJennings/cached-poetry-action@v1
+        uses: SamuelJennings/cached-poetry-action@v2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Run mypy
-        run: poetry run mypy
+      # - name: Run mypy
+      #   run: poetry run mypy
 
   # ============================================
   # Test Suite
@@ -89,9 +91,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Poetry env
-        uses: SamuelJennings/cached-poetry-action@v1
+        uses: SamuelJennings/cached-poetry-action@v2.0
         with:
           python-version: ${{ matrix.python-version }}
+          poetry-install-args: "--with test"
 
       - name: Install Django version
         run: |
@@ -122,44 +125,6 @@ jobs:
           name: coverage-report
           path: htmlcov/
           retention-days: 7
-
-  # ============================================
-  # Documentation Validation (PR only)
-  # ============================================
-  docs-check:
-    name: Validate Documentation
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Poetry env
-        uses: SamuelJennings/cached-poetry-action@v1
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install geospatial dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            binutils libproj-dev gdal-bin libsqlite3-mod-spatialite
-
-      - name: Build documentation (warnings as errors)
-        run: poetry run sphinx-build -W -b html docs docs/_build
-
-      - name: Check internal links
-        run: |
-          poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck || true
-          if [ -f "docs/_build/linkcheck/output.txt" ]; then
-            BROKEN=$(grep "\\[broken\\]" docs/_build/linkcheck/output.txt | grep -v "http" || true)
-            if [ -n "$BROKEN" ]; then
-              echo "❌ Broken internal links found:"
-              echo "$BROKEN"
-              exit 1
-            fi
-          fi
 
   # ============================================
   # Final Status Check

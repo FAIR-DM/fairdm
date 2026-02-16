@@ -23,7 +23,11 @@ class CustomAdminSite(admin.AdminSite):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path("upload-fixture/", self.admin_view(FixtureUploadView.as_view()), name="upload_fixture"),
+            path(
+                "upload-fixture/",
+                self.admin_view(FixtureUploadView.as_view()),
+                name="upload_fixture",
+            ),
         ]
         return custom_urls + urls
 

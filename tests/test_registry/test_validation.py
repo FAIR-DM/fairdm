@@ -6,9 +6,9 @@ Tests that invalid registrations fail with clear error messages at registration 
 import pytest
 from django.db import models
 
-from fairdm.registry.config import ModelConfiguration
 from fairdm.core.models import Sample
 from fairdm.registry import registry
+from fairdm.registry.config import ModelConfiguration
 from fairdm.registry.exceptions import (
     ConfigurationError,
     DuplicateRegistrationError,
@@ -99,9 +99,9 @@ class TestRegistrationValidation:
 
     def test_invalid_related_field_path(self):
         """Test that related field paths are validated for base field only.
-        
-        Note: We only validate that the base field (e.g., 'related') exists on the model.
-        We do not validate the full path (e.g., 'related__title') because:
+
+        Note: We only validate that the base field (e.g., 'source_ref') exists on the model.
+        We do not validate the full path (e.g., 'source_ref__title') because:
         1. It would require recursive model introspection
         2. Django will raise clear errors at runtime if the path is invalid
         3. The path might be valid for some querysets but not others (e.g., prefetch_related)
@@ -119,7 +119,7 @@ class TestRegistrationValidation:
             """Test Sample with foreign key."""
 
             rock_type = models.CharField(max_length=100)
-            related = models.ForeignKey(RelatedModel, on_delete=models.CASCADE)
+            source_ref = models.ForeignKey(RelatedModel, on_delete=models.CASCADE)
 
             class Meta:
                 app_label = "test_app"
@@ -127,9 +127,9 @@ class TestRegistrationValidation:
         # Valid path with base field existing should work
         config = ModelConfiguration(
             model=RockSample,
-            fields=["rock_type", "related__title"],
+            fields=["rock_type", "source_ref__title"],
         )
-        assert "related__title" in config.fields
+        assert "source_ref__title" in config.fields
 
         # Path with nonexistent base field should fail
         with pytest.raises(FieldValidationError, match="Invalid field"):

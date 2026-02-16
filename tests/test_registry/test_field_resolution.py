@@ -12,8 +12,8 @@ See specs/004-fairdm-registry/data-model.md Section 4 for algorithm specificatio
 import pytest
 from django.db import models
 
-from fairdm.registry.config import ModelConfiguration
 from fairdm.core.models import Sample
+from fairdm.registry.config import ModelConfiguration
 
 
 class TestFieldResolutionAlgorithm:

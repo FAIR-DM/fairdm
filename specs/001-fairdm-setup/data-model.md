@@ -130,21 +130,21 @@ Addons are Python packages that integrate with FairDM configuration via a discov
 
 ### Protocol
 
-1.  **Discovery**: 
+1.  **Discovery**:
     *   Addon package must be installed in the environment
     *   Addon must be listed in `fairdm.setup(addons=['addon_name'])`
 
-2.  **Entry Point**: 
+2.  **Entry Point**:
     *   Addon must define `__fdm_setup_module__` in its top-level `__init__.py`
     *   Points to a setup module path (e.g., `'my_addon.conf'` or `'my_addon.setup'`)
 
-3.  **Setup Module Structure**: 
+3.  **Setup Module Structure**:
     *   The module pointed to by `__fdm_setup_module__` is imported and executed during `fairdm.setup()`
     *   Setup module can modify globals directly or return a dictionary of settings
     *   Common pattern:
         ```python
         # my_addon/setup.py
-        
+
         def setup(globals_dict):
             """Called by fairdm.setup() with caller's globals."""
             globals_dict['INSTALLED_APPS'].extend([
@@ -192,15 +192,15 @@ When `DJANGO_ENV` is `production` or `staging`, the following are REQUIRED and r
 *   **Database Configuration**:
     *   Check: `DATABASE_URL` environment variable set?
     *   Fail: Raise error "DATABASE_URL is required in production/staging"
-    
+
 *   **Cache Configuration**:
     *   Check: `REDIS_URL` environment variable set?
     *   Fail: Raise error "REDIS_URL is required in production/staging"
-    
+
 *   **Secret Key**:
     *   Check: `DJANGO_SECRET_KEY` environment variable set?
     *   Fail: Raise error "DJANGO_SECRET_KEY is required"
-    
+
 *   **Allowed Hosts**:
     *   Check: `DJANGO_ALLOWED_HOSTS` environment variable set?
     *   Fail: Raise error "DJANGO_ALLOWED_HOSTS is required in production/staging"
@@ -218,12 +218,12 @@ When `DJANGO_ENV` is `local` or `development`, missing backing services degrade 
     *   Check: `DATABASE_URL` environment variable set?
     *   Degrade: Log warning "DATABASE_URL not set, using SQLite fallback"
     *   Action: Set `DATABASES['default']` to SQLite backend
-    
+
 *   **Cache Missing**:
     *   Check: `REDIS_URL` environment variable set?
     *   Degrade: Log warning "REDIS_URL not set, using LocMemCache fallback"
     *   Action: Set `CACHES['default']` to `LocMemCache` backend
-    
+
 *   **Addon Failures**:
     *   Check: Addon setup module importable and executable?
     *   Degrade: Log warning "Addon 'addon_name' failed to load, skipping: [error details]"
@@ -253,7 +253,7 @@ See `contracts/env-vars.md` for the complete reference of supported environment 
 
 ### Required for Production/Staging
 *   `DATABASE_URL`: PostgreSQL connection string
-*   `REDIS_URL`: Redis connection string  
+*   `REDIS_URL`: Redis connection string
 *   `DJANGO_ALLOWED_HOSTS`: Comma-separated list of allowed hostnames
 
 ### Optional (with fallbacks)

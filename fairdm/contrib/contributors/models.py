@@ -189,7 +189,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         help_text=_("The date and time this record was last modified."),
     )
 
-    class Meta:  # type: ignore
+    class Meta:  # type: ignore[no-redef]
         ordering = ["name"]
         verbose_name = _("contributor")
         verbose_name_plural = _("contributors")
@@ -368,7 +368,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             <QuerySet [<Contribution: John Doe: ['ContactPerson']>]>
         """
         content_type = ContentType.objects.get(
-            app_label=model_name.split(".")[0] if "." in model_name else model_name.lower(),
+            app_label=(model_name.split(".")[0] if "." in model_name else model_name.lower()),
             model=model_name.split(".")[-1].lower(),
         )
         return self.contributions.filter(content_type=content_type).select_related("content_type")
@@ -707,7 +707,8 @@ class OrganizationMember(models.Model):
 class Organization(Contributor):
     """An organization is a contributor that represents a group of people, such as a university, research institute,
     company or government agency. Organizations can have multiple members and can be affiliated with other organizations.
-    Organizations can also have sub-organizations, such as departments or research groups."""
+    Organizations can also have sub-organizations, such as departments or research groups.
+    """
 
     DEFAULT_IDENTIFIER = "ROR"
 

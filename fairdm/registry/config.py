@@ -8,6 +8,7 @@ This implements the FairDM Registry System specification with:
 - Three-tier field resolution algorithm
 """
 
+import contextlib
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import TYPE_CHECKING, cast
@@ -295,7 +296,7 @@ class ModelConfiguration:
         ]
 
         # Get valid field names from model
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
         valid_fields = {f.name for f in self.model._meta.get_fields()}
 
         # Validate each field list
@@ -340,7 +341,7 @@ class ModelConfiguration:
         if self.admin_class is None:
             return
 
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Get the admin class (may be string reference)
         admin_cls = self._get_class(self.admin_class)
@@ -355,7 +356,7 @@ class ModelConfiguration:
             return
 
         # Check Sample subclass
-        if issubclass(self.model, Sample) and self.model is not Sample:
+        if issubclass(self.model, Sample) and self.model is not Sample:  # noqa: SIM102
             if not issubclass(admin_cls, SampleChildAdmin):
                 raise ConfigurationError(
                     f"Admin class for Sample subclass {self.model.__name__} must inherit from "
@@ -364,7 +365,7 @@ class ModelConfiguration:
                 )
 
         # Check Measurement subclass
-        if issubclass(self.model, Measurement) and self.model is not Measurement:
+        if issubclass(self.model, Measurement) and self.model is not Measurement:  # noqa: SIM102
             if not issubclass(admin_cls, MeasurementChildAdmin):
                 raise ConfigurationError(
                     f"Admin class for Measurement subclass {self.model.__name__} must inherit from "
@@ -393,34 +394,34 @@ class ModelConfiguration:
         excluded_names = {"id", "polymorphic_ctype", "polymorphic_ctype_id"}
         fields = []
 
-        for field in model._meta.get_fields():
+        for field_obj in model._meta.get_fields():
             # Skip excluded field names
-            if field.name in excluded_names:
+            if field_obj.name in excluded_names:
                 continue
 
             # Skip multi-table inheritance pointer fields
-            if field.name.endswith("_ptr") or field.name.endswith("_ptr_id"):
+            if field_obj.name.endswith("_ptr") or field_obj.name.endswith("_ptr_id"):
                 continue
 
             # Skip auto-generated timestamp fields
-            if hasattr(field, "auto_now") and field.auto_now:
+            if hasattr(field_obj, "auto_now") and field_obj.auto_now:
                 continue
-            if hasattr(field, "auto_now_add") and field.auto_now_add:
+            if hasattr(field_obj, "auto_now_add") and field_obj.auto_now_add:
                 continue
 
             # Skip non-editable fields
-            if hasattr(field, "editable") and not field.editable:
+            if hasattr(field_obj, "editable") and not field_obj.editable:
                 continue
 
             # Skip reverse relations (ManyToOneRel, ManyToManyRel)
-            if hasattr(field, "related_name") and not hasattr(field, "column"):
+            if hasattr(field_obj, "related_name") and not hasattr(field_obj, "column"):
                 continue
 
             # Skip ManyToMany fields with custom through models (admin.E013)
-            if isinstance(field, models.ManyToManyField):
+            if isinstance(field_obj, models.ManyToManyField):
                 try:
-                    if hasattr(field, "remote_field") and hasattr(field.remote_field, "through"):
-                        through = field.remote_field.through
+                    if hasattr(field_obj, "remote_field") and hasattr(field_obj.remote_field, "through"):
+                        through = field_obj.remote_field.through
                         if through is not None:
                             # String reference means explicitly set (not auto-created)
                             if isinstance(through, str):
@@ -432,7 +433,7 @@ class ModelConfiguration:
                     # If we can't determine, be safe and exclude it
                     continue
 
-            fields.append(field.name)
+            fields.append(field_obj.name)
 
         return fields
 
@@ -470,7 +471,7 @@ class ModelConfiguration:
         """
         if not self.model:
             return "unknown"
-        assert self.model is not None  # This should not happen after __post_init__
+        assert self.model is not None  # noqa: S101 # This should not happen after __post_init__
         return self.model._meta.model_name or ""
 
     def get_verbose_name(self) -> str:
@@ -505,7 +506,7 @@ class ModelConfiguration:
         if not field_list:
             return []
 
-        flat_list = []
+        flat_list: list[str] = []
         for item in field_list:
             if isinstance(item, (tuple, list)):
                 flat_list.extend(item)
@@ -523,7 +524,7 @@ class ModelConfiguration:
 
         from fairdm.registry.factories import FormFactory
 
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use (component-specific > parent > defaults)
         resolved_fields = self.form_fields or self.fields or self.get_default_fields(self.model)
@@ -544,7 +545,7 @@ class ModelConfiguration:
 
         from fairdm.registry.factories import TableFactory
 
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
         # Determine which fields to use
         resolved_fields = self.table_fields or self.fields or self.get_default_fields(self.model)
         # Flatten any tuples in field list
@@ -564,7 +565,7 @@ class ModelConfiguration:
 
         from fairdm.registry.factories import FilterFactory
 
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
         resolved_fields = self.filterset_fields or self.fields or self.get_default_fields(self.model)
@@ -586,7 +587,7 @@ class ModelConfiguration:
         # Use SerializerFactory for auto-generation
         from fairdm.registry.factories import SerializerFactory
 
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
         resolved_fields = self.serializer_fields or self.fields or self.get_default_fields(self.model)
@@ -608,7 +609,7 @@ class ModelConfiguration:
         # Use ResourceFactory for auto-generation
         from fairdm.registry.factories import ResourceFactory
 
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
         resolved_fields = self.resource_fields or self.fields or self.get_default_fields(self.model)
@@ -629,7 +630,7 @@ class ModelConfiguration:
 
         from fairdm.registry.factories import AdminFactory
 
-        assert self.model is not None  # Validated in __post_init__
+        assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
         resolved_fields = self.admin_list_display or self.fields or self.get_default_fields(self.model)
@@ -651,11 +652,8 @@ class ModelConfiguration:
         cached_props = ["form", "table", "filterset", "serializer", "resource", "admin"]
 
         for prop_name in cached_props:
-            try:
+            with contextlib.suppress(AttributeError):
                 delattr(self, prop_name)
-            except AttributeError:
-                # Property not yet accessed/cached
-                pass
 
     # Backward compatibility methods (deprecated - use properties instead)
 

@@ -76,11 +76,8 @@ class MySampleConfig(ModelConfiguration):
 See `docs/portal-development/registry_integration.md` for details.
 """
 
-import json
-
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.db import models
-from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget, Select2Widget
 
@@ -172,106 +169,6 @@ class RockSampleAdminExample(admin.ModelAdmin):
         #     formset.max_num = vocabulary_size
 
         return formset
-
-    # ============================================================================
-    # Bulk Metadata Export Action
-    # ============================================================================
-
-    @admin.action(description=_("Export metadata (JSON)"))
-    def export_metadata_json(self, request, queryset):
-        """Export selected samples with metadata as JSON.
-
-        This action demonstrates the pattern used in DatasetAdmin for bulk
-        metadata export. The exported JSON includes:
-        - Basic fields (name, UUID)
-        - Timestamps (added, modified)
-        - Relationships (dataset, location)
-        - Metadata (descriptions, dates, identifiers)
-
-        Usage Pattern:
-        1. Select multiple samples in admin list view
-        2. Choose "Export metadata (JSON)" from actions dropdown
-        3. Click "Go" to download JSON file
-
-        Returns:
-            HttpResponse with JSON attachment
-        """
-        samples_data = []
-
-        # Optimize query with select_related/prefetch_related
-        queryset = queryset.select_related("dataset")
-        # .prefetch_related("descriptions", "dates")
-
-        for sample in queryset:
-            sample_dict = {
-                "name": sample.name,
-                "uuid": str(sample.uuid),
-                "added": sample.added.isoformat(),
-                "modified": sample.modified.isoformat(),
-                "dataset": sample.dataset.name if sample.dataset else None,
-                # Add model-specific fields here
-                # "location": str(sample.location) if sample.location else None,
-                # "depth_meters": sample.depth_meters,
-            }
-            samples_data.append(sample_dict)
-
-        # Create JSON response
-        response = HttpResponse(
-            json.dumps(samples_data, indent=2),
-            content_type="application/json",
-        )
-        response["Content-Disposition"] = 'attachment; filename="samples_metadata.json"'
-
-        # Show success message
-        messages.success(
-            request,
-            _("Exported {count} samples as JSON").format(count=len(samples_data)),
-        )
-
-        return response
-
-    # Register the action
-    # actions = ["export_metadata_json"]
-
-    # ============================================================================
-    # Security: Prevent Bulk Visibility Changes
-    # ============================================================================
-
-    def get_actions(self, request):
-        """Remove bulk visibility change actions for security.
-
-        This method implements the same security pattern as DatasetAdmin to
-        prevent accidental exposure of private data. Visibility changes must
-        be deliberate and individual.
-
-        Rationale:
-        - Bulk visibility changes risk exposing sensitive research data
-        - Individual changes force deliberate decision-making
-        - Audit trails are clearer for individual changes
-        - Compliance with data protection requirements
-
-        Pattern:
-        Override get_actions() and filter out any actions that modify
-        visibility, publication status, or access control fields.
-        """
-        actions = super().get_actions(request)
-
-        # Remove any visibility-related bulk actions
-        visibility_action_patterns = [
-            "make_public",
-            "make_private",
-            "change_visibility",
-            "bulk_make_public",
-            "bulk_make_private",
-            "bulk_change_visibility",
-            "publish",
-            "unpublish",
-        ]
-
-        for pattern in visibility_action_patterns:
-            actions.pop(pattern, None)
-
-        return actions
 
 
 # ============================================================================
@@ -459,13 +356,13 @@ class RockSampleAdmin(SampleChildAdmin):
     show_in_index = True  # Show in main admin index
 
     # Add rock-specific fields to list display
-    list_display = SampleChildAdmin.list_display + ["rock_type", "mineral_content"]
+    list_display = [*SampleChildAdmin.list_display, "rock_type", "mineral_content"]
 
     # Add rock-specific filters
-    list_filter = SampleChildAdmin.list_filter + ["rock_type"]
+    list_filter = [*SampleChildAdmin.list_filter, "rock_type"]
 
     # Add rock-specific search fields
-    search_fields = SampleChildAdmin.search_fields + ["mineral_content"]
+    search_fields = [*SampleChildAdmin.search_fields, "mineral_content"]
 
     # Extend base_fieldsets to include geological properties
     fieldsets = (
@@ -507,13 +404,18 @@ class WaterSampleAdmin(SampleChildAdmin):
     show_in_index = True  # Show in main admin index
 
     # Add water-specific fields to list display
-    list_display = SampleChildAdmin.list_display + ["water_source", "ph_level", "temperature_celsius"]
+    list_display = [
+        *SampleChildAdmin.list_display,
+        "water_source",
+        "ph_level",
+        "temperature_celsius",
+    ]
 
     # Add water-specific filters
-    list_filter = SampleChildAdmin.list_filter + ["water_source"]
+    list_filter = [*SampleChildAdmin.list_filter, "water_source"]
 
     # Add water-specific search fields
-    search_fields = SampleChildAdmin.search_fields + ["water_source"]
+    search_fields = [*SampleChildAdmin.search_fields, "water_source"]
 
     # Extend base_fieldsets to include water quality parameters
     fieldsets = (

@@ -63,7 +63,9 @@ class SampleFormMixin:
                 from guardian.shortcuts import get_objects_for_user
 
                 self.fields["dataset"].queryset = get_objects_for_user(
-                    self.request.user, "dataset.change_dataset", klass=self.fields["dataset"].queryset.model
+                    self.request.user,
+                    "dataset.change_dataset",
+                    klass=self.fields["dataset"].queryset.model,
                 )
 
         if "status" in self.fields:
@@ -101,11 +103,28 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
 
     class Meta:
         model = Sample
-        fields = ["name", "dataset", "local_id", "status", "location", "image", "tags", "related"]
+        fields = [
+            "name",
+            "dataset",
+            "local_id",
+            "status",
+            "location",
+            "image",
+            "tags",
+            "related",
+        ]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": _("Enter sample name...")}),
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Enter sample name..."),
+                }
+            ),
             "local_id": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("Optional local identifier...")}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Optional local identifier..."),
+                }
             ),
             "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }

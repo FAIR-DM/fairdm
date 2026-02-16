@@ -1,3 +1,83 @@
+"""Core model factories for FairDM testing.
+
+This module provides factory_boy factories for creating test instances of FairDM's
+core models: Project, Dataset, Sample, and Measurement. These factories follow an
+**opt-in pattern** for creating related metadata objects (descriptions and dates).
+
+Key Features
+------------
+
+1. **Minimal by Default**: Factories create only required fields unless explicitly requested.
+2. **Opt-In Relationships**: Use keyword arguments to create descriptions/dates:
+
+   .. code-block:: python
+
+      # No descriptions or dates created
+      project = ProjectFactory()
+
+      # Create 2 descriptions
+      project = ProjectFactory(descriptions=2)
+
+      # Create specific description types
+      project = ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
+
+3. **Vocabulary Validation**: All description/date types are validated against model
+   VOCABULARY attributes. Invalid types raise ValueError.
+
+4. **Controlled Vocabularies**: Default types come from the model's VOCABULARY (e.g.,
+   ``ProjectDescription.VOCABULARY.values``), ensuring factories create valid test data.
+
+Factories Available
+-------------------
+
+- ``ProjectFactory`` - Create Project instances with optional descriptions/dates
+- ``DatasetFactory`` - Create Dataset instances with optional descriptions/dates
+- ``SampleFactory`` - Create Sample instances with optional descriptions/dates/identifiers
+- ``MeasurementFactory`` - Create Measurement instances with optional descriptions/dates
+
+Metadata Factories
+------------------
+
+- ``ProjectDescriptionFactory``, ``DatasetDescriptionFactory``, etc.
+- ``ProjectDateFactory``, ``DatasetDateFactory``, etc.
+- ``SampleIdentifierFactory``, ``SampleRelationFactory``
+
+Usage Examples
+--------------
+
+Basic creation::
+
+    project = ProjectFactory()
+    dataset = DatasetFactory(project=project)
+    sample = SampleFactory(dataset=dataset)
+
+With metadata (opt-in)::
+
+    project = ProjectFactory(
+        descriptions=2,  # Create 2 descriptions
+        dates=1,  # Create 1 date
+    )
+
+Custom types::
+
+    project = ProjectFactory(
+        descriptions=3, descriptions__types=["Abstract", "Introduction", "Objectives"]
+    )
+
+Batch creation::
+
+    projects = ProjectFactory.create_batch(5, descriptions=2, dates=1)
+
+Type validation::
+
+    # Raises ValueError - "InvalidType" not in ProjectDescription.VOCABULARY
+    project = ProjectFactory(descriptions=1, descriptions__types=["InvalidType"])
+
+For more details, see:
+- Portal developers: docs/portal-development/testing-portal-projects.md
+- Framework contributors: docs/contributing/testing/
+"""
+
 import factory
 from factory.declarations import LazyAttribute, SubFactory
 from factory.django import DjangoModelFactory
@@ -9,10 +89,17 @@ from fairdm.core.dataset.models import DatasetDate, DatasetDescription
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import ProjectDate, ProjectDescription
-from fairdm.core.sample.models import SampleDate, SampleDescription, SampleIdentifier, SampleRelation
+from fairdm.core.sample.models import (
+    SampleDate,
+    SampleDescription,
+    SampleIdentifier,
+    SampleRelation,
+)
 
 from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
-from .contributors import OrganizationFactory  # Import OrganizationFactory for Project.owner
+from .contributors import (
+    OrganizationFactory,
+)  # Import OrganizationFactory for Project.owner
 
 
 class ProjectDescriptionFactory(DjangoModelFactory):
@@ -39,7 +126,12 @@ class ProjectFactory(DjangoModelFactory):
     """Factory for creating Project instances.
 
     By default, creates a minimal Project with only required fields.
-    Use traits or manual creation for descriptions, dates, and contributors.
+
+    To create descriptions/dates:
+        ProjectFactory(descriptions=2)  # Creates 2 descriptions with default types
+        ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])  # Specify types
+        ProjectFactory(dates=1)  # Creates 1 date with default type
+        ProjectFactory(dates=2, dates__types=["Created", "Updated"])  # Specify types
     """
 
     class Meta:
@@ -52,10 +144,92 @@ class ProjectFactory(DjangoModelFactory):
     status = FuzzyChoice(ProjectStatus.values)
 
     # JSON fields - simplified approach
-    funding = LazyAttribute(lambda obj: {"agency": "Sample Agency", "grant_number": "GRANT-2024-001", "amount": 50000})
+    funding = LazyAttribute(
+        lambda obj: {
+            "agency": "Sample Agency",
+            "grant_number": "GRANT-2024-001",
+            "amount": 50000,
+        }
+    )
 
     # Relations - owner required for Project (Organization, not Person)
     owner = SubFactory(OrganizationFactory)
+
+    @factory.post_generation
+    def descriptions(obj, create, extracted, **kwargs):
+        """Create descriptions.
+
+        Args:
+            extracted: Number of descriptions to create (int), or False/None to skip
+            **kwargs: Additional parameters:
+                - types: List of description types to use
+
+        Examples:
+            ProjectFactory(descriptions=2)  # 2 descriptions with default types from model VOCABULARY
+            ProjectFactory(descriptions=3, descriptions__types=["Abstract", "Methods", "Objectives"])
+        """
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = ProjectDescription.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} descriptions with only {len(types)} types provided. "
+                f"Pass descriptions__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            ProjectDescriptionFactory(related=obj, type=types[i])
+
+    @factory.post_generation
+    def dates(obj, create, extracted, **kwargs):
+        """Create dates.
+
+        Args:
+            extracted: Number of dates to create (int), or False/None to skip
+            **kwargs: Additional parameters:
+                - types: List of date types to use
+
+        Examples:
+            ProjectFactory(dates=1)  # 1 date with default type from model VOCABULARY
+            ProjectFactory(dates=2, dates__types=["Start", "End"])
+        """
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = ProjectDate.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} dates with only {len(types)} types provided. "
+                f"Pass dates__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            ProjectDateFactory(related=obj, type=types[i])
 
 
 class DatasetDescriptionFactory(DjangoModelFactory):
@@ -82,8 +256,12 @@ class DatasetFactory(DjangoModelFactory):
     """Factory for creating Dataset instances.
 
     By default, creates a minimal Dataset with only required fields.
-    Use traits or manual creation for descriptions, dates, and contributors.
-    Project must be provided or will be auto-created.
+    Project is auto-created unless provided.
+
+    To create descriptions/dates:
+        DatasetFactory(descriptions=2)  # Creates 2 descriptions
+        DatasetFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
+        DatasetFactory(dates=1)  # Creates 1 date
     """
 
     class Meta:
@@ -110,6 +288,62 @@ class DatasetFactory(DjangoModelFactory):
         # Create a minimal license with only the required fields
         license_obj, _ = License.objects.get_or_create(name="CC BY 4.0")
         return license_obj
+
+    @factory.post_generation
+    def descriptions(obj, create, extracted, **kwargs):
+        """Create descriptions. Pass count as int and optionally types via descriptions__types."""
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = DatasetDescription.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} descriptions with only {len(types)} types provided. "
+                f"Pass descriptions__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            DatasetDescriptionFactory(related=obj, type=types[i])
+
+    @factory.post_generation
+    def dates(obj, create, extracted, **kwargs):
+        """Create dates. Pass count as int and optionally types via dates__types."""
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = DatasetDate.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} dates with only {len(types)} types provided. "
+                f"Pass dates__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            DatasetDateFactory(related=obj, type=types[i])
 
 
 class SampleDescriptionFactory(DjangoModelFactory):
@@ -147,8 +381,11 @@ class SampleFactory(DjangoModelFactory):
     """Factory for creating Sample instances.
 
     By default, creates a minimal Sample with only required fields.
-    Dataset must be provided or will be auto-created.
-    Use manual creation for descriptions and dates.
+    Dataset is auto-created unless provided.
+
+    To create descriptions/dates:
+        SampleFactory(descriptions=2)
+        SampleFactory(dates=1)
     """
 
     class Meta:
@@ -162,6 +399,62 @@ class SampleFactory(DjangoModelFactory):
     # Relations - dataset can be passed in or auto-created
     dataset = SubFactory(DatasetFactory)
     location = None  # Optional field
+
+    @factory.post_generation
+    def descriptions(obj, create, extracted, **kwargs):
+        """Create descriptions. Pass count as int and optionally types via descriptions__types."""
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = SampleDescription.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} descriptions with only {len(types)} types provided. "
+                f"Pass descriptions__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            SampleDescriptionFactory(related=obj, type=types[i])
+
+    @factory.post_generation
+    def dates(obj, create, extracted, **kwargs):
+        """Create dates. Pass count as int and optionally types via dates__types."""
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = SampleDate.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} dates with only {len(types)} types provided. "
+                f"Pass dates__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            SampleDateFactory(related=obj, type=types[i])
 
 
 class MeasurementDescriptionFactory(DjangoModelFactory):
@@ -188,9 +481,12 @@ class MeasurementFactory(DjangoModelFactory):
     """Factory for creating Measurement instances.
 
     By default, creates a minimal Measurement with only required fields.
-    Dataset and sample are both required and will be auto-created if not provided.
+    Dataset and sample are auto-created if not provided.
     The sample will be created in the same dataset as the measurement.
-    Use manual creation for descriptions and dates.
+
+    To create descriptions/dates:
+        MeasurementFactory(descriptions=2)
+        MeasurementFactory(dates=1)
     """
 
     class Meta:
@@ -203,6 +499,62 @@ class MeasurementFactory(DjangoModelFactory):
     # Create dataset first, then create sample in that dataset
     dataset = SubFactory(DatasetFactory)
     sample = SubFactory(SampleFactory, dataset=LazyAttribute(lambda o: o.factory_parent.dataset))
+
+    @factory.post_generation
+    def descriptions(obj, create, extracted, **kwargs):
+        """Create descriptions. Pass count as int and optionally types via descriptions__types."""
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = MeasurementDescription.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} descriptions with only {len(types)} types provided. "
+                f"Pass descriptions__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            MeasurementDescriptionFactory(related=obj, type=types[i])
+
+    @factory.post_generation
+    def dates(obj, create, extracted, **kwargs):
+        """Create dates. Pass count as int and optionally types via dates__types."""
+        if not create or not extracted:
+            return
+
+        if not isinstance(extracted, int):
+            raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
+
+        # Get types from kwargs or use defaults from model VOCABULARY
+        valid_types = MeasurementDate.VOCABULARY.values
+        types = kwargs.get("types", valid_types)
+
+        # Validate user-provided types
+        if "types" in kwargs:
+            invalid_types = [t for t in types if t not in valid_types]
+            if invalid_types:
+                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+
+        if extracted > len(types):
+            raise ValueError(
+                f"Cannot create {extracted} dates with only {len(types)} types provided. "
+                f"Pass dates__types=[...] with at least {extracted} types."
+            )
+
+        for i in range(extracted):
+            MeasurementDateFactory(related=obj, type=types[i])
 
 
 class SampleRelationFactory(DjangoModelFactory):

@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 # parsing the allowed identifiers from settings
 SchemeChoices = []
-for choices in settings.FAIRDM_ALLOWED_IDENTIFIERS.values():
+for choices in getattr(settings, "FAIRDM_ALLOWED_IDENTIFIERS", {}).values():
     for val in choices.items():
         rev_val = tuple(reversed(val))
         if rev_val not in SchemeChoices:

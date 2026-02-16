@@ -64,7 +64,85 @@ from fairdm.factories import (
 )
 ```
 
-Key patterns:
+### Factory Opt-In Pattern
+
+FairDM factories follow an **opt-in pattern** for creating related metadata (descriptions, dates):
+
+**Key Principle**: By default, factories create only required fields. No descriptions or dates are auto-created.
+
+**Why Opt-In?**
+
+1. **Prevents unique constraint violations** — Models have `unique_together` on `(related, type)`. Auto-creating metadata could conflict with test-specific data.
+2. **Minimizes test data** — Most tests don't need metadata. Creating it by default adds unnecessary DB records and slows tests.
+3. **Explicit control** — When you need metadata, you explicitly control count and types.
+
+**Usage Patterns**:
+
+```python
+# Minimal (no metadata) - DEFAULT behavior
+project = ProjectFactory()
+assert project.descriptions.count() == 0
+assert project.dates.count() == 0
+
+# With metadata (opt-in via kwargs)
+project = ProjectFactory(descriptions=2, dates=1)
+assert project.descriptions.count() == 2
+assert project.dates.count() == 1
+
+# Custom types (validated against model VOCABULARY)
+project = ProjectFactory(
+    descriptions=3,
+    descriptions__types=["Abstract", "Introduction", "Objectives"]
+)
+
+# All core factories support this pattern
+dataset = DatasetFactory(descriptions=2, dates=1)
+sample = SampleFactory(descriptions=1, dates=2)
+measurement = MeasurementFactory(descriptions=2)
+```
+
+**Vocabulary Validation**:
+
+All description/date types are validated against the model's `VOCABULARY.values`:
+
+```python
+# ✓ Valid - types exist in ProjectDescription.VOCABULARY
+project = ProjectFactory(
+    descriptions=2,
+    descriptions__types=["Abstract", "Methods"]
+)
+
+# ✗ Raises ValueError - "InvalidType" not in VOCABULARY
+project = ProjectFactory(
+    descriptions=1,
+    descriptions__types=["InvalidType"]
+)
+```
+
+**Available VOCABULARY types**:
+
+- `ProjectDescription.VOCABULARY.values`: Abstract, Introduction, Background, Objectives, ExpectedOutput, Conclusions, Other (+ sample/measurement-specific types)
+- `ProjectDate.VOCABULARY.values`: Start, End
+- `DatasetDescription.VOCABULARY.values`: Similar to Project
+- `DatasetDate.VOCABULARY.values`: Check model for available types
+- `SampleDescription.VOCABULARY.values`: Includes SampleCollection, SamplePreparation, etc.
+- `MeasurementDescription.VOCABULARY.values`: Includes MeasurementConditions, MeasurementSetup, etc.
+
+**Batch Creation with Metadata**:
+
+```python
+# All projects get 2 descriptions and 1 date
+projects = ProjectFactory.create_batch(5, descriptions=2, dates=1)
+
+# Custom types for all
+datasets = DatasetFactory.create_batch(
+    3,
+    descriptions=2,
+    descriptions__types=["Abstract", "Methods"]
+)
+```
+
+### Factory Patterns (General)
 
 - `SubFactory` for FK relations — never manually create parent objects when a factory exists
 - `factory.Sequence(lambda n: f"value{n}")` for unique fields
