@@ -61,11 +61,11 @@ jobs:
           echo "Building documentation with warnings logged..."
           echo "Note: Warnings are informational only until docs cleanup is complete"
           poetry run sphinx-build -b html docs docs/_build 2>&1 | tee docs/_build/build.log || true
-          
+
           # Count warnings for informational purposes
           WARNING_COUNT=$(grep -c "WARNING:" docs/_build/build.log || echo "0")
           echo "📝 Found $WARNING_COUNT documentation warnings (not blocking)"
-          
+
           # Only fail on actual build errors, not warnings
           if poetry run sphinx-build -b html docs docs/_build > /dev/null 2>&1; then
             echo "✅ Documentation build completed successfully"
