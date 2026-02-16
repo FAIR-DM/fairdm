@@ -15,7 +15,7 @@ readme = "README.md"
 authors = [{ name = "Samuel Jennings" }]
 requires-python = '>=3.13,<4.0'
 dependencies = [
-    'celery (>=5.4.0,<6.0.0)',
+    "celery (>=5.6.2,<6.0.0)",
     'crispy-bootstrap5 (>=2025.6,<2026.0)',
     'django[argon2] (>=5.1.3,<6.0.0)',
     'django-activity-stream (>=2.0.0,<3.0.0)',
@@ -122,12 +122,13 @@ snakeviz = "^2.2.2"
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
 pytest-benchmark = "^5.2.3"
-fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
 ruff = "^0.15.0"
 beautifulsoup4 = "^4.14.3"
-pydata-sphinx-theme = "^0.16.1"
 
 [tool.poetry.group.docs.dependencies]
+fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
+pydata-sphinx-theme = "^0.16.1"
+
 # fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
 #     "pydata-sphinx-theme",
 # ] }
