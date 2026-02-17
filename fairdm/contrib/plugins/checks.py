@@ -1,11 +1,11 @@
 """Django system checks for plugin system."""
 
-from django.core.checks import Error, Tags, register
+from django.core import checks
 
 from .registry import registry
 
 
-@register(Tags.compatibility)
+@checks.register(checks.Tags.compatibility)
 def check_plugin_attributes(app_configs, **kwargs):
     """E001: Check that plugins have required attributes.
 
@@ -23,7 +23,7 @@ def check_plugin_attributes(app_configs, **kwargs):
                 name = plugin_class.get_name()
                 if not name or not name.strip():
                     errors.append(
-                        Error(
+                        checks.Error(
                             f"Plugin {plugin_class.__name__} has empty name",
                             hint="Provide a non-empty 'name' class attribute or ensure class name is valid",
                             obj=plugin_class,
@@ -32,7 +32,7 @@ def check_plugin_attributes(app_configs, **kwargs):
                     )
             except Exception as e:
                 errors.append(
-                    Error(
+                    checks.Error(
                         f"Plugin {plugin_class.__name__} cannot generate name: {e}",
                         hint="Ensure get_name() classmethod works correctly",
                         obj=plugin_class,
@@ -45,7 +45,7 @@ def check_plugin_attributes(app_configs, **kwargs):
             if menu:
                 if not isinstance(menu, dict):
                     errors.append(
-                        Error(
+                        checks.Error(
                             f"Plugin {plugin_class.__name__} has invalid menu attribute (must be dict)",
                             hint="Set menu = {'label': '...', 'icon': '...', 'order': 0} or menu = None",
                             obj=plugin_class,
@@ -54,7 +54,7 @@ def check_plugin_attributes(app_configs, **kwargs):
                     )
                 elif "label" not in menu:
                     errors.append(
-                        Error(
+                        checks.Error(
                             f"Plugin {plugin_class.__name__} menu dict missing required 'label' key",
                             hint="menu dict must have 'label' key: {'label': 'My Plugin', ...}",
                             obj=plugin_class,
@@ -65,7 +65,7 @@ def check_plugin_attributes(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.compatibility)
+@checks.register(checks.Tags.compatibility)
 def check_duplicate_plugin_names(app_configs, **kwargs):
     """E002: Check for duplicate plugin names per model.
 
@@ -84,7 +84,7 @@ def check_duplicate_plugin_names(app_configs, **kwargs):
 
             if name in seen_names:
                 errors.append(
-                    Error(
+                    checks.Error(
                         f"Duplicate plugin name '{name}' for model {model.__name__}",
                         hint=f"Plugins {seen_names[name].__name__} and {plugin_class.__name__} have the same name",
                         obj=plugin_class,
@@ -97,7 +97,7 @@ def check_duplicate_plugin_names(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.compatibility)
+@checks.register(checks.Tags.compatibility)
 def check_url_path_conflicts(app_configs, **kwargs):
     """E003: Check for URL path conflicts per model.
 
@@ -120,7 +120,7 @@ def check_url_path_conflicts(app_configs, **kwargs):
 
             if path in seen_paths:
                 errors.append(
-                    Error(
+                    checks.Error(
                         f"Duplicate URL path '{path}' for model {model.__name__}",
                         hint=f"Plugins {seen_paths[path].__name__} and {plugin_class.__name__} have conflicting URL paths",
                         obj=plugin_class,
@@ -133,7 +133,7 @@ def check_url_path_conflicts(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.compatibility)
+@checks.register(checks.Tags.compatibility)
 def check_plugin_group_plugins(app_configs, **kwargs):
     """E005: Check that PluginGroups have non-empty plugins list.
 
@@ -148,7 +148,7 @@ def check_plugin_group_plugins(app_configs, **kwargs):
                 plugins = getattr(plugin_class, "plugins", [])
                 if not plugins or len(plugins) == 0:
                     errors.append(
-                        Error(
+                        checks.Error(
                             f"PluginGroup {plugin_class.__name__} has empty plugins list",
                             hint="PluginGroup must contain at least one Plugin class",
                             obj=plugin_class,
@@ -159,7 +159,7 @@ def check_plugin_group_plugins(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.compatibility)
+@checks.register(checks.Tags.compatibility)
 def check_plugin_group_plugin_classes(app_configs, **kwargs):
     """E006: Check that PluginGroup plugins are valid Plugin classes.
 
@@ -178,7 +178,7 @@ def check_plugin_group_plugin_classes(app_configs, **kwargs):
                     # Check if it's a class and inherits from Plugin
                     if not isinstance(plugin, type):
                         errors.append(
-                            Error(
+                            checks.Error(
                                 f"PluginGroup {plugin_class.__name__} plugins[{i}] is not a class: {plugin}",
                                 hint="All entries in plugins list must be Plugin subclasses",
                                 obj=plugin_class,
@@ -187,7 +187,7 @@ def check_plugin_group_plugin_classes(app_configs, **kwargs):
                         )
                     elif not issubclass(plugin, Plugin):
                         errors.append(
-                            Error(
+                            checks.Error(
                                 f"PluginGroup {plugin_class.__name__} plugins[{i}] is not a Plugin subclass: {plugin.__name__}",
                                 hint="All entries in plugins list must inherit from Plugin",
                                 obj=plugin_class,
@@ -198,7 +198,7 @@ def check_plugin_group_plugin_classes(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.compatibility)
+@checks.register(checks.Tags.compatibility)
 def check_plugin_group_url_conflicts(app_configs, **kwargs):
     """E007: Check for URL path conflicts within PluginGroups.
 
@@ -224,7 +224,7 @@ def check_plugin_group_url_conflicts(app_configs, **kwargs):
 
                     if path in seen_paths:
                         errors.append(
-                            Error(
+                            checks.Error(
                                 f"PluginGroup {plugin_class.__name__} has URL conflict: plugins {seen_paths[path].__name__} and {plugin.__name__} both use path '{path}'",
                                 hint="Wrapped plugins must have unique url_path values",
                                 obj=plugin_class,
@@ -237,7 +237,7 @@ def check_plugin_group_url_conflicts(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.security)
+@checks.register(checks.Tags.security)
 def check_permission_strings(app_configs, **kwargs):
     """W001: Validate permission string validity.
 
@@ -258,7 +258,7 @@ def check_permission_strings(app_configs, **kwargs):
             # Format is usually "app_label.permission_name"
             if "." not in permission:
                 warnings.append(
-                    Warning(
+                    checks.Warning(
                         f"Plugin {plugin_class.__name__} has invalid permission format: {permission}",
                         hint="Permission should be in format 'app_label.permission_name'",
                         obj=plugin_class,
@@ -273,7 +273,7 @@ def check_permission_strings(app_configs, **kwargs):
             try:
                 if not Permission.objects.filter(content_type__app_label=app_label, codename=perm_name).exists():
                     warnings.append(
-                        Warning(
+                        checks.Warning(
                             f"Plugin {plugin_class.__name__} references non-existent permission: {permission}",
                             hint="Ensure the permission exists or will be created by migrations",
                             obj=plugin_class,
@@ -287,7 +287,7 @@ def check_permission_strings(app_configs, **kwargs):
     return warnings
 
 
-@register(Tags.templates)
+@checks.register(checks.Tags.templates)
 def check_template_names(app_configs, **kwargs):
     """E004: Check for invalid template_name values.
 
@@ -306,7 +306,7 @@ def check_template_names(app_configs, **kwargs):
             # Basic sanity checks
             if not isinstance(template_name, str):
                 errors.append(
-                    Error(
+                    checks.Error(
                         f"Plugin {plugin_class.__name__} has invalid template_name type: {type(template_name)}",
                         hint="template_name must be a string path to a template file",
                         obj=plugin_class,
@@ -318,7 +318,7 @@ def check_template_names(app_configs, **kwargs):
             # Check for common mistakes
             if template_name.strip() == "":
                 errors.append(
-                    Error(
+                    checks.Error(
                         f"Plugin {plugin_class.__name__} has empty template_name",
                         hint="Either remove template_name to use automatic resolution or provide a valid template path",
                         obj=plugin_class,
@@ -329,7 +329,7 @@ def check_template_names(app_configs, **kwargs):
             # Check that it ends with .html
             if not template_name.endswith(".html"):
                 errors.append(
-                    Warning(
+                    checks.Warning(
                         f"Plugin {plugin_class.__name__} template_name doesn't end with .html: {template_name}",
                         hint="Template names should typically end with .html",
                         obj=plugin_class,
@@ -340,7 +340,7 @@ def check_template_names(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.urls)
+@checks.register(checks.Tags.urls)
 def check_url_path_characters(app_configs, **kwargs):
     """W003: Check for invalid characters in URL paths.
 
@@ -363,7 +363,7 @@ def check_url_path_characters(app_configs, **kwargs):
 
             if not isinstance(url_path, str):
                 warnings.append(
-                    Warning(
+                    checks.Warning(
                         f"Plugin {plugin_class.__name__} has non-string url_path: {type(url_path)}",
                         hint="url_path should be a string",
                         obj=plugin_class,
@@ -375,7 +375,7 @@ def check_url_path_characters(app_configs, **kwargs):
             # Check for invalid characters
             if not valid_pattern.match(url_path):
                 warnings.append(
-                    Warning(
+                    checks.Warning(
                         f"Plugin {plugin_class.__name__} url_path contains invalid characters: {url_path}",
                         hint="URL paths should only contain lowercase letters, numbers, hyphens, and underscores",
                         obj=plugin_class,
@@ -386,7 +386,7 @@ def check_url_path_characters(app_configs, **kwargs):
             # Check for leading/trailing slashes
             if url_path.startswith("/") or url_path.endswith("/"):
                 warnings.append(
-                    Warning(
+                    checks.Warning(
                         f"Plugin {plugin_class.__name__} url_path should not start or end with slashes: {url_path}",
                         hint="Remove leading/trailing slashes from url_path",
                         obj=plugin_class,

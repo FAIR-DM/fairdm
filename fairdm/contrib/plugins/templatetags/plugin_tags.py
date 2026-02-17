@@ -24,7 +24,7 @@ def get_plugin_tabs(context, model=None, obj=None):
         List of Tab objects sorted by order, then label
     """
     from django.db.models import Model
-    
+
     request = context.get("request")
 
     if not model:
@@ -33,7 +33,7 @@ def get_plugin_tabs(context, model=None, obj=None):
             model = obj.__class__
         else:
             return []
-    
+
     # If model is an instance, get its class
     if isinstance(model, Model):
         model = model.__class__
@@ -68,8 +68,8 @@ def plugin_url(context, view_name, *args, **kwargs):
     obj = context.get("non_polymorphic_object")
     if not obj:
         obj = context.get("object")
-    
+
     if not obj:
         return ""
-    
+
     return reverse(obj, view_name, *args, **kwargs)

@@ -33,7 +33,6 @@ class TestIsInstanceOf:
 
     def test_is_instance_of_wrong_type(self, rf: RequestFactory):
         """is_instance_of should reject instances of other models."""
-        from fairdm.core.dataset.models import Dataset
         from fairdm.factories.core import DatasetFactory
 
         check = is_instance_of(Sample)

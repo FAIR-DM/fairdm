@@ -1,13 +1,13 @@
 """Tests for plugin template tags."""
 
+from unittest.mock import patch
+
 import pytest
 from django.template import Context, Template
 from django.test import RequestFactory
-from unittest.mock import patch
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
-from fairdm.core.dataset.models import Dataset
 from fairdm.core.sample.models import Sample
 from fairdm.factories.contributors import UserFactory
 
@@ -29,9 +29,7 @@ class TestGetPluginTabs:
         request = rf.get("/")
         request.user = UserFactory()
 
-        template = Template(
-            "{% load plugin_tags %}{% get_plugin_tabs model=model obj=obj as tabs %}{{ tabs|length }}"
-        )
+        template = Template("{% load plugin_tags %}{% get_plugin_tabs model=model obj=obj as tabs %}{{ tabs|length }}")
         context = Context({"request": request, "model": Sample, "obj": sample})
         result = template.render(context)
 
@@ -50,9 +48,7 @@ class TestGetPluginTabs:
         request = rf.get("/")
         request.user = UserFactory()
 
-        template = Template(
-            "{% load plugin_tags %}{% get_plugin_tabs model=model as tabs %}{{ tabs|length }}"
-        )
+        template = Template("{% load plugin_tags %}{% get_plugin_tabs model=model as tabs %}{{ tabs|length }}")
         context = Context({"request": request, "model": Sample})
         result = template.render(context)
 
@@ -66,12 +62,11 @@ class TestGetPluginTabs:
             name = "test"
             menu = {"label": "Test", "order": 0}
             template_name = "test.html"
+
         request = rf.get("/")
         request.user = UserFactory()
 
-        template = Template(
-            "{% load plugin_tags %}{% get_plugin_tabs obj=obj as tabs %}{{ tabs|length }}"
-        )
+        template = Template("{% load plugin_tags %}{% get_plugin_tabs obj=obj as tabs %}{{ tabs|length }}")
         context = Context({"request": request, "obj": sample})
         result = template.render(context)
 
@@ -79,9 +74,7 @@ class TestGetPluginTabs:
 
     def test_get_plugin_tabs_without_request(self):
         """get_plugin_tabs should return empty list without request."""
-        template = Template(
-            "{% load plugin_tags %}{% get_plugin_tabs model=model as tabs %}{{ tabs|length }}"
-        )
+        template = Template("{% load plugin_tags %}{% get_plugin_tabs model=model as tabs %}{{ tabs|length }}")
         context = Context({"model": Sample})  # No request
         result = template.render(context)
 
@@ -141,61 +134,61 @@ class TestPluginUrl:
         """plugin_url should use non_polymorphic_object from context."""
         with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
-            
+
             template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
             context = Context({"non_polymorphic_object": sample})
-            
+
             result = template.render(context)
-            
+
             # Should call reverse with the sample object
-            mock_reverse.assert_called_once_with(sample, 'test-view')
+            mock_reverse.assert_called_once_with(sample, "test-view")
             assert result == "/sample/abc123/test-view/"
 
     def test_plugin_url_fallback_to_object(self, rf, sample):
         """plugin_url should fall back to 'object' if non_polymorphic_object not present."""
         with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
-            
+
             template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
             context = Context({"object": sample})
-            
+
             result = template.render(context)
-            
+
             # Should call reverse with the sample object
-            mock_reverse.assert_called_once_with(sample, 'test-view')
+            mock_reverse.assert_called_once_with(sample, "test-view")
             assert result == "/sample/abc123/test-view/"
 
     def test_plugin_url_without_object(self, rf):
         """plugin_url should return empty string when no object in context."""
         template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
         context = Context({})
-        
+
         result = template.render(context)
-        
+
         assert result == ""
 
     def test_plugin_url_with_kwargs(self, rf, sample):
         """plugin_url should pass kwargs to reverse function."""
         with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
-            
+
             template = Template("{% load plugin_tags %}{% plugin_url 'test-view' pk=123 %}")
             context = Context({"object": sample})
-            
+
             result = template.render(context)
-            
+
             # Should call reverse with kwargs
-            mock_reverse.assert_called_once_with(sample, 'test-view', pk=123)
+            mock_reverse.assert_called_once_with(sample, "test-view", pk=123)
 
     def test_plugin_url_prefers_non_polymorphic_object(self, rf, sample, dataset):
         """plugin_url should prefer non_polymorphic_object over object."""
         with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
-            
+
             template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
             context = Context({"non_polymorphic_object": sample, "object": dataset})
-            
+
             result = template.render(context)
-            
+
             # Should use sample (non_polymorphic_object), not dataset
-            mock_reverse.assert_called_once_with(sample, 'test-view')
+            mock_reverse.assert_called_once_with(sample, "test-view")
