@@ -116,7 +116,7 @@ fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
     "dev",
 ] }
 importtime-waterfall = "^1.0.0"
-pandas = "^2.2.2"
+pandas = "^3.0.0"
 snakeviz = "^2.2.2"
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
