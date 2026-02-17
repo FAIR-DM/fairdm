@@ -39,7 +39,7 @@ class TestSystemCheckE001:
             passed = False
 
         # Should pass (or at least not fail on E001 for ValidPlugin)
-        assert passed or True  # Tests are informational for now
+        assert True  # Tests are informational for now
 
 
 class TestSystemCheckE002:
@@ -54,12 +54,14 @@ class TestSystemCheckE002:
         test_registry = PluginRegistry()
 
         @test_registry.register(Sample)
-        class DuplicateTest(Plugin, TemplateView):
+        class DuplicateTest1(Plugin, TemplateView):
+            name = "duplicatetest"  # Explicit name
             menu = {"label": "Dup1", "icon": "dup", "order": 10}
             template_name = "dup1.html"
 
         @test_registry.register(Sample)
-        class DuplicateTest(Plugin, TemplateView):  # Same name!
+        class DuplicateTest2(Plugin, TemplateView):  # Same explicit name!
+            name = "duplicatetest"  # Duplicate of DuplicateTest1
             menu = {"label": "Dup2", "icon": "dup", "order": 20}
             template_name = "dup2.html"
 
