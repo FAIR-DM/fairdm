@@ -244,7 +244,7 @@ class FairDMDescriptions(VocabularyBuilder):
                 ordered=True,
                 members=[
                     "MeasurementConditions",
-                    "MeasurementPreparation",
+                    "MeasurementSetup",
                     "MeasurementTearDown",
                     "Other",
                 ],

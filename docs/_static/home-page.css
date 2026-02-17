@@ -27,12 +27,6 @@ body {
   overflow-x: hidden;
 }
 
-.home-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0;
-}
-
 /* Hero Section */
 .hero-section {
   position: relative;

@@ -21,6 +21,7 @@ from ..vocabularies import (
     FairDMIdentifiers,
     FairDMRoles,
 )
+from .managers import MeasurementQuerySet
 
 
 class Measurement(BasePolymorphicModel):
@@ -46,7 +47,7 @@ class Measurement(BasePolymorphicModel):
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Measurement")
     DATE_TYPES = FairDMDates.from_collection("Measurement")
 
-    objects = PolymorphicManager()
+    objects = PolymorphicManager.from_queryset(MeasurementQuerySet)()
 
     dataset = models.ForeignKey(
         "dataset.Dataset",
@@ -94,6 +95,21 @@ class Measurement(BasePolymorphicModel):
         """Return string representation using the measurement value."""
         return f"{self.get_value()}"
 
+    def clean(self):
+        """Validate that Measurement is not instantiated directly (only subclasses).
+
+        Raises:
+            ValidationError: If attempting to create base Measurement instance
+        """
+        super().clean()
+        from django.core.exceptions import ValidationError
+
+        # Prevent direct instantiation of base Measurement model
+        if self.__class__ == Measurement:
+            raise ValidationError(
+                _("Cannot create base Measurement instances directly. Please use a specific measurement type subclass.")
+            )
+
     @classproperty
     def type_of(self):
         """Return the base Measurement class for polymorphic queries."""
@@ -132,8 +148,15 @@ class Measurement(BasePolymorphicModel):
         return str(value)
 
     def get_absolute_url(self):
-        """Get the URL for this measurement (redirects to parent sample)."""
-        return self.sample.get_absolute_url()
+        """Get the absolute URL for this measurement.
+
+        Returns:
+            str: URL path to measurement detail view (placeholder for future implementation)
+        """
+        from django.urls import reverse
+
+        # Placeholder - full detail view will be implemented in future feature
+        return reverse("measurement:overview", kwargs={"uuid": self.uuid})
 
     def get_template_name(self):
         """Get template names for rendering this measurement in card format.
@@ -151,12 +174,9 @@ class MeasurementDescription(AbstractDescription):
 
     Supports multiple description types (e.g., methods, notes, quality control)
     as defined by the FairDM Measurement description vocabulary.
-
-    Note:
-        Uses Sample vocabulary collection - consider updating to Measurement-specific.
     """
 
-    VOCABULARY = FairDMDescriptions.from_collection("Sample")
+    VOCABULARY = FairDMDescriptions.from_collection("Measurement")
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
 
 
@@ -165,12 +185,9 @@ class MeasurementDate(AbstractDate):
 
     Tracks various dates (e.g., measured, analyzed, validated) as defined
     by the FairDM Measurement date vocabulary.
-
-    Note:
-        Uses Sample vocabulary collection - consider updating to Measurement-specific.
     """
 
-    VOCABULARY = FairDMDates.from_collection("Sample")
+    VOCABULARY = FairDMDates.from_collection("Measurement")
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
 
 

@@ -28,6 +28,7 @@ The examples in this module illustrate:
 from django.utils.translation import gettext_lazy as _
 
 import fairdm
+from fairdm.core.measurement.config import BaseMeasurementConfiguration
 from fairdm.registry import ModelConfiguration
 from fairdm.registry.config import Authority, Citation, ModelMetadata
 
@@ -158,7 +159,7 @@ class CustomSampleConfig(ModelConfiguration):
 
 
 @fairdm.register
-class ExampleMeasurementConfig(ModelConfiguration):
+class ExampleMeasurementConfig(BaseMeasurementConfiguration):
     model = ExampleMeasurement
     metadata = ModelMetadata(
         description="An example measurement",
@@ -422,7 +423,7 @@ DEMO_REGISTERED_MODELS = [
 
 
 @fairdm.register
-class XRFMeasurementConfig(ModelConfiguration):
+class XRFMeasurementConfig(BaseMeasurementConfiguration):
     """
     XRF measurement configuration demonstrating measurement-specific patterns.
 
@@ -455,7 +456,7 @@ class XRFMeasurementConfig(ModelConfiguration):
 
 
 @fairdm.register
-class ICP_MS_MeasurementConfig(ModelConfiguration):
+class ICP_MS_MeasurementConfig(BaseMeasurementConfiguration):
     """
     ICP-MS measurement configuration with advanced field patterns.
 

@@ -71,6 +71,7 @@ defining_models
 special_fields
 controlled_vocabularies
 model_configuration
+measurements
 using_the_registry
 ```
 

@@ -53,6 +53,9 @@ roles
 reviewing_content
 managing_users_and_permissions
 adjusting_dataset_access
+managing_projects
+managing-samples
+managing-measurements
 configuration-checks
 
 ```

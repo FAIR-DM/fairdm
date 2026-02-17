@@ -4,5 +4,5 @@ urlpatterns = [
     path("", include("fairdm.core.project.urls")),
     path("", include("fairdm.core.dataset.urls")),
     path("", include("fairdm.core.sample.urls")),
-    # path("", include("fairdm.core.measurement.urls")),
+    path("measurement/", include("fairdm.core.measurement.urls")),
 ]

@@ -328,9 +328,10 @@ See: `tests/integration/core/dataset/test_admin.py` for comprehensive admin test
 # ============================================================================
 
 
+from fairdm.core.measurement.admin import MeasurementChildAdmin
 from fairdm.core.sample.admin import SampleChildAdmin
 
-from .models import RockSample, WaterSample
+from .models import ExampleMeasurement, ICP_MS_Measurement, RockSample, WaterSample, XRFMeasurement
 
 
 @admin.register(RockSample)
@@ -429,6 +430,165 @@ class WaterSampleAdmin(SampleChildAdmin):
                     "turbidity_ntu",
                     "dissolved_oxygen_mg_l",
                     "conductivity_us_cm",
+                ],
+            },
+        ),
+    )
+
+
+# ============================================================================
+# Measurement Admin Interfaces
+# ============================================================================
+
+
+@admin.register(ExampleMeasurement)
+class ExampleMeasurementAdmin(MeasurementChildAdmin):
+    """Admin interface for ExampleMeasurement model.
+
+    Extends MeasurementChildAdmin to add custom fields specific to example
+    measurements. Demonstrates how to customize the base MeasurementChildAdmin
+    for domain-specific measurement types.
+
+    Custom Features:
+        - Additional list display: char_field, integer_field
+        - Enhanced search: char_field, text_field
+        - Fieldset for example-specific fields
+
+    See Also:
+        - fairdm.core.measurement.admin.MeasurementChildAdmin: Base admin class
+        - docs/portal-development/admin/measurement-admin.md: Admin customization guide
+    """
+
+    base_model = ExampleMeasurement
+    show_in_index = True  # Show in main admin index
+
+    # Add example-specific fields to list display
+    list_display = [*MeasurementChildAdmin.list_display, "char_field", "integer_field"]
+
+    # Add example-specific search fields
+    search_fields = [*MeasurementChildAdmin.search_fields, "char_field", "text_field"]
+
+    # Extend base_fieldsets to include example properties
+    fieldsets = (
+        (
+            "Example Properties",
+            {
+                "fields": [
+                    "char_field",
+                    "text_field",
+                    "integer_field",
+                    "big_integer_field",
+                    "positive_integer_field",
+                    "positive_small_integer_field",
+                    "small_integer_field",
+                    "boolean_field",
+                    "date_field",
+                ],
+            },
+        ),
+    )
+
+
+@admin.register(XRFMeasurement)
+class XRFMeasurementAdmin(MeasurementChildAdmin):
+    """Admin interface for XRFMeasurement model.
+
+    Extends MeasurementChildAdmin to add custom fields specific to XRF analysis.
+    Demonstrates how to customize the base MeasurementChildAdmin for analytical
+    chemistry measurements.
+
+    Custom Features:
+        - Additional list display: element, concentration_ppm
+        - Custom filters: element
+        - Enhanced search: element
+        - Fieldset for XRF analysis parameters
+
+    See Also:
+        - fairdm.core.measurement.admin.MeasurementChildAdmin: Base admin class
+        - docs/portal-development/admin/measurement-admin.md: Admin customization guide
+    """
+
+    base_model = XRFMeasurement
+    show_in_index = True  # Show in main admin index
+
+    # Add XRF-specific fields to list display
+    list_display = [
+        *MeasurementChildAdmin.list_display,
+        "element",
+        "concentration_ppm",
+    ]
+
+    # Add XRF-specific filters
+    list_filter = [*MeasurementChildAdmin.list_filter, "element"]
+
+    # Add XRF-specific search fields
+    search_fields = [*MeasurementChildAdmin.search_fields, "element"]
+
+    # Extend base_fieldsets to include XRF analysis parameters
+    fieldsets = (
+        (
+            "XRF Analysis Parameters",
+            {
+                "fields": [
+                    "element",
+                    "concentration_ppm",
+                    "detection_limit_ppm",
+                    "instrument_model",
+                    "measurement_conditions",
+                ],
+            },
+        ),
+    )
+
+
+@admin.register(ICP_MS_Measurement)
+class ICP_MS_MeasurementAdmin(MeasurementChildAdmin):
+    """Admin interface for ICP_MS_Measurement model.
+
+    Extends MeasurementChildAdmin to add custom fields specific to ICP-MS analysis.
+    Demonstrates how to customize the base MeasurementChildAdmin for trace element
+    and isotope analysis.
+
+    Custom Features:
+        - Additional list display: element, concentration_ppb
+        - Custom filters: element, isotope
+        - Enhanced search: element, isotope
+        - Fieldset for ICP-MS analysis parameters
+
+    See Also:
+        - fairdm.core.measurement.admin.MeasurementChildAdmin: Base admin class
+        - docs/portal-development/admin/measurement-admin.md: Admin customization guide
+    """
+
+    base_model = ICP_MS_Measurement
+    show_in_index = True  # Show in main admin index
+
+    # Add ICP-MS-specific fields to list display
+    list_display = [
+        *MeasurementChildAdmin.list_display,
+        "isotope",
+        "concentration_ppb",
+    ]
+
+    # Add ICP-MS-specific filters
+    list_filter = [*MeasurementChildAdmin.list_filter, "isotope"]
+
+    # Add ICP-MS-specific search fields
+    search_fields = [*MeasurementChildAdmin.search_fields, "isotope"]
+
+    # Extend base_fieldsets to include ICP-MS analysis parameters
+    fieldsets = (
+        (
+            "ICP-MS Analysis Parameters",
+            {
+                "fields": [
+                    "isotope",
+                    "counts_per_second",
+                    "concentration_ppb",
+                    "uncertainty_percent",
+                    "dilution_factor",
+                    "internal_standard",
+                    "analysis_date",
                 ],
             },
         ),
