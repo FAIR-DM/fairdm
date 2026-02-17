@@ -12,18 +12,18 @@ from django.views.generic import (
 from django_filters import FilterSet
 
 from fairdm import plugins
+from fairdm.contrib.plugins import Plugin
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.dataset.views import DatasetListView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.plugins import (
-    DatasetPlugin,
     EditPlugin,
     InlineFormSetPlugin,
     OverviewPlugin,
-    ProjectPlugin,
 )
 from fairdm.core.project.models import Project
+from fairdm.core.project.views import ProjectListView
 from fairdm.core.sample.models import Sample
-from fairdm.plugins import PluginConfig
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMListView
 
@@ -49,11 +49,11 @@ class Overview(OverviewPlugin):
         """Add contribution counts and ORCID identifier to the context."""
         context = super().get_context_data(**kwargs)
         context["contributions_by_type"] = self.get_contribution_counts()
-        context["object"] = self.base_object
+        context["object"] = self.object
 
         # Add ORCID identifier if available (for Person objects)
-        if isinstance(self.base_object, Person):
-            orcid = self.base_object.identifiers.filter(type="ORCID").first()
+        if isinstance(self.object, Person):
+            orcid = self.object.identifiers.filter(type="ORCID").first()
             context["orcid_identifier"] = orcid
 
         return context
@@ -66,7 +66,7 @@ class Overview(OverviewPlugin):
             dict: Mapping of model verbose names to contribution counts
                   (e.g., {"Projects": 5, "Datasets": 3})
         """
-        contributions_by_type = self.base_object.contributions.values("content_type").annotate(count=Count("id"))
+        contributions_by_type = self.object.contributions.values("content_type").annotate(count=Count("id"))
         result = {}
         for entry in contributions_by_type:
             content_type = ContentType.objects.get(pk=entry["content_type"])
@@ -80,17 +80,27 @@ class Overview(OverviewPlugin):
 
 
 @plugins.register(Contributor)
-class ContributorProjects(ProjectPlugin):
+class ContributorProjects(Plugin, ProjectListView):
     """Projects plugin for Contributor model - shows all projects a contributor is associated with."""
 
-    pass
+    menu = {"label": _("Projects"), "icon": "project", "order": 200}
+    template_name = "plugins/list_view.html"
+
+    def get_queryset(self, *args, **kwargs):
+        """Filter projects to only those associated with this contributor."""
+        return self.object.projects.all()
 
 
 @plugins.register(Contributor)
-class ContributorDatasets(DatasetPlugin):
+class ContributorDatasets(Plugin, DatasetListView):
     """Datasets plugin for Contributor model - shows all datasets a contributor is associated with."""
 
-    pass
+    menu = {"label": _("Datasets"), "icon": "dataset", "order": 210}
+    template_name = "plugins/list_view.html"
+
+    def get_queryset(self, *args, **kwargs):
+        """Filter datasets to only those associated with this contributor."""
+        return self.object.datasets.all()
 
 
 # ============ MANAGEMENT PLUGINS =================
@@ -125,7 +135,7 @@ class Identifiers(InlineFormSetPlugin):
 
     name = "identifiers"
     title = _("Identifiers")
-    menu_item = plugins.PluginMenuItem(name=_("Identifiers"), category=plugins.MANAGEMENT, icon="identifier")
+    menu = {"label": _("Identifiers"), "icon": "identifier", "order": 510}
 
     # Page configuration
     about = _(
@@ -171,7 +181,7 @@ class Affiliations(InlineFormSetPlugin):
     name = "affiliations"
     title = _("Affiliations")
     learn_more = user_guide("contributor/affiliations")
-    check = lambda self: isinstance(self.base_object, Person)
+    check = lambda request, obj: obj is None or isinstance(obj, Person)
     model = Person
     inline_model = OrganizationMember
     form_class = AffiliationForm
@@ -184,11 +194,7 @@ class Keywords(EditPlugin):
 
     name = "keywords"
     title = _("Research Interests")
-    menu_item = plugins.PluginMenuItem(
-        name=_("Research Interests"),
-        category=plugins.MANAGEMENT,
-        icon="keywords",
-    )
+    menu = {"label": _("Research Interests"), "icon": "keywords", "order": 530}
     about = _(
         "Manage your research interests and keywords. These help others discover your work "
         "and understand your areas of expertise."
@@ -204,11 +210,7 @@ class Links(EditPlugin):
 
     name = "links"
     title = _("External Links")
-    menu_item = plugins.PluginMenuItem(
-        name=_("Links"),
-        category=plugins.MANAGEMENT,
-        icon="link",
-    )
+    menu = {"label": _("Links"), "icon": "link", "order": 540}
     about = _(
         "Add links to your personal website, social media profiles, institutional pages, "
         "or other relevant online presence."
@@ -219,22 +221,18 @@ class Links(EditPlugin):
 
 
 @plugins.register(Organization)
-class SubOrganizations(FairDMListView):
+class SubOrganizations(Plugin, FairDMListView):
     """Plugin for displaying sub-organizations (Organization only)."""
 
     name = "sub-organizations"
     title = _("Sub-Organizations")
-    menu_item = plugins.PluginMenuItem(
-        name=_("Sub-Organizations"),
-        category=plugins.EXPLORE,
-        icon="relationships",
-    )
+    menu = {"label": _("Sub-Organizations"), "icon": "relationships", "order": 100}
     model = Organization
-    check = lambda self: isinstance(self.base_object, Organization)
+    check = lambda request, obj: obj is None or isinstance(obj, Organization)
 
     def get_queryset(self):
         """Return sub-organizations of this organization."""
-        return self.base_object.sub_organizations.all()
+        return self.object.sub_organizations.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -247,23 +245,19 @@ class SubOrganizations(FairDMListView):
 
 
 @plugins.register(Organization)
-class OrganizationMembers(FairDMListView):
+class OrganizationMembers(Plugin, FairDMListView):
     """Plugin for displaying organization members (Organization only)."""
 
     name = "members"
     title = _("Members")
-    menu_item = plugins.PluginMenuItem(
-        name=_("Members"),
-        category=plugins.EXPLORE,
-        icon="users",
-    )
+    menu = {"label": _("Members"), "icon": "users", "order": 110}
     model = OrganizationMember
-    check = lambda self: isinstance(self.base_object, Organization)
+    check = lambda request, obj: obj is None or isinstance(obj, Organization)
     filterset_fields = ["person__name", "role", "is_primary", "is_current"]
 
     def get_queryset(self):
         """Return members of this organization."""
-        return self.base_object.memberships.select_related("person").all()
+        return self.object.memberships.select_related("person").all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -276,16 +270,12 @@ class OrganizationMembers(FairDMListView):
 
 
 @plugins.register(Contributor)
-class Activity(plugins.FairDMPlugin, FairDMListView):
+class Activity(Plugin, FairDMListView):
     """Plugin showing recent activity/contributions chronologically."""
 
     name = "activity"
     title = _("Recent Activity")
-    menu_item = plugins.PluginMenuItem(
-        name=_("Activity"),
-        category=plugins.EXPLORE,
-        icon="timeline",
-    )
+    menu = {"label": _("Activity"), "icon": "timeline", "order": 120}
     model = Contribution
     card_template = "cotton/contributor/card/contribution.html"
 
@@ -296,7 +286,7 @@ class Activity(plugins.FairDMPlugin, FairDMListView):
 
     def get_queryset(self):
         """Return all contributions ordered by most recent."""
-        return self.base_object.contributions.select_related("content_type", "contributor").order_by("-id")
+        return self.object.contributions.select_related("content_type", "contributor").order_by("-id")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -307,16 +297,12 @@ class Activity(plugins.FairDMPlugin, FairDMListView):
 
 
 @plugins.register(Contributor)
-class Statistics(plugins.FairDMPlugin, TemplateView):
+class Statistics(Plugin, TemplateView):
     """Plugin showing detailed contribution statistics."""
 
     name = "statistics"
     title = _("Statistics")
-    menu_item = plugins.PluginMenuItem(
-        name=_("Statistics"),
-        category=plugins.EXPLORE,
-        icon="statistics",
-    )
+    menu = {"label": _("Statistics"), "icon": "statistics", "order": 130}
     template_name = "contributors/plugins/statistics.html"
 
     def get_context_data(self, **kwargs):
@@ -324,7 +310,7 @@ class Statistics(plugins.FairDMPlugin, TemplateView):
 
         # Get contribution counts by type
         contributions_by_type = {}
-        for entry in self.base_object.contributions.values("content_type").annotate(count=Count("id")):
+        for entry in self.object.contributions.values("content_type").annotate(count=Count("id")):
             content_type = ContentType.objects.get(pk=entry["content_type"])
             model_class = content_type.model_class()
             if model_class:
@@ -332,7 +318,7 @@ class Statistics(plugins.FairDMPlugin, TemplateView):
 
         context.update(
             {
-                "total_contributions": self.base_object.contributions.count(),
+                "total_contributions": self.object.contributions.count(),
                 "contributions_by_type": contributions_by_type,
             }
         )
@@ -341,16 +327,12 @@ class Statistics(plugins.FairDMPlugin, TemplateView):
 
 
 @plugins.register(Contributor)
-class Collaborators(plugins.FairDMPlugin, FairDMListView):
+class Collaborators(Plugin, FairDMListView):
     """Plugin showing frequent collaborators."""
 
     name = "collaborators"
     title = _("Collaborators")
-    menu_item = plugins.PluginMenuItem(
-        name=_("Collaborators"),
-        category=plugins.EXPLORE,
-        icon="people",
-    )
+    menu = {"label": _("Collaborators"), "icon": "people", "order": 140}
     model = Contributor
     card_template = "cotton/contributor_card.html"
 
@@ -362,14 +344,14 @@ class Collaborators(plugins.FairDMPlugin, FairDMListView):
         then finds other contributors to those same objects.
         """
         # Get all content objects this contributor has contributed to
-        content_types = self.base_object.contributions.values_list("content_type", "object_id")
+        content_types = self.object.contributions.values_list("content_type", "object_id")
 
         # Find other contributors to the same objects
         collaborator_ids = set()
         for ct_id, obj_id in content_types:
             related_contributions = (
                 Contribution.objects.filter(content_type_id=ct_id, object_id=obj_id)
-                .exclude(contributor=self.base_object)
+                .exclude(contributor=self.object)
                 .values_list("contributor_id", flat=True)
             )
             collaborator_ids.update(related_contributions)
@@ -393,18 +375,13 @@ class Collaborators(plugins.FairDMPlugin, FairDMListView):
 
 
 @plugins.register(Project, Dataset, Sample, Measurement)
-class Contributors(plugins.FairDMPlugin, ListView):
+class Contributors(Plugin, ListView):
     """
     Plugin for managing contributors on any model with a 'contributors' GenericRelation.
     """
 
     model = Contribution
-    config = PluginConfig(
-        title=_("Contributors"),
-        menu=_("Contributors"),
-        icon="people",
-        category=plugins.EXPLORE,
-    )
+    menu = {"label": _("Contributors"), "icon": "people", "order": 200}
     template_name = "contributors/plugins/list_view.html"
 
     class Media:
@@ -413,7 +390,7 @@ class Contributors(plugins.FairDMPlugin, ListView):
 
     def get_queryset(self, *args, **kwargs):
         """Return contributors of type Person for the base object."""
-        return self.base_object.contributors.all()
+        return self.object.contributors.all()
 
     def get_context_data(self, **kwargs):
         """Add available roles to the context for filtering."""
@@ -441,33 +418,27 @@ class Contributors(plugins.FairDMPlugin, ListView):
 
 
 @plugins.register(Project, Dataset, Sample, Measurement)
-class AddContribution(plugins.FairDMPlugin, FormView):
+class AddContribution(Plugin, FormView):
     """Quick add plugin for adding multiple contributors to an object."""
 
-    config = PluginConfig(
-        title=_("Add Contributor"),
-        category=None,  # No menu item - accessed via button
-        url_path="actions/contribution/quick-add/",
-        url_name="contribution-quick-add",
-    )
     template_name = "contributors/plugins/contribution_quick_add.html"
     form_class = QuickAddContributionForm
 
     def get_form_kwargs(self):
         """Pass base_object to form for autocomplete filtering."""
         kwargs = super().get_form_kwargs()
-        kwargs["base_object"] = self.base_object
+        kwargs["base_object"] = self.object
         return kwargs
 
     def get_context_data(self, **kwargs):
         """Add base object verbose name to context."""
         context = super().get_context_data(**kwargs)
-        context["base_object_verbose_name"] = self.base_object._meta.verbose_name
+        context["base_object_verbose_name"] = self.object._meta.verbose_name
         return context
 
     def get_success_url(self):
         """Return to the contributors page after successful add."""
-        return self.base_object.get_plugin_url("contributors")
+        return self.object.get_plugin_url("contributors")
 
     def form_valid(self, form):
         """Add selected contributors to the base object."""
@@ -476,7 +447,7 @@ class AddContribution(plugins.FairDMPlugin, FormView):
             # Use the Contribution.add_to classmethod for consistency
             Contribution.add_to(
                 contributor=contributor,
-                obj=self.base_object,
+                obj=self.object,
                 roles=None,  # Default roles can be set later via edit
                 affiliation=None,
             )
@@ -491,15 +462,9 @@ class AddContribution(plugins.FairDMPlugin, FormView):
 
 
 @plugins.register(Project, Dataset, Sample, Measurement)
-class EditContribution(plugins.FairDMPlugin, UpdateView):
+class EditContribution(Plugin, UpdateView):
     """Edit plugin for updating contribution roles and affiliation."""
 
-    config = PluginConfig(
-        title=_("Edit Contribution"),
-        category=None,  # No menu item - accessed via button
-        url_path="actions/contribution/<int:pk>/edit/",
-        url_name="contribution-update",
-    )
     template_name = "contributors/plugins/contribution_form.html"
     form_class = UpdateContributionForm
     model = Contribution
@@ -507,12 +472,12 @@ class EditContribution(plugins.FairDMPlugin, UpdateView):
     def get_form_kwargs(self):
         """Pass the base object to the form."""
         kwargs = super().get_form_kwargs()
-        kwargs["base_object"] = self.base_object
+        kwargs["base_object"] = self.object
         return kwargs
 
     def get_success_url(self):
         """Return to the contributors page after successful edit."""
-        return self.base_object.get_plugin_url("contributors")
+        return self.object.get_plugin_url("contributors")
 
     def form_valid(self, form):
         """Save the contribution and trigger HTMX refresh."""
@@ -528,21 +493,15 @@ class EditContribution(plugins.FairDMPlugin, UpdateView):
 
 
 @plugins.register(Project, Dataset, Sample, Measurement)
-class RemoveContribution(plugins.FairDMPlugin, DeleteView):
+class RemoveContribution(Plugin, DeleteView):
     """Delete plugin for removing a contribution."""
 
-    config = PluginConfig(
-        title=_("Remove Contribution"),
-        category=None,  # No menu item - accessed via button
-        url_path="actions/contribution/<int:pk>/remove/",
-        url_name="contribution-remove",
-    )
     template_name = "contributors/plugins/contribution_confirm_delete.html"
     model = Contribution
 
     def get_success_url(self):
         """Return to the contributors page after successful deletion."""
-        return self.base_object.get_plugin_url("contributors")
+        return self.object.get_plugin_url("contributors")
 
     def delete(self, request, *args, **kwargs):
         """Delete the contribution and trigger HTMX refresh."""

@@ -11,14 +11,15 @@ from fairdm.contrib.generic.plugins import (
     KeyDatesPlugin,
     KeywordsPlugin,
 )
+from fairdm.contrib.plugins import Plugin
 from fairdm.core.plugins import (
-    DeleteObjectPlugin,
+    BaseDeletePlugin,
     EditPlugin,
     OverviewPlugin,
 )
 from fairdm.utils.utils import user_guide
 
-from ..plugins import DatasetPlugin
+from ..dataset.views import DatasetListView
 from .forms import ProjectForm
 from .models import Project, ProjectDate, ProjectDescription
 
@@ -31,7 +32,7 @@ class Overview(OverviewPlugin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        project = self.base_object
+        project = self.object
 
         context.update(
             {
@@ -44,24 +45,29 @@ class Overview(OverviewPlugin):
 
 
 @plugins.register(Project)
-class Datasets(DatasetPlugin):
+class Datasets(Plugin, DatasetListView):
     """Plugin for listing datasets associated with a project."""
 
-    title = _("Datasets")
+    menu = {"label": _("Datasets"), "icon": "dataset", "order": 20}
+    template_name = "plugins/list_view.html"
+
+    def get_queryset(self, *args, **kwargs):
+        """Filter datasets to only those belonging to this project."""
+        return self.object.datasets.all()
 
 
 # ============ ACTION PLUGINS =================
 
 
 @plugins.register(Project)
-class Export(plugins.FairDMPlugin, TemplateView):
+class Export(Plugin, TemplateView):
     """Export project data plugin."""
 
-    menu_item = plugins.PluginMenuItem(name="Export", category=plugins.ACTIONS, icon="export")
+    menu = {"label": _("Export"), "icon": "export", "order": 600}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        project = self.base_object
+        project = self.object
 
         context.update(
             {
@@ -74,14 +80,14 @@ class Export(plugins.FairDMPlugin, TemplateView):
 
 
 @plugins.register(Project)
-class Settings(plugins.FairDMPlugin, TemplateView):
+class Settings(Plugin, TemplateView):
     """Project settings management plugin."""
 
-    menu_item = plugins.PluginMenuItem(name="Settings", category=plugins.ACTIONS, icon="settings")
+    menu = {"label": _("Settings"), "icon": "settings", "order": 700}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        project = self.base_object
+        project = self.object
 
         context.update(
             {
@@ -112,10 +118,10 @@ class Edit(EditPlugin):
 
 
 @plugins.register(Project)
-class Delete(DeleteObjectPlugin):
+class Delete(BaseDeletePlugin):
     """Plugin for deleting a project."""
 
-    menu_item = plugins.PluginMenuItem(name=_("Delete"), category=plugins.MANAGEMENT, icon="delete")
+    menu = {"label": _("Delete"), "icon": "delete", "order": 900}
 
     # Page configuration
     about = _(
@@ -129,7 +135,7 @@ class Delete(DeleteObjectPlugin):
 class Descriptions(DescriptionsPlugin):
     """Plugin for managing project descriptions using inline formsets."""
 
-    menu_item = plugins.PluginMenuItem(name=_("Descriptions"), category=plugins.MANAGEMENT, icon="description")
+    menu = {"label": _("Descriptions"), "icon": "description", "order": 510}
     about = _(
         "Provide key details about your project, including its name and key descriptions. "
         "This information is essential for conveying the project's purpose and scope, "
@@ -144,7 +150,7 @@ class Descriptions(DescriptionsPlugin):
 class Keywords(KeywordsPlugin):
     """Plugin for managing project keywords."""
 
-    menu_item = plugins.PluginMenuItem(name=_("Keywords"), category=plugins.MANAGEMENT, icon="keywords")
+    menu = {"label": _("Keywords"), "icon": "keywords", "order": 520}
 
     # Page configuration
     about = _(
@@ -161,7 +167,7 @@ class Keywords(KeywordsPlugin):
 class KeyDates(KeyDatesPlugin):
     """Plugin for managing project key dates using inline formsets."""
 
-    menu_item = plugins.PluginMenuItem(name=_("Key Dates"), category=plugins.MANAGEMENT, icon="date")
+    menu = {"label": _("Key Dates"), "icon": "date", "order": 530}
 
     # Page configuration
     about = _(

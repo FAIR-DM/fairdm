@@ -4,17 +4,27 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
+from django.views.generic import DetailView
 
-from fairdm import plugins
 from fairdm.utils.utils import user_guide
-from fairdm.views import FairDMCreateView, FairDMListView
+from fairdm.views import FairDMBaseMixin, FairDMCreateView, FairDMListView
 
 from .filters import DatasetFilter
 from .forms import DatasetForm
 from .models import Dataset
 
-# Get or create the PluggableView for Dataset model
-DatasetDetailView = plugins.registry.get_or_create_view_for_model(Dataset)
+
+class DatasetDetailView(FairDMBaseMixin, DetailView):
+    """Detail view for Dataset model with plugin support.
+
+    This view displays a dataset and makes plugin URLs available.
+    """
+
+    model = Dataset
+    template_name = "dataset/dataset_detail.html"
+    slug_field = "uuid"
+    slug_url_kwarg = "uuid"
+    context_object_name = "dataset"
 
 
 class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):

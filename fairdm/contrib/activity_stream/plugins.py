@@ -10,14 +10,14 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 
 from fairdm import plugins
+from fairdm.contrib.plugins import Plugin
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
-from fairdm.plugins import EXPLORE, FairDMPlugin, PluginMenuItem
 
 
-class ActivityPlugin(FairDMPlugin, TemplateView):
+class ActivityPlugin(Plugin, TemplateView):
     """
     Plugin for displaying recent activity on an object.
 
@@ -26,7 +26,7 @@ class ActivityPlugin(FairDMPlugin, TemplateView):
     """
 
     title = _("Recent Activity")
-    menu_item = PluginMenuItem(name=_("Activity"), category=EXPLORE, icon="activity")
+    menu = {"label": _("Activity"), "icon": "activity", "order": 300}
     template_name = "activity_stream/activity_stream.html"
 
     def get_context_data(self, **kwargs):
@@ -35,14 +35,14 @@ class ActivityPlugin(FairDMPlugin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         # Get content type for the base object
-        content_type = ContentType.objects.get_for_model(self.base_object)
+        content_type = ContentType.objects.get_for_model(self.object)
 
         # Get all actions where base_object is the target or action_object
         activities = Action.objects.filter(
-            target_object_id=self.base_object.pk,
+            target_object_id=self.object.pk,
             target_content_type=content_type,
         ) | Action.objects.filter(
-            action_object_object_id=self.base_object.pk,
+            action_object_object_id=self.object.pk,
             action_object_content_type=content_type,
         )
 

@@ -17,6 +17,6 @@ urlpatterns = [
     path("projects/<str:uuid>/edit/", ProjectUpdateView.as_view(), name="project-update"),
     path(
         "project/<str:uuid>/",
-        include((registry.get_view_for_model(Project).get_urls(), "project")),
+        include((registry.get_urls_for_model(Project), "project")),
     ),
 ]

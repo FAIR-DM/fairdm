@@ -18,7 +18,7 @@ def check_has_edit_permission(request, instance, **kwargs):
 
 @plugins.register(Measurement)
 class Overview(OverviewPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Overview"), category=plugins.EXPLORE, icon="view")
+    menu = {"label": _("Overview"), "icon": "view", "order": 0}
     fieldsets = []
 
 
@@ -48,7 +48,7 @@ class Edit(MeasurementManagementMixin, EditPlugin):
 
 @plugins.register(Measurement)
 class Descriptions(MeasurementManagementMixin, DescriptionsPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Descriptions"), category=plugins.MANAGEMENT, icon="description")
+    menu = {"label": _("Descriptions"), "icon": "description", "order": 510}
     name = "basic-information"
     title = _("Basic Information")
     description = _(
@@ -60,7 +60,7 @@ class Descriptions(MeasurementManagementMixin, DescriptionsPlugin):
 
 @plugins.register(Measurement)
 class Keywords(MeasurementManagementMixin, KeywordsPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Keywords"), category=plugins.MANAGEMENT, icon="keywords")
+    menu = {"label": _("Keywords"), "icon": "keywords", "order": 520}
     description = _(
         "Providing keywords for your measurement enhances its discoverability, making it easier for others to find and understand the measurement through search engines and data catalogs. Keywords offer a quick summary of the measurement's content, helping users assess its relevance for their own research or application without needing to read through full documentation."
     )
@@ -68,7 +68,7 @@ class Keywords(MeasurementManagementMixin, KeywordsPlugin):
 
 @plugins.register(Measurement)
 class KeyDates(MeasurementManagementMixin, KeyDatesPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Key Dates"), category=plugins.MANAGEMENT, icon="date")
+    menu = {"label": _("Key Dates"), "icon": "date", "order": 530}
     description = _(
         "Providing key dates enhances transparency, usability, and trust. These temporal markers help users understand the timeframe the measurement covers, assess its relevance for time-sensitive analyses, and determine how current or historic the measurement data is. Clear documentation of data availability and collection periods also supports reproducibility and proper citation, enabling users to contextualize findings and align measurements from different sources."
     )

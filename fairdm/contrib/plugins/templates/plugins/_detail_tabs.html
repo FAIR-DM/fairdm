@@ -1,0 +1,26 @@
+{% comment %}
+Reusable include for rendering plugin tabs on model detail pages.
+
+Usage in detail templates:
+  {% include "plugins/_detail_tabs.html" with object=project %}
+
+This will render tabs for all registered plugins with menu configurations.
+{% endcomment %}
+{% load plugin_tags %}
+
+{% get_plugin_tabs model=object|model obj=object as plugin_tabs %}
+{% if plugin_tabs %}
+  <div class="plugin-tabs-section mb-4">
+    <ul class="nav nav-tabs" role="tablist">
+      {% for tab in plugin_tabs %}
+        <li class="nav-item" role="presentation">
+          <a class="nav-link"
+             href="{% url tab.url object.pk %}">
+            {% if tab.icon %}<i class="icon-{{ tab.icon }} me-1"></i>{% endif %}
+            {{ tab.label }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

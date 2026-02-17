@@ -2,7 +2,7 @@ import fairdm
 
 fairdm.setup(
     apps=["fairdm_demo"],
-    addons=["fairdm_discussions"],
+    # addons=["fairdm_discussions"],
 )
 
 COMPRESS_ENABLED = True

@@ -1,11 +1,11 @@
 from django.utils.translation import gettext_lazy as _
 
-from fairdm.plugins import EXPLORE, FairDMPlugin, PluginMenuItem
+from fairdm.contrib.plugins import Plugin
 
 from .views import DataTableView
 
 
-class DataTablePlugin(FairDMPlugin, DataTableView):
+class DataTablePlugin(Plugin, DataTableView):
     """
     Plugin for displaying tabular data collections for Sample and Measurement sub-types.
 
@@ -14,14 +14,14 @@ class DataTablePlugin(FairDMPlugin, DataTableView):
     """
 
     title = _("Data")
-    menu_item = PluginMenuItem(name=_("Data"), category=EXPLORE, icon="table")
+    menu = {"label": _("Data"), "icon": "table", "order": 50}
 
     def get_queryset(self, *args, **kwargs):
-        # return self.base_object.samples.instance_of(self.model)
+        # return self.object.samples.instance_of(self.model)
         if hasattr(self.model, "sample_ptr"):
-            return self.model.objects.filter(dataset=self.base_object)
+            return self.model.objects.filter(dataset=self.object)
         elif hasattr(self.model, "measurement_ptr"):
-            return self.model.objects.filter(sample__dataset=self.base_object)
+            return self.model.objects.filter(sample__dataset=self.object)
 
         return super().get_queryset(*args, **kwargs)
 

@@ -1,233 +1,687 @@
 # Create a Plugin
 
-This guide walks you through creating a plugin in the FairDM Framework. Plugins are modular views that integrate seamlessly into the portal via registration, automatic routing, and a consistent UI system.
+This guide walks you through creating plugins in the FairDM Framework. Plugins are modular, reusable views that extend model detail pages with custom functionality.
 
-## 1. Plugin Types
+## Overview
 
-FairDM supports three types of plugins:
+**What is a Plugin?**
+A plugin is a Django class-based view (CBV) combined with the `Plugin` mixin that provides:
+- Automatic URL routing under model detail pages
+- Tab-based navigation (optional)
+- Permission-based access control
+- Template resolution hierarchy
+- Breadcrumb navigation
+- Static asset management
 
-- **Explore**: Analytical and exploratory views (data visualization, statistics, etc.)
-- **Actions**: Operations that perform actions (export, import, transformation, etc.)  
-- **Management**: Form-based views for managing object data and settings
+**Key Benefits:**
+- ✅ No manual URL configuration required
+- ✅ Automatic integration into model detail pages
+- ✅ Reusable across multiple models
+- ✅ Inheritable for creating base plugins in packages
+- ✅ Polymorphic visibility with `check` functions
 
-## 2. Create a plugins.py module
+---
 
-In any **Django app** that is discoverable by Django, create a file named `plugins.py`.
+## Quick Start
 
-Your app directory should look like this:
+### 1. Create a `plugins.py` Module
+
+In any Django app, create a file named `plugins.py`:
 
 ```text
 myapp/
 ├── templates/
-│   └── myapp/
-│       └── myplugin.html
+│   └── plugins/
+│       └── sample/
+│           └── analysis.html
 ├── __init__.py
 ├── apps.py
-├── plugins.py   ← define your plugin here
-├── ...
+├── models.py
+├── plugins.py   ← define plugins here
 ```
 
-## 3. Import Required Components
+### 2. Import Required Components
 
 ```python
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, UpdateView
 
-from fairdm import plugins  # For category constants
-from fairdm.plugins import plugin, MenuLink, BasePlugin
+from fairdm import plugins
+from fairdm.contrib.plugins import Plugin
+from .models import Sample
+from .forms import SampleAnalysisForm
 ```
 
-## 4. Define and Register Your Plugin
-
-Use the `@plugin.register()` decorator to register plugins with explicit model strings and category constants:
-
-### Explore Plugin Example
+### 3. Define and Register a Basic Plugin
 
 ```python
-@plugin.register('dataset.Dataset', category=plugins.EXPLORE)
-class DatasetAnalysis(BasePlugin, TemplateView):
-    menu_item = MenuLink(name=_("Analysis"), icon="chart-bar")
-    template_name = "myapp/analysis.html"
-    title = _("Dataset Analysis")
+@plugins.register(Sample)
+class AnalysisPlugin(Plugin, TemplateView):
+    """Display analysis results for a sample."""
+    
+    # Tab configuration (required for tab visibility)
+    menu = {
+        "label": _("Analysis"),
+        "icon": "chart-bar",
+        "order": 20,
+    }
+    
+    template_name = "plugins/sample/analysis.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        dataset = self.base_object
-        context["stats"] = self.calculate_stats(dataset)
+        # Access the sample instance via self.object
+        context["analysis_data"] = self.object.get_analysis()
         return context
-    
-    def calculate_stats(self, dataset):
-        # Your analysis logic here
-        return {"record_count": dataset.samples.count()}
 ```
 
-### Action Plugin Example
+### 4. Create a Template
+
+Templates follow a hierarchical resolution pattern. Create your template at:
+`templates/plugins/sample/analysis.html`
+
+```html
+{% extends "plugins/base.html" %}
+
+{% block plugin_content %}
+<div class="card">
+    <div class="card-header">
+        <h3>Analysis Results for {{ object.name }}</h3>
+    </div>
+    <div class="card-body">
+        <p>Analysis data: {{ analysis_data }}</p>
+    </div>
+</div>
+{% endblock %}
+```
+
+---
+
+## Plugin Configuration
+
+### Menu Configuration
+
+The `menu` dict controls tab appearance and ordering:
 
 ```python
-@plugin.register('sample.Sample', category=plugins.ACTIONS)
-class ExportSample(BasePlugin):
-    menu_item = MenuLink(name=_("Export CSV"), icon="download")
-    title = _("Export Sample Data")
+menu = {
+    "label": _("My Plugin"),  # Required: Display text
+    "icon": "chart-line",     # Optional: Icon name
+    "order": 50,              # Optional: Sort position (default 0)
+}
+```
+
+**To hide a plugin from tabs** (accessible only via direct URL):
+```python
+menu = None  # or omit the menu attribute
+```
+
+### Tab Ordering
+
+Tabs are sorted by `order` value, then alphabetically by label:
+- Lower numbers appear first
+- Suggested ranges:
+  - **0-99**: Overview and primary content
+  - **100-499**: Edit/management functions  
+  - **500-699**: Secondary content (descriptions, metadata)
+  - **700-899**: Actions (export, import)
+  - **900+**: Dangerous actions (delete)
+
+### Permission-Based Access
+
+Require specific permissions for plugin access:
+
+```python
+@plugins.register(Sample)
+class EditPlugin(Plugin, UpdateView):
+    menu = {"label": _("Edit"), "icon": "pencil", "order": 100}
+    permission = "myapp.change_sample"  # Django permission string
+    form_class = SampleForm
+    
+    # Users without this permission:
+    # 1. Won't see the "Edit" tab
+    # 2. Get 403 Forbidden on direct URL access
+```
+
+### Polymorphic Visibility
+
+Show plugins only for specific model subtypes:
+
+```python
+from fairdm.contrib.plugins import is_instance_of
+
+@plugins.register(Sample)
+class RockAnalysisPlugin(Plugin, TemplateView):
+    check = is_instance_of(RockSample)  # Only visible for RockSample
+    menu = {"label": _("Geochemistry"), "order": 30}
+```
+
+Custom visibility checks:
+
+```python
+def has_location(request, obj):
+    """Show plugin only if sample has a location."""
+    return obj and hasattr(obj, "location") and obj.location is not None
+
+@plugins.register(Sample)
+class LocationPlugin(Plugin, TemplateView):
+    check = has_location
+    menu = {"label": _("Location"), "order": 40}
+```
+
+---
+
+## Common Plugin Patterns
+
+### 1. Overview Plugin (Read-Only View)
+
+```python
+from fairdm.core.plugins import BaseOverviewPlugin
+
+@plugins.register(Sample)
+class SampleOverview(BaseOverviewPlugin):
+    # Inherits: menu = {"label": "Overview", "icon": "eye", "order": 0}
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["measurements"] = self.object.measurements.all()
+        context["recent_activity"] = self.get_recent_activity()
+        return context
+```
+
+### 2. Edit Plugin (Form-Based)
+
+```python
+from fairdm.core.plugins import BaseEditPlugin
+
+@plugins.register(Sample)
+class SampleEdit(BaseEditPlugin):
+    menu = {"label": _("Edit"), "icon": "pencil", "order": 100}
+    form_class = SampleForm
+    permission = "samples.change_sample"
+    
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+```
+
+### 3. Delete Plugin
+
+```python
+from fairdm.core.plugins import BaseDeletePlugin
+
+@plugins.register(Sample)
+class SampleDelete(BaseDeletePlugin):
+    menu = {"label": _("Delete"), "icon": "trash", "order": 900}
+    permission = "samples.delete_sample"
+    
+    def get_success_url(self):
+        from django.urls import reverse
+        return reverse("sample-list")
+```
+
+### 4. List View Plugin (Related Objects)
+
+```python
+from fairdm.core.measurement.views import MeasurementListView
+
+@plugins.register(Sample)
+class SampleMeasurements(Plugin, MeasurementListView):
+    menu = {"label": _("Measurements"), "icon": "table", "order": 25}
+    template_name = "plugins/list_view.html"
+    
+    def get_queryset(self):
+        return self.object.measurements.all()
+```
+
+### 5. Action Plugin (Export, Download, etc.)
+
+```python
+from django.http import HttpResponse
+
+@plugins.register(Sample)
+class ExportCSV(Plugin):
+    menu = {"label": _("Export CSV"), "icon": "download", "order": 700}
     
     def get(self, request, *args, **kwargs):
-        sample = self.base_object
-        # Generate CSV export
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="{sample.name}.csv"'
-        # Add your export logic here
+        sample = self.object
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{sample.name}.csv"'
+        
+        # Generate CSV content
+        writer = csv.writer(response)
+        writer.writerow(["Field", "Value"])
+        writer.writerow(["Name", sample.name])
+        # ... add more data
+        
         return response
 ```
 
-### Management Plugin Example
+---
+
+## Advanced Features
+
+### Plugin Groups
+
+Wrap multiple plugins under a shared URL namespace and single tab:
 
 ```python
-@plugin.register('project.Project', category=plugins.MANAGEMENT)  
-class ProjectSettings(plugins.Management):
-    menu_item = MenuLink(name=_("Settings"), icon="gear")
-    form_class = ProjectSettingsForm
-    title = _("Project Settings")
-    
-    def get_object(self):
-        return self.base_object
+from fairdm.contrib.plugins import PluginGroup
+
+class MetadataView(Plugin, TemplateView):
+    menu = {"label": "View", "icon": "eye", "order": 10}
+    template_name = "plugins/metadata/view.html"
+
+class MetadataEdit(Plugin, UpdateView):
+    menu = {"label": "Edit", "icon": "pencil", "order": 20}
+    form_class = MetadataForm
+
+@plugins.register(Sample)
+class MetadataGroup(PluginGroup):
+    plugins = [MetadataView, MetadataEdit]
+    menu = {"label": "Metadata", "icon": "database", "order": 50}
+    url_prefix = "metadata"  # URLs: .../metadata/view/, .../metadata/edit/
 ```
 
-## 5. Plugin Configuration
+**Result:**
+- Single "Metadata" tab in navigation
+- URLs namespaced under "metadata/"
+- Clicking tab navigates to first plugin (MetadataView)
 
-### Required Attributes
+### Custom URL Paths
 
-- **menu_item**: A `MenuLink` instance defining how the plugin appears in menus
-  - Set to `None` to hide the plugin from menus
-- **title**: The page title for the plugin view
-
-### Optional Attributes
-
-- **path**: Custom URL path (auto-generated from class name if not provided)
-- **template_name**: Custom template path
-- **sections**: Layout configuration for sidebars and headers
-- **check**: Permission check function or boolean
-
-### MenuLink Configuration
+Override auto-generated URL paths:
 
 ```python
-menu_item = MenuLink(
-    name=_("My Plugin"),           # Display name in menu
-    icon="chart-line",            # Icon name (FontAwesome)
-    check=my_permission_function  # Optional permission check
-)
+@plugins.register(Sample)
+class AnalysisPlugin(Plugin, TemplateView):
+    url_path = "analyse"  # Instead of auto-generated "analysis-plugin"
+    menu = {"label": "Analysis", "order": 20}
 ```
 
-### Adding CSS and JavaScript
+URL becomes: `/samples/<uuid>/analyse/` instead of `/samples/<uuid>/analysis-plugin/`
 
-:::{important}
-**Always create CSS and JavaScript in separate files.** Do not use inline `<style>` or `<script>` tags in plugin templates.
-:::
+### Template Resolution Hierarchy
 
-Use Django's `Media` inner class to declare static assets:
+Plugins automatically search for templates in this order:
+
+1. Explicit `template_name` if set
+2. `plugins/{model_name}/{plugin_name}.html` (model-specific)
+3. `plugins/{parent_model_name}/{plugin_name}.html` (polymorphic models)
+4. `plugins/{plugin_name}.html` (plugin default)
+5. `plugins/base.html` (framework fallback)
+
+**Example:** For `AnalysisPlugin` registered with `Sample`:
+- `plugins/sample/analysis-plugin.html`
+- `plugins/analysis-plugin.html`
+- `plugins/base.html`
+
+This allows model-specific customization without code changes.
+
+### Static Assets (CSS/JavaScript)
+
+Include plugin-specific assets using Django's Media class:
 
 ```python
-@plugin.register('dataset.Dataset', category=plugins.EXPLORE)
-class DatasetAnalysis(BasePlugin, TemplateView):
-    menu_item = MenuLink(name=_("Analysis"), icon="chart-bar")
-    template_name = "myapp/analysis.html"
-    title = _("Dataset Analysis")
+@plugins.register(Sample)
+class ChartPlugin(Plugin, TemplateView):
+    menu = {"label": "Charts", "icon": "chart", "order": 40}
     
     class Media:
         css = {
-            'all': ('myapp/css/analysis.css',)
+            "all": ("plugins/charts/styles.css",),
         }
-        js = ('myapp/js/charts.js', 'myapp/js/analysis.js')
+        js = (
+            "https://cdn.jsdelivr.net/npm/chart.js",
+            "plugins/charts/init.js",
+        )
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["stats"] = self.calculate_stats(self.base_object)
+        context["chart_data"] = self.object.get_chart_data()
         return context
 ```
 
-**File Structure:**
-```text
-myapp/
-├── static/
-│   └── myapp/
-│       ├── css/
-│       │   └── analysis.css
-│       └── js/
-│           ├── charts.js
-│           └── analysis.js
-├── templates/
-│   └── myapp/
-│       └── analysis.html
-└── plugins.py
+**In your template:**
+```html
+{% extends "plugins/base.html" %}
+
+{% block extra_head %}
+    {{ plugin_media.css }}
+{% endblock %}
+
+{% block plugin_content %}
+    <canvas id="myChart"></canvas>
+{% endblock %}
+
+{% block extra_js %}
+    {{ plugin_media.js }}
+{% endblock %}
 ```
 
-**Benefits:**
-- Proper caching and minification in production
-- Better code organization and reusability
-- Automatic asset collection via `collectstatic`
-- Easier debugging and maintenance
+---
 
-## 6. Plugin Base Classes
+## Creating Reusable Plugins
 
-Choose the appropriate base class for your plugin type:
+### Base Plugin Classes for Distribution
 
-- **`plugins.Explore`**: For analytical/exploratory views
-- **`plugins.Action`**: For action-based operations  
-- **`plugins.Management`**: For form-based management views
+Create base plugins that others can inherit:
 
-All inherit from `BasePlugin` and provide type-specific defaults.
+```python
+# In your package: mypackage/plugins.py
+from fairdm.contrib.plugins import Plugin
+from django.views.generic import TemplateView
 
-## 7. Accessing the Base Object
+class GeologyAnalysisPlugin(Plugin, TemplateView):
+    """Reusable geology analysis plugin."""
+    menu = {"label": "Geology", "icon": "gem", "order": 30}
+    template_name = "geology/analysis.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["geology_data"] = self.analyze_geology(self.object)
+        return context
+    
+    def analyze_geology(self, sample):
+        """Override this method to customize analysis."""
+        return {}
+```
 
-In your plugin, access the related model instance via `self.base_object`:
+### Portal Developer Inheritance
+
+Users of your package can inherit and customize:
+
+```python
+# In portal project: myportal/plugins.py
+from mypackage.plugins import GeologyAnalysisPlugin
+from fairdm import plugins
+from .models import Sample
+
+@plugins.register(Sample)
+class CustomGeologyPlugin(GeologyAnalysisPlugin):
+    # Inherit menu, template, base behavior
+    # Customize analysis logic
+    def analyze_geology(self, sample):
+        # Portal-specific geology analysis
+        return {
+            "custom_metric": sample.calculate_custom_metric(),
+            "local_data": sample.get_local_geology_data(),
+        }
+```
+
+---
+
+## Context Variables
+
+Plugins automatically receive these context variables:
+
+- **`object`**: The model instance (Project, Dataset, Sample, etc.)
+- **`tabs`**: List of Tab objects for this model
+- **`breadcrumbs`**: Breadcrumb navigation chain
+- **`plugin_media`**: CSS/JS assets (if Media class defined)
+- **`view`**: The plugin view instance
+
+### Accessing the Model Instance
 
 ```python
 def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     
-    # Access the object this plugin is attached to
-    dataset = self.base_object  # Will be Dataset, Project, Sample, etc.
+    # Access the model instance
+    sample = self.object  # or context["object"]
     
-    # Add your custom context
-    context["sample_count"] = dataset.samples.count()
+    # Add custom data
+    context["measurements"] = sample.measurements.all()
+    context["location"] = sample.location
+    
     return context
 ```
 
-## 8. Create a Template
+---
 
-Create a template for your plugin that matches the `template_name` attribute. Wrap your content in a `<c-plugin>` component for consistent styling:
+## Template Guidelines
+
+### Extend the Base Template
 
 ```html
-<c-plugin>
-    <h2>{{ dataset.name }}</h2>
-    <p>This dataset contains {{ stats.record_count }} samples.</p>
-    
-    <!-- Use FairDM components for consistency -->
-    <c-card>
-        <c-card-header>Analysis Results</c-card-header>
-        <c-card-body>
-            <p>Your analysis content here...</p>
-        </c-card-body>
-    </c-card>
-</c-plugin>
+{% extends "plugins/base.html" %}
+
+{% block plugin_content %}
+    <!-- Your content here -->
+{% endblock %}
 ```
 
-:::{note}
-**Important:** Do not use `{% extends %}` in plugin templates. The base layout is injected automatically by the plugin system.
-:::
+### Available Template Blocks
 
-:::{tip}
-Use the FairDM component library for consistent UI design. See the [component documentation](../components/components.md) for available components.
-:::
+- `plugin_content`: Main content area (recommended)
+- `extra_head`: Additional <head> content (CSS links, etc.)
+- `extra_js`: Additional JavaScript at page bottom
+- `breadcrumbs`: Override breadcrumb navigation
 
-## 9. Model Registration Strings
+### Use Framework Components
 
-Use these model strings when registering plugins:
+```html
+{% load cotton %}
 
-- `'project.Project'` - For project-level plugins
-- `'dataset.Dataset'` - For dataset-level plugins  
-- `'sample.Sample'` - For sample-level plugins
-- `'measurement.Measurement'` - For measurement-level plugins
+<c-card>
+    <c-card-header>
+        <h3>{{ object.name }}</h3>
+    </c-card-header>
+    <c-card-body>
+        <p>Your content here...</p>
+    </c-card-body>
+</c-card>
+```
 
-## 10. Plugin Discovery
+---
+
+## Registering for Multiple Models
+
+Register a plugin with multiple models:
+
+```python
+@plugins.register(Sample, Measurement)
+class ExportPlugin(Plugin):
+    menu = {"label": "Export", "icon": "download", "order": 700}
+    
+    def get(self, request, *args, **kwargs):
+        obj = self.object
+        # Works for both Sample and Measurement
+        return self.generate_export(obj)
+```
+
+---
+
+## Django System Checks
+
+The plugin system includes validation checks:
+
+**E001**: Plugin missing required attributes (e.g., inherits neither Plugin nor Django CBV)
+**E002**: Duplicate plugin names for the same model
+**E003**: URL path conflicts between plugins
+**E004**: Invalid `template_name` (file doesn't exist)
+**E005**: PluginGroup with empty `plugins` list
+**E006**: PluginGroup contains invalid plugin classes
+**E007**: URL prefix conflicts between plugin groups
+**W001**: Invalid permission string (permission doesn't exist)
+**W002**: Menu configuration missing required keys
+**W003**: URL path contains invalid characters
+
+Run checks:
+```bash
+poetry run python manage.py check
+```
+
+---
+
+## Migration from Old Plugin API
+
+If you have plugins using the old API (`@plugin.register('model.Model', category=...)`), update them:
+
+**Old API:**
+```python
+@plugin.register('sample.Sample', category=plugins.EXPLORE)
+class Analysis(BasePlugin, TemplateView):
+    menu_item = MenuLink(name="Analysis", icon="chart")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sample = self.base_object
+        return context
+```
+
+**New API:**
+```python
+@plugins.register(Sample)
+class Analysis(Plugin, TemplateView):
+    menu = {"label": "Analysis", "icon": "chart", "order": 20}
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sample = self.object
+        return context
+```
+
+**Key Changes:**
+- ✅ Use model class instead of string: `Sample` not `'sample.Sample'`
+- ✅ Import from `fairdm.contrib.plugins` not `fairdm.plugins`
+- ✅ Inherit `Plugin` mixin, not `BasePlugin`
+- ✅ Use `menu` dict, not `menu_item = MenuLink(...)`
+- ✅ Access instance via `self.object`, not `self.base_object`
+- ✅ Order tabs with `menu["order"]`, not categories
+- ✅ No `category` parameter needed
+
+---
+
+## Examples
+
+### Complete Plugin Example
+
+```python
+from django.utils.translation import gettext_lazy as _
+from django.views.generic import TemplateView
+from fairdm import plugins
+from fairdm.contrib.plugins import Plugin, is_instance_of
+from .models import Sample, RockSample
+
+@plugins.register(Sample)
+class GeochemistryPlugin(Plugin, TemplateView):
+    """Display geochemical analysis for rock samples."""
+    
+    # Only show for RockSample instances
+    check = is_instance_of(RockSample)
+    
+    # Tab configuration
+    menu = {
+        "label": _("Geochemistry"),
+        "icon": "atom",
+        "order": 35,
+    }
+    
+    # Require permission
+    permission = "samples.view_geochemistry"
+    
+    # Template
+    template_name = "plugins/sample/geochemistry.html"
+    
+    # Static assets
+    class Media:
+        css = {"all": ("plugins/geochemistry/style.css",)}
+        js = ("plugins/geochemistry/charts.js",)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get the rock sample
+        rock = self.object
+        
+        # Add analysis data
+        context["elements"] = rock.get_element_concentrations()
+        context["isotopes"] = rock.get_isotope_ratios()
+        context["minerals"] = rock.get_mineral_composition()
+        
+        return context
+```
+
+---
+
+## Best Practices
+
+1. ✅ **Always inherit from both `Plugin` and a Django CBV**
+   ```python
+   class MyPlugin(Plugin, TemplateView):  # Correct
+   ```
+
+2. ✅ **Use `self.object` to access the model instance**
+   ```python
+   sample = self.object  # Correct
+   ```
+
+3. ✅ **Set appropriate `order` values for logical tab ordering**
+   ```python
+   menu = {"label": "Overview", "order": 0}  # First tab
+   menu = {"label": "Edit", "order": 100}    # Middle tab
+   menu = {"label": "Delete", "order": 900}  # Last tab
+   ```
+
+4. ✅ **Use permission strings for access control**
+   ```python
+   permission = "myapp.change_sample"
+   ```
+
+5. ✅ **Create model-specific templates for customization**
+   ```
+   templates/plugins/sample/my-plugin.html
+   templates/plugins/measurement/my-plugin.html
+   ```
+
+6. ✅ **Use Media class for static assets, not inline `<style>` or `<script>`**
+   ```python
+   class Media:
+       css = {"all": ("myapp/plugin.css",)}
+       js = ("myapp/plugin.js",)
+   ```
+
+7. ✅ **Test plugins with Django system checks**
+   ```bash
+   poetry run python manage.py check
+   ```
+
+---
+
+## Troubleshooting
+
+**Plugin doesn't appear as tab:**
+- Check that `menu` is set (not `None`)
+- Verify user has required `permission`
+- Check that `check` function returns `True`
+
+**403 Forbidden when accessing plugin:**
+- Verify `permission` attribute is correct
+- Ensure user has the required permission
+- Check object-level permissions (django-guardian)
+
+**Template not found:**
+- Check `template_name` is correct
+- Verify template exists in search path
+- Use absolute path or rely on hierarchical resolution
+
+**URL conflict:**
+- Run `python manage.py check` for error E003
+- Set unique `url_path` for each plugin
+- Use PluginGroups to namespace related plugins
+
+**Assets not loading:**
+- Run `python manage.py collectstatic`
+- Check static file paths in Media class
+- Verify STATIC_URL in settings
+
+---
+
+## Further Reading
+
+- [Plugin System Architecture](../../specs/008-plugin-system/plan.md)
+- [Quick Start Examples](../../specs/008-plugin-system/quickstart.md)
+- [Demo App Plugins](../../fairdm_demo/plugins.py) - Working examples
 
 Plugins are automatically discovered from any `plugins.py` file in installed Django apps. Ensure your app is in `INSTALLED_APPS` for plugins to be loaded.
 

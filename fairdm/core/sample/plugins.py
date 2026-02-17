@@ -22,7 +22,7 @@ def check_has_edit_permission(request, instance, **kwargs):
 
 @plugins.register(Sample)
 class Overview(OverviewPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Overview"), category=plugins.EXPLORE, icon="view")
+    menu = {"label": _("Overview"), "icon": "view", "order": 0}
 
 
 fieldsets: list[tuple[str | None, dict[str, Any]]] = []
@@ -54,7 +54,7 @@ class Edit(SampleManagementMixin, EditPlugin):
 
 @plugins.register(Sample)
 class Descriptions(SampleManagementMixin, DescriptionsPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Descriptions"), category=plugins.MANAGEMENT, icon="description")
+    menu = {"label": _("Descriptions"), "icon": "description", "order": 510}
     name = "basic-information"
     title = _("Basic Information")
     heading_config = {
@@ -69,7 +69,7 @@ class Descriptions(SampleManagementMixin, DescriptionsPlugin):
 
 @plugins.register(Sample)
 class Keywords(SampleManagementMixin, KeywordsPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Keywords"), category=plugins.MANAGEMENT, icon="keywords")
+    menu = {"label": _("Keywords"), "icon": "keywords", "order": 520}
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
@@ -80,7 +80,7 @@ class Keywords(SampleManagementMixin, KeywordsPlugin):
 
 @plugins.register(Sample)
 class KeyDates(SampleManagementMixin, KeyDatesPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Key Dates"), category=plugins.MANAGEMENT, icon="date")
+    menu = {"label": _("Key Dates"), "icon": "date", "order": 530}
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."

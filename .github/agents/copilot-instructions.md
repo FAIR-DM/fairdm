@@ -12,6 +12,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-30
 - PostgreSQL (primary), SQLite (development/testing) (002-fairdm-registry)
 - Python 3.11+ (Django 4.2+) + django-polymorphic 3.1+, django-guardian 2.4+, django-filter 23.0+, django-crispy-forms 2.0+, django-select2, django-tables2 2.5+, research-vocabs (006-core-measurements)
 - PostgreSQL (via Django ORM, no direct SQL) (006-core-measurements)
+- Python 3.13, Django 5.x + Django CBVs, django-guardian (object-level perms), django-polymorphic (model inheritance), django-extra-views (InlineFormSetView) (008-plugin-system)
+- N/A (no database tables — runtime registration system) (008-plugin-system)
 
 - Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic. + `fairdm-docs` (Sphinx-based tooling and setup utilities), Sphinx, `pydata-sphinx-theme`, existing FairDM documentation sources under `docs/`.
 
@@ -32,8 +34,8 @@ cd src; pytest; ruff check .
 Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic.: Follow standard conventions
 
 ## Recent Changes
+- 008-plugin-system: Added Python 3.13, Django 5.x + Django CBVs, django-guardian (object-level perms), django-polymorphic (model inheritance), django-extra-views (InlineFormSetView)
 - 006-core-measurements: Added Python 3.11+ (Django 4.2+) + django-polymorphic 3.1+, django-guardian 2.4+, django-filter 23.0+, django-crispy-forms 2.0+, django-select2, django-tables2 2.5+, research-vocabs
-- 002-fairdm-registry: Added Python 3.13+ + Django 5.1+, django-tables2 2.7+, django-filter 24.3+, django-crispy-forms 2.3+, crispy-bootstrap5 2025.6+, djangorestframework 3.15+, django-import-export 4.0+, django-polymorphic 4.1+
 - 002-fairdm-registry: Added Python 3.13+ + Django 5.1+, django-tables2 2.7+, django-filter 24.3+, django-crispy-forms 2.3+, crispy-bootstrap5 2025.6+, djangorestframework 3.15+, django-import-export 4.0+, django-polymorphic 4.1+
 
 

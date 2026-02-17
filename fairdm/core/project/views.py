@@ -8,17 +8,12 @@ from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
 from guardian.shortcuts import assign_perm
 
-from fairdm import plugins
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..models import Project
 from .filters import ProjectFilter
 from .forms import ProjectCreateForm, ProjectEditForm
-
-# Get or create the PluggableView for Project model
-# This replaces the need for an explicit ProjectDetailPage class
-ProjectDetailPage = plugins.registry.get_or_create_view_for_model(Project)
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):

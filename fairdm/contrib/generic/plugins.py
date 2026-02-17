@@ -8,16 +8,16 @@ from fairdm.contrib.generic.forms import (
     DescriptionForm,
     KeywordForm,
 )
-from fairdm.plugins import FairDMPlugin
+from fairdm.plugins import Plugin
 from fairdm.views import FairDMModelFormMixin, FairDMUpdateView
 
 
-class KeywordsPlugin(FairDMPlugin, FairDMUpdateView):
+class KeywordsPlugin(Plugin, FairDMUpdateView):
     """Base plugin class for managing keywords on FairDM objects."""
 
     name = "keywords"
     title = _("Manage Keywords")
-    menu_item = None  # Subclasses should define this with a category
+    menu = None  # Subclasses should define this
     form_class = KeywordForm
     slug_url_kwarg = "uuid"
     slug_field = "uuid"
@@ -54,12 +54,12 @@ class KeywordsPlugin(FairDMPlugin, FairDMUpdateView):
         return templates
 
 
-class DescriptionsPlugin(FairDMPlugin, FairDMModelFormMixin, InlineFormSetView):
+class DescriptionsPlugin(Plugin, FairDMModelFormMixin, InlineFormSetView):
     """Base plugin class for managing descriptions on FairDM objects using inline formsets."""
 
     name = "descriptions"
     title = _("Descriptions")
-    menu_item = None  # Subclasses should define this with a category
+    menu = None  # Subclasses should define this
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
     slug_url_kwarg = "uuid"
@@ -86,12 +86,12 @@ class DescriptionsPlugin(FairDMPlugin, FairDMModelFormMixin, InlineFormSetView):
         return context
 
 
-class KeyDatesPlugin(FairDMPlugin, FairDMModelFormMixin, InlineFormSetView):
+class KeyDatesPlugin(Plugin, FairDMModelFormMixin, InlineFormSetView):
     """Base plugin class for managing key dates on FairDM objects using inline formsets."""
 
     name = "key-dates"
     title = _("Key Dates")
-    menu_item = None  # Subclasses should define this with a category
+    menu = None  # Subclasses should define this
     form_class = DateForm
     formset_class = CoreInlineFormset
     slug_url_kwarg = "uuid"
