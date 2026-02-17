@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load easy_icons %}
+
+{% block content %}
+  <div class="plugin-container">
+    {# Breadcrumbs #}
+    {% if breadcrumbs %}
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          {% for crumb in breadcrumbs %}
+            <li class="breadcrumb-item{% if forloop.last %} active{% endif %}"
+                {% if forloop.last %}aria-current="page"{% endif %}>
+              {% if crumb.href and not forloop.last %}
+                <a href="{{ crumb.href }}">{{ crumb.text }}</a>
+              {% else %}
+                {{ crumb.text }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ol>
+      </nav>
+    {% endif %}
+    {# Main content block for plugin to override #}
+    {% block plugin_content %}
+      <div class="alert alert-info">
+        <p>
+          This plugin has no content template. Override <code>plugin_content</code> block or create a custom template.
+        </p>
+        {% if object %}
+          <p>
+            <strong>Object:</strong> {{ object }}
+          </p>
+        {% endif %}
+      </div>
+    {% endblock %}
+
+    {# Plugin-specific media assets #}
+    {% if plugin_media %}{{ plugin_media }}{% endif %}
+  </div>
+{% endblock %}

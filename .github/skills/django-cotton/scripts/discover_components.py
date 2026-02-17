@@ -85,9 +85,9 @@ def print_components(components, format="list"):
         print("No Cotton components found.")
         return
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Found {len(components)} Cotton components:")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     if format == "list":
         # Simple list
@@ -117,7 +117,7 @@ def print_components(components, format="list"):
             for comp in grouped[namespace]:
                 print(f"  <c-{comp} />")
 
-    print(f"\n{'='*60}\n")
+    print(f"\n{'=' * 60}\n")
 
 
 # Main execution

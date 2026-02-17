@@ -1,0 +1,124 @@
+features:
+  001-fairdm-setup:
+    id: 001-fairdm-setup
+    started: '2026-02-17T21:44:58.494936'
+    branch: 001-fairdm-setup
+    created: 2026-01-02 (renamed from 002-production-config-fairdm-conf on 2026-01-07)
+    status: Draft
+    user_stories_count: 3
+    metrics:
+      tests_total: 0
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      last_test_run: null
+  002-fairdm-registry:
+    id: 002-fairdm-registry
+    started: '2026-02-17T21:44:58.501401'
+    branch: 002-fairdm-registry
+    created: '2026-01-07'
+    status: Draft
+    title: FairDM Registry System
+    user_stories_count: 2
+    metrics:
+      tests_total: 0
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      test_paths:
+      - tests/test_core/test_registry.py
+      last_test_run: '2026-02-17T21:46:13.321136'
+  003-core-projects:
+    id: 003-core-projects
+    started: '2026-02-17T21:45:10.972006'
+    branch: 003-core-projects
+    created: January 14, 2026
+    status: Draft
+    title: Core Projects MVP
+    user_stories_count: 6
+    metrics:
+      tests_total: 0
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      test_paths:
+      - tests/test_core/test_project.py
+      last_test_run: '2026-02-17T21:46:25.139444'
+  004-core-datasets:
+    id: 004-core-datasets
+    started: '2026-02-17T21:46:25.142879'
+    branch: 004-core-datasets
+    created: '2026-01-15'
+    status: Draft
+    title: Core Dataset App Cleanup & Enhancement
+    user_stories_count: 5
+    metrics:
+      tests_total: 0
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      test_paths:
+      - tests/test_core/test_dataset.py
+      last_test_run: '2026-02-17T21:46:40.502410'
+  005-core-samples:
+    id: 005-core-samples
+    started: '2026-02-17T21:46:40.508139'
+    branch: 005-core-samples
+    created: January 16, 2026
+    status: Draft
+    title: Core Sample Model Enhancement
+    user_stories_count: 8
+    metrics:
+      tests_total: 0
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      test_paths:
+      - tests/test_core/test_sample.py
+      last_test_run: '2026-02-17T21:46:56.555868'
+  006-core-measurements:
+    id: 006-core-measurements
+    started: '2026-02-17T21:46:56.563565'
+    branch: 006-core-measurements
+    created: February 16, 2026
+    status: Draft
+    title: Core Measurement Model Enhancement
+    user_stories_count: 8
+    metrics:
+      tests_total: 0
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      test_paths:
+      - tests/test_core/test_measurement.py
+      last_test_run: '2026-02-17T21:47:11.277121'
+  007-mvp-theme:
+    id: 007-mvp-theme
+    started: '2026-02-17T21:47:11.283279'
+    branch: '[###-feature-name]'
+    created: '[DATE]'
+    status: Draft
+    title: '[FEATURE NAME]'
+    user_stories_count: 3
+    metrics:
+      tests_total: 0
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      last_test_run: null
+  008-plugin-system:
+    id: 008-plugin-system
+    started: '2026-02-17T21:47:11.318319'
+    branch: 008-plugin-system
+    created: February 17, 2026
+    status: Draft
+    title: Plugin System for Model Extensibility
+    user_stories_count: 8
+    metrics:
+      tests_total: 137
+      tests_passed: 0
+      tests_failed: 0
+      coverage_percent: 0.0
+      test_paths:
+      - tests/test_contrib/test_plugins/
+      last_test_run: '2026-02-17T21:47:25.545906'

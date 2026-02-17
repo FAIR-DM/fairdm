@@ -1,5 +1,5 @@
 {% extends "detail_view.html" %}
-{% load static flex_menu %}
+{% load static i18n %}
 
 {% block extra_css %}
   {{ block.super }}
@@ -11,17 +11,7 @@
   {{ plugin_media.js }}
 {% endblock extra_js %}
 
-{% block header_tray %}
-  {% render_menu menus.explore renderer="nav" uuid=base_object.uuid instance=object %}
-{% endblock header_tray %}
-
 {% block content %}
+  {# Child templates should override this block with their own content #}
   {% trans "If you're seeing this, you haven't created a template for your plugin yet!" %}
 {% endblock content %}
-
-{% block sidebar_content %}
-  <!-- Explore Section -->
-  {% render_menu menus.explore uuid=base_object.uuid instance=object renderer="sidebar" %}
-  <!-- Actions Section -->
-  {% render_menu menus.actions uuid=base_object.uuid instance=object renderer="sidebar" %}
-{% endblock sidebar_content %}

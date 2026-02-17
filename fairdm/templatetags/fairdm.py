@@ -9,8 +9,6 @@ from literature import utils
 from pint.delegates.formatter.plain import PrettyFormatter
 from quantityfield import settings as qsettings
 
-from fairdm import plugins
-
 register = template.Library()
 ureg = qsettings.DJANGO_PINT_UNIT_REGISTER
 # ureg.default_format = ".2f~P"
@@ -123,9 +121,23 @@ def avatar_url(contributor, **kwargs):
 @register.simple_tag(takes_context=True)
 def plugin_url(context, view_name, *args, **kwargs):
     """
+    DEPRECATED: Use {% load plugin_tags %} and {% plugin_url ... %} instead.
+
     Returns a URL for a plugin view, using the base_object's model name as the namespace.
+
+    This tag is deprecated and maintained for backward compatibility.
+    New code should use the plugin_url tag from fairdm.contrib.plugins.templatetags.plugin_tags.
     """
-    return plugins.reverse(context.get("non_polymorphic_object"), view_name, *args, **kwargs)
+    from fairdm.contrib.plugins.utils import reverse
+
+    obj = context.get("non_polymorphic_object")
+    if not obj:
+        obj = context.get("object")
+
+    if not obj:
+        return ""
+
+    return reverse(obj, view_name, *args, **kwargs)
 
 
 @register.filter

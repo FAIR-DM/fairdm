@@ -8,7 +8,7 @@ from fairdm.contrib.generic.plugins import (
     KeywordsPlugin,
 )
 from fairdm.core.plugins import (
-    DeleteObjectPlugin,
+    BaseDeletePlugin,
     EditPlugin,
     OverviewPlugin,
 )
@@ -23,7 +23,7 @@ DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 @plugins.register(Dataset)
 class Overview(OverviewPlugin):
     title = _("Overview")
-    menu_item = plugins.PluginMenuItem(name=_("Overview"), category=plugins.EXPLORE, icon="view")
+    menu = {"label": _("Overview"), "icon": "view", "order": 0}
     fieldsets = DATASET_SETTINGS.get("detail", {}).get("info_block_fields", None)
 
 
@@ -44,8 +44,8 @@ class Edit(EditPlugin):
 
 
 @plugins.register(Dataset)
-class Delete(DeleteObjectPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Delete"), category=plugins.MANAGEMENT, icon="delete")
+class Delete(BaseDeletePlugin):
+    menu = {"label": _("Delete"), "icon": "delete", "order": 900}
     heading_config = {
         "title": _("Delete Dataset"),
         "description": _(
@@ -63,7 +63,7 @@ class Delete(DeleteObjectPlugin):
 
 @plugins.register(Dataset)
 class Descriptions(DescriptionsPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Descriptions"), category=plugins.MANAGEMENT, icon="description")
+    menu = {"label": _("Descriptions"), "icon": "description", "order": 510}
     heading_config = {
         "title": _("Descriptions"),
         "description": _(
@@ -83,7 +83,7 @@ class Descriptions(DescriptionsPlugin):
 
 @plugins.register(Dataset)
 class Keywords(KeywordsPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Keywords"), category=plugins.MANAGEMENT, icon="keywords")
+    menu = {"label": _("Keywords"), "icon": "keywords", "order": 520}
     heading_config = {
         "title": _("Keywords"),
         "description": _(
@@ -101,7 +101,7 @@ class Keywords(KeywordsPlugin):
 
 @plugins.register(Dataset)
 class KeyDates(KeyDatesPlugin):
-    menu_item = plugins.PluginMenuItem(name=_("Key Dates"), category=plugins.MANAGEMENT, icon="date")
+    menu = {"label": _("Key Dates"), "icon": "date", "order": 530}
     heading_config = {
         "title": _("Key Dates"),
         "description": _(

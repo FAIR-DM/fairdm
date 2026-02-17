@@ -30,6 +30,6 @@ urlpatterns = [
     ),
     path(
         "contributor/<str:uuid>/",
-        include((registry.get_view_for_model(Contributor).get_urls(), "contributor")),
+        include((registry.get_urls_for_model(Contributor), "contributor")),
     ),
 ]

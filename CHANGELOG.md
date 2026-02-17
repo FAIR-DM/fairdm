@@ -9,7 +9,171 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Core Sample Models & Functionality (Feature 007)
+#### Plugin System for Model Extensibility (Feature 008)
+
+- **Declarative Plugin Registration**: Simple decorator-based registration system
+  - `@plugins.register(Model)` decorator for registering plugins with model classes
+  - Multiple model registration: `@plugins.register(Sample, Measurement)`
+  - Global registry singleton for centralized plugin management
+  - Auto-discovery of plugins.py modules in Django apps
+
+- **Plugin Mixin Architecture**: Composable plugin behavior with Django CBVs
+  - `Plugin` mixin combines with any Django class-based view (TemplateView, UpdateView, DeleteView, etc.)
+  - Automatic URL routing under model detail pages (e.g., `/samples/<uuid>/plugin-name/`)
+  - Built-in permission checking (model-level and object-level via django-guardian)
+  - Automatic object access via `self.object` (standard Django CBV pattern)
+
+- **Tab-Based Navigation**: Automatic tab generation from menu configuration
+  - `menu = {"label": "...", "icon": "...", "order": 0}` dict-based configuration
+  - Tabs sorted by `order` then `label` for predictable layout
+  - Permission-filtered tabs (users only see tabs they can access)
+  - Active tab detection for current plugin
+  - Cotton component: `<c-plugin-tabs />`for rendering tab UI
+
+- **Hierarchical Template Resolution**: Automatic template discovery  
+  - Model-specific templates: `plugins/{model_name}/{plugin_name}.html`
+  - Polymorphic model support: `plugins/{parent_model_name}/{plugin_name}.html`
+  - Plugin default: `plugins/{plugin_name}.html`
+  - Framework fallback: `plugins/base.html`
+  - Explicit override via `template_name` attribute
+
+- **Plugin Groups**: Namespace multiple plugins under shared URL prefix and single tab
+  - `PluginGroup` composition class wraps related plugins
+  - Shared URL namespace (e.g., `/samples/<uuid>/metadata/view/`, `.../metadata/edit/`)
+  - Single tab entry linking to default (first) plugin
+  - Group-level permission checking
+
+- **Permission System Integration**: Two-tier permission checking
+  - Model-level permissions: `permission = "app.change_model"` attribute
+  - Object-level permissions: django-guardian integration in `has_permission()`
+  - Visibility filtering: `check` function for polymorphic/conditional visibility
+  - Helper: `is_instance_of(ModelClass)` for polymorphic filtering
+  - Automatic 403 Forbidden on unauthorized access
+
+- **Custom URL Patterns**: Override auto-generated URLs
+  - `url_path` attribute for custom URL segments
+  - `name` attribute for custom URL naming
+  - Auto-generated slugified names from class name if not set
+  - URL conflict detection via system checks
+
+- **Reusable Plugin Base Classes**: Framework provides inheritablePlugin bases
+  - `BaseOverviewPlugin`: Read-only overview with standard menu config
+  - `BaseEditPlugin`: Form-based editing with permission checking
+  - `BaseDeletePlugin`: Delete confirmation with success URL handling
+  - Generic plugins: `KeywordsPlugin`, `DescriptionsPlugin`, `KeyDatesPlugin`
+  - Portal developers inherit and customize for domain-specific behavior
+
+- **Static Asset Management**: Django Media class integration
+  - Declare CSS/JS dependencies via `class Media:` inner class
+  - Automatic inclusion in template context as `plugin_media`
+  - Support for both local files and CDN URLs
+  - Template blocks: `{% block extra_head %}{{ plugin_media.css }}{% endblock %}`
+
+- **Django System Checks**: Comprehensive validation (E001-E007, W001-W003)
+  - **E001**: Missing required attributes (Plugin mixin or Django CBV)
+  - **E002**: Duplicate plugin names for the same model
+  - **E003**: URL path conflicts between plugins
+  - **E004**: Invalid `template_name` (file doesn't exist)
+  - **E005**: PluginGroup with empty `plugins` list
+  - **E006**: PluginGroup contains invalid plugin classes
+  - **E007**: URL prefix conflicts between plugin groups
+  - **W001**: Invalid permission string (permission doesn't exist)
+  - **W002**: Menu configuration missing required keys
+  - **W003**: URL path contains invalid characters
+
+- **Automatic Context & Breadcrumbs**: Plugins receive rich context automatically
+  - `object`: Model instance (Project, Dataset, Sample, Measurement, etc.)
+  - `tabs`: List of Tab objects for current model
+  - `breadcrumbs`: Auto-generated navigation chain
+  - `plugin_media`: Static assets if Media class defined
+  - `view`: Plugin view instance for template access
+
+- **Documentation & Examples**: Comprehensive guides for all user types
+  - Developer guide: Creating plugins, inheritance patterns, advanced features
+  - Portal admin guide: Managing plugins, permissions, troubleshooting
+  - Demo app examples: 10+ working plugin implementations in `fairdm_demo/plugins.py`
+  - Quickstart guide: Step-by-step plugin creation workflow
+  - API documentation: Complete docstrings with usage examples
+
+- **Testing Infrastructure**: Full test coverage for plugin system
+  - 67 passing tests covering all 8 user stories
+  - Unit tests: Plugin registration, tab generation, template resolution, permissions
+  - Integration tests: URL routing, permission filtering, PluginGroups, context injection
+  - System check tests: All error/warning validations
+  - Demo app tests: Real-world plugin examples
+
+### Changed
+
+#### Plugin API Migration (Feature 008)
+
+- **New Plugin API**: Simplified registration and configuration
+  - **Before**: `@plugin.register('model.Model', category=plugins.EXPLORE)` with string-based registration
+  - **After**: `@plugins.register(Model)` with direct model class reference
+  - **Before**: `BasePlugin` base class with `menu_item = MenuLink(...)`
+  - **After**: `Plugin` mixin with `menu = {"label": "...", "icon": "...", "order": 0}`
+  - **Before**: `self.base_object` for instance access
+  - **After**: `self.object` (standard Django CBV pattern)
+  - **Before**: Category-based grouping (EXPLORE, ACTIONS, MANAGEMENT)
+  - **After**: Order-based sorting with `menu["order"]` value
+  
+- **URL patterns**: No changes required - URLs auto-generated from plugin registration
+
+- **Templates**: Hierarchical resolution now searches multiple paths automatically
+
+- **Permissions**: Permission checking now integrated into Plugin.dispatch() with guardian support
+
+### Migration Guide
+
+#### Upgrading Plugins to New API
+
+**Step 1: Update imports**
+```python
+# Before
+from fairdm.plugins import plugin, MenuLink, BasePlugin
+
+# After
+from fairdm import plugins
+from fairdm.contrib.plugins import Plugin
+```
+
+**Step 2: Update registration decorator**
+```python
+# Before
+@plugin.register('sample.Sample', category=plugins.EXPLORE)
+
+# After
+from .models import Sample
+@plugins.register(Sample)
+```
+
+**Step 3: Update class definition**
+```python
+# Before
+class MyPlugin(BasePlugin, TemplateView):
+    menu_item = MenuLink(name="My Plugin", icon="chart")
+
+# After
+class MyPlugin(Plugin, TemplateView):
+    menu = {"label": "My Plugin", "icon": "chart", "order": 20}
+```
+
+**Step 4: Update object access**
+```python
+# Before
+def get_context_data(self, **kwargs):
+    sample = self.base_object
+
+# After
+def get_context_data(self, **kwargs):
+    sample = self.object
+```
+
+**Step 5: Run system checks**
+```bash
+poetry run python manage.py check
+```
+
+#### Configuration Checks System (Spec 003)
 
 - **Polymorphic Sample Model**: Flexible sample inheritance with automatic type detection
   - Base `Sample` model with core fields (name, local_id, dataset, location, status, UUID)
