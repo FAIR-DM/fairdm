@@ -51,15 +51,16 @@ class OverviewPlugin(Plugin, TemplateView):
 
         context = super().get_context_data(**kwargs)
 
-        # Get the 5 most recent activities for this object
-        recent_activities = get_object_activities(self.object, limit=5)
+        # Get the 5 most recent activities for this object (if available)
+        with contextlib.suppress(ImportError, AttributeError):
+            recent_activities = get_object_activities(self.object, limit=5)
+            context["recent_activities"] = recent_activities
 
-        context["recent_activities"] = recent_activities
         return context
 
     def get_page_title(self):
         """Return the string representation of the object as the page title."""
-        return str(self.object)
+        return str(getattr(self, "object", ""))
 
     def get_breadcrumbs(self) -> list[dict[str, str]]:
         breadcrumbs = super().get_breadcrumbs()  # type: ignore[misc]

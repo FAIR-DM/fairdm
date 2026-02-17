@@ -302,12 +302,16 @@ class Plugin(View):
             msg = f"Plugin {self.__class__.__name__} has no associated model"
             raise ValueError(msg)
 
-        pk = self.kwargs.get("pk") or self.kwargs.get("uuid")
-        if not pk:
-            msg = "Plugin URL must include 'pk' or 'uuid' kwarg"
-            raise ValueError(msg)
+        # Try pk first (integer primary key)
+        if pk := self.kwargs.get("pk"):
+            return self.model.objects.get(pk=pk)
 
-        return self.model.objects.get(pk=pk)
+        # Try uuid (UUID field)
+        if uuid := self.kwargs.get("uuid"):
+            return self.model.objects.get(uuid=uuid)
+
+        msg = "Plugin URL must include 'pk' or 'uuid' kwarg"
+        raise ValueError(msg)
 
     def get_template_names(self) -> list[str]:
         """Hierarchical template resolution.
@@ -435,10 +439,14 @@ class Plugin(View):
 
         # Add object if not already present
         if not context.get("object"):
-            try:
-                context["object"] = self.get_object()
-            except (ValueError, Exception):
-                context["object"] = None
+            # Check if object was set in dispatch() first
+            if hasattr(self, "object") and self.object is not None:
+                context["object"] = self.object
+            else:
+                try:
+                    context["object"] = self.get_object()
+                except (ValueError, Exception):
+                    context["object"] = None
 
         # Add breadcrumbs
         context["breadcrumbs"] = self.get_breadcrumbs()
