@@ -16,12 +16,14 @@ def get_plugin_tabs(context, model=None, obj=None):
 
     Args:
         context: Template context
-        model: Model class (required, can be passed via object|model filter)
+        model: Model class or instance (required, can be passed via object|model filter)
         obj: Model instance (optional, for instance-level checks)
 
     Returns:
         List of Tab objects sorted by order, then label
     """
+    from django.db.models import Model
+    
     request = context.get("request")
 
     if not model:
@@ -30,6 +32,10 @@ def get_plugin_tabs(context, model=None, obj=None):
             model = obj.__class__
         else:
             return []
+    
+    # If model is an instance, get its class
+    if isinstance(model, Model):
+        model = model.__class__
 
     if not request:
         return []

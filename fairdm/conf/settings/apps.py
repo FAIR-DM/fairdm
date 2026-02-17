@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # FAIRDM CORE
     "fairdm.contrib.theme",
     "fairdm",
+    "fairdm.contrib.plugins",
     "fairdm.core.project",
     "fairdm.core.dataset",
     "fairdm.core.sample",
