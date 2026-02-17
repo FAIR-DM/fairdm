@@ -1,5 +1,3 @@
-import contextlib
-
 from crispy_forms.helper import FormHelper
 from django import forms
 from django.urls import reverse
@@ -7,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 from extra_views import InlineFormSetView
 
-from fairdm.contrib.activity_stream.utils import get_object_activities
 from fairdm.contrib.plugins import Plugin
 from fairdm.forms import Form
 from fairdm.views import FairDMDeleteView, FairDMModelFormMixin, FairDMUpdateView
@@ -47,16 +44,8 @@ class OverviewPlugin(Plugin, TemplateView):
     """
 
     def get_context_data(self, **kwargs):
-        """Add recent activities to the context."""
-
-        context = super().get_context_data(**kwargs)
-
-        # Get the 5 most recent activities for this object (if available)
-        with contextlib.suppress(ImportError, AttributeError):
-            recent_activities = get_object_activities(self.object, limit=5)
-            context["recent_activities"] = recent_activities
-
-        return context
+        """Get context data for the overview plugin."""
+        return super().get_context_data(**kwargs)
 
     def get_page_title(self):
         """Return the string representation of the object as the page title."""
@@ -241,14 +230,8 @@ class BaseOverviewPlugin(Plugin, TemplateView):
     menu = {"label": _("Overview"), "icon": "eye", "order": 0}
 
     def get_context_data(self, **kwargs):
-        """Add recent activities to the context if activity stream is enabled."""
-        context = super().get_context_data(**kwargs)
-
-        # Add activities if available (optional contrib app)
-        with contextlib.suppress(ImportError, AttributeError):
-            context["activities"] = get_object_activities(self.object, limit=10)
-
-        return context
+        """Get context data for the overview plugin."""
+        return super().get_context_data(**kwargs)
 
 
 class BaseEditPlugin(Plugin, FairDMUpdateView):

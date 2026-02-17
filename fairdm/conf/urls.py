@@ -21,7 +21,6 @@ urlpatterns = [
     path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
-    path("activity/", include("fairdm.contrib.activity_stream.urls")),
     path("", include("fairdm.utils.urls")),
     path("", include("dac.addons.urls")),
     path("account-center/", include("dac.urls")),

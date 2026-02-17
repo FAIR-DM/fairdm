@@ -1,14 +1,12 @@
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Prefetch
 from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from meta.views import MetadataMixin
 
-from fairdm.contrib.activity_stream.utils import Follow
 from fairdm.views import FairDMCreateView, FairDMListView, FairDMTemplateView
 
 from ..choices import DefaultGroups
@@ -108,35 +106,15 @@ class ContributorListView(ContributorBaseListView):
             to_attr="orcid_accounts",
         )
 
-        # Step 4: Get the content type for follow lookups (cached)
-        self.person_ct = ContentType.objects.get_for_model(Person)
-
-        # Step 5: Apply select_related and prefetch_related
+        # Step 4: Apply select_related and prefetch_related
         qs = qs.prefetch_related(orcid_prefetch, orcid_accounts_prefetch, "affiliations")
 
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        queryset = context["object_list"]
-        user = self.request.user
-
-        # Step 6: Batch follow lookup
-        if user.is_authenticated:
-            followed_ids = set(
-                Follow.objects.filter(
-                    content_type=self.person_ct,
-                    user=user,
-                    object_id__in=[str(pk) for pk in queryset.values_list("pk", flat=True)],
-                ).values_list("object_id", flat=True)
-            )
-
-            for person in queryset:
-                person.is_followed = person.pk in followed_ids
-        else:
-            for person in queryset:
-                person.is_followed = False
-
+        # Note: Follow/unfollow functionality has been moved to an optional addon.
+        # If you need this feature, install the fairdm-activity package.
         return context
 
 
