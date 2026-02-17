@@ -124,7 +124,6 @@ pytest-benchmark = "^5.2.3"
 ruff = "^0.15.0"
 beautifulsoup4 = "^4.14.3"
 sphinxcontrib-mermaid = "^2.0.0"
-pyyaml = "^6.0.2"
 
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
