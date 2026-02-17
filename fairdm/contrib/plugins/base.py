@@ -450,7 +450,6 @@ class Plugin(View):
             tabs = registry.get_tabs_for_model(self.model, self.request, context.get("object"))  # type: ignore[attr-defined]
 
             # Mark current tab as active
-            current_plugin_name = self.get_name()
             for tab in tabs:
                 # Tab is active if its URL name matches the current plugin
                 # Note: For PluginGroups, we'd need to check against the group's default plugin
@@ -496,7 +495,7 @@ class Plugin(View):
                 obj_str = obj_str[:47] + "..."
             # TODO: Reverse object detail URL
             breadcrumbs.append({"text": obj_str, "href": "#"})
-        except (ValueError, Exception):
+        except (ValueError, Exception):  # noqa: S110
             pass
 
         # Add current page breadcrumb

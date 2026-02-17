@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Pre-push hook that runs the same checks as CI
+# On Windows with PowerShell, use pre-push.ps1 instead
+
+# Detect platform
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]] || [[ -n "$OS" && "$OS" == "Windows_NT" ]]; then
+    # Windows - delegate to PowerShell script
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(dirname "$0")/pre-push.ps1"
+    exit $?
+fi
+
+# Unix/Linux/Mac
+set -e
+
+echo "🔍 Running pre-push checks (same as CI)..."
+echo ""
+
+# Run pre-commit on all files (same as CI lint job)
+echo "📝 Running pre-commit checks..."
+poetry run pre-commit run --all-files --show-diff-on-failure
+EXITCODE=$?
+
+if [ $EXITCODE -ne 0 ]; then
+    echo ""
+    echo "❌ Pre-commit checks failed!"
+    echo "   Fix the issues above and try again."
+    echo ""
+    echo "💡 Tip: Run 'poetry run invoke format' to auto-fix formatting issues"
+    echo "   Or run 'poetry run invoke pre-push' to see all issues"
+    echo ""
+    exit 1
+fi
+
+echo ""
+echo "✅ All pre-push checks passed!"
+echo "   Safe to push to remote."
+echo ""
+
+exit 0

@@ -300,13 +300,20 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ## 🤝 Contributing
 
-We welcome contributions! See our [Contributing Guide](https://fairdm.github.io/fairdm/contributing/) for:
+We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
 
-- Setting up a development environment
-- Code style and conventions
-- Testing requirements
-- Pull request process
-- Issue reporting guidelines
+- **Quick setup**: Run `bash scripts/dev-setup.sh` to get started
+- **Development workflow**: Install git hooks to prevent CI failures
+- **Code style and conventions**: Ruff formatting (120 char lines)
+- **Testing requirements**: pytest with >80% coverage goal
+- **Pull request process**: Pre-push validation ensures CI passes
+
+**Before your first push**, install git hooks to run CI checks locally:
+```bash
+poetry run invoke install-hooks
+```
+
+This prevents CI failures by running the same linting and formatting checks locally.
 
 ---
 

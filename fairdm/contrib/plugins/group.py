@@ -139,9 +139,8 @@ class PluginGroup:
             True if user has permission to access the group
         """
         # Check group-level permission
-        if self.permission:
-            if not request.user.has_perm(self.permission):
-                return False
+        if self.permission and not request.user.has_perm(self.permission):
+            return False
 
         # Check if any wrapped plugin grants access
         for plugin_class in self.plugins:

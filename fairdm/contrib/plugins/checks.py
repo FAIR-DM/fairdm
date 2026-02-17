@@ -1,6 +1,6 @@
 """Django system checks for plugin system."""
 
-from django.core.checks import Error, Tags, Warning, register
+from django.core.checks import Error, Tags, register
 
 from .registry import registry
 
@@ -16,7 +16,7 @@ def check_plugin_attributes(app_configs, **kwargs):
     """
     errors = []
 
-    for model, plugin_classes in registry._registry.items():
+    for _model, plugin_classes in registry._registry.items():
         for plugin_class in plugin_classes:
             # Check if class can generate a name
             try:
@@ -78,7 +78,7 @@ def check_duplicate_plugin_names(app_configs, **kwargs):
         for plugin_class in plugin_classes:
             try:
                 name = plugin_class.get_name()
-            except Exception:
+            except Exception:  # noqa: S112
                 # Name generation error caught by E001
                 continue
 
@@ -114,7 +114,7 @@ def check_url_path_conflicts(app_configs, **kwargs):
                     path = plugin_class.get_url_prefix()
                 else:
                     path = plugin_class.get_url_path()
-            except Exception:
+            except Exception:  # noqa: S112
                 # Path generation error caught by E001
                 continue
 
@@ -141,7 +141,7 @@ def check_plugin_group_plugins(app_configs, **kwargs):
     """
     errors = []
 
-    for model, plugin_classes in registry._registry.items():
+    for _model, plugin_classes in registry._registry.items():
         for plugin_class in plugin_classes:
             # Check if this is a PluginGroup (has 'plugins' attribute)
             if hasattr(plugin_class, "plugins"):
@@ -169,7 +169,7 @@ def check_plugin_group_plugin_classes(app_configs, **kwargs):
 
     errors = []
 
-    for model, plugin_classes in registry._registry.items():
+    for _model, plugin_classes in registry._registry.items():
         for plugin_class in plugin_classes:
             # Check if this is a PluginGroup
             if hasattr(plugin_class, "plugins"):
@@ -206,7 +206,7 @@ def check_plugin_group_url_conflicts(app_configs, **kwargs):
     """
     errors = []
 
-    for model, plugin_classes in registry._registry.items():
+    for _model, plugin_classes in registry._registry.items():
         for plugin_class in plugin_classes:
             # Check if this is a PluginGroup
             if hasattr(plugin_class, "plugins"):
@@ -219,7 +219,7 @@ def check_plugin_group_url_conflicts(app_configs, **kwargs):
                             path = plugin.get_url_path()
                         else:
                             continue
-                    except Exception:
+                    except Exception:  # noqa: S112
                         continue
 
                     if path in seen_paths:
@@ -248,7 +248,7 @@ def check_permission_strings(app_configs, **kwargs):
 
     warnings = []
 
-    for model, plugin_classes in registry._registry.items():
+    for _model, plugin_classes in registry._registry.items():
         for plugin_class in plugin_classes:
             permission = getattr(plugin_class, "permission", None)
             if not permission:
@@ -280,7 +280,7 @@ def check_permission_strings(app_configs, **kwargs):
                             id="plugins.W001",
                         )
                     )
-            except Exception:
+            except Exception:  # noqa: S110
                 # Database not ready, skip check
                 pass
 
@@ -296,7 +296,7 @@ def check_template_names(app_configs, **kwargs):
     """
     errors = []
 
-    for model, plugin_classes in registry._registry.items():
+    for _model, plugin_classes in registry._registry.items():
         for plugin_class in plugin_classes:
             template_name = getattr(plugin_class, "template_name", None)
 
@@ -353,7 +353,7 @@ def check_url_path_characters(app_configs, **kwargs):
     # Valid URL path pattern: alphanumeric, hyphens, underscores
     valid_pattern = re.compile(r"^[a-z0-9_-]+$")
 
-    for model, plugin_classes in registry._registry.items():
+    for _model, plugin_classes in registry._registry.items():
         for plugin_class in plugin_classes:
             # Check explicit url_path attribute
             url_path = getattr(plugin_class, "url_path", None)

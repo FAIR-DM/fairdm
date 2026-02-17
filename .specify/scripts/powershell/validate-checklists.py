@@ -128,15 +128,13 @@ class ChecklistValidator:
         # Rule 2: Status must match completion progress
         if not self.validate_status_progression(status, completed, total):
             self.errors.append(
-                f"{feature_name}: Status '{status}' doesn't match progress " f"({completed}/{total} completed)"
+                f"{feature_name}: Status '{status}' doesn't match progress ({completed}/{total} completed)"
             )
             passed = False
 
         # Rule 3: If status is "completed", all items must be checked
         if status == "completed" and incomplete:
-            self.errors.append(
-                f"{feature_name}: Status is 'completed' but {len(incomplete)} items " f"remain unchecked"
-            )
+            self.errors.append(f"{feature_name}: Status is 'completed' but {len(incomplete)} items remain unchecked")
             passed = False
 
         # Validation passed

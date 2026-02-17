@@ -25,12 +25,11 @@ from .visibility import is_instance_of
 register = registry.register
 
 __all__ = [
-    # Core API
     "Plugin",
     "PluginGroup",
     "Tab",
+    "is_instance_of",
     "register",
     "registry",
-    "is_instance_of",
     "slugify",
 ]

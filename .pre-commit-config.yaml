@@ -1,4 +1,4 @@
-exclude: "^docs/|/migrations/|/fixtures/"
+exclude: "^docs/|/migrations/|/fixtures/|^.github/skills/|^.github/scripts/|^.specify/scripts/"
 default_stages: [pre-commit]
 
 repos:

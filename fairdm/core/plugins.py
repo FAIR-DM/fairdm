@@ -1,3 +1,5 @@
+import contextlib
+
 from crispy_forms.helper import FormHelper
 from django import forms
 from django.urls import reverse
@@ -242,10 +244,8 @@ class BaseOverviewPlugin(Plugin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         # Add activities if available (optional contrib app)
-        try:
+        with contextlib.suppress(ImportError, AttributeError):
             context["activities"] = get_object_activities(self.object, limit=10)
-        except (ImportError, AttributeError):
-            pass
 
         return context
 

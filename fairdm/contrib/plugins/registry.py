@@ -171,13 +171,7 @@ class PluginRegistry:
             order = menu.get("order", 0)
 
             # Get URL for the tab
-            # For PluginGroup, link to default plugin
-            if hasattr(plugin_class, "get_default_url_name"):
-                url_name = plugin_class.get_default_url_name()  # type: ignore[attr-defined]
-            else:
-                url_name = plugin_class.get_name()  # type: ignore[attr-defined]
-
-            # Build URL (will be resolved in template with obj.pk)
+            # URL will be resolved in template with obj.pk
             url = ""  # Template will resolve this using {% url %} tag
 
             # Check if this tab is active (based on current URL path)
