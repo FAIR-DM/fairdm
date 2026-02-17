@@ -2,6 +2,8 @@
 Pytest fixtures for plugin system tests.
 """
 
+import contextlib
+
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -55,7 +57,13 @@ def clear_registry():
     Use this fixture explicitly in tests that register plugins dynamically
     to ensure a clean state. Don't use autouse=True as it will break tests
     that expect real plugins to be registered (like test_project_edit_plugin.py).
+
+    After clearing, this fixture re-imports all plugin modules to restore
+    the registry state for subsequent tests.
     """
+    import sys
+    from importlib import import_module, reload
+
     from fairdm import plugins
 
     # Clear the registry before the test
@@ -63,6 +71,20 @@ def clear_registry():
     yield
     # Clear again after test
     plugins.registry._registry.clear()
+
+    # Re-import plugin modules to restore registry state
+    # Get all plugin modules that were previously imported
+    plugin_modules = [name for name in sys.modules if name.endswith(".plugins")]
+
+    # Reload each plugin module to re-execute @register decorators
+    for module_name in plugin_modules:
+        if module_name in sys.modules:
+            try:
+                reload(sys.modules[module_name])
+            except Exception:
+                # If reload fails, try reimporting (skip if both fail)
+                with contextlib.suppress(Exception):
+                    import_module(module_name)
 
 
 @pytest.fixture
