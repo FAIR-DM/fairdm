@@ -18,7 +18,7 @@ from .menu import Tab
 from .registry import registry
 
 # Utility functions
-from .utils import slugify
+from .utils import reverse, slugify
 from .visibility import is_instance_of
 
 # Convenience: allow @plugins.register(...) syntax
@@ -31,5 +31,6 @@ __all__ = [
     "is_instance_of",
     "register",
     "registry",
+    "reverse",
     "slugify",
 ]
