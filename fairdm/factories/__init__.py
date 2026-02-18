@@ -65,6 +65,8 @@ API Reference:
 """
 
 from .contributors import (
+    AffiliationFactory,
+    ContributionFactory,
     ContributorFactory,
     OrganizationFactory,
     PersonFactory,
@@ -81,6 +83,8 @@ from .core import (
 )
 
 __all__ = [
+    "AffiliationFactory",
+    "ContributionFactory",
     "ContributorFactory",
     "DatasetDescriptionFactory",
     "DatasetFactory",

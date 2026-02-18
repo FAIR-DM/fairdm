@@ -1,4 +1,5 @@
 import json
+import logging
 from functools import cached_property
 
 from django.apps import apps
@@ -14,10 +15,11 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, AFTER_DELETE, BEFORE_CREATE, hook
+from django_lifecycle import AFTER_CREATE, AFTER_DELETE, AFTER_UPDATE, BEFORE_CREATE, hook
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
+from guardian.shortcuts import assign_perm, remove_perm
 from jsonfield_toolkit.models import ArrayField
 from model_utils import FieldTracker
 from ordered_model.models import OrderedModel
@@ -27,6 +29,7 @@ from shortuuid.django_fields import ShortUUIDField
 from fairdm.core.abstract import AbstractIdentifier
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
 from fairdm.db import models
+from fairdm.db.fields import PartialDateField
 
 # from polymorphic.models import PolymorphicModel
 from fairdm.db.models import PolymorphicModel
@@ -34,12 +37,15 @@ from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
-from .managers import PersonalContributorsManager, UserManager
+from .managers import ContributionManager, PersonalContributorsManager, UserManager
 from .validators import validate_iso_639_1_language_code
 
+logger = logging.getLogger(__name__)
 
-def contributor_permissions_default():
-    return {"edit": False}
+
+def contributor_permissions_default() -> dict:
+    """Default permissions for contributions. Referenced by migration 0001."""
+    return {}
 
 
 class Contributor(PolymorphicMixin, PolymorphicModel):
@@ -178,6 +184,13 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         blank=True,
     )
 
+    privacy_settings = models.JSONField(
+        verbose_name=_("privacy settings"),
+        help_text=_("Per-field privacy controls. Keys: field names. Values: 'public' or 'private'."),
+        default=dict,
+        blank=True,
+    )
+
     added = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("Date added"),
@@ -188,6 +201,8 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         verbose_name=_("Last modified"),
         help_text=_("The date and time this record was last modified."),
     )
+
+    tracker = FieldTracker()
 
     class Meta:  # type: ignore[no-redef]
         ordering = ["name"]
@@ -428,21 +443,58 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         """Adds the contributor to a project, dataset, sample or measurement."""
         if roles is None:
             roles = []
-        c = Contribution.objects.get_or_create(
+        contribution, created = Contribution.objects.get_or_create(
             contributor=self,
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.id,
         )
-        try:
-            c = Contribution.objects.get(contributor=self, object_id=obj.id)
-        except Contribution.DoesNotExist:
-            c = Contribution.objects.create(contributor=self, content_object=obj, roles=roles)
-        else:
-            c.add_roles(roles)
-            c.save()
+        if roles:
+            from research_vocabs.models import Concept
 
-        return c
-        # return Contribution.objects.create(contributor=self, content_object=obj, roles=roles)
+            roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles", name__in=roles)
+            contribution.roles.set(roles_qs)
+        return contribution
+
+    def get_visible_fields(self, viewer=None):
+        """Return field values respecting privacy_settings.
+
+        Args:
+            viewer: The person viewing. None = anonymous/public.
+                    If viewer is self or staff, all fields returned.
+
+        Returns:
+            Dict of field_name → value for visible fields only.
+        """
+        # Always-public fields (FAIR compliance)
+        always_public = {"name", "uuid", "alternative_names", "added", "modified"}
+        # Always-private fields (internal)
+        always_private = {"password", "last_login", "is_superuser", "is_staff"}
+        # Toggleable fields
+        toggleable = {"email", "location", "profile", "links", "lang", "image"}
+
+        result = {}
+
+        # Staff and self see everything
+        if viewer is not None:
+            is_self = hasattr(viewer, "pk") and viewer.pk == self.pk
+            is_staff = hasattr(viewer, "is_staff") and viewer.is_staff
+            if is_self or is_staff:
+                for field in self._meta.get_fields():
+                    if hasattr(field, "attname") and field.name not in always_private:
+                        result[field.name] = getattr(self, field.name, None)
+                return result
+
+        # Always include public fields
+        for field_name in always_public:
+            result[field_name] = getattr(self, field_name, None)
+
+        # Check toggleable fields against privacy_settings
+        for field_name in toggleable:
+            privacy = self.privacy_settings.get(field_name, "public")
+            if privacy == "public":
+                result[field_name] = getattr(self, field_name, None)
+
+        return result
 
 
 class Person(AbstractUser, Contributor):
@@ -460,18 +512,41 @@ class Person(AbstractUser, Contributor):
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     username = Contributor.__str__
-    tracker = FieldTracker()
+
+    @property
+    def is_claimed(self) -> bool:
+        """Whether this person has claimed their account.
+
+        A person is considered claimed when they have a valid email address,
+        are active, and have a usable password (i.e. they have completed registration).
+        Unclaimed persons are provenance-only records created by others for attribution.
+
+        Returns:
+            bool: True if the person has a claimed, active account.
+        """
+        return self.email is not None and self.is_active and self.has_usable_password()
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
+        """Save Person, auto-populating name from first/last if blank."""
         if not self.name:
             self.name = f"{self.first_name} {self.last_name}".strip()
+        # Set default privacy for unclaimed persons
+        if not self.privacy_settings:
+            if self.email is None or not self.is_active:
+                # Unclaimed: all fields public by convention (email is NULL anyway)
+                self.privacy_settings = {"email": "public"}
+            else:
+                # Claimed: email private by default
+                self.privacy_settings = {"email": "private"}
         super().save(*args, **kwargs)
 
     def clean(self):
         """Validate Person fields including email, URLs, and ORCID format."""
+        import re
+
         from django.core.exceptions import ValidationError
         from django.core.validators import URLValidator, validate_email
 
@@ -481,12 +556,19 @@ class Person(AbstractUser, Contributor):
         if self.email == "":
             self.email = None
 
-        # Validate email if provided
+        # Prevent claimed users from nulling their email
+        # A claimed user has a usable password and is active (was previously claimed)
+        if self.pk and self.has_usable_password() and self.is_active and self.email is None:
+            raise ValidationError({"email": _("Claimed users cannot remove their email address.")})
+
+        # Validate and normalize email if provided
         if self.email:
             try:
                 validate_email(self.email)
             except ValidationError:
                 raise ValidationError({"email": _("Enter a valid email address.")}) from None
+            # Fully lowercase the email (Django only lowercases domain)
+            self.email = self.email.lower()
 
         # Validate URLs in links array
         if self.links:
@@ -498,10 +580,8 @@ class Person(AbstractUser, Contributor):
                     raise ValidationError({"links": _(f"Invalid URL: {url}")}) from None
 
         # Validate ORCID format if present
-        if orcid := self.identifiers.filter(type="ORCID").first():
+        if self.pk and (orcid := self.identifiers.filter(type="ORCID").first()):
             orcid_pattern = r"^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]$"
-            import re
-
             if not re.match(orcid_pattern, orcid.value):
                 raise ValidationError(
                     {"identifiers": _(f"Invalid ORCID format: {orcid.value}. Expected format: 0000-0000-0000-0000")}
@@ -515,29 +595,22 @@ class Person(AbstractUser, Contributor):
         return qs.get() if qs else None
 
     def primary_affiliation(self):
-        """
-        Returns the default (primary) affiliation for the contributor.
-
-        This method queries the contributor's organization memberships, selecting the related organization,
-        and returns the first OrganizationMember object where `is_primary` is True. If no primary affiliation
-        exists, returns None.
+        """Returns the primary affiliation for the contributor.
 
         Returns:
-            OrganizationMember or None: The primary organization membership of the contributor, or None if not set.
+            Affiliation or None: The primary organizational affiliation, or None if not set.
         """
-        return self.organization_memberships.select_related("organization").filter(is_primary=True).first()
+        return self.affiliations.select_related("organization").filter(is_primary=True).first()
 
     def current_affiliations(self):
-        """
-        Get all current affiliations for this person.
+        """Get all current affiliations for this person.
 
-        Returns a queryset of OrganizationMember objects representing the contributor's
-        current affiliations, optimized with select_related to include Organization data.
+        Returns affiliations that have no end_date (active) and are verified (type >= MEMBER).
 
         Returns:
-            QuerySet: Current OrganizationMember objects
+            QuerySet: Current Affiliation objects.
         """
-        return self.organization_memberships.select_related("organization").filter(is_current=True)
+        return self.affiliations.select_related("organization").filter(end_date__isnull=True, type__gte=1)
 
     @property
     def given(self):
@@ -642,8 +715,23 @@ class Person(AbstractUser, Contributor):
         return None
 
 
-class OrganizationMember(models.Model):
-    """A membership model that links a person to an organization."""
+class Affiliation(models.Model):
+    """An affiliation linking a person to an organization with time bounds and verification state.
+
+    The type field implements a security state machine:
+        PENDING (0): User-declared, awaiting verification
+        MEMBER (1): Verified by existing member
+        ADMIN (2): Can manage organization and approve pending members
+        OWNER (3): Full management rights, maps to manage_organization permission
+
+    Attributes:
+        person: The affiliated person.
+        organization: The organization.
+        type: Security/verification state (0-3).
+        is_primary: Whether this is the person's primary affiliation for citation.
+        start_date: When the affiliation began (PartialDateField for variable precision).
+        end_date: When it ended; NULL means active.
+    """
 
     class MembershipType(models.IntegerChoices):
         PENDING = 0, _("Pending")
@@ -654,7 +742,7 @@ class OrganizationMember(models.Model):
     person = models.ForeignKey(
         to="contributors.Person",
         on_delete=models.CASCADE,
-        related_name="organization_memberships",
+        related_name="affiliations",
         verbose_name=_("person"),
         help_text=_("The person that is a member of the organization."),
     )
@@ -671,7 +759,7 @@ class OrganizationMember(models.Model):
         _("type"),
         choices=MembershipType,
         default=MembershipType.MEMBER,
-        help_text=_("The type of membership that the person has with the organization"),
+        help_text=_("The verification state / role of the person within the organization."),
     )
 
     is_primary = models.BooleanField(
@@ -680,10 +768,18 @@ class OrganizationMember(models.Model):
         help_text=_("Denotes whether this is the primary affiliation of the contributor."),
     )
 
-    is_current = models.BooleanField(
-        _("is current"),
-        default=True,
-        help_text=_("Denotes whether this is a current affiliation of the contributor."),
+    start_date = PartialDateField(
+        verbose_name=_("start date"),
+        help_text=_("When the affiliation began. Supports year, year-month, or full date precision."),
+        null=True,
+        blank=True,
+    )
+
+    end_date = PartialDateField(
+        verbose_name=_("end date"),
+        help_text=_("When the affiliation ended. Leave blank for active affiliations."),
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -695,13 +791,24 @@ class OrganizationMember(models.Model):
         """Ensure only one primary affiliation per person."""
         if self.is_primary:
             # Unset other primary affiliations for this person
-            OrganizationMember.objects.filter(person=self.person, is_primary=True).exclude(pk=self.pk).update(
-                is_primary=False
-            )
+            Affiliation.objects.filter(person=self.person, is_primary=True).exclude(pk=self.pk).update(is_primary=False)
         super().save(*args, **kwargs)
+
+    @hook(AFTER_UPDATE, when="type", has_changed=True)
+    def sync_ownership_permission(self):
+        """Sync manage_organization permission when type changes to/from OWNER."""
+        if self.type == self.MembershipType.OWNER:
+            assign_perm("contributors.manage_organization", self.person, self.organization)
+        else:
+            # If type changed FROM owner to something else, remove permission
+            remove_perm("contributors.manage_organization", self.person, self.organization)
 
     def __str__(self):
         return f"{self.person} - {self.organization}"
+
+
+# Backward-compatible alias
+OrganizationMember = Affiliation
 
 
 class Organization(Contributor):
@@ -714,9 +821,9 @@ class Organization(Contributor):
 
     members = models.ManyToManyField(
         to="contributors.Person",
-        through="contributors.OrganizationMember",
+        through="contributors.Affiliation",
         verbose_name=_("members"),
-        related_name="affiliations",
+        related_name="+",
         help_text=_("A list of personal contributors that are members of the organization."),
     )
 
@@ -756,11 +863,10 @@ class Organization(Contributor):
         """Backwards-compatible property for longitude."""
         return self.location.longitude if self.location else None
 
-    tracker = FieldTracker()
-
     class Meta:
         verbose_name = _("organization")
         verbose_name_plural = _("organizations")
+        permissions = [("manage_organization", _("Can manage organization"))]
 
     def __str__(self):
         return self.name
@@ -804,10 +910,11 @@ class Organization(Contributor):
         """
         if self.synced_data:
             ror = self.synced_data.get("id")
-            self.identifiers.add(type="ROR", value=ror)
+            if ror:
+                self.identifiers.get_or_create(type="ROR", defaults={"value": ror})
 
     @classmethod
-    def from_ror(self, ror, commit=True):
+    def from_ror(cls, ror, commit=True):
         """Create an organization from a ROR ID."""
         from .utils.transforms import RORTransform
 
@@ -826,9 +933,9 @@ class Organization(Contributor):
         return self.memberships.select_related("person").all()
 
     def owner(self):
-        """Returns the owners of the organization."""
-        if memberships := self.get_memberships().filter(type=OrganizationMember.MembershipType.OWNER).first():
-            return memberships.person
+        """Returns the owner of the organization."""
+        if membership := self.get_memberships().filter(type=Affiliation.MembershipType.OWNER).first():
+            return membership.person
         return None
 
     def as_geojson(self):
@@ -867,7 +974,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     dataset. This model is based on the Datacite schema for contributors."""
 
     ROLES_VOCAB = FairDMRoles()
-    # objects = ContributionManager().as_manager()
+    objects = ContributionManager()
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.CharField(max_length=23)
     content_object = GenericForeignKey("content_type", "object_id")
@@ -947,7 +1054,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         """
         if not self.affiliation and self.is_person():  # noqa: SIM102
             # Set the users primary_affiliation as default
-            if org := self.contributor.organization_memberships.filter(is_primary=True).first():
+            if org := self.contributor.affiliations.filter(is_primary=True).first():
                 self.affiliation = org.organization
 
     @hook(AFTER_DELETE)
@@ -974,9 +1081,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         return self.contributor.get_absolute_url()
 
     def get_update_url(self):
-        related_name = self.object._meta.model_name
+        related_name = self.content_object._meta.model_name
         letter = related_name[0]
-        return reverse("contribution-update", kwargs={"uuid": self.object.uuid, "model": letter})
+        return reverse("contribution-update", kwargs={"uuid": self.content_object.uuid, "model": letter})
 
 
 class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
@@ -984,28 +1091,23 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
     related = models.ForeignKey("Contributor", on_delete=models.CASCADE)
 
     @hook(AFTER_CREATE)
-    def fetch_ror_data(self):
-        """
-        Fetch organization data from ROR API when a ROR identifier is added.
+    def dispatch_sync_task(self):
+        """Dispatch async Celery task to sync data from external API.
 
-        This lifecycle hook automatically fetches metadata from the ROR API
-        when a new ROR identifier is created for an Organization. The fetched
-        data is stored in the organization's synced_data field.
+        Uses transaction.on_commit() to ensure the identifier is visible
+        in the database before the task runs.
         """
-        if self.type == "ROR" and isinstance(self.related, Organization):
-            from .utils.transforms import RORTransform
+        from django.db import transaction
 
+        def _dispatch():
             try:
-                ror_data = RORTransform.fetch_from_api(self.value)
-                # Store the fetched data
-                self.related.synced_data = ror_data
-                self.related.save(update_fields=["synced_data"])
-            except Exception as e:
-                # Log the error but don't prevent the identifier from being saved
-                import logging
+                from .tasks import sync_contributor_identifier
 
-                logger = logging.getLogger(__name__)
-                logger.warning(f"Failed to fetch ROR data for {self.value}: {e}")
+                sync_contributor_identifier.delay(self.pk)
+            except Exception as e:
+                logger.warning(f"Failed to dispatch sync task for identifier {self.pk}: {e}")
+
+        transaction.on_commit(_dispatch)
 
 
 def forwards():

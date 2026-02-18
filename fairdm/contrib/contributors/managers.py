@@ -1,5 +1,7 @@
 from django.contrib.auth.models import BaseUserManager
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from ordered_model.models import OrderedModelManager, OrderedModelQuerySet
 
 from fairdm.db.models import PrefetchPolymorphicManager
 
@@ -31,6 +33,30 @@ class UserManager(BaseUserManager, PrefetchPolymorphicManager):
 
         return self._create_user(email, password, **extra_fields)
 
+    def create_unclaimed(self, first_name: str, last_name: str, **extra_fields):
+        """Create an unclaimed (provenance-only) Person record.
+
+        Sets email=None, is_active=False, set_unusable_password().
+
+        Args:
+            first_name: Given name (required).
+            last_name: Family name (required).
+            **extra_fields: Any other Contributor/Person fields.
+
+        Returns:
+            Person instance (saved, is_active=False, email=None).
+        """
+        extra_fields["email"] = None
+        extra_fields["is_active"] = False
+        extra_fields["first_name"] = first_name
+        extra_fields["last_name"] = last_name
+        extra_fields.setdefault("name", f"{first_name} {last_name}".strip())
+
+        user = self.model(**extra_fields)
+        user.set_unusable_password()
+        user.save(using=self._db)
+        return user
+
 
 class PersonalContributorsQuerySet(models.QuerySet):
     def all(self):
@@ -40,6 +66,14 @@ class PersonalContributorsQuerySet(models.QuerySet):
     def active(self):
         """A queryset of all active contributors."""
         return self.all().filter(is_active=True)
+
+    def claimed(self):
+        """Persons with email IS NOT NULL and is_active=True (have claimed their account)."""
+        return self.all().filter(email__isnull=False, is_active=True)
+
+    def unclaimed(self):
+        """Persons with email IS NULL (provenance-only records)."""
+        return self.all().filter(email__isnull=True)
 
 
 class PersonalContributorsManager(models.Manager):
@@ -57,19 +91,51 @@ class PersonalContributorsManager(models.Manager):
         """Return all active contributors."""
         return self.get_queryset().active()
 
+    def claimed(self):
+        """Return all claimed contributors (with email and active)."""
+        return self.get_queryset().claimed()
 
-class ContributionManager(models.QuerySet):
-    def by_role(self, role):
-        """Returns all contributions with the given role"""
-        return self.filter(roles__contains=role)
+    def unclaimed(self):
+        """Return all unclaimed contributors (no email)."""
+        return self.get_queryset().unclaimed()
 
-    # def get_contact_persons(self):
-    #     return self.filter(roles__contains=ContributionRoles.CONTACT_PERSON)
 
-    # def lead_contributors(self):
-    #     """Returns all project leads"""
-    #     return self.filter(roles__contains=ContributionRoles.PROJECT_LEADER)
+class ContributionQuerySet(OrderedModelQuerySet):
+    """QuerySet for Contribution model with filtering methods."""
 
-    # def funding_contributors(self):
-    #     """Returns all project leads"""
-    #     return self.filter(roles__contains=ContributionRoles.SPONSOR)
+    def by_role(self, role_name: str):
+        """Filter contributions to those containing the specified role.
+
+        Args:
+            role_name: Name matching a Concept in FairDMRoles vocabulary.
+        """
+        return self.filter(roles__name=role_name)
+
+    def for_entity(self, obj):
+        """All contributions for a specific entity (Project/Dataset/etc.).
+
+        Args:
+            obj: Any model instance with a GenericRelation to Contribution.
+        """
+        content_type = ContentType.objects.get_for_model(obj)
+        return self.filter(content_type=content_type, object_id=obj.pk)
+
+    def by_contributor(self, contributor):
+        """All contributions by a specific contributor across all entities."""
+        return self.filter(contributor=contributor)
+
+
+class ContributionManager(OrderedModelManager):
+    """Manager for Contribution model."""
+
+    def get_queryset(self):
+        return ContributionQuerySet(self.model, using=self._db)
+
+    def by_role(self, role_name: str):
+        return self.get_queryset().by_role(role_name)
+
+    def for_entity(self, obj):
+        return self.get_queryset().for_entity(obj)
+
+    def by_contributor(self, contributor):
+        return self.get_queryset().by_contributor(contributor)

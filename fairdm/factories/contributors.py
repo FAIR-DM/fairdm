@@ -6,9 +6,9 @@ from factory.django import DjangoModelFactory
 from factory.faker import Faker
 
 from fairdm.contrib.contributors.models import (
+    Affiliation,
     Contribution,
     Organization,
-    OrganizationMember,
     Person,
 )
 
@@ -83,11 +83,11 @@ class OrganizationFactory(DjangoModelFactory):
     name = Faker("company")
 
 
-class OrganizationMembershipFactory(DjangoModelFactory):
-    """Factory for creating OrganizationMember instances."""
+class AffiliationFactory(DjangoModelFactory):
+    """Factory for creating Affiliation instances."""
 
     class Meta:
-        model = OrganizationMember
+        model = Affiliation
 
     person = SubFactory(PersonFactory)
     organization = SubFactory(OrganizationFactory)
