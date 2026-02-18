@@ -6,9 +6,10 @@ and ownership transfer functionality.
 
 import pytest
 from django.contrib.auth import get_user_model
+from guardian.shortcuts import get_perms
 from partial_date import PartialDate
 
-from fairdm.contrib.contributors.models import Affiliation, Organization
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.factories import PersonFactory
 
 User = get_user_model()
@@ -72,9 +73,13 @@ class TestAssignOrganizationOwner:
             is_primary=False,
         )
 
+        # Get fresh instances from DB to avoid guardian cache issues
+        person_fresh = Person.objects.get(pk=person.pk)
+        person2_fresh = Person.objects.get(pk=person2.pk)
+
         # Both users should have permission
-        assert person.has_perm("manage_organization", organization)
-        assert person2.has_perm("manage_organization", organization)
+        assert person_fresh.has_perm("manage_organization", organization)
+        assert person2_fresh.has_perm("manage_organization", organization)
 
 
 # ── T062: Owner can edit organization ───────────────────────────────────────
@@ -204,9 +209,13 @@ class TestTransferOwnership:
             is_primary=True,
         )
 
+        # Get fresh instances from DB to avoid guardian cache issues
+        old_owner_fresh = Person.objects.get(pk=old_owner.pk)
+        new_owner_fresh = Person.objects.get(pk=new_owner.pk)
+
         # Verify permission transfer
-        assert not old_owner.has_perm("manage_organization", organization)
-        assert new_owner.has_perm("manage_organization", organization)
+        assert not old_owner_fresh.has_perm("manage_organization", organization)
+        assert new_owner_fresh.has_perm("manage_organization", organization)
 
     def test_transfer_ownership_preserves_history(self, organization, owner_affiliation):
         """Ownership transfer preserves affiliation history with dates."""
