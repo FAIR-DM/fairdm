@@ -118,7 +118,7 @@ class PersonCreateForm(ModelForm):
         if commit and affiliations:
             is_primary = self.cleaned_data.get("is_primary", False)
             is_current = is_primary or self.cleaned_data.get("is_current", False)
-            self.instance.organization_memberships.create(
+            self.instance.affiliations.create(
                 is_primary=is_primary,
                 is_current=is_current,
                 organization=affiliations,

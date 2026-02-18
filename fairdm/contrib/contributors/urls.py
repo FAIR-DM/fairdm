@@ -3,7 +3,6 @@ from django.urls import include, path
 from fairdm.plugins import registry
 
 from .models import Contributor
-from .views import CommunityDashboardView
 from .views.organization import OrganizationListView
 from .views.person import (
     ContributorListView,
@@ -16,7 +15,6 @@ urlpatterns = [
         "community/",
         include(
             [
-                path("", CommunityDashboardView.as_view(), name="community-dashboard"),
                 path("portal-team/", PortalTeamView.as_view(), name="portal-team"),
                 path("people/", ContributorListView.as_view(), name="people-list"),
                 path(

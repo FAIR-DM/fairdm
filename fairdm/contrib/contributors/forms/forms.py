@@ -3,7 +3,7 @@ from django import forms
 from django.forms.models import BaseInlineFormSet
 from django.utils.translation import gettext as _
 
-from ..models import ContributorIdentifier, Organization, OrganizationMember, Person
+from ..models import Affiliation, ContributorIdentifier, Organization, Person
 
 
 class UserIdentifierFormSet(BaseInlineFormSet):
@@ -105,28 +105,26 @@ class AffiliationForm(forms.ModelForm):
         # Only set type for new memberships (not when editing existing ones)
         if not instance.pk:
             # Check if organization has owners or admins
-            from .models import OrganizationMember
-
             has_managers = instance.organization.memberships.filter(
                 type__in=[
-                    OrganizationMember.MembershipType.OWNER,
-                    OrganizationMember.MembershipType.ADMIN,
+                    Affiliation.MembershipType.OWNER,
+                    Affiliation.MembershipType.ADMIN,
                 ]
             ).exists()
 
             # Set type based on whether organization has managers
             if has_managers:
-                instance.type = OrganizationMember.MembershipType.PENDING
+                instance.type = Affiliation.MembershipType.PENDING
             else:
-                instance.type = OrganizationMember.MembershipType.MEMBER
+                instance.type = Affiliation.MembershipType.MEMBER
 
         if commit:
             instance.save()
         return instance
 
     class Meta:
-        model = OrganizationMember
-        fields = ["organization", "is_primary", "is_current"]
+        model = Affiliation
+        fields = ["organization", "is_primary"]
         labels = {
             "is_primary": _("Primary"),
             "is_current": _("Current"),

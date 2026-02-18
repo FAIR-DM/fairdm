@@ -2,7 +2,7 @@ import time
 
 from import_export import fields, resources
 
-from .models import Organization, OrganizationMember, Person
+from .models import Affiliation, Organization, Person
 from .utils import update_or_create_from_orcid, update_or_create_from_ror
 
 
@@ -33,10 +33,10 @@ class PersonResource(resources.ModelResource):
 
         if org:
             # Link person to organization
-            OrganizationMember.objects.get_or_create(
+            Affiliation.objects.get_or_create(
                 person=instance,
                 organization=org,
-                defaults={"type": OrganizationMember.MembershipType.MEMBER},
+                defaults={"type": Affiliation.MembershipType.MEMBER},
             )
         time.sleep(1.5)  # Rate limit to avoid hitting API limits
 
