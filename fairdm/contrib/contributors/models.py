@@ -750,7 +750,7 @@ class Affiliation(models.Model):
     organization = models.ForeignKey(
         to="contributors.Organization",
         on_delete=models.CASCADE,
-        related_name="memberships",
+        related_name="affiliations",
         verbose_name=_("organization"),
         help_text=_("The organization that the person is a member of."),
     )
@@ -793,6 +793,12 @@ class Affiliation(models.Model):
             # Unset other primary affiliations for this person
             Affiliation.objects.filter(person=self.person, is_primary=True).exclude(pk=self.pk).update(is_primary=False)
         super().save(*args, **kwargs)
+
+    @hook(AFTER_CREATE)
+    def grant_owner_permission_on_create(self):
+        """Grant manage_organization permission when creating OWNER affiliation."""
+        if self.type == self.MembershipType.OWNER:
+            assign_perm("contributors.manage_organization", self.person, self.organization)
 
     @hook(AFTER_UPDATE, when="type", has_changed=True)
     def sync_ownership_permission(self):
@@ -930,7 +936,7 @@ class Organization(Contributor):
         Returns:
             QuerySet: A queryset of Membership objects associated with this instance, with related Person objects prefetched.
         """
-        return self.memberships.select_related("person").all()
+        return self.affiliations.select_related("person").all()
 
     def owner(self):
         """Returns the owner of the organization."""

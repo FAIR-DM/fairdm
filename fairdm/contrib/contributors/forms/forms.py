@@ -105,7 +105,7 @@ class AffiliationForm(forms.ModelForm):
         # Only set type for new memberships (not when editing existing ones)
         if not instance.pk:
             # Check if organization has owners or admins
-            has_managers = instance.organization.memberships.filter(
+            has_managers = instance.organization.affiliations.filter(
                 type__in=[
                     Affiliation.MembershipType.OWNER,
                     Affiliation.MembershipType.ADMIN,

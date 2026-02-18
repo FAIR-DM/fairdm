@@ -257,7 +257,7 @@ class OrganizationMembers(Plugin, FairDMListView):
 
     def get_queryset(self):
         """Return members of this organization."""
-        return self.object.memberships.select_related("person").all()
+        return self.object.affiliations.select_related("person").all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
