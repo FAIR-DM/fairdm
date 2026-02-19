@@ -1,6 +1,6 @@
 """Test organization ownership and permissions (User Story 3c).
 
-Tests organization owner assignment, guardian permissions integration,
+Tests organization owner assignment, derived permissions via OrganizationPermissionBackend,
 and ownership transfer functionality.
 """
 
@@ -28,7 +28,7 @@ class TestAssignOrganizationOwner:
         affiliation = Affiliation.objects.create(
             person=person,
             organization=organization,
-            type=3,  # OWNER from FairDMAffiliationTypes
+            type=Affiliation.MembershipType.OWNER,
             is_primary=True,
         )
 
@@ -42,8 +42,9 @@ class TestAssignOrganizationOwner:
         # Verify owner has permission initially
         assert person.has_perm("manage_organization", organization)
 
-        # Change affiliation type to MEMBER (2)
-        owner_affiliation.type = 2
+        # Change affiliation type to MEMBER
+        owner_affiliation.refresh_from_db()  # Ensure lifecycle hooks work properly
+        owner_affiliation.type = Affiliation.MembershipType.MEMBER
         owner_affiliation.save()
 
         # Verify permission was revoked
@@ -62,21 +63,21 @@ class TestAssignOrganizationOwner:
         aff1 = Affiliation.objects.create(
             person=person,
             organization=organization,
-            type=3,
+            type=Affiliation.MembershipType.OWNER,
             is_primary=False,
         )
         aff2 = Affiliation.objects.create(
             person=person2,
             organization=organization,
-            type=3,
+            type=Affiliation.MembershipType.OWNER,
             is_primary=False,
         )
 
-        # Get fresh instances from DB to avoid guardian cache issues
+        # Get fresh instances from DB
         person_fresh = Person.objects.get(pk=person.pk)
         person2_fresh = Person.objects.get(pk=person2.pk)
 
-        # Both users should have permission
+        # Both users should have permission (derived from OWNER affiliation)
         assert person_fresh.has_perm("manage_organization", organization)
         assert person2_fresh.has_perm("manage_organization", organization)
 
@@ -121,7 +122,7 @@ class TestOwnerCanEditOrganization:
         member_affiliation = Affiliation.objects.create(
             person=new_member,
             organization=organization,
-            type=2,  # MEMBER
+            type=Affiliation.MembershipType.MEMBER,
             is_primary=False,
         )
 
@@ -157,7 +158,7 @@ class TestNonOwnerCannotEdit:
         Affiliation.objects.create(
             person=person,
             organization=organization,
-            type=2,  # MEMBER
+            type=Affiliation.MembershipType.MEMBER,
             is_primary=False,
         )
 
@@ -196,33 +197,23 @@ class TestTransferOwnership:
         assert old_owner.has_perm("manage_organization", organization)
 
         # Transfer via affiliation changes
-        # Option 1: Change existing affiliation type
-        owner_affiliation.type = 2  # Demote to MEMBER
+        owner_affiliation.refresh_from_db()  # Ensure lifecycle hooks work properly
+        owner_affiliation.type = Affiliation.MembershipType.MEMBER  # Demote to MEMBER
         owner_affiliation.save()
 
         # Create new OWNER affiliation
         new_affiliation = Affiliation.objects.create(
             person=new_owner,
             organization=organization,
-            type=3,  # OWNER
+            type=Affiliation.MembershipType.OWNER,
             is_primary=True,
         )
 
-        # Get fresh instances from DB and clear permission caches
+        # Get fresh instances from DB
         old_owner_fresh = Person.objects.get(pk=old_owner.pk)
         new_owner_fresh = Person.objects.get(pk=new_owner.pk)
 
-        # Clear Django's permission cache explicitly
-        if hasattr(old_owner_fresh, "_perm_cache"):
-            delattr(old_owner_fresh, "_perm_cache")
-        if hasattr(old_owner_fresh, "_user_perm_cache"):
-            delattr(old_owner_fresh, "_user_perm_cache")
-        if hasattr(new_owner_fresh, "_perm_cache"):
-            delattr(new_owner_fresh, "_perm_cache")
-        if hasattr(new_owner_fresh, "_user_perm_cache"):
-            delattr(new_owner_fresh, "_user_perm_cache")
-
-        # Verify permission transfer
+        # Verify permission transfer (derived from current affiliation state)
         assert not old_owner_fresh.has_perm("manage_organization", organization)
         assert new_owner_fresh.has_perm("manage_organization", organization)
 
@@ -244,7 +235,7 @@ class TestTransferOwnership:
         new_affiliation = Affiliation.objects.create(
             person=new_owner,
             organization=organization,
-            type=3,
+            type=Affiliation.MembershipType.OWNER,
             is_primary=True,
             start_date=PartialDate("2026-02-18"),
         )

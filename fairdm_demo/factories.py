@@ -299,7 +299,7 @@ class AffiliationFactory(factory.django.DjangoModelFactory):
     - PENDING (0): Awaiting verification
     - MEMBER (1): Regular member
     - ADMIN (2): Administrative access
-    - OWNER (3): Full control + manage_organization permission
+    - OWNER (3): Full control + manage_organization permission (derived from OWNER affiliation)
 
     Example usage:
         # Create regular member

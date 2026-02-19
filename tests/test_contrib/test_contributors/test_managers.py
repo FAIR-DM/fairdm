@@ -2,7 +2,7 @@
 Tests for Contributor Manager methods (Phase 10, User Story 6).
 
 This module tests custom manager methods for:
-- PersonalContributorsManager: claimed(), unclaimed()
+- UserManager/PersonQuerySet: claimed(), unclaimed(), ghost(), invited(), real()
 - ContributionManager: by_role(), for_entity(), by_contributor()
 - Duplicate detection utilities
 
@@ -18,7 +18,7 @@ from fairdm.contrib.contributors.tasks import detect_duplicate_contributors
 
 
 class TestPersonQuerysets:
-    """Test PersonalContributorsManager queryset methods."""
+    """Test UserManager/PersonQuerySet queryset methods."""
 
     @pytest.mark.django_db
     def test_claimed_queryset(self, person):

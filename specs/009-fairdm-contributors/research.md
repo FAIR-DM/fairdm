@@ -187,23 +187,59 @@ Banned (locked out)
 - `is_active=False` for unclaimed: Semantically incorrect (not banned) and blocks invitation/password reset flows
 - Separate User + Profile models: Doubles queries, introduces sync bugs, conflicts with the "Person IS the auth model" architecture
 
-### D4: Organization Ownership via django-guardian
+### D4: Organization Ownership via Derived Permission Backend
 
-**Decision:** Single `manage_organization` permission defined on `Organization.Meta`, with `Affiliation.type` (integer field) as the source of truth for ownership. Guardian permissions synced from affiliation type via lifecycle hooks.
+**Decision:** `manage_organization` permission is derived from `Affiliation.type` via a custom authentication backend that queries the database directly. No guardian permission rows are stored; `Affiliation` is the single source of truth.
 
 **Details:**
-- Define `permissions = [("manage_organization", "Can manage organization")]` on `Organization.Meta`
-- When `Affiliation.type` changes to `3` (OWNER), a lifecycle hook calls `assign_perm("manage_organization", person, organization)`
-- When `Affiliation.type` changes from `3` to something else (e.g., demotion to ADMIN=2), hook calls `remove_perm("manage_organization", person, organization)`
-- Ownership transfer: single service function wrapping revoke + grant in `transaction.atomic()`
-- Ownerless fallback: only staff/superusers can manage (Django's `ModelBackend` handles this automatically)
-- Polymorphic safety: permission is defined on `Organization.Meta` (same app_label as `Contributor`), avoiding the `WrongAppError` that plagues cross-app polymorphic permissions
-- Audit trail: use `django-activity-stream` for ownership transfer events
+- `OrganizationPermissionBackend` extends `guardian.backends.ObjectPermissionBackend` 
+- When `user.has_perm("contributors.manage_organization", org_instance)` is called:
+  - Backend queries: `Affiliation.objects.filter(person=user, organization=org, type=OWNER).exists()`
+  - Returns `True` if an OWNER affiliation exists, `False` otherwise
+  - Falls through to parent backend for all other permission checks
+- No lifecycle hooks needed — permission is computed on-demand from current database state
+- No guardian permission rows stored — eliminates synchronization bugs and cache staleness issues
+- Multiple owners supported naturally (multiple OWNER affiliations = multiple users pass the check)
+- Ownerless fallback: staff/superusers bypass via `ModelBackend` (first in `AUTHENTICATION_BACKENDS`)
+
+**Architecture pattern:**
+This follows the same pattern as `SamplePermissionBackend` and `MeasurementPermissionBackend` already in the codebase, which derive permissions from parent Dataset permissions. Consistency with existing project architecture.
+
+**Backend implementation:**
+```python
+# fairdm/contrib/contributors/permissions.py
+from guardian.backends import ObjectPermissionBackend
+
+class OrganizationPermissionBackend(ObjectPermissionBackend):
+    """Derive manage_organization permission from OWNER Affiliation."""
+    
+    def has_perm(self, user_obj, perm, obj=None):
+        if obj is None or not isinstance(obj, Organization):
+            return super().has_perm(user_obj, perm, obj)
+        
+        if perm == "contributors.manage_organization":
+            from fairdm.contrib.contributors.models import Affiliation
+            return Affiliation.objects.filter(
+                person=user_obj,
+                organization=obj,
+                type=Affiliation.MembershipType.OWNER
+            ).exists()
+        
+        return super().has_perm(user_obj, perm, obj)
+```
 
 **View-level enforcement:**
-- Detail/edit views: `user.has_perm("contributors.manage_organization", org_instance)`
-- List filtering: `get_objects_for_user(user, "contributors.manage_organization", klass=Organization)`
-- Admin override: staff/superusers pass all `has_perm` checks via `ModelBackend` (first in `AUTHENTICATION_BACKENDS`)
+- Detail/edit views: `user.has_perm("contributors.manage_organization", org_instance)` — works unchanged
+- List filtering: Use `Organization.objects.filter(affiliations__person=user, affiliations__type=OWNER)` instead of guardian's `get_objects_for_user()`
+- Admin override: staff/superusers pass all `has_perm` checks via `ModelBackend`
+
+**Benefits over lifecycle hook approach:**
+1. **No synchronization bugs** — there's nothing to synchronize; permission = current affiliation state
+2. **No cache staleness** — each check is a fresh query (or uses Django's queryset cache naturally)
+3. **No guardian permission rows** — simpler database schema, no cleanup migrations needed
+4. **Simpler tests** — no `ObjectPermissionChecker` workarounds or cache clearing
+5. **Transaction-safe by design** — permission reflects committed affiliation changes immediately
+6. **Follows project patterns** — matches existing `SamplePermissionBackend` architecture
 
 **Granularity decision:** A single coarse permission is sufficient because:
 1. The target audience (research teams) benefits from simplicity
@@ -211,9 +247,10 @@ Banned (locked out)
 3. Multiple granular permissions would add query complexity with minimal governance benefit
 
 **Alternatives rejected:**
-- Multiple permissions (`edit_organization`, `manage_members`, `transfer_ownership`): Over-engineering for the use case; role differentiation handled by application logic
+- Lifecycle hooks syncing guardian rows: Fragile under test database reuse, vulnerable to `.update()` bypasses, cache staleness issues
+- Multiple permissions (`edit_organization`, `manage_members`, `transfer_ownership`): Over-engineering for the use case
 - Nullable `owner` FK on Organization: Duplicates membership data; inconsistency risk
-- Pure guardian (no membership-backed ownership): Harder to reason about; no data model for "who is a member"
+- Service layer for ownership transfer: Over-engineered; promotions/demotions are independent operations, not bundled transfers
 
 ### D5: Metadata Transform Architecture
 

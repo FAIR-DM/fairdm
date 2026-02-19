@@ -48,6 +48,7 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
     "guardian.backends.ObjectPermissionBackend",
+    "fairdm.contrib.contributors.permissions.OrganizationPermissionBackend",  # Organization ownership via OWNER affiliation
     "fairdm.core.sample.permissions.SamplePermissionBackend",  # Sample permission inheritance
     "fairdm.core.measurement.permissions.MeasurementPermissionBackend",  # Measurement permission inheritance
 ]

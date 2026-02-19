@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from ordered_model.models import OrderedModelManager, OrderedModelQuerySet
 
-from fairdm.db.models import PrefetchPolymorphicManager
+from fairdm.db.models import PrefetchPolymorphicManager, PrefetchPolymorphicQuerySet
 
 
 class UserManager(BaseUserManager, PrefetchPolymorphicManager):
@@ -99,7 +99,7 @@ class UserManager(BaseUserManager, PrefetchPolymorphicManager):
         return self.get_queryset().invited()
 
 
-class PersonQuerySet(models.QuerySet):
+class PersonQuerySet(PrefetchPolymorphicQuerySet):
     """QuerySet for Person model with state-based filtering methods.
 
     Provides methods for querying persons based on their claim status and account state.
@@ -168,63 +168,6 @@ class PersonQuerySet(models.QuerySet):
             QuerySet: Person objects with is_claimed=False and email NOT NULL
         """
         return self.filter(is_claimed=False, email__isnull=False)
-
-
-class PersonalContributorsQuerySet(models.QuerySet):
-    """Deprecated: Use PersonQuerySet instead.
-
-    This queryset is maintained for backward compatibility during the migration
-    to unified manager architecture. Will be removed in a future version.
-    """
-
-    def all(self):
-        """A queryset of all contributors, excluding superusers the django-guardian anonymous user."""
-        return self.exclude(is_superuser=True).exclude(email="AnonymousUser")
-
-    def active(self):
-        """A queryset of all active contributors."""
-        return self.all().filter(is_active=True)
-
-    def claimed(self):
-        """Persons with email IS NOT NULL and is_active=True (have claimed their account)."""
-        return self.all().filter(email__isnull=False, is_active=True)
-
-    def unclaimed(self):
-        """Persons with email IS NULL (provenance-only records)."""
-        return self.all().filter(email__isnull=True)
-
-
-class PersonalContributorsManager(models.Manager):
-    """Deprecated: Use Person.objects (UserManager) instead.
-
-    This manager is maintained for backward compatibility during the migration
-    to unified manager architecture. Will be removed in a future version.
-
-    Recommended usage:
-        - Person.objects.real() instead of Person.contributors.all()
-        - Person.objects.claimed() instead of Person.contributors.claimed()
-        - Person.objects.unclaimed() instead of Person.contributors.unclaimed()
-    """
-
-    def get_queryset(self):
-        """Return a queryset of all contributors."""
-        return PersonalContributorsQuerySet(self.model, using=self._db).all()
-
-    def all(self):
-        """Return all contributors."""
-        return self.get_queryset().all()
-
-    def active(self):
-        """Return all active contributors."""
-        return self.get_queryset().active()
-
-    def claimed(self):
-        """Return all claimed contributors (with email and active)."""
-        return self.get_queryset().claimed()
-
-    def unclaimed(self):
-        """Return all unclaimed contributors (no email)."""
-        return self.get_queryset().unclaimed()
 
 
 class AffiliationQuerySet(models.QuerySet):

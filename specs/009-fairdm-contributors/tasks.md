@@ -196,7 +196,7 @@
 
 ## Phase 7: User Story 3c - Organization Ownership by Authenticated Users (Priority: P3)
 
-**Goal**: Organization ownership via django-guardian manage_organization permission with transfer capability
+**Goal**: Organization ownership via derived `manage_organization` permission using custom auth backend (no guardian rows)
 
 **Independent Test**: Assign organization owner, verify owner can edit org and manage members, verify non-owners cannot, verify transfer
 
@@ -210,7 +210,10 @@
 
 ### Implementation for User Story 3c
 
-- [X] T066 [US3c] Add lifecycle hook to Affiliation model in fairdm/contrib/contributors/models.py: When type changes to/from OWNER (3), sync manage_organization permission
+- [X] ~~T066 [US3c] Add lifecycle hook to Affiliation model in fairdm/contrib/contributors/models.py: When type changes to/from OWNER (3), sync manage_organization permission~~ **SUPERSEDED** by derived permission approach (T066a-T066c)
+- [X] T066a [US3c] Create OrganizationPermissionBackend in fairdm/contrib/contributors/permissions.py: Derive manage_organization from OWNER Affiliation query
+- [X] T066b [US3c] Register OrganizationPermissionBackend in fairdm/conf/settings/auth.py AUTHENTICATION_BACKENDS
+- [X] T066c [US3c] Remove lifecycle hooks from Affiliation model + remove manage_organization from Organization.Meta.permissions + create cleanup migration
 - [X] T067 [US3c] Create organization ownership view in fairdm/contrib/contributors/views/organization.py: transfer_ownership(request, org_pk, new_owner_pk)
 - [X] T068 [US3c] Add permission check decorators to organization edit views in fairdm/contrib/contributors/views/organization.py
 - [X] T069 [US3c] Update Organization admin in fairdm/contrib/contributors/admin.py: Add "Transfer Ownership" action
@@ -220,7 +223,7 @@
 - [X] T070 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
 - [X] T071 ⚠️ CRITICAL: Run User Story 3c tests: `poetry run pytest tests/test_contrib/test_contributors/test_permissions.py -v` - ALL tests MUST pass
 
-**Checkpoint**: User Story 3c complete - Organization ownership working with guardian integration
+**Checkpoint**: User Story 3c complete - Organization ownership working with derived permission backend (no guardian permission rows)
 
 ---
 

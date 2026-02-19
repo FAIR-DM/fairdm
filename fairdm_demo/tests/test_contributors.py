@@ -79,7 +79,8 @@ class TestDemoOrganizationOwnership:
         This demonstrates the Affiliation type field state machine:
         PENDING (0) → MEMBER (1) → ADMIN (2) → OWNER (3)
 
-        OWNER-type affiliations automatically grant 'manage_organization' permission.
+        OWNER-type affiliations grant 'manage_organization' permission via
+        OrganizationPermissionBackend (derived from database state).
         """
         # Create organization and person
         org = OrganizationFactory(name="Demo Research Lab")
@@ -99,10 +100,10 @@ class TestDemoOrganizationOwnership:
         member_affiliation.type = Affiliation.MembershipType.OWNER
         member_affiliation.save()
 
-        # Refresh person from DB to avoid cached permissions
+        # Refresh person from DB to get clean state
         researcher_fresh = Person.objects.get(pk=researcher.pk)
 
-        # Verify lifecycle hook granted permission
+        # Verify derived permission from OWNER affiliation
         assert researcher_fresh.has_perm("contributors.manage_organization", org)
 
         # Demonstrate multiple owners allowed

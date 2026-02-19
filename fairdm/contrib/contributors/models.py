@@ -15,11 +15,10 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, AFTER_DELETE, AFTER_UPDATE, BEFORE_CREATE, hook
+from django_lifecycle import AFTER_CREATE, AFTER_DELETE, BEFORE_CREATE, hook
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
-from guardian.shortcuts import assign_perm, remove_perm
 from jsonfield_toolkit.models import ArrayField
 from model_utils import FieldTracker
 from ordered_model.models import OrderedModel
@@ -507,7 +506,6 @@ class Person(AbstractUser, Contributor):
 
     # null is allowed for the email field, as a Person object/User account can be created by someone else. E.g. when
     # adding a new contributor to a database entry.
-    # The email field is not stored in this case, as we don't have permission from the email owner.
     email = models.EmailField(_("email address"), unique=True, null=True, blank=True)
 
     is_claimed = models.BooleanField(
@@ -751,6 +749,7 @@ class Affiliation(models.Model):
     """
 
     objects = AffiliationManager()  # type: ignore[var-annotated]
+    tracker = FieldTracker()
 
     class MembershipType(models.IntegerChoices):
         PENDING = 0, _("Pending")
@@ -807,27 +806,11 @@ class Affiliation(models.Model):
         unique_together = ("person", "organization")
 
     def save(self, *args, **kwargs):
-        """Ensure only one primary affiliation per person and sync ownership permissions.
-        
-        - Ensures only one primary affiliation per person
-        - Automatically syncs django-guardian permissions for OWNER affiliations
-        """
+        """Ensure only one primary affiliation per person."""
         if self.is_primary:
-            # Unset other primary affiliations for the same person
-            for affiliation in Affiliation.objects.filter(
-                person=self.person, is_primary=True
-            ).exclude(pk=self.pk):
-                affiliation.is_primary = False
-                affiliation.save()
-        
+            # Unset other primary affiliations for this person
+            Affiliation.objects.filter(person=self.person, is_primary=True).exclude(pk=self.pk).update(is_primary=False)
         super().save(*args, **kwargs)
-        
-        # Sync ownership permissions after save
-        if self.type == self.MembershipType.OWNER:
-            assign_perm("contributors.manage_organization", self.person, self.organization)
-        else:
-            # Remove permission if type changed away from OWNER
-            remove_perm("contributors.manage_organization", self.person, self.organization)
 
     def __str__(self):
         return f"{self.person} - {self.organization}"
@@ -892,7 +875,6 @@ class Organization(Contributor):
     class Meta:
         verbose_name = _("organization")
         verbose_name_plural = _("organizations")
-        permissions = [("manage_organization", _("Can manage organization"))]
 
     def __str__(self):
         return self.name

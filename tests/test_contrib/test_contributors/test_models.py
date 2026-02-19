@@ -151,10 +151,31 @@ class TestOrganizationCreationAndValidation:
         assert isinstance(result, Organization)
 
     @pytest.mark.django_db
-    def test_organization_has_manage_permission(self, db):
-        """Organization Meta has manage_organization permission."""
+    def test_organization_manage_permission_derived(self, db):
+        """manage_organization permission is derived from OWNER affiliation (not in Meta)."""
+        # Verify permission is NOT in Meta (derived via backend instead)
         perms = [p[0] for p in Organization._meta.permissions]
-        assert "manage_organization" in perms
+        assert "manage_organization" not in perms
+        
+        # Verify derived permission works via OrganizationPermissionBackend
+        from fairdm.factories import PersonFactory
+        from fairdm.contrib.contributors.models import Affiliation
+        
+        org = OrganizationFactory(name="Test Org")
+        person = PersonFactory(email="owner@example.com")
+        
+        # No permission without OWNER affiliation
+        assert not person.has_perm("manage_organization", org)
+        
+        # Create OWNER affiliation
+        Affiliation.objects.create(
+            person=person,
+            organization=org,
+            type=Affiliation.MembershipType.OWNER,
+        )
+        
+        # Permission derived from OWNER affiliation
+        assert person.has_perm("manage_organization", org)
 
     @pytest.mark.django_db
     def test_organization_parent_child(self, db):
