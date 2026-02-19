@@ -192,7 +192,7 @@ As a developer, I have access to custom model managers and utility functions so 
 - **FR-004**: System MUST support linking contributors to Projects, Datasets, Samples, and Measurements with role specification
 - **FR-005**: System MUST trigger an ORCID sync automatically when an ORCID identifier is first set or changed on a Person record; additionally, a periodic Celery background task MUST refresh all Person records that have an ORCID identifier
 - **FR-006**: System MUST trigger a ROR sync automatically when a ROR identifier is first set or changed on an Organization record; additionally, a periodic Celery background task MUST refresh all Organization records that have a ROR identifier
-- **FR-007**: System MUST distinguish between claimed Person records (valid email + credentials, can log in) and unclaimed Person records (NULL email, no usable password, provenance-only) via a computed `is_claimed` property and `claimed()`/`unclaimed()` manager queryset methods
+- **FR-007**: System MUST distinguish between claimed and unclaimed Person records via an `is_claimed` BooleanField with a 4-state machine (Ghost → Invited → Claimed → Banned), enabling efficient database queries. Unclaimed persons maintain `is_active=True` to support password reset and invitation flows. The system provides queryset methods `claimed()`, `unclaimed()`, `ghost()` (email=NULL), and `invited()` (email present, not claimed). See research.md D3 for complete state machine documentation.
 - **FR-008**: *Deferred to [Feature 010: Profile Claiming & Account Linking](../010-profile-claiming/spec.md).* The data model MUST be designed to support future claiming flows (ORCID match, email match, token-based, post-signup merge) but no claiming flow UI, adapters (except the existing ORCID adapter bug fix), or merge logic is implemented in this feature.
 - **FR-009**: System MUST enforce privacy controls on sensitive fields (email, phone) based on user preferences and claim status
 - **FR-010**: System MUST track affiliation history with start and end dates for each Person-Organization relationship
@@ -207,7 +207,7 @@ As a developer, I have access to custom model managers and utility functions so 
 - **FR-012**: System MUST export contributor metadata in Schema.org JSON-LD format
 - **FR-012a**: System MUST provide a well-documented public API for developers to create custom bidirectional metadata transformations (import and export) for additional formats
 - **FR-012b**: System MUST support importing contributor data from external sources using the transformation API with proper field mapping and validation
-- **FR-013**: System MUST provide custom model managers with methods for common queries (active contributors, recent activity, search by expertise)
+- **FR-013**: System MUST provide a unified PersonQuerySet (via UserManager.from_queryset pattern) with methods for common contributor queries including `real()` (exclude superusers), `claimed()`, `unclaimed()`, `ghost()`, `invited()`, active status filtering, and search by expertise. See research.md D8 for manager unification rationale.
 - **FR-014**: System MUST provide utility functions for duplicate detection based on names and identifiers
 - **FR-016**: System MUST support multiple roles per contributor per research output (e.g., PI, Data Collector, Analyst)
 - **FR-017**: System MUST track last sync timestamp and sync status for external identifier integrations

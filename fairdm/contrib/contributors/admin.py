@@ -193,7 +193,7 @@ class OrganizationAdmin(admin.ModelAdmin):
     search_fields = ["name"]
     readonly_fields = ["synced_data", "last_synced"]
     exclude = ("alternative_names", "links", "lang")  # Exclude ArrayFields to avoid widget issues
-    actions = ["sync_from_ror"]  # Add ROR sync action
+    actions = ["sync_from_ror", "transfer_ownership_action"]  # Add ROR sync and ownership transfer actions
     formfield_overrides = {
         # Use simple Textarea for ArrayFields to avoid missing widget template issues
         ArrayField: {"widget": admin.widgets.AdminTextareaWidget},
@@ -242,3 +242,52 @@ class OrganizationAdmin(admin.ModelAdmin):
                 "No organizations with ROR identifiers found.",
                 level="warning",
             )
+
+    @admin.action(description="Transfer Ownership")
+    def transfer_ownership_action(self, request, queryset):
+        """Transfer ownership for selected organization (single selection only)."""
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        # Validate single selection
+        if queryset.count() != 1:
+            self.message_user(
+                request,
+                "Please select exactly one organization to transfer ownership.",
+                level="error",
+            )
+            return
+
+        org = queryset.first()
+
+        # Check if organization has members
+        if not org.members.exists():
+            self.message_user(
+                request,
+                f"Organization '{org.name}' has no members. Add members before transferring ownership.",
+                level="error",
+            )
+            return
+
+        # Check user has manage_organization permission
+        if not request.user.has_perm("contributors.manage_organization", org):
+            self.message_user(
+                request,
+                f"You don't have permission to manage organization '{org.name}'.",
+                level="error",
+            )
+            return
+
+        # Redirect to organization change page with info message about ownership transfer
+        # The actual transfer should be done via the transfer_ownership view or through
+        # a custom admin intermediate page (not implemented here for simplicity)
+        self.message_user(
+            request,
+            f"To transfer ownership of '{org.name}', use the member management inline below. "
+            f"Promote a member to OWNER role - the current owner will be automatically demoted to ADMIN.",
+            level="info",
+        )
+
+        # Redirect to organization change page
+        url = reverse("admin:contributors_organization_change", args=[org.pk])
+        return redirect(url)

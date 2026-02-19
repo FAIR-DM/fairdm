@@ -29,13 +29,16 @@ from fairdm.factories import (
 
 @pytest.fixture
 def person(db):
-    """A claimed person (has email, is_active=True)."""
-    return PersonFactory(email="claimed@example.com", is_active=True)
+    """A claimed person (has email, is_active=True, is_claimed=True)."""
+    p = PersonFactory(email="claimed@example.com", is_active=True, is_claimed=True)
+    p.set_password("testpass123")
+    p.save()
+    return p
 
 
 @pytest.fixture
 def unclaimed_person(db):
-    """An unclaimed person (no email, is_active=False)."""
+    """An unclaimed person (no email, is_active=True, is_claimed=False)."""
     return Person.objects.create_unclaimed(
         first_name="Jane",
         last_name="Doe",

@@ -54,23 +54,48 @@ class UserManager(BaseUserManager):
         """
 ```
 
-### 1.2 PersonalContributorsManager (Person.contributors)
+### 1.2 PersonQuerySet (Person.objects)
 
 ```python
-class PersonalContributorsManager(Manager):
-    """Excludes superusers and guardian AnonymousUser."""
+class PersonQuerySet(QuerySet):
+    """Extended queryset for filtering Person records by account state."""
 
-    def all(self) -> QuerySet[Person]:
-        """All non-superuser, non-anonymous persons."""
-
-    def active(self) -> QuerySet[Person]:
-        """Persons with is_active=True."""
+    def real(self) -> QuerySet[Person]:
+        """Exclude ghost/provenance-only records (unclaimed with no email).
+        
+        **Recommended for portal queries** to show only actual people, not data placeholders.
+        
+        Returns:
+            Persons where NOT (is_claimed=False AND email IS NULL).
+        """
 
     def claimed(self) -> QuerySet[Person]:
-        """Persons with email IS NOT NULL and is_active=True."""
+        """Persons with email IS NOT NULL and is_active=True.
+        
+        Returns:
+            Active user accounts (can log in).
+        """
 
     def unclaimed(self) -> QuerySet[Person]:
-        """Persons with email IS NULL (provenance-only records)."""
+        """Persons with email IS NULL (provenance-only records).
+        
+        Returns:
+            Person records created for data attribution before user registration.
+        """
+    
+    def ghost(self) -> QuerySet[Person]:
+        """Unclaimed persons with no email (provenance placeholders).
+        
+        Returns:
+            Persons where is_claimed=False AND email IS NULL.
+        """
+    
+    def invited(self) -> QuerySet[Person]:
+        """Unclaimed persons with email set (pending claim).
+        
+        Returns:
+            Persons where is_claimed=False AND email IS NOT NULL.
+        """
 ```
 
 ### 1.3 ContributionManager
@@ -163,18 +188,16 @@ class Contributor:
 ```python
 class Person(AbstractUser, Contributor):
 
-    @property
-    def is_claimed(self) -> bool:
-        """True if email is not None, is_active, and has_usable_password()."""
+    # NOTE: is_claimed is now a BooleanField, not a property (research.md D3)
+    is_claimed: bool  # BooleanField, default=False, enables Ghost/Invited/Claimed/Banned state machine
 
     def orcid(self) -> ContributorIdentifier | None:
         """Return the ORCID identifier, or None."""
 
-    def primary_affiliation(self) -> Affiliation | None:
-        """Return the primary Affiliation (is_primary=True), or None."""
-
-    def current_affiliations(self) -> QuerySet[Affiliation]:
-        """Active affiliations (end_date IS NULL)."""
+    # NOTE: Affiliation queries moved to AffiliationQuerySet (research.md D3)
+    # Usage: person.affiliations.primary() returns Affiliation | None
+    # Usage: person.affiliations.current() returns QuerySet[Affiliation]
+    # See AffiliationQuerySet contract below for available methods
 
     @classmethod
     def from_orcid(cls, orcid_id: str) -> Person:
@@ -207,6 +230,19 @@ class Person(AbstractUser, Contributor):
 ### 2.3 Organization
 
 ```python
+class AffiliationQuerySet(models.QuerySet[Affiliation]):
+    """QuerySet methods for querying Person affiliations."""
+
+    def primary(self) -> Affiliation | None:
+        """Return the primary affiliation (is_primary=True), or None if no primary set."""
+
+    def current(self) -> QuerySet[Affiliation]:
+        """Return active affiliations (end_date IS NULL)."""
+
+    def past(self) -> QuerySet[Affiliation]:
+        """Return past affiliations (end_date IS NOT NULL)."""
+
+
 class Organization(Contributor):
 
     @classmethod

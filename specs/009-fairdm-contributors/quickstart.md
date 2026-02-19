@@ -160,8 +160,16 @@ if request.user.affiliations.filter(organization=harvard, type__gte=2).exists():
 ```python
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
-# Grant ownership (typically done via admin or lifecycle hook on Affiliation.role)
-assign_perm("contributors.manage_organization", person, org)
+# Ownership is managed via Affiliation.type
+# Setting type=OWNER automatically grants manage_organization permission via lifecycle hooks
+from fairdm.contrib.contributors.models import Affiliation
+
+# Create owner affiliation (auto-grants manage_organization permission)
+owner_aff = Affiliation.objects.create(
+    person=person,
+    organization=org,
+    type=Affiliation.MembershipType.OWNER,  # Automatically grants manage_organization
+)
 
 # Check if a user can manage an organization
 can_manage = person.has_perm("contributors.manage_organization", org)
@@ -171,8 +179,13 @@ managed_orgs = get_objects_for_user(
     person, "contributors.manage_organization", klass=Organization
 )
 
-# Transfer ownership
-org.transfer_ownership(new_owner=another_person)
+# Transfer ownership (via admin or direct Affiliation update)
+# When you set a new OWNER, the old owner is automatically demoted to ADMIN
+new_owner_aff = Affiliation.objects.create(
+    person=another_person,
+    organization=org,
+    type=Affiliation.MembershipType.OWNER,  # Old owner auto-demoted via lifecycle hooks
+)
 ```
 
 ---
@@ -182,14 +195,23 @@ org.transfer_ownership(new_owner=another_person)
 ### Using manager methods
 
 ```python
-# All non-superuser, non-anonymous persons
-all_persons = Person.contributors.all()
+# All Person records (includes ghosts, claimed, unclaimed)
+all_persons = Person.objects.all()
+
+# Real people (excludes ghost/provenance-only records) - USE THIS FOR PORTAL QUERIES
+real_people = Person.objects.real()
 
 # Only claimed (active accounts)
-claimed = Person.contributors.claimed()
+claimed = Person.objects.claimed()
 
 # Only unclaimed (provenance-only)
-unclaimed = Person.contributors.unclaimed()
+unclaimed = Person.objects.unclaimed()
+
+# Ghost records (unclaimed, no email)
+ghosts = Person.objects.ghost()
+
+# Invited (unclaimed but has email)
+invited = Person.objects.invited()
 
 # Find co-contributors
 collaborators = person.get_co_contributors(limit=10)

@@ -139,7 +139,7 @@ class UpdateContributionForm(ModelForm):
         widget=HeavySelect2MultipleWidget(data_view="concept-autocomplete"),
     )
     affiliation = forms.ModelChoiceField(
-        queryset=Person.contributors.all(),
+        queryset=Person.objects.real(),
         required=False,
     )
 

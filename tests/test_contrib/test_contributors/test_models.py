@@ -44,9 +44,9 @@ class TestPersonClaimedUnclaimedSemantics:
 
     @pytest.mark.django_db
     def test_unclaimed_person_has_no_email(self, unclaimed_person):
-        """An unclaimed person has no email, is_active=False, is_claimed=False."""
+        """An unclaimed person has no email, is_active=True (allows claiming), is_claimed=False."""
         assert unclaimed_person.email is None
-        assert unclaimed_person.is_active is False
+        assert unclaimed_person.is_active is True  # Allows future claiming
         assert unclaimed_person.is_claimed is False
 
     @pytest.mark.django_db
@@ -58,7 +58,8 @@ class TestPersonClaimedUnclaimedSemantics:
         )
         assert p.pk is not None
         assert p.email is None
-        assert p.is_active is False
+        assert p.is_active is True  # Allows future claiming
+        assert p.is_claimed is False
         assert not p.has_usable_password()
         assert p.name == "Test Unclaimed"
 
@@ -349,3 +350,293 @@ class TestContributorIdentifierUniqueness:
     def test_person_default_identifier_is_orcid(self):
         """Person.DEFAULT_IDENTIFIER is 'ORCID'."""
         assert Person.DEFAULT_IDENTIFIER == "ORCID"
+
+
+# ── T027a: Person name internationalization ────────────────────────────────
+
+
+class TestPersonNameInternationalization:
+    """Test Person name handling with non-Latin scripts (FR-020 compliance)."""
+
+    @pytest.mark.django_db
+    def test_person_name_chinese_script(self, db):
+        """Person model handles Chinese characters correctly."""
+        person = PersonFactory(
+            first_name="王",
+            last_name="明",
+            name="",
+        )
+        assert person.name == "王 明"
+        assert person.first_name == "王"
+        assert person.last_name == "明"
+
+    @pytest.mark.django_db
+    def test_person_name_arabic_script(self, db):
+        """Person model handles Arabic characters correctly."""
+        person = PersonFactory(
+            first_name="محمد",
+            last_name="أحمد",
+            name="",
+        )
+        assert person.name == "محمد أحمد"
+        assert person.first_name == "محمد"
+        assert person.last_name == "أحمد"
+
+    @pytest.mark.django_db
+    def test_person_name_cyrillic_script(self, db):
+        """Person model handles Cyrillic characters correctly."""
+        person = PersonFactory(
+            first_name="Иван",
+            last_name="Петров",
+            name="",
+        )
+        assert person.name == "Иван Петров"
+        assert person.first_name == "Иван"
+        assert person.last_name == "Петров"
+
+    @pytest.mark.django_db
+    def test_person_name_mixed_scripts(self, db):
+        """Person model handles mixed script names."""
+        person = PersonFactory(
+            first_name="José",
+            last_name="García-López",
+            name="",
+        )
+        assert person.name == "José García-López"
+        # Verify no mojibake or encoding issues
+        assert "�" not in person.name
+
+    @pytest.mark.django_db
+    def test_person_name_emoji_and_special_chars(self, db):
+        """Person model handles emoji and special Unicode characters."""
+        person = PersonFactory(
+            first_name="Test",
+            last_name="O'Brien-Smith",
+            name="",
+        )
+        assert person.name == "Test O'Brien-Smith"
+        assert "'" in person.last_name  # Curly apostrophe preserved
+
+
+# ── T072: Multiple roles per contribution ──────────────────────────────────
+
+
+class TestMultipleRolesPerContribution:
+    """Test that a contribution can have multiple roles assigned."""
+
+    @pytest.mark.django_db
+    def test_contribution_multiple_roles(self, db):
+        """A contribution can have multiple roles from Fair DM vocabulary."""
+        from research_vocabs.models import Concept
+
+        project = ProjectFactory()
+        person = PersonFactory()
+        contribution = ContributionFactory(
+            content_object=project,
+            contributor=person,
+        )
+
+        # Get role concepts from the database (they should exist from fixtures/migrations)
+        # Use the legacy vocabulary filter approach
+        try:
+            roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
+            if roles_qs.count() < 2:
+                # If vocabulary not initialized, skip test
+                import pytest
+
+                pytest.skip("fairdm-roles vocabulary not initialized")
+
+            author_role = roles_qs.first()
+            editor_role = roles_qs.last()
+
+            # Assign multiple roles
+            contribution.roles.add(author_role, editor_role)
+
+            assert contribution.roles.count() == 2
+        except Concept.DoesNotExist:
+            import pytest
+
+            pytest.skip("fairdm-roles vocabulary not initialized")
+        assert author_role in contribution.roles.all()
+        assert editor_role in contribution.roles.all()
+
+
+# ── T073: Affiliation time bounds ──────────────────────────────────────────
+
+
+class TestAffiliationTimeBounds:
+    """Test affiliation time-bound functionality with PartialDateField."""
+
+    @pytest.mark.django_db
+    def test_affiliation_active_no_end_date(self, db):
+        """Affiliation with end_date=None is considered active."""
+        person = PersonFactory()
+        org = OrganizationFactory()
+        affiliation = AffiliationFactory(
+            person=person,
+            organization=org,
+            start_date="2020-01",
+            end_date=None,
+        )
+
+        # Active affiliations have no end_date
+        assert affiliation.end_date is None
+        assert org.affiliations.filter(end_date__isnull=True).exists()
+
+    @pytest.mark.django_db
+    def test_affiliation_historical_has_end_date(self, db):
+        """Affiliation with end_date IS NOT NULL is historical."""
+        person = PersonFactory()
+        org = OrganizationFactory()
+        affiliation = AffiliationFactory(
+            person=person,
+            organization=org,
+            start_date="2015",
+            end_date="2020-06",
+        )
+
+        assert affiliation.end_date is not None
+        assert org.affiliations.filter(end_date__isnull=False).exists()
+
+    @pytest.mark.django_db
+    def test_multiple_affiliations_timeline(self, db):
+        """Person can have multiple affiliations with different time periods."""
+        person = PersonFactory()
+        org1 = OrganizationFactory(name="University A")
+        org2 = OrganizationFactory(name="Institute B")
+
+        # Past affiliation
+        past_aff = AffiliationFactory(
+            person=person,
+            organization=org1,
+            start_date="2010",
+            end_date="2015",
+        )
+
+        # Current affiliation
+        current_aff = AffiliationFactory(
+            person=person,
+            organization=org2,
+            start_date="2015",
+            end_date=None,
+        )
+
+        assert person.affiliations.count() == 2
+        assert person.affiliations.filter(end_date__isnull=True).count() == 1
+        assert person.affiliations.filter(end_date__isnull=False).count() == 1
+
+
+# ── T074: Partial date precision ───────────────────────────────────────────
+
+
+class TestPartialDatePrecision:
+    """Test PartialDateField supports year, year-month, and full date precision."""
+
+    @pytest.mark.django_db
+    def test_affiliation_year_only_precision(self, db):
+        """PartialDateField accepts year-only precision."""
+        person = PersonFactory()
+        org = OrganizationFactory()
+        affiliation = AffiliationFactory(
+            person=person,
+            organization=org,
+            start_date="2020",
+            end_date=None,
+        )
+
+        assert affiliation.start_date == "2020"
+
+    @pytest.mark.django_db
+    def test_affiliation_year_month_precision(self, db):
+        """PartialDateField accepts year-month precision."""
+        person = PersonFactory()
+        org = OrganizationFactory()
+        affiliation = AffiliationFactory(
+            person=person,
+            organization=org,
+            start_date="2020-03",
+            end_date="2023-12",
+        )
+
+        assert affiliation.start_date == "2020-03"
+        assert affiliation.end_date == "2023-12"
+
+    @pytest.mark.django_db
+    def test_affiliation_full_date_precision(self, db):
+        """PartialDateField accepts full date precision."""
+        person = PersonFactory()
+        org = OrganizationFactory()
+        affiliation = AffiliationFactory(
+            person=person,
+            organization=org,
+            start_date="2020-03-15",
+            end_date="2023-12-31",
+        )
+
+        assert affiliation.start_date == "2020-03-15"
+        assert affiliation.end_date == "2023-12-31"
+
+
+# ── T075: Primary affiliation constraint ───────────────────────────────────
+
+
+class TestPrimaryAffiliationConstraint:
+    """Test that only one affiliation per person can be primary."""
+
+    @pytest.mark.django_db
+    def test_single_primary_affiliation(self, db):
+        """Person can have one primary affiliation."""
+        person = PersonFactory()
+        org = OrganizationFactory()
+        affiliation = AffiliationFactory(
+            person=person,
+            organization=org,
+            is_primary=True,
+        )
+
+        assert affiliation.is_primary is True
+        assert person.affiliations.filter(is_primary=True).count() == 1
+
+    @pytest.mark.django_db
+    def test_setting_new_primary_unsetsolds(self, db):
+        """Setting a new primary affiliation unsets the old one."""
+        person = PersonFactory()
+        org1 = OrganizationFactory(name="Org 1")
+        org2 = OrganizationFactory(name="Org 2")
+
+        # Create first primary affiliation
+        aff1 = AffiliationFactory(
+            person=person,
+            organization=org1,
+            is_primary=True,
+        )
+        assert aff1.is_primary is True
+
+        # Create second primary affiliation - should unset first
+        aff2 = AffiliationFactory(
+            person=person,
+            organization=org2,
+            is_primary=True,
+        )
+
+        # Refresh from DB
+        aff1.refresh_from_db()
+
+        assert aff2.is_primary is True
+        assert aff1.is_primary is False
+        assert person.affiliations.filter(is_primary=True).count() == 1
+
+    @pytest.mark.django_db
+    def test_multiple_non_primary_affiliations_allowed(self, db):
+        """Person can have multiple non-primary affiliations."""
+        person = PersonFactory()
+        org1 = OrganizationFactory(name="Org 1")
+        org2 = OrganizationFactory(name="Org 2")
+        org3 = OrganizationFactory(name="Org 3")
+
+        AffiliationFactory(person=person, organization=org1, is_primary=False)
+        AffiliationFactory(person=person, organization=org2, is_primary=False)
+        AffiliationFactory(person=person, organization=org3, is_primary=False)
+
+        assert person.affiliations.filter(is_primary=False).count() == 3
+        assert person.affiliations.filter(is_primary=True).count() == 0

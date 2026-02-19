@@ -130,31 +130,61 @@ The contributors app (`fairdm/contrib/contributors/`) is a substantial but uneve
 - Single monolithic migration: No intermediate rollback points; harder to debug failures
 - Keeping `db_table='contributors_organizationmember'`: Creates confusion between Python name and DB name
 
-### D3: Person/User Model — Claimed vs Unclaimed
+### D3: Person/User Model — Claimed vs Unclaimed States
 
-**Decision:** Use `email = NULL` + `has_usable_password() = False` + `is_active = False` as the unclaimed signal. Add an `is_claimed` computed property (not a field).
+**Decision:** Add `is_claimed = BooleanField(default=False)` to Person model to explicitly track ownership state. Unclaimed persons have `is_active=True` (not False) to enable email-based invitation flows.
 
-**Details:**
-- Unclaimed Person: `email=NULL`, `set_unusable_password()`, `is_active=False`
-- Claimed Person: valid `email`, valid password hash, `is_active=True`
-- Property `is_claimed`: checks `email is not None and is_active and has_usable_password()`
-- Manager methods: `PersonalContributorsManager` gains `claimed()` and `unclaimed()` queryset methods
+**The Problem with Email-Only Detection:**
+Initially considered using `email = NULL` + `is_active = False` as the unclaimed signal. However, this breaks a critical real-world workflow: when researchers add contributors to datasets/publications, best practice is to request their email addresses so contributors can confirm their participation. This prevents reputation gaming (Person X adding Person Y without consent). If we require `email=NULL` for unclaimed, we can't support this ethical workflow. Therefore, **email presence alone cannot determine claimed status**.
+
+**State Machine:**
+
+| State | Description | `email` | `is_claimed` | `is_active` |
+|-------|-------------|---------|--------------|-------------|
+| **Ghost** | Pure attribution, no contact | NULL | False | True |
+| **Invited** | Email added, awaiting signup | NOT NULL | False | True |
+| **Claimed** | Owns their account | NOT NULL | True | True |
+| **Banned** | Suspended after claiming | NOT NULL | True | False |
+
+**State Transitions:**
+```
+Ghost (created via create_unclaimed, no email)
+  ↓ [email added by dataset creator]
+Invited (can receive password reset / invitation link)
+  ↓ [confirms signup via allauth]
+Claimed (owns account, can log in)
+  ↓ [admin suspends]
+Banned (locked out)
+```
+
+**Why `is_active=True` for Ghosts/Invited:**
+- `is_active=False` semantically means "banned/suspended", not "hasn't signed up yet"
+- Ghosts aren't banned — they're unclaimed attribution records in good standing
+- Invited persons need `is_active=True` so Django auth doesn't block password reset flows
+- Django auth already prevents login for users without usable passwords, so no security hole
+
+**Implementation Details:**
+- `is_claimed` field added to Person model (nullable for migration, default False going forward)
+- Data migration: existing users with `email NOT NULL` → `is_claimed=True`; users created via `create_unclaimed()` → `is_claimed=False`
+- Manager method: `Person.objects.real()` returns queryset excluding superusers and guardian AnonymousUser (see D8 for manager unification)
+- Queryset methods: `claimed()`, `unclaimed()`, `ghost()`, `invited()`
 - Validation: `clean()` prevents claimed users from removing their email (setting to NULL)
 - Email normalization: Override `clean()` to fully lowercase local part (Django only lowercases domain)
 - Prevent ambiguity: `unique_together` constraint on `ContributorIdentifier(type, value)` enforced (already exists via `UniqueConstraint`)
 
-**Rationale:** A computed property avoids adding a field that could drift from the actual email/password state. The three-signal approach (`email`, `password`, `is_active`) is robust because each serves a distinct purpose: `email` for identification, `password` for authentication, `is_active` for Django's own login gating.
-
-**Claiming flow (unchanged from current implementation):**
-1. Admin creates unclaimed Person with ORCID identifier
-2. Real person signs up via ORCID social login
-3. `SocialAccountAdapter.pre_social_login()` matches ORCID → existing identifier
-4. allauth connects social account to existing inactive Person
-5. `save_user()` sets `is_active=True`, populates email from ORCID data
-6. Person is now claimed
+**Claiming flow:**
+1. Admin creates Ghost via `create_unclaimed(first_name, last_name)` → `email=NULL`, `is_claimed=False`, `is_active=True`
+2. Dataset creator adds email → Ghost transitions to Invited (same flags, email now populated)
+3. Real person signs up via ORCID social login
+4. `SocialAccountAdapter.pre_social_login()` matches ORCID → existing identifier
+5. allauth connects social account to existing Person
+6. `save_user()` sets `is_claimed=True`, populates/updates email from ORCID data
+7. Person is now Claimed
 
 **Alternatives rejected:**
-- Explicit `is_claimed` BooleanField: Additional state to synchronize; lifecycle hooks can keep it in sync, but adds migration and complexity for marginal benefit
+- Computed `is_claimed` property: Can't query efficiently (`Person.objects.filter(is_claimed=True)` requires Python-level filtering)
+- `email=NULL` requirement for unclaimed: Blocks ethical contributor confirmation workflows
+- `is_active=False` for unclaimed: Semantically incorrect (not banned) and blocks invitation/password reset flows
 - Separate User + Profile models: Doubles queries, introduces sync bugs, conflicts with the "Person IS the auth model" architecture
 
 ### D4: Organization Ownership via django-guardian
@@ -274,9 +304,74 @@ This must be updated as part of the transform work. The existing `synced_data` f
 
 ---
 
-### D8: Profile Claiming Scope — Deferred to Feature 010
+### D8: Manager Unification — Single Manager with .real() Method
 
-**Decision:** Remove claiming flows (ORCID, email, token, post-signup merge) from Feature 009. Defer entirely to a dedicated **Feature 010: Profile Claiming & Account Linking**. This spec (009) retains unclaimed *data model* support only — the `is_claimed` property, `claimed()`/`unclaimed()` manager methods, and the three-signal unclaimed sentinel (`email=NULL`, `is_active=False`, unusable password) — but implements no claiming *flows*.
+**Decision:** Merge `PersonalContributorsManager` into `UserManager` using Django's `Manager.from_queryset()` pattern. Replace dual-manager approach (`objects`/`contributors`) with a single unified manager providing `Person.objects.real()` to exclude system accounts.
+
+**The Original Dual-Manager Rationale:**
+The codebase had two managers:
+- `objects = UserManager()` — returns ALL users including superusers (required by Django auth machinery)
+- `contributors = PersonalContributorsManager()` — excludes superusers and guardian AnonymousUser
+
+This split was intentional: portal developers who are also portal users MUST maintain separate accounts—a superuser account for admin tasks AND a normal Person account for research activity. Portal documentation will STRONGLY recommend this separation. Excluding superusers from contributor-facing queries (`Person.contributors.all()`) prevents accidental exposure of all portal users in contributor lists, dropdowns, and attribution widgets.
+
+Django's auth internals (`authenticate()`, session restoration, `createsuperuser` command) require `Person.objects.all()` to return ALL users including superusers, so the base manager cannot filter by default.
+
+**Why Unification is Better:**
+1. **Single source of truth**: All query methods (`claimed()`, `unclaimed()`, `ghost()`, `invited()`, `real()`) live on one manager
+2. **Better autocomplete/discoverability**: Developers see all methods in one place
+3. **Clearer semantics**: `objects.real()` is explicit about excluding system users, vs implicit filtering in a separate manager's `get_queryset()`
+4. **Equally safe**: Both approaches require developers to consciously use the safe method (`contributors.all()` vs `objects.real()`)—neither prevents mistakes, but unified is marginally more discoverable
+
+**Implementation:**
+```python
+class PersonQuerySet(models.QuerySet):
+    def real(self):
+        """Exclude system accounts (superusers, guardian AnonymousUser).
+        Use instead of .all() in portal views and contributor listings."""
+        return self.exclude(is_superuser=True).exclude(email="AnonymousUser")
+
+    def claimed(self):
+        return self.filter(is_claimed=True)
+
+    def unclaimed(self):
+        return self.filter(is_claimed=False)
+
+    def ghost(self):
+        return self.filter(is_claimed=False, email__isnull=True)
+
+    def invited(self):
+        return self.filter(is_claimed=False, email__isnull=False)
+
+class UserManager(BaseUserManager.from_queryset(PersonQuerySet), PrefetchPolymorphicManager):
+    use_in_migrations = False
+    # ... existing create_user, create_superuser, create_unclaimed methods
+```
+
+On Person model: single manager `objects = UserManager()` (remove `contributors = PersonalContributorsManager()`).
+
+**Usage:**
+- Portal views/forms: `Person.objects.real()` — safe for contributor dropdowns, author lists, etc.
+- Admin/auth: `Person.objects.all()` — includes superusers (required by Django internals)
+- Filtering: `Person.objects.real().claimed()` — chaining works naturally
+
+**Migration path:**
+1. Update `managers.py`: create `PersonQuerySet`, merge into `UserManager`
+2. Update `models.py`: remove `contributors = PersonalContributorsManager()`
+3. Find-and-replace: `Person.contributors.` → `Person.objects.real().` (or just `Person.objects.` where appropriate)
+4. Update tests: `test_managers.py` uses `Person.contributors.claimed()` → `Person.objects.claimed()`
+5. Update spec contracts: `api-contracts.md` documents `PersonalContributorsManager`
+
+**Alternatives rejected:**
+- Keep dual managers: Less discoverable, splits related functionality
+- Override `get_queryset()` in UserManager to exclude superusers: Breaks Django auth (session restore, authenticate, etc. require superusers in base queryset)
+- Rename method to `contributors()` instead of `real()`: Less clear — "contributors" is a noun (the records themselves), "real" is more descriptive of the filter action
+
+---
+
+### D9: Profile Claiming Scope — Deferred to Feature 010
+
+**Decision:** Remove claiming flows (ORCID, email, token, post-signup merge) from Feature 009. Defer entirely to a dedicated **Feature 010: Profile Claiming & Account Linking**. This spec (009) retains unclaimed *data model* support only — the `is_claimed` BooleanField, `claimed()`/`unclaimed()`/`ghost()`/`invited()` manager methods, and the state machine (Ghost → Invited → Claimed → Banned) — but implements no claiming *flows*.
 
 **Rationale:**
 - Claiming is significantly more complex than originally scoped: ORCID-only is insufficient, email matching carries account-takeover risk, post-signup merge requires careful FK reassignment, and all approaches interact deeply with allauth configuration
@@ -290,11 +385,12 @@ This must be updated as part of the transform work. The existing `synced_data` f
 - Bundling all of this into 009 risks stalling the data model work, which is independently useful and can ship faster
 
 **What this spec (009) DOES include:**
-- `is_claimed` computed property on Person
-- `Person.objects.claimed()` and `Person.objects.unclaimed()` queryset methods
-- `Person.objects.create_unclaimed(first_name, last_name)` manager method
-- Data model fields that claiming flows will use (`email`, `is_active`, `ContributorIdentifier`)
-- The existing allauth `SocialAccountAdapter` with **bug fix** for inactive user handling (the `pre_social_login` ORCID branch currently redirects to signup instead of activating and connecting — fix this as part of 009)
+- `is_claimed` BooleanField on Person model
+- `Person.objects.claimed()`, `Person.objects.unclaimed()`, `Person.objects.ghost()`, `Person.objects.invited()` queryset methods
+- `Person.objects.create_unclaimed(first_name, last_name)` manager method (creates Ghost state)
+- Data model fields that claiming flows will use (`email`, `is_active`, `is_claimed`, `ContributorIdentifier`)
+- Unified manager approach: merge `PersonalContributorsManager` into `UserManager` with `Person.objects.real()` method to exclude system accounts (see D8)
+- The existing allauth `SocialAccountAdapter` with **bug fix** for inactive user handling (the `pre_social_login` ORCID branch currently sets `is_claimed=True` and connects social account — fix this as part of 009)
 
 **What is explicitly deferred to Feature 010:**
 - Email-based claiming flow end-to-end
@@ -310,7 +406,7 @@ This must be updated as part of the transform work. The existing `synced_data` f
 
 ---
 
-### D9: Duplicate Detection Algorithm
+### D10: Duplicate Detection Algorithm
 
 **Decision:** Provide a utility function `detect_duplicate_contributors()` that returns groups of potentially duplicate Person/Organization records using a multi-signal fuzzy matching approach with configurable thresholds.
 
@@ -365,7 +461,7 @@ All NEEDS CLARIFICATION items from the spec were resolved during the clarificati
 3. ✅ Organization ownership → django-guardian `manage_organization`
 4. ✅ Sync trigger → On-save to Celery + periodic beat task
 5. ✅ Ownerless fallback → Portal admins only
-6. ✅ Claiming scope → Data model support only; full flows deferred to Feature 010 (D8)
+6. ✅ Claiming scope → Data model support only; full flows deferred to Feature 010 (D9)
 
 ---
 

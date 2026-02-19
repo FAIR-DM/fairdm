@@ -55,6 +55,7 @@ relation = DatasetLiteratureRelationFactory(
 
 import factory
 
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.factories import MeasurementFactory, SampleFactory
 
 # Import dataset-specific factories from core
@@ -237,8 +238,6 @@ class PersonFactory(factory.django.DjangoModelFactory):
     is_active = True  # Claimed users are active by default
 
     class Meta:
-        from fairdm.contrib.contributors.models import Person
-
         model = Person
 
     @factory.post_generation
@@ -270,8 +269,6 @@ class UnclaimedPersonFactory(factory.django.DjangoModelFactory):
     is_active = False
 
     class Meta:
-        from fairdm.contrib.contributors.models import Person
-
         model = Person
 
 
@@ -291,8 +288,6 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     location = factory.Faker("city")
 
     class Meta:
-        from fairdm.contrib.contributors.models import Organization
-
         model = Organization
 
 
@@ -323,6 +318,4 @@ class AffiliationFactory(factory.django.DjangoModelFactory):
     is_primary = False
 
     class Meta:
-        from fairdm.contrib.contributors.models import Affiliation
-
         model = Affiliation

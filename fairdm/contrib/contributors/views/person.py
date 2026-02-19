@@ -76,7 +76,7 @@ class ContributorListView(ContributorBaseListView):
     model = Person
     title = _("People")
     filterset_class = PersonFilter
-    queryset = Person.contributors.all()
+    queryset = Person.objects.real()
     heading_config = {
         "icon": "people",
         "title": _("Personal Contributors"),

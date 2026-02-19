@@ -78,7 +78,6 @@
 **Key Methods:**
 - `__str__()` → `self.name`
 - `get_absolute_url()` → `/contributor/{uuid}/`
-- `is_claimed` → computed property (on Person subclass)
 - `profile_image()` → image URL or static fallback
 - `calculate_weight()` → 50% contributions + 30% profile + 20% identifiers
 - `to_datacite()` / `to_schema_org()` → delegate to transform registry
@@ -106,7 +105,8 @@
 | `last_name` | CharField(150) | blank | Family name |
 | `email` | EmailField | unique, nullable | Login identifier; NULL = unclaimed |
 | `is_staff` | BooleanField | default=False | Admin access flag |
-| `is_active` | BooleanField | default=True | Account active flag; False = unclaimed |
+| `is_active` | BooleanField | default=True | Account active flag; False = banned/suspended |
+| `is_claimed` | BooleanField | default=False | Ownership flag; True = user owns account (NEW) |
 | `date_joined` | DateTimeField | auto | Registration timestamp |
 | `groups` | M2M → Group | | Django auth groups |
 | `user_permissions` | M2M → Permission | | Django auth permissions |
@@ -117,23 +117,25 @@
 - `REQUIRED_FIELDS = ["first_name", "last_name"]`
 
 **Managers:**
-- `objects = UserManager()` — email-based user creation (no username)
-- `contributors = PersonalContributorsManager()` — excludes superusers and guardian anonymous user; provides `claimed()` and `unclaimed()` queryset methods (NEW)
+- `objects = UserManager.from_queryset(PersonQuerySet)()` — unified manager with email-based user creation (no username)
+  - `real()` — excludes superusers and guardian AnonymousUser (safe for portal queries)
+  - `claimed()` — filters `is_claimed=True`
+  - `unclaimed()` — filters `is_claimed=False`
+  - `ghost()` — filters `is_claimed=False, email__isnull=True`
+  - `invited()` — filters `is_claimed=False, email__isnull=False`
 
 **Key Methods:**
-- `is_claimed` → `@property`: `email is not None and is_active and has_usable_password()`
 - `save()` → auto-populates `name` from `first_name + last_name` if blank
 - `clean()` → validates email, URLs, ORCID format; prevents claimed users from nulling email; lowercases email fully
 - `orcid()` → returns first ORCID identifier
-- `primary_affiliation()` → returns primary Affiliation
-- `current_affiliations()` → active Affiliations (end_date=NULL)
-- `given` / `family` → property aliases for `first_name` / `last_name`
 - `from_orcid(orcid_id)` → classmethod factory via ORCIDTransform
 
-**Validation Rules:**
-- Unclaimed: `email = NULL`, `is_active = False`, `set_unusable_password()`
-- Claimed: `email` required (non-NULL), `is_active = True`, password hash present
-- Transition: claiming sets `email`, `is_active = True`, and sets a usable password (via allauth)
+**State Semantics (see D3 in research.md):**
+- **Ghost**: `email=NULL`, `is_claimed=False`, `is_active=True`, `set_unusable_password()`
+- **Invited**: `email` populated, `is_claimed=False`, `is_active=True`, `set_unusable_password()`
+- **Claimed**: `email` required, `is_claimed=True`, `is_active=True`, password hash present
+- **Banned**: `email` present, `is_claimed=True`, `is_active=False`, password hash present
+- **Transition**: claiming sets `is_claimed=True`, populates/updates `email`, sets usable password (via allauth)
 
 ---
 
@@ -205,6 +207,26 @@ PENDING (0) ──[verified by existing member]──> MEMBER (1)
                                                 OWNER (3)
 
 All states can transition to historical by setting end_date
+```
+
+**Manager:**
+- `objects = AffiliationManager()` - Custom manager using `.from_queryset(AffiliationQuerySet)`
+
+**AffiliationQuerySet Methods:**
+- `primary()` → Returns the affiliation with `is_primary=True`, or None
+- `current()` → Returns active affiliations (`end_date IS NULL`)
+- `past()` → Returns past affiliations (`end_date IS NOT NULL`)
+
+**Usage Examples:**
+```python
+# Get person's primary affiliation
+primary = person.affiliations.primary()
+
+# Get all current affiliations
+current_orgs = person.affiliations.current()
+
+# Get past affiliations
+past_orgs = person.affiliations.past()
 ```
 
 **Lifecycle Hooks:**

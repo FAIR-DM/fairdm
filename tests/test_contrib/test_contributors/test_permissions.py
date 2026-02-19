@@ -208,9 +208,19 @@ class TestTransferOwnership:
             is_primary=True,
         )
 
-        # Get fresh instances from DB to avoid guardian cache issues
+        # Get fresh instances from DB and clear permission caches
         old_owner_fresh = Person.objects.get(pk=old_owner.pk)
         new_owner_fresh = Person.objects.get(pk=new_owner.pk)
+
+        # Clear Django's permission cache explicitly
+        if hasattr(old_owner_fresh, "_perm_cache"):
+            delattr(old_owner_fresh, "_perm_cache")
+        if hasattr(old_owner_fresh, "_user_perm_cache"):
+            delattr(old_owner_fresh, "_user_perm_cache")
+        if hasattr(new_owner_fresh, "_perm_cache"):
+            delattr(new_owner_fresh, "_perm_cache")
+        if hasattr(new_owner_fresh, "_user_perm_cache"):
+            delattr(new_owner_fresh, "_user_perm_cache")
 
         # Verify permission transfer
         assert not old_owner_fresh.has_perm("manage_organization", organization)

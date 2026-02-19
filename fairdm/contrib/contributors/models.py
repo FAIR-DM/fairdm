@@ -37,7 +37,7 @@ from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
-from .managers import ContributionManager, PersonalContributorsManager, UserManager
+from .managers import AffiliationManager, ContributionManager, UserManager
 from .validators import validate_iso_639_1_language_code
 
 logger = logging.getLogger(__name__)
@@ -493,6 +493,9 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             privacy = self.privacy_settings.get(field_name, "public")
             if privacy == "public":
                 result[field_name] = getattr(self, field_name, None)
+            elif privacy == "authenticated" and viewer is not None:
+                # Authenticated users can see "authenticated" fields
+                result[field_name] = getattr(self, field_name, None)
 
         return result
 
@@ -501,30 +504,22 @@ class Person(AbstractUser, Contributor):
     DEFAULT_IDENTIFIER = "ORCID"
 
     objects = UserManager()  # type: ignore[var-annotated]
-    contributors = PersonalContributorsManager()  # type: ignore[var-annotated]
 
     # null is allowed for the email field, as a Person object/User account can be created by someone else. E.g. when
     # adding a new contributor to a database entry.
     # The email field is not stored in this case, as we don't have permission from the email owner.
     email = models.EmailField(_("email address"), unique=True, null=True, blank=True)
 
+    is_claimed = models.BooleanField(
+        _("is claimed"),
+        default=False,
+        help_text=_("True if this person has claimed their account. False for ghost/invited profiles."),
+    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     username = Contributor.__str__
-
-    @property
-    def is_claimed(self) -> bool:
-        """Whether this person has claimed their account.
-
-        A person is considered claimed when they have a valid email address,
-        are active, and have a usable password (i.e. they have completed registration).
-        Unclaimed persons are provenance-only records created by others for attribution.
-
-        Returns:
-            bool: True if the person has a claimed, active account.
-        """
-        return self.email is not None and self.is_active and self.has_usable_password()
 
     def __str__(self):
         return self.name
@@ -668,10 +663,32 @@ class Person(AbstractUser, Contributor):
 
     @classmethod
     def from_orcid(cls, orcid_id):
-        """Create a person from ORCID data."""
+        """Create a person from ORCID data.
+
+        Creates the Person instance synchronously using ORCIDTransform,
+        then schedules async task for full ORCID data sync.
+
+        Args:
+            orcid_id: ORCID identifier (e.g., '0000-0002-1825-0097')
+
+        Returns:
+            Person: Created or updated Person instance
+        """
+        from django.db import transaction
+
+        from .tasks import sync_contributor_identifier
         from .utils.transforms import ORCIDTransform
 
-        return ORCIDTransform.update_or_create(orcid_id)
+        # Create/update person synchronously
+        person = ORCIDTransform.update_or_create(orcid_id)
+
+        # Schedule async sync task after commit
+        if person and person.pk:
+            orcid_identifier = person.identifiers.filter(type="ORCID").first()
+            if orcid_identifier:
+                transaction.on_commit(lambda: sync_contributor_identifier.delay(orcid_identifier.pk))
+
+        return person
 
     def as_geojson(self):
         """Returns the organization as a GeoJSON object."""
@@ -733,6 +750,8 @@ class Affiliation(models.Model):
         end_date: When it ended; NULL means active.
     """
 
+    objects = AffiliationManager()  # type: ignore[var-annotated]
+
     class MembershipType(models.IntegerChoices):
         PENDING = 0, _("Pending")
         MEMBER = 1, _("Member")
@@ -788,25 +807,26 @@ class Affiliation(models.Model):
         unique_together = ("person", "organization")
 
     def save(self, *args, **kwargs):
-        """Ensure only one primary affiliation per person."""
+        """Ensure only one primary affiliation per person and sync ownership permissions.
+        
+        - Ensures only one primary affiliation per person
+        - Automatically syncs django-guardian permissions for OWNER affiliations
+        """
         if self.is_primary:
-            # Unset other primary affiliations for this person
-            Affiliation.objects.filter(person=self.person, is_primary=True).exclude(pk=self.pk).update(is_primary=False)
+            # Unset other primary affiliations for the same person
+            for affiliation in Affiliation.objects.filter(
+                person=self.person, is_primary=True
+            ).exclude(pk=self.pk):
+                affiliation.is_primary = False
+                affiliation.save()
+        
         super().save(*args, **kwargs)
-
-    @hook(AFTER_CREATE)
-    def grant_owner_permission_on_create(self):
-        """Grant manage_organization permission when creating OWNER affiliation."""
-        if self.type == self.MembershipType.OWNER:
-            assign_perm("contributors.manage_organization", self.person, self.organization)
-
-    @hook(AFTER_UPDATE, when="type", has_changed=True)
-    def sync_ownership_permission(self):
-        """Sync manage_organization permission when type changes to/from OWNER."""
+        
+        # Sync ownership permissions after save
         if self.type == self.MembershipType.OWNER:
             assign_perm("contributors.manage_organization", self.person, self.organization)
         else:
-            # If type changed FROM owner to something else, remove permission
+            # Remove permission if type changed away from OWNER
             remove_perm("contributors.manage_organization", self.person, self.organization)
 
     def __str__(self):
@@ -921,10 +941,33 @@ class Organization(Contributor):
 
     @classmethod
     def from_ror(cls, ror, commit=True):
-        """Create an organization from a ROR ID."""
+        """Create an organization from a ROR ID.
+
+        Creates the Organization instance synchronously using RORTransform,
+        then schedules async task for full ROR data sync if commit=True.
+
+        Args:
+            ror: ROR identifier (e.g., 'https://ror.org/04aj4c181')
+            commit: Whether to save the instance (default: True)
+
+        Returns:
+            Organization: Created or updated Organization instance
+        """
+        from django.db import transaction
+
+        from .tasks import sync_contributor_identifier
         from .utils.transforms import RORTransform
 
-        return RORTransform.update_or_create(ror, commit)
+        # Create/update organization synchronously
+        org = RORTransform.update_or_create(ror, commit)
+
+        # Schedule async sync task after commit (only if committing)
+        if commit and org and org.pk:
+            ror_identifier = org.identifiers.filter(type="ROR").first()
+            if ror_identifier:
+                transaction.on_commit(lambda: sync_contributor_identifier.delay(ror_identifier.pk))
+
+        return org
 
     def icon(self):
         return "organization"
