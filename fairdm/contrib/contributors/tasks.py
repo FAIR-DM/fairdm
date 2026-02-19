@@ -92,20 +92,21 @@ def _sync_orcid(identifier, contributor):
 
         contributor.save()
         logger.info(f"Successfully synced ORCID {orcid_id}")
-        return True
 
     except requests.Timeout:
         logger.exception(f"Timeout syncing ORCID {orcid_id}")
         return False
-    except requests.RequestException as e:
-        logger.exception(f"Error syncing ORCID {orcid_id}: {e}")
+    except requests.RequestException:
+        logger.exception(f"Error syncing ORCID {orcid_id}")
         raise  # Let Celery retry
-    except ValueError as e:
-        logger.exception(f"Invalid JSON from ORCID API for {orcid_id}: {e}")
+    except ValueError:
+        logger.exception(f"Invalid JSON from ORCID API for {orcid_id}")
         return False
-    except Exception as e:
-        logger.exception(f"Unexpected error syncing ORCID {orcid_id}: {e}")
+    except Exception:
+        logger.exception(f"Unexpected error syncing ORCID {orcid_id}")
         return False
+    else:
+        return True
 
 
 def _sync_ror(identifier, contributor):
@@ -143,20 +144,21 @@ def _sync_ror(identifier, contributor):
 
         contributor.save()
         logger.info(f"Successfully synced ROR {ror_id}")
-        return True
 
     except requests.Timeout:
         logger.exception(f"Timeout syncing ROR {ror_id}")
         return False
-    except requests.RequestException as e:
-        logger.exception(f"Error syncing ROR {ror_id}: {e}")
+    except requests.RequestException:
+        logger.exception(f"Error syncing ROR {ror_id}")
         raise  # Let Celery retry
-    except ValueError as e:
-        logger.exception(f"Invalid JSON from ROR API for {ror_id}: {e}")
+    except ValueError:
+        logger.exception(f"Invalid JSON from ROR API for {ror_id}")
         return False
-    except Exception as e:
-        logger.exception(f"Unexpected error syncing ROR {ror_id}: {e}")
+    except Exception:
+        logger.exception(f"Unexpected error syncing ROR {ror_id}")
         return False
+    else:
+        return True
 
 
 @shared_task
