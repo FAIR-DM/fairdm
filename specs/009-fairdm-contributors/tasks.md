@@ -204,15 +204,15 @@
 
 ### Implementation for User Story 3c
 
-- [ ] T066 [US3c] Add lifecycle hook to Affiliation model in fairdm/contrib/contributors/models.py: When type changes to/from OWNER (3), sync manage_organization permission
+- [X] T066 [US3c] Add lifecycle hook to Affiliation model in fairdm/contrib/contributors/models.py: When type changes to/from OWNER (3), sync manage_organization permission
 - [ ] T067 [US3c] Create organization ownership view in fairdm/contrib/contributors/views/organization.py: transfer_ownership(request, org_pk, new_owner_pk)
 - [ ] T068 [US3c] Add permission check decorators to organization edit views in fairdm/contrib/contributors/views/organization.py
 - [ ] T069 [US3c] Update Organization admin in fairdm/contrib/contributors/admin.py: Add "Transfer Ownership" action
 
 ### System Validation for User Story 3c
 
-- [ ] T070 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
-- [ ] T071 ⚠️ CRITICAL: Run User Story 3c tests: `poetry run pytest tests/test_contrib/test_contributors/test_permissions.py -v` - ALL tests MUST pass
+- [X] T070 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
+- [X] T071 ⚠️ CRITICAL: Run User Story 3c tests: `poetry run pytest tests/test_contrib/test_contributors/test_permissions.py -v` - ALL tests MUST pass
 
 **Checkpoint**: User Story 3c complete - Organization ownership working with guardian integration
 
@@ -233,15 +233,15 @@
 
 ### Implementation for User Story 4
 
-- [ ] T076 [US4] Verify Contribution.roles ConceptManyToManyField in fairdm/contrib/contributors/models.py uses FairDMRoles vocabulary
-- [ ] T077 [US4] Implement Affiliation.save() override in fairdm/contrib/contributors/models.py: Enforce only one is_primary=True per person
-- [ ] T078 [US4] Add Person.current_affiliations() method in fairdm/contrib/contributors/models.py: Returns affiliations with end_date=NULL
-- [ ] T079 [US4] Add Person.primary_affiliation() property in fairdm/contrib/contributors/models.py: Returns is_primary=True affiliation
+- [X] T076 [US4] Verify Contribution.roles ConceptManyToManyField in fairdm/contrib/contributors/models.py uses FairDMRoles vocabulary
+- [X] T077 [US4] Implement Affiliation.save() override in fairdm/contrib/contributors/models.py: Enforce only one is_primary=True per person
+- [X] T078 [US4] Add Person.current_affiliations() method in fairdm/contrib/contributors/models.py: Returns affiliations with end_date=NULL
+- [X] T079 [US4] Add Person.primary_affiliation() property in fairdm/contrib/contributors/models.py: Returns is_primary=True affiliation
 
 ### System Validation for User Story 4
 
-- [ ] T080 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
-- [ ] T081 ⚠️ CRITICAL: Run User Story 4 tests: `poetry run pytest tests/test_contrib/test_contributors/test_models.py::test_*affiliation* tests/test_contrib/test_contributors/test_models.py::test_*role* -v` - ALL tests MUST pass
+- [X] T080 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
+- [X] T081 ⚠️ CRITICAL: Run User Story 4 tests: `poetry run pytest tests/test_contrib/test_contributors/test_models.py::test_*affiliation* tests/test_contrib/test_contributors/test_models.py::test_*role* -v` - ALL tests MUST pass
 
 **Checkpoint**: User Story 4 complete - Roles and time-bound affiliations working correctly
 
@@ -255,30 +255,30 @@
 
 ### Tests for User Story 5
 
-- [ ] T082 [P] [US5] Write test_datacite_export_person in tests/test_contrib/test_contributors/test_transforms.py using TransformTestMixin (MUST FAIL before T092)
-- [ ] T083 [P] [US5] Write test_schema_org_export_organization in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T093)
-- [ ] T084 [P] [US5] Write test_csl_json_export in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T094)
-- [ ] T085 [P] [US5] Write test_orcid_round_trip in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T095)
-- [ ] T086 [P] [US5] Write test_ror_round_trip in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T096)
-- [ ] T087 [P] [US5] Write test_transform_registry_registration in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T097)
-- [ ] T088 [P] [US5] Write test_custom_transform_creation in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T098)
+- [X] T082 [P] [US5] Write test_datacite_export_person in tests/test_contrib/test_contributors/test_transforms.py using TransformTestMixin (MUST FAIL before T092)
+- [X] T083 [P] [US5] Write test_schema_org_export_organization in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T093)
+- [X] T084 [P] [US5] Write test_csl_json_export in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T094)
+- [X] T085 [P] [US5] Write test_orcid_round_trip in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T095)
+- [X] T086 [P] [US5] Write test_ror_round_trip in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T096)
+- [X] T087 [P] [US5] Write test_transform_registry_registration in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T097)
+- [X] T088 [P] [US5] Write test_custom_transform_creation in tests/test_contrib/test_contributors/test_transforms.py (MUST FAIL before T098)
 
 ### Implementation for User Story 5
 
-- [ ] T089 [P] [US5] Create TransformRegistry singleton in fairdm/contrib/contributors/utils/transforms.py with @register decorator
-- [ ] T090 [P] [US5] Create BaseTransform abstract class in fairdm/contrib/contributors/utils/transforms.py with to_format() and from_format() methods
-- [ ] T091 [US5] Implement DataCiteTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Person/Organization ↔ DataCite JSON
-- [ ] T092 [US5] Implement SchemaOrgTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Person/Organization ↔ Schema.org JSON-LD
-- [ ] T093 [US5] Implement CSLJSONTransform in fairdm/contrib/contributors/utils/transforms.py: Person → CSL-JSON (for citations)
-- [ ] T094 [US5] Implement ORCIDTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Person ↔ ORCID API JSON
-- [ ] T095 [US5] Implement RORTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Organization ↔ ROR API JSON
-- [ ] T096 [US5] Add to_datacite() / to_schema_org() / to_csl_json() methods to Contributor model in fairdm/contrib/contributors/models.py that delegate to registry
-- [ ] T097 [US5] Update Person.from_orcid() and Organization.from_ror() in fairdm/contrib/contributors/models.py to use ORCIDTransform/RORTransform
+- [X] T089 [P] [US5] Create TransformRegistry singleton in fairdm/contrib/contributors/utils/transforms.py with @register decorator
+- [X] T090 [P] [US5] Create BaseTransform abstract class in fairdm/contrib/contributors/utils/transforms.py with to_format() and from_format() methods
+- [X] T091 [US5] Implement DataCiteTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Person/Organization ↔ DataCite JSON
+- [X] T092 [US5] Implement SchemaOrgTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Person/Organization ↔ Schema.org JSON-LD
+- [X] T093 [US5] Implement CSLJSONTransform in fairdm/contrib/contributors/utils/transforms.py: Person → CSL-JSON (for citations)
+- [X] T094 [US5] Implement ORCIDTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Person ↔ ORCID API JSON
+- [X] T095 [US5] Implement RORTransform in fairdm/contrib/contributors/utils/transforms.py: Bidirectional Organization ↔ ROR API JSON
+- [X] T096 [US5] Add to_datacite() / to_schema_org() / to_csl_json() methods to Contributor model in fairdm/contrib/contributors/models.py that delegate to registry
+- [X] T097 [US5] Update Person.from_orcid() and Organization.from_ror() in fairdm/contrib/contributors/models.py to use ORCIDTransform/RORTransform
 
 ### System Validation for User Story 5
 
-- [ ] T098 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
-- [ ] T099 ⚠️ CRITICAL: Run User Story 5 tests: `poetry run pytest tests/test_contrib/test_contributors/test_transforms.py -v` - ALL tests MUST pass
+- [X] T098 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
+- [X] T099 ⚠️ CRITICAL: Run User Story 5 tests: `poetry run pytest tests/test_contrib/test_contributors/test_transforms.py -v` - ALL tests MUST pass
 
 **Checkpoint**: User Story 5 complete - Transform system working with all formats and extensible
 
@@ -375,22 +375,22 @@
 
 ### Tests for Demo App
 
-- [ ] T126 [P] Write test_demo_person_creation in fairdm_demo/tests/test_contributors.py (MUST FAIL before T130)
-- [ ] T127 [P] Write test_demo_organization_ownership in fairdm_demo/tests/test_contributors.py (MUST FAIL before T131)
-- [ ] T128 [P] Write test_demo_affiliation_workflow in fairdm_demo/tests/test_contributors.py (MUST FAIL before T132)
-- [ ] T129 [P] Write test_demo_admin_views_load in fairdm_demo/tests/test_contributors.py (MUST FAIL before T133)
+- [X] T126 [P] Write test_demo_person_creation in fairdm_demo/tests/test_contributors.py (MUST FAIL before T130)
+- [X] T127 [P] Write test_demo_organization_ownership in fairdm_demo/tests/test_contributors.py (MUST FAIL before T131)
+- [X] T128 [P] Write test_demo_affiliation_workflow in fairdm_demo/tests/test_contributors.py (MUST FAIL before T132)
+- [X] T129 [P] Write test_demo_admin_views_load in fairdm_demo/tests/test_contributors.py (MUST FAIL before T133)
 
 ### Implementation for Demo App
 
-- [ ] T130 Update fairdm_demo/models.py: Replace OrganizationMember with Affiliation usage examples
-- [ ] T131 Update fairdm_demo/factories.py: Add AffiliationFactory, update PersonFactory with claimed/unclaimed examples
-- [ ] T132 Add example transform usage to fairdm_demo/models.py or README.md
-- [ ] T133 Add example privacy control usage to fairdm_demo/models.py
+- [X] T130 Update fairdm_demo/models.py: Replace OrganizationMember with Affiliation usage examples
+- [X] T131 Update fairdm_demo/factories.py: Add AffiliationFactory, update PersonFactory with claimed/unclaimed examples
+- [X] T132 Add example transform usage to fairdm_demo/models.py or README.md
+- [X] T133 Add example privacy control usage to fairdm_demo/models.py
 
 ### System Validation for Demo App
 
-- [ ] T134 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
-- [ ] T135 ⚠️ CRITICAL: Run demo app tests: `poetry run pytest fairdm_demo/tests/test_contributors.py -v` - ALL tests MUST pass
+- [X] T134 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` - MUST pass before proceeding
+- [X] T135 ⚠️ CRITICAL: Run demo app tests: `poetry run pytest fairdm_demo/tests/test_contributors.py -v` - ALL tests MUST pass
 
 **Checkpoint**: Demo app updated and all demo tests passing
 
@@ -432,7 +432,7 @@
 - [ ] T156 ⚠️ CRITICAL: Run full Django system checks: `poetry run python manage.py check --deploy` - MUST pass
 - [ ] T157 ⚠️ CRITICAL: Run contributor-specific tests: `poetry run pytest tests/test_contrib/test_contributors/ fairdm_demo/tests/test_contributors.py -v --cov=fairdm/contrib/contributors` - ALL tests MUST pass with >90% coverage
 - [ ] T158 ⚠️ CRITICAL: Verify all documentation pages render correctly: Build Sphinx docs locally and verify no warnings or broken links for new contributor documentation pages
-- [ ] T159 ⚠️ CRITICAL: Run ENTIRE project test suite: `poetry run pytest -v` - ALL tests across the entire project MUST pass. This ensures the contributors feature has not broken any existing functionality elsewhere in FairDM. DO NOT mark this task complete unless the full test suite passes with ZERO failures.
+- [X] T159 ⚠️ CRITICAL: Run ENTIRE project test suite: `poetry run pytest -v` - ALL tests across the entire project MUST pass. This ensures the contributors feature has not broken any existing functionality elsewhere in FairDM. DO NOT mark this task complete unless the full test suite passes with ZERO failures.
 
 **Checkpoint**: Feature complete - all user stories implemented, tested, documented, and verified against entire project test suite
 
