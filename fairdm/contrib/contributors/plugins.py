@@ -32,11 +32,11 @@ from .forms.forms import AffiliationForm, UserIdentifierForm, UserIdentifierForm
 from .forms.organization import OrganizationProfileForm
 from .forms.person import UserProfileForm
 from .models import (
+    Affiliation,
     Contribution,
     Contributor,
     ContributorIdentifier,
     Organization,
-    OrganizationMember,
     Person,
 )
 
@@ -183,7 +183,7 @@ class Affiliations(InlineFormSetPlugin):
     learn_more = user_guide("contributor/affiliations")
     check = lambda request, obj: obj is None or isinstance(obj, Person)
     model = Person
-    inline_model = OrganizationMember
+    inline_model = Affiliation
     form_class = AffiliationForm
     display_as_table = True
 
@@ -251,13 +251,13 @@ class OrganizationMembers(Plugin, FairDMListView):
     name = "members"
     title = _("Members")
     menu = {"label": _("Members"), "icon": "users", "order": 110}
-    model = OrganizationMember
+    model = Affiliation
     check = lambda request, obj: obj is None or isinstance(obj, Organization)
-    filterset_fields = ["person__name", "role", "is_primary", "is_current"]
+    filterset_fields = ["person__name", "type", "is_primary"]
 
     def get_queryset(self):
         """Return members of this organization."""
-        return self.object.memberships.select_related("person").all()
+        return self.object.affiliations.select_related("person").all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

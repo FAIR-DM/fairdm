@@ -4,8 +4,6 @@ from django.contrib.auth.models import Group
 from django.db.models import Count, Prefetch
 from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
-from django.views.generic import TemplateView
-from meta.views import MetadataMixin
 
 from fairdm.views import FairDMCreateView, FairDMListView, FairDMTemplateView
 
@@ -78,7 +76,7 @@ class ContributorListView(ContributorBaseListView):
     model = Person
     title = _("People")
     filterset_class = PersonFilter
-    queryset = Person.contributors.all()
+    queryset = Person.objects.real()
     heading_config = {
         "icon": "people",
         "title": _("Personal Contributors"),
@@ -116,22 +114,6 @@ class ContributorListView(ContributorBaseListView):
         # Note: Follow/unfollow functionality has been moved to an optional addon.
         # If you need this feature, install the fairdm-activity package.
         return context
-
-
-class CodeOfConduct(MetadataMixin, LoginRequiredMixin, TemplateView):
-    template_name = "user/agreements/code_of_conduct.html"
-    title = _("Code of Conduct")
-
-    def get_object(self):
-        return self.request.user
-
-
-class TermsOfUse(MetadataMixin, LoginRequiredMixin, TemplateView):
-    template_name = "pages/code_of_conduct.html"
-    title = _("Terms of Use")
-
-    def get_object(self):
-        return self.request.user
 
 
 class PersonCreateView(LoginRequiredMixin, FairDMCreateView):

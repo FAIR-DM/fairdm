@@ -55,6 +55,7 @@ relation = DatasetLiteratureRelationFactory(
 
 import factory
 
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.factories import MeasurementFactory, SampleFactory
 
 # Import dataset-specific factories from core
@@ -213,3 +214,108 @@ class WaterSampleFactory(SampleFactory):
 
     class Meta:
         model = WaterSample
+
+
+# ============================================================================
+# Example 4: Contributor Factories (Feature 009)
+# ============================================================================
+
+
+class PersonFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for Person (AUTH_USER_MODEL) demonstrating claimed/unclaimed patterns.
+
+    FairDM uses Person as AUTH_USER_MODEL. There are two patterns:
+    1. Claimed users (email + password) for interactive portal access
+    2. Unclaimed contributors (name-only) for provenance tracking
+
+    See: docs/portal-development/contributors.md
+    """
+
+    first_name = factory.Faker("first_name")
+    last_name = factory.Faker("last_name")
+    email = factory.LazyAttribute(lambda obj: f"{obj.first_name.lower()}.{obj.last_name.lower()}@example.com")
+    is_active = True  # Claimed users are active by default
+
+    class Meta:
+        model = Person
+
+    @factory.post_generation
+    def set_password(obj, create, extracted, **kwargs):
+        """Set a usable password for claimed users."""
+        if not create:
+            return
+        # For claimed users, set a default password
+        obj.set_password("password123")
+        obj.save()
+
+
+class UnclaimedPersonFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for unclaimed Person instances (provenance-only records).
+
+    Unclaimed persons have:
+    - No email address (email=None)
+    - No usable password
+    - is_active=False
+
+    These are used when attributing work to someone without creating
+    their portal account.
+    """
+
+    first_name = factory.Faker("first_name")
+    last_name = factory.Faker("last_name")
+    email = None
+    is_active = False
+
+    class Meta:
+        model = Person
+
+
+class OrganizationFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for Organization demonstrating organizational structures.
+
+    Organizations can have:
+    - ROR identifiers for institutional lookup
+    - Parent-child hierarchies
+    - Member affiliations with type-based permissions
+
+    See: docs/portal-development/contributors.md#organizations
+    """
+
+    name = factory.Faker("company")
+    location = factory.Faker("city")
+
+    class Meta:
+        model = Organization
+
+
+class AffiliationFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for Affiliation demonstrating membership patterns.
+
+    Affiliation type field determines permissions:
+    - PENDING (0): Awaiting verification
+    - MEMBER (1): Regular member
+    - ADMIN (2): Administrative access
+    - OWNER (3): Full control + manage_organization permission (derived from OWNER affiliation)
+
+    Example usage:
+        # Create regular member
+        affiliation = AffiliationFactory(type=Affiliation.MembershipType.MEMBER)
+
+        # Create organization owner
+        owner_affiliation = AffiliationFactory(
+            type=Affiliation.MembershipType.OWNER,
+            is_primary=True
+        )
+    """
+
+    person = factory.SubFactory(PersonFactory)
+    organization = factory.SubFactory(OrganizationFactory)
+    type = 1  # MembershipType.MEMBER by default
+    is_primary = False
+
+    class Meta:
+        model = Affiliation

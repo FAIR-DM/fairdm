@@ -72,6 +72,7 @@ special_fields
 controlled_vocabularies
 model_configuration
 measurements
+contributors
 using_the_registry
 ```
 

@@ -1,6 +1,6 @@
 <c-vars :show_location="False" />
 <div>
-   {% for membership in contributor.organization_memberships.all %}
+   {% for membership in contributor.affiliations.all %}
       {% if membership.is_primary %}
          <c-contributor.person.affiliation :org="membership.organization"
                                            :show_location="show_location" />
