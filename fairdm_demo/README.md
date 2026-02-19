@@ -315,6 +315,130 @@ class MyLocationPlugin(Plugin, TemplateView):
 
 ---
 
+## Contributor Features (Feature 009)
+
+The demo app demonstrates contributor-related features including Person/Organization models, affiliation workflows, metadata transforms, and privacy controls.
+
+### Person Model (AUTH_USER_MODEL)
+
+FairDM uses `Person` as the `AUTH_USER_MODEL`. There are two patterns:
+
+**Claimed Users** (interactive portal access):
+```python
+from fairdm.contrib.contributors.models import Person
+
+# Create a claimed user
+person = Person.objects.create_user(
+    email="researcher@example.com",
+    first_name="Jane",
+    last_name="Researcher",
+    password="secure_password"
+)
+assert person.is_claimed  # True: has email, password, and is_active
+```
+
+**Unclaimed Contributors** (provenance-only records):
+```python
+# Create unclaimed contributor (no login capability)
+unclaimed = Person.objects.create_unclaimed(
+    first_name="Historical",
+    last_name="Contributor",
+)
+assert not unclaimed.is_claimed  # False: no email, no password, inactive
+```
+
+### Organization Ownership
+
+Organizations use guardian permissions for ownership. The `Affiliation` type field determines permissions:
+
+```python
+from fairdm.contrib.contributors.models import Organization, Affiliation
+
+org = Organization.objects.create(name="Research Lab")
+person = Person.objects.get(email="researcher@example.com")
+
+# Create OWNER-type affiliation (grants manage_organization permission automatically)
+affiliation = Affiliation.objects.create(
+    person=person,
+    organization=org,
+    type=Affiliation.MembershipType.OWNER,  # 3
+)
+
+# Permission granted via lifecycle hook
+assert person.has_perm("contributors.manage_organization", org)  # True
+```
+
+### Metadata Transforms
+
+Export contributors to standard metadata formats:
+
+```python
+from fairdm.contrib.contributors.utils.transforms import (
+    DataCiteTransform, SchemaOrgTransform, CSLJSONTransform, ORCIDTransform
+)
+
+# Export Person to DataCite JSON
+datacite_json = DataCiteTransform().export(person)
+# Returns: {
+#     "givenName": "Jane",
+#     "familyName": "Researcher",
+#     "affiliation": [...]
+# }
+
+# Export Organization to Schema.org JSON-LD
+schema_org_json = SchemaOrgTransform().export(org)
+# Returns: {
+#     "@type": "Organization",
+#     "@id": "https://ror.org/...",
+#     "name": "Research Lab"
+# }
+
+# Export Person to CSL-JSON (for citations)
+csl_json = CSLJSONTransform().export(person)
+# Returns: {
+#     "type": "person",
+#     "given": "Jane",
+#     "family": "Researcher"
+# }
+```
+
+Import from external identifiers:
+
+```python
+# Import from ORCID (async task)
+person = ORCIDTransform().import_data(orcid_api_response)
+
+# Import from ROR (async task)
+org = Organization.from_ror("https://ror.org/04aj4c181")
+```
+
+### Privacy Controls
+
+Control which fields are visible based on privacy settings:
+
+```python
+# Get visible fields for anonymous viewer
+visible = person.get_visible_fields(viewer=None)
+# Returns: {"name": "Jane Researcher", "affiliation": "..."}
+# Email hidden by default for claimed users
+
+# Privacy settings (JSONField)
+person.privacy_settings = {
+    "email": "private",      # Hide from everyone except self
+    "affiliation": "public",  # Show to everyone
+    "orcid": "authenticated"  # Show only to logged-in users
+}
+person.save()
+
+# Check visibility for authenticated viewer
+visible = person.get_visible_fields(viewer=some_authenticated_user)
+# Returns: {"name": "...", "affiliation": "...", "orcid": "..."}
+```
+
+See [docs/portal-development/contributors.md](../docs/portal-development/contributors.md) for complete API reference.
+
+---
+
 ## Contributing to Demo
 
 The demo app is living documentation. When adding framework features:
