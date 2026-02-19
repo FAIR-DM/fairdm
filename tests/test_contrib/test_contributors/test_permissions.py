@@ -6,7 +6,6 @@ and ownership transfer functionality.
 
 import pytest
 from django.contrib.auth import get_user_model
-from guardian.shortcuts import get_perms
 from partial_date import PartialDate
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person

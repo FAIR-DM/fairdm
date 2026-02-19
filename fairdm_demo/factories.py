@@ -326,4 +326,3 @@ class AffiliationFactory(factory.django.DjangoModelFactory):
         from fairdm.contrib.contributors.models import Affiliation
 
         model = Affiliation
-

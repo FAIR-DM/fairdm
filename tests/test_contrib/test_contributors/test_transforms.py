@@ -6,7 +6,7 @@ and external metadata formats (DataCite, Schema.org, CSL-JSON, ORCID, ROR).
 
 import pytest
 
-from fairdm.contrib.contributors.models import Organization, Person
+from fairdm.contrib.contributors.models import Organization
 from fairdm.contrib.contributors.utils.transforms import (
     CSLJSONTransform,
     DataCiteTransform,
@@ -14,7 +14,6 @@ from fairdm.contrib.contributors.utils.transforms import (
     RORTransform,
     SchemaOrgTransform,
 )
-
 
 # ── T082: DataCite Export for Person ──────────────────────────────────────────
 

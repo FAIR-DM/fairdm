@@ -443,7 +443,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         """Adds the contributor to a project, dataset, sample or measurement."""
         if roles is None:
             roles = []
-        contribution, created = Contribution.objects.get_or_create(
+        contribution, _ = Contribution.objects.get_or_create(
             contributor=self,
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.id,

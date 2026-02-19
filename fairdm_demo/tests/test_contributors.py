@@ -18,7 +18,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from fairdm.contrib.contributors.models import Affiliation, Organization, Person
+from fairdm.contrib.contributors.models import Affiliation, Person
 from fairdm.factories import OrganizationFactory, PersonFactory
 
 User = get_user_model()
@@ -52,7 +52,7 @@ class TestDemoPersonCreation:
         assert claimed_person.check_password("testpass123")
         assert claimed_person.is_active
 
-         # Create unclaimed person (provenance-only)
+        # Create unclaimed person (provenance-only)
         unclaimed_person = Person.objects.create_unclaimed(
             first_name="Historical",
             last_name="Contributor",

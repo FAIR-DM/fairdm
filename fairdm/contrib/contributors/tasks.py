@@ -11,8 +11,6 @@ from datetime import timedelta
 
 import requests
 from celery import shared_task
-from django.conf import settings
-from django.db import transaction
 from django.utils import timezone
 from requests.exceptions import RequestException
 
@@ -42,7 +40,7 @@ def sync_contributor_identifier(identifier_pk: int) -> bool:
     try:
         identifier = ContributorIdentifier.objects.select_related("related").get(pk=identifier_pk)
     except ContributorIdentifier.DoesNotExist:
-        logger.error(f"ContributorIdentifier {identifier_pk} does not exist")
+        logger.exception(f"ContributorIdentifier {identifier_pk} does not exist")
         return False
 
     contributor = identifier.related
@@ -97,16 +95,16 @@ def _sync_orcid(identifier, contributor):
         return True
 
     except requests.Timeout:
-        logger.error(f"Timeout syncing ORCID {orcid_id}")
+        logger.exception(f"Timeout syncing ORCID {orcid_id}")
         return False
     except requests.RequestException as e:
-        logger.error(f"Error syncing ORCID {orcid_id}: {e}")
+        logger.exception(f"Error syncing ORCID {orcid_id}: {e}")
         raise  # Let Celery retry
     except ValueError as e:
-        logger.error(f"Invalid JSON from ORCID API for {orcid_id}: {e}")
+        logger.exception(f"Invalid JSON from ORCID API for {orcid_id}: {e}")
         return False
     except Exception as e:
-        logger.error(f"Unexpected error syncing ORCID {orcid_id}: {e}", exc_info=True)
+        logger.exception(f"Unexpected error syncing ORCID {orcid_id}: {e}")
         return False
 
 
@@ -148,16 +146,16 @@ def _sync_ror(identifier, contributor):
         return True
 
     except requests.Timeout:
-        logger.error(f"Timeout syncing ROR {ror_id}")
+        logger.exception(f"Timeout syncing ROR {ror_id}")
         return False
     except requests.RequestException as e:
-        logger.error(f"Error syncing ROR {ror_id}: {e}")
+        logger.exception(f"Error syncing ROR {ror_id}: {e}")
         raise  # Let Celery retry
     except ValueError as e:
-        logger.error(f"Invalid JSON from ROR API for {ror_id}: {e}")
+        logger.exception(f"Invalid JSON from ROR API for {ror_id}: {e}")
         return False
     except Exception as e:
-        logger.error(f"Unexpected error syncing ROR {ror_id}: {e}")
+        logger.exception(f"Unexpected error syncing ROR {ror_id}: {e}")
         return False
 
 
@@ -179,9 +177,7 @@ def refresh_all_contributors() -> int:
     stale_threshold = timezone.now().date() - timedelta(days=7)
     stale_identifiers = ContributorIdentifier.objects.filter(
         type__in=["ORCID", "ROR"],
-    ).filter(
-        Q(related__last_synced__lt=stale_threshold) | Q(related__last_synced__isnull=True)
-    )
+    ).filter(Q(related__last_synced__lt=stale_threshold) | Q(related__last_synced__isnull=True))
 
     count = 0
     for identifier in stale_identifiers[:100]:  # Limit to 100 per run
