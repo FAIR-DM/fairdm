@@ -37,14 +37,14 @@ class OrganizationPermissionBackend(ObjectPermissionBackend):
             organization=org,
             type=Affiliation.MembershipType.OWNER,
         )
-        
+
         # Permission is derived automatically
         user.has_perm("contributors.manage_organization", org)  # True
-        
+
         # Demote to MEMBER
         affiliation.type = Affiliation.MembershipType.MEMBER
         affiliation.save()
-        
+
         user.has_perm("contributors.manage_organization", org)  # False
         ```
 

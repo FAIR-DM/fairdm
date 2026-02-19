@@ -156,24 +156,24 @@ class TestOrganizationCreationAndValidation:
         # Verify permission is NOT in Meta (derived via backend instead)
         perms = [p[0] for p in Organization._meta.permissions]
         assert "manage_organization" not in perms
-        
+
         # Verify derived permission works via OrganizationPermissionBackend
-        from fairdm.factories import PersonFactory
         from fairdm.contrib.contributors.models import Affiliation
-        
+        from fairdm.factories import PersonFactory
+
         org = OrganizationFactory(name="Test Org")
         person = PersonFactory(email="owner@example.com")
-        
+
         # No permission without OWNER affiliation
         assert not person.has_perm("manage_organization", org)
-        
+
         # Create OWNER affiliation
         Affiliation.objects.create(
             person=person,
             organization=org,
             type=Affiliation.MembershipType.OWNER,
         )
-        
+
         # Permission derived from OWNER affiliation
         assert person.has_perm("manage_organization", org)
 
