@@ -29,7 +29,7 @@ def main():
     linkcheck_output = Path("docs/_build/linkcheck/output.txt")
 
     if not linkcheck_output.exists():
-        print("⚠️  Linkcheck output not found - skipping internal link validation")
+        print("[WARNING] Linkcheck output not found - skipping internal link validation")
         print("Note: This is informational only until docs cleanup is complete")
         sys.exit(0)
 
@@ -71,11 +71,11 @@ def main():
     print("\n" + "=" * 60)
     print("Internal Link Check Results (Lenient Mode)")
     print("=" * 60)
-    print(f"📊 {total_internal} internal links checked")
+    print(f"[INFO] {total_internal} internal links checked")
 
     # Report critical broken links (failures)
     if broken_critical_links:
-        print(f"\n❌ {len(broken_critical_links)} CRITICAL broken links found:\n")
+        print(f"\n[FAIL] {len(broken_critical_links)} CRITICAL broken links found:\n")
         for link in broken_critical_links[:10]:  # Show first 10
             print(f"   - {link}")
         if len(broken_critical_links) > 10:
@@ -84,11 +84,11 @@ def main():
         print("=" * 60 + "\n")
         sys.exit(1)
     else:
-        print("✅ 0 critical broken links")
+        print("[PASS] 0 critical broken links")
 
     # Report non-critical warnings (informational only)
     if broken_non_critical_links:
-        print(f"\n⚠️  {len(broken_non_critical_links)} non-critical warnings (images/assets):\n")
+        print(f"\n[WARNING] {len(broken_non_critical_links)} non-critical warnings (images/assets):\n")
         for link in broken_non_critical_links[:5]:  # Show first 5
             print(f"   - {link}")
         if len(broken_non_critical_links) > 5:

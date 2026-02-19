@@ -45,7 +45,7 @@ def main():
 
     # Determine overall status
     has_errors = broken_internal > 0
-    status_emoji = "❌" if has_errors else "✅"
+    status_emoji = "[FAIL]" if has_errors else "[PASS]"
     status_text = "FAIL" if has_errors else "PASS"
 
     # Generate report
@@ -67,7 +67,7 @@ def main():
 
 ### Internal Links
 
-**Status**: {"✅ PASS" if broken_internal == 0 else f"❌ FAIL ({broken_internal} broken)"}
+**Status**: {"[PASS]" if broken_internal == 0 else f"[FAIL] ({broken_internal} broken)"}
 
 Internal links (relative paths, specs/, .specify/) must resolve correctly.
 
@@ -76,7 +76,7 @@ Internal links (relative paths, specs/, .specify/) must resolve correctly.
 
 ### External Links
 
-**Status**: {"✅ PASS" if broken_external == 0 else f"⚠️  WARNING ({broken_external} broken)"}
+**Status**: {"[PASS]" if broken_external == 0 else f"[WARNING] ({broken_external} broken)"}
 
 External link failures are logged but do not block the build.
 
@@ -85,7 +85,7 @@ External link failures are logged but do not block the build.
 
 ## Checklist Validation
 
-**Status**: ℹ️  See test results
+**Status**: [INFO] See test results
 
 Feature documentation checklists validated via pytest:
 
@@ -97,9 +97,9 @@ poetry run pytest tests/integration/docs/test_documentation_validation.py
 
 ### Documentation Structure
 
-- ✅ Four main sections present (user-guide, portal-administration, portal-development, contributing)
-- ✅ Constitution location: `.specify/memory/constitution.md`
-- ✅ Spec location: `specs/###-feature-name/`
+- [OK] Four main sections present (user-guide, portal-administration, portal-development, contributing)
+- [OK] Constitution location: `.specify/memory/constitution.md`
+- [OK] Spec location: `specs/###-feature-name/`
 
 ### Cross-References
 
@@ -117,7 +117,7 @@ poetry run pytest tests/integration/docs/test_documentation_validation.py
 
 {status_emoji} **Overall Result**: {status_text}
 
-{"### ❌ Blocking Issues\n\n- Internal link failures must be fixed before merge\n" if has_errors else "### ✅ All Checks Passed\n\n- Documentation builds successfully\n- All internal links resolve\n- Ready for review\n"}
+{"### [FAIL] Blocking Issues\n\n- Internal link failures must be fixed before merge\n" if has_errors else "### [PASS] All Checks Passed\n\n- Documentation builds successfully\n- All internal links resolve\n- Ready for review\n"}
 
 ### Recommendations
 
@@ -138,7 +138,7 @@ poetry run pytest tests/integration/docs/test_documentation_validation.py
     report_path = Path("docs-validation-report.md")
     report_path.write_text(report, encoding="utf-8")
 
-    print(f"\n✅ Validation report generated: {report_path}")
+    print(f"\n[SUCCESS] Validation report generated: {report_path}")
     print(f"Status: {status_text}")
 
     # Exit with appropriate code
