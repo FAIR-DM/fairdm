@@ -121,7 +121,7 @@ snakeviz = "^2.2.2"
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
 pytest-benchmark = "^5.2.3"
-ruff = "^0.15.0"
+ruff = "^0.15.8"
 beautifulsoup4 = "^4.14.3"
 sphinxcontrib-mermaid = "^2.0.0"
 pytest-mock = "^3.15.1"
