@@ -1,6 +1,6 @@
 ---
 description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
-handoffs: 
+handoffs:
   - label: Analyze For Consistency
     agent: speckit.analyze
     prompt: Run a project analysis for consistency
@@ -48,7 +48,7 @@ You **MUST** consider the user input before proceeding (if not empty).
     **Automatic Pre-Hook**: {extension}
     Executing: `/{command}`
     EXECUTE_COMMAND: {command}
-    
+
     Wait for the result of the hook command before proceeding to the Outline.
     ```
 - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
@@ -79,6 +79,15 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
    - Phase 3+: One phase per user story (in priority order from spec.md)
    - Each phase includes: story goal, independent test criteria, tests (if requested), implementation tasks
+   - **MANDATORY**: Each phase MUST end with a `### System Validation` section containing exactly two tasks:
+     1. `⚠️ CRITICAL: Run Django system checks: \`poetry run python manage.py check\` — MUST pass before proceeding`
+     2. `⚠️ CRITICAL: Run [phase-specific] tests: \`poetry run pytest <test_paths> -v\` — ALL tests MUST pass`
+     - Phase 1 (Setup) only needs the system check (task 1), since there is nothing to test yet
+     - Phase 2 (Foundational) uses `<test_paths_for_foundational_models>`
+     - Each user-story phase uses the test files specific to that story
+     - The Final Phase runs the complete feature test suite
+     - These validation tasks are numbered sequentially like all other tasks (T0XX)
+     - See `specs/009-fairdm-contributors/tasks.md` for the canonical reference pattern
    - Final Phase: Polish & cross-cutting concerns
    - All tasks must follow the strict checklist format (see Task Generation Rules below)
    - Clear file paths for each task
@@ -149,7 +158,7 @@ Every task MUST strictly follow this format:
 4. **[Story] label**: REQUIRED for user story phase tasks only
    - Format: [US1], [US2], [US3], etc. (maps to user stories from spec.md)
    - Setup phase: NO story label
-   - Foundational phase: NO story label  
+   - Foundational phase: NO story label
    - User Story phases: MUST have story label
    - Polish phase: NO story label
 5. **Description**: Clear action with exact file path

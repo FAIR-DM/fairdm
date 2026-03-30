@@ -1,7 +1,7 @@
 # Feature 010: Profile Claiming & Account Linking — Research
 
-**Feature:** 010-profile-claiming  
-**Date:** 2026-02-18  
+**Feature:** 010-profile-claiming
+**Date:** 2026-02-18
 **Status:** Planning
 
 ---
@@ -19,6 +19,7 @@ This research document captures findings specific to implementing the profile cl
 **Decision:** ORCID claiming via `pre_social_login` hook is the primary claiming flow.
 
 **Rationale:**
+
 - Highest security (ORCID is a trusted identity provider)
 - Lowest complexity (no merge required — activate unclaimed Person before account creation)
 - Already architecturally supported (existing adapter at fairdm/contrib/contributors/adapters.py)
@@ -27,6 +28,7 @@ This research document captures findings specific to implementing the profile cl
 **Implementation note:** The current adapter has a bug in the `is_active=False` branch (raises `ImmediateHttpResponse` to redirect to signup instead of activating the person in place). See [../009-fairdm-contributors/research.md Q4](../009-fairdm-contributors/research.md#q4-allauth--existing-inactive-user) for the fix.
 
 **Alternatives considered:**
+
 - Email-based claiming: More complex, requires mandatory email verification, higher security risk
 - Token-based claiming: Good for admin-initiated claiming but doesn't support self-service
 - Post-signup merge: Highest complexity, most edge cases
@@ -40,11 +42,13 @@ This research document captures findings specific to implementing the profile cl
 **Decision:** Email-based claiming (via `save_user` adapter hook) will ONLY be enabled when `ACCOUNT_EMAIL_VERIFICATION = "mandatory"`.
 
 **Rationale:**
+
 - Without email verification, anyone who knows (or guesses) a pre-enrolled email can claim that researcher's entire profile
 - This is an unacceptable account takeover risk
 - Mandatory verification ensures the claimant actually controls the email address
 
 **Implementation:**
+
 ```python
 def save_user(self, request, user, form, commit=True):
     if getattr(settings, "ACCOUNT_EMAIL_VERIFICATION", "none") != "mandatory":
@@ -64,12 +68,14 @@ def save_user(self, request, user, form, commit=True):
 **Decision:** Implement one-time claim links using Django's `TimestampSigner` with 7-day expiration.
 
 **Rationale:**
+
 - Most secure non-ORCID claiming mechanism
 - Admin can send claim link to researcher's known email
 - Time-limited, single-use, HMAC-signed (resistant to forgery)
 - Works for researchers without ORCID
 
 **Security properties:**
+
 - Token includes Person PK signed with HMAC-SHA256
 - Max age: 7 days (configurable via `CLAIM_TOKEN_MAX_AGE` setting)
 - Token invalidated on first successful claim (Person is deleted or activated)
@@ -86,14 +92,16 @@ def save_user(self, request, user, form, commit=True):
 **Decision:** Fuzzy name matching will generate suggestions for admin review but will NEVER auto-claim profiles.
 
 **Rationale:**
+
 - Names are not unique identifiers (same name, different person is common in academia)
 - Name formatting variance is high ("J. Smith", "John Smith", "Smith, John")
 - Even 95%+ similarity scores produce false positives at portal scale
 - Auto-claim based on name match = unacceptable risk of merging wrong people
 
 **Implementation:**
+
 - Use `rapidfuzz.fuzz.token_sort_ratio` with threshold 0.85
-- Return as `DuplicateSuggestion` records for admin UI display
+- Return results directly to admin UI (on-demand, no DB persistence)
 - Admin must manually confirm before claim/merge
 
 **Algorithm choice:** Token sort ratio (vs Levenshtein, Jaro-Winkler, Soundex) because it handles name part reordering ("Smith, John" ↔ "John Smith") without false positives.
@@ -107,15 +115,18 @@ def save_user(self, request, user, form, commit=True):
 **Decision:** Post-signup merge (Person B already registered, then discovered duplicate Person A) is supported but discouraged.
 
 **Rationale:**
+
 - High complexity: Session invalidation, FK reassignment, unique constraint conflict resolution
 - Risk of data loss if not implemented correctly
 - Pre-signup interception (ORCID, email, token) is always preferable
 
 **When unavoidable:**
+
 - Admin discovers duplicate after researcher has registered and accumulated contributions
 - Both Person A (unclaimed) and Person B (active) have valuable data to preserve
 
 **Implementation requirements:**
+
 - Must run in `transaction.atomic()` to prevent partial merges
 - Must handle `unique_together` conflicts (Contribution, OrganizationMember)
 - Must invalidate all sessions for `person_discard`
@@ -133,11 +144,13 @@ def save_user(self, request, user, form, commit=True):
 **Decision:** All claiming events (successful claims, merge operations, failed attempts) will be logged to `ClaimingAuditLog` and optionally to django-activity-stream.
 
 **Rationale:**
+
 - Security: Detect unauthorized claim attempts
 - Compliance: Provide audit trail for data governance
 - Support: Help admins debug claiming issues
 
 **Logged events:**
+
 - ORCID claim (pre-signup interception)
 - Email claim (post-verification activation)
 - Token claim (one-time link usage)
@@ -145,6 +158,7 @@ def save_user(self, request, user, form, commit=True):
 - Failed claim attempts (expired token, wrong email, etc.)
 
 **Fields to log:**
+
 - `claimed_person` (the unclaimed Person being claimed)
 - `claiming_user` (the authenticated user claiming, if applicable)
 - `claim_method` (ORCID, EMAIL, TOKEN, ADMIN_MANUAL)
@@ -157,6 +171,60 @@ def save_user(self, request, user, form, commit=True):
 
 ---
 
+### D7: django-invitations Integration with Claiming Flows
+
+**Decision:** Use django-invitations' `INVITATIONS_INVITATION_ONLY` setting to complement claiming flows for invitation-restricted portals.
+
+**Rationale:**
+
+- Some portals restrict signup to invited users only (`INVITATIONS_INVITATION_ONLY = True`)
+- Claiming via token link MUST bypass the invitation-only restriction (admin already vouches for the person)
+- Claiming via ORCID social login MUST respect the portal's invitation policy unless the person has an existing unclaimed profile (pre-social-login intercept happens before invitation check)
+- Email claiming is inherently compatible: the admin pre-assigns an email, so the person was effectively "invited" to that profile
+
+**Implementation:**
+
+- `AccountAdapter.is_open_for_signup()` already checks `INVITATIONS_INVITATION_ONLY`
+- Token claim flow stores token in session; `is_open_for_signup()` MUST check for pending claim token in session and allow signup if valid
+- ORCID pre-social-login intercept happens before signup check, so invitation-only does not block ORCID claiming of existing profiles
+
+**Status:** Approved for Feature 010 implementation
+
+---
+
+### D8: Privacy and Security Design Principles
+
+**Decision:** Treat user privacy and data security as first-class, non-negotiable concerns across all claiming pathways.
+
+**Rationale:**
+
+- Profile claiming involves identity linking — incorrect links mean one person gains access to another's attribution history
+- Research data portals may contain sensitive attribution information
+- GDPR and institutional data governance requirements apply
+
+**Security controls by pathway:**
+
+| Pathway | Identity Verification | Risk Level | Mitigation |
+|---------|----------------------|------------|------------|
+| ORCID | External IdP (ORCID.org) | Low | Trusted third-party verification |
+| Email | Email verification (mandatory) | Medium | allauth mandatory email verification |
+| Token | Admin vouches + HMAC-signed link | Medium | Single-use, 7-day expiry, HMAC-SHA256 |
+| Merge | Admin-only operation | Low | Requires admin permission, transaction atomic |
+| Name match | Suggestion only | N/A | Never auto-claims; admin review required |
+
+**Additional security requirements:**
+
+- All claim events logged with IP address for forensic analysis
+- Rate limiting on token claim endpoint (prevent brute force)
+- Claim tokens MUST NOT be guessable (TimestampSigner provides cryptographic signing)
+- Session invalidation for merged accounts prevents stale session exploitation
+- CSRF protection on all claim form submissions
+- No PII leakage in claim URLs (token is opaque signed string, not plain PK)
+
+**Status:** Approved for Feature 010 implementation
+
+---
+
 ## Technical Findings Summary
 
 ### Polymorphic Merge Safety
@@ -164,6 +232,7 @@ def save_user(self, request, user, form, commit=True):
 **Finding:** Polymorphic FK reassignment is safe when both instances are the same subtype (Person → Person).
 
 **Key insights from research:**
+
 - `polymorphic_ctype` does NOT need updating when merging same-subtype instances
 - FK reassignment via `.update(contributor_id=new_pk)` works correctly
 - CASCADE deletion order matters: reassign FKs first, THEN delete the discard person
@@ -178,6 +247,7 @@ def save_user(self, request, user, form, commit=True):
 **Finding:** The `pre_social_login` hook for ORCID claiming has a bug in the current implementation.
 
 **Current behavior:**
+
 - Active unclaimed Person → correctly handled (activates and connects)
 - Inactive unclaimed Person → redirects to signup → creates duplicate Person ❌
 
@@ -194,11 +264,13 @@ def save_user(self, request, user, form, commit=True):
 **Finding:** Email-based claiming without mandatory email verification is HIGH RISK.
 
 **Attack scenario:**
-1. Admin pre-enrolls researcher as unclaimed Person with email="target@example.com"
-2. Attacker registers with email="target@example.com" (if verification not required)
+
+1. Admin pre-enrolls researcher as unclaimed Person with email="<target@example.com>"
+2. Attacker registers with email="<target@example.com>" (if verification not required)
 3. Attacker gains access to researcher's entire contribution history and identifiers
 
 **Mitigations required (ALL must be active):**
+
 - `ACCOUNT_EMAIL_VERIFICATION = "mandatory"`
 - Rate-limit signup attempts
 - Activate Person only AFTER email confirmation signal
@@ -214,12 +286,14 @@ def save_user(self, request, user, form, commit=True):
 **Finding:** `Contribution.unique_together = ("content_type", "object_id", "contributor")` causes `IntegrityError` if both persons have contributions to the same object.
 
 **Resolution strategy:**
+
 1. Before bulk FK update, identify duplicate Contribution records
 2. Merge roles from duplicate B into duplicate A (if different roles)
 3. Delete duplicate B
 4. Then reassign remaining Contribution FKs
 
 **Code pattern:**
+
 ```python
 for contrib_b in Contribution.objects.filter(contributor_id=discard_pk):
     try:
