@@ -81,6 +81,7 @@ dependencies = [
     'django-hijack (>=3.7.4,<4.0.0)',
     'tablib[ods,xlsx] (>=3.9.0,<4.0.0)',
     'django-extra-views (>=0.16.0,<0.17.0)',
+    "rapidfuzz (>=3.14.3,<4.0.0)",
 ]
 
 [project.urls]

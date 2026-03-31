@@ -15,11 +15,11 @@
 
 **Purpose**: Create the `services/` package skeleton that all user story phases depend on.
 
-- [ ] T001 Create `fairdm/contrib/contributors/services/` package with empty `__init__.py`; also create `fairdm/contrib/contributors/exceptions.py` with `ClaimingError(Exception)` class (used by all claiming service functions — see data-model.md § Custom Exceptions)
+- [X] T001 Create `fairdm/contrib/contributors/services/` package with empty `__init__.py`; also create `fairdm/contrib/contributors/exceptions.py` with `ClaimingError(Exception)` class (used by all claiming service functions — see data-model.md § Custom Exceptions)
 
 ### System Validation — Phase 1
 
-- [ ] T002 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding to Phase 2
+- [X] T002 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding to Phase 2
 
 **Checkpoint — Setup Complete**: System checks pass and `services/` package is importable.
 
@@ -31,15 +31,15 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 Add `ClaimMethod` TextChoices and `ClaimingAuditLog` model to `fairdm/contrib/contributors/models.py` (immutable save() override, all fields per data-model.md)
-- [ ] T004 Generate and apply migration for `ClaimingAuditLog` in `fairdm/contrib/contributors/migrations/`
-- [ ] T005 [P] Create `fairdm/contrib/contributors/utils/audit.py` with `log_claiming_event(method, source, target, initiated_by, ip_address, success, failure_reason, details)` utility
-- [ ] T006 [P] Create `fairdm/contrib/contributors/utils/tokens.py` with `generate_claim_token(person) -> str` and `validate_claim_token(token_string) -> Person | None` using `TimestampSigner`
+- [X] T003 Add `ClaimMethod` TextChoices and `ClaimingAuditLog` model to `fairdm/contrib/contributors/models.py` (immutable save() override, all fields per data-model.md)
+- [X] T004 Generate and apply migration for `ClaimingAuditLog` in `fairdm/contrib/contributors/migrations/`
+- [X] T005 [P] Create `fairdm/contrib/contributors/utils/audit.py` with `log_claiming_event(method, source, target, initiated_by, ip_address, success, failure_reason, details)` utility
+- [X] T006 [P] Create `fairdm/contrib/contributors/utils/tokens.py` with `generate_claim_token(person) -> str` and `validate_claim_token(token_string) -> Person | None` using `TimestampSigner`
 
 ### System Validation — Phase 2
 
-- [ ] T007 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T008 ⚠️ CRITICAL: Run migration and model tests: `poetry run pytest tests/test_contrib/test_contributors/test_models.py -v` — ALL tests MUST pass before proceeding to any user story
+- [X] T007 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [X] T008 ⚠️ CRITICAL: Run migration and model tests: `poetry run pytest tests/test_contrib/test_contributors/test_models.py -v` — ALL tests MUST pass before proceeding to any user story
 
 **Checkpoint — Foundation Ready**: ClaimingAuditLog is migrated, both utilities are importable, and all existing model tests still pass. User story phases can now begin.
 
@@ -51,16 +51,16 @@
 
 **Independent Test**: Create an unclaimed Person with a ContributorIdentifier(type="ORCID"), simulate ORCID social login with that ORCID UID, assert: single Person row exists, `is_active=True`, `is_claimed=True`, social account connected, all original Contributions preserved.
 
-- [ ] T011 [P] [US1] Write unit tests for `claim_via_orcid()` in `tests/test_contrib/test_contributors/test_claiming_services.py`: happy path; already-claimed Person raises guard; banned target Person (`is_active=False`) raises `ClaimingError` (FR-017); audit log written on success; failed claim logged with `success=False` and `failure_reason` populated (FR-015) *(TDD stubs — will initially fail with ImportError until T009 is complete)*
-- [ ] T013 [P] [US1] Write unit tests for token utilities in `tests/test_contrib/test_contributors/test_tokens.py` (generate/validate round-trip, expiry rejection, tampered token rejected, already-claimed person rejected) *(TDD stubs — depends on T006 from Phase 2)*
-- [ ] T009 [US1] Create `fairdm/contrib/contributors/services/claiming.py` with `claim_via_orcid(person: Person, sociallogin: SocialLogin) -> Person` — sets `is_claimed=True`, `is_active=True`, connects social account, calls `log_claiming_event()`
-- [ ] T010 [US1] Fix `pre_social_login` in `fairdm/contrib/contributors/adapters.py`: replace the `is_active=False` branch's `ImmediateHttpResponse(redirect_to_signup(...))` with a call to `claim_via_orcid()` and an `ImmediateHttpResponse` completing the login
-- [ ] T012 [P] [US1] Write adapter integration tests for the ORCID claiming flow in `tests/test_contrib/test_contributors/test_adapters.py` (existing unclaimed Person gets activated; new ORCID creates fresh Person)
+- [X] T011 [P] [US1] Write unit tests for `claim_via_orcid()` in `tests/test_contrib/test_contributors/test_claiming_services.py`: happy path; already-claimed Person raises guard; banned target Person (`is_active=False`) raises `ClaimingError` (FR-017); audit log written on success; failed claim logged with `success=False` and `failure_reason` populated (FR-015) *(TDD stubs — will initially fail with ImportError until T009 is complete)*
+- [X] T013 [P] [US1] Write unit tests for token utilities in `tests/test_contrib/test_contributors/test_tokens.py` (generate/validate round-trip, expiry rejection, tampered token rejected, already-claimed person rejected) *(TDD stubs — depends on T006 from Phase 2)*
+- [X] T009 [US1] Create `fairdm/contrib/contributors/services/claiming.py` with `claim_via_orcid(person: Person, sociallogin: SocialLogin) -> Person` — sets `is_claimed=True`, `is_active=True`, connects social account, calls `log_claiming_event()`
+- [X] T010 [US1] Fix `pre_social_login` in `fairdm/contrib/contributors/adapters.py`: replace the `is_active=False` branch's `ImmediateHttpResponse(redirect_to_signup(...))` with a call to `claim_via_orcid()` and an `ImmediateHttpResponse` completing the login
+- [X] T012 [P] [US1] Write adapter integration tests for the ORCID claiming flow in `tests/test_contrib/test_contributors/test_adapters.py` (existing unclaimed Person gets activated; new ORCID creates fresh Person)
 
 ### System Validation — Phase 3
 
-- [ ] T014 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T015 ⚠️ CRITICAL: Run User Story 1 tests: `poetry run pytest tests/test_contrib/test_contributors/test_claiming_services.py tests/test_contrib/test_contributors/test_adapters.py tests/test_contrib/test_contributors/test_tokens.py -v` — ALL tests MUST pass
+- [X] T014 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [X] T015 ⚠️ CRITICAL: Run User Story 1 tests: `poetry run pytest tests/test_contrib/test_contributors/test_claiming_services.py tests/test_contrib/test_contributors/test_adapters.py tests/test_contrib/test_contributors/test_tokens.py -v` — ALL tests MUST pass
 
 **Checkpoint — US1 Complete**: ORCID claiming fully functional and tested. No duplicate Person created on ORCID signup.
 
@@ -72,17 +72,17 @@
 
 **Independent Test**: Set `email="jane@example.org"` on an unclaimed Person, simulate registration + email confirmation with that address under `ACCOUNT_EMAIL_VERIFICATION="mandatory"`, assert the single Person row becomes `is_claimed=True`. Also assert the flow is entirely skipped (no claim attempted) when verification is not mandatory.
 
-- [ ] T020 [P] [US2] Write unit tests for `claim_via_email()` in `tests/test_contrib/test_contributors/test_claiming_services.py`: happy path; mandatory-verification guard (silent no-op when `ACCOUNT_EMAIL_VERIFICATION != "mandatory"`); already-claimed Person raises guard; banned target Person (`is_active=False`) raises `ClaimingError` (FR-017); audit log written on success; failed claim logged with `success=False` and `failure_reason` populated (FR-015) *(TDD stubs — will initially fail with ImportError until T016 is complete)*
-- [ ] T021 [P] [US2] Write signal handler tests in `tests/test_contrib/test_contributors/test_signals.py` (email confirmed triggers claim; no-op when verification not mandatory; no-op when no matching unclaimed Person) *(TDD stubs — will initially fail until T018/T019 are complete)*
-- [ ] T016 [US2] Add `claim_via_email(person: Person) -> Person` to `fairdm/contrib/contributors/services/claiming.py` — sets `is_claimed=True`, `is_active=True`, calls `log_claiming_event()`
-- [ ] T017 [US2] Update `AccountAdapter.save_user()` in `fairdm/contrib/contributors/adapters.py`: add guard that skips email-based claiming entirely when `ACCOUNT_EMAIL_VERIFICATION != "mandatory"`
-- [ ] T018 [US2] Create `fairdm/contrib/contributors/signals.py` with `handle_email_confirmed` receiver on `allauth.account.signals.email_confirmed` — looks up unclaimed Person by confirmed email and calls `claim_via_email()`
-- [ ] T019 [US2] Register the `email_confirmed` signal in `ready()` method of `fairdm/contrib/contributors/apps.py`
+- [X] T020 [P] [US2] Write unit tests for `claim_via_email()` in `tests/test_contrib/test_contributors/test_claiming_services.py`: happy path; mandatory-verification guard (silent no-op when `ACCOUNT_EMAIL_VERIFICATION != "mandatory"`); already-claimed Person raises guard; banned target Person (`is_active=False`) raises `ClaimingError` (FR-017); audit log written on success; failed claim logged with `success=False` and `failure_reason` populated (FR-015) *(TDD stubs — will initially fail with ImportError until T016 is complete)*
+- [X] T021 [P] [US2] Write signal handler tests in `tests/test_contrib/test_contributors/test_signals.py` (email confirmed triggers claim; no-op when verification not mandatory; no-op when no matching unclaimed Person) *(TDD stubs — will initially fail until T018/T019 are complete)*
+- [X] T016 [US2] Add `claim_via_email(person: Person) -> Person` to `fairdm/contrib/contributors/services/claiming.py` — sets `is_claimed=True`, `is_active=True`, calls `log_claiming_event()`
+- [X] T017 [US2] Update `AccountAdapter.save_user()` in `fairdm/contrib/contributors/adapters.py`: add guard that skips email-based claiming entirely when `ACCOUNT_EMAIL_VERIFICATION != "mandatory"`
+- [X] T018 [US2] Create `fairdm/contrib/contributors/signals.py` with `handle_email_confirmed` receiver on `allauth.account.signals.email_confirmed` — looks up unclaimed Person by confirmed email and calls `claim_via_email()`
+- [X] T019 [US2] Register the `email_confirmed` signal in `ready()` method of `fairdm/contrib/contributors/apps.py`
 
 ### System Validation — Phase 4
 
-- [ ] T022 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T023 ⚠️ CRITICAL: Run User Story 2 tests: `poetry run pytest tests/test_contrib/test_contributors/test_claiming_services.py tests/test_contrib/test_contributors/test_signals.py -v` — ALL tests MUST pass
+- [X] T022 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [X] T023 ⚠️ CRITICAL: Run User Story 2 tests: `poetry run pytest tests/test_contrib/test_contributors/test_claiming_services.py tests/test_contrib/test_contributors/test_signals.py -v` — ALL tests MUST pass
 
 **Checkpoint — US2 Complete**: Email claiming fully functional. Confirming a matching email activates the unclaimed profile. Security guard prevents email claiming without mandatory verification.
 
@@ -94,19 +94,19 @@
 
 **Independent Test**: Admin generates a claim token for an unclaimed Person, unauthenticated user clicks the link, registers, asserts the unclaimed profile is activated. Then attempt to reuse the same token and assert rejection.
 
-- [ ] T030 [P] [US3] Write `ClaimProfileView` integration tests in `tests/test_contrib/test_contributors/test_views.py`: (a) authenticated same-user — GET shows claim confirmation, POST executes claim and profile is activated; (b) unauthenticated — GET redirects to login with token stored in session, claim completes after auth; (c) authenticated as different Person B (US3 Scenario 6) — GET renders merge confirmation page listing Person A's contributions/identifiers to be transferred, POST executes merge and B now has all of A's data; (d) banned target Person — GET renders error page, POST also rejected; (e) expired token — rejected with error; (f) reused token (already claimed) — rejected; (g) CSRF enforced on POST *(TDD stubs — will initially fail until T024/T025 are complete; merge path (c) additionally requires T034 from Phase 6)*
-- [ ] T031 [P] [US3] Write unit tests for `claim_via_token()` in `tests/test_contrib/test_contributors/test_claiming_services.py`: valid token + authenticated user; token-already-claimed raises `ClaimingError`; expired token raises `ClaimingError`; tampered token raises `ClaimingError`; banned target Person (`is_active=False`) raises `ClaimingError` (FR-017); failed claim logged with `success=False` and `failure_reason` populated (FR-015) *(TDD stubs — will initially fail with ImportError until T024 is complete)*
-- [ ] T024 [US3] Add `claim_via_token(token_string: str, user: Person) -> Person` to `fairdm/contrib/contributors/services/claiming.py` — calls `validate_claim_token()`, raises `ClaimingError` if target Person is banned (`is_active=False`, FR-017), activates the unclaimed Person for the calling user, calls `log_claiming_event()`; handles the **simple-claim path only** (user has no conflicting active Person account). The merge path (authenticated Person B claiming token for unclaimed Person A) is handled by `ClaimProfileView` routing directly to `merge_persons()` — the view is the routing layer, not this service function. *(Note: merge paths in `ClaimProfileView` POST require Phase 6 `merge_persons()` to be complete before that branch is wired up)*
-- [ ] T025 [US3] Create `fairdm/contrib/contributors/views/claiming.py` with `ClaimProfileView`: `GET /claim/<token>/` ALWAYS renders a confirmation page showing the unclaimed profile details (and merge summary if user is already Person B); `POST /claim/<token>/confirm/` executes the claim or merge (requires authentication + CSRF). Four user states on GET: (a) unauthenticated → store token in session, redirect to login/register, return here after auth; (b) authenticated, no conflicting Person → show standard claim confirmation; (c) authenticated as different Person B → show merge confirmation page listing what will be transferred from Person A; (d) token targets a banned Person (`is_active=False`) → render error page immediately regardless of auth state — no confirmation page is shown. On POST: routes to `claim_via_token()` for state (b) simple-claim path, or calls `merge_persons()` directly for state (c) merge path — the view is the routing layer. No claim or merge is ever executed on GET.
-- [ ] T026 [US3] Add claim URL patterns (`/claim/<token>/` and `/claim/<token>/confirm/`) to `fairdm/contrib/contributors/urls.py`
-- [ ] T027 [US3] Create `fairdm/contrib/contributors/templates/contributors/claim_profile.html` — landing page showing unclaimed profile details and confirm/login button
-- [ ] T028 [US3] Add "Generate Claim Link" admin action to `fairdm/contrib/contributors/admin.py` on `PersonAdmin` — calls `generate_claim_token()`, passes the shareable URL to a template context, and queries `ClaimingAuditLog` for this Person to display claim history (satisfies US3 Scenario 7: admin can see who claimed it and when)
-- [ ] T029 [US3] Create `fairdm/contrib/contributors/templates/contributors/admin/claim_person.html` — renders the generated claim URL in a copyable field with expiry notice and a claim history section drawn from `ClaimingAuditLog`; includes a visible admin note: "Generating a new claim link does NOT invalidate previously generated links — all unexpired links remain valid until one is redeemed" (satisfies Q4 clarification requirement)
+- [X] T030 [P] [US3] Write `ClaimProfileView` integration tests in `tests/test_contrib/test_contributors/test_views.py`: (a) authenticated same-user — GET shows claim confirmation, POST executes claim and profile is activated; (b) unauthenticated — GET redirects to login with token stored in session, claim completes after auth; (c) authenticated as different Person B (US3 Scenario 6) — GET renders merge confirmation page listing Person A's contributions/identifiers to be transferred, POST executes merge and B now has all of A's data; (d) banned target Person — GET renders error page, POST also rejected; (e) expired token — rejected with error; (f) reused token (already claimed) — rejected; (g) CSRF enforced on POST *(TDD stubs — will initially fail until T024/T025 are complete; merge path (c) additionally requires T034 from Phase 6)*
+- [X] T031 [P] [US3] Write unit tests for `claim_via_token()` in `tests/test_contrib/test_contributors/test_claiming_services.py`: valid token + authenticated user; token-already-claimed raises `ClaimingError`; expired token raises `ClaimingError`; tampered token raises `ClaimingError`; banned target Person (`is_active=False`) raises `ClaimingError` (FR-017); failed claim logged with `success=False` and `failure_reason` populated (FR-015) *(TDD stubs — will initially fail with ImportError until T024 is complete)*
+- [X] T024 [US3] Add `claim_via_token(token_string: str, user: Person) -> Person` to `fairdm/contrib/contributors/services/claiming.py` — calls `validate_claim_token()`, raises `ClaimingError` if target Person is banned (`is_active=False`, FR-017), activates the unclaimed Person for the calling user, calls `log_claiming_event()`; handles the **simple-claim path only** (user has no conflicting active Person account). The merge path (authenticated Person B claiming token for unclaimed Person A) is handled by `ClaimProfileView` routing directly to `merge_persons()` — the view is the routing layer, not this service function. *(Note: merge paths in `ClaimProfileView` POST require Phase 6 `merge_persons()` to be complete before that branch is wired up)*
+- [X] T025 [US3] Create `fairdm/contrib/contributors/views/claiming.py` with `ClaimProfileView`: `GET /claim/<token>/` ALWAYS renders a confirmation page showing the unclaimed profile details (and merge summary if user is already Person B); `POST /claim/<token>/confirm/` executes the claim or merge (requires authentication + CSRF). Four user states on GET: (a) unauthenticated → store token in session, redirect to login/register, return here after auth; (b) authenticated, no conflicting Person → show standard claim confirmation; (c) authenticated as different Person B → show merge confirmation page listing what will be transferred from Person A; (d) token targets a banned Person (`is_active=False`) → render error page immediately regardless of auth state — no confirmation page is shown. On POST: routes to `claim_via_token()` for state (b) simple-claim path, or calls `merge_persons()` directly for state (c) merge path — the view is the routing layer. No claim or merge is ever executed on GET.
+- [X] T026 [US3] Add claim URL patterns (`/claim/<token>/` and `/claim/<token>/confirm/`) to `fairdm/contrib/contributors/urls.py`
+- [X] T027 [US3] Create `fairdm/contrib/contributors/templates/contributors/claim_profile.html` — landing page showing unclaimed profile details and confirm/login button
+- [X] T028 [US3] Add "Generate Claim Link" admin action to `fairdm/contrib/contributors/admin.py` on `PersonAdmin` — calls `generate_claim_token()`, passes the shareable URL to a template context, and queries `ClaimingAuditLog` for this Person to display claim history (satisfies US3 Scenario 7: admin can see who claimed it and when)
+- [X] T029 [US3] Create `fairdm/contrib/contributors/templates/contributors/admin/claim_person.html` — renders the generated claim URL in a copyable field with expiry notice and a claim history section drawn from `ClaimingAuditLog`; includes a visible admin note: "Generating a new claim link does NOT invalidate previously generated links — all unexpired links remain valid until one is redeemed" (satisfies Q4 clarification requirement)
 
 ### System Validation — Phase 5
 
-- [ ] T032 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T033 ⚠️ CRITICAL: Run User Story 3 tests: `poetry run pytest tests/test_contrib/test_contributors/test_views.py tests/test_contrib/test_contributors/test_claiming_services.py -v` — ALL tests MUST pass
+- [X] T032 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [X] T033 ⚠️ CRITICAL: Run User Story 3 tests: `poetry run pytest tests/test_contrib/test_contributors/test_views.py tests/test_contrib/test_contributors/test_claiming_services.py -v` — ALL tests MUST pass
 
 **Checkpoint — US3 Complete**: Token claiming end-to-end functional. Admin can generate and share a claim link; recipient claims their profile. Token is single-use.
 
@@ -118,16 +118,16 @@
 
 **Independent Test**: Create two Person records with overlapping and unique Contributions; call `merge_persons(keep=B, discard=A)`; assert B has all combined unique contributions, A is deleted, all sessions for A invalidated, all permissions transferred.
 
-- [ ] T038 [US4] Write merge service unit tests in `tests/test_contrib/test_contributors/test_merge.py` (full merge happy path, contribution dedup on unique_together conflict, allauth records reassigned, sessions invalidated, permissions transferred, atomic rollback on error, error if keep==discard) *(TDD stubs — will initially fail with ImportError until T034 is complete)*
-- [ ] T034 [US4] Create `fairdm/contrib/contributors/services/merge.py` with `merge_persons(person_keep, person_discard)` and all private helpers: `_reassign_contributions`, `_reassign_identifiers`, `_reassign_affiliations`, `_reassign_allauth_records`, `_transfer_permissions`, `_invalidate_sessions`, `_merge_profile_fields` — entire operation in `transaction.atomic()`
-- [ ] T035 [US4] Add `MergePersonForm` to `fairdm/contrib/contributors/forms/person.py` — select field for target Person to merge into
-- [ ] T036 [US4] Add merge admin action and merge confirmation view to `fairdm/contrib/contributors/admin.py`; action is available to any staff user with `contributors.change_person` permission (no additional permission required)
-- [ ] T037 [US4] Add merge preview/confirm section to `fairdm/contrib/contributors/templates/contributors/admin/claim_person.html` (shows what will be transferred; confirm button POSTs to merge action)
+- [X] T038 [US4] Write merge service unit tests in `tests/test_contrib/test_contributors/test_merge.py` (full merge happy path, contribution dedup on unique_together conflict, allauth records reassigned, sessions invalidated, permissions transferred, atomic rollback on error, error if keep==discard) *(TDD stubs — will initially fail with ImportError until T034 is complete)*
+- [X] T034 [US4] Create `fairdm/contrib/contributors/services/merge.py` with `merge_persons(person_keep, person_discard)` and all private helpers: `_reassign_contributions`, `_reassign_identifiers`, `_reassign_affiliations`, `_reassign_allauth_records`, `_transfer_permissions`, `_invalidate_sessions`, `_merge_profile_fields` — entire operation in `transaction.atomic()`
+- [X] T035 [US4] Add `MergePersonForm` to `fairdm/contrib/contributors/forms/person.py` — select field for target Person to merge into
+- [X] T036 [US4] Add merge admin action and merge confirmation view to `fairdm/contrib/contributors/admin.py`; action is available to any staff user with `contributors.change_person` permission (no additional permission required)
+- [X] T037 [US4] Add merge preview/confirm section to `fairdm/contrib/contributors/templates/contributors/admin/claim_person.html` (shows what will be transferred; confirm button POSTs to merge action)
 
 ### System Validation — Phase 6
 
-- [ ] T039 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T040 ⚠️ CRITICAL: Run User Story 4 tests: `poetry run pytest tests/test_contrib/test_contributors/test_merge.py -v` — ALL tests MUST pass
+- [X] T039 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [X] T040 ⚠️ CRITICAL: Run User Story 4 tests: `poetry run pytest tests/test_contrib/test_contributors/test_merge.py -v` — ALL tests MUST pass
 
 **Checkpoint — US4 Complete**: Admin can merge any two Person records without data loss. Partial merges are impossible (transaction rollback).
 
@@ -139,14 +139,14 @@
 
 **Independent Test**: Create unclaimed Person "John A. Smith" and claimed Person "John Smith"; open the admin change page for the unclaimed Person; assert the suggestions panel lists "John Smith" with a similarity score ≥ 0.85. Create a clearly different Person "Alice Brown"; assert she does NOT appear in suggestions.
 
-- [ ] T043 [US5] Write fuzzy matching unit tests in `tests/test_contrib/test_contributors/test_matching.py` (similar names surface above threshold, dissimilar names excluded, name-reordering handled, self excluded from results) *(TDD stubs — will initially fail with ImportError until T041 is complete)*
-- [ ] T041 [US5] Create `fairdm/contrib/contributors/services/matching.py` with `find_duplicate_candidates(person: Person, threshold: float = 0.85) -> list[dict]` using `rapidfuzz.fuzz.token_sort_ratio` — returns list of `{person, score}` dicts sorted by score desc
-- [ ] T042 [US5] Add fuzzy match inline panel to unclaimed PersonAdmin change page in `fairdm/contrib/contributors/admin.py` — calls `find_duplicate_candidates()` and passes results to the change form context; includes "Dismiss" (session-scoped) and "Claim via Token" shortcut per suggestion
+- [X] T043 [US5] Write fuzzy matching unit tests in `tests/test_contrib/test_contributors/test_matching.py` (similar names surface above threshold, dissimilar names excluded, name-reordering handled, self excluded from results) *(TDD stubs — will initially fail with ImportError until T041 is complete)*
+- [X] T041 [US5] Create `fairdm/contrib/contributors/services/matching.py` with `find_duplicate_candidates(person: Person, threshold: float = 0.85) -> list[dict]` using `rapidfuzz.fuzz.token_sort_ratio` — returns list of `{person, score}` dicts sorted by score desc
+- [X] T042 [US5] Add fuzzy match inline panel to unclaimed PersonAdmin change page in `fairdm/contrib/contributors/admin.py` — calls `find_duplicate_candidates()` and passes results to the change form context; includes "Dismiss" (session-scoped) and "Claim via Token" shortcut per suggestion
 
 ### System Validation — Phase 7
 
-- [ ] T044 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T045 ⚠️ CRITICAL: Run User Story 5 tests: `poetry run pytest tests/test_contrib/test_contributors/test_matching.py -v` — ALL tests MUST pass
+- [X] T044 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [X] T045 ⚠️ CRITICAL: Run User Story 5 tests: `poetry run pytest tests/test_contrib/test_contributors/test_matching.py -v` — ALL tests MUST pass
 
 **Checkpoint — US5 Complete**: Fuzzy name matching panel visible in admin for unclaimed Persons. Suggestions are on-demand and never auto-claim.
 
@@ -154,16 +154,16 @@
 
 ## Final Phase: Polish & Cross-Cutting Concerns
 
-- [ ] T052 [P] Register `ClaimingAuditLog` with Django admin as a read-only `ModelAdmin` in `fairdm/contrib/contributors/admin.py` (list display: `timestamp`, `method`, `source_person`, `target_person`, `initiated_by`, `success`; no add/change/delete permissions — immutable by design)
-- [ ] T046 Write `ClaimingAuditLog` model and admin registration tests in `tests/test_contrib/test_contributors/test_audit.py` (immutability enforced, manager filter methods, admin view loads); also verify demo app admin views load without errors after `ClaimingAuditLog` migration is applied (`poetry run python manage.py check` passes and demo admin changelist returns HTTP 200) — Constitution §VII compliance *(depends on T052)*
-- [ ] T047 [P] Add "Claiming a Profile" guide for contributors at `docs/user-guide/claiming-a-profile.md` (ORCID, email, and token pathways explained from user perspective)
-- [ ] T048 [P] Add "Managing Unclaimed Profiles" guide to `docs/portal-administration/managing-unclaimed-profiles.md` (generating claim links, running merges, interpreting audit log)
-- [ ] T051 [P] Add developer-guide documentation for claiming service APIs and new settings (`CLAIM_TOKEN_MAX_AGE`, `CLAIM_TOKEN_SALT`) in `docs/portal-development/` with at least one usage example per public API and per setting (Constitution §VI compliance)
+- [X] T052 [P] Register `ClaimingAuditLog` with Django admin as a read-only `ModelAdmin` in `fairdm/contrib/contributors/admin.py` (list display: `timestamp`, `method`, `source_person`, `target_person`, `initiated_by`, `success`; no add/change/delete permissions — immutable by design)
+- [X] T046 Write `ClaimingAuditLog` model and admin registration tests in `tests/test_contrib/test_contributors/test_audit.py` (immutability enforced, manager filter methods, admin view loads); also verify demo app admin views load without errors after `ClaimingAuditLog` migration is applied (`poetry run python manage.py check` passes and demo admin changelist returns HTTP 200) — Constitution §VII compliance *(depends on T052)*
+- [X] T047 [P] Add "Claiming a Profile" guide for contributors at `docs/user-guide/claiming-a-profile.md` (ORCID, email, and token pathways explained from user perspective)
+- [X] T048 [P] Add "Managing Unclaimed Profiles" guide to `docs/portal-administration/managing-unclaimed-profiles.md` (generating claim links, running merges, interpreting audit log)
+- [X] T051 [P] Add developer-guide documentation for claiming service APIs and new settings (`CLAIM_TOKEN_MAX_AGE`, `CLAIM_TOKEN_SALT`) in `docs/portal-development/` with at least one usage example per public API and per setting (Constitution §VI compliance)
 
 ### System Validation — Final
 
-- [ ] T049 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass
-- [ ] T050 ⚠️ CRITICAL: Run full contributor test suite: `poetry run pytest tests/test_contrib/test_contributors/ -v` — ALL tests MUST pass
+- [X] T049 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass
+- [X] T050 ⚠️ CRITICAL: Run full contributor test suite: `poetry run pytest tests/test_contrib/test_contributors/ -v` — ALL tests MUST pass
 
 **Checkpoint — Feature Complete**: All claiming pathways implemented, all tests pass, documentation updated.
 

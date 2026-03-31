@@ -18,7 +18,7 @@ urlpatterns = [
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.collections.urls")),
-    path("", include("fairdm.contrib.contributors.urls")),
+    path("", include("fairdm.contrib.contributors.urls", namespace="contributors")),
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
     path("", include("fairdm.utils.urls")),

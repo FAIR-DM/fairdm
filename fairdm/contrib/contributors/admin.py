@@ -12,6 +12,7 @@ from fairdm.db import models
 
 from .models import (
     Affiliation,
+    ClaimingAuditLog,
     Contributor,
     ContributorIdentifier,
     Organization,
@@ -93,6 +94,7 @@ class IdentifierInline(admin.StackedInline):
 class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     base_model = Contributor
     show_in_index = True
+    change_form_template = "contributors/admin/change_form.html"
     resource_classes = [PersonResource]
     skip_import_confirm = True
     inlines = [AccountEmailInline, AffiliationInline, IdentifierInline]
@@ -182,6 +184,174 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
     search_fields = ("email", "id", "name")
     ordering = ("last_name",)
+    actions = ["generate_claim_link_action", "merge_person_action"]
+
+    @admin.action(description=_("Merge selected Person into another"))
+    def merge_person_action(self, request, queryset):
+        """Redirect to a merge confirmation page for the selected Person(s)."""
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        if queryset.count() != 1:
+            self.message_user(
+                request,
+                _("Please select exactly one Person to merge."),
+                level="error",
+            )
+            return
+
+        person = queryset.first()
+        url = reverse("admin:contributors_person_merge", args=[person.pk])
+        return redirect(url)
+
+    @admin.action(description=_("Generate claim link for selected Person"))
+    def generate_claim_link_action(self, request, queryset):
+        """Generate a shareable one-time claim link for an unclaimed Person."""
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        if queryset.count() != 1:
+            self.message_user(
+                request,
+                _("Please select exactly one Person to generate a claim link for."),
+                level="error",
+            )
+            return
+
+        person = queryset.first()
+        url = reverse("admin:contributors_person_claim_link", args=[person.pk])
+        return redirect(url)
+
+    # ------------------------------------------------------------------
+    # Fuzzy match panel
+    # ------------------------------------------------------------------
+
+    _DISMISSED_KEY = "contributors_dismissed_candidates"
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        """Inject fuzzy-match duplicate candidates into the change-form context."""
+        from fairdm.contrib.contributors.services.matching import find_duplicate_candidates
+
+        extra_context = extra_context or {}
+        try:
+            person = Person.objects.get(pk=object_id)
+        except Person.DoesNotExist:
+            return super().change_view(request, object_id, form_url, extra_context)
+
+        dismissed: set = set(request.session.get(self._DISMISSED_KEY, []))
+        all_candidates = find_duplicate_candidates(person)
+        candidates = [c for c in all_candidates if c["person"].pk not in dismissed]
+        extra_context["fuzzy_candidates"] = candidates
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    def dismiss_candidate_view(self, request, pk, candidate_pk):
+        """Store a dismissed candidate in the session and redirect back to change page."""
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        dismissed = set(request.session.get(self._DISMISSED_KEY, []))
+        dismissed.add(candidate_pk)
+        request.session[self._DISMISSED_KEY] = list(dismissed)
+        return redirect(reverse("admin:contributors_person_change", args=[pk]))
+
+    def get_urls(self):
+        from django.urls import path as url_path
+
+        urls = super().get_urls()
+        custom_urls = [
+            url_path(
+                "<int:pk>/claim-link/",
+                self.admin_site.admin_view(self.claim_link_view),
+                name="contributors_person_claim_link",
+            ),
+            url_path(
+                "<int:pk>/merge/",
+                self.admin_site.admin_view(self.merge_view),
+                name="contributors_person_merge",
+            ),
+            url_path(
+                "<int:pk>/dismiss-candidate/<int:candidate_pk>/",
+                self.admin_site.admin_view(self.dismiss_candidate_view),
+                name="contributors_person_dismiss_candidate",
+            ),
+        ]
+        return custom_urls + urls
+
+    def claim_link_view(self, request, pk):
+        """Render the claim link page for a Person."""
+        from django.shortcuts import get_object_or_404
+        from django.template.response import TemplateResponse
+        from django.urls import reverse
+
+        from fairdm.contrib.contributors.models import ClaimingAuditLog
+        from fairdm.contrib.contributors.utils.tokens import generate_claim_token
+
+        person = get_object_or_404(Person, pk=pk)
+        token = generate_claim_token(person)
+        claim_url = request.build_absolute_uri(
+            reverse("contributors:claim-profile", kwargs={"token": token})
+        )
+        audit_log = ClaimingAuditLog.objects.for_person(person.pk).order_by("-timestamp")[:20]
+
+        context = {
+            **self.admin_site.each_context(request),
+            "person": person,
+            "claim_url": claim_url,
+            "token": token,
+            "audit_log": audit_log,
+            "opts": self.model._meta,
+            "title": _("Generate Claim Link"),
+        }
+        return TemplateResponse(
+            request,
+            "contributors/admin/claim_person.html",
+            context,
+        )
+
+    def merge_view(self, request, pk):
+        """Render the merge confirmation/execution page for a Person."""
+        from django.contrib import messages
+        from django.shortcuts import get_object_or_404, redirect
+        from django.template.response import TemplateResponse
+        from django.urls import reverse
+
+        from fairdm.contrib.contributors.exceptions import ClaimingError
+        from fairdm.contrib.contributors.forms.person import MergePersonForm
+        from fairdm.contrib.contributors.services.merge import merge_persons
+
+        person = get_object_or_404(Person, pk=pk)
+
+        if request.method == "POST":
+            form = MergePersonForm(request.POST, exclude_pk=person.pk)
+            if form.is_valid():
+                keep = form.cleaned_data["merge_into"]
+                try:
+                    merge_persons(person_keep=keep, person_discard=person)
+                    messages.success(
+                        request,
+                        _("Successfully merged %(discard)s into %(keep)s.")
+                        % {"discard": person, "keep": keep},
+                    )
+                    return redirect(
+                        reverse("admin:contributors_person_change", args=[keep.pk])
+                    )
+                except ClaimingError as exc:
+                    messages.error(request, str(exc))
+        else:
+            form = MergePersonForm(exclude_pk=person.pk)
+
+        context = {
+            **self.admin_site.each_context(request),
+            "person": person,
+            "form": form,
+            "opts": self.model._meta,
+            "title": _("Merge Person"),
+        }
+        return TemplateResponse(
+            request,
+            "contributors/admin/merge_person.html",
+            context,
+        )
 
 
 @admin.register(Organization)
@@ -291,3 +461,32 @@ class OrganizationAdmin(admin.ModelAdmin):
         # Redirect to organization change page
         url = reverse("admin:contributors_organization_change", args=[org.pk])
         return redirect(url)
+
+
+@admin.register(ClaimingAuditLog)
+class ClaimingAuditLogAdmin(admin.ModelAdmin):
+    """Read-only admin view for ClaimingAuditLog entries.
+
+    All claim events are immutable by design — add, change, and delete are disabled.
+    """
+
+    list_display = ["timestamp", "method", "source_person", "target_person", "initiated_by", "success"]
+    list_filter = ["method", "success"]
+    search_fields = ["source_person__name", "target_person__name", "initiated_by__name"]
+    date_hierarchy = "timestamp"
+    ordering = ["-timestamp"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        # Allow changelist (obj is None) but block the change detail page.
+        if obj is not None:
+            return False
+        return super().has_view_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

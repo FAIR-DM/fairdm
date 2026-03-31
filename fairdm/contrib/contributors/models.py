@@ -229,7 +229,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("contributor:overview", kwargs={"uuid": self.uuid})
+        return reverse("contributors:contributor:overview", kwargs={"uuid": self.uuid})
 
     def get_update_url(self):
         return reverse("contributor-update", kwargs={"uuid": self.uuid})
@@ -1139,6 +1139,108 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
                 logger.warning(f"Failed to dispatch sync task for identifier {self.pk}: {e}")
 
         transaction.on_commit(_dispatch)
+
+
+class ClaimMethod(models.TextChoices):
+    ORCID = "orcid", _("ORCID Social Login")
+    EMAIL = "email", _("Email Verification")
+    TOKEN = "token", _("Claim Token Link")
+    ADMIN_MERGE = "admin_merge", _("Admin-Initiated Merge")
+    ADMIN_MANUAL = "admin_manual", _("Admin Manual Activation")
+
+
+class ClaimingAuditLogManager(models.Manager):
+    def for_person(self, pk):
+        return self.filter(models.Q(source_person_id=pk) | models.Q(target_person_id=pk))
+
+    def failures(self):
+        return self.filter(success=False)
+
+    def by_method(self, method: str):
+        return self.filter(method=method)
+
+    def recent(self, days: int = 30):
+        from django.utils import timezone as tz
+        from datetime import timedelta
+
+        cutoff = tz.now() - timedelta(days=days)
+        return self.filter(timestamp__gte=cutoff)
+
+
+class ClaimingAuditLog(models.Model):
+    """Immutable audit trail for all profile claiming events.
+
+    Records are never modified or deleted — only created. The save() override
+    enforces immutability at the application layer.
+    """
+
+    objects = ClaimingAuditLogManager()
+
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("timestamp"))
+
+    method = models.CharField(
+        max_length=20,
+        choices=ClaimMethod.choices,
+        verbose_name=_("method"),
+    )
+
+    source_person = models.ForeignKey(
+        "contributors.Person",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="claim_log_as_source",
+        verbose_name=_("source person"),
+        help_text=_("The unclaimed Person being claimed."),
+    )
+
+    target_person = models.ForeignKey(
+        "contributors.Person",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="claim_log_as_target",
+        verbose_name=_("target person"),
+        help_text=_("The resulting claimed Person."),
+    )
+
+    initiated_by = models.ForeignKey(
+        "contributors.Person",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="claim_log_initiated",
+        verbose_name=_("initiated by"),
+        help_text=_("Admin who initiated the claim, if admin-driven."),
+    )
+
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        verbose_name=_("IP address"),
+    )
+
+    success = models.BooleanField(verbose_name=_("success"))
+
+    failure_reason = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name=_("failure reason"),
+    )
+
+    details = models.JSONField(default=dict, verbose_name=_("details"))
+
+    class Meta:
+        verbose_name = _("claiming audit log")
+        verbose_name_plural = _("claiming audit logs")
+        ordering = ["-timestamp"]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValueError("ClaimingAuditLog records are immutable and cannot be updated.")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.method} | {self.source_person} → {self.target_person} | {'✓' if self.success else '✗'}"
 
 
 def forwards():

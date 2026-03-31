@@ -65,3 +65,26 @@ class UserProfileForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.form_id = "person-profile-form"
+
+
+class MergePersonForm(forms.Form):
+    """Form for selecting a Person to merge another Person into.
+
+    Used by the admin merge action. Allows staff to select the 'keep' Person
+    target when initiating a merge from an unclaimed Person's admin change page.
+    """
+
+    merge_into = forms.ModelChoiceField(
+        queryset=None,
+        label=_("Merge into"),
+        help_text=_("Select the Person record that should survive the merge. The current record will be deleted."),
+    )
+
+    def __init__(self, *args, exclude_pk=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from fairdm.contrib.contributors.models import Person
+
+        qs = Person.objects.all()
+        if exclude_pk is not None:
+            qs = qs.exclude(pk=exclude_pk)
+        self.fields["merge_into"].queryset = qs
