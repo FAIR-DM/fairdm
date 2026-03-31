@@ -8,9 +8,9 @@ if TYPE_CHECKING:
 
 def log_claiming_event(
     method: str,
-    source: "Person | None",
-    target: "Person | None",
-    initiated_by: "Person | None" = None,
+    source: Person | None,
+    target: Person | None,
+    initiated_by: Person | None = None,
     ip_address: str | None = None,
     success: bool = True,
     failure_reason: str = "",

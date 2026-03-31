@@ -1160,8 +1160,9 @@ class ClaimingAuditLogManager(models.Manager):
         return self.filter(method=method)
 
     def recent(self, days: int = 30):
-        from django.utils import timezone as tz
         from datetime import timedelta
+
+        from django.utils import timezone as tz
 
         cutoff = tz.now() - timedelta(days=days)
         return self.filter(timestamp__gte=cutoff)

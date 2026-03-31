@@ -67,8 +67,8 @@ class TestFindDuplicateCandidates:
 
     def test_name_reordering_handled(self, db):
         """token_sort_ratio handles token-order variation ― 'Smith John' matches 'John Smith'."""
-        from fairdm.factories import PersonFactory
         from fairdm.contrib.contributors.services.matching import find_duplicate_candidates
+        from fairdm.factories import PersonFactory
 
         person_a = PersonFactory(name="John Smith")
         person_b = PersonFactory(name="Smith John")
@@ -78,8 +78,8 @@ class TestFindDuplicateCandidates:
 
     def test_results_sorted_by_score_descending(self, db, john_a_smith):
         """Results should be sorted from highest to lowest score."""
-        from fairdm.factories import PersonFactory
         from fairdm.contrib.contributors.services.matching import find_duplicate_candidates
+        from fairdm.factories import PersonFactory
 
         # Create additional somewhat-similar person to ensure ordering
         PersonFactory(name="John Smith")
@@ -99,8 +99,8 @@ class TestFindDuplicateCandidates:
 
     def test_empty_results_when_no_matches(self, db):
         """Isolated person with no similar names returns empty list."""
-        from fairdm.factories import PersonFactory
         from fairdm.contrib.contributors.services.matching import find_duplicate_candidates
+        from fairdm.factories import PersonFactory
 
         unique_person = PersonFactory(name="Qxzrptlm Bvnwzxqk")
         candidates = find_duplicate_candidates(unique_person)

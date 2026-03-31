@@ -9,12 +9,12 @@ Phase ordering:
   - Phase 5 (T031): claim_via_token tests
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from fairdm.contrib.contributors.exceptions import ClaimingError
 from fairdm.contrib.contributors.models import ClaimingAuditLog, Person
-
 
 # ════════════════════════════════════════════════════════════════════════════════
 # Fixtures

@@ -49,7 +49,6 @@ class TestClaimingAuditLogImmutability:
 
     def test_update_raises_value_error(self, db, audit_log_entry):
         """Calling save() on an existing record should raise ValueError."""
-        from fairdm.contrib.contributors.models import ClaimingAuditLog
 
         audit_log_entry.failure_reason = "tampered"
         with pytest.raises(ValueError, match="immutable"):
@@ -85,8 +84,8 @@ class TestClaimingAuditLogManager:
         assert ClaimingAuditLog.objects.for_person(person_b.pk).filter(pk=entry.pk).exists()
 
     def test_for_person_excludes_unrelated_entries(self, db, person_a, person_b):
-        from fairdm.factories import PersonFactory
         from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
+        from fairdm.factories import PersonFactory
 
         unrelated = PersonFactory()
         entry = ClaimingAuditLog.objects.create(

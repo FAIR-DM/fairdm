@@ -186,7 +186,7 @@ def _invalidate_sessions(person: Person) -> None:
                 data = session.get_decoded()
                 if data.get("_auth_user_id") == str(person.pk):
                     session.delete()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.debug("Skipping corrupted session during invalidation")
     except ImportError:
         pass  # Session backend not available

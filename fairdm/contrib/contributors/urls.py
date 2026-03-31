@@ -16,7 +16,6 @@ app_name = "contributors"
 urlpatterns = [
     path("claim/<str:token>/", ClaimProfileView.as_view(), name="claim-profile"),
     path("claim/<str:token>/confirm/", ClaimProfileConfirmView.as_view(), name="claim-profile-confirm"),
-
     path(
         "community/",
         include(

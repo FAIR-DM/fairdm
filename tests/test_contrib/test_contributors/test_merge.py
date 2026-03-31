@@ -100,6 +100,7 @@ class TestMergeContributions:
 
         # No contributions for discard should remain
         from fairdm.contrib.contributors.models import Person
+
         assert not Person.objects.filter(pk=discard_person.pk).exists()
 
 

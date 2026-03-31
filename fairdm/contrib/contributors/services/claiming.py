@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from fairdm.contrib.contributors.models import Person
 
 
-def claim_via_orcid(person: "Person", sociallogin: "SocialLogin") -> "Person":
+def claim_via_orcid(person: Person, sociallogin: SocialLogin) -> Person:
     """Activate an unclaimed Person via ORCID social login.
 
     Guards:
@@ -93,7 +93,7 @@ def claim_via_orcid(person: "Person", sociallogin: "SocialLogin") -> "Person":
     return person
 
 
-def claim_via_email(person: "Person") -> "Person | None":
+def claim_via_email(person: Person) -> Person | None:
     """Activate an unclaimed Person after email verification.
 
     This function is a silent no-op (returns None) when
@@ -166,7 +166,7 @@ def claim_via_email(person: "Person") -> "Person | None":
     return person
 
 
-def claim_via_token(token_string: str, user: "Person") -> "Person":
+def claim_via_token(token_string: str, user: Person) -> Person:
     """Activate an unclaimed Person via a signed admin-generated claim token.
 
     This handles the *simple-claim path only*: the calling user has no

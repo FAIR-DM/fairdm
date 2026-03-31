@@ -288,9 +288,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
         person = get_object_or_404(Person, pk=pk)
         token = generate_claim_token(person)
-        claim_url = request.build_absolute_uri(
-            reverse("contributors:claim-profile", kwargs={"token": token})
-        )
+        claim_url = request.build_absolute_uri(reverse("contributors:claim-profile", kwargs={"token": token}))
         audit_log = ClaimingAuditLog.objects.for_person(person.pk).order_by("-timestamp")[:20]
 
         context = {
@@ -329,12 +327,9 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     merge_persons(person_keep=keep, person_discard=person)
                     messages.success(
                         request,
-                        _("Successfully merged %(discard)s into %(keep)s.")
-                        % {"discard": person, "keep": keep},
+                        _("Successfully merged %(discard)s into %(keep)s.") % {"discard": person, "keep": keep},
                     )
-                    return redirect(
-                        reverse("admin:contributors_person_change", args=[keep.pk])
-                    )
+                    return redirect(reverse("admin:contributors_person_change", args=[keep.pk]))
                 except ClaimingError as exc:
                     messages.error(request, str(exc))
         else:
