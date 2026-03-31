@@ -7,19 +7,7 @@
 
 ## For Portal Administrators
 
-### 1. Configure Claiming Methods
-
-By default, all claiming methods are enabled. To customize, add to your portal settings:
-
-```python
-# settings.py — Enable only specific claiming methods
-FAIRDM_CLAIMING_METHODS = ["orcid", "email", "token", "admin_merge"]
-
-# Or disable all claiming
-FAIRDM_CLAIMING_METHODS = []
-```
-
-### 2. Ensure Email Verification (Required for Email Claiming)
+### 1. Ensure Email Verification (Required for Email Claiming)
 
 Email-based claiming **requires** mandatory email verification. This is the default in FairDM:
 
@@ -30,7 +18,7 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 If your portal does not enforce mandatory email verification, email-based claiming will be automatically disabled for security.
 
-### 3. ORCID Social Login (Required for ORCID Claiming)
+### 2. ORCID Social Login (Required for ORCID Claiming)
 
 ORCID claiming requires ORCID social login to be configured. This is already set up in FairDM's default settings. Ensure your portal has valid ORCID OAuth credentials:
 
@@ -45,7 +33,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 Register your OAuth application at <https://orcid.org/developer-tools>.
 
-### 4. Generate Claim Links
+### 3. Generate Claim Links
 
 1. Navigate to **Admin > Community > Persons**
 2. Find the unclaimed Person profile
@@ -54,7 +42,7 @@ Register your OAuth application at <https://orcid.org/developer-tools>.
 
 The link is valid for 7 days by default (override via `CLAIM_TOKEN_MAX_AGE` in seconds).
 
-### 5. Merge Duplicate Profiles
+### 4. Merge Duplicate Profiles
 
 1. Navigate to **Admin > Community > Persons**
 2. Find the unclaimed Person profile
@@ -62,7 +50,7 @@ The link is valid for 7 days by default (override via `CLAIM_TOKEN_MAX_AGE` in s
 4. Click "Merge" to combine profiles, or "Dismiss" for incorrect matches
 5. Confirm the merge operation
 
-### 6. View Audit Trail
+### 5. View Audit Trail
 
 All claiming events are logged. Navigate to **Admin > Community > Claiming Audit Log** to view:
 

@@ -434,7 +434,7 @@ On Person model: single manager `objects = UserManager()` (remove `contributors 
 - Token-based claiming (admin-initiated one-time claim link)
 - Fuzzy name match surfacing in admin
 - Post-signup merge service (`merge_persons(person_keep, person_discard)`)
-- Per-portal claiming configuration (`FAIRDM_CLAIMING_METHODS = [...]`)
+- Per-portal claiming configuration (deferred; claiming methods are always-on in Feature 010 — no per-method toggle)
 - Claiming audit trail
 
 **Alternatives rejected:**
