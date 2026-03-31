@@ -71,8 +71,8 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     sociallogin.user = existing_user
                     try:
                         claim_via_orcid(existing_user, sociallogin)
-                    except ClaimingError:
-                        raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin))
+                    except ClaimingError as exc:
+                        raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin)) from exc
                     # Complete the login — the Person is now claimed and active.
                     raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin))
 

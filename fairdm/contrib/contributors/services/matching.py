@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from fairdm.contrib.contributors.models import Person
 
 
-def find_duplicate_candidates(person: "Person", threshold: float = 0.85) -> list[dict]:
+def find_duplicate_candidates(person: Person, threshold: float = 0.85) -> list[dict]:
     """Return a list of potential duplicate Person records for *person*.
 
     Each entry in the returned list is a dict with keys:
@@ -27,7 +27,7 @@ def find_duplicate_candidates(person: "Person", threshold: float = 0.85) -> list
 
     Args:
         person: The Person to find duplicates for.
-        threshold: Minimum similarity score (0–1). Defaults to 0.85.
+        threshold: Minimum similarity score (0-1). Defaults to 0.85.
 
     Returns:
         List of ``{"person": Person, "score": float}`` dicts, sorted by score desc.
@@ -43,7 +43,7 @@ def find_duplicate_candidates(person: "Person", threshold: float = 0.85) -> list
         candidate_name = (candidate.name or "").strip()
         if not candidate_name:
             continue
-        # token_sort_ratio returns 0–100; normalise to 0–1
+        # token_sort_ratio returns 0-100; normalise to 0-1
         raw_score = token_sort_ratio(query_name, candidate_name)
         score = raw_score / 100.0
         if score >= threshold:

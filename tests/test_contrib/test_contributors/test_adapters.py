@@ -8,14 +8,14 @@ Tests verify that:
     normal allauth signup flow.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch
+import contextlib
+from unittest.mock import MagicMock
 
+import pytest
 from allauth.core.exceptions import ImmediateHttpResponse
 
 from fairdm.contrib.contributors.adapters import SocialAccountAdapter
 from fairdm.contrib.contributors.models import ContributorIdentifier, Person
-
 
 ORCID_UID = "0000-0002-9999-0001"
 
@@ -59,9 +59,7 @@ def claimed_person_with_orcid(db):
 
 
 class TestPreSocialLoginORCID:
-    def test_unclaimed_person_gets_claimed_on_orcid_login(
-        self, db, adapter, request_mock, unclaimed_person_with_orcid
-    ):
+    def test_unclaimed_person_gets_claimed_on_orcid_login(self, db, adapter, request_mock, unclaimed_person_with_orcid):
         """When an unclaimed Person has a matching ORCID, pre_social_login claims them."""
         sl = _make_sociallogin(ORCID_UID, request_mock)
 
@@ -78,23 +76,15 @@ class TestPreSocialLoginORCID:
     ):
         """After ORCID claiming, still only one Person row exists in the DB."""
         sl = _make_sociallogin(ORCID_UID, request_mock)
-        count_before = Person.objects.filter(
-            identifiers__value=ORCID_UID, identifiers__type="ORCID"
-        ).count()
+        count_before = Person.objects.filter(identifiers__value=ORCID_UID, identifiers__type="ORCID").count()
 
-        try:
+        with contextlib.suppress(ImmediateHttpResponse):
             adapter.pre_social_login(request_mock, sl)
-        except ImmediateHttpResponse:
-            pass
 
-        count_after = Person.objects.filter(
-            identifiers__value=ORCID_UID, identifiers__type="ORCID"
-        ).count()
+        count_after = Person.objects.filter(identifiers__value=ORCID_UID, identifiers__type="ORCID").count()
         assert count_after == count_before
 
-    def test_claimed_person_gets_account_connected(
-        self, db, adapter, request_mock, claimed_person_with_orcid
-    ):
+    def test_claimed_person_gets_account_connected(self, db, adapter, request_mock, claimed_person_with_orcid):
         """An already-claimed Person with ORCID simply gets the social account connected."""
         sl = _make_sociallogin(ORCID_UID, request_mock)
 

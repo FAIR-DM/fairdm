@@ -17,7 +17,7 @@ from fairdm.contrib.contributors.exceptions import ClaimingError
 
 logger = logging.getLogger(__name__)
 
-_CLAIM_TOKEN_SESSION_KEY = "claim_token"
+_CLAIM_TOKEN_SESSION_KEY = "claim_token"  # noqa: S105
 
 
 class ClaimProfileView(TemplateView):
@@ -60,6 +60,7 @@ class ClaimProfileView(TemplateView):
         if not request.user.is_authenticated:
             request.session[_CLAIM_TOKEN_SESSION_KEY] = token
             from django.conf import settings
+
             login_url = getattr(settings, "LOGIN_URL", "/accounts/login/")
             return redirect(login_url)
 
@@ -107,6 +108,7 @@ class ClaimProfileConfirmView(LoginRequiredMixin, TemplateView):
             return self.render_to_response(context)
 
         from django.contrib import messages
+
         messages.success(request, _("Profile successfully claimed."))
         try:
             return redirect(user.get_absolute_url())

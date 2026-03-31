@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def merge_persons(person_keep: "Person", person_discard: "Person") -> "Person":
+def merge_persons(person_keep: Person, person_discard: Person) -> Person:
     """Merge person_discard into person_keep, transferring all related data.
 
     The entire operation runs inside a single atomic transaction.  Any
@@ -85,7 +85,7 @@ def merge_persons(person_keep: "Person", person_discard: "Person") -> "Person":
 # ─── Private helpers ─────────────────────────────────────────────────────────
 
 
-def _reassign_contributions(keep: "Person", discard: "Person") -> None:
+def _reassign_contributions(keep: Person, discard: Person) -> None:
     """Move Contributions from discard to keep, skipping existing duplicates."""
     from fairdm.contrib.contributors.models import Contribution
 
@@ -103,7 +103,7 @@ def _reassign_contributions(keep: "Person", discard: "Person") -> None:
             contrib.delete()
 
 
-def _reassign_identifiers(keep: "Person", discard: "Person") -> None:
+def _reassign_identifiers(keep: Person, discard: Person) -> None:
     """Move ContributorIdentifiers from discard to keep, avoiding constraint violations."""
     from fairdm.contrib.contributors.models import ContributorIdentifier
 
@@ -121,7 +121,7 @@ def _reassign_identifiers(keep: "Person", discard: "Person") -> None:
             ContributorIdentifier.objects.filter(pk=identifier.pk).update(related_id=keep.pk)
 
 
-def _reassign_affiliations(keep: "Person", discard: "Person") -> None:
+def _reassign_affiliations(keep: Person, discard: Person) -> None:
     """Move Affiliations from discard to keep, skipping exact duplicates."""
     from fairdm.contrib.contributors.models import Affiliation
 
@@ -137,7 +137,7 @@ def _reassign_affiliations(keep: "Person", discard: "Person") -> None:
             affil.delete()
 
 
-def _reassign_allauth_records(keep: "Person", discard: "Person") -> None:
+def _reassign_allauth_records(keep: Person, discard: Person) -> None:
     """Transfer allauth EmailAddress and SocialAccount records to person_keep."""
     from allauth.account.models import EmailAddress
 
@@ -161,7 +161,7 @@ def _reassign_allauth_records(keep: "Person", discard: "Person") -> None:
         pass  # Social accounts not installed
 
 
-def _transfer_permissions(keep: "Person", discard: "Person") -> None:
+def _transfer_permissions(keep: Person, discard: Person) -> None:
     """Copy all guardian object-level permissions from discard to keep."""
     try:
         from guardian.models import UserObjectPermission
@@ -176,25 +176,23 @@ def _transfer_permissions(keep: "Person", discard: "Person") -> None:
         logger.warning("guardian permission transfer failed — guardian may not be installed", exc_info=True)
 
 
-def _invalidate_sessions(person: "Person") -> None:
+def _invalidate_sessions(person: Person) -> None:
     """Invalidate all active sessions for person_discard."""
     try:
-        from django.contrib.sessions.backends.db import SessionStore
         from django.contrib.sessions.models import Session
-        import json
 
         for session in Session.objects.all():
             try:
                 data = session.get_decoded()
                 if data.get("_auth_user_id") == str(person.pk):
                     session.delete()
-            except Exception:
-                pass  # Corrupted session — skip
+            except Exception:  # noqa: BLE001
+                logger.debug("Skipping corrupted session during invalidation")
     except ImportError:
         pass  # Session backend not available
 
 
-def _merge_profile_fields(keep: "Person", discard: "Person") -> None:
+def _merge_profile_fields(keep: Person, discard: Person) -> None:
     """Copy non-blank fields from discard to keep if keep's field is blank/None."""
     fields_to_check = ["profile", "image"]
     update_fields = []

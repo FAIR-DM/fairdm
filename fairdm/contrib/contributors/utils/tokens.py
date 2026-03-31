@@ -21,7 +21,7 @@ def _get_max_age() -> int:
     return getattr(settings, "CLAIM_TOKEN_MAX_AGE", _DEFAULT_MAX_AGE)
 
 
-def generate_claim_token(person: "Person") -> str:
+def generate_claim_token(person: Person) -> str:
     """Generate a signed, time-stamped claim token for the given Person.
 
     The token encodes the Person PK plus a HMAC timestamp.  No database row
@@ -37,7 +37,7 @@ def generate_claim_token(person: "Person") -> str:
     return signer.sign(str(person.pk))
 
 
-def validate_claim_token(token_string: str) -> "Person | None":
+def validate_claim_token(token_string: str) -> Person | None:
     """Validate a claim token and return the associated unclaimed Person.
 
     Performs three checks in order:
@@ -71,8 +71,8 @@ def validate_claim_token(token_string: str) -> "Person | None":
 
     try:
         person = Person.objects.get(pk=pk_str)
-    except Person.DoesNotExist:
-        raise ClaimingError("No Person found for this claim token.")
+    except Person.DoesNotExist as exc:
+        raise ClaimingError("No Person found for this claim token.") from exc
 
     if person.is_claimed:
         raise ClaimingError("This profile has already been claimed.")
