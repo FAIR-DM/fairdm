@@ -1,0 +1,77 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="mb-4">
+  <h2>{% blocktrans with name=person.get_full_name %}Claim Link for {{ name }}{% endblocktrans %}</h2>
+
+  {% if not person.is_active %}
+  <div class="errornote">
+    {% trans "This profile is banned (is_active=False). Claim links cannot be generated for banned profiles." %}
+  </div>
+  {% else %}
+
+  <div class="help mb-3">
+    <p>
+      {% trans "Share the link below with the person who should claim this profile. The link expires based on CLAIM_TOKEN_MAX_AGE (default: 7 days)." %}
+    </p>
+    <div class="alert" style="background: #f8f8f8; border: 1px solid #ddd; padding: 10px; font-family: monospace; word-break: break-all;">
+      {{ claim_url }}
+    </div>
+    <p class="mt-2">
+      <button
+        type="button"
+        onclick="navigator.clipboard.writeText('{{ claim_url }}'); this.textContent='Copied!';"
+        class="button"
+      >
+        {% trans "Copy to clipboard" %}
+      </button>
+    </p>
+    <div class="help" style="background: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin-top: 10px;">
+      <strong>{% trans "Note:" %}</strong>
+      {% trans "Generating a new claim link does NOT invalidate previously generated links — all unexpired links remain valid until one is redeemed." %}
+    </div>
+  </div>
+
+  {% endif %}
+
+  <h3 class="mt-4">{% trans "Claim History" %}</h3>
+  {% if audit_log %}
+  <table class="w-100">
+    <thead>
+      <tr>
+        <th>{% trans "Timestamp" %}</th>
+        <th>{% trans "Method" %}</th>
+        <th>{% trans "Initiated By" %}</th>
+        <th>{% trans "Success" %}</th>
+        <th>{% trans "Failure Reason" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in audit_log %}
+      <tr>
+        <td>{{ entry.timestamp }}</td>
+        <td>{{ entry.method }}</td>
+        <td>{{ entry.initiated_by|default:"—" }}</td>
+        <td>
+          {% if entry.success %}
+            <img src="{% url 'admin:jsi18n' %}" alt="" style="display:none">
+            ✓
+          {% else %}
+            ✗
+          {% endif %}
+        </td>
+        <td>{{ entry.failure_reason|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>{% trans "No claiming activity recorded for this profile." %}</p>
+  {% endif %}
+
+  <div class="submit-row mt-4">
+    <a href="../" class="button cancel-link">{% trans "Back to Person" %}</a>
+  </div>
+</div>
+{% endblock %}

@@ -58,16 +58,22 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         if is_provider("orcid", sociallogin):
             orcid_id = sociallogin.account.uid
             if existing_user := self.get_db_user_by_orcid(orcid_id):
-                if existing_user.is_active:
-                    # If the existing user is already active, we simply connect the orcid account and log them in.
-                    # Note: It's unclear in what scenario an active user can have an ORCID id in their identifiers
-                    # without having signed up with it, but this is a safeguard.
-                    # Normal flow for active users
+                if existing_user.is_active and existing_user.is_claimed:
+                    # Active, already-claimed user: simply connect the ORCID account and log them in.
+                    # This prevents allauth sending an "Account Already Exists" email.
                     sociallogin.user = existing_user
                     sociallogin.connect(request, existing_user)
-                # link the existing user to the social login
-                # This prevents Allauth send a "Account Already Exists" email
-                else:
+                elif not existing_user.is_claimed:
+                    # Unclaimed Person with a matching ORCID identifier — claim it automatically.
+                    from fairdm.contrib.contributors.exceptions import ClaimingError
+                    from fairdm.contrib.contributors.services.claiming import claim_via_orcid
+
+                    sociallogin.user = existing_user
+                    try:
+                        claim_via_orcid(existing_user, sociallogin)
+                    except ClaimingError as exc:
+                        raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin)) from exc
+                    # Complete the login — the Person is now claimed and active.
                     raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin))
 
                 # message = (

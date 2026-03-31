@@ -50,5 +50,6 @@ account_management/create_an_account
 getting_started
 core_data_model
 metadata_practices
+claiming-a-profile
 
 ```

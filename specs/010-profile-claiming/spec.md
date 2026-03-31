@@ -36,8 +36,8 @@ As a portal administrator, I can pre-assign an email address to an unclaimed Per
 
 **Acceptance Scenarios**:
 
-1. **Given** an unclaimed Person exists with `email="jane@example.org"` and portal has `ACCOUNT_EMAIL_VERIFICATION="mandatory"`, **When** a user signs up with "jane@example.org" and confirms the verification email, **Then** the existing unclaimed profile is activated and connected to the new account
-2. **Given** email verification is NOT mandatory (`ACCOUNT_EMAIL_VERIFICATION="optional"` or not set), **When** admin attempts to configure email-based claiming, **Then** the system prevents this configuration and displays a security warning
+1. **Given** an unclaimed Person exists with `email="jane@example.org"` and portal has `ACCOUNT_EMAIL_VERIFICATION="mandatory"`, **When** a user signs up with "<jane@example.org>" and confirms the verification email, **Then** the existing unclaimed profile is activated and connected to the new account
+2. **Given** email verification is NOT mandatory (`ACCOUNT_EMAIL_VERIFICATION="optional"` or not set), **When** someone registers with an email that matches an unclaimed Person, **Then** the email claiming signal handler silently no-ops — no claim is attempted, no error is shown, and the user receives a normal registration experience (silent guard, no admin UI warning)
 3. **Given** an unclaimed Person with email exists, **When** someone registers with that email but does NOT verify it, **Then** the profile remains unclaimed and the user cannot access it
 4. **Given** multiple unclaimed profiles exist but only one has the matching email, **When** registration completes, **Then** only the email-matching profile is claimed (no name matching is attempted)
 5. **Given** email claiming succeeds, **When** the user views their profile, **Then** they see all pre-existing affiliations and contributions that were on the unclaimed profile
@@ -55,11 +55,11 @@ As a portal administrator, I can generate a one-time claim link for an unclaimed
 **Acceptance Scenarios**:
 
 1. **Given** an administrator viewing an unclaimed Person profile, **When** they click "Generate Claim Link", **Then** a unique claim token is created with 7-day expiry and a shareable URL is displayed
-2. **Given** a claim link token exists, **When** an authenticated user clicks the link, **Then** their current account is connected to the unclaimed profile and they are redirected to the claimed profile page
-3. **Given** a claim link token exists, **When** an unauthenticated user clicks the link, **Then** they are prompted to log in or register, and upon completion their account is connected to the unclaimed profile
+2. **Given** a claim link token exists, **When** an authenticated user clicks the link, **Then** a confirmation page is shown detailing the unclaimed profile they are about to claim, and only after explicit confirmation (`POST`) is their account connected and they are redirected to the claimed profile page
+3. **Given** a claim link token exists, **When** an unauthenticated user clicks the link, **Then** they are prompted to log in or register, and upon completing authentication they are shown the confirmation page before the claim is executed
 4. **Given** a claim token has been used once, **When** someone tries to use the same token again, **Then** the system rejects it with "Token already used" error
 5. **Given** a claim token is older than 7 days, **When** someone tries to use it, **Then** the system rejects it with "Token expired" error
-6. **Given** a claim token exists for Person A but user is already Person B, **When** user clicks the token, **Then** a post-signup merge is proposed (see US4) or an error is shown if merge is not supported
+6. **Given** a claim token exists for unclaimed Person A and the user is already authenticated as a different Person B, **When** the user clicks the token, **Then** a confirmation page is shown explaining that Person A will be merged into their existing account (Person B), listing what will be transferred; only after explicit confirmation (`POST`) is the merge executed. The admin-generated token serves as authorization — the confirmation page is a safety gate against wrong-recipient errors, not an additional admin approval step. This covers: (a) a registered user who contacts an admin to claim a stub profile with no matching email/ORCID; (b) an admin proactively sending a link to a known colleague referencing an existing stub.
 7. **Given** an admin generates a claim link, **When** they view the link details, **Then** they can see who (if anyone) has claimed it and when
 
 ---
@@ -97,7 +97,7 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 1. **Given** an unclaimed Person named "Jane M. Doe" exists, **When** admin views the profile, **Then** the system displays similar names from other Persons with similarity scores (e.g., "Jane Doe" 95%, "J. M. Doe" 90%)
 2. **Given** fuzzy matches are displayed, **When** admin reviews them, **Then** each suggestion shows the person's name, affiliation, ORCID (if any), and claim status
 3. **Given** a suggested match is correct, **When** admin clicks "Claim via Token", **Then** a token-based claim link is generated and ready to send to the person
-4. **Given** a suggested match is incorrect, **When** admin clicks "Dismiss", **Then** that suggestion is hidden and not shown again for this profile
+4. **Given** a suggested match is incorrect, **When** admin clicks "Dismiss", **Then** that suggestion is hidden for the current session (no DB persistence; matching is on-demand each page load)
 5. **Given** no close matches exist, **When** admin views an unclaimed profile, **Then** no suggestions are displayed (no false positives)
 
 ---
@@ -109,9 +109,11 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 - What happens if an admin generates a claim token for an unclaimed profile, then the profile gets claimed via ORCID before the token is used? (Token becomes invalid)
 - How does the system prevent an authenticated user from using someone else's claim token to gain their attribution? (Token is single-use and creates a link to a specific Person; if user already has a Person account, they can't claim another without merge permission)
 - What happens when merging two Persons that both have `is_primary=True` affiliations to different organizations? (Keep both and let user choose new primary)
-- How does the system handle a merge where Person A has email "old@example.org" and Person B has "new@example.org"? (Keep B's email as primary, optionally add A's as secondary EmailAddress)
+- How does the system handle a merge where Person A has email "<old@example.org>" and Person B has "<new@example.org>"? (Keep B's email as primary, optionally add A's as secondary EmailAddress)
 - What happens if someone manually edits an unclaimed profile's data (name, affiliation) after admin generates a claim token but before it's used? (Token remains valid; the person claims the profile in its current state)
 - How does claiming interact with privacy settings on unclaimed profiles? (Unclaimed profiles default to all-public; upon claiming, user can adjust privacy settings)
+- What happens when someone attempts to claim a profile where `Person.is_active=False` (Banned state)? (Claim is blocked entirely across all methods — ORCID, email, and token — with a clear error; admin must explicitly lift the ban before claiming is possible)
+- What if an admin generates multiple claim tokens for the same unclaimed Person? (All tokens remain valid until one is redeemed or they expire; there is no rate limit or invalidation of prior tokens; the admin UI notes this behaviour so admins are aware)
 
 ## Requirements *(mandatory)*
 
@@ -120,29 +122,26 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 - **FR-001**: System MUST provide ORCID-based claiming via allauth `pre_social_login` hook that detects existing unclaimed Person with matching ORCID identifier and activates it instead of creating duplicate
 - **FR-002**: System MUST fix the existing bug where ORCID match redirects to signup instead of activating the unclaimed account and connecting the social login
 - **FR-003**: System MUST provide email-based claiming that matches registered email to unclaimed Person with same email
-- **FR-004**: Email-based claiming MUST be disabled entirely if `ACCOUNT_EMAIL_VERIFICATION` is not set to `"mandatory"` (security requirement)
+- **FR-004**: Email-based claiming MUST be disabled entirely (silent no-op) if `ACCOUNT_EMAIL_VERIFICATION` is not set to `"mandatory"` — no UI warning is shown; the guard is a silent runtime check in the signal handler (security requirement)
 - **FR-005**: System MUST provide admin interface to generate one-time claim tokens with configurable expiry (default 7 days)
-- **FR-006**: Claim tokens MUST be stored securely (Django's `TimestampSigner`) and invalidated after first use
-- **FR-007**: Claim tokens MUST work for both authenticated users (direct linking) and unauthenticated users (redirect to register/login then link)
-- **FR-008**: System MUST provide `merge_persons(person_keep, person_discard)` service function that transfers all FK relations in `transaction.atomic()`
+- **FR-006**: Claim tokens MUST be stored securely (Django's `TimestampSigner`) and are implicitly invalidated once `Person.is_claimed=True`; tokens cannot be replayed after a successful claim
+- **FR-007**: Claim tokens MUST always present a confirmation page (`GET`) showing the unclaimed profile details before executing any claim or merge; the actual operation MUST only fire on confirmed `POST` with CSRF validation. This applies to both authenticated users (direct claim or merge) and unauthenticated users (redirect to login/register, then confirmation page, then `POST`)
+- **FR-008**: System MUST provide `merge_persons(person_keep, person_discard)` service function that transfers all FK relations in `transaction.atomic()`; the merge admin action is available to any staff user with `contributors.change_person` permission (no additional permission required)
 - **FR-009**: Merge operation MUST handle `Contribution.unique_together` conflicts by merging roles and preserving single Contribution record per (content_type, object_id, contributor)
 - **FR-010**: Merge operation MUST reassign allauth `EmailAddress` and `SocialAccount` FKs before deleting discarded Person
 - **FR-011**: Merge operation MUST invalidate active sessions for the discarded Person
 - **FR-012**: Merge operation MUST transfer django-guardian `UserObjectPermission` records to kept Person
-- **FR-013**: System MUST provide fuzzy name matching using token_sort_ratio algorithm with 90%+ threshold for suggestions (never auto-claim)
-- **FR-014**: Admin MUST be able to dismiss incorrect fuzzy match suggestions permanently
-- **FR-015**: Claiming via any method MUST preserve all existing Contribution, Affiliation, and ContributorIdentifier records
-- **FR-016**: System MUST log all claiming events (method, timestamp, source profile, resulting profile) for audit trail
-- **FR-017**: System MUST provide per-portal configuration `FAIRDM_CLAIMING_METHODS` to enable/disable specific claiming pathways
-- **FR-018**: Each claiming method MUST have comprehensive test coverage including security edge cases
+- **FR-013**: System MUST provide on-demand fuzzy name matching using token_sort_ratio algorithm with 0.85 (85%) threshold for suggestions (never auto-claim)
+- **FR-014**: Claiming via any method MUST preserve all existing Contribution, Affiliation, and ContributorIdentifier records
+- **FR-015**: System MUST log all claiming events (method, timestamp, source profile, resulting profile) for audit trail
+- **FR-016**: Each claiming method MUST have comprehensive test coverage including security edge cases
+- **FR-017**: All claiming service functions (ORCID, email, token) MUST reject attempts to claim a `Person` where `is_active=False` (Banned state) by raising an error; the ban is not lifted by claiming — an admin must explicitly re-activate the Person first
 
 ### Key Entities
 
-- **ClaimToken**: One-time use token linking an unclaimed Person to a claim URL. Fields: unclaimed_person (FK), token (signed string), expires_at (DateTimeField), created_by (FK→admin), claimed_by (FK→Person, nullable), claimed_at (DateTimeField, nullable), status (pending/claimed/expired).
+- **ClaimToken**: Stateless HMAC-signed token (via `TimestampSigner`) encoding the unclaimed Person PK. No DB model — cryptographic expiry enforced by `CLAIM_TOKEN_MAX_AGE`. Implicit revocation once `Person.is_claimed=True`.
 
-- **DuplicateSuggestion**: Admin-reviewable name match suggestion. Fields: unclaimed_person (FK), suggested_match (FK→Person), similarity_score (FloatField), dismissed (BooleanField), dismissed_by (FK→admin), dismissed_at (DateTimeField).
-
-- **ClaimingAuditLog**: Immutable record of all claiming events. Fields: timestamp, method (orcid/email/token/merge), source_person (FK, nullable on delete), target_person (FK), initiated_by (FK→admin, nullable), success (BooleanField), details (JSONField).
+- **ClaimingAuditLog**: Immutable record of all claiming events. Fields: timestamp, method (orcid/email/token/merge), source_person (FK, nullable on delete), target_person (FK), initiated_by (FK→admin, nullable), success (BooleanField), ip_address (GenericIPAddressField, nullable), failure_reason (CharField, max_length=255, nullable), details (JSONField).
 
 ## Dependencies & Assumptions
 
@@ -154,27 +153,20 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 
 ## Success Criteria *(mandatory)*
 
-- **SC-001**: ORCID claiming successfully connects 99%+ of unclaimed profiles with valid ORCID matches without creating duplicates
-- **SC-002**: Email claiming (when enabled) successfully connects 95%+ of unclaimed profiles with verified email matches
+- **SC-001** *(post-launch monitoring target)*: ORCID claiming successfully connects 99%+ of unclaimed profiles with valid ORCID matches without creating duplicates
+- **SC-002** *(post-launch monitoring target)*: Email claiming (when enabled) successfully connects 95%+ of unclaimed profiles with verified email matches
 - **SC-003**: Zero account takeover incidents via email claiming when `ACCOUNT_EMAIL_VERIFICATION="mandatory"` is enforced
 - **SC-004**: Token-based claiming has 0% token reuse or expiry bypass (100% security compliance)
 - **SC-005**: Post-signup merge completes without data loss in 100% of test cases (all contributions, affiliations, identifiers transferred)
 - **SC-006**: Fuzzy name matching surfaces true duplicate suggestions 90%+ of the time while keeping false positive rate below 5%
 - **SC-007**: All claiming events are logged to audit trail with 100% coverage
-- **SC-008**: Portal admins can enable/disable specific claiming methods via settings without code changes
 
-- **[Entity 2]**: [What it represents, relationships to other entities]
+## Clarifications
 
-## Success Criteria *(mandatory)*
+### Session 2026-03-30
 
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
-
-### Measurable Outcomes
-
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- Q: US2 Scenario 2 — when `ACCOUNT_EMAIL_VERIFICATION != "mandatory"`, should the system show an admin UI warning or silently not attempt claiming? → A: Silent runtime guard only (Option B); no UI warning; email claiming simply never fires when verification is not mandatory; T017 is an adapter-level guard with no frontend component
+- Q: US3 Scenario 6 — when an already-authenticated user (Person B) clicks a claim token for a different unclaimed Person A, what should ClaimProfileView do? → A: Show a mandatory confirmation page detailing the merge (what will be transferred from A to B); only execute the merge on explicit `POST`. The admin-generated token is the authorization, but the confirmation page is a required safety gate against wrong-recipient errors. Two sub-scenarios are both covered by the same flow: (1) user already has an account but auto-claiming didn't fire — admin sends token after confirming the match; (2) admin proactively sends a token link referencing an existing stub. `ClaimProfileView` ALWAYS requires explicit user confirmation before executing any claim or merge.
+- Q: Banned Person guard — when `Person.is_active=False`, should claiming be blocked entirely or should ORCID be allowed to re-activate? → A: Block claim entirely across all methods (Option A); admin must explicitly lift the ban first; FR-017 added
+- Q: Token rate limiting — should `generate_claim_token()` prevent multiple valid tokens for the same unclaimed Person? → A: No rate limit (Option A); all generated tokens remain valid until one is redeemed or they expire; stateless design preserved; admin UI should display a note clarifying that re-generating does not invalidate prior links
+- Q: Merge permission level — should the merge admin action require a dedicated `merge_person` permission or just standard `change_person` access? → A: Standard `contributors.change_person` permission (Option A); no additional permission needed; keeps configuration simple and consistent with the project's opinionated-defaults principle; T036 updated accordingly

@@ -1,0 +1,49 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block after_field_sets %}
+  {{ block.super }}
+  {% if fuzzy_candidates %}
+    <div class="module" style="margin-top: 1.5em;">
+      <h2>{% trans "Possible Duplicate Persons" %}</h2>
+      <p class="help">
+        {% trans "These persons have similar names and may be duplicates. Review and merge if appropriate." %}
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Email" %}</th>
+            <th>{% trans "Similarity" %}</th>
+            <th>{% trans "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in fuzzy_candidates %}
+            <tr>
+              <td>
+                <a href="{% url 'admin:contributors_person_change' entry.person.pk %}"
+                   target="_blank">{{ entry.person }}</a>
+              </td>
+              <td>{{ entry.person.email|default:"—" }}</td>
+              <td>{{ entry.score|floatformat:0 }}%</td>
+              <td>
+                <a href="{% url 'admin:contributors_person_merge' original.pk %}?merge_into={{ entry.person.pk }}"
+                   class="button">{% trans "Merge" %}</a>
+                &nbsp;
+                <a href="{% url 'admin:contributors_person_dismiss_candidate' original.pk entry.person.pk %}"
+                   class="button"
+                   style="background:#ccc;
+                          color:#333">{% trans "Dismiss" %}</a>
+                &nbsp;
+                <a href="{% url 'admin:contributors_person_claim_link' entry.person.pk %}"
+                   class="button"
+                   target="_blank">{% trans "Claim via Token" %}</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}

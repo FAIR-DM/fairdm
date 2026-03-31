@@ -1,6 +1,6 @@
 ﻿# fairdm Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-12-30
+Auto-generated from all feature plans. Last updated: 2026-03-30
 
 ## Active Technologies
 - Python 3.10+ (current dev environment Python 3.11) + Django, Sphinx (via `fairdm-docs`), MyST Markdown, `pydata-sphinx-theme`, `sphinx-design`, Bootstrap 5, Context7 for library docs
@@ -18,6 +18,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-30
 - [if applicable, e.g., PostgreSQL, CoreData, files or N/A] (009-fairdm-contributors)
 - Python 3.11+ + Django 5.x, django-polymorphic, django-lifecycle, django-guardian, django-allauth, django-countries, Celery, requests, easy-thumbnails, shortuuid, django-ordered-model, research-vocabs, django-import-export, django-autocomplete-light, django-select2 (009-fairdm-contributors)
 - PostgreSQL (production), SQLite (development/testing) (009-fairdm-contributors)
+- Python 3.11+, Django 5.x + django-allauth (authentication, social login, email verification), django-guardian (object-level permissions), django-polymorphic (Contributor hierarchy), django-invitations (invitation-only signup support), django-lifecycle (model hooks), rapidfuzz (fuzzy name matching) (010-profile-claiming)
+- PostgreSQL (primary), SQLite (dev/test) (010-profile-claiming)
 
 - Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic. + `fairdm-docs` (Sphinx-based tooling and setup utilities), Sphinx, `pydata-sphinx-theme`, existing FairDM documentation sources under `docs/`.
 
@@ -38,9 +40,9 @@ cd src; pytest; ruff check .
 Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic.: Follow standard conventions
 
 ## Recent Changes
+- 010-profile-claiming: Added Python 3.11+, Django 5.x + django-allauth (authentication, social login, email verification), django-guardian (object-level permissions), django-polymorphic (Contributor hierarchy), django-invitations (invitation-only signup support), django-lifecycle (model hooks), rapidfuzz (fuzzy name matching)
 - 009-fairdm-contributors: Added Python 3.11+ + Django 5.x, django-polymorphic, django-lifecycle, django-guardian, django-allauth, django-countries, Celery, requests, easy-thumbnails, shortuuid, django-ordered-model, research-vocabs, django-import-export, django-autocomplete-light, django-select2
 - 009-fairdm-contributors: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
-- 008-plugin-system: Added Python 3.13, Django 5.x + Django CBVs, django-guardian (object-level perms), django-polymorphic (model inheritance), django-extra-views (InlineFormSetView)
 
 
 <!-- MANUAL ADDITIONS START -->

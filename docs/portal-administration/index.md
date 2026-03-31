@@ -57,6 +57,7 @@ adjusting_dataset_access
 managing_projects
 managing-samples
 managing-measurements
+managing-unclaimed-profiles
 configuration-checks
 
 ```

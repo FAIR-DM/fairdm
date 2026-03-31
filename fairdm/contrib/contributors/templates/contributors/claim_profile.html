@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Claim Your Profile" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+
+      {% if error %}
+      {# Error state — invalid/expired/banned token #}
+      <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">{% trans "Cannot Claim Profile" %}</h4>
+        </div>
+        <div class="card-body">
+          <p class="mb-0">{{ error_message }}</p>
+        </div>
+        <div class="card-footer">
+          <a href="/" class="btn btn-secondary">{% trans "Go Home" %}</a>
+        </div>
+      </div>
+
+      {% elif unclaimed_person %}
+      {# Confirmation state #}
+      <div class="card">
+        <div class="card-header">
+          <h4 class="mb-0">{% trans "Claim Profile" %}</h4>
+        </div>
+        <div class="card-body">
+          <p>
+            {% blocktrans trimmed with name=unclaimed_person.get_full_name %}
+              You are about to claim the profile for <strong>{{ name }}</strong>.
+              This will link the profile to your account.
+            {% endblocktrans %}
+          </p>
+
+          <dl class="row">
+            <dt class="col-sm-4">{% trans "Name" %}</dt>
+            <dd class="col-sm-8">{{ unclaimed_person.get_full_name }}</dd>
+            {% if unclaimed_person.email %}
+            <dt class="col-sm-4">{% trans "Email" %}</dt>
+            <dd class="col-sm-8">{{ unclaimed_person.email }}</dd>
+            {% endif %}
+          </dl>
+        </div>
+        <div class="card-footer d-flex gap-2">
+          <form method="post" action="{% url 'contributors:claim-profile-confirm' token=token %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+              {% trans "Confirm Claim" %}
+            </button>
+          </form>
+          <a href="/" class="btn btn-secondary">{% trans "Cancel" %}</a>
+        </div>
+      </div>
+
+      {% else %}
+      {# Fallback — should not normally be reached #}
+      <div class="alert alert-warning">
+        {% trans "Something went wrong. Please try again or contact support." %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
