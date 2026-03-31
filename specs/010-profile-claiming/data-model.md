@@ -123,6 +123,25 @@ def save(self, *args, **kwargs):
 
 ---
 
+## Custom Exceptions
+
+### `ClaimingError`
+
+**Location:** `fairdm/contrib/contributors/exceptions.py` (new file — create alongside the `services/` package in Phase 1)
+
+A custom exception raised by all claiming service functions for expected, user-facing failure conditions. Distinguishes them from unexpected programmer errors (which still raise `ValueError`).
+
+Raised by `claim_via_orcid`, `claim_via_email`, and `claim_via_token` for:
+
+- `person.is_active=False` — target Person is Banned (FR-017); admin must lift the ban before claiming is possible
+- `person.is_claimed=True` — Person already claimed (explicit guard or implicit token revocation)
+- Token HMAC invalid or tampered
+- Token expired (exceeds `CLAIM_TOKEN_MAX_AGE`)
+
+`merge_persons` uses plain `ValueError` for the `keep == discard` programmer error (not `ClaimingError`) since that indicates incorrect usage, not a user-facing claiming failure.
+
+---
+
 ## Service Layer
 
 ### claiming.py — Core Claiming Service
@@ -150,6 +169,11 @@ def save(self, *args, **kwargs):
 | `_invalidate_sessions(person)` | Person | None | Delete all active sessions for person |
 | `_merge_profile_fields(keep, discard)` | Person, Person | None | Fill blank fields from discard |
 
+**Implementation notes for merge helpers:**
+
+- **`_invalidate_sessions(person)`**: For database-backed sessions (`SESSION_ENGINE = 'django.contrib.sessions.backends.db'`), query `Session.objects.all()`, decode each session, and delete those belonging to `person.pk`. For cache/Redis-backed sessions (`django.contrib.sessions.backends.cache`), a different approach is required (e.g., iterating cache keys or using `django-redis` session utilities). The default implementation targets database-backed sessions; portals using non-DB session backends should override this helper.
+- **`_merge_profile_fields(keep, discard)`**: Merges scalar profile fields: `first_name`, `last_name`, `website`, `bio`, `image`. "Blank" is defined as empty string (`""`) or `None`. Only blank values on `person_keep` are overwritten from `person_discard`; non-blank values on `keep` are never overwritten. Boolean identity fields (`is_active`, `is_claimed`) are **not** merged — they are managed by the calling service layer.
+
 ### matching.py — Fuzzy Name Matching
 
 **Location:** `fairdm/contrib/contributors/services/matching.py`
@@ -158,7 +182,7 @@ On-demand computation only — no persistence. Called directly from the admin ch
 
 | Function | Input | Output | Description |
 |----------|-------|--------|-------------|
-| `find_duplicate_candidates(person, threshold)` | Person, float | QuerySet | Find fuzzy name matches for admin display |
+| `find_duplicate_candidates(person, threshold)` | Person, float | list[dict] | Find fuzzy name matches for admin display — each dict: `{"person": Person, "score": float}` |
 
 ### tokens.py — Token Utilities
 

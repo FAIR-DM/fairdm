@@ -15,7 +15,7 @@
 
 **Purpose**: Create the `services/` package skeleton that all user story phases depend on.
 
-- [ ] T001 Create `fairdm/contrib/contributors/services/` package with empty `__init__.py`
+- [ ] T001 Create `fairdm/contrib/contributors/services/` package with empty `__init__.py`; also create `fairdm/contrib/contributors/exceptions.py` with `ClaimingError(Exception)` class (used by all claiming service functions — see data-model.md § Custom Exceptions)
 
 ### System Validation — Phase 1
 
@@ -154,9 +154,10 @@
 
 ## Final Phase: Polish & Cross-Cutting Concerns
 
-- [ ] T046 [P] Write `ClaimingAuditLog` model and admin registration tests in `tests/test_contrib/test_contributors/test_audit.py` (immutability enforced, manager filter methods, admin view loads); also verify demo app admin views load without errors after `ClaimingAuditLog` migration is applied (`poetry run python manage.py check` passes and demo admin changelist returns HTTP 200) — Constitution §VII compliance
-- [ ] T047 [P] Add "Claiming a Profile" guide for contributors in `docs/user-guide/` (ORCID, email, and token pathways explained from user perspective)
-- [ ] T048 [P] Add "Managing Unclaimed Profiles" section to portal admin guide in `docs/portal-administration/` (generating claim links, running merges, interpreting audit log)
+- [ ] T052 [P] Register `ClaimingAuditLog` with Django admin as a read-only `ModelAdmin` in `fairdm/contrib/contributors/admin.py` (list display: `timestamp`, `method`, `source_person`, `target_person`, `initiated_by`, `success`; no add/change/delete permissions — immutable by design)
+- [ ] T046 Write `ClaimingAuditLog` model and admin registration tests in `tests/test_contrib/test_contributors/test_audit.py` (immutability enforced, manager filter methods, admin view loads); also verify demo app admin views load without errors after `ClaimingAuditLog` migration is applied (`poetry run python manage.py check` passes and demo admin changelist returns HTTP 200) — Constitution §VII compliance *(depends on T052)*
+- [ ] T047 [P] Add "Claiming a Profile" guide for contributors at `docs/user-guide/claiming-a-profile.md` (ORCID, email, and token pathways explained from user perspective)
+- [ ] T048 [P] Add "Managing Unclaimed Profiles" guide to `docs/portal-administration/managing-unclaimed-profiles.md` (generating claim links, running merges, interpreting audit log)
 - [ ] T051 [P] Add developer-guide documentation for claiming service APIs and new settings (`CLAIM_TOKEN_MAX_AGE`, `CLAIM_TOKEN_SALT`) in `docs/portal-development/` with at least one usage example per public API and per setting (Constitution §VI compliance)
 
 ### System Validation — Final
@@ -253,7 +254,7 @@ This MVP is deployable and fixes the highest-impact bug (ORCID duplicate Person 
 4. Add merge recovery: Phase 6 (edge case recovery)
 5. Add fuzzy matching: Phase 7 (quality-of-life tool for admins)
 
-**Total Tasks**: 51
+**Total Tasks**: 52
 **Tasks per story**: US1=7 (incl. 2 validation), US2=8 (incl. 2 validation), US3=10 (incl. 2 validation), US4=7 (incl. 2 validation), US5=5 (incl. 2 validation)
 **Validation checkpoints**: 10 `⚠️ CRITICAL` system validation pairs across all phases
 **Parallel opportunities**: 16 tasks marked [P]

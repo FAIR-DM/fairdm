@@ -37,7 +37,8 @@ No external REST API endpoints are defined in this feature. If the API app is en
 
 **Errors:**
 
-- `ValueError` if person is already claimed
+- `ClaimingError` if `person.is_claimed=True` (already claimed)
+- `ClaimingError` if `person.is_active=False` (Banned state, FR-017)
 
 ---
 
@@ -49,8 +50,8 @@ No external REST API endpoints are defined in this feature. If the API app is en
 
 - `person.is_claimed` is `False`
 - `person.email` is not None
-- `ACCOUNT_EMAIL_VERIFICATION == "mandatory"`
 - Email has been verified via allauth
+- Note: the function internally checks `ACCOUNT_EMAIL_VERIFICATION`; if not `"mandatory"`, it silently no-ops without raising (FR-004)
 
 **Postconditions:**
 
@@ -60,7 +61,9 @@ No external REST API endpoints are defined in this feature. If the API app is en
 
 **Errors:**
 
-- `ValueError` if email verification is not mandatory
+- `ClaimingError` if `person.is_active=False` (Banned state, FR-017)
+- `ClaimingError` if `person.is_claimed=True` (already claimed)
+- No error raised when `ACCOUNT_EMAIL_VERIFICATION != "mandatory"` — function silently returns without claiming (FR-004 silent guard; see spec FR-004, tasks.md T017/T018)
 
 ---
 
@@ -70,7 +73,7 @@ No external REST API endpoints are defined in this feature. If the API app is en
 
 **Preconditions:**
 
-- `token_string` passes `validate_claim_token()` — HMAC valid, not expired, person still unclaimed
+- `token_string` passes `validate_claim_token()` — HMAC valid, not expired, person still unclaimed. If `validate_claim_token()` returns `None`, `claim_via_token()` raises `ClaimingError` (the service layer converts `None` → exception; callers do not need to check for `None`)
 - `user.is_authenticated` is True
 
 **Postconditions:**
@@ -81,7 +84,10 @@ No external REST API endpoints are defined in this feature. If the API app is en
 
 **Errors:**
 
-- `ValueError` if token is invalid, expired, or person already claimed
+- `ClaimingError` if token is invalid or tampered (`validate_claim_token()` returns `None`)
+- `ClaimingError` if token is expired
+- `ClaimingError` if person is already claimed (implicit token revocation — `is_claimed=True`)
+- `ClaimingError` if `person.is_active=False` (Banned state, FR-017)
 
 ---
 
@@ -110,7 +116,7 @@ No external REST API endpoints are defined in this feature. If the API app is en
 
 **Errors:**
 
-- `ValueError` if person_keep == person_discard
+- `ValueError` if `person_keep == person_discard` (programmer error — intentionally `ValueError`, not `ClaimingError`, to signal incorrect usage)
 - Rolls back fully on any exception (atomic transaction)
 
 ---
@@ -157,7 +163,6 @@ No external REST API endpoints are defined in this feature. If the API app is en
 **Security:**
 
 - CSRF protection on form submissions
-- Rate limiting: max 10 attempts per IP per hour
 - No PII in URL (token is opaque signed string)
 - Token validated server-side on every request (no client-side state)
 

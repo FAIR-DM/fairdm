@@ -153,8 +153,8 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 
 ## Success Criteria *(mandatory)*
 
-- **SC-001**: ORCID claiming successfully connects 99%+ of unclaimed profiles with valid ORCID matches without creating duplicates
-- **SC-002**: Email claiming (when enabled) successfully connects 95%+ of unclaimed profiles with verified email matches
+- **SC-001** *(post-launch monitoring target)*: ORCID claiming successfully connects 99%+ of unclaimed profiles with valid ORCID matches without creating duplicates
+- **SC-002** *(post-launch monitoring target)*: Email claiming (when enabled) successfully connects 95%+ of unclaimed profiles with verified email matches
 - **SC-003**: Zero account takeover incidents via email claiming when `ACCOUNT_EMAIL_VERIFICATION="mandatory"` is enforced
 - **SC-004**: Token-based claiming has 0% token reuse or expiry bypass (100% security compliance)
 - **SC-005**: Post-signup merge completes without data loss in 100% of test cases (all contributions, affiliations, identifiers transferred)
