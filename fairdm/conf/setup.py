@@ -126,6 +126,7 @@ def setup(
         "settings/logging.py",  # Logging configuration
         "settings/email.py",  # Email backend
         "settings/addons.py",  # Third-party add-on configurations
+        "settings/api.py",  # REST API (DRF, drf-spectacular, CORS) — Feature 011
     ]
 
     include(*settings_modules, scope=caller_globals)

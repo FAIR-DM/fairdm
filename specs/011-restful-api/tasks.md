@@ -17,14 +17,14 @@
 
 **Purpose**: Create the `fairdm/api/` package skeleton, add all 6 new dependencies, and register apps.
 
-- [ ] T001 Create `fairdm/api/` package with `__init__.py` (empty module)
-- [ ] T002 Add 6 API dependencies to `pyproject.toml` (`djangorestframework`, `drf-spectacular[sidecar]`, `drf-orjson-renderer`, `dj-rest-auth`, `django-cors-headers`, `djangorestframework-guardian`) and run `poetry install`
-- [ ] T003 Create `fairdm/api/apps.py` with `FairDMApiConfig` AppConfig (name `fairdm.api`, verbose_name "FairDM API")
-- [ ] T004 Register new apps in `fairdm/conf/settings/apps.py` INSTALLED_APPS: add `fairdm.api`, `rest_framework`, `rest_framework.authtoken`, `drf_spectacular`, `drf_spectacular_sidecar`, `corsheaders`, `dj_rest_auth`; uncomment `corsheaders.middleware.CorsMiddleware` in MIDDLEWARE
+- [x] T001 Create `fairdm/api/` package with `__init__.py` (empty module)
+- [x] T002 Add 6 API dependencies to `pyproject.toml` (`djangorestframework`, `drf-spectacular[sidecar]`, `drf-orjson-renderer`, `dj-rest-auth`, `django-cors-headers`, `djangorestframework-guardian`) and run `poetry install`
+- [x] T003 Create `fairdm/api/apps.py` with `FairDMApiConfig` AppConfig (name `fairdm.api`, verbose_name "FairDM API")
+- [x] T004 Register new apps in `fairdm/conf/settings/apps.py` INSTALLED_APPS: add `fairdm.api`, `rest_framework`, `rest_framework.authtoken`, `drf_spectacular`, `drf_spectacular_sidecar`, `corsheaders`, `dj_rest_auth`; uncomment `corsheaders.middleware.CorsMiddleware` in MIDDLEWARE
 
 ### System Validation — Phase 1
 
-- [ ] T005 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding to Phase 2
+- [x] T005 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding to Phase 2
 
 **Checkpoint — Setup Complete**: Package exists, all dependencies installed, apps registered, system checks pass.
 
@@ -36,18 +36,18 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 Create `fairdm/api/settings.py` with `REST_FRAMEWORK` dict (authentication classes, permission classes, renderer classes with ORJSONRenderer, parser classes with ORJSONParser, schema class, pagination class, throttle classes/rates, filter backends per data-model.md), `SPECTACULAR_SETTINGS` (title, description, version, sidecar config), and `CORS_*` defaults — integrate into Django settings via `fairdm/conf/settings/` or `fairdm.setup()`
-- [ ] T007 [P] Create `fairdm/api/pagination.py` with `FairDMPagination(PageNumberPagination)`: `page_size=25`, `page_size_query_param="page_size"`, `max_page_size=100`
-- [ ] T008 [P] Create `fairdm/api/filters.py` with `FairDMVisibilityFilter(BaseFilterBackend)`: `filter_queryset()` returns `queryset.filter(is_public=True) | get_objects_for_user(user, view_perm, queryset)` for authenticated users, `queryset.filter(is_public=True)` for anonymous — per data-model.md pseudocode; add `hasattr(queryset.model, 'is_public')` guard at the top of `filter_queryset()` to short-circuit models without `is_public` (e.g., Contributor) and return the full unfiltered queryset
-- [ ] T009 [P] Create `fairdm/api/permissions.py` with `FairDMObjectPermissions(DjangoObjectPermissions)`: extended `perms_map` with view permissions for GET/HEAD/OPTIONS, 404 non-disclosure for unauthorized detail access, unauthenticated read allowed
-- [ ] T010 [P] Create `fairdm/api/serializers.py` with `BaseSerializerMixin` and serializer generation logic supporting three-tier resolution: `fields` → `serializer_fields` → `serializer_class` from registry config; integrate `ObjectPermissionsAssignmentMixin` from `djangorestframework-guardian` for permission assignment on create/update
-- [ ] T011 Create `fairdm/api/viewsets.py` with `BaseViewSet(ModelViewSet)`: `lookup_field="uuid"`, `get_queryset()` returning model's default queryset, `get_serializer_class()` resolving from registry config, `filterset_class` attachment from registry; also define explicit `ProjectViewSet(BaseViewSet)`, `DatasetViewSet(BaseViewSet)` (full CRUD; model-specific querysets), and `ContributorViewSet(ReadOnlyModelViewSet)` (GET-only; `lookup_field="uuid"`) — these three core viewset classes are registered by the router in T017 and must exist before T017 runs
-- [ ] T012 [P] Create `tests/test_api/__init__.py` and `tests/test_api/conftest.py` with API test fixtures: `api_client` (unauthenticated DRF `APIClient`), `authenticated_client` (token-authenticated client), `editor_client` (client with edit permissions), sample/measurement model fixtures using existing factories
+- [x] T006 Create `fairdm/api/settings.py` with `REST_FRAMEWORK` dict (authentication classes, permission classes, renderer classes with ORJSONRenderer, parser classes with ORJSONParser, schema class, pagination class, throttle classes/rates, filter backends per data-model.md), `SPECTACULAR_SETTINGS` (title, description, version, sidecar config), and `CORS_*` defaults — integrate into Django settings via `fairdm/conf/settings/` or `fairdm.setup()`
+- [x] T007 [P] Create `fairdm/api/pagination.py` with `FairDMPagination(PageNumberPagination)`: `page_size=25`, `page_size_query_param="page_size"`, `max_page_size=100`
+- [x] T008 [P] Create `fairdm/api/filters.py` with `FairDMVisibilityFilter(BaseFilterBackend)`: `filter_queryset()` returns `queryset.filter(is_public=True) | get_objects_for_user(user, view_perm, queryset)` for authenticated users, `queryset.filter(is_public=True)` for anonymous — per data-model.md pseudocode; add `hasattr(queryset.model, 'is_public')` guard at the top of `filter_queryset()` to short-circuit models without `is_public` (e.g., Contributor) and return the full unfiltered queryset
+- [x] T009 [P] Create `fairdm/api/permissions.py` with `FairDMObjectPermissions(DjangoObjectPermissions)`: extended `perms_map` with view permissions for GET/HEAD/OPTIONS, 404 non-disclosure for unauthorized detail access, unauthenticated read allowed
+- [x] T010 [P] Create `fairdm/api/serializers.py` with `BaseSerializerMixin` and serializer generation logic supporting three-tier resolution: `fields` → `serializer_fields` → `serializer_class` from registry config; integrate `ObjectPermissionsAssignmentMixin` from `djangorestframework-guardian` for permission assignment on create/update
+- [x] T011 Create `fairdm/api/viewsets.py` with `BaseViewSet(ModelViewSet)`: `lookup_field="uuid"`, `get_queryset()` returning model's default queryset, `get_serializer_class()` resolving from registry config, `filterset_class` attachment from registry; also define explicit `ProjectViewSet(BaseViewSet)`, `DatasetViewSet(BaseViewSet)` (full CRUD; model-specific querysets), and `ContributorViewSet(ReadOnlyModelViewSet)` (GET-only; `lookup_field="uuid"`) — these three core viewset classes are registered by the router in T017 and must exist before T017 runs
+- [x] T012 [P] Create `tests/test_api/__init__.py` and `tests/test_api/conftest.py` with API test fixtures: `api_client` (unauthenticated DRF `APIClient`), `authenticated_client` (token-authenticated client), `editor_client` (client with edit permissions), sample/measurement model fixtures using existing factories
 
 ### System Validation — Phase 2
 
-- [ ] T013 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T014 ⚠️ CRITICAL: Run foundational tests: `poetry run pytest tests/test_api/conftest.py --collect-only -v` — ALL fixtures must be importable and collectible before proceeding to any user story
+- [x] T013 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [x] T014 ⚠️ CRITICAL: Run foundational tests: `poetry run pytest tests/test_api/conftest.py --collect-only -v` — ALL fixtures must be importable and collectible before proceeding to any user story
 
 **Checkpoint — Foundation Ready**: All base classes importable, settings merged, test fixtures available. User story phases can now begin.
 
@@ -59,11 +59,11 @@
 
 **Independent Test**: Start the portal with demo app models registered, make unauthenticated GET requests to projects list, datasets list, sample discovery, and type-specific sample list endpoints — verify paginated JSON responses with correct fields and navigation links.
 
-- [ ] T015 [US1] Add `generate_viewset(config, base_class=BaseViewSet)` factory function to `fairdm/api/viewsets.py` per data-model.md logic: creates a `ModelViewSet` subclass with `serializer_class`, `queryset`, `lookup_field="uuid"`, and optional `filterset_class` from the config
-- [ ] T016 [US1] Add `SampleDiscoveryView(APIView)` and `MeasurementDiscoveryView(APIView)` to `fairdm/api/viewsets.py` — GET-only views that iterate over `registry.samples` / `registry.measurements` and return the type catalog JSON (name, verbose_name, endpoint URL, fields, filterable_fields, count) per data-model.md and contract §6
-- [ ] T017 [US1] Create `fairdm/api/router.py` with auto-registration logic: instantiate `DefaultRouter` as `fairdm_api_router`, register core model viewsets (ProjectViewSet, DatasetViewSet, ContributorViewSet), iterate `registry.samples` and `registry.measurements` to register auto-generated viewsets with slug-based URL prefixes derived from `verbose_name_plural`
-- [ ] T018 [US1] Create `fairdm/api/urls.py` with `/api/v1/` URL patterns: include `fairdm_api_router.urls`, wire `SampleDiscoveryView` at `samples/`, wire `MeasurementDiscoveryView` at `measurements/`, add `dj-rest-auth` URLs at `auth/`, add `SpectacularAPIView` at `schema/`, `SpectacularSwaggerView` at `docs/`, `SpectacularRedocView` at `redoc/`
-- [ ] T019 [US1] Include API URL patterns in `fairdm/conf/urls.py`: add `path("api/", include("fairdm.api.urls"))` to urlpatterns
+- [x] T015 [US1] Add `generate_viewset(config, base_class=BaseViewSet)` factory function to `fairdm/api/viewsets.py` per data-model.md logic: creates a `ModelViewSet` subclass with `serializer_class`, `queryset`, `lookup_field="uuid"`, and optional `filterset_class` from the config
+- [x] T016 [US1] Add `SampleDiscoveryView(APIView)` and `MeasurementDiscoveryView(APIView)` to `fairdm/api/viewsets.py` — GET-only views that iterate over `registry.samples` / `registry.measurements` and return the type catalog JSON (name, verbose_name, endpoint URL, fields, filterable_fields, count) per data-model.md and contract §6
+- [x] T017 [US1] Create `fairdm/api/router.py` with auto-registration logic: instantiate `DefaultRouter` as `fairdm_api_router`, register core model viewsets (ProjectViewSet, DatasetViewSet, ContributorViewSet), iterate `registry.samples` and `registry.measurements` to register auto-generated viewsets with slug-based URL prefixes derived from `verbose_name_plural`
+- [x] T018 [US1] Create `fairdm/api/urls.py` with `/api/v1/` URL patterns: include `fairdm_api_router.urls`, wire `SampleDiscoveryView` at `samples/`, wire `MeasurementDiscoveryView` at `measurements/`, add `dj-rest-auth` URLs at `auth/`, add `SpectacularAPIView` at `schema/`, `SpectacularSwaggerView` at `docs/`, `SpectacularRedocView` at `redoc/`
+- [x] T019 [US1] Include API URL patterns in `fairdm/conf/urls.py`: add `path("api/", include("fairdm.api.urls"))` to urlpatterns
 - [ ] T020 [P] [US1] Write list and detail endpoint tests in `tests/test_api/test_viewsets.py`: GET project list returns paginated JSON with `count`/`next`/`previous`/`results`, GET project detail by uuid returns correct fields, GET dataset list works, GET type-specific sample list returns only samples of that type, GET with invalid uuid returns 404; also cover FR-015 filtering and ordering: `?<field>=<value>` query parameter reduces result set to matching records, `?ordering=<field>` returns results in ascending order, `?ordering=-<field>` returns results in descending order (tests use demo app models that have a FilterSet registered)
 - [ ] T021 [P] [US1] Write auto-registration and discovery endpoint tests in `tests/test_api/test_router.py`: all registered types produce URL patterns, discovery GET `/api/v1/samples/` returns type catalog with correct metadata (name, endpoint, fields, count), discovery GET `/api/v1/measurements/` returns measurement type catalog, empty registry returns empty catalog; verify `count` in each catalog entry is permission-aware (anonymous user sees only count of public records; authenticated user with additional permissions sees a higher count reflecting their accessible private records)
 - [ ] T022 [P] [US1] Write pagination tests in `tests/test_api/test_pagination.py`: default page_size=25, custom `?page_size=10` returns 10 results, `?page_size=200` capped at max 100, response includes `next`/`previous` navigation links, `count` reflects total accessible records
