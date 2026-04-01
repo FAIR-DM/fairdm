@@ -83,13 +83,13 @@
 
 **Independent Test**: Navigate to `/api/v1/docs/` in a browser, verify Swagger UI renders showing all registered endpoints grouped by resource type. Verify `/api/v1/schema/` returns a valid OpenAPI 3.0 document. Verify "Try it out" on a GET endpoint returns real data.
 
-- [ ] T025 [US2] Verify and refine `SPECTACULAR_SETTINGS` in `fairdm/api/settings.py`: ensure `SERVE_INCLUDE_SCHEMA=False`, sidecar dist paths, portal-overridable `TITLE`/`DESCRIPTION`/`VERSION`, proper schema grouping (one group per resource type, discovery endpoints grouped separately)
-- [ ] T026 [P] [US2] Write documentation endpoint tests in `tests/test_api/test_docs.py` (separate from `test_router.py` which covers router registration): GET `/api/v1/docs/` returns 200 with HTML containing Swagger UI, GET `/api/v1/redoc/` returns 200 with HTML, GET `/api/v1/schema/` returns valid OpenAPI 3.0 YAML/JSON, schema includes all registered type endpoints with accurate field types and required status, each registered Sample/Measurement type appears as separate endpoint group
+- [x] T025 [US2] Verify and refine `SPECTACULAR_SETTINGS` in `fairdm/api/settings.py`: ensure `SERVE_INCLUDE_SCHEMA=False`, sidecar dist paths, portal-overridable `TITLE`/`DESCRIPTION`/`VERSION`, proper schema grouping (one group per resource type, discovery endpoints grouped separately)
+- [x] T026 [P] [US2] Write documentation endpoint tests in `tests/test_api/test_docs.py` (separate from `test_router.py` which covers router registration): GET `/api/v1/docs/` returns 200 with HTML containing Swagger UI, GET `/api/v1/redoc/` returns 200 with HTML, GET `/api/v1/schema/` returns valid OpenAPI 3.0 YAML/JSON, schema includes all registered type endpoints with accurate field types and required status, each registered Sample/Measurement type appears as separate endpoint group
 
 ### System Validation — Phase 4
 
-- [ ] T027 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T028 ⚠️ CRITICAL: Run User Story 2 tests: `poetry run pytest tests/test_api/test_docs.py -v` — ALL tests MUST pass
+- [x] T027 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [x] T028 ⚠️ CRITICAL: Run User Story 2 tests: `poetry run pytest tests/test_api/test_docs.py -v` — ALL tests MUST pass
 
 **Checkpoint — US2 Complete**: Interactive documentation accessible, accurate, and reflecting all registered endpoints.
 

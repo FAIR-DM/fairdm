@@ -219,6 +219,11 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
             inspector = FieldInspector(model)
             fields = inspector.get_safe_fields()
+        else:
+            # Flatten any grouped tuples used for form layout
+            from fairdm.api.serializers import _flatten_fields
+
+            fields = _flatten_fields(fields)
 
         # Try to determine the DRF view_name for the URL field
         slug = _model_to_slug(model)
