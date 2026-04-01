@@ -211,3 +211,193 @@ class TestContributorListEndpoint:
         # DRF may return 403 (permission denied) before 405 (method not allowed)
         # when object-level permissions fire before method routing.
         assert response.status_code in (403, 405)
+
+
+# ---------------------------------------------------------------------------
+# Project CRUD (authenticated write operations)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestProjectCRUD:
+    """Authenticated create / update / delete for Project (US3)."""
+
+    def test_authenticated_post_creates_project(self, authenticated_client):
+        """POST /api/v1/projects/ with valid payload → 201 + object in DB."""
+        response = authenticated_client.post(
+            reverse("project-list"),
+            {"name": "New API Project"},
+            format="json",
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["name"] == "New API Project"
+        assert "uuid" in data
+
+    def test_created_project_appears_in_list(self, authenticated_client):
+        """Created project appears in the list endpoint immediately after POST."""
+        post_resp = authenticated_client.post(
+            reverse("project-list"),
+            {"name": "Listed Project"},
+            format="json",
+        )
+        assert post_resp.status_code == 201
+        uuid = post_resp.json()["uuid"]
+        list_resp = authenticated_client.get(reverse("project-list"))
+        uuids = [p["uuid"] for p in list_resp.json()["results"]]
+        assert uuid in uuids
+
+    def test_authenticated_patch_updates_project(self, authenticated_client, user):
+        """PATCH /api/v1/projects/{uuid}/ with partial data → 200 + updated field."""
+        from guardian.shortcuts import assign_perm
+
+        # Create the project via POST so permissions are auto-assigned
+        post_resp = authenticated_client.post(
+            reverse("project-list"),
+            {"name": "Patch Target"},
+            format="json",
+        )
+        assert post_resp.status_code == 201
+        uuid = post_resp.json()["uuid"]
+
+        url = reverse("project-detail", kwargs={"uuid": uuid})
+        patch_resp = authenticated_client.patch(url, {"name": "Updated Name"}, format="json")
+        assert patch_resp.status_code == 200
+        assert patch_resp.json()["name"] == "Updated Name"
+
+    def test_authenticated_delete_removes_project(self, authenticated_client, user):
+        """DELETE /api/v1/projects/{uuid}/ → 204, subsequent GET → 404."""
+        # Create via POST so permissions are auto-assigned
+        post_resp = authenticated_client.post(
+            reverse("project-list"),
+            {"name": "Delete Target"},
+            format="json",
+        )
+        assert post_resp.status_code == 201
+        uuid = post_resp.json()["uuid"]
+
+        url = reverse("project-detail", kwargs={"uuid": uuid})
+        del_resp = authenticated_client.delete(url)
+        assert del_resp.status_code == 204
+
+        get_resp = authenticated_client.get(url)
+        assert get_resp.status_code == 404
+
+    def test_unauthenticated_post_returns_401(self, api_client):
+        """POST without credentials → 401 (per contract §3)."""
+        response = api_client.post(
+            reverse("project-list"),
+            {"name": "Should Fail"},
+            format="json",
+        )
+        assert response.status_code == 401
+
+    def test_post_missing_required_field_returns_400(self, authenticated_client):
+        """POST with empty payload → 400 with field-level validation errors."""
+        response = authenticated_client.post(
+            reverse("project-list"),
+            {},
+            format="json",
+        )
+        assert response.status_code == 400
+        assert "name" in response.json()
+
+
+# ---------------------------------------------------------------------------
+# Rate limiting / throttling (US5)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestRateLimiting:
+    """Verify DRF throttling behaviour for anonymous and authenticated users.
+
+    Test settings use DummyCache which never stores throttle counts.  We patch
+    ``SimpleRateThrottle.cache`` with a real LocMemCache for these tests, and
+    patch ``get_rate()`` on the specific throttle class to inject tiny limits
+    so we can exhaust the quota in a few requests.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _throttle_setup(self):
+        """Replace the dummy cache with LocMemCache for throttle count storage."""
+        from django.core.cache.backends.locmem import LocMemCache
+        from unittest.mock import patch
+
+        from rest_framework.throttling import SimpleRateThrottle
+
+        test_cache = LocMemCache("throttle-test", {})
+        test_cache.clear()
+        with patch.object(SimpleRateThrottle, "cache", test_cache):
+            yield
+        test_cache.clear()
+
+    def test_anonymous_throttled_after_limit(self, api_client):
+        """Anonymous user exceeds limit → 429."""
+        from unittest.mock import patch
+
+        from rest_framework.throttling import AnonRateThrottle
+
+        with patch.object(AnonRateThrottle, "get_rate", return_value="2/minute"):
+            url = reverse("project-list")
+            for _ in range(2):
+                assert api_client.get(url).status_code == 200
+            assert api_client.get(url).status_code == 429
+
+    def test_throttled_response_has_retry_after_header(self, api_client):
+        """Throttled responses include the ``Retry-After`` header."""
+        from unittest.mock import patch
+
+        from rest_framework.throttling import AnonRateThrottle
+
+        with patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"):
+            url = reverse("project-list")
+            api_client.get(url)
+            resp = api_client.get(url)
+            assert resp.status_code == 429
+            assert "Retry-After" in resp
+
+    def test_throttled_response_has_detail_message(self, api_client):
+        """429 response body includes a human-readable ``detail`` message."""
+        from unittest.mock import patch
+
+        from rest_framework.throttling import AnonRateThrottle
+
+        with patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"):
+            url = reverse("project-list")
+            api_client.get(url)
+            resp = api_client.get(url)
+            assert resp.status_code == 429
+            assert "detail" in resp.json()
+
+    def test_authenticated_gets_higher_limit(self, api_client, authenticated_client):
+        """Authenticated user's higher cap is respected when anon is already throttled."""
+        from unittest.mock import patch
+
+        from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+
+        with patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"), patch.object(
+            UserRateThrottle, "get_rate", return_value="3/minute"
+        ):
+            url = reverse("project-list")
+            # exhaust anon quota
+            api_client.get(url)
+            assert api_client.get(url).status_code == 429
+            # authenticated user still has headroom
+            for _ in range(3):
+                assert authenticated_client.get(url).status_code == 200
+
+    def test_throttle_rates_configurable(self, settings):
+        """Default throttle rates are present and portal-overridable via settings."""
+        rates = settings.REST_FRAMEWORK.get("DEFAULT_THROTTLE_RATES", {})
+        assert "anon" in rates
+        assert "user" in rates
+        # Verify the shipping defaults
+        assert rates["anon"] == "100/hour"
+        assert rates["user"] == "1000/hour"
+        # Simulate portal override — new values are picked up
+        settings.REST_FRAMEWORK = {
+            **settings.REST_FRAMEWORK,
+            "DEFAULT_THROTTLE_RATES": {"anon": "50/hour", "user": "500/hour"},
+        }
+        assert settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["anon"] == "50/hour"

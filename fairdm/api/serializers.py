@@ -3,6 +3,7 @@
 from typing import Any
 
 from rest_framework import serializers
+from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
 # Module-level cache so build_model_serializer always returns the same class
 # object for identical inputs.  Without this drf-spectacular warns about
@@ -94,9 +95,23 @@ def build_model_serializer(
     Meta = type("Meta", (), {"model": model, "fields": meta_fields, "extra_kwargs": meta_extra_kwargs})
     serializer_attrs["Meta"] = Meta
 
+    # Build get_permissions_map so the mixin assigns guardian object permissions
+    # (view, change, delete) to the submitting user when objects are created or
+    # updated via the API.  The permission codenames follow Django's convention:
+    # <action>_<model_name> (e.g. "view_project", "change_project").
+    model_name = model._meta.model_name  # type: ignore[union-attr]
+    perm_codenames = [f"view_{model_name}", f"change_{model_name}", f"delete_{model_name}"]
+
+    def get_permissions_map(self, created: bool) -> dict[str, list]:
+        """Assign guardian object permissions to the requesting user."""
+        current_user = self.context["request"].user
+        return {perm: [current_user] for perm in perm_codenames}
+
+    serializer_attrs["get_permissions_map"] = get_permissions_map
+
     serializer_cls = type(
         f"{model.__name__}APISerializer",
-        (serializers.ModelSerializer,),
+        (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer),
         serializer_attrs,
     )
     _SERIALIZER_CACHE[cache_key] = serializer_cls

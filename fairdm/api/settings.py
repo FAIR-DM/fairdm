@@ -11,8 +11,14 @@ Portal developers can override any of these in their own settings:
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
+        # TokenAuthentication must come before SessionAuthentication so that
+        # authenticate_header() returns "Token" (truthy).  DRF maps
+        # NotAuthenticated/AuthenticationFailed to HTTP 403 instead of 401
+        # when the first authenticator's authenticate_header() returns None/empty
+        # (which SessionAuthentication does).  Putting TokenAuthentication first
+        # ensures these errors are consistently reported as 401.
         "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "fairdm.api.permissions.FairDMObjectPermissions",

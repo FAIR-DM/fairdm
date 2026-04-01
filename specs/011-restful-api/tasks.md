@@ -101,15 +101,15 @@
 
 **Independent Test**: Authenticate via POST to `/api/v1/auth/login/`, use the returned token to POST a new sample (verify 201), PATCH the sample (verify 200), DELETE the sample (verify 204), confirm deletion via GET (verify 404). Verify unauthenticated POST returns 401.
 
-- [ ] T029 [US3] Ensure `BaseViewSet` in `fairdm/api/viewsets.py` enforces authentication for write operations: `perform_create()` checks add permission, `perform_update()` checks change permission, `perform_destroy()` checks delete permission — unauthenticated write attempts return 401 per contract §3/§4/§5
-- [ ] T030 [US3] Wire `ObjectPermissionsAssignmentMixin` into serializer generation in `fairdm/api/serializers.py`: add `get_permissions_map()` method that assigns guardian object permissions (view, change, delete) to the requesting user when objects are created or updated via API
-- [ ] T031 [P] [US3] Write authentication endpoint tests in `tests/test_api/test_auth.py`: POST `/api/v1/auth/login/` with valid credentials returns token key, token in `Authorization: Token {key}` header grants access, POST `/api/v1/auth/logout/` revokes token, session authentication works for browser/Swagger UI, invalid credentials return 400
-- [ ] T032 [P] [US3] Write CRUD operation tests in `tests/test_api/test_viewsets.py`: authenticated POST with valid payload returns 201 + created object, PATCH with partial data returns 200 + updated fields, DELETE returns 204 + subsequent GET returns 404, POST with missing required fields returns 400 with field-level errors, unauthenticated POST returns 401
+- [x] T029 [US3] Ensure `BaseViewSet` in `fairdm/api/viewsets.py` enforces authentication for write operations: `perform_create()` checks add permission, `perform_update()` checks change permission, `perform_destroy()` checks delete permission — unauthenticated write attempts return 401 per contract §3/§4/§5
+- [x] T030 [US3] Wire `ObjectPermissionsAssignmentMixin` into serializer generation in `fairdm/api/serializers.py`: add `get_permissions_map()` method that assigns guardian object permissions (view, change, delete) to the requesting user when objects are created or updated via API
+- [x] T031 [P] [US3] Write authentication endpoint tests in `tests/test_api/test_auth.py`: POST `/api/v1/auth/login/` with valid credentials returns token key, token in `Authorization: Token {key}` header grants access, POST `/api/v1/auth/logout/` revokes token, session authentication works for browser/Swagger UI, invalid credentials return 400
+- [x] T032 [P] [US3] Write CRUD operation tests in `tests/test_api/test_viewsets.py`: authenticated POST with valid payload returns 201 + created object, PATCH with partial data returns 200 + updated fields, DELETE returns 204 + subsequent GET returns 404, POST with missing required fields returns 400 with field-level errors, unauthenticated POST returns 401
 
 ### System Validation — Phase 5
 
-- [ ] T033 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T034 ⚠️ CRITICAL: Run User Story 3 tests: `poetry run pytest tests/test_api/test_auth.py tests/test_api/test_viewsets.py -v` — ALL tests MUST pass
+- [x] T033 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [x] T034 ⚠️ CRITICAL: Run User Story 3 tests: `poetry run pytest tests/test_api/test_auth.py tests/test_api/test_viewsets.py -v` — ALL tests MUST pass
 
 **Checkpoint — US3 Complete**: Full CRUD lifecycle works through the API. Authentication endpoints functional. Permission assignment on create/update operational.
 
@@ -121,14 +121,14 @@
 
 **Independent Test**: Create a private dataset. GET as anonymous → 404. GET as unrelated user → 404. GET as dataset owner → 200. PATCH as viewer → 403. PATCH as editor → 200. Verify list endpoint silently excludes private objects from non-permitted users.
 
-- [ ] T035 [US4] Verify and refine `FairDMObjectPermissions` in `fairdm/api/permissions.py`: ensure non-disclosure returns 404 (not 403) when user lacks view permission on an existing object, ensure `has_permission()` allows unauthenticated reads but blocks unauthenticated writes, test integration with `SamplePermissionBackend` and `MeasurementPermissionBackend` cascading
-- [ ] T036 [P] [US4] Write permission enforcement tests in `tests/test_api/test_permissions.py`: full permission matrix per data-model.md (anonymous/authenticated-no-perm/viewer/editor/owner × list-public/list-private/detail-public/detail-private/create/update/delete), non-disclosure 404 for private objects, cascading permissions from dataset to sample/measurement
-- [ ] T037 [P] [US4] Write visibility filter tests in `tests/test_api/test_filters.py`: public objects visible to anonymous users, private objects hidden from users without guardian view permission, authenticated user with view permission sees private objects, mixed public+private queryset returns correct subset via `.distinct()`, models without `is_public` field handled gracefully
+- [x] T035 [US4] Verify and refine `FairDMObjectPermissions` in `fairdm/api/permissions.py`: ensure non-disclosure returns 404 (not 403) when user lacks view permission on an existing object, ensure `has_permission()` allows unauthenticated reads but blocks unauthenticated writes, test integration with `SamplePermissionBackend` and `MeasurementPermissionBackend` cascading
+- [x] T036 [P] [US4] Write permission enforcement tests in `tests/test_api/test_permissions.py`: full permission matrix per data-model.md (anonymous/authenticated-no-perm/viewer/editor/owner × list-public/list-private/detail-public/detail-private/create/update/delete), non-disclosure 404 for private objects, cascading permissions from dataset to sample/measurement
+- [x] T037 [P] [US4] Write visibility filter tests in `tests/test_api/test_filters.py`: public objects visible to anonymous users, private objects hidden from users without guardian view permission, authenticated user with view permission sees private objects, mixed public+private queryset returns correct subset via `.distinct()`, models without `is_public` field handled gracefully
 
 ### System Validation — Phase 6
 
-- [ ] T038 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T039 ⚠️ CRITICAL: Run User Story 4 tests: `poetry run pytest tests/test_api/test_permissions.py tests/test_api/test_filters.py -v` — ALL tests MUST pass
+- [x] T038 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [x] T039 ⚠️ CRITICAL: Run User Story 4 tests: `poetry run pytest tests/test_api/test_permissions.py tests/test_api/test_filters.py -v` — ALL tests MUST pass
 
 **Checkpoint — US4 Complete**: All permission boundaries enforced. No private data leakage. Non-disclosure behavior verified.
 
@@ -140,13 +140,13 @@
 
 **Independent Test**: Override throttle rates to small values (e.g., 3/minute), make rapid requests as anonymous user, verify 429 after exceeding limit. Repeat as authenticated user with higher limit. Verify `Retry-After` header present.
 
-- [ ] T040 [US5] Verify throttle configuration in `fairdm/api/settings.py` uses `AnonRateThrottle` (100/hour) and `UserRateThrottle` (1000/hour), confirm cache backend availability for throttle state storage, ensure rates are overridable via portal settings
-- [ ] T041 [US5] Write rate limiting tests in `tests/test_api/test_viewsets.py`: anonymous user exceeds limit → 429 with `Retry-After` header, authenticated user gets higher limit, 429 response includes descriptive message, throttle rates configurable via `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` override
+- [x] T040 [US5] Verify throttle configuration in `fairdm/api/settings.py` uses `AnonRateThrottle` (100/hour) and `UserRateThrottle` (1000/hour), confirm cache backend availability for throttle state storage, ensure rates are overridable via portal settings
+- [x] T041 [US5] Write rate limiting tests in `tests/test_api/test_viewsets.py`: anonymous user exceeds limit → 429 with `Retry-After` header, authenticated user gets higher limit, 429 response includes descriptive message, throttle rates configurable via `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` override
 
 ### System Validation — Phase 7
 
-- [ ] T042 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T043 ⚠️ CRITICAL: Run User Story 5 tests: `poetry run pytest tests/test_api/test_viewsets.py -v -k "throttle or rate_limit"` — ALL tests MUST pass
+- [x] T042 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [x] T043 ⚠️ CRITICAL: Run User Story 5 tests: `poetry run pytest tests/test_api/test_viewsets.py -v -k "throttle or rate_limit"` — ALL tests MUST pass
 
 **Checkpoint — US5 Complete**: Rate limiting enforced for both tiers. Portal operators can configure rates.
 
@@ -158,13 +158,13 @@
 
 **Independent Test**: Register a model with explicit `serializer_fields` → verify API only exposes those fields. Register another model with a custom `serializer_class` → verify API uses the custom serializer. Register a model with only `fields` → verify API uses those fields as default.
 
-- [ ] T044 [US6] Verify and refine three-tier serializer resolution in `fairdm/api/serializers.py`: (1) when only `fields` is set, serializer includes those fields; (2) when `serializer_fields` is set, it overrides `fields` for the API serializer; (3) when `serializer_class` is set, it is used directly without auto-generation; (4) when nothing is set, sensible defaults from model field inspection
-- [ ] T045 [P] [US6] Write serializer generation tests in `tests/test_api/test_serializers.py`: model with `fields` only → serializer includes those fields, model with `serializer_fields` → only those fields exposed, model with `serializer_class` → custom serializer used directly, model with no field config → default fields from model inspection, URL field present in all generated serializers, config changes reflected after app restart
+- [x] T044 [US6] Verify and refine three-tier serializer resolution in `fairdm/api/serializers.py`: (1) when only `fields` is set, serializer includes those fields; (2) when `serializer_fields` is set, it overrides `fields` for the API serializer; (3) when `serializer_class` is set, it is used directly without auto-generation; (4) when nothing is set, sensible defaults from model field inspection
+- [x] T045 [P] [US6] Write serializer generation tests in `tests/test_api/test_serializers.py`: model with `fields` only → serializer includes those fields, model with `serializer_fields` → only those fields exposed, model with `serializer_class` → custom serializer used directly, model with no field config → default fields from model inspection, URL field present in all generated serializers, config changes reflected after app restart
 
 ### System Validation — Phase 8
 
-- [ ] T046 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [ ] T047 ⚠️ CRITICAL: Run User Story 6 tests: `poetry run pytest tests/test_api/test_serializers.py -v` — ALL tests MUST pass
+- [x] T046 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
+- [x] T047 ⚠️ CRITICAL: Run User Story 6 tests: `poetry run pytest tests/test_api/test_serializers.py -v` — ALL tests MUST pass
 
 **Checkpoint — US6 Complete**: Registry configuration directly controls API field exposure. Three-tier resolution working.
 
@@ -174,14 +174,14 @@
 
 **Purpose**: Demo app verification, documentation, and full integration testing.
 
-- [ ] T048 [P] Verify demo app models (`fairdm_demo/`) get auto-generated API endpoints: confirm registered Sample and Measurement types appear in discovery catalogs, list/detail endpoints return correct data, add API smoke test in `fairdm_demo/tests/`
-- [ ] T049 [P] Add "RESTful API" developer guide section to `docs/portal-development/` covering: automatic endpoint generation, customizing serializer fields, extending the router with custom viewsets, authentication (token obtain + usage), and permission model
-- [ ] T050 [P] Run quickstart.md validation: verify all code examples from `specs/011-restful-api/quickstart.md` work as documented (model registration → endpoints available, token auth workflow, custom serializer override)
+- [x] T048 [P] Verify demo app models (`fairdm_demo/`) get auto-generated API endpoints: confirm registered Sample and Measurement types appear in discovery catalogs, list/detail endpoints return correct data, add API smoke test in `fairdm_demo/tests/`
+- [x] T049 [P] Add "RESTful API" developer guide section to `docs/portal-development/` covering: automatic endpoint generation, customizing serializer fields, extending the router with custom viewsets, authentication (token obtain + usage), and permission model
+- [x] T050 [P] Run quickstart.md validation: verify all code examples from `specs/011-restful-api/quickstart.md` work as documented (model registration → endpoints available, token auth workflow, custom serializer override)
 
 ### System Validation — Final
 
-- [ ] T051 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass
-- [ ] T052 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass
+- [x] T051 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass
+- [x] T052 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass
 
 **Checkpoint — Feature Complete**: All API endpoints auto-generated, documented, permission-enforced, rate-limited, and tested. Demo app integration verified.
 
@@ -224,30 +224,39 @@
 ## Parallel Opportunities
 
 ### Phase 2 (Foundational)
+
 T006 must come first (settings). T007, T008, T009, T010, T012 are fully parallel. T011 (BaseViewSet) depends on T009+T010 (uses permissions/serializers).
 
 ### Phase 3 (US1)
+
 T015 → T016 → T017 sequential (factory → discovery → router). T018 depends on T017 (urls include router). T019 depends on T018. T020, T021, T022 fully parallel once T019 done.
 
 ### Phase 4 (US2)
+
 T025 before T026. T026 is a single parallel test task.
 
 ### Phase 5 (US3)
+
 T029 and T030 can be parallel. T031 and T032 parallel once T029+T030 done.
 
 ### Phase 6 (US4)
+
 T035 before T036 and T037. T036 and T037 fully parallel.
 
 ### Phase 7 (US5)
+
 T040 before T041. Linear.
 
 ### Phase 8 (US6)
+
 T044 before T045. Linear.
 
 ### Final Phase
+
 T048, T049, T050 fully parallel. T051 before T052.
 
 ### Cross-Phase Parallelism
+
 US5 (Phase 7) and US6 (Phase 8) can run in parallel with US3 (Phase 5) and US4 (Phase 6) — they depend only on Phase 2, not on US1–US4.
 
 ---
@@ -255,6 +264,7 @@ US5 (Phase 7) and US6 (Phase 8) can run in parallel with US3 (Phase 5) and US4 (
 ## Implementation Strategy
 
 **MVP Scope** (Phase 1 + Phase 2 + Phase 3 only):
+
 - `fairdm/api/` package created with all base classes
 - All 6 dependencies installed and configured
 - Auto-generated read-only endpoints for all core + registered models
@@ -266,6 +276,7 @@ US5 (Phase 7) and US6 (Phase 8) can run in parallel with US3 (Phase 5) and US4 (
 This MVP is deployable and delivers the highest-value capability: read-only API access to all portal data with zero configuration from portal developers.
 
 **Incremental Delivery**:
+
 1. MVP: Phases 1–3 (read-only browsing — highest traffic use case)
 2. Add documentation: Phase 4 (interactive Swagger/ReDoc)
 3. Add CRUD: Phase 5 (authenticated write operations)
