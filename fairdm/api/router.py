@@ -17,6 +17,8 @@ The router instance is the public ``fairdm_api_router`` symbol.  All registered
 viewsets automatically appear in the OpenAPI schema and under ``/api/v1/``.
 """
 
+import logging
+
 from rest_framework.routers import DefaultRouter
 
 from fairdm.api.viewsets import (
@@ -35,32 +37,38 @@ fairdm_api_router.register(r"projects", ProjectViewSet, basename="project")
 fairdm_api_router.register(r"datasets", DatasetViewSet, basename="dataset")
 fairdm_api_router.register(r"contributors", ContributorViewSet, basename="contributor")
 
-# ── 2. Registry-registered Sample types ───────────────────────────────────
-try:
-    from fairdm.registry import registry  # noqa: E402
+_logger = logging.getLogger(__name__)
 
-    for _model in registry.samples:
+# ── 2. Registry-registered Sample types ───────────────────────────────────
+# Samples and measurements use separate try/except so a failure in one
+# doesn't prevent the other from registering.
+try:
+    from fairdm.registry import registry as _registry
+
+    for _model in _registry.samples:
         _slug = _model_to_slug(_model)
-        _config = registry.get_for_model(_model)
+        _config = _registry.get_for_model(_model)
         _viewset = generate_viewset(_config)
         fairdm_api_router.register(
             rf"samples/{_slug}",
             _viewset,
             basename=f"samples-{_slug}",
         )
+except Exception as _e:
+    _logger.warning("FairDM API: failed to register sample viewsets: %s", _e, exc_info=True)
 
-    # ── 3. Registry-registered Measurement types ───────────────────────────
-    for _model in registry.measurements:
+# ── 3. Registry-registered Measurement types ───────────────────────────────
+try:
+    from fairdm.registry import registry as _registry
+
+    for _model in _registry.measurements:
         _slug = _model_to_slug(_model)
-        _config = registry.get_for_model(_model)
+        _config = _registry.get_for_model(_model)
         _viewset = generate_viewset(_config)
         fairdm_api_router.register(
             rf"measurements/{_slug}",
             _viewset,
             basename=f"measurements-{_slug}",
         )
-except Exception:
-    # Registry may not be fully populated yet during initial setup.
-    # The router will be re-populated the next time the module is imported
-    # after the registry is ready (i.e. after all app ready() calls).
-    pass
+except Exception as _e:
+    _logger.warning("FairDM API: failed to register measurement viewsets: %s", _e, exc_info=True)

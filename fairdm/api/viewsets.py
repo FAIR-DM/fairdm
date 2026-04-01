@@ -14,6 +14,7 @@ This module provides:
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from rest_framework import serializers
@@ -258,11 +259,16 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
 
 def _model_to_slug(model) -> str:
-    """Convert model verbose_name_plural to a URL slug.
+    """Convert model class name to a URL-safe kebab-case slug.
 
-    Example: "Rock Samples" → "rock-samples"
+    Uses the Python class name rather than ``verbose_name_plural`` to
+    guarantee stable URLs — renaming a verbose name will never silently
+    break existing API clients.
+
+    Example: ``RockSample`` → ``"rock-sample"``,
+             ``CustomParentSample`` → ``"custom-parent-sample"``
     """
-    return model._meta.verbose_name_plural.lower().replace(" ", "-")
+    return re.sub(r"(?<!^)(?=[A-Z])", "-", model.__name__).lower()
 
 
 # ---------------------------------------------------------------------------
