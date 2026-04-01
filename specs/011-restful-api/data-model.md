@@ -93,6 +93,9 @@ class FairDMVisibilityFilter(BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+        # Guard: models without is_public (e.g., Contributor) bypass visibility filtering
+        if not hasattr(queryset.model, 'is_public'):
+            return queryset
         if request.user.is_authenticated:
             public_qs = queryset.filter(is_public=True)
             permitted_qs = get_objects_for_user(
@@ -108,7 +111,7 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 Notes:
 - `is_public` field must exist on models exposed via the API (Project, Dataset, Sample, Measurement). The existing `ProjectQuerySet.get_visible()` and `DatasetQuerySet` already implement similar logic — `FairDMVisibilityFilter` provides a uniform API-layer equivalent.
 - `djangorestframework-guardian`'s `ObjectPermissionsFilter` is NOT used as a filter backend (it cannot handle objects with no guardian entries). The package is retained for `ObjectPermissionsAssignmentMixin` only.
-- For models that don't have `is_public` (e.g., Contributor), override `filter_queryset()` in the viewset or subclass the filter.
+- For models that don't have `is_public` (e.g., Contributor), the `hasattr` guard in `filter_queryset()` short-circuits to return the full unfiltered queryset (all contributor records are accessible). If stricter filtering is needed, override `filter_queryset()` in a viewset subclass.
 
 ---
 
@@ -295,6 +298,7 @@ Router registration logic:
 | `/api/v1/auth/user/` | dj-rest-auth | GET, PUT | Yes |
 | `/api/v1/auth/password/change/` | dj-rest-auth | POST | Yes |
 | `/api/v1/auth/password/reset/` | dj-rest-auth | POST | No |
+| `/api/v1/auth/password/reset/confirm/` | dj-rest-auth | POST | No |
 | `/api/v1/schema/` | drf-spectacular | GET | No |
 | `/api/v1/docs/` | SpectacularSwaggerView | GET | No |
 | `/api/v1/redoc/` | SpectacularRedocView | GET | No |
@@ -351,6 +355,6 @@ The existing `SerializerFactory` in the registry already produces working `Model
 | List (private) | ❌ (hidden) | ❌ (hidden) | ✅ | ✅ | ✅ |
 | Detail (public) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Detail (private) | 404 | 404 | ✅ | ✅ | ✅ |
-| Create | 403 | 403 | 403 | ✅ | ✅ |
+| Create | 401 | 403 | 403 | ✅ | ✅ |
 | Update | 404 | 404 | 403 | ✅ | ✅ |
 | Delete | 404 | 404 | 403 | ✅ | ✅ |

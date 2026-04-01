@@ -133,7 +133,7 @@ As a portal developer, I can configure which fields are exposed in the API for m
 - **FR-002**: System MUST automatically generate API list and detail endpoints for each Sample and Measurement subtype registered through the FairDM registry
 - **FR-003**: System MUST provide a discovery endpoint that lists all registered Sample types with their names and API endpoint URLs
 - **FR-004**: System MUST provide a discovery endpoint that lists all registered Measurement types with their names and API endpoint URLs
-- **FR-005**: System MUST support full CRUD operations (Create, Read, Update, Delete) on all generated endpoints
+- **FR-005**: System MUST support full CRUD operations (Create, Read, Update, Delete) on Project, Dataset, Sample, and Measurement endpoints. Contributor endpoints are read-only (GET only) — no create, update, or delete operations are supported for contributors via the API.
 - **FR-006**: System MUST auto-generate API data representations for registered models using the existing registry field configuration, respecting the three-tier resolution order (default fields → component-specific fields → custom class override)
 - **FR-007**: System MUST serve an interactive API documentation page that auto-generates from the registered endpoints and their schemas
 - **FR-008**: System MUST enforce the existing object-level permission system on all API operations, including per-object permissions and cascading permission inheritance for samples and measurements
