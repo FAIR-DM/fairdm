@@ -9,10 +9,9 @@ Covers:
 """
 
 import pytest
-from django.urls import reverse, resolve
+from django.urls import resolve, reverse
 
 from fairdm.utils.choices import Visibility
-
 
 # ---------------------------------------------------------------------------
 # Core URL patterns
@@ -90,22 +89,15 @@ class TestSampleDiscoveryEndpoint:
 
         # Create one public and one private sample
         public_sample = CustomParentSampleFactory(dataset=public_dataset)
-        private_dataset_factory = __import__(
-            "fairdm.factories", fromlist=["DatasetFactory"]
-        ).DatasetFactory
+        private_dataset_factory = __import__("fairdm.factories", fromlist=["DatasetFactory"]).DatasetFactory
         from fairdm.factories import DatasetFactory
-        from fairdm_demo.models import CustomParentSample
 
-        private_ds = DatasetFactory(
-            project=public_dataset.project, visibility=Visibility.PRIVATE
-        )
+        private_ds = DatasetFactory(project=public_dataset.project, visibility=Visibility.PRIVATE)
         private_sample = CustomParentSampleFactory(dataset=private_ds)
 
         data = api_client.get(reverse("api-sample-discovery")).json()
         # Find the CustomParentSample entry
-        entry = next(
-            (e for e in data["types"] if e["name"] == "CustomParentSample"), None
-        )
+        entry = next((e for e in data["types"] if e["name"] == "CustomParentSample"), None)
         assert entry is not None
         # Anonymous user should only count public samples (those in a PUBLIC dataset)
         assert entry["count"] == 1
@@ -157,8 +149,8 @@ class TestRegistryGeneratedEndpoints:
 
     def test_custom_parent_sample_list_accessible(self, api_client):
         """CustomParentSample is registered in the demo app; its endpoint must work."""
-        from fairdm_demo.models import CustomParentSample
         from fairdm.api.viewsets import _model_to_slug
+        from fairdm_demo.models import CustomParentSample
 
         slug = _model_to_slug(CustomParentSample)
         response = api_client.get(f"/api/v1/samples/{slug}/")
@@ -166,16 +158,16 @@ class TestRegistryGeneratedEndpoints:
 
     def test_example_measurement_list_accessible(self, api_client):
         """ExampleMeasurement is registered in the demo app; its endpoint must work."""
-        from fairdm_demo.models import ExampleMeasurement
         from fairdm.api.viewsets import _model_to_slug
+        from fairdm_demo.models import ExampleMeasurement
 
         slug = _model_to_slug(ExampleMeasurement)
         response = api_client.get(f"/api/v1/measurements/{slug}/")
         assert response.status_code == 200
 
     def test_custom_parent_sample_list_has_pagination(self, api_client):
-        from fairdm_demo.models import CustomParentSample
         from fairdm.api.viewsets import _model_to_slug
+        from fairdm_demo.models import CustomParentSample
 
         slug = _model_to_slug(CustomParentSample)
         data = api_client.get(f"/api/v1/samples/{slug}/").json()
@@ -211,9 +203,7 @@ class TestAPIRootContainsDiscoveryLinks:
         response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
         data = response.json()
         url = data.get("sample-types", "")
-        assert url.endswith("/api/v1/samples/") or "/api/v1/samples/" in url, (
-            f"Unexpected sample-types URL: {url!r}"
-        )
+        assert url.endswith("/api/v1/samples/") or "/api/v1/samples/" in url, f"Unexpected sample-types URL: {url!r}"
 
     def test_measurement_types_url_points_to_discovery_endpoint(self, api_client):
         """The 'measurement-types' URL in the API root must end with '/api/v1/measurements/'."""

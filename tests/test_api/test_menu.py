@@ -106,6 +106,7 @@ class TestFairDMAPIDocsURLSetting:
 
         # Re-evaluate the third child URL (it uses getattr at menu construction time)
         from django.conf import settings as django_settings
+
         import fairdm.menus.menus  # noqa: F401 — ensure menu is loaded
 
         api_group = next(item for item in AppMenu.children if str(item.name) == "API")

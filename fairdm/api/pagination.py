@@ -12,7 +12,7 @@ class FairDMPagination(PageNumberPagination):
             "count": 100,
             "next": "http://example.com/api/v1/projects/?page=2",
             "previous": null,
-            "results": [...]
+            "results": [...],
         }
 
     Query parameters:

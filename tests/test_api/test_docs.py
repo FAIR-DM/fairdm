@@ -62,10 +62,7 @@ class TestOpenAPISchema:
         """Schema endpoint should return YAML or JSON content."""
         response = api_client.get("/api/v1/schema/")
         content_type = response["Content-Type"]
-        assert any(
-            ct in content_type
-            for ct in ("application/vnd.oai.openapi", "application/json", "application/yaml")
-        )
+        assert any(ct in content_type for ct in ("application/vnd.oai.openapi", "application/json", "application/yaml"))
 
     def test_schema_contains_openapi_key(self, api_client):
         """Schema document must contain the 'openapi' version field."""

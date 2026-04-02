@@ -76,9 +76,7 @@ class TestPagination:
         data = response.json()
         assert data["count"] == public_count
 
-    def test_count_increases_for_authenticated_user_with_permissions(
-        self, authenticated_client, user, db
-    ):
+    def test_count_increases_for_authenticated_user_with_permissions(self, authenticated_client, user, db):
         """Authenticated user with guardian view permission sees private records."""
         from guardian.shortcuts import assign_perm
 

@@ -15,7 +15,6 @@ from rest_framework.test import APIClient
 
 from fairdm.factories import UserFactory
 
-
 # ---------------------------------------------------------------------------
 # URL shortcuts
 # ---------------------------------------------------------------------------

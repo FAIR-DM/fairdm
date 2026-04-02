@@ -13,7 +13,6 @@ from django.urls import reverse
 from fairdm.factories import DatasetFactory, ProjectFactory
 from fairdm.utils.choices import Visibility
 
-
 # ---------------------------------------------------------------------------
 # Project list
 # ---------------------------------------------------------------------------
@@ -48,9 +47,7 @@ class TestProjectListEndpoint:
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(public_project.uuid) in uuids
 
-    def test_authenticated_still_hidden_from_private_without_permission(
-        self, authenticated_client, private_project
-    ):
+    def test_authenticated_still_hidden_from_private_without_permission(self, authenticated_client, private_project):
         response = authenticated_client.get(reverse("project-list"))
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(private_project.uuid) not in uuids
@@ -205,9 +202,7 @@ class TestContributorListEndpoint:
 
     def test_post_not_allowed(self, authenticated_client):
         """ContributorViewSet is read-only; POST must be rejected (405 or 403)."""
-        response = authenticated_client.post(
-            reverse("contributor-list"), {"name": "New"}, format="json"
-        )
+        response = authenticated_client.post(reverse("contributor-list"), {"name": "New"}, format="json")
         # DRF may return 403 (permission denied) before 405 (method not allowed)
         # when object-level permissions fire before method routing.
         assert response.status_code in (403, 405)
@@ -249,7 +244,6 @@ class TestProjectCRUD:
 
     def test_authenticated_patch_updates_project(self, authenticated_client, user):
         """PATCH /api/v1/projects/{uuid}/ with partial data → 200 + updated field."""
-        from guardian.shortcuts import assign_perm
 
         # Create the project via POST so permissions are auto-assigned
         post_resp = authenticated_client.post(
@@ -321,9 +315,9 @@ class TestRateLimiting:
     @pytest.fixture(autouse=True)
     def _throttle_setup(self):
         """Replace the dummy cache with LocMemCache for throttle count storage."""
-        from django.core.cache.backends.locmem import LocMemCache
         from unittest.mock import patch
 
+        from django.core.cache.backends.locmem import LocMemCache
         from rest_framework.throttling import SimpleRateThrottle
 
         test_cache = LocMemCache("throttle-test", {})
@@ -376,8 +370,9 @@ class TestRateLimiting:
 
         from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
-        with patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"), patch.object(
-            UserRateThrottle, "get_rate", return_value="3/minute"
+        with (
+            patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"),
+            patch.object(UserRateThrottle, "get_rate", return_value="3/minute"),
         ):
             url = reverse("project-list")
             # exhaust anon quota
