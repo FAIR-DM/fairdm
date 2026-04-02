@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING
 
 from guardian.shortcuts import get_objects_for_user
@@ -25,23 +26,19 @@ def _get_public_filter(model) -> dict:
     from django.db.models import IntegerField
 
     # Direct visibility field (Project, Dataset)
-    try:
+    with contextlib.suppress(Exception):
         field = model._meta.get_field("visibility")
         if isinstance(field, IntegerField):
             from fairdm.utils.choices import Visibility
 
             return {"visibility": Visibility.PUBLIC}
-    except Exception:
-        pass
 
     # Dataset-cascaded visibility (Sample, Measurement)
-    try:
+    with contextlib.suppress(Exception):
         model._meta.get_field("dataset")
         from fairdm.utils.choices import Visibility
 
         return {"dataset__visibility": Visibility.PUBLIC}
-    except Exception:
-        pass
 
     return {}  # No known visibility field
 
@@ -67,7 +64,7 @@ class FairDMVisibilityFilter(BaseFilterBackend):
     publicly-visible records that have no guardian permission rows at all.
     """
 
-    def filter_queryset(self, request: "Request", queryset, view: "APIView"):
+    def filter_queryset(self, request: Request, queryset, view: APIView):
         public_filter = _get_public_filter(queryset.model)
 
         # No known visibility mechanism: return everything (e.g. Contributor)
@@ -76,9 +73,7 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
         if request.user and request.user.is_authenticated:
             public_qs = queryset.filter(**public_filter)
-            view_perm = (
-                f"{queryset.model._meta.app_label}.view_{queryset.model._meta.model_name}"
-            )
+            view_perm = f"{queryset.model._meta.app_label}.view_{queryset.model._meta.model_name}"
             permitted_qs = get_objects_for_user(
                 request.user,
                 view_perm,

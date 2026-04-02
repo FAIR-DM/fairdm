@@ -14,6 +14,7 @@ This module provides:
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 
 from rest_framework import serializers
@@ -22,8 +23,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from fairdm.core.models import Project, Dataset, Sample, Measurement
-from fairdm.contrib.contributors.models import Contributor
+
 from fairdm.api.serializers import (
     BaseMeasurementSerializer,
     BaseSampleSerializer,
@@ -31,7 +31,8 @@ from fairdm.api.serializers import (
     _validate_sample_serializer,
     build_model_serializer,
 )
-
+from fairdm.contrib.contributors.models import Contributor
+from fairdm.core.models import Dataset, Measurement, Project, Sample
 
 # ---------------------------------------------------------------------------
 # Base viewset
@@ -217,13 +218,11 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
     # Determine filterset
     filterset_class = None
-    if config.filterset is not None and not isinstance(config.filterset, type) or (
+    if (config.filterset is not None and not isinstance(config.filterset, type)) or (
         isinstance(config.filterset, type) and config.filterset is not type
     ):
-        try:
+        with contextlib.suppress(Exception):
             filterset_class = config.filterset
-        except Exception:
-            pass
 
     # Build queryset attribute (evaluated lazily via lambda to avoid import order issues)
     _model = model

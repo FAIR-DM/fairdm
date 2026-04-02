@@ -15,8 +15,7 @@ import pytest
 from rest_framework import serializers
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
-from fairdm.api.serializers import build_model_serializer, _SERIALIZER_CACHE
-
+from fairdm.api.serializers import _SERIALIZER_CACHE, build_model_serializer
 
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
@@ -54,8 +53,8 @@ class TestGenerateViewsetTierThree:
         from rest_framework import serializers as drf_serializers
 
         from fairdm.api.viewsets import generate_viewset
-        from fairdm.registry.config import ModelConfiguration
         from fairdm.core.project.models import Project
+        from fairdm.registry.config import ModelConfiguration
 
         class MyCustomSerializer(drf_serializers.ModelSerializer):
             class Meta:
@@ -83,8 +82,8 @@ class TestGenerateViewsetTierTwo:
     def test_serializer_fields_override_fields(self):
         """Only the fields in ``serializer_fields`` appear in the serializer."""
         from fairdm.api.viewsets import generate_viewset
-        from fairdm.registry.config import ModelConfiguration
         from fairdm.core.project.models import Project
+        from fairdm.registry.config import ModelConfiguration
 
         class Config(ModelConfiguration):
             model = Project
@@ -153,7 +152,7 @@ class TestBuildModelSerializer:
         instance = simple_serializer(data={}, context={"request": mock_request})
         perm_map = instance.get_permissions_map(created=True)
         assert set(perm_map.keys()) == expected_perms
-        for perm, users in perm_map.items():
+        for _perm, users in perm_map.items():
             assert users == [mock_user]
 
     def test_caching_returns_same_class_object(self, project_model):
@@ -189,8 +188,8 @@ class TestGenerateViewsetTierFour:
     def test_no_fields_config_produces_valid_serializer(self):
         """generate_viewset without any field config returns a workable serializer."""
         from fairdm.api.viewsets import generate_viewset
-        from fairdm.registry.config import ModelConfiguration
         from fairdm.core.project.models import Project
+        from fairdm.registry.config import ModelConfiguration
 
         class Config(ModelConfiguration):
             model = Project
@@ -389,7 +388,7 @@ class TestImproperlyConfiguredEnforcement:
         class ConformingSampleSerializer(BaseSampleSerializer):
             class Meta(BaseSampleSerializer.Meta):
                 model = CustomParentSample
-                fields = BaseSampleSerializer.Meta.fields + ["char_field"]
+                fields = [*BaseSampleSerializer.Meta.fields, "char_field"]
 
         class Config(ModelConfiguration):
             model = CustomParentSample
@@ -410,7 +409,7 @@ class TestImproperlyConfiguredEnforcement:
         class ConformingMeasurementSerializer(BaseMeasurementSerializer):
             class Meta(BaseMeasurementSerializer.Meta):
                 model = ExampleMeasurement
-                fields = BaseMeasurementSerializer.Meta.fields + ["value"]
+                fields = [*BaseMeasurementSerializer.Meta.fields, "value"]
 
         class Config(ModelConfiguration):
             model = ExampleMeasurement

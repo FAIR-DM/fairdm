@@ -30,7 +30,6 @@ from fairdm.api.viewsets import (
     generate_viewset,
 )
 
-
 # ---------------------------------------------------------------------------
 # Custom router class
 # ---------------------------------------------------------------------------
@@ -49,7 +48,7 @@ class FairDMAPIRouter(DefaultRouter):
         """Return the API root view with discovery endpoint links injected."""
         api_root_dict = OrderedDict()
         list_name = self.routes[0].name
-        for prefix, viewset, basename in self.registry:
+        for prefix, _viewset, basename in self.registry:
             api_root_dict[prefix] = list_name.format(basename=basename)
         # Inject discovery endpoint URL names so they appear in the browsable API root.
         api_root_dict["sample-types"] = "api-sample-discovery"

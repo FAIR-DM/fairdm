@@ -46,7 +46,7 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
     # Allow unauthenticated access for read operations
     authenticated_users_only = False
 
-    def has_permission(self, request: "Request", view: "APIView") -> bool:
+    def has_permission(self, request: Request, view: APIView) -> bool:
         # Allow read operations without authentication (object-level visibility
         # filtering via FairDMVisibilityFilter + has_object_permission handles
         # private-object access control for GET requests).
@@ -64,7 +64,7 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
         # permissions, not Django's model-level permissions, for access control.
         return True
 
-    def has_object_permission(self, request: "Request", view: "APIView", obj) -> bool:
+    def has_object_permission(self, request: Request, view: APIView, obj) -> bool:
         """Return 404 (not 403) when user lacks permission on an existing object."""
         # Allow read access to any object; list-level filtering (FairDMVisibilityFilter)
         # ensures private objects never appear in list results.
@@ -98,9 +98,8 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
         # "private + no perm at all → 404".
         visibility = getattr(obj, "visibility", None)
         parent_vis = getattr(getattr(obj, "dataset", None), "visibility", None)
-        is_publicly_visible = (
-            (visibility is not None and visibility == Visibility.PUBLIC)
-            or (parent_vis is not None and parent_vis == Visibility.PUBLIC)
+        is_publicly_visible = (visibility is not None and visibility == Visibility.PUBLIC) or (
+            parent_vis is not None and parent_vis == Visibility.PUBLIC
         )
 
         # Check object-level write permission directly via guardian.
@@ -111,14 +110,13 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
         write_perms = self.get_required_object_permissions(request.method, obj.__class__)
         has_perm = all(request.user.has_perm(perm, obj) for perm in write_perms)
 
-        if not has_perm:
-            if not is_publicly_visible:
-                # Private object: check if user can at least VIEW it.
-                # If not, do not reveal it exists — raise 404 (non-disclosure).
-                view_perms = self.get_required_object_permissions("GET", obj.__class__)
-                can_view = all(request.user.has_perm(perm, obj) for perm in view_perms)
-                if not can_view:
-                    raise NotFound()
-            # Object is visible (public or user has view perm) but user lacks
-            # write permission → return False → DRF raises PermissionDenied (403).
+        if not has_perm and not is_publicly_visible:
+            # Private object: check if user can at least VIEW it.
+            # If not, do not reveal it exists — raise 404 (non-disclosure).
+            view_perms = self.get_required_object_permissions("GET", obj.__class__)
+            can_view = all(request.user.has_perm(perm, obj) for perm in view_perms)
+            if not can_view:
+                raise NotFound()
+        # Object is visible (public or user has view perm) but user lacks
+        # write permission → return False → DRF raises PermissionDenied (403).
         return has_perm
