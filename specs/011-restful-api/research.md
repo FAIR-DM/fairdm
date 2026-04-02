@@ -287,7 +287,6 @@ REST_FRAMEWORK = {
 - Assigning global guardian `view` permissions to every public object — scaling anti-pattern; millions of guardian rows.
 - Separate public/private endpoint pairs — doubles the URL surface, forces clients to merge results.
 
-
 ---
 
 ## New Additions Research (2026-04-01)
@@ -321,3 +320,51 @@ REST_FRAMEWORK = {
 **Rationale**: Pattern already established for ''Community'' and ''Documentation'' groups in`fairdm/menus/menus.py`. No new dependencies. The setting approach avoids hard-coded external URLs.
 
 **Alternatives considered**: Hard-code FairDM docs URL  inflexible for portals that host their own docs.
+
+---
+
+## Swagger/OpenAPI Documentation Quality Research (2026-04-02)
+
+## R15: Schema Component Naming — Removing the "API" Postfix
+
+**Decision**: Rename auto-generated serializer classes from `{ModelName}APISerializer` to `{ModelName}Serializer` in `build_model_serializer()`.
+
+**Rationale**: drf-spectacular derives OpenAPI schema component names by stripping the "Serializer" suffix from the serializer class name. The current naming `{Model}APISerializer` yields schema names like `RockSampleAPI`, `PatchedRockSampleAPI`, `ProjectAPI`. The "API" postfix is redundant within an API schema document and confusing in Swagger UI. Renaming to `{Model}Serializer` produces clean schema names (`RockSample`, `PatchedRockSample`, `Project`) which is the standard DRF convention.
+
+**Evidence**: Inspected Swagger UI at `/api/v1/docs/` — confirmed schema component names include `WaterSampleAPI`, `XRFMeasurementAPI`, `ProjectAPI`, `PatchedRockSampleAPI`, `PatchedProjectAPI`, `CustomParentSampleAPI`, etc.
+
+**Impact**: Breaking change for clients code-generating from the OpenAPI spec. Schema component names change globally. The `COMPONENT_SPLIT_PATCH` setting (currently `True`) means `Patched*` variants also change.
+
+**Alternatives considered**:
+
+- `POSTPROCESSING_HOOKS` to strip "API" — fragile, non-obvious.
+- `@extend_schema(component_name=...)` per-viewset — too verbose for auto-generated viewsets.
+- Keep "API" postfix — contradicts user feedback; confusing in Swagger UI.
+
+## R16: Endpoint Descriptions — Injecting Model Descriptions into Generated Viewsets
+
+**Decision**: Set `__doc__` on generated viewset classes in `generate_viewset()` from registry configuration. Replace core viewset docstrings.
+
+**Rationale**: drf-spectacular uses viewset `__doc__` as the operation description. All generated viewsets inherit `BaseViewSet.__doc__` which exposes internal details: "Base viewset for all FairDM API resource endpoints. Features: lookup_field = 'uuid'… get_queryset()… perform_create/update/destroy()…". Verified in Swagger UI that clicking any GET endpoint shows this text.
+
+**Description resolution order**: `config.description` → `config.metadata.description` → `model.__doc__` → `"Endpoints for managing {verbose_name_plural}."`.
+
+**Note**: `ModelConfiguration` already has both `description` (top-level string attribute) and `metadata.description` (on the `ModelMetadata` dataclass). The demo app's `CustomParentSampleConfig` already populates `metadata.description`. This means descriptions will surface immediately for models that already define them.
+
+**Alternatives considered**:
+
+- `@extend_schema(description=...)` per action — 6 decorators per generated viewset; overkill.
+- Global `AutoSchema.get_description()` override — too heavy; affects third-party viewsets.
+- `GET_LIB_DOC_EXCLUDES` — only prevents fallback, doesn't provide replacement.
+
+## R17: Portal-Developer API Description Customization
+
+**Decision**: Add `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` Django settings that flow into `SPECTACULAR_SETTINGS`. Provide a rich Markdown default describing FairDM API capabilities.
+
+**Rationale**: Current description is a single unhelpful sentence. Portal developers need customization without touching framework code. The setting approach is consistent with `FAIRDM_API_DOCS_URL` pattern established in Phase 12. drf-spectacular supports Markdown in descriptions, enabling rich formatting.
+
+**Alternatives considered**:
+
+- Template file for description — overcomplicated for a string.
+- No default at all — violates Constitution IV (Opinionated Defaults).
+- POSTPROCESSING_HOOKS — overkill for a static description string.

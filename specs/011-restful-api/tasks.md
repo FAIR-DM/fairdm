@@ -268,11 +268,10 @@ US5 (Phase 7) and US6 (Phase 8) can run in parallel with US3 (Phase 5) and US4 (
 enforcement helpers, update `build_model_serializer()` to accept a `base_class` parameter, then
 write complete tests verifying field correctness and `ImproperlyConfigured` enforcement.
 
-> **Note**: These base classes were specified during the 2026-04-01 clarification session but have
-> **not yet been implemented**. `fairdm/api/viewsets.py` has been cleaned up (no outstanding
+> **Note**: These base classes were specified during the 2026-04-01 clarification session and
+> **implemented in Phase 9 (T053–T055)**. `fairdm/api/viewsets.py` was cleaned up (no outstanding
 > `ImportError`); the `_validate_*` enforcement calls in `generate_viewset()` Tier 3 and the
-> `base_class` wiring in the Tier 1/2 auto-generate path were removed during that cleanup and
-> must be re-added in T053. No phase beyond Phase 9 may start until T055 passes.
+> `base_class` wiring in the Tier 1/2 auto-generate path were restored in T053.
 
 **Independent Test**: Import `BaseSampleSerializer` and `BaseMeasurementSerializer` from
 `fairdm.api.serializers`, assert their `Meta.fields` lists; call `generate_viewset()` for a
@@ -367,8 +366,102 @@ third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 - [x] T071 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass
 - [x] T072 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
 
-**Checkpoint — New Additions Complete**: Base serializer tests in, API root lists discovery endpoints, router uses verbose_name_plural slugs, sidebar menu group live, developer docs updated. Feature 011 fully complete.
+**Checkpoint — Phases 9–12 Complete**: Base serializer tests in, API root lists discovery endpoints, router uses verbose_name_plural slugs, sidebar menu group live, developer docs updated.
 
+---
+---
+
+## Phase 13: Schema Component Naming Cleanup (Swagger/OpenAPI Quality)
+
+**Goal**: Remove the "API" postfix from auto-generated serializer class names so drf-spectacular produces clean OpenAPI schema component names (e.g., `RockSample` instead of `RockSampleAPI`, `PatchedProject` instead of `PatchedProjectAPI`).
+
+**Independent Test**: Fetch the OpenAPI schema from `/api/v1/schema/`, verify that all component names for registered Sample/Measurement/core types do NOT contain "API" postfix. Verify `Patched*` variants also lack the postfix.
+
+**Breaking Change Notice**: Schema component names change globally. Clients code-generating from the OpenAPI spec (TypeScript, Python via `openapi-generator`) must regenerate. E.g., `RockSampleAPI` → `RockSample`, `PatchedProjectAPI` → `PatchedProject`.
+
+### Tests for Phase 13
+
+- [ ] T073 [P] [US2] Write schema naming tests in `tests/test_api/test_swagger.py`: fetch the OpenAPI schema via `GET /api/v1/schema/`; assert component names for registered Sample types (e.g., `RockSample`, `SoilSample`) do NOT contain "API" postfix; assert component names for registered Measurement types (e.g., `XRFMeasurement`) do NOT contain "API" postfix; assert core model schemas (`Project`, `Dataset`, `Contributor`) also lack "API" postfix; assert `Patched*` variants follow the same clean naming pattern (e.g., `PatchedRockSample` not `PatchedRockSampleAPI`); assert `COMPONENT_SPLIT_PATCH=True` still generates separate `Patched*` components
+
+### Implementation for Phase 13
+
+- [ ] T074 [US2] In `fairdm/api/serializers.py`, rename auto-generated serializer classes: change `build_model_serializer()` line `f"{model.__name__}APISerializer"` to `f"{model.__name__}Serializer"`; verify `_SERIALIZER_CACHE` key does not include the class name (it doesn't — uses `(model, fields, view_name, extra_kwargs, base_class)`) so no cache changes needed
+- [ ] T075 [P] [US2] Update any existing test assertions in `tests/test_api/test_serializers.py` that reference the old `*APISerializer` class naming pattern (search for `APISerializer` string); verify the serializer cache still returns the same instance for duplicate calls with identical parameters
+
+### System Validation — Phase 13
+
+- [ ] T076 ⚠️ CRITICAL: Run schema naming tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
+- [ ] T077 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass (catch regressions from rename)
+
+**Checkpoint — Phase 13 Complete**: Schema component names are clean (`RockSample`, `PatchedProject`, etc.). No "API" postfix in Swagger UI or OpenAPI schema. All existing tests still pass.
+
+---
+
+## Phase 14: Meaningful Endpoint Descriptions (Swagger/OpenAPI Quality)
+
+**Goal**: Replace internal-implementation docstrings with consumer-facing API descriptions that surface in Swagger UI. Generated viewsets pull descriptions from registry configuration; core viewsets get hand-written descriptions.
+
+**Independent Test**: Fetch the OpenAPI schema, verify that operation descriptions for registered types contain text from `config.description` or `config.metadata.description` (NOT "Base viewset for all FairDM API resource endpoints"). Verify core endpoint descriptions don't mention `lookup_field`, `get_queryset`, or `perform_create`.
+
+### Tests for Phase 14
+
+- [ ] T078 [P] [US2] Write endpoint description tests in `tests/test_api/test_swagger.py`: fetch the OpenAPI schema via `GET /api/v1/schema/`; for each registered Sample/Measurement type with a non-empty `config.description` or `config.metadata.description`, assert the GET list operation description contains text from that description; assert NO endpoint descriptions contain the strings "Base viewset for all FairDM API resource endpoints", "lookup_field", "get_queryset()", "perform_create", or "perform_update" (internal implementation details); assert core endpoints (`/api/v1/projects/`, `/api/v1/datasets/`, `/api/v1/contributors/`) have consumer-facing descriptions mentioning what the resource IS
+
+### Implementation for Phase 14
+
+- [ ] T079 [US2] In `fairdm/api/viewsets.py`, update `generate_viewset()` to set `__doc__` on the generated viewset class: after creating the dynamic class, resolve description using priority order: (1) `config.description` if non-empty, (2) `config.metadata.description` if `config.metadata` and non-empty, (3) `model.__doc__` if non-empty, (4) fallback `f"Endpoints for managing {model._meta.verbose_name_plural}."`; set `_GeneratedViewSet.__doc__ = description`
+- [ ] T080 [US2] In `fairdm/api/viewsets.py`, replace docstrings on core viewsets: `ProjectViewSet.__doc__` → "Research projects registered in the portal. Projects are the top-level organizational unit containing datasets, samples, and measurements."; `DatasetViewSet.__doc__` → "Datasets within research projects. Each dataset contains samples and associated measurements."; `ContributorViewSet.__doc__` → "People and organizations that contribute to research projects. Contributor profiles are read-only."; `BaseViewSet.__doc__` → brief developer-facing note: "Internal base class — see generated subclasses for API documentation."
+- [ ] T081 [P] [US2] Update `fairdm_demo/config.py`: ensure ALL registered model configurations have a non-empty `description` or `metadata.description` value; for models currently without descriptions, add a meaningful 1–2 sentence description explaining what the data type represents (this ensures the demo app demonstrates the description-flow feature)
+
+### System Validation — Phase 14
+
+- [ ] T082 ⚠️ CRITICAL: Run description tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
+- [ ] T083 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
+
+**Checkpoint — Phase 14 Complete**: Swagger endpoint descriptions show meaningful model descriptions instead of internal BaseViewSet implementation details. Demo app models all have descriptions that surface in the API docs.
+
+---
+
+## Phase 15: Portal-Developer API Description Customization (Swagger/OpenAPI Quality)
+
+**Goal**: Provide a rich default API description and title, and allow portal developers to customize both via Django settings (`FAIRDM_API_TITLE`, `FAIRDM_API_DESCRIPTION`) without touching framework code.
+
+**Independent Test**: Verify `SPECTACULAR_SETTINGS['DESCRIPTION']` contains key phrases about FairDM, available resources, authentication, and rate limits. Override `FAIRDM_API_TITLE` in test settings and verify the Swagger output reflects the override.
+
+### Tests for Phase 15
+
+- [ ] T084 [P] [US2] Write API description customization tests in `tests/test_api/test_swagger.py`: assert the default `FAIRDM_API_DESCRIPTION` setting (from `fairdm/api/settings.py`) is a multi-line string containing key phrases: "FairDM", "Projects", "Datasets", "Samples", "Measurements", "Contributors", "Authentication" or "Token", "Rate Limits"; assert the default `FAIRDM_API_TITLE` is `"FairDM Portal API"`; assert `SPECTACULAR_SETTINGS['TITLE']` equals `FAIRDM_API_TITLE`; assert `SPECTACULAR_SETTINGS['DESCRIPTION']` equals `FAIRDM_API_DESCRIPTION`; using `@override_settings(FAIRDM_API_TITLE="Custom Portal API")`, verify the setting is accessible and overrideable
+
+### Implementation for Phase 15
+
+- [ ] T085 [US2] In `fairdm/api/settings.py`: define `FAIRDM_API_TITLE = "FairDM Portal API"` and `FAIRDM_API_DESCRIPTION` as a rich multi-line Markdown string (covering available resources, authentication methods, rate limits, link to documentation — see research R17 for content); update `SPECTACULAR_SETTINGS['TITLE']` to reference `FAIRDM_API_TITLE` and `SPECTACULAR_SETTINGS['DESCRIPTION']` to reference `FAIRDM_API_DESCRIPTION`
+- [ ] T086 [US2] In `fairdm/conf/setup.py`: ensure that portal-level overrides of `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` are reflected in `SPECTACULAR_SETTINGS` after all settings files are merged by updating `SPECTACULAR_SETTINGS['TITLE']` and `['DESCRIPTION']` with `getattr(settings, 'FAIRDM_API_TITLE', FAIRDM_API_TITLE)` and `getattr(settings, 'FAIRDM_API_DESCRIPTION', FAIRDM_API_DESCRIPTION)` at settings finalization time
+
+### System Validation — Phase 15
+
+- [ ] T087 ⚠️ CRITICAL: Run customization tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
+
+**Checkpoint — Phase 15 Complete**: Rich default API description and title in place. Portal developers can override via `FAIRDM_API_TITLE` / `FAIRDM_API_DESCRIPTION` settings.
+
+---
+
+## Final Phase (Phases 13–15): Verification, Documentation & Visual Inspection
+
+**Purpose**: Developer docs updated for Swagger doc quality improvements; full test suite green; visual verification of Swagger UI.
+
+- [ ] T088 [P] Update `docs/portal-development/restful-api.md`: add section "Customizing the API Description" documenting `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` settings with example override; add section "Schema Naming Conventions" explaining that schema names match model class names without postfix; add migration note for clients code-generating from the OpenAPI schema (schema name changes from `*API` to clean names)
+- [ ] T089 [P] Update `specs/011-restful-api/quickstart.md`: add section "Swagger Documentation" explaining schema naming convention, endpoint descriptions from registry (`description` / `metadata.description`), and API description/title customization via settings
+- [ ] T090 [P] Update `fairdm_demo/config.py` docstrings: ensure each registered config class has a docstring linking to the "Developer Guide > RESTful API > Model Descriptions" documentation section, demonstrating the description-flow pattern for the demo app
+
+### System Validation — Final (Phases 13–15)
+
+- [ ] T091 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass
+- [ ] T092 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
+- [ ] T093 Visually verify Swagger UI at `/api/v1/docs/` using browser: confirm (1) schema component names have no "API" postfix, (2) endpoint descriptions show model descriptions not BaseViewSet internals, (3) API title and description are rich and informative
+
+**Checkpoint — Phases 13–15 Complete**: Schema names clean, endpoint descriptions meaningful, API description rich and customizable, developer docs updated, Swagger UI verified. Feature 011 fully complete including documentation quality improvements.
+
+---
 ---
 
 ## Dependencies & Execution Order
@@ -384,11 +477,15 @@ third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 - **US5 (Phase 7)**: Depends on Phase 2 — can overlap with US3, US4, US6
 - **US6 (Phase 8)**: Depends on Phase 2 — can overlap with US3, US4, US5
 - **Polish (Original Final Phase)**: Depends on Phases 3–8 complete
-- **Phase 9 (FR-006 impl & tests)**: Depends on Phase 8 complete — implements base serializer classes **not yet present** in `serializers.py`; restores enforcement calls in `generate_viewset()`; **BLOCKS** Phases 10–12
+- **Phase 9 (FR-006 impl & tests)**: Depends on Phase 8 complete — implemented `BaseSampleSerializer` / `BaseMeasurementSerializer` in `serializers.py` (T053–T055 ✅); enforcement calls in `generate_viewset()` restored; **BLOCKS** Phases 10–12
 - **Phase 10 (API root discovery)**: Depends on Phase 9 (T055 must pass) — constitution-mandated test gate
 - **Phase 11 (verbose_name_plural)**: Depends on Phase 10 complete — URL name changes must be stable before slug refactor
 - **Phase 12 (US7 sidebar)**: Depends on Phase 11 complete — sequential; independent of Phase 10 technically but ordered for cleanliness
-- **Final Phase (New Additions)**: Depends on Phases 9–12 complete
+- **Final Phase (Phases 9–12)**: Depends on Phases 9–12 complete
+- **Phase 13 (Schema naming)**: Depends on Phases 1–12 complete — modifies `serializers.py`; must validate against full test suite
+- **Phase 14 (Endpoint descriptions)**: Depends on Phase 13 (T077 must pass) — modifies `viewsets.py` and `config.py`; serializer rename must be stable
+- **Phase 15 (API description customization)**: Depends on Phase 14 (T083 must pass) — modifies `settings.py` and `setup.py`
+- **Final Phase (Phases 13–15)**: Depends on Phases 13–15 complete
 
 ### User Story Dependencies (Full Feature)
 
@@ -402,13 +499,20 @@ third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 | US6 (P6) | Phase 2 validation (T013+T014) | US1–US5 |
 | US7 (P7) | Phase 11 complete (slug strategy stable) | — |
 
-### Within Each Phase (New Additions)
+> **Note**: Phases 13–15 all map to US2 (Interactive API Documentation) as they improve the Swagger/OpenAPI
+> documentation quality for the same set of endpoints and schemas.
+
+### Within Each Phase
 
 - Phase 9: T053 (implementation) → T054 (tests) → T055 (validation)
 - Phase 10: T056 (implementation) → T057 (tests) → T058/T059 (validation)
 - Phase 11: T060 (implementation) → T061 (test updates) → T062 (quickstart) → T063/T064 (validation)
 - Phase 12: T065 (setting) → T066 (menu) → T067 (tests) → T068/T069 (validation)
-- Final: T070 parallel with T071/T072; T072 after T071
+- Final (9–12): T070 parallel with T071/T072; T072 after T071
+- Phase 13: T073 (tests) parallel with T075 (test updates); T074 (implementation) → T076/T077 (validation)
+- Phase 14: T078 (tests) → T079 (viewset docstrings) → T080 (core viewsets) → T081 (demo config) → T082/T083 (validation)
+- Phase 15: T084 (tests) → T085 (settings) → T086 (setup merge) → T087 (validation)
+- Final (13–15): T088, T089, T090 all parallel → T091/T092 (validation) → T093 (visual verify)
 
 ---
 
@@ -434,9 +538,25 @@ T060 (implementation) before T061 (test audit). T062 (docs) parallel with T061. 
 
 T065 (setting) before T066 (menu, needs the setting name). T067 (tests) after T066. T068/T069 validation.
 
-### Final Phase (New Additions)
+### Final Phase (Phases 9–12)
 
 T070 (docs) parallel with T071 (test run) and T072 (system check). T072 after T071.
+
+### Phase 13 (Schema naming)
+
+T073 (tests) and T075 (test updates) are parallel with each other. T074 (rename implementation) can start anytime. T076 and T077 sequential validation after T073+T074+T075.
+
+### Phase 14 (Endpoint descriptions)
+
+T078 (tests) before T079. T079 before T080 (both in `viewsets.py`). T081 (demo config) parallel with T079/T080. T082/T083 validation after all.
+
+### Phase 15 (API description customization)
+
+T084 (tests) before T085. T085 before T086 (settings → setup merge). T087 validation after T084+T085+T086.
+
+### Final Phase (Phases 13–15)
+
+T088, T089, T090 fully parallel (docs, quickstart, demo config updates). T091 (tests) and T092 (system check) after all three. T093 (visual verify) after T092.
 
 ---
 
@@ -467,7 +587,11 @@ This MVP is deployable and delivers the highest-value capability: read-only API 
 9. Correct URL naming: Phase 11 (verbose_name_plural slug strategy)
 10. Add sidebar navigation: Phase 12 (US7 — API menu group)
 
-**Total Tasks**: 72 (T001–T072)
-**Tasks per story**: US1=10+5=15 (incl. validation), US2=4, US3=6, US4=5, US5=4, US6=4+3=7 (incl. Phase 9), US7=5 (Phase 12)
-**Validation checkpoints**: 24 ⚠️ CRITICAL system validation tasks across all phases
-**Parallel opportunities**: 22 tasks marked [P]
+11. Swagger/OpenAPI schema naming: Phase 13 (remove "API" postfix)
+12. Swagger endpoint descriptions: Phase 14 (registry-driven descriptions)
+13. API description customization: Phase 15 (portal-developer settings)
+
+**Total Tasks**: 93 (T001–T093)
+**Tasks per story**: US1=10+5=15 (incl. validation), US2=4+21=25 (incl. Phases 13–15), US3=6, US4=5, US5=4, US6=4+3=7 (incl. Phase 9), US7=5 (Phase 12)
+**Validation checkpoints**: 33 ⚠️ CRITICAL system validation tasks across all phases
+**Parallel opportunities**: 28 tasks marked [P]
