@@ -155,6 +155,20 @@ def setup(
         logger.info(f"Applying {len(overrides)} custom override(s)")
         caller_globals.update(overrides)
 
+    # Finalize SPECTACULAR_SETTINGS: allow portal developers to override
+    # FAIRDM_API_TITLE and FAIRDM_API_DESCRIPTION without touching the dict directly.
+    # This must run AFTER all settings files and overrides are applied so that
+    # portal-level values shadow the FairDM defaults.
+    if "SPECTACULAR_SETTINGS" in caller_globals:
+        from fairdm.api.settings import FAIRDM_API_DESCRIPTION as _default_desc
+        from fairdm.api.settings import FAIRDM_API_TITLE as _default_title
+
+        spectacular = caller_globals["SPECTACULAR_SETTINGS"]
+        title_override = caller_globals.get("FAIRDM_API_TITLE", _default_title)
+        desc_override = caller_globals.get("FAIRDM_API_DESCRIPTION", _default_desc)
+        spectacular["TITLE"] = title_override
+        spectacular["DESCRIPTION"] = desc_override
+
     # Note: Configuration validation is now handled by Django's check framework.
     # Run `python manage.py check --deploy` to validate production readiness.
     # The old validate_services() function is deprecated.

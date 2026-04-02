@@ -160,9 +160,22 @@ class CustomSampleConfig(ModelConfiguration):
 
 @fairdm.register
 class ExampleMeasurementConfig(BaseMeasurementConfiguration):
+    """Demonstration measurement configuration showing all supported field types.
+
+    This example measurement serves as executable documentation for portal developers,
+    illustrating how different field types (text, numeric, boolean, date/time) are
+    represented in the FairDM registry and exposed via API endpoints.
+
+    See: Developer Guide > Models > Custom Measurement Types
+    """
+
     model = ExampleMeasurement
     metadata = ModelMetadata(
-        description="An example measurement",
+        description=(
+            "A general-purpose example measurement that demonstrates all supported field "
+            "types in the FairDM registry. Used as executable documentation for portal "
+            "developers learning how to define custom measurement types."
+        ),
         authority=Authority(
             name=str(_("FairDM Core Development")),
             short_name="FairDM",
@@ -428,6 +441,11 @@ class XRFMeasurementConfig(BaseMeasurementConfiguration):
     XRF measurement configuration demonstrating measurement-specific patterns.
 
     Shows field customization for analytical chemistry data and component overrides.
+    The ``metadata.description`` value surfaces in Swagger UI as the operation
+    description for all ``/api/v1/measurements/xrf-measurements/`` endpoints.
+
+    See: Developer Guide > RESTful API > Model Descriptions in the API Docs
+    (docs/portal-development/restful-api.md#model-descriptions-in-the-api-docs)
     """
 
     model = XRFMeasurement
@@ -461,6 +479,11 @@ class ICP_MS_MeasurementConfig(BaseMeasurementConfiguration):
     ICP-MS measurement configuration with advanced field patterns.
 
     Demonstrates complex measurement data with isotopic information and uncertainty.
+    The ``metadata.description`` value surfaces in Swagger UI as the operation
+    description for all ``/api/v1/measurements/icp-ms-measurements/`` endpoints.
+
+    See: Developer Guide > RESTful API > Model Descriptions in the API Docs
+    (docs/portal-development/restful-api.md#model-descriptions-in-the-api-docs)
     """
 
     model = ICP_MS_Measurement

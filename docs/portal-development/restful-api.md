@@ -275,6 +275,80 @@ SPECTACULAR_SETTINGS = {
 }
 ```
 
+## Customizing the API Description
+
+FairDM ships with a rich default API description and title that appear in Swagger UI and the raw OpenAPI schema. You can override them without modifying the framework:
+
+```python
+# In your portal's settings.py
+FAIRDM_API_TITLE = "Palaeo-Climate Data Portal API"
+FAIRDM_API_DESCRIPTION = """\
+## Palaeo-Climate Data Portal API
+
+Programmatic access to all published palaeo-climate data in this portal.
+
+### Resources
+
+- `/api/v1/projects/` — Research projects
+- `/api/v1/datasets/` — Sampled datasets
+- `/api/v1/samples/` — Discover all sample types
+
+See the [Developer Guide](https://my-portal.example.com/docs/api/) for full details.
+"""
+```
+
+FairDM merges these settings into `SPECTACULAR_SETTINGS` automatically at startup. You can also override `SPECTACULAR_SETTINGS['VERSION']` directly if you need to change the API version string.
+
+## Schema Naming Conventions
+
+FairDM auto-generates serializer classes for all registered models. The serializer class names follow the pattern `{ModelName}Serializer` (e.g. `RockSampleSerializer`, `XRFMeasurementSerializer`). drf-spectacular strips the `Serializer` suffix when deriving OpenAPI schema component names, so the components appear as clean names in Swagger:
+
+| Model class | Serializer class | Schema component |
+|-------------|-----------------|------------------|
+| `RockSample` | `RockSampleSerializer` | `RockSample` |
+| `XRFMeasurement` | `XRFMeasurementSerializer` | `XRFMeasurement` |
+| `Project` | `ProjectSerializer` | `Project` |
+
+`Patched*` components (from `COMPONENT_SPLIT_PATCH=True`) follow the same clean naming pattern:
+
+| Operation | Schema component |
+|-----------|-----------------|
+| `PATCH /samples/rock-samples/{uuid}/` | `PatchedRockSample` |
+
+:::{note}
+**Migration note**: If you were code-generating API clients from an older FairDM OpenAPI schema,
+schema component names have changed — `RockSampleAPI` → `RockSample`, `PatchedProjectAPI` →
+`PatchedProject`. Regenerate your client code after upgrading.
+:::
+
+## Model Descriptions in the API Docs
+
+Swagger UI shows a description for each endpoint group. For auto-generated viewsets, FairDM
+resolves the description from the registry configuration using the following priority order:
+
+1. `ModelConfiguration.description` (top-level attribute)
+2. `ModelConfiguration.metadata.description` (from `ModelMetadata`)
+3. Model class docstring
+4. Fallback: `"Endpoints for managing {verbose_name_plural}."`
+
+To provide a meaningful description visible in Swagger, add it to your registry config:
+
+```python
+@fairdm.register
+class RockSampleConfig(ModelConfiguration):
+    model = RockSample
+    metadata = ModelMetadata(
+        description=(
+            "Geological rock samples collected from field sites. Each sample records "
+            "lithology, collection date, weight, and mineralogical observations."
+        ),
+        # ... other metadata ...
+    )
+    fields = [...]
+```
+
+The description is displayed in Swagger UI when users expand the endpoint group for `RockSample`.
+
 ## API Navigation Sidebar
 
 FairDM adds an **API** group to the portal sidebar navigation automatically. It contains three links:

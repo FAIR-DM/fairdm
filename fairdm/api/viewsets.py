@@ -39,18 +39,10 @@ from fairdm.api.serializers import (
 
 
 class BaseViewSet(ModelViewSet):
-    """Base viewset for all FairDM API resource endpoints.
+    """Internal base class — see generated subclasses for API documentation.
 
-    Features:
-    - ``lookup_field = "uuid"`` — all core models use a ``uuid`` field.
-    - ``get_queryset()`` returns the model's default queryset; the
-      :class:`~fairdm.api.filters.FairDMVisibilityFilter` backend then restricts
-      results to objects the requesting user can see.
-    - ``get_serializer_class()`` resolves the serializer from the viewset's own
-      ``serializer_class`` attribute (set by :func:`generate_viewset`).
-    - ``perform_create/update/destroy()`` enforce authentication as a last line
-      of defence (the permission class already handles this, but explicit checks
-      make the intent clear).
+    Portal developers: use :func:`generate_viewset` or subclass the per-model
+    viewsets that appear in the browsable API at ``/api/v1/``.
     """
 
     lookup_field = "uuid"
@@ -77,16 +69,11 @@ class BaseViewSet(ModelViewSet):
 
 
 class ProjectViewSet(BaseViewSet):
-    """Full CRUD viewset for :class:`~fairdm.core.project.models.Project`.
+    """Research projects registered in the portal.
 
-    Endpoints::
-
-        GET  /api/v1/projects/          — list (public & permitted)
-        POST /api/v1/projects/          — create (authenticated)
-        GET  /api/v1/projects/{uuid}/   — detail
-        PUT  /api/v1/projects/{uuid}/   — full update (authorized)
-        PATCH /api/v1/projects/{uuid}/  — partial update (authorized)
-        DELETE /api/v1/projects/{uuid}/ — delete (authorized)
+    Projects are the top-level organizational unit containing datasets, samples,
+    and measurements. Use this endpoint to browse, create, and manage projects
+    you have permission to access.
     """
 
     @property
@@ -108,15 +95,10 @@ class ProjectViewSet(BaseViewSet):
 
 
 class DatasetViewSet(BaseViewSet):
-    """Full CRUD viewset for :class:`~fairdm.core.dataset.models.Dataset`.
+    """Datasets within research projects.
 
-    Endpoints::
-
-        GET  /api/v1/datasets/           — list (public & permitted)
-        POST /api/v1/datasets/           — create (authenticated)
-        GET  /api/v1/datasets/{uuid}/    — detail
-        PATCH /api/v1/datasets/{uuid}/   — partial update (authorized)
-        DELETE /api/v1/datasets/{uuid}/  — delete (authorized)
+    Each dataset contains samples and associated measurements. Use this endpoint
+    to query, add, and manage datasets you have permission to access.
     """
 
     @property
@@ -138,14 +120,10 @@ class DatasetViewSet(BaseViewSet):
 
 
 class ContributorViewSet(ReadOnlyModelViewSet):
-    """Read-only viewset for :class:`~fairdm.contrib.contributors.models.Contributor`.
+    """People and organizations that contribute to research projects.
 
-    All contributor profiles are publicly accessible (GET only).
-
-    Endpoints::
-
-        GET /api/v1/contributors/          — list
-        GET /api/v1/contributors/{uuid}/   — detail
+    Contributor profiles are publicly accessible (read-only). Use this endpoint
+    to look up individuals and institutions associated with portal data.
     """
 
     lookup_field = "uuid"
@@ -260,6 +238,20 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
     if filterset_class is not None:
         _GeneratedViewSet.filterset_class = filterset_class
+
+    # Inject a consumer-facing description so drf-spectacular uses it as the
+    # Swagger operation description instead of inheriting BaseViewSet internals.
+    # Priority: config.description → config.metadata.description → model docstring → fallback
+    description: str = ""
+    if getattr(config, "description", None):
+        description = config.description
+    elif getattr(config, "metadata", None) and getattr(config.metadata, "description", None):
+        description = config.metadata.description
+    elif model.__doc__:
+        description = model.__doc__
+    if not description:
+        description = f"Endpoints for managing {model._meta.verbose_name_plural}."
+    _GeneratedViewSet.__doc__ = description
 
     return _GeneratedViewSet
 

@@ -381,17 +381,17 @@ third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 
 ### Tests for Phase 13
 
-- [ ] T073 [P] [US2] Write schema naming tests in `tests/test_api/test_swagger.py`: fetch the OpenAPI schema via `GET /api/v1/schema/`; assert component names for registered Sample types (e.g., `RockSample`, `SoilSample`) do NOT contain "API" postfix; assert component names for registered Measurement types (e.g., `XRFMeasurement`) do NOT contain "API" postfix; assert core model schemas (`Project`, `Dataset`, `Contributor`) also lack "API" postfix; assert `Patched*` variants follow the same clean naming pattern (e.g., `PatchedRockSample` not `PatchedRockSampleAPI`); assert `COMPONENT_SPLIT_PATCH=True` still generates separate `Patched*` components
+- [x] T073 [P] [US2] Write schema naming tests in `tests/test_api/test_swagger.py`: fetch the OpenAPI schema via `GET /api/v1/schema/`; assert component names for registered Sample types (e.g., `RockSample`, `SoilSample`) do NOT contain "API" postfix; assert component names for registered Measurement types (e.g., `XRFMeasurement`) do NOT contain "API" postfix; assert core model schemas (`Project`, `Dataset`, `Contributor`) also lack "API" postfix; assert `Patched*` variants follow the same clean naming pattern (e.g., `PatchedRockSample` not `PatchedRockSampleAPI`); assert `COMPONENT_SPLIT_PATCH=True` still generates separate `Patched*` components
 
 ### Implementation for Phase 13
 
-- [ ] T074 [US2] In `fairdm/api/serializers.py`, rename auto-generated serializer classes: change `build_model_serializer()` line `f"{model.__name__}APISerializer"` to `f"{model.__name__}Serializer"`; verify `_SERIALIZER_CACHE` key does not include the class name (it doesn't — uses `(model, fields, view_name, extra_kwargs, base_class)`) so no cache changes needed
-- [ ] T075 [P] [US2] Update any existing test assertions in `tests/test_api/test_serializers.py` that reference the old `*APISerializer` class naming pattern (search for `APISerializer` string); verify the serializer cache still returns the same instance for duplicate calls with identical parameters
+- [x] T074 [US2] In `fairdm/api/serializers.py`, rename auto-generated serializer classes: change `build_model_serializer()` line `f"{model.__name__}APISerializer"` to `f"{model.__name__}Serializer"`; verify `_SERIALIZER_CACHE` key does not include the class name (it doesn't — uses `(model, fields, view_name, extra_kwargs, base_class)`) so no cache changes needed
+- [x] T075 [P] [US2] Update any existing test assertions in `tests/test_api/test_serializers.py` that reference the old `*APISerializer` class naming pattern (search for `APISerializer` string); verify the serializer cache still returns the same instance for duplicate calls with identical parameters
 
 ### System Validation — Phase 13
 
-- [ ] T076 ⚠️ CRITICAL: Run schema naming tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
-- [ ] T077 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass (catch regressions from rename)
+- [x] T076 ⚠️ CRITICAL: Run schema naming tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
+- [x] T077 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass (catch regressions from rename)
 
 **Checkpoint — Phase 13 Complete**: Schema component names are clean (`RockSample`, `PatchedProject`, etc.). No "API" postfix in Swagger UI or OpenAPI schema. All existing tests still pass.
 
@@ -405,18 +405,18 @@ third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 
 ### Tests for Phase 14
 
-- [ ] T078 [P] [US2] Write endpoint description tests in `tests/test_api/test_swagger.py`: fetch the OpenAPI schema via `GET /api/v1/schema/`; for each registered Sample/Measurement type with a non-empty `config.description` or `config.metadata.description`, assert the GET list operation description contains text from that description; assert NO endpoint descriptions contain the strings "Base viewset for all FairDM API resource endpoints", "lookup_field", "get_queryset()", "perform_create", or "perform_update" (internal implementation details); assert core endpoints (`/api/v1/projects/`, `/api/v1/datasets/`, `/api/v1/contributors/`) have consumer-facing descriptions mentioning what the resource IS
+- [x] T078 [P] [US2] Write endpoint description tests in `tests/test_api/test_swagger.py`: fetch the OpenAPI schema via `GET /api/v1/schema/`; for each registered Sample/Measurement type with a non-empty `config.description` or `config.metadata.description`, assert the GET list operation description contains text from that description; assert NO endpoint descriptions contain the strings "Base viewset for all FairDM API resource endpoints", "lookup_field", "get_queryset()", "perform_create", or "perform_update" (internal implementation details); assert core endpoints (`/api/v1/projects/`, `/api/v1/datasets/`, `/api/v1/contributors/`) have consumer-facing descriptions mentioning what the resource IS
 
 ### Implementation for Phase 14
 
-- [ ] T079 [US2] In `fairdm/api/viewsets.py`, update `generate_viewset()` to set `__doc__` on the generated viewset class: after creating the dynamic class, resolve description using priority order: (1) `config.description` if non-empty, (2) `config.metadata.description` if `config.metadata` and non-empty, (3) `model.__doc__` if non-empty, (4) fallback `f"Endpoints for managing {model._meta.verbose_name_plural}."`; set `_GeneratedViewSet.__doc__ = description`
-- [ ] T080 [US2] In `fairdm/api/viewsets.py`, replace docstrings on core viewsets: `ProjectViewSet.__doc__` → "Research projects registered in the portal. Projects are the top-level organizational unit containing datasets, samples, and measurements."; `DatasetViewSet.__doc__` → "Datasets within research projects. Each dataset contains samples and associated measurements."; `ContributorViewSet.__doc__` → "People and organizations that contribute to research projects. Contributor profiles are read-only."; `BaseViewSet.__doc__` → brief developer-facing note: "Internal base class — see generated subclasses for API documentation."
-- [ ] T081 [P] [US2] Update `fairdm_demo/config.py`: ensure ALL registered model configurations have a non-empty `description` or `metadata.description` value; for models currently without descriptions, add a meaningful 1–2 sentence description explaining what the data type represents (this ensures the demo app demonstrates the description-flow feature)
+- [x] T079 [US2] In `fairdm/api/viewsets.py`, update `generate_viewset()` to set `__doc__` on the generated viewset class: after creating the dynamic class, resolve description using priority order: (1) `config.description` if non-empty, (2) `config.metadata.description` if `config.metadata` and non-empty, (3) `model.__doc__` if non-empty, (4) fallback `f"Endpoints for managing {model._meta.verbose_name_plural}."`; set `_GeneratedViewSet.__doc__ = description`
+- [x] T080 [US2] In `fairdm/api/viewsets.py`, replace docstrings on core viewsets: `ProjectViewSet.__doc__` → "Research projects registered in the portal. Projects are the top-level organizational unit containing datasets, samples, and measurements."; `DatasetViewSet.__doc__` → "Datasets within research projects. Each dataset contains samples and associated measurements."; `ContributorViewSet.__doc__` → "People and organizations that contribute to research projects. Contributor profiles are read-only."; `BaseViewSet.__doc__` → brief developer-facing note: "Internal base class — see generated subclasses for API documentation."
+- [x] T081 [P] [US2] Update `fairdm_demo/config.py`: ensure ALL registered model configurations have a non-empty `description` or `metadata.description` value; for models currently without descriptions, add a meaningful 1–2 sentence description explaining what the data type represents (this ensures the demo app demonstrates the description-flow feature)
 
 ### System Validation — Phase 14
 
-- [ ] T082 ⚠️ CRITICAL: Run description tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
-- [ ] T083 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
+- [x] T082 ⚠️ CRITICAL: Run description tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
+- [x] T083 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
 
 **Checkpoint — Phase 14 Complete**: Swagger endpoint descriptions show meaningful model descriptions instead of internal BaseViewSet implementation details. Demo app models all have descriptions that surface in the API docs.
 
@@ -430,16 +430,16 @@ third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 
 ### Tests for Phase 15
 
-- [ ] T084 [P] [US2] Write API description customization tests in `tests/test_api/test_swagger.py`: assert the default `FAIRDM_API_DESCRIPTION` setting (from `fairdm/api/settings.py`) is a multi-line string containing key phrases: "FairDM", "Projects", "Datasets", "Samples", "Measurements", "Contributors", "Authentication" or "Token", "Rate Limits"; assert the default `FAIRDM_API_TITLE` is `"FairDM Portal API"`; assert `SPECTACULAR_SETTINGS['TITLE']` equals `FAIRDM_API_TITLE`; assert `SPECTACULAR_SETTINGS['DESCRIPTION']` equals `FAIRDM_API_DESCRIPTION`; using `@override_settings(FAIRDM_API_TITLE="Custom Portal API")`, verify the setting is accessible and overrideable
+- [x] T084 [P] [US2] Write API description customization tests in `tests/test_api/test_swagger.py`: assert the default `FAIRDM_API_DESCRIPTION` setting (from `fairdm/api/settings.py`) is a multi-line string containing key phrases: "FairDM", "Projects", "Datasets", "Samples", "Measurements", "Contributors", "Authentication" or "Token", "Rate Limits"; assert the default `FAIRDM_API_TITLE` is `"FairDM Portal API"`; assert `SPECTACULAR_SETTINGS['TITLE']` equals `FAIRDM_API_TITLE`; assert `SPECTACULAR_SETTINGS['DESCRIPTION']` equals `FAIRDM_API_DESCRIPTION`; using `@override_settings(FAIRDM_API_TITLE="Custom Portal API")`, verify the setting is accessible and overrideable
 
 ### Implementation for Phase 15
 
-- [ ] T085 [US2] In `fairdm/api/settings.py`: define `FAIRDM_API_TITLE = "FairDM Portal API"` and `FAIRDM_API_DESCRIPTION` as a rich multi-line Markdown string (covering available resources, authentication methods, rate limits, link to documentation — see research R17 for content); update `SPECTACULAR_SETTINGS['TITLE']` to reference `FAIRDM_API_TITLE` and `SPECTACULAR_SETTINGS['DESCRIPTION']` to reference `FAIRDM_API_DESCRIPTION`
-- [ ] T086 [US2] In `fairdm/conf/setup.py`: ensure that portal-level overrides of `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` are reflected in `SPECTACULAR_SETTINGS` after all settings files are merged by updating `SPECTACULAR_SETTINGS['TITLE']` and `['DESCRIPTION']` with `getattr(settings, 'FAIRDM_API_TITLE', FAIRDM_API_TITLE)` and `getattr(settings, 'FAIRDM_API_DESCRIPTION', FAIRDM_API_DESCRIPTION)` at settings finalization time
+- [x] T085 [US2] In `fairdm/api/settings.py`: define `FAIRDM_API_TITLE = "FairDM Portal API"` and `FAIRDM_API_DESCRIPTION` as a rich multi-line Markdown string (covering available resources, authentication methods, rate limits, link to documentation — see research R17 for content); update `SPECTACULAR_SETTINGS['TITLE']` to reference `FAIRDM_API_TITLE` and `SPECTACULAR_SETTINGS['DESCRIPTION']` to reference `FAIRDM_API_DESCRIPTION`
+- [x] T086 [US2] In `fairdm/conf/setup.py`: ensure that portal-level overrides of `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` are reflected in `SPECTACULAR_SETTINGS` after all settings files are merged by updating `SPECTACULAR_SETTINGS['TITLE']` and `['DESCRIPTION']` with `getattr(settings, 'FAIRDM_API_TITLE', FAIRDM_API_TITLE)` and `getattr(settings, 'FAIRDM_API_DESCRIPTION', FAIRDM_API_DESCRIPTION)` at settings finalization time
 
 ### System Validation — Phase 15
 
-- [ ] T087 ⚠️ CRITICAL: Run customization tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
+- [x] T087 ⚠️ CRITICAL: Run customization tests: `poetry run pytest tests/test_api/test_swagger.py -v` — ALL tests MUST pass
 
 **Checkpoint — Phase 15 Complete**: Rich default API description and title in place. Portal developers can override via `FAIRDM_API_TITLE` / `FAIRDM_API_DESCRIPTION` settings.
 
@@ -449,15 +449,15 @@ third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 
 **Purpose**: Developer docs updated for Swagger doc quality improvements; full test suite green; visual verification of Swagger UI.
 
-- [ ] T088 [P] Update `docs/portal-development/restful-api.md`: add section "Customizing the API Description" documenting `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` settings with example override; add section "Schema Naming Conventions" explaining that schema names match model class names without postfix; add migration note for clients code-generating from the OpenAPI schema (schema name changes from `*API` to clean names)
-- [ ] T089 [P] Update `specs/011-restful-api/quickstart.md`: add section "Swagger Documentation" explaining schema naming convention, endpoint descriptions from registry (`description` / `metadata.description`), and API description/title customization via settings
-- [ ] T090 [P] Update `fairdm_demo/config.py` docstrings: ensure each registered config class has a docstring linking to the "Developer Guide > RESTful API > Model Descriptions" documentation section, demonstrating the description-flow pattern for the demo app
+- [x] T088 [P] Update `docs/portal-development/restful-api.md`: add section "Customizing the API Description" documenting `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` settings with example override; add section "Schema Naming Conventions" explaining that schema names match model class names without postfix; add migration note for clients code-generating from the OpenAPI schema (schema name changes from `*API` to clean names)
+- [x] T089 [P] Update `specs/011-restful-api/quickstart.md`: add section "Swagger Documentation" explaining schema naming convention, endpoint descriptions from registry (`description` / `metadata.description`), and API description/title customization via settings
+- [x] T090 [P] Update `fairdm_demo/config.py` docstrings: ensure each registered config class has a docstring linking to the "Developer Guide > RESTful API > Model Descriptions" documentation section, demonstrating the description-flow pattern for the demo app
 
 ### System Validation — Final (Phases 13–15)
 
-- [ ] T091 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass
-- [ ] T092 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
-- [ ] T093 Visually verify Swagger UI at `/api/v1/docs/` using browser: confirm (1) schema component names have no "API" postfix, (2) endpoint descriptions show model descriptions not BaseViewSet internals, (3) API title and description are rich and informative
+- [x] T091 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass
+- [x] T092 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
+- [x] T093 Visually verify Swagger UI at `/api/v1/docs/` using browser: confirm (1) schema component names have no "API" postfix, (2) endpoint descriptions show model descriptions not BaseViewSet internals, (3) API title and description are rich and informative
 
 **Checkpoint — Phases 13–15 Complete**: Schema names clean, endpoint descriptions meaningful, API description rich and customizable, developer docs updated, Swagger UI verified. Feature 011 fully complete including documentation quality improvements.
 

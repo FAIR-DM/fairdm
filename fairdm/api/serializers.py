@@ -169,6 +169,10 @@ def build_model_serializer(
     class object is returned for identical inputs — preventing drf-spectacular
     "components with identical names" warnings.
 
+    The generated class is named ``{ModelName}Serializer`` so that
+    drf-spectacular derives clean OpenAPI schema component names (e.g. ``RockSample``
+    rather than ``RockSampleAPI``).
+
     Args:
         model: Django model class.
         fields: List of field name strings (tuples/nested lists are flattened).
@@ -234,7 +238,7 @@ def build_model_serializer(
         bases = (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer)
 
     serializer_cls = type(
-        f"{model.__name__}APISerializer",
+        f"{model.__name__}Serializer",
         bases,
         serializer_attrs,
     )

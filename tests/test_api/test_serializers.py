@@ -109,9 +109,13 @@ class TestBuildModelSerializer:
     """Unit tests for :func:`fairdm.api.serializers.build_model_serializer`."""
 
     def test_generated_class_name(self, project_model):
-        """Generated class is named ``{ModelName}APISerializer``."""
+        """Generated class is named ``{ModelName}Serializer`` (no 'API' postfix)."""
         cls = build_model_serializer(project_model, ["uuid", "name"])
-        assert cls.__name__ == "ProjectAPISerializer"
+        assert cls.__name__ == "ProjectSerializer"
+        assert "API" not in cls.__name__, (
+            "Auto-generated serializer class names must not include 'API' postfix "
+            "so drf-spectacular produces clean schema component names."
+        )
 
     def test_fields_included(self, simple_serializer):
         """All requested fields appear in the serializer's Meta.fields."""

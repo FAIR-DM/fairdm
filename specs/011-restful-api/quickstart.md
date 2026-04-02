@@ -191,3 +191,62 @@ every Sample API response:
 
 `BaseMeasurementSerializer.Meta.fields` guarantees:
 `url`, `uuid`, `name`, `sample`, `dataset`, `added`, `modified`, `polymorphic_ctype`
+
+---
+
+## Swagger Documentation
+
+### Schema Naming
+
+Auto-generated serializer classes are named `{ModelName}Serializer` (e.g. `RockSampleSerializer`).
+drf-spectacular strips the `Serializer` suffix so OpenAPI schema components appear as clean names:
+
+| Serializer class | Schema component |
+|-----------------|------------------|
+| `RockSampleSerializer` | `RockSample` |
+| `XRFMeasurementSerializer` | `XRFMeasurement` |
+| `ProjectSerializer` | `Project` |
+
+**Migration note**: If you code-generated API clients from an earlier version of the FairDM
+OpenAPI schema, component names changed from `*API` to clean names (e.g. `RockSampleAPI` →
+`RockSample`, `PatchedProjectAPI` → `PatchedProject`). Regenerate your client after upgrading.
+
+### Endpoint Descriptions from Registry Config
+
+For auto-generated viewsets, FairDM sets the Swagger operation description from your registry
+`metadata.description`. Add a description to ensure Swagger is useful for API consumers:
+
+```python
+@fairdm.register
+class RockSampleConfig(ModelConfiguration):
+    model = RockSample
+    metadata = ModelMetadata(
+        description="Geological rock samples collected from field sites.",
+        # ...
+    )
+    fields = [...]
+```
+
+If no description is provided, FairDM falls back to the model docstring, then to a generic
+`"Endpoints for managing rock samples."` fallback.
+
+### Customizing the API Title and Description
+
+FairDM ships a rich default API title and Markdown description visible in Swagger UI. Override
+them via Django settings:
+
+```python
+# In your portal's settings.py
+FAIRDM_API_TITLE = "Palaeo-Climate Data Portal API"
+FAIRDM_API_DESCRIPTION = """\
+## Palaeo-Climate Data Portal API
+
+Programmatic access to all published palaeo-climate data.
+...
+"""
+```
+
+FairDM merges these into `SPECTACULAR_SETTINGS` at startup. No framework code changes needed.
+
+Default: `FAIRDM_API_TITLE = "FairDM Portal API"`, `FAIRDM_API_DESCRIPTION` = rich Markdown
+string covering available resources, authentication, rate limits, pagination, and filtering.
