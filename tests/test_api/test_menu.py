@@ -38,31 +38,45 @@ class TestAPIMenuGroupChildURLs:
     """Each child MenuItem must point to the correct URL."""
 
     def test_first_child_is_interactive_docs(self, api_menu_group):
-        """First child must be 'Interactive Docs' pointing to /api/docs/."""
+        """First child must be 'Interactive Docs' using view_name 'api-docs'."""
         child = api_menu_group.children[0]
         assert str(child.name) == "Interactive Docs"
-        assert child._url == "/api/docs/", f"Unexpected URL: {child._url!r}"
+        assert child.view_name == "api-docs", f"Unexpected view_name: {child.view_name!r}"
 
     def test_second_child_is_browse_api(self, api_menu_group):
-        """Second child must be 'Browse API' pointing to /api/v1/."""
+        """Second child must be 'Browse API' using view_name 'api-root'."""
         child = api_menu_group.children[1]
         assert str(child.name) == "Browse API"
-        assert child._url == "/api/v1/", f"Unexpected URL: {child._url!r}"
+        assert child.view_name == "api-root", f"Unexpected view_name: {child.view_name!r}"
 
     def test_third_child_is_how_to_use_api_default_url(self, api_menu_group):
-        """Third child must point to the FAIRDM_API_DOCS_URL default."""
+        """Third child must use _url (external link) pointing to FAIRDM_API_DOCS_URL default."""
         from django.conf import settings
 
         expected_url = getattr(settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/")
         child = api_menu_group.children[2]
         assert str(child.name) == "How to use the API"
+        # External link — uses _url, not view_name
         assert child._url == expected_url, f"Unexpected URL: {child._url!r} (expected {expected_url!r})"
+        assert child.view_name == "", "External link must not have a view_name"
 
     def test_third_child_default_url_is_fairdm_org(self):
         """Default FAIRDM_API_DOCS_URL must be 'https://fairdm.org/api/'."""
         from fairdm.api.settings import FAIRDM_API_DOCS_URL
 
         assert FAIRDM_API_DOCS_URL == "https://fairdm.org/api/"
+
+    def test_first_child_uses_view_name_not_hardcoded_url(self, api_menu_group):
+        """Interactive Docs must use view_name reversal, not a hardcoded URL string."""
+        child = api_menu_group.children[0]
+        assert child.view_name == "api-docs"
+        assert child._url == "", "Internal links must not carry a hardcoded _url"
+
+    def test_second_child_uses_view_name_not_hardcoded_url(self, api_menu_group):
+        """Browse API must use view_name reversal, not a hardcoded URL string."""
+        child = api_menu_group.children[1]
+        assert child.view_name == "api-root"
+        assert child._url == "", "Internal links must not carry a hardcoded _url"
 
     def test_first_child_icon_context(self, api_menu_group):
         """Interactive Docs child must have 'api' icon in extra_context."""

@@ -31,8 +31,9 @@ Four additions harden and complete the API feature after initial implementation:
    (lowercased and hyphenated). This changes generated URL names and prefixes.
 4. **US7 sidebar API menu group** (FR-017) — Add an "API" `MenuGroup` to `fairdm/menus/menus.py`
    after the Measurements entry, with three child `MenuItem` entries: "Interactive Docs"
-   (`/api/docs/`), "Browse API" (`/api/v1/`), and "How to use the API" (configurable setting
-   `FAIRDM_API_DOCS_URL`).
+   (`view_name="api-docs"`, resolves to `/api/v1/docs/`), "Browse API" (`view_name="api-root"`,
+   resolves to `/api/v1/`), and "How to use the API" (external URL from `FAIRDM_API_DOCS_URL`
+   setting). Internal links use `view_name` for Django URL reversal — never hardcoded strings.
 
 ## Technical Context
 
@@ -181,17 +182,18 @@ def _model_to_slug(model) -> str:
 ### R10: flex_menu API for Sidebar Menu Group
 
 **Decision**: Use `MenuGroup(name, children=[...])` from `mvp.menus` (already imported in
-`fairdm/menus/menus.py`) with three `MenuItem` children. The docs URL uses a Django setting
-`FAIRDM_API_DOCS_URL` resolved lazily via `reverse_lazy` where applicable, or a plain URL string
-for an external docs link.
+`fairdm/menus/menus.py`) with three `MenuItem` children. Internal links use `view_name` for
+Django URL reversal. The external docs link uses `url=` with the `FAIRDM_API_DOCS_URL` setting.
 
 **Rationale**: `MenuGroup` is already used for "Community" and "Documentation" groups in
-`fairdm/menus/menus.py`. Consistent pattern. The "How to use the API" child links to external
-FairDM docs; a configurable setting allows portals to override with their own docs URL. Since
-`/api/docs/` and `/api/v1/` are internal URL patterns, Django's `url` field can use fixed strings;
-`view_name` resolution would require named URL patterns which the docs endpoint has (`api-docs`)
-but the browsable API root does not have a named pattern that reliably resolves without the API
-app installed.
+`fairdm/menus/menus.py`. Consistent pattern. `MenuItem` supports both `view_name` (resolved at
+render time via `django.urls.reverse`) and `url` (static string or callable). Internal API routes
+have stable named URL patterns (`api-docs` → `/api/v1/docs/`, `api-root` → `/api/v1/`) registered
+in `fairdm/api/urls.py`. Using `view_name` means the resolved path automatically tracks URL
+prefix changes. The "How to use the API" link is external so must use `url=`.
+
+Correction from earlier implementation: `url="/api/docs/"` was incorrect — the Swagger UI is
+mounted at `/api/v1/docs/` (URL name `api-docs`). All internal links must use `view_name`.
 
 **Implementation sketch** (see data-model.md for final code):
 
@@ -201,8 +203,8 @@ from django.conf import settings as django_settings
 MenuGroup(
     name=_("API"),
     children=[
-        MenuItem(name=_("Interactive Docs"), url="/api/docs/", extra_context={"icon": "api"}),
-        MenuItem(name=_("Browse API"), url="/api/v1/", extra_context={"icon": "api"}),
+        MenuItem(name=_("Interactive Docs"), view_name="api-docs", extra_context={"icon": "api"}),
+        MenuItem(name=_("Browse API"), view_name="api-root", extra_context={"icon": "api"}),
         MenuItem(
             name=_("How to use the API"),
             url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/"),
@@ -337,8 +339,8 @@ derive from `model._meta.verbose_name_plural`, not the Python class name.
 3 child links. Docs URL configurable via `FAIRDM_API_DOCS_URL` setting.
 
 - [ ] T065 Add `FAIRDM_API_DOCS_URL` setting to `fairdm/conf/settings/api.py` with default `"https://fairdm.org/api/"`; ensure it is included in `fairdm/conf/setup.py` when API settings are merged
-- [ ] T066 [US7] Add "API" `MenuGroup` to `fairdm/menus/menus.py` after the Measurements `MenuCollapse`: three child `MenuItem` entries — (1) `name=_("Interactive Docs"), url="/api/docs/"`, (2) `name=_("Browse API"), url="/api/v1/"`, (3) `name=_("How to use the API"), url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/")` — all with appropriate `extra_context={"icon": ...}` (use `"api"` for the first two, `"literature"` for the third)
-- [ ] T067 [P] [US7] Create `tests/test_api/test_menu.py`: verify the `AppMenu` contains a group named "API"; verify the group has exactly 3 children; verify child URLs match expected values (`/api/docs/`, `/api/v1/`, `FAIRDM_API_DOCS_URL` default); verify FAIRDM_API_DOCS_URL override is respected when set in settings
+- [ ] T066 [US7] Add "API" `MenuGroup` to `fairdm/menus/menus.py` after the Measurements `MenuCollapse`: three child `MenuItem` entries — (1) `name=_("Interactive Docs"), view_name="api-docs", extra_context={"icon": "api"}`, (2) `name=_("Browse API"), view_name="api-root", extra_context={"icon": "api"}`, (3) `name=_("How to use the API"), url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/"), extra_context={"icon": "literature"}`; internal links use `view_name` — never hardcoded URL strings
+- [ ] T067 [P] [US7] Create `tests/test_api/test_menu.py`: verify the `AppMenu` contains a group named "API"; verify the group has exactly 3 children; verify the first child has `view_name="api-docs"` and empty `_url`; verify the second child has `view_name="api-root"` and empty `_url`; verify the third child has `_url` equal to `FAIRDM_API_DOCS_URL` default and empty `view_name`; verify `FAIRDM_API_DOCS_URL` override is respected when set in settings
 - [ ] T068 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings`
 - [ ] T069 ⚠️ CRITICAL: Run menu tests: `poetry run pytest tests/test_api/test_menu.py -v` — ALL tests MUST pass
 

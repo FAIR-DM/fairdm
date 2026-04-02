@@ -92,12 +92,12 @@ AppMenu.extend(
             children=[
                 MenuItem(
                     name=_("Interactive Docs"),
-                    url="/api/docs/",
+                    view_name="api-docs",
                     extra_context={"icon": "api"},
                 ),
                 MenuItem(
                     name=_("Browse API"),
-                    url="/api/v1/",
+                    view_name="api-root",
                     extra_context={"icon": "api"},
                 ),
                 MenuItem(

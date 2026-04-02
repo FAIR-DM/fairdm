@@ -54,11 +54,11 @@ The `count` field reflects only records visible to the requesting user (public r
 
 FairDM ships a Swagger UI and ReDoc interface powered by [drf-spectacular](https://drf-spectacular.readthedocs.io/):
 
-| URL | Description |
-|-----|-------------|
-| `/api/v1/docs/` | Swagger UI — try endpoints interactively |
-| `/api/v1/redoc/` | ReDoc — clean reference documentation |
-| `/api/v1/schema/` | Raw OpenAPI 3.0 schema (YAML) |
+| URL | URL name | Description |
+|-----|----------|-------------|
+| `/api/v1/docs/` | `api-docs` | Swagger UI — try endpoints interactively |
+| `/api/v1/redoc/` | `api-redoc` | ReDoc — clean reference documentation |
+| `/api/v1/schema/` | `api-schema` | Raw OpenAPI 3.0 schema (YAML) |
 
 ## Authentication
 
@@ -279,11 +279,11 @@ SPECTACULAR_SETTINGS = {
 
 FairDM adds an **API** group to the portal sidebar navigation automatically. It contains three links:
 
-| Link | Target URL |
-|------|------------|
-| Interactive Docs | `/api/docs/` — Swagger UI |
-| Browse API | `/api/v1/` — DRF browsable root |
-| How to use the API | `FAIRDM_API_DOCS_URL` (see below) |
+| Link | Resolved URL | Implementation |
+|------|-------------|----------------|
+| Interactive Docs | `/api/v1/docs/` | `view_name="api-docs"` |
+| Browse API | `/api/v1/` | `view_name="api-root"` |
+| How to use the API | `FAIRDM_API_DOCS_URL` | static `url=` (external) |
 
 ### `FAIRDM_API_DOCS_URL`
 

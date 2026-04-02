@@ -339,16 +339,16 @@ a route with prefix `samples/rock-samples` and basename `samples-rock-samples`.
 ## Phase 12: User Story 7 — API Menu Group in Portal Sidebar (Priority: P7)
 
 **Goal**: An "API" `MenuGroup` appears in the portal sidebar after the Measurements entry, containing
-three child `MenuItem` links: "Interactive Docs" → `/api/docs/`, "Browse API" → `/api/v1/`, and
-"How to use the API" → `FAIRDM_API_DOCS_URL` (configurable setting, default `"https://fairdm.org/api/"`).
+three child `MenuItem` links: "Interactive Docs" → `view_name="api-docs"` (resolves to `/api/v1/docs/`), "Browse API" → `view_name="api-root"` (resolves to `/api/v1/`), and
+"How to use the API" → `FAIRDM_API_DOCS_URL` (configurable external URL, default `"https://fairdm.org/api/"`).
 
 **Independent Test**: Introspect `AppMenu` children, find the group named "API", assert it has
-exactly 3 child items with the correct names and URLs. Assert that setting `FAIRDM_API_DOCS_URL`
-to a custom value changes the third child's URL.
+exactly 3 child items. Assert the first two use `view_name` (not hardcoded `_url`). Assert the
+third uses `_url` pointing to `FAIRDM_API_DOCS_URL`.
 
 - [x] T065 Add `FAIRDM_API_DOCS_URL = "https://fairdm.org/api/"` to `fairdm/conf/settings/api.py`; verify it is included when the API settings module is merged — portal developers can override it in their own settings file
-- [x] T066 [US7] Add "API" `MenuGroup` to `fairdm/menus/menus.py` after the `MenuCollapse` for Measurements: three child `MenuItem` entries — (1) `name=_("Interactive Docs"), url="/api/docs/", extra_context={"icon": "api"}`, (2) `name=_("Browse API"), url="/api/v1/", extra_context={"icon": "api"}`, (3) `name=_("How to use the API"), url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/"), extra_context={"icon": "literature"}`; add `from django.conf import settings as django_settings` import at the top of the file if not already present
-- [x] T067 [P] [US7] Create `tests/test_api/test_menu.py`: import `AppMenu` from `mvp.menus` and assert (1) `AppMenu` children contain a group whose `name` resolves to "API", (2) the group has exactly 3 children, (3) child URLs are `/api/docs/`, `/api/v1/`, and `"https://fairdm.org/api/"` (default), (4) overriding `settings.FAIRDM_API_DOCS_URL = "https://custom.example.org/"` causes the third child's URL to resolve to the override
+- [x] T066 [US7] Add "API" `MenuGroup` to `fairdm/menus/menus.py` after the `MenuCollapse` for Measurements: three child `MenuItem` entries — (1) `name=_("Interactive Docs"), view_name="api-docs", extra_context={"icon": "api"}`, (2) `name=_("Browse API"), view_name="api-root", extra_context={"icon": "api"}`, (3) `name=_("How to use the API"), url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/"), extra_context={"icon": "literature"}`; internal links use `view_name` for URL reversal — never hardcoded strings; add `from django.conf import settings as django_settings` import at the top of the file if not already present
+- [x] T067 [P] [US7] Create `tests/test_api/test_menu.py`: import `AppMenu` from `mvp.menus` and assert (1) `AppMenu` children contain a group whose `name` resolves to "API", (2) the group has exactly 3 children, (3) the first child has `view_name="api-docs"` and empty `_url`, (4) the second child has `view_name="api-root"` and empty `_url`, (5) the third child has `_url` equal to `FAIRDM_API_DOCS_URL` default (`"https://fairdm.org/api/"`) and empty `view_name`, (6) overriding `settings.FAIRDM_API_DOCS_URL` changes the Django setting value
 
 ### System Validation — Phase 12
 
