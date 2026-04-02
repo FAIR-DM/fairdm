@@ -1,5 +1,6 @@
 """Site navigation menu for FairDM."""
 
+from django.conf import settings as django_settings
 from django.utils.translation import gettext_lazy as _
 from flex_menu import MenuItem
 from flex_menu.checks import user_is_staff
@@ -82,6 +83,26 @@ AppMenu.extend(
                     name=_("Administrator Guides"),
                     url="https://faridm.org/admin-guide/",
                     check=user_is_staff,
+                    extra_context={"icon": "literature"},
+                ),
+            ],
+        ),
+        MenuGroup(
+            name=_("API"),
+            children=[
+                MenuItem(
+                    name=_("Interactive Docs"),
+                    url="/api/docs/",
+                    extra_context={"icon": "api"},
+                ),
+                MenuItem(
+                    name=_("Browse API"),
+                    url="/api/v1/",
+                    extra_context={"icon": "api"},
+                ),
+                MenuItem(
+                    name=_("How to use the API"),
+                    url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/"),
                     extra_context={"icon": "literature"},
                 ),
             ],

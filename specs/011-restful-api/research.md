@@ -286,3 +286,38 @@ REST_FRAMEWORK = {
 - Manual queryset filtering in `get_queryset()` — error-prone, must be implemented per viewset, easy to forget for new types.
 - Assigning global guardian `view` permissions to every public object — scaling anti-pattern; millions of guardian rows.
 - Separate public/private endpoint pairs — doubles the URL surface, forces clients to merge results.
+
+
+---
+
+## New Additions Research (2026-04-01)
+
+## R12: Exposing Discovery Endpoints in the DRF Browsable API Root
+
+**Decision**: Introduce `FairDMAPIRouter(DefaultRouter)` in `fairdm/api/router.py` that overrides`get_api_root_dict()` to inject the discovery endpoint URL names into the root listing.
+
+**Rationale**: `DefaultRouter` builds its root listing exclusively from viewsets registered via`register()`. Standalone `APIView` URL patterns mounted in `urls.py` are invisible to the root view.The cleanest solution is a minimal router subclass that appends the two discovery URL names to thedict returned by `super().get_api_root_dict()`. No view architecture or URL pattern changes needed.
+
+**Alternatives considered**:
+
+- Convert discovery views to ViewSets with `list()` action  more invasive, requires route registration changes.
+- Override `APIRootView.get()` directly  couples to DRF internals; breaks on DRF version changes.
+- Inject links via template  not visible to API clients programmatically.
+
+## R13: verbose_name_plural Basename Strategy
+
+**Decision**: `_model_to_slug()` uses `model._meta.verbose_name_plural.lower().replace(' ', '-')`.
+
+**Rationale**: Produces human-readable, Django-idiomatic URL slugs controlled by portal developers via`class Meta: verbose_name_plural`. Per the 2026-04-01 clarification, this supersedes the CamelCase decomposition strategy used in the initial implementation.
+
+**Impact**: URL names change for any model where the verbose_name_plural differs from what CamelCasedecomposition produces (e.g., `RockSample`  old: `rock-sample`, new: `rock-samples`).
+
+**Alternatives considered**: Keep class-name strategy  contradicts the clarified spec assumption.
+
+## R14: flex_menu API for Sidebar MenuGroup
+
+**Decision**: Use existing `MenuGroup` / `MenuItem` from `mvp.menus` (already imported) to add thethree-child API group. Docs URL resolved from `FAIRDM_API_DOCS_URL` Django setting with a sensibledefault.
+
+**Rationale**: Pattern already established for ''Community'' and ''Documentation'' groups in`fairdm/menus/menus.py`. No new dependencies. The setting approach avoids hard-coded external URLs.
+
+**Alternatives considered**: Hard-code FairDM docs URL  inflexible for portals that host their own docs.

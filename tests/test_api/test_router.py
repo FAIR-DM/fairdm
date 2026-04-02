@@ -181,3 +181,55 @@ class TestRegistryGeneratedEndpoints:
         data = api_client.get(f"/api/v1/samples/{slug}/").json()
         for key in ("count", "results"):
             assert key in data
+
+
+# ---------------------------------------------------------------------------
+# Phase 10: API root lists discovery endpoints (FR-003/FR-004)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestAPIRootContainsDiscoveryLinks:
+    """GET /api/v1/ must include sample-types and measurement-types discovery links."""
+
+    def test_api_root_contains_sample_types_key(self, api_client):
+        """API root JSON response must contain a 'sample-types' key."""
+        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
+        assert response.status_code == 200
+        data = response.json()
+        assert "sample-types" in data, f"'sample-types' missing from API root keys: {list(data.keys())}"
+
+    def test_api_root_contains_measurement_types_key(self, api_client):
+        """API root JSON response must contain a 'measurement-types' key."""
+        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
+        assert response.status_code == 200
+        data = response.json()
+        assert "measurement-types" in data, f"'measurement-types' missing from API root keys: {list(data.keys())}"
+
+    def test_sample_types_url_points_to_discovery_endpoint(self, api_client):
+        """The 'sample-types' URL in the API root must end with '/api/v1/samples/'."""
+        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
+        data = response.json()
+        url = data.get("sample-types", "")
+        assert url.endswith("/api/v1/samples/") or "/api/v1/samples/" in url, (
+            f"Unexpected sample-types URL: {url!r}"
+        )
+
+    def test_measurement_types_url_points_to_discovery_endpoint(self, api_client):
+        """The 'measurement-types' URL in the API root must end with '/api/v1/measurements/'."""
+        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
+        data = response.json()
+        url = data.get("measurement-types", "")
+        assert url.endswith("/api/v1/measurements/") or "/api/v1/measurements/" in url, (
+            f"Unexpected measurement-types URL: {url!r}"
+        )
+
+    def test_fairdm_api_router_is_fairdm_router_subclass(self):
+        """fairdm_api_router must be an instance of FairDMAPIRouter."""
+        from rest_framework.routers import DefaultRouter
+
+        from fairdm.api.router import FairDMAPIRouter, fairdm_api_router
+
+        assert isinstance(fairdm_api_router, FairDMAPIRouter)
+        # Also still passes DefaultRouter isinstance check (inheritance)
+        assert isinstance(fairdm_api_router, DefaultRouter)

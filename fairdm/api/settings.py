@@ -68,3 +68,9 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS: list[str] = []
 CORS_URLS_REGEX = r"^/api/.*$"
+
+# URL pointing to the FairDM API documentation.  Portal operators can override
+# this in their own settings to point to custom documentation pages::
+#
+#     FAIRDM_API_DOCS_URL = "https://my-portal.example.com/docs/api/"
+FAIRDM_API_DOCS_URL = "https://fairdm.org/api/"

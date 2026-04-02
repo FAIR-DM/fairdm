@@ -14,7 +14,7 @@ PATCH /api/v1/samples/<model-slug>/{uuid}/  — partial update (authorized users
 DELETE /api/v1/samples/<model-slug>/{uuid}/ — delete (authorized users only)
 ```
 
-The `<model-slug>` is derived from your model class name in kebab-case. For example, `RockSample` becomes `rock-sample`.
+The `<model-slug>` is derived from your model's `verbose_name_plural` (lowercased, spaces replaced with hyphens). For example, a model with `verbose_name_plural = "rock samples"` becomes `rock-samples`. See [URL Slugs and verbose_name_plural](#url-slugs-and-verbose-name-plural) for details.
 
 Core model endpoints are also available:
 
@@ -147,15 +147,15 @@ class RockSampleConfig(ModelConfiguration):
 
 ### Tier 3 — `serializer_class` (full custom override)
 
-For complete control, provide your own DRF `ModelSerializer` class:
+For complete control, provide your own serializer class. **Custom serializers must subclass `BaseSampleSerializer` (or `BaseMeasurementSerializer` for Measurement models)** — omitting this will raise a `django.core.exceptions.ImproperlyConfigured` error at startup.
 
 ```python
-from rest_framework import serializers
+from fairdm.api.serializers import BaseSampleSerializer
 
-class RockSampleSerializer(serializers.ModelSerializer):
-    class Meta:
+class RockSampleSerializer(BaseSampleSerializer):
+    class Meta(BaseSampleSerializer.Meta):
         model = RockSample
-        fields = ["uuid", "name", "location", "date_collected", "lab_code"]
+        fields = BaseSampleSerializer.Meta.fields + ["location", "date_collected", "lab_code"]
         read_only_fields = ["lab_code"]
 
 @fairdm.register
@@ -163,6 +163,55 @@ class RockSampleConfig(ModelConfiguration):
     model = RockSample
     serializer_class = RockSampleSerializer
 ```
+
+Extending `Meta` from the base class preserves the mandatory fields (`url`, `uuid`, `name`, `status`, `dataset`, `added`, `modified`, `polymorphic_ctype`) that FairDM depends on. You can add, reorder, or override fields — but you cannot remove the mandatory ones without risking broken API clients.
+
+```{warning}
+Passing a serializer that does not inherit from `BaseSampleSerializer` or `BaseMeasurementSerializer` raises:
+
+    ImproperlyConfigured: RockSampleSerializer must subclass BaseSampleSerializer.
+```
+
+## URL Slugs and verbose_name_plural
+
+FairDM derives the `<model-slug>` component of every endpoint from the model's `verbose_name_plural` metadata (lowercased, spaces → hyphens). This gives you full control over URL structure without touching router configuration.
+
+### Default derivation
+
+The `verbose_name_plural` is set automatically by Django using the `Meta.verbose_name` (or the class name if not specified):
+
+| Model class | Derived slug |
+|-------------|--------------|
+| `RockSample` (no Meta) | `rock-samples` |
+| `SoilSample` (no Meta) | `soil-samples` |
+| `XRFMeasurement` (no Meta) | `xrf-measurements` |
+
+### Overriding the slug
+
+Set `Meta.verbose_name_plural` in your model class:
+
+```python
+class ThinSection(Sample):
+    """Petrographic thin section sample."""
+
+    class Meta(Sample.Meta):
+        verbose_name = "thin section"
+        verbose_name_plural = "thin sections"  # → endpoint: /api/v1/samples/thin-sections/
+```
+
+### Migration note for existing portals
+
+If you are upgrading from a FairDM version that used CamelCase-decomposed slugs, your URL names and endpoint paths have changed. The table below shows the old and new slugs for common patterns:
+
+| Model class | Old slug (CamelCase) | New slug (verbose_name_plural) |
+|-------------|----------------------|--------------------------------|
+| `RockSample` | `rock-sample` | `rock-samples` |
+| `SoilSample` | `soil-sample` | `soil-samples` |
+| `WaterSample` | `water-sample` | `water-samples` |
+| `XRFMeasurement` | `x-r-f-measurement` | `xrf-measurements` |
+| `ICP_MS_Measurement` | `i-c-p-m-s-measurement` | `icp-ms-measurements` |
+
+Update any hardcoded API clients, `{% url %}` references, or OpenAPI schema snapshots after upgrading.
 
 ## Extending the Router with Custom Viewsets
 
@@ -225,3 +274,24 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "2.0.0",
 }
 ```
+
+## API Navigation Sidebar
+
+FairDM adds an **API** group to the portal sidebar navigation automatically. It contains three links:
+
+| Link | Target URL |
+|------|------------|
+| Interactive Docs | `/api/docs/` — Swagger UI |
+| Browse API | `/api/v1/` — DRF browsable root |
+| How to use the API | `FAIRDM_API_DOCS_URL` (see below) |
+
+### `FAIRDM_API_DOCS_URL`
+
+The third link points to external API documentation. The default value is `"https://fairdm.org/api/"`. Override it in your portal settings:
+
+```python
+# In your portal's settings.py
+FAIRDM_API_DOCS_URL = "https://my-portal.example.com/docs/api/"
+```
+
+The sidebar group and its children are rendered automatically — no template changes are required.

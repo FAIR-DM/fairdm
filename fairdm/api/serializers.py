@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from django.core.exceptions import ImproperlyConfigured
 from rest_framework import serializers
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
@@ -10,6 +11,111 @@ from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 # "2 components with identical names and different identities" when schema
 # generation traverses multiple viewset instances for the same model.
 _SERIALIZER_CACHE: dict[tuple, type] = {}
+
+
+# ---------------------------------------------------------------------------
+# Concrete base serializers for polymorphic domain models
+# ---------------------------------------------------------------------------
+
+
+class BaseSampleSerializer(ObjectPermissionsAssignmentMixin, serializers.ModelSerializer):
+    """Base DRF serializer for all Sample subtypes.
+
+    All auto-generated serializers for registered :class:`~fairdm.core.sample.models.Sample`
+    subclasses inherit from this class.  When a portal developer provides a custom
+    ``serializer_class`` via the registry config it MUST subclass this class; otherwise
+    :func:`generate_viewset` raises :exc:`~django.core.exceptions.ImproperlyConfigured`.
+
+    Guaranteed fields:
+    ``url``, ``uuid``, ``name``, ``local_id``, ``status``, ``dataset``,
+    ``added``, ``modified``, ``polymorphic_ctype``
+    """
+
+    def get_permissions_map(self, created: bool) -> dict[str, list]:
+        """Assign guardian object permissions to the requesting user on create/update."""
+        current_user = self.context["request"].user
+        model_name = self.Meta.model._meta.model_name  # type: ignore[attr-defined]
+        return {
+            f"view_{model_name}": [current_user],
+            f"change_{model_name}": [current_user],
+            f"delete_{model_name}": [current_user],
+        }
+
+    class Meta:
+        from fairdm.core.sample.models import Sample
+
+        model = Sample
+        fields = ["url", "uuid", "name", "local_id", "status", "dataset", "added", "modified", "polymorphic_ctype"]
+
+
+class BaseMeasurementSerializer(ObjectPermissionsAssignmentMixin, serializers.ModelSerializer):
+    """Base DRF serializer for all Measurement subtypes.
+
+    All auto-generated serializers for registered
+    :class:`~fairdm.core.measurement.models.Measurement` subclasses inherit from this class.
+    When a portal developer provides a custom ``serializer_class`` via the registry config
+    it MUST subclass this class; otherwise :func:`generate_viewset` raises
+    :exc:`~django.core.exceptions.ImproperlyConfigured`.
+
+    Guaranteed fields:
+    ``url``, ``uuid``, ``name``, ``sample``, ``dataset``,
+    ``added``, ``modified``, ``polymorphic_ctype``
+    """
+
+    def get_permissions_map(self, created: bool) -> dict[str, list]:
+        """Assign guardian object permissions to the requesting user on create/update."""
+        current_user = self.context["request"].user
+        model_name = self.Meta.model._meta.model_name  # type: ignore[attr-defined]
+        return {
+            f"view_{model_name}": [current_user],
+            f"change_{model_name}": [current_user],
+            f"delete_{model_name}": [current_user],
+        }
+
+    class Meta:
+        from fairdm.core.measurement.models import Measurement
+
+        model = Measurement
+        fields = ["url", "uuid", "name", "sample", "dataset", "added", "modified", "polymorphic_ctype"]
+
+
+# ---------------------------------------------------------------------------
+# Validation helpers for custom serializer_class enforcement
+# ---------------------------------------------------------------------------
+
+
+def _validate_sample_serializer(cls: type) -> None:
+    """Raise :exc:`~django.core.exceptions.ImproperlyConfigured` if *cls* does not
+    subclass :class:`BaseSampleSerializer`.
+
+    Args:
+        cls: The custom serializer class to validate.
+
+    Raises:
+        ImproperlyConfigured: When *cls* is not a subclass of ``BaseSampleSerializer``.
+    """
+    if not (isinstance(cls, type) and issubclass(cls, BaseSampleSerializer)):
+        raise ImproperlyConfigured(
+            f"Custom serializer_class '{cls.__name__}' for a Sample type must subclass "
+            f"'fairdm.api.serializers.BaseSampleSerializer'."
+        )
+
+
+def _validate_measurement_serializer(cls: type) -> None:
+    """Raise :exc:`~django.core.exceptions.ImproperlyConfigured` if *cls* does not
+    subclass :class:`BaseMeasurementSerializer`.
+
+    Args:
+        cls: The custom serializer class to validate.
+
+    Raises:
+        ImproperlyConfigured: When *cls* is not a subclass of ``BaseMeasurementSerializer``.
+    """
+    if not (isinstance(cls, type) and issubclass(cls, BaseMeasurementSerializer)):
+        raise ImproperlyConfigured(
+            f"Custom serializer_class '{cls.__name__}' for a Measurement type must subclass "
+            f"'fairdm.api.serializers.BaseMeasurementSerializer'."
+        )
 
 
 class BaseSerializerMixin:
@@ -51,6 +157,7 @@ def build_model_serializer(
     fields: list[str],
     view_name: str | None = None,
     extra_kwargs: dict[str, Any] | None = None,
+    base_class: type[serializers.ModelSerializer] | None = None,
 ) -> type[serializers.ModelSerializer]:
     """Build a DRF ModelSerializer for *model* exposing *fields*.
 
@@ -68,12 +175,19 @@ def build_model_serializer(
         view_name: DRF ``HyperlinkedIdentityField`` ``view_name``; includes the
             "url" field only when provided.
         extra_kwargs: Merged into the ``Meta.extra_kwargs`` dict.
+        base_class: Base serializer class to inherit from (default:
+            ``serializers.ModelSerializer`` wrapped with
+            ``ObjectPermissionsAssignmentMixin``).  Pass
+            :class:`BaseSampleSerializer` or :class:`BaseMeasurementSerializer`
+            so that auto-generated subtype serializers satisfy the inheritance
+            constraint enforced by :func:`_validate_sample_serializer` /
+            :func:`_validate_measurement_serializer`.
 
     Returns:
         A ``ModelSerializer`` subclass.
     """
     flat_fields = _flatten_fields(fields)
-    cache_key = (model, tuple(flat_fields), view_name, tuple(sorted((extra_kwargs or {}).items())))
+    cache_key = (model, tuple(flat_fields), view_name, tuple(sorted((extra_kwargs or {}).items())), base_class)
     if cache_key in _SERIALIZER_CACHE:
         return _SERIALIZER_CACHE[cache_key]
 
@@ -109,9 +223,19 @@ def build_model_serializer(
 
     serializer_attrs["get_permissions_map"] = get_permissions_map
 
+    # Determine the base class for the generated serializer.  If a specific
+    # base_class is given (e.g. BaseSampleSerializer) use it directly since it
+    # already includes ObjectPermissionsAssignmentMixin in its MRO.  Otherwise
+    # fall back to the generic mixin + ModelSerializer combination.
+    effective_base = base_class if base_class is not None else None
+    if effective_base is not None:
+        bases = (effective_base,)
+    else:
+        bases = (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer)
+
     serializer_cls = type(
         f"{model.__name__}APISerializer",
-        (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer),
+        bases,
         serializer_attrs,
     )
     _SERIALIZER_CACHE[cache_key] = serializer_cls

@@ -116,6 +116,24 @@ As a portal developer, I can configure which fields are exposed in the API for m
 
 ---
 
+### User Story 7 - API Menu Group in Portal Sidebar (Priority: P7)
+
+As any portal visitor, I can access the API and its documentation directly from the portal's sidebar navigation menu, so that I can quickly find the interactive API explorer, the browsable API root, and guidance on consuming the API without hunting through the site.
+
+**Why this priority**: Discoverability is valuable but lower priority than a working, secure, documented API. The menu group is pure navigation sugar layered on top of a fully functional API.
+
+**Independent Test**: Load the portal, check the sidebar renders an "API" menu group containing exactly three child links: one to `/api/docs/` (Swagger UI), one to `/api/v1/` (browsable API root), and one to the FairDM docs page for API consumption. Each link resolves to the correct URL.
+
+**Acceptance Scenarios**:
+
+1. **Given** any portal page is loaded, **When** the sidebar is rendered, **Then** an "API" menu group is visible containing three child menu items
+2. **Given** the API menu group is expanded, **When** a user clicks "Interactive Docs", **Then** they are taken to the Swagger UI page at `/api/docs/`
+3. **Given** the API menu group is expanded, **When** a user clicks "Browse API", **Then** they are taken to the DRF browsable API root at `/api/v1/`
+4. **Given** the API menu group is expanded, **When** a user clicks "How to use the API", **Then** they are taken to the FairDM documentation page covering API consumption (external URL, configurable via setting)
+5. **Given** the sidebar is rendered, **Then** the API menu group appears after the Measurements entry, consistent with existing sidebar ordering
+
+---
+
 ### Edge Cases
 
 - What happens when no Sample or Measurement types are registered? The API serves only the core model endpoints (projects, datasets, contributors) and the sample/measurement discovery endpoints return empty lists.
@@ -131,10 +149,10 @@ As a portal developer, I can configure which fields are exposed in the API for m
 
 - **FR-001**: System MUST automatically generate API list and detail endpoints for each core model (Project, Dataset) and for the contributor model (Person, Organization) at startup
 - **FR-002**: System MUST automatically generate API list and detail endpoints for each Sample and Measurement subtype registered through the FairDM registry
-- **FR-003**: System MUST provide a discovery endpoint that lists all registered Sample types with their names and API endpoint URLs
-- **FR-004**: System MUST provide a discovery endpoint that lists all registered Measurement types with their names and API endpoint URLs
+- **FR-003**: System MUST provide a discovery endpoint that lists all registered Sample types with their names and API endpoint URLs. This endpoint MUST appear in the DRF browsable API root (the index listing at `/api/v1/`) alongside all other registered endpoints.
+- **FR-004**: System MUST provide a discovery endpoint that lists all registered Measurement types with their names and API endpoint URLs. This endpoint MUST appear in the DRF browsable API root (the index listing at `/api/v1/`) alongside all other registered endpoints.
 - **FR-005**: System MUST support full CRUD operations (Create, Read, Update, Delete) on Project, Dataset, Sample, and Measurement endpoints. Contributor endpoints are read-only (GET only) — no create, update, or delete operations are supported for contributors via the API.
-- **FR-006**: System MUST auto-generate API data representations for registered models using the existing registry field configuration, respecting the three-tier resolution order (default fields → component-specific fields → custom class override)
+- **FR-006**: System MUST auto-generate API data representations for registered models using the existing registry field configuration, respecting the three-tier resolution order (default fields → component-specific fields → custom class override). All auto-generated serializers for Sample subtypes MUST inherit from `BaseSampleSerializer`; all auto-generated serializers for Measurement subtypes MUST inherit from `BaseMeasurementSerializer`. Portal developers who provide a custom `serializer_class` MUST subclass the relevant base; the framework enforces this at registration time.
 - **FR-007**: System MUST serve an interactive API documentation page that auto-generates from the registered endpoints and their schemas
 - **FR-008**: System MUST enforce the existing object-level permission system on all API operations, including per-object permissions and cascading permission inheritance for samples and measurements
 - **FR-009**: System MUST enforce authentication requirements such that write operations (POST, PUT, PATCH, DELETE) require an authenticated user
@@ -145,12 +163,15 @@ As a portal developer, I can configure which fields are exposed in the API for m
 - **FR-014**: System MUST filter list results using a custom `FairDMVisibilityFilter` backend that returns objects where `is_public=True` OR the requesting user has an explicit guardian `view` permission. Objects matching neither condition are excluded silently from list results. Public objects are always visible regardless of authentication state; private objects require an explicit guardian permission grant.
 - **FR-015**: System MUST support filtering and ordering on list endpoints using the existing `FilterSet` configurations from the registry where available
 - **FR-016**: System MUST use content negotiation to support JSON as the primary response format
+- **FR-017**: System MUST register an "API" menu group in the portal's sidebar navigation (US7) containing exactly three child items: (1) "Interactive Docs" linking to `/api/docs/` (Swagger UI), (2) "Browse API" linking to `/api/v1/` (DRF browsable API root), and (3) "How to use the API" linking to a configurable FairDM documentation URL (default: FairDM docs for API consumption). The group MUST appear after the Measurements sidebar entry.
 
 ### Key Entities
 
 - **API Endpoint**: A URL path mapped to a viewset for a specific model. Generated automatically from the registry. Has a resource name, URL pattern, serializer, and permission configuration.
 - **Discovery Endpoint**: A meta-endpoint that lists all registered Sample or Measurement types and their corresponding API URLs. Enables clients to discover available data types dynamically.
 - **Serializer**: Defines the fields and representation of a model in API requests and responses. Auto-generated from registry configuration or provided as a custom class by the developer.
+- **BaseSampleSerializer**: Abstract DRF `ModelSerializer` base class (in `fairdm/api/serializers.py`) that all Sample subtype serializers MUST inherit from. Exposes the consistent set of fields present on every `Sample` record: `uuid`, `url`, `name`, `local_id`, `status`, `dataset`, `added`, `modified`, and `polymorphic_ctype`. Portal developers must subclass this when providing a custom serializer; auto-generated serializers inherit from it automatically.
+- **BaseMeasurementSerializer**: Abstract DRF `ModelSerializer` base class (in `fairdm/api/serializers.py`) that all Measurement subtype serializers MUST inherit from. Exposes the consistent set of fields present on every `Measurement` record: `uuid`, `url`, `name`, `sample`, `dataset`, `added`, `modified`, and `polymorphic_ctype`. Portal developers must subclass this when providing a custom serializer; auto-generated serializers inherit from it automatically.
 - **Rate Limit Tier**: A named throttling level (anonymous vs. authenticated) with a configured request count per time window. Applied per-user or per-IP.
 
 ## Success Criteria *(mandatory)*
@@ -178,6 +199,9 @@ As a portal developer, I can configure which fields are exposed in the API for m
 - File upload/download via the API is out of scope for v1
 - The external `fairdm-rest-api` dev dependency package will be replaced by this built-in implementation
 - GraphQL or alternative query languages are out of scope; this feature is REST-only
+- The DRF router `basename` for auto-generated Sample and Measurement viewsets is derived from `model._meta.verbose_name_plural` (lowercased, spaces replaced with hyphens), NOT the Python class name. For example, a model named `RockSample` with `verbose_name_plural = "rock samples"` gets basename `rock-samples`, producing URL names `rock-samples-list` and `rock-samples-detail`.
+- `BaseSampleSerializer` and `BaseMeasurementSerializer` are defined in `fairdm/api/serializers.py`. They are concrete (non-abstract) DRF `ModelSerializer` subclasses tied to the `Sample` and `Measurement` base models respectively. All framework-generated serializers inherit from them; the framework validates `issubclass(custom_cls, BaseSampleSerializer)` (or `BaseMeasurementSerializer`) at registration time and raises `ImproperlyConfigured` if the check fails.
+- The configurable FairDM documentation link in the sidebar API menu group is controlled by the Django setting `FAIRDM_API_DOCS_URL` (defined in `fairdm/conf/settings/api.py`). Its default value is `"https://fairdm.org/api/"`. Portal developers can override it in their settings file to point to a custom API usage guide.
 - Bulk operations (batch create/update/delete) are out of scope for v1
 
 ## Clarifications
@@ -189,3 +213,10 @@ As a portal developer, I can configure which fields are exposed in the API for m
 - Q: How should portal developers add custom API endpoints outside of the FairDM registry? → A: FairDM exposes a shared `fairdm_api_router` instance (a DRF `DefaultRouter`). Auto-generated endpoints are registered on this router. Portal developers import it and call `fairdm_api_router.register(...)` from their own `urls.py` or `api.py` to add custom viewsets alongside generated ones. This is the documented extension point. No separate URL prefix required.
 - Q: What is `django-parler-rest`'s role in this feature? → A: Removed from Feature 011. It will be introduced in the spec covering `fairdm.contrib.identity`, which owns the translatable models that require `TranslatedFieldsField`. No models in scope for this feature have translated fields. Final dependency count: **6** (dropped from 7).
 - Q: What lookup field should API detail URLs use? → A: The existing `uuid` field on all core models. This field is already a shortuuid (generated via `shortuuid`), so URLs are short and URL-safe (e.g., `/api/v1/projects/YK2yFz2gQsSQFXkGd7Eywd/`). `lookup_field = "uuid"` on all viewsets. No separate slug or full UUID field needed.
+
+### Session 2026-04-01
+
+- Q: Should the Sample-types and Measurement-types discovery endpoints appear in the DRF browsable API root index at `/api/v1/`? → A: Yes. Both discovery endpoints MUST appear in the browsable API root listing alongside all other registered endpoints. Implementation must register them via the router (as a ViewSet or custom `APIRoot`) rather than as standalone APIViews that bypass the router listing. FR-003 and FR-004 updated accordingly.
+- Q: What strategy should be used for the DRF router `basename` of auto-generated Sample and Measurement viewsets? → A: Use `model._meta.verbose_name_plural`, lowercased and hyphenated (not the Python class name). Example: `RockSample` with `verbose_name_plural = "rock samples"` → basename `rock-samples` → URL names `rock-samples-list`, `rock-samples-detail`. Assumptions section updated accordingly.
+- Q: What form should the sidebar API entry take — a single link or a menu group, and what should it link to? → A: A menu group with one heading ("API") and three child links: (1) "Interactive Docs" → `/api/docs/` (Swagger UI), (2) "Browse API" → `/api/v1/` (DRF browsable API root), (3) "How to use the API" → configurable FairDM docs URL. US7 and FR-017 added accordingly.
+- Q: Should there be mandatory base serializer classes for Sample and Measurement subtypes, and what fields must they guarantee? → A: Yes. `BaseSampleSerializer` (fields: `uuid`, `url`, `name`, `local_id`, `status`, `dataset`, `added`, `modified`, `polymorphic_ctype`) and `BaseMeasurementSerializer` (fields: `uuid`, `url`, `name`, `sample`, `dataset`, `added`, `modified`, `polymorphic_ctype`) are defined in `fairdm/api/serializers.py`. Auto-generated serializers inherit from them. Portal developers MUST subclass the relevant base; the framework enforces this at registration time via `issubclass` check raising `ImproperlyConfigured` on violation. FR-006, Key Entities, and Assumptions updated accordingly.

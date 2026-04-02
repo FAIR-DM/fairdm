@@ -61,7 +61,7 @@
 
 - [x] T015 [US1] Add `generate_viewset(config, base_class=BaseViewSet)` factory function to `fairdm/api/viewsets.py` per data-model.md logic: creates a `ModelViewSet` subclass with `serializer_class`, `queryset`, `lookup_field="uuid"`, and optional `filterset_class` from the config
 - [x] T016 [US1] Add `SampleDiscoveryView(APIView)` and `MeasurementDiscoveryView(APIView)` to `fairdm/api/viewsets.py` — GET-only views that iterate over `registry.samples` / `registry.measurements` and return the type catalog JSON (name, verbose_name, endpoint URL, fields, filterable_fields, count) per data-model.md and contract §6
-- [x] T017 [US1] Create `fairdm/api/router.py` with auto-registration logic: instantiate `DefaultRouter` as `fairdm_api_router`, register core model viewsets (ProjectViewSet, DatasetViewSet, ContributorViewSet), iterate `registry.samples` and `registry.measurements` to register auto-generated viewsets with slug-based URL prefixes derived from `verbose_name_plural`
+- [x] T017 [US1] Create `fairdm/api/router.py` with auto-registration logic: instantiate `DefaultRouter` as `fairdm_api_router`, register core model viewsets (ProjectViewSet, DatasetViewSet, ContributorViewSet), iterate `registry.samples` and `registry.measurements` to register auto-generated viewsets with slug-based URL prefixes derived from `verbose_name_plural` *(Note: `_model_to_slug()` was implemented using CamelCase decomposition rather than `verbose_name_plural`; the correct strategy is implemented in T060 as a separate task. T017 is functionally complete for slug generation; T060 corrects the slug strategy.)*
 - [x] T018 [US1] Create `fairdm/api/urls.py` with `/api/v1/` URL patterns: include `fairdm_api_router.urls`, wire `SampleDiscoveryView` at `samples/`, wire `MeasurementDiscoveryView` at `measurements/`, add `dj-rest-auth` URLs at `auth/`, add `SpectacularAPIView` at `schema/`, `SpectacularSwaggerView` at `docs/`, `SpectacularRedocView` at `redoc/`
 - [x] T019 [US1] Include API URL patterns in `fairdm/conf/urls.py`: add `path("api/", include("fairdm.api.urls"))` to urlpatterns
 - [x] T020 [P] [US1] Write list and detail endpoint tests in `tests/test_api/test_viewsets.py`: GET project list returns paginated JSON with `count`/`next`/`previous`/`results`, GET project detail by uuid returns correct fields, GET dataset list works, GET type-specific sample list returns only samples of that type, GET with invalid uuid returns 404; also cover FR-015 filtering and ordering: `?<field>=<value>` query parameter reduces result set to matching records, `?ordering=<field>` returns results in ascending order, `?ordering=-<field>` returns results in descending order (tests use demo app models that have a FilterSet registered)
@@ -251,13 +251,192 @@ T040 before T041. Linear.
 
 T044 before T045. Linear.
 
-### Final Phase
+### Original Final Phase
 
 T048, T049, T050 fully parallel. T051 before T052.
 
-### Cross-Phase Parallelism
+### Cross-Phase Parallelism (Phases 1–8)
 
 US5 (Phase 7) and US6 (Phase 8) can run in parallel with US3 (Phase 5) and US4 (Phase 6) — they depend only on Phase 2, not on US1–US4.
+
+---
+
+## Phase 9: Base Serializer Classes — Implementation & Tests (FR-006 Expanded)
+
+**Goal**: Implement `BaseSampleSerializer` and `BaseMeasurementSerializer` in
+`fairdm/api/serializers.py` with the field sets mandated by FR-006, implement the `_validate_*`
+enforcement helpers, update `build_model_serializer()` to accept a `base_class` parameter, then
+write complete tests verifying field correctness and `ImproperlyConfigured` enforcement.
+
+> **Note**: These base classes were specified during the 2026-04-01 clarification session but have
+> **not yet been implemented**. `fairdm/api/viewsets.py` has been cleaned up (no outstanding
+> `ImportError`); the `_validate_*` enforcement calls in `generate_viewset()` Tier 3 and the
+> `base_class` wiring in the Tier 1/2 auto-generate path were removed during that cleanup and
+> must be re-added in T053. No phase beyond Phase 9 may start until T055 passes.
+
+**Independent Test**: Import `BaseSampleSerializer` and `BaseMeasurementSerializer` from
+`fairdm.api.serializers`, assert their `Meta.fields` lists; call `generate_viewset()` for a
+registered Sample/Measurement type and confirm the serializer_class inherits from the correct base;
+attempt `generate_viewset()` with a non-conforming `serializer_class` and assert `ImproperlyConfigured`.
+
+- [x] T053 [US6] Two files require changes:
+  - **`fairdm/api/serializers.py`**: Add `BaseSampleSerializer` (`Meta.model = Sample`, `Meta.fields = ["url", "uuid", "name", "local_id", "status", "dataset", "added", "modified", "polymorphic_ctype"]`) and `BaseMeasurementSerializer` (`Meta.model = Measurement`, `Meta.fields = ["url", "uuid", "name", "sample", "dataset", "added", "modified", "polymorphic_ctype"]`) — both are concrete `(ObjectPermissionsAssignmentMixin, serializers.ModelSerializer)` subclasses implementing `get_permissions_map()`. Add `_validate_sample_serializer(cls)` and `_validate_measurement_serializer(cls)` helpers that raise `django.core.exceptions.ImproperlyConfigured` if `cls` is not a subclass of the relevant base. Update `build_model_serializer()` signature to accept an optional `base_class` parameter (default: `serializers.ModelSerializer`) and use it in the `type(...)` call instead of the hardcoded `serializers.ModelSerializer`.
+  - **`fairdm/api/viewsets.py`**: Add top-level imports for `BaseSampleSerializer`, `BaseMeasurementSerializer`, `_validate_sample_serializer`, and `_validate_measurement_serializer` from `fairdm.api.serializers` (these symbols exist in `serializers.py` after the first bullet above is done). Then in `generate_viewset()` Tier 3 path (custom `serializer_class`), re-add the validation calls after `serializer_cls = config._get_class(config.serializer_class)`: call `_validate_sample_serializer(serializer_cls)` if `issubclass(model, Sample)`, or `_validate_measurement_serializer(serializer_cls)` if `issubclass(model, Measurement)` — `Sample` and `Measurement` are already imported at the top of the file. In the Tier 1/2 auto-generate path, pass the correct `base_class` to `build_model_serializer()`: `BaseSampleSerializer` if `issubclass(model, Sample)`, `BaseMeasurementSerializer` if `issubclass(model, Measurement)`, else the default.
+- [x] T054 [P] [US6] Write complete test coverage in `tests/test_api/test_serializers.py`: (a) field tests — assert `BaseSampleSerializer.Meta.fields == ["url", "uuid", "name", "local_id", "status", "dataset", "added", "modified", "polymorphic_ctype"]`; assert `BaseMeasurementSerializer.Meta.fields` matches its spec list; assert auto-generated serializer for a registered Sample subtype is `issubclass(..., BaseSampleSerializer)`; same for Measurement subtype. (b) enforcement tests — call `generate_viewset()` with a config whose `serializer_class` is a plain `ModelSerializer` (not inheriting `BaseSampleSerializer`) for a Sample type, assert `ImproperlyConfigured` raised; repeat for Measurement type; assert a correctly subclassed custom serializer (inheriting `BaseSampleSerializer`) succeeds without error
+
+### System Validation — Phase 9
+
+- [x] T055 ⚠️ CRITICAL: Run serializer tests: `poetry run pytest tests/test_api/test_serializers.py -v` — ALL tests MUST pass before proceeding to Phase 10
+
+**Checkpoint — Phase 9 Complete**: Base serializer classes and enforcement helpers implemented. Enforcement calls in `generate_viewset()` restored. Tests in place and passing. Safe to proceed with Phase 10.
+
+---
+
+## Phase 10: Discovery Endpoints in API Root (FR-003/FR-004)
+
+**Goal**: `GET /api/v1/` (the DRF browsable API root) includes `sample-types` and `measurement-types`
+links alongside the viewset links, satisfying the "MUST appear in the DRF browsable API root"
+clauses of FR-003 and FR-004.
+
+**Independent Test**: Call `GET /api/v1/` with `Accept: application/json`, assert the response JSON
+contains keys `"sample-types"` and `"measurement-types"` each with a URL pointing to the correct
+discovery endpoint.
+
+- [x] T056 [US1] Introduce `FairDMAPIRouter(DefaultRouter)` in `fairdm/api/router.py`: subclass `DefaultRouter`, override `get_api_root_dict()` to call `super().get_api_root_dict()` then inject `ret["sample-types"] = "api-sample-discovery"` and `ret["measurement-types"] = "api-measurement-discovery"`, return `ret`; replace `fairdm_api_router = DefaultRouter()` with `fairdm_api_router = FairDMAPIRouter()` — no changes to URL patterns or view code required
+- [x] T057 [P] [US1] Update `tests/test_api/test_router.py`: add test `test_api_root_contains_discovery_links` — call `GET /api/v1/` with `HTTP_ACCEPT="application/json"`, assert response status 200, assert `"sample-types"` key present in response data with a URL ending in `/api/v1/samples/`, assert `"measurement-types"` key present with a URL ending in `/api/v1/measurements/`; verify no existing `isinstance(fairdm_api_router, DefaultRouter)` assertions break (the new class still passes `isinstance`)
+
+### System Validation — Phase 10
+
+- [x] T058 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
+- [x] T059 ⚠️ CRITICAL: Run router tests: `poetry run pytest tests/test_api/test_router.py -v` — ALL tests MUST pass
+
+**Checkpoint — Phase 10 Complete**: Browsable API root lists discovery endpoints. FR-003 and FR-004 fully satisfied.
+
+---
+
+## Phase 11: verbose_name_plural Router Basename
+
+**Goal**: `_model_to_slug()` derives URL prefixes and basenames from `model._meta.verbose_name_plural`
+(lowercased, spaces → hyphens) instead of CamelCase decomposition of the Python class name.
+
+**Independent Test**: Register a model with `verbose_name_plural = "rock samples"`. Call
+`_model_to_slug(model)` and assert it returns `"rock-samples"`. Confirm `fairdm_api_router` contains
+a route with prefix `samples/rock-samples` and basename `samples-rock-samples`.
+
+- [x] T060 [US1] Update `_model_to_slug()` in `fairdm/api/viewsets.py`: replace the `re.sub` CamelCase decomposition with `model._meta.verbose_name_plural.lower().replace(" ", "-")`; update the docstring to document the `verbose_name_plural` strategy, explain that portal developers control the slug via `class Meta: verbose_name_plural`, and note the URL stability implication
+- [x] T061 [P] [US1] Audit and update URL name assertions in `tests/test_api/test_router.py` and `tests/test_api/test_viewsets.py`: identify all hardcoded URL names (e.g., `rock-sample-list`, `rock-sample-detail`) and update them to match the `verbose_name_plural`-derived form (e.g., `rock-samples-list`, `rock-samples-detail`); confirm each `fairdm_demo` model has an appropriate `verbose_name_plural` set to produce the expected slug
+- [x] T062 Update `specs/011-restful-api/quickstart.md`: add a section titled "URL name changes (verbose_name_plural strategy)" documenting before/after slugs for the demo app models and providing an example of setting `class Meta: verbose_name_plural = "..."` to control the generated URL prefix
+
+### System Validation — Phase 11
+
+- [x] T063 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings`
+- [x] T064 ⚠️ CRITICAL: Run router and viewset tests: `poetry run pytest tests/test_api/test_router.py tests/test_api/test_viewsets.py -v` — ALL tests MUST pass
+
+**Checkpoint — Phase 11 Complete**: Router slugs derived from `verbose_name_plural`. All URL name assertions updated. quickstart.md documents the migration.
+
+---
+
+## Phase 12: User Story 7 — API Menu Group in Portal Sidebar (Priority: P7)
+
+**Goal**: An "API" `MenuGroup` appears in the portal sidebar after the Measurements entry, containing
+three child `MenuItem` links: "Interactive Docs" → `/api/docs/`, "Browse API" → `/api/v1/`, and
+"How to use the API" → `FAIRDM_API_DOCS_URL` (configurable setting, default `"https://fairdm.org/api/"`).
+
+**Independent Test**: Introspect `AppMenu` children, find the group named "API", assert it has
+exactly 3 child items with the correct names and URLs. Assert that setting `FAIRDM_API_DOCS_URL`
+to a custom value changes the third child's URL.
+
+- [x] T065 Add `FAIRDM_API_DOCS_URL = "https://fairdm.org/api/"` to `fairdm/conf/settings/api.py`; verify it is included when the API settings module is merged — portal developers can override it in their own settings file
+- [x] T066 [US7] Add "API" `MenuGroup` to `fairdm/menus/menus.py` after the `MenuCollapse` for Measurements: three child `MenuItem` entries — (1) `name=_("Interactive Docs"), url="/api/docs/", extra_context={"icon": "api"}`, (2) `name=_("Browse API"), url="/api/v1/", extra_context={"icon": "api"}`, (3) `name=_("How to use the API"), url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/"), extra_context={"icon": "literature"}`; add `from django.conf import settings as django_settings` import at the top of the file if not already present
+- [x] T067 [P] [US7] Create `tests/test_api/test_menu.py`: import `AppMenu` from `mvp.menus` and assert (1) `AppMenu` children contain a group whose `name` resolves to "API", (2) the group has exactly 3 children, (3) child URLs are `/api/docs/`, `/api/v1/`, and `"https://fairdm.org/api/"` (default), (4) overriding `settings.FAIRDM_API_DOCS_URL = "https://custom.example.org/"` causes the third child's URL to resolve to the override
+
+### System Validation — Phase 12
+
+- [x] T068 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings`
+- [x] T069 ⚠️ CRITICAL: Run menu tests: `poetry run pytest tests/test_api/test_menu.py -v` — ALL tests MUST pass
+
+**Checkpoint — Phase 12 Complete**: Sidebar "API" menu group visible on all portal pages. Three child links functional. `FAIRDM_API_DOCS_URL` setting respected.
+
+---
+
+## Final Phase (New Additions): Verification & Documentation
+
+**Purpose**: Developer guide updated for new base class requirements and sidebar setting; full API test suite green.
+
+- [x] T070 [P] Update `docs/portal-development/restful-api.md` (or create if absent): add section "Providing a Custom Serializer" showing how to subclass `BaseSampleSerializer` / `BaseMeasurementSerializer`; show the `ImproperlyConfigured` error message; add section "URL Naming (verbose_name_plural)" documenting the strategy and migration from class-name slugs; add section "API Navigation Sidebar" documenting the "API" menu group and the `FAIRDM_API_DOCS_URL` setting with example override
+- [x] T071 ⚠️ CRITICAL: Run full API test suite: `poetry run pytest tests/test_api/ -v` — ALL tests MUST pass
+- [x] T072 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check --settings=tests.settings` — MUST pass
+
+**Checkpoint — New Additions Complete**: Base serializer tests in, API root lists discovery endpoints, router uses verbose_name_plural slugs, sidebar menu group live, developer docs updated. Feature 011 fully complete.
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies (Full Feature)
+
+- **Setup (Phase 1)**: No dependencies — start immediately
+- **Foundational (Phase 2)**: Depends on Phase 1 — **BLOCKS all user story phases**
+- **US1 (Phase 3)**: Depends on Phase 2 (T013 + T014 must pass)
+- **US2 (Phase 4)**: Depends on US1 (needs registered endpoints to document)
+- **US3 (Phase 5)**: Depends on US1 (needs read endpoints before adding write)
+- **US4 (Phase 6)**: Depends on US3 (needs write operations to test permission enforcement on CRUD)
+- **US5 (Phase 7)**: Depends on Phase 2 — can overlap with US3, US4, US6
+- **US6 (Phase 8)**: Depends on Phase 2 — can overlap with US3, US4, US5
+- **Polish (Original Final Phase)**: Depends on Phases 3–8 complete
+- **Phase 9 (FR-006 impl & tests)**: Depends on Phase 8 complete — implements base serializer classes **not yet present** in `serializers.py`; restores enforcement calls in `generate_viewset()`; **BLOCKS** Phases 10–12
+- **Phase 10 (API root discovery)**: Depends on Phase 9 (T055 must pass) — constitution-mandated test gate
+- **Phase 11 (verbose_name_plural)**: Depends on Phase 10 complete — URL name changes must be stable before slug refactor
+- **Phase 12 (US7 sidebar)**: Depends on Phase 11 complete — sequential; independent of Phase 10 technically but ordered for cleanliness
+- **Final Phase (New Additions)**: Depends on Phases 9–12 complete
+
+### User Story Dependencies (Full Feature)
+
+| Story | Depends On | Can Parallelize With |
+|-------|-----------|----------------------|
+| US1 (P1) | Phase 2 validation (T013+T014) | US5, US6 |
+| US2 (P2) | US1 (endpoints must exist) | US5, US6 |
+| US3 (P3) | US1 (read endpoints exist) | US5, US6 |
+| US4 (P4) | US3 (write operations exist) | US5, US6 |
+| US5 (P5) | Phase 2 validation (T013+T014) | US1–US4, US6 |
+| US6 (P6) | Phase 2 validation (T013+T014) | US1–US5 |
+| US7 (P7) | Phase 11 complete (slug strategy stable) | — |
+
+### Within Each Phase (New Additions)
+
+- Phase 9: T053 (implementation) → T054 (tests) → T055 (validation)
+- Phase 10: T056 (implementation) → T057 (tests) → T058/T059 (validation)
+- Phase 11: T060 (implementation) → T061 (test updates) → T062 (quickstart) → T063/T064 (validation)
+- Phase 12: T065 (setting) → T066 (menu) → T067 (tests) → T068/T069 (validation)
+- Final: T070 parallel with T071/T072; T072 after T071
+
+---
+
+## Parallel Opportunities (Full Feature)
+
+### Phase 8 (US6)
+
+T044 before T045. Linear.
+
+### Phase 9 (FR-006 impl & tests)
+
+T053 (implementation) must complete before T054 (tests) — tests depend on the classes existing. T055 validation after T054.
+
+### Phase 10 (API root)
+
+T056 (implementation) before T057 (test). T058 and T059 sequential validation.
+
+### Phase 11 (verbose_name_plural)
+
+T060 (implementation) before T061 (test audit). T062 (docs) parallel with T061. T063/T064 validation after T060+T061.
+
+### Phase 12 (US7 sidebar)
+
+T065 (setting) before T066 (menu, needs the setting name). T067 (tests) after T066. T068/T069 validation.
+
+### Final Phase (New Additions)
+
+T070 (docs) parallel with T071 (test run) and T072 (system check). T072 after T071.
 
 ---
 
@@ -283,8 +462,12 @@ This MVP is deployable and delivers the highest-value capability: read-only API 
 4. Add permission enforcement: Phase 6 (object-level access control)
 5. Add rate limiting: Phase 7 (abuse protection)
 6. Add declarative config: Phase 8 (developer customization)
+7. Remediate constitution violation: Phase 9 (base serializer tests — test-first)
+8. Fix API root discovery: Phase 10 (FairDMAPIRouter)
+9. Correct URL naming: Phase 11 (verbose_name_plural slug strategy)
+10. Add sidebar navigation: Phase 12 (US7 — API menu group)
 
-**Total Tasks**: 52
-**Tasks per story**: US1=10 (incl. 2 validation), US2=4 (incl. 2 validation), US3=6 (incl. 2 validation), US4=5 (incl. 2 validation), US5=4 (incl. 2 validation), US6=4 (incl. 2 validation)
-**Validation checkpoints**: 17 ⚠️ CRITICAL system validation tasks across all phases (Phase 1 has 1; all other phases have 2)
-**Parallel opportunities**: 17 tasks marked [P]
+**Total Tasks**: 72 (T001–T072)
+**Tasks per story**: US1=10+5=15 (incl. validation), US2=4, US3=6, US4=5, US5=4, US6=4+3=7 (incl. Phase 9), US7=5 (Phase 12)
+**Validation checkpoints**: 24 ⚠️ CRITICAL system validation tasks across all phases
+**Parallel opportunities**: 22 tasks marked [P]

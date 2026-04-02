@@ -14,7 +14,6 @@ This module provides:
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from rest_framework import serializers
@@ -23,8 +22,15 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
-from fairdm.api.serializers import build_model_serializer
+from fairdm.core.models import Project, Dataset, Sample, Measurement
+from fairdm.contrib.contributors.models import Contributor
+from fairdm.api.serializers import (
+    BaseMeasurementSerializer,
+    BaseSampleSerializer,
+    _validate_measurement_serializer,
+    _validate_sample_serializer,
+    build_model_serializer,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -85,18 +91,12 @@ class ProjectViewSet(BaseViewSet):
 
     @property
     def queryset(self):
-        from fairdm.core.project.models import Project
-
         return Project.objects.all()
 
     def get_queryset(self):
-        from fairdm.core.project.models import Project
-
         return Project.objects.all()
 
     def get_serializer_class(self):
-        from fairdm.core.project.models import Project
-
         if hasattr(self, "_serializer_class"):
             return self._serializer_class
         self._serializer_class = build_model_serializer(
@@ -121,18 +121,12 @@ class DatasetViewSet(BaseViewSet):
 
     @property
     def queryset(self):
-        from fairdm.core.dataset.models import Dataset
-
         return Dataset.objects.all()
 
     def get_queryset(self):
-        from fairdm.core.dataset.models import Dataset
-
         return Dataset.objects.all()
 
     def get_serializer_class(self):
-        from fairdm.core.dataset.models import Dataset
-
         if hasattr(self, "_serializer_class"):
             return self._serializer_class
         self._serializer_class = build_model_serializer(
@@ -158,18 +152,12 @@ class ContributorViewSet(ReadOnlyModelViewSet):
 
     @property
     def queryset(self):
-        from fairdm.contrib.contributors.models import Contributor
-
         return Contributor.objects.all()
 
     def get_queryset(self):
-        from fairdm.contrib.contributors.models import Contributor
-
         return Contributor.objects.all()
 
     def get_serializer_class(self):
-        from fairdm.contrib.contributors.models import Contributor
-
         if hasattr(self, "_serializer_class"):
             return self._serializer_class
         self._serializer_class = build_model_serializer(
@@ -208,8 +196,13 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
     # Determine serializer using three-tier resolution
     if config.serializer_class is not None:
-        # Tier 3: explicit custom serializer_class
+        # Tier 3: explicit custom serializer_class — validate base class constraint
         serializer_cls = config._get_class(config.serializer_class)
+        # Enforce inheritance from the correct base serializer
+        if issubclass(model, Sample):
+            _validate_sample_serializer(serializer_cls)
+        elif issubclass(model, Measurement):
+            _validate_measurement_serializer(serializer_cls)
     else:
         # Tier 1/2: serializer_fields overrides fields, both auto-generate
         fields: list[str] = list(config.serializer_fields or config.fields or [])
@@ -234,7 +227,15 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
         else:
             view_name = f"{model._meta.model_name}-detail"
 
-        serializer_cls = build_model_serializer(model, fields, view_name=view_name)
+        # Select the appropriate base serializer class for inheritance enforcement
+        if issubclass(model, Sample):
+            ser_base_class = BaseSampleSerializer
+        elif issubclass(model, Measurement):
+            ser_base_class = BaseMeasurementSerializer
+        else:
+            ser_base_class = None
+
+        serializer_cls = build_model_serializer(model, fields, view_name=view_name, base_class=ser_base_class)
 
     # Determine filterset
     filterset_class = None
@@ -264,16 +265,27 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
 
 def _model_to_slug(model) -> str:
-    """Convert model class name to a URL-safe kebab-case slug.
+    """Derive URL-safe kebab-case slug from ``verbose_name_plural``.
 
-    Uses the Python class name rather than ``verbose_name_plural`` to
-    guarantee stable URLs — renaming a verbose name will never silently
-    break existing API clients.
+    Uses ``model._meta.verbose_name_plural`` (lowercased and spaces replaced
+    with hyphens) to generate human-readable, stable URL prefixes.
 
-    Example: ``RockSample`` → ``"rock-sample"``,
-             ``CustomParentSample`` → ``"custom-parent-sample"``
+    Portal developers can control the generated slug by setting a custom
+    ``verbose_name_plural`` in the model's ``Meta`` class::
+
+        class RockSample(Sample):
+            class Meta:
+                verbose_name_plural = "rock samples"  # → "rock-samples"
+
+    URL stability note: renaming ``verbose_name_plural`` changes the URL
+    prefix and basename for that model's API endpoints.  Communicate any
+    such change to API consumers as a breaking change.
+
+    Examples:
+        - ``verbose_name_plural="rock samples"`` → ``"rock-samples"``
+        - ``verbose_name_plural="ICP-MS measurements"`` → ``"icp-ms-measurements"``
     """
-    return re.sub(r"(?<!^)(?=[A-Z])", "-", model.__name__).lower()
+    return model._meta.verbose_name_plural.lower().replace(" ", "-")
 
 
 # ---------------------------------------------------------------------------

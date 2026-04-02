@@ -1,7 +1,7 @@
 """FairDM API router.
 
 This module creates and auto-populates the ``fairdm_api_router`` — the central
-DRF ``DefaultRouter`` that wires all registry-registered models to URL prefixes.
+DRF router that wires all registry-registered models to URL prefixes.
 
 Auto-registration happens when this module is imported (triggered by
 :meth:`~fairdm.api.apps.FairDMApiConfig.ready`).
@@ -18,6 +18,7 @@ viewsets automatically appear in the OpenAPI schema and under ``/api/v1/``.
 """
 
 import logging
+from collections import OrderedDict
 
 from rest_framework.routers import DefaultRouter
 
@@ -29,8 +30,35 @@ from fairdm.api.viewsets import (
     generate_viewset,
 )
 
+
+# ---------------------------------------------------------------------------
+# Custom router class
+# ---------------------------------------------------------------------------
+
+
+class FairDMAPIRouter(DefaultRouter):
+    """DefaultRouter subclass that includes discovery endpoint links in the API root.
+
+    Overrides :meth:`get_api_root_view` to inject the ``sample-types`` and
+    ``measurement-types`` links so that :class:`~fairdm.api.viewsets.SampleDiscoveryView`
+    and :class:`~fairdm.api.viewsets.MeasurementDiscoveryView` appear in the DRF
+    browsable API root listing — satisfying FR-003 and FR-004.
+    """
+
+    def get_api_root_view(self, api_urls=None):
+        """Return the API root view with discovery endpoint links injected."""
+        api_root_dict = OrderedDict()
+        list_name = self.routes[0].name
+        for prefix, viewset, basename in self.registry:
+            api_root_dict[prefix] = list_name.format(basename=basename)
+        # Inject discovery endpoint URL names so they appear in the browsable API root.
+        api_root_dict["sample-types"] = "api-sample-discovery"
+        api_root_dict["measurement-types"] = "api-measurement-discovery"
+        return self.APIRootView.as_view(api_root_dict=api_root_dict)
+
+
 # Public router instance — importable by portal developers
-fairdm_api_router = DefaultRouter()
+fairdm_api_router = FairDMAPIRouter()
 
 # ── 1. Core model endpoints ────────────────────────────────────────────────
 fairdm_api_router.register(r"projects", ProjectViewSet, basename="project")

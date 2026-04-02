@@ -14,6 +14,7 @@ from fairdm.api.settings import (
     CORS_ALLOW_ALL_ORIGINS,
     CORS_ALLOWED_ORIGINS,
     CORS_URLS_REGEX,
+    FAIRDM_API_DOCS_URL,
     REST_FRAMEWORK,
     SPECTACULAR_SETTINGS,
 )
@@ -25,4 +26,5 @@ __all__ = [
     "CORS_ALLOW_ALL_ORIGINS",
     "CORS_ALLOWED_ORIGINS",
     "CORS_URLS_REGEX",
+    "FAIRDM_API_DOCS_URL",
 ]
