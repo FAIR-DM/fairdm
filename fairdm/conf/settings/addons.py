@@ -194,6 +194,8 @@ EASY_ICONS = {
             "linkedin": "bi bi-linkedin",
             "whatsapp": "bi bi-whatsapp",
             "x_twitter": "bi bi-twitter-x",
+            # API
+            "api": "bi bi-braces",
             # Auth
             "login": "bi bi-box-arrow-in-right",
             "password": "bi bi-key",
