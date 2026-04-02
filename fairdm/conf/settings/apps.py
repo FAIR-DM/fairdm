@@ -112,6 +112,14 @@ INSTALLED_APPS = [
     "martor",  # markdown editor
     "hijack",
     "hijack.contrib.admin",
+    # REST API (Feature 011)
+    "fairdm.api",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
+    "corsheaders",
+    "dj_rest_auth",
     *globals().get("FAIRDM_APPS", []),
 ]
 
@@ -120,7 +128,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",

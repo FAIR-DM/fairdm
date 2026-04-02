@@ -416,10 +416,6 @@ class CustomParentSample(Sample):
         help_text="Enter a string of up to 200 characters.",
     )
 
-    class Meta:
-        verbose_name = "Rock Sample"
-        verbose_name_plural = "Rock Samples"
-
 
 class CustomSample(Sample):
     char_field = models.CharField(

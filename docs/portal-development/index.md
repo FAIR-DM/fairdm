@@ -91,6 +91,7 @@ create_a_plugin
 quality_control
 testing-portal-projects
 profile-claiming-api
+restful-api
 
 ```
 

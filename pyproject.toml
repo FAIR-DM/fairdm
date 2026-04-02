@@ -82,6 +82,13 @@ dependencies = [
     'tablib[ods,xlsx] (>=3.9.0,<4.0.0)',
     'django-extra-views (>=0.16.0,<0.17.0)',
     "rapidfuzz (>=3.14.3,<4.0.0)",
+    # REST API (Feature 011)
+    "djangorestframework (>=3.16.0,<4.0.0)",
+    "drf-spectacular[sidecar] (>=0.29.0,<0.30.0)",
+    "drf-orjson-renderer (>=1.7.5,<2.0.0)",
+    "dj-rest-auth (>=7.0.0,<8.0.0)",
+    "django-cors-headers (>=4.7.0,<5.0.0)",
+    "djangorestframework-guardian (>=0.3.0,<0.5.0)",
 ]
 
 [project.urls]
@@ -120,7 +127,6 @@ importtime-waterfall = "^1.0.0"
 pandas = "^2.2.2"
 snakeviz = "^2.2.2"
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
-fairdm-rest-api = { git = "https://github.com/FAIR-DM/fairdm-rest-api" }
 pytest-benchmark = "^5.2.3"
 ruff = "^0.15.0"
 beautifulsoup4 = "^4.14.3"
@@ -406,6 +412,11 @@ per_rule_ignores = { DEP002 = [
     "redis",
     "whitenoise",
     "tablib",
+    "drf-orjson-renderer",
+    "dj-rest-auth",
+    "django-cors-headers",
+], DEP001 = [
+    "rest_framework_gis",
 ], DEP003 = [
     "debug_toolbar",
     "requests",

@@ -194,7 +194,7 @@ version = "25.4.0"
 description = "Classes Without Boilerplate"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "attrs-25.4.0-py3-none-any.whl", hash = "sha256:adcf7e2a1fb3b36ac48d97835bb6d8ade15b8dcce26aba8bf1d14847b57a3373"},
     {file = "attrs-25.4.0.tar.gz", hash = "sha256:16d5969b87f0859ef33a48b35d55ac1be6e42ae49d5e853b597db70c35c57e11"},
@@ -1102,13 +1102,13 @@ files = [
 
 [[package]]
 name = "dj-rest-auth"
-version = "7.1.0"
+version = "7.2.0"
 description = "Authentication and Registration in Django Rest Framework"
 optional = false
 python-versions = ">=3.10"
-groups = ["dev"]
+groups = ["main"]
 files = [
-    {file = "dj_rest_auth-7.1.0.tar.gz", hash = "sha256:987adc75dc5744f3efd8cb2b026037a34c06540073ebf372d56a63b0daa51a17"},
+    {file = "dj_rest_auth-7.2.0.tar.gz", hash = "sha256:f77af37da5cf6ee28f03f283a378a2f5761860e72d1d6f2fa3d50e6286000482"},
 ]
 
 [package.dependencies]
@@ -1116,6 +1116,7 @@ Django = ">=4.2"
 djangorestframework = ">=3.13.0"
 
 [package.extras]
+with-mfa = ["pyotp (>=2.9.0)"]
 with-social = ["django-allauth[socialaccount] (>=64.0.0)"]
 
 [[package]]
@@ -1488,7 +1489,7 @@ version = "4.9.0"
 description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "django_cors_headers-4.9.0-py3-none-any.whl", hash = "sha256:15c7f20727f90044dcee2216a9fd7303741a864865f0c3657e28b7056f61b449"},
     {file = "django_cors_headers-4.9.0.tar.gz", hash = "sha256:fe5d7cb59fdc2c8c646ce84b727ac2bca8912a247e6e68e1fb507372178e59e8"},
@@ -1738,7 +1739,7 @@ version = "24.3"
 description = "Django-filter is a reusable Django application for allowing users to filter querysets dynamically."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "django_filter-24.3-py3-none-any.whl", hash = "sha256:c4852822928ce17fb699bcfccd644b3574f1a2d80aeb2b4ff4f16b02dd49dc64"},
     {file = "django_filter-24.3.tar.gz", hash = "sha256:d8ccaf6732afd21ca0542f6733b11591030fa98669f8d15599b358e24a2cd9c3"},
@@ -2090,7 +2091,7 @@ version = "2.3"
 description = "Simple Django model translations without nasty hacks, featuring nice admin integration."
 optional = false
 python-versions = "*"
-groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "django-parler-2.3.tar.gz", hash = "sha256:2c8f5012ceb5e49af93b16ea3fe4d0c83d70b91b2d0f470c05d7d742b6f3083d"},
     {file = "django_parler-2.3-py3-none-any.whl", hash = "sha256:8f6c8061e4b5690f1ee2d8e5760940ef06bf78a5bfa033d11178377559c749cf"},
@@ -2098,23 +2099,6 @@ files = [
 
 [package.dependencies]
 Django = ">=2.2"
-
-[[package]]
-name = "django-parler-rest"
-version = "2.2"
-description = "Multilingual support for django-rest-framework"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "django-parler-rest-2.2.tar.gz", hash = "sha256:58d0d7155964214dfbdb72783eff6a200c5e786e2d4f3cd74ea463d56cb10e9c"},
-    {file = "django_parler_rest-2.2-py2.py3-none-any.whl", hash = "sha256:3cba9a47ec64771394e99ca49f9bef6f7dd76c1e39634fd634d2c1050fb9630a"},
-]
-
-[package.dependencies]
-django = ">=2.2"
-django-parler = ">=1.9.2"
-djangorestframework = ">=3.5"
 
 [[package]]
 name = "django-partial-date"
@@ -2158,7 +2142,7 @@ version = "4.11.2"
 description = "Seamless polymorphic inheritance for Django models."
 optional = false
 python-versions = "<4.0,>=3.10"
-groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "django_polymorphic-4.11.2-py3-none-any.whl", hash = "sha256:4bf61d6faec4870aee91b997292be45db3ebbd644dea072607efcee8ca27301a"},
     {file = "django_polymorphic-4.11.2.tar.gz", hash = "sha256:0b16060f50f0f196a8c5141a2f8f7d7d5289e7c78cf81aef2d63ff55762011ca"},
@@ -2222,24 +2206,6 @@ type = "git"
 url = "https://github.com/SamuelJennings/django-research-vocabs"
 reference = "HEAD"
 resolved_reference = "07aba62bdc5bfe16e6f4cab7f33abc3aec1b3620"
-
-[[package]]
-name = "django-rest-polymorphic"
-version = "0.1.10"
-description = "Polymorphic serializers for Django REST Framework."
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "django-rest-polymorphic-0.1.10.tar.gz", hash = "sha256:2960f58ed9a8bb0d42bc72c8ffaadfbd7f37d2573d42a1cd9a6460f3d572b519"},
-    {file = "django_rest_polymorphic-0.1.10-py2.py3-none-any.whl", hash = "sha256:f3980e3e2af73357e7913f9b1410ef856866bcfcc46903b70fe9621118bb538c"},
-]
-
-[package.dependencies]
-django = "*"
-django-polymorphic = "*"
-djangorestframework = "*"
-six = "*"
 
 [[package]]
 name = "django-select2"
@@ -2473,7 +2439,7 @@ version = "3.16.1"
 description = "Web APIs for Django, made easy."
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "djangorestframework-3.16.1-py3-none-any.whl", hash = "sha256:33a59f47fb9c85ede792cbf88bde71893bcda0667bc573f784649521f1102cec"},
     {file = "djangorestframework-3.16.1.tar.gz", hash = "sha256:166809528b1aced0a17dc66c24492af18049f2c9420dbd0be29422029cfc3ff7"},
@@ -2483,21 +2449,21 @@ files = [
 django = ">=4.2"
 
 [[package]]
-name = "djangorestframework-gis"
-version = "1.2.0"
-description = "Geographic add-ons for Django Rest Framework"
+name = "djangorestframework-guardian"
+version = "0.4.0"
+description = "django-guardian support for Django REST Framework"
 optional = false
-python-versions = "*"
-groups = ["dev"]
+python-versions = ">=3.10"
+groups = ["main"]
 files = [
-    {file = "djangorestframework_gis-1.2.0-py2.py3-none-any.whl", hash = "sha256:3924651b2f6dcb5a64b30df9692577af548a04725b0c2c36cbc385f7c50fc80a"},
-    {file = "djangorestframework_gis-1.2.0.tar.gz", hash = "sha256:702ba9ad44173b7cc70e48c6c84da48c28f6f82612cc901a77fdb54c5c57c971"},
+    {file = "djangorestframework_guardian-0.4.0-py3-none-any.whl", hash = "sha256:30c2a349318c1cd603d6953d50d58159f9a0c833f5f8f5a811407d5984a39e14"},
+    {file = "djangorestframework_guardian-0.4.0.tar.gz", hash = "sha256:a8113659e062f65b74cc31af6982420c382642e782d38581b3fdc748a179756c"},
 ]
 
 [package.dependencies]
-django = ">=4.2"
-django-filter = ">=23.5,<26.0"
-djangorestframework = ">=3.12,<3.17"
+django = "*"
+django-guardian = "*"
+djangorestframework = "*"
 
 [[package]]
 name = "djangorestframework-stubs"
@@ -2578,54 +2544,12 @@ files = [
 ]
 
 [[package]]
-name = "drf-access-policy"
-version = "1.5.0"
-description = "Declarative access policies/permissions modeled after AWS' IAM policies."
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "drf-access-policy-1.5.0.tar.gz", hash = "sha256:12c6a14182208d40544a2fd6f065db73ba6f60b3d127a929260e80dd192b8cbf"},
-]
-
-[package.dependencies]
-djangorestframework = "*"
-pyparsing = "*"
-
-[[package]]
-name = "drf-flex-fields"
-version = "1.0.2"
-description = "Flexible, dynamic fields and nested resources for Django REST Framework serializers."
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "drf-flex-fields-1.0.2.tar.gz", hash = "sha256:48139eeff0b1232fc05a9f353c3c2b570b225985043dedda6ab0d5e8b7a1d7af"},
-]
-
-[[package]]
-name = "drf-nested-routers"
-version = "0.94.2"
-description = "Nested resources for the Django Rest Framework"
-optional = false
-python-versions = ">=3.8"
-groups = ["dev"]
-files = [
-    {file = "drf_nested_routers-0.94.2-py2.py3-none-any.whl", hash = "sha256:74dbdceeae2a32f8668ba0df8e3eeabeb9b1c64d2621d914901ae653e4e3bcff"},
-    {file = "drf_nested_routers-0.94.2.tar.gz", hash = "sha256:aa70923b716dc47cd93b8129b06be6c15706b405cf5f718f59cb8eed01de59cc"},
-]
-
-[package.dependencies]
-Django = ">=4.2"
-djangorestframework = ">=3.15.0"
-
-[[package]]
 name = "drf-orjson-renderer"
 version = "1.8.0"
 description = "Django RestFramework JSON Renderer Backed by orjson"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "drf_orjson_renderer-1.8.0-py3-none-any.whl", hash = "sha256:386ef0feda21147a490886a233b34b2ec0baf874a1de07e689aa8bc264c9baff"},
     {file = "drf_orjson_renderer-1.8.0.tar.gz", hash = "sha256:0cd506cc13471526b7ea679d56b7a346f033fab2103c9fa10f6d7c6fa60b6d22"},
@@ -2640,32 +2564,15 @@ orjson = ">=3.3.0"
 dev = ["black", "django-stubs (==1.9.0)", "djangorestframework-stubs (==1.4.0)", "ipdb", "ipython", "isort", "mypy (==0.910)", "numpy", "pre-commit", "pytest-cov (==3.0.0)"]
 
 [[package]]
-name = "drf-schema-adapter"
-version = "3.0.6"
-description = "Making using Django with frontend libraries and frameworks DRYer"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "drf-schema-adapter-3.0.6.tar.gz", hash = "sha256:6c02c77136da234b3b5c3ae2b5db0bff5c19b3298b513f02d38966bf617a6cf3"},
-]
-
-[package.dependencies]
-Django = ">=3.2"
-django-filter = ">=0.13.0"
-djangorestframework = ">=3.12,<4.0"
-Inflector = ">=3.0.1"
-
-[[package]]
 name = "drf-spectacular"
-version = "0.28.0"
+version = "0.29.0"
 description = "Sane and flexible OpenAPI 3 schema generation for Django REST framework"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main"]
 files = [
-    {file = "drf_spectacular-0.28.0-py3-none-any.whl", hash = "sha256:856e7edf1056e49a4245e87a61e8da4baff46c83dbc25be1da2df77f354c7cb4"},
-    {file = "drf_spectacular-0.28.0.tar.gz", hash = "sha256:2c778a47a40ab2f5078a7c42e82baba07397bb35b074ae4680721b2805943061"},
+    {file = "drf_spectacular-0.29.0-py3-none-any.whl", hash = "sha256:d1ee7c9535d89848affb4427347f7c4a22c5d22530b8842ef133d7b72e19b41a"},
+    {file = "drf_spectacular-0.29.0.tar.gz", hash = "sha256:0a069339ea390ce7f14a75e8b5af4a0860a46e833fd4af027411a3e94fc1a0cc"},
 ]
 
 [package.dependencies]
@@ -2687,7 +2594,7 @@ version = "2026.1.1"
 description = "Serve self-contained distribution builds of Swagger UI and Redoc with Django"
 optional = false
 python-versions = ">=3.6"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "drf_spectacular_sidecar-2026.1.1-py3-none-any.whl", hash = "sha256:af8df62f1b594ec280351336d837eaf2402ab25a6bc2a1fad7aee9935821070f"},
     {file = "drf_spectacular_sidecar-2026.1.1.tar.gz", hash = "sha256:6f7c173a8ddbbbdafc7a27e028614b65f07a89ca90f996a432d57460463b56be"},
@@ -2877,37 +2784,6 @@ type = "git"
 url = "https://github.com/FAIR-DM/fairdm-docs"
 reference = "HEAD"
 resolved_reference = "2ff59e060456796e1375cc66e0543363f545b56d"
-
-[[package]]
-name = "fairdm-rest-api"
-version = "0.1.0"
-description = "A REST API implementation for FAIR-DM"
-optional = false
-python-versions = "^3.11"
-groups = ["dev"]
-files = []
-develop = false
-
-[package.dependencies]
-dj-rest-auth = "^7.0.1"
-django-cors-headers = "^4.7.0"
-django-parler-rest = "^2.2"
-django-rest-polymorphic = "^0.1.10"
-djangorestframework = "^3.16.1"
-djangorestframework-gis = "^1.2.0"
-drf-access-policy = "^1.5.0"
-drf-flex-fields = "^1.0.2"
-drf-nested-routers = "^0.94.2"
-drf-orjson-renderer = "^1.7.3"
-drf-schema-adapter = "^3.0.6"
-drf-spectacular = {version = "^0.28.0", extras = ["sidecar"]}
-rest-pandas = "^1.1.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/FAIR-DM/fairdm-rest-api"
-reference = "HEAD"
-resolved_reference = "d2ab82f05924737d71f94a2083e06af162acdb07"
 
 [[package]]
 name = "faker"
@@ -3121,22 +2997,10 @@ version = "0.5.1"
 description = "A port of Ruby on Rails inflector to Python"
 optional = false
 python-versions = ">=3.5"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2"},
     {file = "inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417"},
-]
-
-[[package]]
-name = "inflector"
-version = "3.1.1"
-description = "Inflector for Python"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "Inflector-3.1.1-py3-none-any.whl", hash = "sha256:b158010b9c400382a9792dcaa05a02c198b27d17fb52a23262e8226c91b13c97"},
-    {file = "Inflector-3.1.1.tar.gz", hash = "sha256:1835ccc74ea8b5bea93cee9f7802b5cbbaaa937e268a197a937394aa47dee6d5"},
 ]
 
 [[package]]
@@ -3300,7 +3164,7 @@ version = "4.26.0"
 description = "An implementation of JSON Schema validation for Python"
 optional = false
 python-versions = ">=3.10"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "jsonschema-4.26.0-py3-none-any.whl", hash = "sha256:d489f15263b8d200f8387e64b4c3a75f06629559fb73deb8fdfb525f2dab50ce"},
     {file = "jsonschema-4.26.0.tar.gz", hash = "sha256:0c26707e2efad8aa1bfc5b7ce170f3fccc2e4918ff85989ba9ffa9facb2be326"},
@@ -3322,7 +3186,7 @@ version = "2025.9.1"
 description = "The JSON Schema meta-schemas and vocabularies, exposed as a Registry"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe"},
     {file = "jsonschema_specifications-2025.9.1.tar.gz", hash = "sha256:b540987f239e745613c7a9176f3edb72b832a4ac465cf02712288397832b5e8d"},
@@ -4191,7 +4055,7 @@ version = "3.11.7"
 description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
 optional = false
 python-versions = ">=3.10"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "orjson-3.11.7-cp310-cp310-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:a02c833f38f36546ba65a452127633afce4cf0dd7296b753d3bb54e55e5c0174"},
     {file = "orjson-3.11.7-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b63c6e6738d7c3470ad01601e23376aa511e50e1f3931395b9f9c722406d1a67"},
@@ -5243,7 +5107,7 @@ version = "6.0.3"
 description = "YAML parser and emitter for Python"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev", "docs"]
+groups = ["main", "dev", "docs"]
 files = [
     {file = "PyYAML-6.0.3-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:c2514fceb77bc5e7a2f7adfaa1feb2fb311607c9cb518dbc378688ec73d8292f"},
     {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9c57bb8c96f6d1808c030b1687b9b5fb476abaa47f0db9c0101f5e9f394e97f4"},
@@ -5563,7 +5427,7 @@ version = "0.37.0"
 description = "JSON Referencing + Python"
 optional = false
 python-versions = ">=3.10"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "referencing-0.37.0-py3-none-any.whl", hash = "sha256:381329a9f99628c9069361716891d34ad94af76e461dcb0335825aecc7692231"},
     {file = "referencing-0.37.0.tar.gz", hash = "sha256:44aefc3142c5b842538163acb373e24cce6632bd54bdb01b21ad5863489f50d8"},
@@ -5752,22 +5616,6 @@ files = [
 packaging = ">=23.2"
 
 [[package]]
-name = "rest-pandas"
-version = "1.1.0"
-description = "Serves up pandas dataframes via the Django REST Framework for client-side(i.e. d3.js) visualizations"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "rest-pandas-1.1.0.tar.gz", hash = "sha256:13796398565a08c668e0fd31861939df6d0f9cc859b1493308f7cc5c11ea247c"},
-    {file = "rest_pandas-1.1.0-py3-none-any.whl", hash = "sha256:28238165223042d1618490b689fef04740dbdb63adb1ced58e4fbb8af87f63f6"},
-]
-
-[package.dependencies]
-djangorestframework = ">=3.3.1"
-pandas = ">=0.19.0"
-
-[[package]]
 name = "rich"
 version = "14.3.2"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
@@ -5885,7 +5733,7 @@ version = "0.30.0"
 description = "Python bindings to Rust's persistent data structures (rpds)"
 optional = false
 python-versions = ">=3.10"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "rpds_py-0.30.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:679ae98e00c0e8d68a7fda324e16b90fd5260945b45d3b824c892cec9eea3288"},
     {file = "rpds_py-0.30.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4cc2206b76b4f576934f0ed374b10d7ca5f457858b157ca52064bdfc26b9fc00"},
@@ -6786,7 +6634,7 @@ version = "4.2.0"
 description = "Implementation of RFC 6570 URI Templates"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "uritemplate-4.2.0-py3-none-any.whl", hash = "sha256:962201ba1c4edcab02e60f9a0d3821e82dfc5d2d6662a21abd533879bdb8a686"},
     {file = "uritemplate-4.2.0.tar.gz", hash = "sha256:480c2ed180878955863323eea31b0ede668795de182617fef9c6ca09e6ec9d0e"},
@@ -7233,4 +7081,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "465ad652fdd64b4858f23a8634085a41947e4ad4df30623f4c9f35c79b798ea1"
+content-hash = "cc5456293cc46775ada17a46c868e7dcfb7794cbe21bb671b94ca85da55cd9d0"
