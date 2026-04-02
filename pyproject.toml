@@ -412,6 +412,11 @@ per_rule_ignores = { DEP002 = [
     "redis",
     "whitenoise",
     "tablib",
+    "drf-orjson-renderer",
+    "dj-rest-auth",
+    "django-cors-headers",
+], DEP001 = [
+    "rest_framework_gis",
 ], DEP003 = [
     "debug_toolbar",
     "requests",
