@@ -98,6 +98,9 @@ except Exception:
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+# Disable email verification in development so signup works without email confirmation
+ACCOUNT_EMAIL_VERIFICATION = "none"
+
 # =============================================================================
 # SECURITY (Relaxed for development)
 # =============================================================================
