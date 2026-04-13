@@ -241,17 +241,13 @@ class TestAPIURLNamespaceIsolation:
     def test_portal_project_list_resolves_to_portal_view(self):
         """reverse('project-list') must resolve to the portal HTML list view, not the API."""
         url = reverse("project-list")
-        assert "/api/v1/" not in url, (
-            f"'project-list' should resolve to the portal UI, not the API. Got: {url!r}"
-        )
+        assert "/api/v1/" not in url, f"'project-list' should resolve to the portal UI, not the API. Got: {url!r}"
         assert "/projects/" in url
 
     def test_portal_dataset_list_resolves_to_portal_view(self):
         """reverse('dataset-list') must resolve to the portal HTML list view, not the API."""
         url = reverse("dataset-list")
-        assert "/api/v1/" not in url, (
-            f"'dataset-list' should resolve to the portal UI, not the API. Got: {url!r}"
-        )
+        assert "/api/v1/" not in url, f"'dataset-list' should resolve to the portal UI, not the API. Got: {url!r}"
         assert "/datasets/" in url
 
     def test_api_project_list_resolves_to_api_endpoint(self):
@@ -268,14 +264,10 @@ class TestAPIURLNamespaceIsolation:
         """Portal and API project-list URLs must not be the same path."""
         portal_url = reverse("project-list")
         api_url = reverse("api:project-list")
-        assert portal_url != api_url, (
-            f"Portal and API project-list resolved to the same URL: {portal_url!r}"
-        )
+        assert portal_url != api_url, f"Portal and API project-list resolved to the same URL: {portal_url!r}"
 
     def test_portal_and_api_dataset_urls_are_different(self):
         """Portal and API dataset-list URLs must not be the same path."""
         portal_url = reverse("dataset-list")
         api_url = reverse("api:dataset-list")
-        assert portal_url != api_url, (
-            f"Portal and API dataset-list resolved to the same URL: {portal_url!r}"
-        )
+        assert portal_url != api_url, f"Portal and API dataset-list resolved to the same URL: {portal_url!r}"
