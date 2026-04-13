@@ -1,4 +1,4 @@
-"""Permission enforcement tests for FairDM API (Feature 011 — US4).
+﻿"""Permission enforcement tests for FairDM API (Feature 011 â€” US4).
 
 Covers:
 - Full permission matrix: anonymous / authenticated-no-perm / with-guardian-perm
@@ -43,41 +43,41 @@ class TestAnonymousAccess:
     """Anonymous users can read public objects and nothing else."""
 
     def test_list_returns_200(self):
-        response = APIClient().get(reverse("project-list"))
+        response = APIClient().get(reverse("api:project-list"))
         assert response.status_code == 200
 
     def test_public_project_detail_returns_200(self):
         proj = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert APIClient().get(url).status_code == 200
 
     def test_private_project_detail_returns_404(self):
         """Non-disclosure: private project must return 404 to anonymous users."""
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert APIClient().get(url).status_code == 404
 
     def test_post_returns_401(self):
         """Anonymous write must return 401 (not 403)."""
-        response = APIClient().post(reverse("project-list"), {"name": "X"}, format="json")
+        response = APIClient().post(reverse("api:project-list"), {"name": "X"}, format="json")
         assert response.status_code == 401
 
     def test_patch_public_project_returns_401(self):
         """Anonymous PATCH must return 401."""
         proj = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         response = APIClient().patch(url, {"name": "Hacked"}, format="json")
         assert response.status_code == 401
 
     def test_delete_public_project_returns_401(self):
         """Anonymous DELETE must return 401."""
         proj = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert APIClient().delete(url).status_code == 401
 
 
 # ---------------------------------------------------------------------------
-# Authenticated user — no guardian permissions
+# Authenticated user â€” no guardian permissions
 # ---------------------------------------------------------------------------
 
 
@@ -90,14 +90,14 @@ class TestAuthenticatedNoPermission:
         owner = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         client = make_token_client(UserFactory())  # different user, no perms
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert client.get(url).status_code == 404
 
     def test_patch_public_project_returns_403(self):
         """Authenticated user without change perm on PUBLIC project gets 403."""
         proj = ProjectFactory(visibility=Visibility.PUBLIC)
         client = make_token_client(UserFactory())  # no guardian perm
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         response = client.patch(url, {"name": "Hijack"}, format="json")
         assert response.status_code == 403
 
@@ -105,26 +105,26 @@ class TestAuthenticatedNoPermission:
         """Authenticated user without any perm on PRIVATE project gets 404."""
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         client = make_token_client(UserFactory())  # no guardian perm
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         response = client.patch(url, {"name": "Hijack"}, format="json")
         assert response.status_code == 404
 
     def test_delete_private_project_returns_404(self):
-        """Authenticated user without any perm on PRIVATE project DELETE → 404."""
+        """Authenticated user without any perm on PRIVATE project DELETE â†’ 404."""
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         client = make_token_client(UserFactory())
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert client.delete(url).status_code == 404
 
     def test_create_project_succeeds(self):
         """Any authenticated user can create a project (permissions assigned on creation)."""
         client = make_token_client(UserFactory())
-        response = client.post(reverse("project-list"), {"name": "My New Project"}, format="json")
+        response = client.post(reverse("api:project-list"), {"name": "My New Project"}, format="json")
         assert response.status_code == 201
 
 
 # ---------------------------------------------------------------------------
-# Authenticated user — with guardian permissions
+# Authenticated user â€” with guardian permissions
 # ---------------------------------------------------------------------------
 
 
@@ -138,7 +138,7 @@ class TestAuthenticatedWithPermission:
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         assign_perm("view_project", user, proj)
         client = make_token_client(user)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert client.get(url).status_code == 200
 
     def test_change_perm_allows_patch(self):
@@ -148,7 +148,7 @@ class TestAuthenticatedWithPermission:
         assign_perm("view_project", user, proj)
         assign_perm("change_project", user, proj)
         client = make_token_client(user)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         resp = client.patch(url, {"name": "Updated"}, format="json")
         assert resp.status_code == 200
         assert resp.json()["name"] == "Updated"
@@ -160,7 +160,7 @@ class TestAuthenticatedWithPermission:
         assign_perm("view_project", user, proj)
         assign_perm("delete_project", user, proj)
         client = make_token_client(user)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert client.delete(url).status_code == 204
 
     def test_owner_created_object_gets_full_access(self):
@@ -168,10 +168,10 @@ class TestAuthenticatedWithPermission:
         user = UserFactory()
         client = make_token_client(user)
 
-        post_resp = client.post(reverse("project-list"), {"name": "Owner Project"}, format="json")
+        post_resp = client.post(reverse("api:project-list"), {"name": "Owner Project"}, format="json")
         assert post_resp.status_code == 201
         uuid = post_resp.json()["uuid"]
-        url = reverse("project-detail", kwargs={"uuid": uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": uuid})
 
         # Owner can PATCH
         patch_resp = client.patch(url, {"name": "Renamed"}, format="json")
@@ -182,12 +182,12 @@ class TestAuthenticatedWithPermission:
         assert del_resp.status_code == 204
 
     def test_viewer_cannot_patch_private_project(self):
-        """User with only view_project cannot PATCH — returns 403 (they can see it)."""
+        """User with only view_project cannot PATCH â€” returns 403 (they can see it)."""
         user = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         assign_perm("view_project", user, proj)  # view but not change
         client = make_token_client(user)
-        url = reverse("project-detail", kwargs={"uuid": proj.uuid})
+        url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         resp = client.patch(url, {"name": "No Access"}, format="json")
         assert resp.status_code == 403
 
@@ -197,7 +197,7 @@ class TestAuthenticatedWithPermission:
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         assign_perm("view_project", user, proj)
         client = make_token_client(user)
-        response = client.get(reverse("project-list"))
+        response = client.get(reverse("api:project-list"))
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(proj.uuid) in uuids
 
@@ -205,7 +205,7 @@ class TestAuthenticatedWithPermission:
         """User without view_project perm does NOT see private project in list."""
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         client = make_token_client(UserFactory())  # no perm
-        response = client.get(reverse("project-list"))
+        response = client.get(reverse("api:project-list"))
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(proj.uuid) not in uuids
 
@@ -222,7 +222,7 @@ class TestDatasetPermissions:
     def test_anonymous_cannot_see_private_dataset_detail(self):
         pub_proj = ProjectFactory(visibility=Visibility.PUBLIC)
         ds = DatasetFactory(project=pub_proj, visibility=Visibility.PRIVATE)
-        url = reverse("dataset-detail", kwargs={"uuid": ds.uuid})
+        url = reverse("api:dataset-detail", kwargs={"uuid": ds.uuid})
         assert APIClient().get(url).status_code == 404
 
     def test_permitted_user_can_see_private_dataset(self):
@@ -231,5 +231,5 @@ class TestDatasetPermissions:
         user = UserFactory()
         assign_perm("view_dataset", user, ds)
         client = make_token_client(user)
-        url = reverse("dataset-detail", kwargs={"uuid": ds.uuid})
+        url = reverse("api:dataset-detail", kwargs={"uuid": ds.uuid})
         assert client.get(url).status_code == 200

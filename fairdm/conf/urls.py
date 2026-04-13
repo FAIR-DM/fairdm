@@ -30,8 +30,8 @@ urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("martor/", include("martor.urls")),
     path("hijack/", include("hijack.urls")),
-    # REST API — Feature 011
-    path("api/", include("fairdm.api.urls")),
+    # REST API — Feature 011 (namespaced to prevent URL name collision with portal UI routes)
+    path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
 ]
 
 if addon_urls:

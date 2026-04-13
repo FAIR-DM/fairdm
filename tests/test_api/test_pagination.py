@@ -1,4 +1,4 @@
-"""Tests for FairDM API pagination (Feature 011 — US1).
+﻿"""Tests for FairDM API pagination (Feature 011 â€” US1).
 
 Covers:
 - Default page_size=25
@@ -26,13 +26,13 @@ class TestPagination:
     """Pagination behaviour for list endpoints."""
 
     def test_default_page_size_is_25(self, api_client, many_public_projects):
-        response = api_client.get(reverse("project-list"))
+        response = api_client.get(reverse("api:project-list"))
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) == 25
 
     def test_custom_page_size_respected(self, api_client, many_public_projects):
-        response = api_client.get(reverse("project-list"), {"page_size": 10})
+        response = api_client.get(reverse("api:project-list"), {"page_size": 10})
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) == 10
@@ -40,29 +40,29 @@ class TestPagination:
     def test_page_size_capped_at_100(self, api_client, db):
         """Requesting page_size=200 must be silently capped at max_page_size=100."""
         ProjectFactory.create_batch(110, visibility=Visibility.PUBLIC)
-        response = api_client.get(reverse("project-list"), {"page_size": 200})
+        response = api_client.get(reverse("api:project-list"), {"page_size": 200})
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) <= 100
 
     def test_next_link_present_on_first_page(self, api_client, many_public_projects):
-        response = api_client.get(reverse("project-list"))
+        response = api_client.get(reverse("api:project-list"))
         data = response.json()
         assert data["count"] == 30
         assert data["next"] is not None
 
     def test_previous_link_none_on_first_page(self, api_client, many_public_projects):
-        response = api_client.get(reverse("project-list"))
+        response = api_client.get(reverse("api:project-list"))
         data = response.json()
         assert data["previous"] is None
 
     def test_second_page_has_previous_link(self, api_client, many_public_projects):
-        response = api_client.get(reverse("project-list"), {"page": 2})
+        response = api_client.get(reverse("api:project-list"), {"page": 2})
         data = response.json()
         assert data["previous"] is not None
 
     def test_last_page_has_no_next_link(self, api_client, many_public_projects):
-        response = api_client.get(reverse("project-list"), {"page": 2, "page_size": 25})
+        response = api_client.get(reverse("api:project-list"), {"page": 2, "page_size": 25})
         data = response.json()
         # Page 2 with page_size=25 should be the last page (5 items)
         assert data["next"] is None
@@ -72,7 +72,7 @@ class TestPagination:
         public_count = 5
         ProjectFactory.create_batch(public_count, visibility=Visibility.PUBLIC)
         ProjectFactory.create_batch(3, visibility=Visibility.PRIVATE)
-        response = api_client.get(reverse("project-list"))
+        response = api_client.get(reverse("api:project-list"))
         data = response.json()
         assert data["count"] == public_count
 
@@ -84,7 +84,7 @@ class TestPagination:
         private = ProjectFactory(visibility=Visibility.PRIVATE)
         assign_perm("view_project", user, private)
 
-        response = authenticated_client.get(reverse("project-list"))
+        response = authenticated_client.get(reverse("api:project-list"))
         data = response.json()
         # Should see 3 public + 1 private = 4
         assert data["count"] == 4

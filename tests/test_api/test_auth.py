@@ -1,9 +1,9 @@
-"""Tests for FairDM API authentication endpoints (Feature 011 — US3).
+﻿"""Tests for FairDM API authentication endpoints (Feature 011 â€” US3).
 
 Covers:
-- POST /api/v1/auth/login/  → returns auth token key for valid credentials
+- POST /api/v1/auth/login/  â†’ returns auth token key for valid credentials
 - Token-in-header grants access to a write-protected endpoint
-- POST /api/v1/auth/logout/ → revokes the token (token unusable after logout)
+- POST /api/v1/auth/logout/ â†’ revokes the token (token unusable after logout)
 - Invalid credentials return 400 with error details
 - Session authentication works (cookie-based, used by Swagger UI)
 """
@@ -101,13 +101,13 @@ class TestTokenHeaderAccess:
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"Token {token_key}")
         # The project list is a readable authenticated endpoint
-        response = client.get(reverse("project-list"))
+        response = client.get(reverse("api:project-list"))
         assert response.status_code == 200
 
     def test_invalid_token_returns_401(self, api_client, db):
         """Made-up token key is rejected with 401."""
         api_client.credentials(HTTP_AUTHORIZATION="Token thisisnotavalidtoken")
-        response = api_client.get(reverse("project-list"))
+        response = api_client.get(reverse("api:project-list"))
         assert response.status_code == 401
 
 
@@ -125,12 +125,12 @@ class TestTokenLogout:
         assert response.status_code == 200
 
     def test_token_unusable_after_logout(self, user, token):
-        """Token is deleted from the DB on logout → subsequent requests get 401."""
+        """Token is deleted from the DB on logout â†’ subsequent requests get 401."""
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
 
         # Confirm the token works before logout
-        pre_response = client.get(reverse("project-list"))
+        pre_response = client.get(reverse("api:project-list"))
         assert pre_response.status_code == 200
 
         # Logout
@@ -138,5 +138,5 @@ class TestTokenLogout:
         assert logout_resp.status_code == 200
 
         # Token should now be invalid (dj-rest-auth deletes the token on logout)
-        post_response = client.get(reverse("project-list"))
+        post_response = client.get(reverse("api:project-list"))
         assert post_response.status_code == 401

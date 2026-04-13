@@ -56,9 +56,9 @@ FairDM ships a Swagger UI and ReDoc interface powered by [drf-spectacular](https
 
 | URL | URL name | Description |
 |-----|----------|-------------|
-| `/api/v1/docs/` | `api-docs` | Swagger UI — try endpoints interactively |
-| `/api/v1/redoc/` | `api-redoc` | ReDoc — clean reference documentation |
-| `/api/v1/schema/` | `api-schema` | Raw OpenAPI 3.0 schema (YAML) |
+| `/api/v1/docs/` | `api:api-docs` | Swagger UI — try endpoints interactively |
+| `/api/v1/redoc/` | `api:api-redoc` | ReDoc — clean reference documentation |
+| `/api/v1/schema/` | `api:api-schema` | Raw OpenAPI 3.0 schema (YAML) |
 
 ## Authentication
 
@@ -355,8 +355,8 @@ FairDM adds an **API** group to the portal sidebar navigation automatically. It 
 
 | Link | Resolved URL | Implementation |
 |------|-------------|----------------|
-| Interactive Docs | `/api/v1/docs/` | `view_name="api-docs"` |
-| Browse API | `/api/v1/` | `view_name="api-root"` |
+| Interactive Docs | `/api/v1/docs/` | `view_name="api:api-docs"` |
+| Browse API | `/api/v1/` | `view_name="api:api-root"` |
 | How to use the API | `FAIRDM_API_DOCS_URL` | static `url=` (external) |
 
 ### `FAIRDM_API_DOCS_URL`

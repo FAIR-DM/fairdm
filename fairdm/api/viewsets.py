@@ -90,7 +90,7 @@ class ProjectViewSet(BaseViewSet):
         self._serializer_class = build_model_serializer(
             Project,
             ["uuid", "name", "status", "visibility", "added", "modified"],
-            view_name="project-detail",
+            view_name="api:project-detail",
         )
         return self._serializer_class
 
@@ -115,7 +115,7 @@ class DatasetViewSet(BaseViewSet):
         self._serializer_class = build_model_serializer(
             Dataset,
             ["uuid", "name", "visibility", "added", "modified"],
-            view_name="dataset-detail",
+            view_name="api:dataset-detail",
         )
         return self._serializer_class
 
@@ -142,7 +142,7 @@ class ContributorViewSet(ReadOnlyModelViewSet):
         self._serializer_class = build_model_serializer(
             Contributor,
             ["uuid", "name"],
-            view_name="contributor-detail",
+            view_name="api:contributor-detail",
         )
         return self._serializer_class
 
@@ -200,11 +200,11 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
         # Try to determine the DRF view_name for the URL field
         slug = _model_to_slug(model)
         if hasattr(model, "sample_ptr"):
-            view_name = f"samples-{slug}-detail"
+            view_name = f"api:samples-{slug}-detail"
         elif hasattr(model, "measurement_ptr"):
-            view_name = f"measurements-{slug}-detail"
+            view_name = f"api:measurements-{slug}-detail"
         else:
-            view_name = f"{model._meta.model_name}-detail"
+            view_name = f"api:{model._meta.model_name}-detail"
 
         # Select the appropriate base serializer class for inheritance enforcement
         if issubclass(model, Sample):

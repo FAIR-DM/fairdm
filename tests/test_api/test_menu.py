@@ -38,16 +38,16 @@ class TestAPIMenuGroupChildURLs:
     """Each child MenuItem must point to the correct URL."""
 
     def test_first_child_is_interactive_docs(self, api_menu_group):
-        """First child must be 'Interactive Docs' using view_name 'api-docs'."""
+        """First child must be 'Interactive Docs' using view_name 'api:api-docs'."""
         child = api_menu_group.children[0]
         assert str(child.name) == "Interactive Docs"
-        assert child.view_name == "api-docs", f"Unexpected view_name: {child.view_name!r}"
+        assert child.view_name == "api:api-docs", f"Unexpected view_name: {child.view_name!r}"
 
     def test_second_child_is_browse_api(self, api_menu_group):
-        """Second child must be 'Browse API' using view_name 'api-root'."""
+        """Second child must be 'Browse API' using view_name 'api:api-root'."""
         child = api_menu_group.children[1]
         assert str(child.name) == "Browse API"
-        assert child.view_name == "api-root", f"Unexpected view_name: {child.view_name!r}"
+        assert child.view_name == "api:api-root", f"Unexpected view_name: {child.view_name!r}"
 
     def test_third_child_is_how_to_use_api_default_url(self, api_menu_group):
         """Third child must use _url (external link) pointing to FAIRDM_API_DOCS_URL default."""
@@ -69,13 +69,13 @@ class TestAPIMenuGroupChildURLs:
     def test_first_child_uses_view_name_not_hardcoded_url(self, api_menu_group):
         """Interactive Docs must use view_name reversal, not a hardcoded URL string."""
         child = api_menu_group.children[0]
-        assert child.view_name == "api-docs"
+        assert child.view_name == "api:api-docs"
         assert child._url == "", "Internal links must not carry a hardcoded _url"
 
     def test_second_child_uses_view_name_not_hardcoded_url(self, api_menu_group):
         """Browse API must use view_name reversal, not a hardcoded URL string."""
         child = api_menu_group.children[1]
-        assert child.view_name == "api-root"
+        assert child.view_name == "api:api-root"
         assert child._url == "", "Internal links must not carry a hardcoded _url"
 
     def test_first_child_icon_context(self, api_menu_group):
