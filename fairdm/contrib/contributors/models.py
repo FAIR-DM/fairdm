@@ -19,7 +19,6 @@ from django_lifecycle import AFTER_CREATE, AFTER_DELETE, BEFORE_CREATE, hook
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
-from jsonfield_toolkit.models import ArrayField
 from model_utils import FieldTracker
 from ordered_model.models import OrderedModel
 from research_vocabs.fields import ConceptManyToManyField
@@ -37,7 +36,6 @@ from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
 from .managers import AffiliationManager, ContributionManager, UserManager
-from .validators import validate_iso_639_1_language_code
 
 logger = logging.getLogger(__name__)
 
@@ -114,8 +112,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         # help_text=_("This name is displayed publicly within the website."),
     )
 
-    alternative_names = ArrayField(
-        base_field=models.CharField(max_length=255),
+    alternative_names = models.JSONField(
         verbose_name=_("alternative names"),
         help_text=_("Any other names by which the contributor is known."),
         null=True,
@@ -125,8 +122,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     profile = models.TextField(_("profile"), null=True, blank=True)
 
-    links = ArrayField(
-        base_field=models.URLField(),
+    links = models.JSONField(
         verbose_name=_("links"),
         help_text=_("A list of online resources related to this contributor."),
         null=True,
@@ -134,16 +130,12 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         default=list,
     )
 
-    lang = ArrayField(
-        base_field=models.CharField(max_length=5, validators=[validate_iso_639_1_language_code]),
+    lang = models.JSONField(
         verbose_name=_("language"),
         help_text=_("ISO 639-1 language codes (e.g., 'en', 'es', 'fr')."),
         blank=True,
         null=True,
         default=list,
-        error_messages={
-            "item_invalid": _("Item %(nth)s in the array is invalid."),
-        },
     )
 
     last_synced = models.DateField(

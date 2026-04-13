@@ -6,8 +6,6 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
-from jsonfield_toolkit.models import ArrayField
-
 from fairdm.db import models
 
 from .models import (
@@ -357,12 +355,8 @@ class OrganizationAdmin(admin.ModelAdmin):
     list_display = ["name", "city", "country", "lat", "lon"]
     search_fields = ["name"]
     readonly_fields = ["synced_data", "last_synced"]
-    exclude = ("alternative_names", "links", "lang")  # Exclude ArrayFields to avoid widget issues
+    exclude = ("alternative_names", "links", "lang")  # Exclude JSON array fields to avoid widget issues
     actions = ["sync_from_ror", "transfer_ownership_action"]  # Add ROR sync and ownership transfer actions
-    formfield_overrides = {
-        # Use simple Textarea for ArrayFields to avoid missing widget template issues
-        ArrayField: {"widget": admin.widgets.AdminTextareaWidget},
-    }
 
     def get_readonly_fields(self, request, obj: Organization | None = None):
         if obj and obj.synced_data:

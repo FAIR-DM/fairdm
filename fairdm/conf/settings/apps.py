@@ -82,7 +82,6 @@ INSTALLED_APPS = [
     "easy_icons",
     "easy_thumbnails",
     "flex_menu",
-    "jsonfield_toolkit",
     "meta",  # for seo optimization
     # OTHERS
     "solo",  # singleton model for storing dynamic global variables in the DB

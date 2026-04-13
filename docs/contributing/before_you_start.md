@@ -56,6 +56,10 @@ Before setting up the development environment, ensure you have the following ins
 
 ## Setting Up Your Development Environment
 
+```{tip}
+**Recommended: Use Dev Containers.** The fastest way to get a fully working development environment is with VS Code Dev Containers. See [Dev Container Setup](dev-containers.md) — it requires only Docker and VS Code, and gives you PostGIS, Redis, and Celery out of the box. The rest of this page describes manual setup for contributors who prefer not to use containers.
+```
+
 Follow these steps to set up a local FairDM development environment:
 
 ### 1. Fork and Clone the Repository

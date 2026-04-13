@@ -3,10 +3,12 @@ Test-specific Django settings for FairDM test suite.
 
 This settings module:
 - Imports base FairDM configuration
-- Overrides database to use in-memory SQLite for speed
+- Inherits the PostGIS database config (no SQLite/SpatiaLite override)
 - Disables migrations for faster test database setup
 - Configures minimal logging
 - Disables non-essential features for testing
+
+Tests run against a real PostGIS instance (dev container or CI service).
 
 Used automatically by pytest-django via pyproject.toml configuration.
 """
@@ -32,21 +34,12 @@ fairdm.setup(
 from config.settings import *
 
 # ==============================================================================
-# TEST DATABASE CONFIGURATION
+# DATABASE
 # ==============================================================================
-# Use in-memory SQLite for fast test execution
-# This completely overrides the database configuration from base settings
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",  # In-memory database for speed
-        "ATOMIC_REQUESTS": True,
-        "TEST": {
-            "NAME": ":memory:",
-        },
-    }
-}
+# No override — inherits PostGIS config from base settings (stack.env provides
+# POSTGRES_* vars). Tests run against a real PostGIS instance:
+#   - Dev container: the `postgres` service in .devcontainer/docker-compose.yml
+#   - CI: the `postgres` service container in .github/workflows/ci.yml
 
 # ==============================================================================
 # MIGRATION SETTINGS

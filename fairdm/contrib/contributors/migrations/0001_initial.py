@@ -11,7 +11,6 @@ import fairdm.contrib.contributors.models
 import fairdm.core.vocabularies
 import fairdm.utils.models
 import fairdm.utils.utils
-import jsonfield_toolkit.models
 import research_vocabs.fields
 import shortuuid.django_fields
 from django.conf import settings
@@ -68,38 +67,32 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "alternative_names",
-                    jsonfield_toolkit.models.ArrayField(
-                        base_field=models.CharField(max_length=255),
+                    models.JSONField(
                         blank=True,
                         default=list,
                         help_text="Any other names by which the contributor is known.",
                         null=True,
-                        size=None,
                         verbose_name="alternative names",
                     ),
                 ),
                 ("profile", models.TextField(blank=True, null=True)),
                 (
                     "links",
-                    jsonfield_toolkit.models.ArrayField(
-                        base_field=models.URLField(),
+                    models.JSONField(
                         blank=True,
                         default=list,
                         help_text="A list of online resources related to this contributor.",
                         null=True,
-                        size=None,
                         verbose_name="links",
                     ),
                 ),
                 (
                     "lang",
-                    jsonfield_toolkit.models.ArrayField(
-                        base_field=models.CharField(max_length=5),
+                    models.JSONField(
                         blank=True,
                         default=list,
                         help_text="Language of the contributor.",
                         null=True,
-                        size=None,
                         verbose_name="language",
                     ),
                 ),

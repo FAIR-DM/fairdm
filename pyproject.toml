@@ -54,7 +54,6 @@ dependencies = [
     'redis (>=4.5.2,<5.0.0)',
     'whitenoise (>=6.4.0,<7.0.0)',
     'django-research-vocabs @ git+https://github.com/SamuelJennings/django-research-vocabs',
-    'django-jsonfield-toolkit @ git+https://github.com/SamuelJennings/django-jsonfield-toolkit',
     'shortuuid (>=1.0.13,<2.0.0)',
     'django-literature @ git+https://github.com/SamuelJennings/django-literature',
     'django-widget-tweaks (>=1.5.0,<2.0.0)',
@@ -62,7 +61,6 @@ dependencies = [
     'django-taggit (>=6.1.0,<7.0.0)',
     'django-waffle (>=5.0.0,<6.0.0)',
     'django-addanother (>=2.2.2,<3.0.0)',
-    'django-render-fields @ git+https://github.com/SamuelJennings/django-render-fields',
     'django-autocomplete-light (>=3.12.1,<4.0.0)',
     'django-braces (>=1.17.0,<2.0.0)',
     'django-auto-prefetch (>=1.12.0,<2.0.0)',
@@ -77,7 +75,6 @@ dependencies = [
     'django-setup-tools (>=0.2.5,<0.3.0)',
     'django-flex-menus (>=0.4.0,<0.5.0)',
     'django-easy-icons (>=0.5.0,<0.6.0)',
-    'django-mvp @ git+https://github.com/SamuelJennings/django-mvp',
     'django-hijack (>=3.7.4,<4.0.0)',
     'tablib[ods,xlsx] (>=3.9.0,<4.0.0)',
     'django-extra-views (>=0.16.0,<0.17.0)',
@@ -89,6 +86,7 @@ dependencies = [
     "dj-rest-auth (>=7.0.0,<8.0.0)",
     "django-cors-headers (>=4.7.0,<5.0.0)",
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
+    "django-mvp (>=0.1.1,<0.2.0)",
 ]
 
 [project.urls]
@@ -345,7 +343,12 @@ python_functions = ["test_*"]
 testpaths = ["tests"]
 markers = ["slow: Tests that take > 1 second to execute"]
 filterwarnings = ["ignore", "default:::keywords"]
-addopts = ["--strict-markers", "--reuse-db", "--no-migrations"]
+addopts = [
+    "--strict-markers",
+    "--reuse-db",
+    "--no-migrations",
+    "--ds=tests.settings",
+]
 # Coverage can be enabled with: --cov --cov-report html
 
 [tool.coverage.run]
@@ -382,7 +385,7 @@ extend_exclude = [
 known_first_party = ["fairdm", "fairdm_demo"]
 
 # Package to module name mappings for Django packages that use different import names
-package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = "pint", django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-jsonfield-toolkit = "jsonfield_toolkit", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = "pint", django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
 
 # Ignore specific dependency issues for packages used in Django settings/templates/config
 per_rule_ignores = { DEP002 = [

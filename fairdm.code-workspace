@@ -8,15 +8,9 @@
 		{
 			"path": "."
 		},
-		// {
-		// 	"path": "../django-content-license"
-		// },
-		// {
-		// 	"path": "../django-mvp"
-		// },
-		// {
-		// 	"path": "../django-accounts-center"
-		// },
+		{
+			"path": "../../django/django-accounts-center"
+		}
 	],
 	// ========================================
 	// WORKSPACE SETTINGS
