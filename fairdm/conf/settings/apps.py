@@ -103,7 +103,6 @@ INSTALLED_APPS = [
     "ordered_model",
     "taggit",
     "import_export",
-    "render_fields",
     "django_addanother",
     "waffle",
     "guardian",  # for object level permissions
