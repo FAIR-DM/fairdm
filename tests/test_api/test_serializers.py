@@ -1,11 +1,11 @@
-"""Tests for FairDM API serializer generation (Feature 011 â€” US6).
+﻿"""Tests for FairDM API serializer generation (Feature 011 â€” US6).
 
 Covers:
 - Three-tier serializer resolution:
-  1. ``serializer_class`` explicitly set â†’ used directly (no auto-generation)
-  2. ``serializer_fields`` set â†’ auto-generated serializer with those fields only
-  3. Only ``fields`` set â†’ auto-generated serializer using those fields
-  4. Nothing set â†’ fallback auto-generation from model field inspection
+  1. ``serializer_class`` explicitly set -> used directly (no auto-generation)
+  2. ``serializer_fields`` set -> auto-generated serializer with those fields only
+  3. Only ``fields`` set -> auto-generated serializer using those fields
+  4. Nothing set -> fallback auto-generation from model field inspection
 - Each auto-generated serializer includes a ``url`` HyperlinkedIdentityField
 - ``ObjectPermissionsAssignmentMixin`` present for guardian perm assignment
 - Serializer cache: same model+fields combo returns identical class object

@@ -1,9 +1,9 @@
-"""Tests for FairDM API authentication endpoints (Feature 011 â€” US3).
+﻿"""Tests for FairDM API authentication endpoints (Feature 011 â€” US3).
 
 Covers:
-- POST /api/v1/auth/login/  â†’ returns auth token key for valid credentials
+- POST /api/v1/auth/login/  -> returns auth token key for valid credentials
 - Token-in-header grants access to a write-protected endpoint
-- POST /api/v1/auth/logout/ â†’ revokes the token (token unusable after logout)
+- POST /api/v1/auth/logout/ -> revokes the token (token unusable after logout)
 - Invalid credentials return 400 with error details
 - Session authentication works (cookie-based, used by Swagger UI)
 """
@@ -125,7 +125,7 @@ class TestTokenLogout:
         assert response.status_code == 200
 
     def test_token_unusable_after_logout(self, user, token):
-        """Token is deleted from the DB on logout â†’ subsequent requests get 401."""
+        """Token is deleted from the DB on logout -> subsequent requests get 401."""
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
 

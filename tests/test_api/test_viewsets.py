@@ -1,4 +1,4 @@
-"""Tests for FairDM API viewsets (Feature 011 â€” US1).
+﻿"""Tests for FairDM API viewsets (Feature 011 â€” US1).
 
 Covers:
 - List and detail endpoints for Project, Dataset, Contributor
@@ -53,7 +53,7 @@ class TestProjectListEndpoint:
         assert str(private_project.uuid) not in uuids
 
     def test_ordering_ascending(self, api_client, db):
-        """?ordering=name returns names in Aâ†’Z order."""
+        """?ordering=name returns names in A->Z order."""
         ProjectFactory(name="Zeta Project", visibility=Visibility.PUBLIC)
         ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
         response = api_client.get(reverse("api:project-list"), {"ordering": "name"})
@@ -62,7 +62,7 @@ class TestProjectListEndpoint:
         assert names == sorted(names)
 
     def test_ordering_descending(self, api_client, db):
-        """?ordering=-name returns names in Zâ†’A order."""
+        """?ordering=-name returns names in Z->A order."""
         ProjectFactory(name="Zeta Project", visibility=Visibility.PUBLIC)
         ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
         response = api_client.get(reverse("api:project-list"), {"ordering": "-name"})
@@ -218,7 +218,7 @@ class TestProjectCRUD:
     """Authenticated create / update / delete for Project (US3)."""
 
     def test_authenticated_post_creates_project(self, authenticated_client):
-        """POST /api/v1/projects/ with valid payload â†’ 201 + object in DB."""
+        """POST /api/v1/projects/ with valid payload -> 201 + object in DB."""
         response = authenticated_client.post(
             reverse("api:project-list"),
             {"name": "New API Project"},
@@ -243,7 +243,7 @@ class TestProjectCRUD:
         assert uuid in uuids
 
     def test_authenticated_patch_updates_project(self, authenticated_client, user):
-        """PATCH /api/v1/projects/{uuid}/ with partial data â†’ 200 + updated field."""
+        """PATCH /api/v1/projects/{uuid}/ with partial data -> 200 + updated field."""
 
         # Create the project via POST so permissions are auto-assigned
         post_resp = authenticated_client.post(
@@ -260,7 +260,7 @@ class TestProjectCRUD:
         assert patch_resp.json()["name"] == "Updated Name"
 
     def test_authenticated_delete_removes_project(self, authenticated_client, user):
-        """DELETE /api/v1/projects/{uuid}/ â†’ 204, subsequent GET â†’ 404."""
+        """DELETE /api/v1/projects/{uuid}/ -> 204, subsequent GET -> 404."""
         # Create via POST so permissions are auto-assigned
         post_resp = authenticated_client.post(
             reverse("api:project-list"),
@@ -278,7 +278,7 @@ class TestProjectCRUD:
         assert get_resp.status_code == 404
 
     def test_unauthenticated_post_returns_401(self, api_client):
-        """POST without credentials â†’ 401 (per contract Â§3)."""
+        """POST without credentials -> 401 (per contract Â§3)."""
         response = api_client.post(
             reverse("api:project-list"),
             {"name": "Should Fail"},
@@ -287,7 +287,7 @@ class TestProjectCRUD:
         assert response.status_code == 401
 
     def test_post_missing_required_field_returns_400(self, authenticated_client):
-        """POST with empty payload â†’ 400 with field-level validation errors."""
+        """POST with empty payload -> 400 with field-level validation errors."""
         response = authenticated_client.post(
             reverse("api:project-list"),
             {},
@@ -327,7 +327,7 @@ class TestRateLimiting:
         test_cache.clear()
 
     def test_anonymous_throttled_after_limit(self, api_client):
-        """Anonymous user exceeds limit â†’ 429."""
+        """Anonymous user exceeds limit -> 429."""
         from unittest.mock import patch
 
         from rest_framework.throttling import AnonRateThrottle

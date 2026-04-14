@@ -1,4 +1,4 @@
-"""Permission enforcement tests for FairDM API (Feature 011 â€” US4).
+﻿"""Permission enforcement tests for FairDM API (Feature 011 â€” US4).
 
 Covers:
 - Full permission matrix: anonymous / authenticated-no-perm / with-guardian-perm
@@ -110,7 +110,7 @@ class TestAuthenticatedNoPermission:
         assert response.status_code == 404
 
     def test_delete_private_project_returns_404(self):
-        """Authenticated user without any perm on PRIVATE project DELETE â†’ 404."""
+        """Authenticated user without any perm on PRIVATE project DELETE -> 404."""
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
         client = make_token_client(UserFactory())
         url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
