@@ -1,4 +1,4 @@
-﻿"""Tests for FairDM API viewsets (Feature 011 â€” US1).
+"""Tests for FairDM API viewsets (Feature 011 â€” US1).
 
 Covers:
 - List and detail endpoints for Project, Dataset, Contributor

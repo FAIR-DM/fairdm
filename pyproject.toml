@@ -419,6 +419,7 @@ per_rule_ignores = { DEP002 = [
     "drf-orjson-renderer",
     "dj-rest-auth",
     "django-cors-headers",
+    "uncertainties",
 ], DEP001 = [
     "rest_framework_gis",
 ], DEP003 = [

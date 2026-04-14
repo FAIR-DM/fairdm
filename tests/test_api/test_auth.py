@@ -1,4 +1,4 @@
-﻿"""Tests for FairDM API authentication endpoints (Feature 011 â€” US3).
+"""Tests for FairDM API authentication endpoints (Feature 011 â€” US3).
 
 Covers:
 - POST /api/v1/auth/login/  -> returns auth token key for valid credentials

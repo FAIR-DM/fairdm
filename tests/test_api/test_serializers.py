@@ -1,4 +1,4 @@
-﻿"""Tests for FairDM API serializer generation (Feature 011 â€” US6).
+"""Tests for FairDM API serializer generation (Feature 011 â€” US6).
 
 Covers:
 - Three-tier serializer resolution:
