@@ -1,4 +1,4 @@
-﻿"""Visibility filter tests for FairDM API (Feature 011 â€” US4).
+"""Visibility filter tests for FairDM API (Feature 011 â€” US4).
 
 Covers:
 - Public objects visible to anonymous users via FairDMVisibilityFilter.

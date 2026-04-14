@@ -1,4 +1,4 @@
-﻿"""Permission enforcement tests for FairDM API (Feature 011 â€” US4).
+"""Permission enforcement tests for FairDM API (Feature 011 â€” US4).
 
 Covers:
 - Full permission matrix: anonymous / authenticated-no-perm / with-guardian-perm

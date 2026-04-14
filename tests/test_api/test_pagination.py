@@ -1,4 +1,4 @@
-﻿"""Tests for FairDM API pagination (Feature 011 â€” US1).
+"""Tests for FairDM API pagination (Feature 011 â€” US1).
 
 Covers:
 - Default page_size=25
