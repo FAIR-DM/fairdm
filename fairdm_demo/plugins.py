@@ -1,7 +1,7 @@
 """Example plugins demonstrating inheritance and reusability patterns.
 
 This module shows how portal developers can:
-1. Inherit from framework base classes (BaseOverviewPlugin, BaseEditPlugin, BaseDeletePlugin)
+1. Inherit from framework base classes (OverviewPlugin, UpdatePlugin, DeletePlugin)
 2. Customize behavior by overriding methods
 3. Use polymorphic visibility checks
 4. Register plugins for custom models
@@ -9,166 +9,157 @@ This module shows how portal developers can:
 These examples serve as living documentation for plugin development patterns.
 """
 
-from django.utils.translation import gettext_lazy as _
-
-from fairdm import plugins
-from fairdm.contrib.plugins import Plugin
-from fairdm.core.plugins import BaseDeletePlugin, BaseEditPlugin, BaseOverviewPlugin
-from fairdm.core.project.forms import ProjectForm
-from fairdm.core.project.models import Project
-from fairdm.core.sample.forms import SampleForm
-from fairdm.core.sample.models import Sample
 
 # =============================================================================
 # Example 1: Basic Inheritance from Framework Base Classes
 # =============================================================================
 
 
-@plugins.register(Project)
-class ProjectOverview(BaseOverviewPlugin):
-    """Project overview inheriting standard behavior from framework.
+# @plugins.register(Project)
+# class ProjectOverview(OverviewPlugin):
+#     """Project overview inheriting standard behavior from framework.
 
-    This demonstrates:
-    - Inheriting menu configuration from BaseOverviewPlugin
-    - Inheriting template resolution hierarchy
-    - Adding custom context data via method override
-    """
+#     This demonstrates:
+#     - Inheriting menu configuration from OverviewPlugin
+#     - Inheriting template resolution hierarchy
+#     - Adding custom context data via method override
+#     """
 
-    # Menu configuration inherited from BaseOverviewPlugin
-    # (label="Overview", icon="eye", order=0)
+#     # Menu configuration inherited from OverviewPlugin
+#     # (label="Overview", icon="eye", order=0)
 
-    def get_context_data(self, **kwargs):
-        """Add project-specific context: datasets, samples, contributors."""
-        context = super().get_context_data(**kwargs)
+#     def get_context_data(self, **kwargs):
+#         """Add project-specific context: datasets, samples, contributors."""
+#         context = super().get_context_data(**kwargs)
 
-        # Add related objects to context
-        context["datasets"] = self.object.datasets.all()
-        context["samples"] = self.object.samples.all()
-        context["contributors"] = self.object.contributors.all()
+#         # Add related objects to context
+#         context["datasets"] = self.object.datasets.all()
+#         context["samples"] = self.object.samples.all()
+#         context["contributors"] = self.object.contributors.all()
 
-        return context
-
-
-@plugins.register(Project)
-class ProjectEdit(BaseEditPlugin):
-    """Project edit form inheriting standard form handling.
-
-    This demonstrates:
-    - Setting form_class for edit functionality
-    - Overriding menu configuration to customize appearance
-    - Setting explicit permissions
-    """
-
-    form_class = ProjectForm
-
-    # Customize menu (override default from BaseEditPlugin)
-    menu = {"label": _("Edit Project"), "icon": "pencil-square", "order": 10}
-
-    # Set explicit permission (required for editing projects)
-    permission = "fairdm_demo.change_project"
+#         return context
 
 
-@plugins.register(Project)
-class ProjectDelete(BaseDeletePlugin):
-    """Project deletion with confirmation.
+# @plugins.register(Project)
+# class ProjectEdit(UpdatePlugin):
+#     """Project edit form inheriting standard form handling.
 
-    This demonstrates:
-    - Inheriting deletion confirmation behavior
-    - Customizing success URL after deletion
-    - High order value to position tab at the end
-    """
+#     This demonstrates:
+#     - Setting form_class for edit functionality
+#     - Overriding menu configuration to customize appearance
+#     - Setting explicit permissions
+#     """
 
-    # Menu inherited from BaseDeletePlugin, but reposition it
-    menu = {"label": _("Delete"), "icon": "trash", "order": 1000}
+#     form_class = ProjectForm
 
-    permission = "fairdm_demo.delete_project"
+#     # Customize menu (override default from UpdatePlugin)
+#     menu = {"label": _("Edit Project"), "icon": "pencil-square", "order": 10}
 
-    def get_success_url(self):
-        """Redirect to project list after deletion."""
-        from django.urls import reverse
-
-        return reverse("fairdm:project-list")
+#     # Set explicit permission (required for editing projects)
+#     permission = "fairdm_demo.change_project"
 
 
-# =============================================================================
-# Example 2: Custom Plugin Without Inheritance
-# =============================================================================
+# @plugins.register(Project)
+# class ProjectDelete(DeletePlugin):
+#     """Project deletion with confirmation.
+
+#     This demonstrates:
+#     - Inheriting deletion confirmation behavior
+#     - Customizing success URL after deletion
+#     - High order value to position tab at the end
+#     """
+
+#     # Menu inherited from DeletePlugin, but reposition it
+#     menu = {"label": _("Delete"), "icon": "trash", "order": 1000}
+
+#     permission = "fairdm_demo.delete_project"
+
+#     def get_success_url(self):
+#         """Redirect to project list after deletion."""
+#         from django.urls import reverse
+
+#         return reverse("fairdm:project-list")
 
 
-@plugins.register(Sample)
-class SampleOverview(Plugin):
-    """Sample overview demonstrating custom plugin without base class.
-
-    This shows that you can create plugins from scratch without inheriting
-    from framework base classes if you need full control.
-    """
-
-    from django.views.generic import TemplateView
-
-    # Must inherit from a Django CBV
-    __bases__ = (Plugin, TemplateView)
-
-    menu = {"label": _("Overview"), "icon": "eye", "order": 0}
-
-    def get_context_data(self, **kwargs):
-        """Add sample-specific context."""
-        context = super().get_context_data(**kwargs)
-
-        context["measurements"] = self.object.measurements.all()
-        context["location"] = getattr(self.object, "location", None)
-
-        return context
+# # =============================================================================
+# # Example 2: Custom Plugin Without Inheritance
+# # =============================================================================
 
 
-@plugins.register(Sample)
-class SampleEdit(BaseEditPlugin):
-    """Sample edit form."""
+# @plugins.register(Sample)
+# class SampleOverview(Plugin):
+#     """Sample overview demonstrating custom plugin without base class.
 
-    form_class = SampleForm
-    menu = {"label": _("Edit"), "icon": "pencil", "order": 10}
-    permission = "fairdm_demo.change_sample"
+#     This shows that you can create plugins from scratch without inheriting
+#     from framework base classes if you need full control.
+#     """
+
+#     from django.views.generic import TemplateView
+
+#     # Must inherit from a Django CBV
+#     __bases__ = (Plugin, TemplateView)
+
+#     menu = {"label": _("Overview"), "icon": "eye", "order": 0}
+
+#     def get_context_data(self, **kwargs):
+#         """Add sample-specific context."""
+#         context = super().get_context_data(**kwargs)
+
+#         context["measurements"] = self.object.measurements.all()
+#         context["location"] = getattr(self.object, "location", None)
+
+#         return context
 
 
-# =============================================================================
-# Example 3: Polymorphic Visibility with Check Functions
-# =============================================================================
+# @plugins.register(Sample)
+# class SampleEdit(UpdatePlugin):
+#     """Sample edit form."""
+
+#     form_class = SampleForm
+#     menu = {"label": _("Edit"), "icon": "pencil", "order": 10}
+#     permission = "fairdm_demo.change_sample"
 
 
-@plugins.register(Sample)
-class LocationDetailsPlugin(Plugin):
-    """Plugin that only appears for samples with locations.
+# # =============================================================================
+# # Example 3: Polymorphic Visibility with Check Functions
+# # =============================================================================
 
-    This demonstrates:
-    - Using a custom check function for conditional visibility
-    - The plugin tab only appears when the condition is met
-    """
 
-    from django.views.generic import TemplateView
+# @plugins.register(Sample)
+# class LocationDetailsPlugin(Plugin):
+#     """Plugin that only appears for samples with locations.
 
-    __bases__ = (Plugin, TemplateView)
+#     This demonstrates:
+#     - Using a custom check function for conditional visibility
+#     - The plugin tab only appears when the condition is met
+#     """
 
-    menu = {"label": _("Location Details"), "icon": "geo-alt", "order": 50}
+#     from django.views.generic import TemplateView
 
-    # Custom visibility check: only show if sample has a location
-    @staticmethod
-    def check(request, obj):
-        """Only visible for samples with assigned locations."""
-        return obj and hasattr(obj, "location") and obj.location is not None
+#     __bases__ = (Plugin, TemplateView)
 
-    template_name = "fairdm_demo/plugins/location_details.html"
+#     menu = {"label": _("Location Details"), "icon": "geo-alt", "order": 50}
 
-    def get_context_data(self, **kwargs):
-        """Add location and coordinates to context."""
-        context = super().get_context_data(**kwargs)
+#     # Custom visibility check: only show if sample has a location
+#     @staticmethod
+#     def check(request, obj):
+#         """Only visible for samples with assigned locations."""
+#         return obj and hasattr(obj, "location") and obj.location is not None
 
-        if self.object.location:
-            context["location"] = self.object.location
-            context["coordinates"] = {
-                "lat": self.object.location.latitude,
-                "lon": self.object.location.longitude,
-            }
+#     template_name = "fairdm_demo/plugins/location_details.html"
 
-        return context
+#     def get_context_data(self, **kwargs):
+#         """Add location and coordinates to context."""
+#         context = super().get_context_data(**kwargs)
+
+#         if self.object.location:
+#             context["location"] = self.object.location
+#             context["coordinates"] = {
+#                 "lat": self.object.location.latitude,
+#                 "lon": self.object.location.longitude,
+#             }
+
+#         return context
 
 
 # =============================================================================
@@ -200,7 +191,7 @@ class LocationDetailsPlugin(Plugin):
 
 
 # @plugins.register(Location)
-# class LocationOverview(BaseOverviewPlugin):
+# class LocationOverview(OverviewPlugin):
 #     """Location overview with map display."""
 #
 #     menu = {"label": _("Map"), "icon": "map", "order": 0}
@@ -223,7 +214,7 @@ class LocationDetailsPlugin(Plugin):
 
 
 # @plugins.register(Location)
-# class LocationEdit(BaseEditPlugin):
+# class LocationEdit(UpdatePlugin):
 #     """Location edit form."""
 #
 #     form_class = LocationForm
@@ -236,13 +227,13 @@ class LocationDetailsPlugin(Plugin):
 # =============================================================================
 
 # 1. **Import base classes from framework:**
-#    from fairdm.core.plugins import BaseOverviewPlugin, BaseEditPlugin, BaseDeletePlugin
+#    from fairdm.core.plugins import OverviewPlugin, UpdatePlugin, DeletePlugin
 #
 # 2. **Register plugins with decorator:**
 #    @plugins.register(YourModel)
 #
 # 3. **Inherit from base + Django CBV:**
-#    class YourPlugin(BaseOverviewPlugin):  # or (Plugin, TemplateView)
+#    class YourPlugin(OverviewPlugin):  # or (Plugin, TemplateView)
 #
 # 4. **Set menu configuration:**
 #    menu = {"label": "...", "icon": "...", "order": 0}

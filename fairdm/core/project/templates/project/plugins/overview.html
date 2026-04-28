@@ -1,13 +1,5 @@
 {% extends "plugins/overview.html" %}
-{% load i18n cotton fairdm plugin_tags %}
-
-{% block detail_actions %}
-  <a href="{% plugin_url 'edit' %}"
-     class="btn btn-outline-primary btn-sm">
-    <c-icon name="edit" class="me-1" />
-    {% trans "Edit" %}
-  </a>
-{% endblock detail_actions %}
+{% load i18n fairdm plugin_tags %}
 
 {% block info_boxes %}
   <c-widgets.type-a label="{% trans 'Datasets' %}"
@@ -30,16 +22,17 @@
                     variant="danger" />
 {% endblock info_boxes %}
 
-{% block page_content %}
+{% block content.left %}
   {{ block.super }}
   {% if project.funding %}
-    <c-card title="{% trans 'Funding' %}" icon="funding">
+    <c-card title="{% trans "Funding" %}" icon="funding">
       <p class="card-text">{{ project.funding }}</p>
     </c-card>
   {% endif %}
-{% endblock page_content %}
+{% endblock content.left %}
 
-{% block quick_info_items %}
+{% block content.right %}
+  {{ block.super }}
   {% comment %} <c-info-item label="{% trans 'Status' %}" value="{{ project.get_status_display }}" badge="{{ project.get_status_display|lower }}" /> {% endcomment %}
   <dt class="text-muted small text-uppercase mb-1">{% trans "Visibility" %}</dt>
   <dd class="mb-3">
@@ -57,4 +50,4 @@
   <dd class="mb-0">
     {{ project.modified|date:"N j, Y" }}
   </dd>
-{% endblock quick_info_items %}
+{% endblock content.right %}

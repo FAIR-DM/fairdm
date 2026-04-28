@@ -1,6 +1,7 @@
 """Template tags for plugin system."""
 
 from django import template
+from django.db.models import Model
 
 from fairdm.contrib.plugins.registry import registry
 from fairdm.contrib.plugins.utils import reverse
@@ -23,7 +24,6 @@ def get_plugin_tabs(context, model=None, obj=None):
     Returns:
         List of Tab objects sorted by order, then label
     """
-    from django.db.models import Model
 
     request = context.get("request")
 
@@ -32,6 +32,7 @@ def get_plugin_tabs(context, model=None, obj=None):
         if obj:
             model = obj.__class__
         else:
+            print("Warning: get_plugin_tabs called without model or obj in context.")
             return []
 
     # If model is an instance, get its class
@@ -39,8 +40,9 @@ def get_plugin_tabs(context, model=None, obj=None):
         model = model.__class__
 
     if not request:
+        print("Warning: get_plugin_tabs called without request in context.")
         return []
-
+    print(f"Getting plugin tabs for model {model} and obj {obj} with request user {request.user}")
     return registry.get_tabs_for_model(model, request, obj)
 
 

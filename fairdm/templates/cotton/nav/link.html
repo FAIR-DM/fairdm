@@ -1,0 +1,7 @@
+{% comment %} Override cotton-bs5 component to allow icons in nav links {% endcomment %}
+<c-vars text active disabled class icon />
+<a class="nav-link{% if active %} active{% elif disabled %} disabled{% endif %} {{ class }}"
+   {% if active %} aria-current="page" {% elif disabled %} aria-disabled="true"{% endif %}
+   {{ attrs }}>{{ slot }}
+  <c-icon name="{{ icon }}" class="me-1" />
+{{ text }}</a>

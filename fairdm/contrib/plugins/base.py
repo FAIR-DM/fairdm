@@ -66,7 +66,7 @@ class Plugin(View):
         from django.views.generic import TemplateView, UpdateView
 
 
-        class BaseOverviewPlugin(Plugin, TemplateView):
+        class OverviewPlugin(Plugin, TemplateView):
             menu = {"label": "Overview", "icon": "eye", "order": 0}
 
             def get_context_data(self, **kwargs):
@@ -75,7 +75,7 @@ class Plugin(View):
                 return context
 
 
-        class BaseEditPlugin(Plugin, UpdateView):
+        class UpdatePlugin(Plugin, UpdateView):
             menu = {"label": "Edit", "icon": "pencil", "order": 100}
 
             def get_success_url(self):
@@ -87,14 +87,14 @@ class Plugin(View):
 
         ```python
         # In portal_app/plugins.py (portal-specific implementations)
-        from fairdm.core.plugins import BaseOverviewPlugin, BaseEditPlugin
+        from fairdm.core.plugins import OverviewPlugin, UpdatePlugin
         from fairdm.plugins import register_plugin
         from .models import Sample
         from .forms import SampleForm
 
 
         @register_plugin(Sample)
-        class SampleOverview(BaseOverviewPlugin):
+        class SampleOverview(OverviewPlugin):
             # Inherit menu, template_name, base behavior
             # Add custom context
             def get_context_data(self, **kwargs):
@@ -104,7 +104,7 @@ class Plugin(View):
 
 
         @register_plugin(Sample)
-        class SampleEdit(BaseEditPlugin):
+        class SampleEdit(UpdatePlugin):
             form_class = SampleForm
             permission = "samples.change_sample"
         ```
@@ -450,25 +450,6 @@ class Plugin(View):
 
         # Add breadcrumbs
         context["breadcrumbs"] = self.get_breadcrumbs()
-
-        # Add tabs with active tab detection
-        if self.model and hasattr(self, "request"):
-            from .registry import registry
-
-            tabs = registry.get_tabs_for_model(self.model, self.request, context.get("object"))  # type: ignore[attr-defined]
-
-            # Mark current tab as active
-            for tab in tabs:
-                # Tab is active if its URL name matches the current plugin
-                # Note: For PluginGroups, we'd need to check against the group's default plugin
-                if hasattr(self, "request"):
-                    # Check if current URL matches this tab's plugin
-                    # This is a simple comparison - could be enhanced with URL resolution
-                    tab.is_active = (tab.label == self.menu.get("label")) if self.menu else False
-
-            context["tabs"] = tabs
-        else:
-            context["tabs"] = []
 
         # Add plugin media
         if hasattr(self, "Media"):

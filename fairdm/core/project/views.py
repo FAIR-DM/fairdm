@@ -8,12 +8,39 @@ from django.utils.translation import gettext as _
 from django.views.generic import DetailView, UpdateView
 from guardian.shortcuts import assign_perm
 
-from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..models import Project
 from .filters import ProjectFilter
 from .forms import ProjectCreateForm, ProjectEditForm
+
+
+class ProjectListView(FairDMListView):
+    """List view for displaying publicly visible projects.
+
+    Shows all projects with public visibility in a card layout, with
+    filtering and sorting capabilities. Contributors are prefetched
+    for optimal performance.
+    """
+
+    model = Project
+    filterset_class = ProjectFilter
+    list_item_template = "project/project_card.html"
+    search_fields = ["uuid", "name"]
+    order_by = [
+        ("name", _("Name (A-Z)")),
+        ("-name", _("Name (Z-A)")),
+    ]
+    image = static("img/stock/project.jpg")
+    has_create_permission = False  # Creation is handled by a separate view
+
+    def get_queryset(self) -> QuerySet[Project]:
+        """Return the queryset of visible projects with prefetched contributors.
+
+        Returns:
+            QuerySet: Filtered and optimized Project queryset.
+        """
+        return Project.objects.get_visible().with_contributors()
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
@@ -37,23 +64,7 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
 
     model = Project
     form_class = ProjectCreateForm
-    title = _("Create a Project")
-
-    heading_config = {
-        "title": _("Create a project"),
-        "description": _(
-            "A project is a way to group related datasets that share common metadata such as "
-            "contributors, funding sources, and research goals. Start with just a name and basic "
-            "settings - you can add detailed information later."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("project"),
-                "icon": "documentation",
-            }
-        ],
-    }
+    page_title = _("Create a project")
 
     def form_valid(self, form: ProjectCreateForm) -> HttpResponse:
         """Handle successful form submission and assign permissions.
@@ -95,46 +106,7 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             str: URL to project detail page.
         """
-        return reverse("project-detail", kwargs={"uuid": self.object.uuid})
-
-
-class ProjectListView(FairDMListView):
-    """List view for displaying publicly visible projects.
-
-    Shows all projects with public visibility in a card layout, with
-    filtering and sorting capabilities. Contributors are prefetched
-    for optimal performance.
-    """
-
-    model = Project
-    filterset_class = ProjectFilter
-    list_item_template = "project/project_card.html"
-    search_fields = ["uuid", "name"]
-    order_by = [
-        ("name", _("Name (A-Z)")),
-        ("-name", _("Name (Z-A)")),
-    ]
-
-    title = _("Research Projects")
-    description = _(
-        "Discover past, present and future research projects shared by our community to see what other are working on."
-    )
-    page = {
-        "title": _("Research Projects"),
-        "description": _(
-            "A research project serves as a container for multiple datasets that share common metadata, such as funding sources, project descriptions, contributors, and institutional affiliations. This page presents publicly listed research projects contributed by community members, allowing you to explore what others community members are currently working on."
-        ),
-    }
-
-    image = static("img/stock/project.jpg")
-
-    def get_queryset(self) -> QuerySet[Project]:
-        """Return the queryset of visible projects with prefetched contributors.
-
-        Returns:
-            QuerySet: Filtered and optimized Project queryset.
-        """
-        return Project.objects.get_visible().with_contributors()
+        return self.object.get_absolute_url()
 
 
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
@@ -154,7 +126,6 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
 
     model = Project
     form_class = ProjectEditForm
-    template_name = "project/project_form.html"
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
 
@@ -205,7 +176,7 @@ class ProjectDetailView(DetailView):
     template_name = "project/project_detail.html"
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
-    context_object_name = "project"
+    page_title = _("Overview")
 
     def get_object(self, queryset=None):
         """Get project instance and check visibility/permissions.

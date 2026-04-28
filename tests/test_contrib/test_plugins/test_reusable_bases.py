@@ -8,22 +8,22 @@ import pytest
 from django.test import RequestFactory
 
 from fairdm import plugins
-from fairdm.core.plugins import BaseDeletePlugin, BaseEditPlugin, BaseOverviewPlugin
+from fairdm.core.plugins import DeletePlugin, OverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import Sample
 
 pytestmark = pytest.mark.django_db
 
 
 class TestBaseOverviewPlugin:
-    """Test BaseOverviewPlugin reusable base (User Story 8)."""
+    """Test OverviewPlugin reusable base (User Story 8)."""
 
     def test_overview_plugin_inheritance(self):
-        """Given BaseOverviewPlugin as a base,
+        """Given OverviewPlugin as a base,
         When creating a plugin,
         Then minimal configuration is needed (User Story 8, Scenario 1)."""
 
         @plugins.register(Sample)
-        class SampleOverview(BaseOverviewPlugin):
+        class SampleOverview(OverviewPlugin):
             menu = {"label": "Overview", "icon": "info-circle", "order": 1}
 
         # Should have template_name from base class
@@ -35,10 +35,10 @@ class TestBaseOverviewPlugin:
         assert "SampleOverview" in plugin_names
 
     def test_overview_plugin_provides_context(self, sample, user):
-        """BaseOverviewPlugin should provide object context."""
+        """OverviewPlugin should provide object context."""
 
         @plugins.register(Sample)
-        class ContextOverview(BaseOverviewPlugin):
+        class ContextOverview(OverviewPlugin):
             menu = {"label": "Context Overview", "icon": "ctx", "order": 2}
 
         factory = RequestFactory()
@@ -56,13 +56,13 @@ class TestBaseOverviewPlugin:
 
 
 class TestBaseEditPlugin:
-    """Test BaseEditPlugin reusable base (User Story 8)."""
+    """Test UpdatePlugin reusable base (User Story 8)."""
 
     def test_edit_plugin_inheritance(self):
-        """BaseEditPlugin should provide edit form functionality."""
+        """UpdatePlugin should provide edit form functionality."""
 
         @plugins.register(Sample)
-        class SampleEdit(BaseEditPlugin):
+        class SampleEdit(UpdatePlugin):
             menu = {"label": "Edit", "icon": "edit", "order": 10}
             permission = "sample.change_sample"
             fields = ["name", "description"]
@@ -77,7 +77,7 @@ class TestBaseEditPlugin:
         assert "SampleEdit" in plugin_names
 
     def test_edit_plugin_with_custom_form_class(self):
-        """BaseEditPlugin can use a custom form class."""
+        """UpdatePlugin can use a custom form class."""
         from django import forms
 
         class CustomSampleForm(forms.ModelForm):
@@ -86,7 +86,7 @@ class TestBaseEditPlugin:
                 fields = ["name"]
 
         @plugins.register(Sample)
-        class CustomFormEdit(BaseEditPlugin):
+        class CustomFormEdit(UpdatePlugin):
             form_class = CustomSampleForm
             menu = {"label": "Custom Edit", "icon": "edit", "order": 11}
             permission = "sample.change_sample"
@@ -96,13 +96,13 @@ class TestBaseEditPlugin:
 
 
 class TestBaseDeletePlugin:
-    """Test BaseDeletePlugin reusable base (User Story 8)."""
+    """Test DeletePlugin reusable base (User Story 8)."""
 
     def test_delete_plugin_inheritance(self):
-        """BaseDeletePlugin should provide delete functionality."""
+        """DeletePlugin should provide delete functionality."""
 
         @plugins.register(Sample)
-        class SampleDelete(BaseDeletePlugin):
+        class SampleDelete(DeletePlugin):
             menu = {"label": "Delete", "icon": "trash", "order": 20}
             permission = "sample.delete_sample"
 
@@ -116,10 +116,10 @@ class TestBaseDeletePlugin:
         assert "SampleDelete" in plugin_names
 
     def test_delete_plugin_requires_permission(self):
-        """BaseDeletePlugin should enforce permissions."""
+        """DeletePlugin should enforce permissions."""
 
         @plugins.register(Sample)
-        class RestrictedDelete(BaseDeletePlugin):
+        class RestrictedDelete(DeletePlugin):
             menu = {"label": "Restricted Delete", "icon": "lock", "order": 21}
             permission = "sample.delete_sample"
 
@@ -134,11 +134,11 @@ class TestInheritancePatterns:
         """Multiple plugins can inherit from the same base class."""
 
         @plugins.register(Sample)
-        class Overview1(BaseOverviewPlugin):
+        class Overview1(OverviewPlugin):
             menu = {"label": "Overview 1", "icon": "o1", "order": 100}
 
         @plugins.register(Sample)
-        class Overview2(BaseOverviewPlugin):
+        class Overview2(OverviewPlugin):
             menu = {"label": "Overview 2", "icon": "o2", "order": 101}
 
         # Both should be registered
@@ -153,7 +153,7 @@ class TestInheritancePatterns:
 
         # These should work without explicit Plugin inheritance
         @plugins.register(Sample)
-        class SimpleOverview(BaseOverviewPlugin):
+        class SimpleOverview(OverviewPlugin):
             menu = {"label": "Simple", "icon": "simple", "order": 200}
 
         # Should have Plugin methods

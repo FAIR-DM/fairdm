@@ -56,35 +56,14 @@ class PortalTeamView(FairDMTemplateView):
         return context
 
 
-class ContributorBaseListView(FairDMListView):
-    sidebar_primary_config = {
-        "title": _("Find someone"),
-    }
-    grid_config = {
-        "cols": 1,
-        "gap": 2,
-        "responsive": {"md": 2},
-        "card": "contributor.card.person",
-    }
-    card_template = "contributors/contributor_card.html"
-
-    def get_queryset(self):
-        return super().get_queryset().filter(is_superuser=False)
-
-
-class ContributorListView(ContributorBaseListView):
+class PersonListView(FairDMListView):
     model = Person
-    title = _("People")
+    page_title = _("People")
+    page_icon = "people"
     filterset_class = PersonFilter
     queryset = Person.objects.real()
-    heading_config = {
-        "icon": "people",
-        "title": _("Personal Contributors"),
-        "description": _(
-            "Contributors are individuals who have made contributions to data made public within this portal. "
-            "They may include researchers, developers, data curators, and other professionals who have played a key role in producing datasets."
-        ),
-    }
+    list_item_template = "contributors/contributor_card.html"
+    has_create_permission = False  # Creation is handled by a separate view
 
     def get_queryset(self):
         # Step 1: Filter active non-superuser persons
@@ -108,12 +87,6 @@ class ContributorListView(ContributorBaseListView):
         qs = qs.prefetch_related(orcid_prefetch, orcid_accounts_prefetch, "affiliations")
 
         return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Note: Follow/unfollow functionality has been moved to an optional addon.
-        # If you need this feature, install the fairdm-activity package.
-        return context
 
 
 class PersonCreateView(LoginRequiredMixin, FairDMCreateView):

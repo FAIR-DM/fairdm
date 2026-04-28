@@ -1,0 +1,14 @@
+<c-dropdown text="{% trans "Create new" %}"
+            icon="plus"
+            gap="1"
+            :caret="False"
+            variant="primary"
+            size="sm"
+            class="show-btn-text">
+  <c-dropdown.item text="{% trans "Project" %}"
+                   icon="project"
+                   href="{% url "project-create" %}" />
+  <c-dropdown.item text="{% trans "Dataset" %}"
+                   icon="dataset"
+                   href="{% url "dataset-create" %}" />
+</c-dropdown>

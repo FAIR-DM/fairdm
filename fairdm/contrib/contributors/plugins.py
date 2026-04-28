@@ -17,9 +17,8 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.views import DatasetListView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.plugins import (
-    EditPlugin,
-    InlineFormSetPlugin,
     OverviewPlugin,
+    UpdatePlugin,
 )
 from fairdm.core.project.models import Project
 from fairdm.core.project.views import ProjectListView
@@ -28,14 +27,12 @@ from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMListView
 
 from .forms.contribution import QuickAddContributionForm, UpdateContributionForm
-from .forms.forms import AffiliationForm, UserIdentifierForm, UserIdentifierFormSet
 from .forms.organization import OrganizationProfileForm
 from .forms.person import UserProfileForm
 from .models import (
     Affiliation,
     Contribution,
     Contributor,
-    ContributorIdentifier,
     Organization,
     Person,
 )
@@ -107,7 +104,7 @@ class ContributorDatasets(Plugin, DatasetListView):
 
 
 @plugins.register(Contributor)
-class Profile(EditPlugin):
+class Profile(UpdatePlugin):
     """Profile editing plugin for Contributor detail pages.
 
     Dynamically selects the appropriate form based on contributor type.
@@ -129,67 +126,67 @@ class Profile(EditPlugin):
         return super().get_form_class()
 
 
+# @plugins.register(Contributor)
+# class Identifiers(InlineFormSetPlugin):
+#     """Plugin for managing persistent identifiers (ORCID, ROR, etc.)."""
+
+#     name = "identifiers"
+#     title = _("Identifiers")
+#     menu = {"label": _("Identifiers"), "icon": "identifier", "order": 510}
+
+#     # Page configuration
+#     about = _(
+#         "Manage your persistent identifiers such as ORCID, which help uniquely identify you "
+#         "in research outputs and allow automatic synchronization of your profile data."
+#     )
+#     learn_more = user_guide("contributor/identifiers")
+
+#     # InlineFormSetView configuration
+#     model = Contributor
+#     inline_model = ContributorIdentifier
+#     form_class = UserIdentifierForm
+#     formset_class = UserIdentifierFormSet
+#     display_as_table = True
+
+#     def get_factory_kwargs(self):
+#         """Override to set max_num based on contributor type (Person vs Organization)."""
+#         kwargs = super().get_factory_kwargs()
+#         # Limit to one identifier per type, but only show appropriate types
+#         vocabulary = self.inline_model.VOCABULARY
+#         if isinstance(self.object, Person):
+#             # Person: ORCID, ResearcherID
+#             kwargs["max_num"] = len(vocabulary.from_collection("Person").values)
+#         elif isinstance(self.object, Organization):
+#             # Organization: ROR, Wikidata, ISNI, Crossref Funder ID
+#             kwargs["max_num"] = len(vocabulary.from_collection("Organization").values)
+#         else:
+#             # Fallback to all identifiers
+#             kwargs["max_num"] = len(vocabulary.values)
+#         return kwargs
+
+#     def get_formset_kwargs(self):
+#         """Pass contributor instance to form for filtering identifier choices."""
+#         kwargs = super().get_formset_kwargs()
+#         kwargs["form_kwargs"] = {"contributor_instance": self.object}
+#         return kwargs
+
+
+# @plugins.register(Contributor)
+# class Affiliations(InlineFormSetPlugin):
+#     """Plugin for managing organizational affiliations (Person only)."""
+
+#     name = "affiliations"
+#     title = _("Affiliations")
+#     learn_more = user_guide("contributor/affiliations")
+#     check = lambda request, obj: obj is None or isinstance(obj, Person)
+#     model = Person
+#     inline_model = Affiliation
+#     form_class = AffiliationForm
+#     display_as_table = True
+
+
 @plugins.register(Contributor)
-class Identifiers(InlineFormSetPlugin):
-    """Plugin for managing persistent identifiers (ORCID, ROR, etc.)."""
-
-    name = "identifiers"
-    title = _("Identifiers")
-    menu = {"label": _("Identifiers"), "icon": "identifier", "order": 510}
-
-    # Page configuration
-    about = _(
-        "Manage your persistent identifiers such as ORCID, which help uniquely identify you "
-        "in research outputs and allow automatic synchronization of your profile data."
-    )
-    learn_more = user_guide("contributor/identifiers")
-
-    # InlineFormSetView configuration
-    model = Contributor
-    inline_model = ContributorIdentifier
-    form_class = UserIdentifierForm
-    formset_class = UserIdentifierFormSet
-    display_as_table = True
-
-    def get_factory_kwargs(self):
-        """Override to set max_num based on contributor type (Person vs Organization)."""
-        kwargs = super().get_factory_kwargs()
-        # Limit to one identifier per type, but only show appropriate types
-        vocabulary = self.inline_model.VOCABULARY
-        if isinstance(self.object, Person):
-            # Person: ORCID, ResearcherID
-            kwargs["max_num"] = len(vocabulary.from_collection("Person").values)
-        elif isinstance(self.object, Organization):
-            # Organization: ROR, Wikidata, ISNI, Crossref Funder ID
-            kwargs["max_num"] = len(vocabulary.from_collection("Organization").values)
-        else:
-            # Fallback to all identifiers
-            kwargs["max_num"] = len(vocabulary.values)
-        return kwargs
-
-    def get_formset_kwargs(self):
-        """Pass contributor instance to form for filtering identifier choices."""
-        kwargs = super().get_formset_kwargs()
-        kwargs["form_kwargs"] = {"contributor_instance": self.object}
-        return kwargs
-
-
-@plugins.register(Contributor)
-class Affiliations(InlineFormSetPlugin):
-    """Plugin for managing organizational affiliations (Person only)."""
-
-    name = "affiliations"
-    title = _("Affiliations")
-    learn_more = user_guide("contributor/affiliations")
-    check = lambda request, obj: obj is None or isinstance(obj, Person)
-    model = Person
-    inline_model = Affiliation
-    form_class = AffiliationForm
-    display_as_table = True
-
-
-@plugins.register(Contributor)
-class Keywords(EditPlugin):
+class Keywords(UpdatePlugin):
     """Plugin for managing research interests/keywords."""
 
     name = "keywords"
@@ -205,7 +202,7 @@ class Keywords(EditPlugin):
 
 
 @plugins.register(Contributor)
-class Links(EditPlugin):
+class Links(UpdatePlugin):
     """Plugin for managing external links."""
 
     name = "links"

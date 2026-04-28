@@ -170,13 +170,22 @@ class PluginRegistry:
             icon = menu.get("icon", "")
             order = menu.get("order", 0)
 
-            # Get URL for the tab
-            # URL will be resolved in template with obj.pk
-            url = ""  # Template will resolve this using {% url %} tag
+            # Resolve the full URL for the tab using the registered base model's namespace
+            url = ""
+            if obj is not None and plugin_class.model is not None:
+                try:
+                    from django.urls import reverse as django_reverse
+
+                    namespace = plugin_class.model._meta.model_name.lower()
+                    url = django_reverse(
+                        f"{namespace}:{plugin_class.get_name()}",
+                        kwargs={"uuid": obj.uuid},
+                    )
+                except Exception:
+                    url = ""
 
             # Check if this tab is active (based on current URL path)
-            # This will be set in the template context
-            is_active = False
+            is_active = request.path == url if url else False
 
             tabs.append(Tab(label=label, icon=icon, url=url, order=order, is_active=is_active))
 

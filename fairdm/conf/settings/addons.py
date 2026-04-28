@@ -202,6 +202,7 @@ EASY_ICONS = {
             "mfa": "bi bi-shield-lock",
             "account": "bi bi-person-circle",
             "sessions": "bi bi-clock-history",
+            "overview": "bi bi-layout-text-sidebar-reverse",
         },
     },
     "svg": {

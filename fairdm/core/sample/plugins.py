@@ -8,7 +8,7 @@ from fairdm.contrib.generic.plugins import (
     KeyDatesPlugin,
     KeywordsPlugin,
 )
-from fairdm.core.plugins import EditPlugin, OverviewPlugin
+from fairdm.core.plugins import OverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.utils.utils import user_guide
 
@@ -39,7 +39,7 @@ class SampleManagementMixin:
 
 # ======== Management Plugins ======== #
 @plugins.register(Sample)
-class Edit(SampleManagementMixin, EditPlugin):
+class Edit(SampleManagementMixin, UpdatePlugin):
     """Plugin for editing basic sample information."""
 
     title = _("Basic Information")

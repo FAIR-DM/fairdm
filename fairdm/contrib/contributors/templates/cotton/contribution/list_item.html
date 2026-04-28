@@ -1,16 +1,15 @@
 <c-vars contribution />
-<div class="d-flex w-100 align-items-center gap-3">
-  <c-contributor.avatar :contributor="contribution.contributor" size="48" />
-  <div class="flex-grow-1">
-    <h6 class="mb-1">{{ contribution.contributor }}</h6>
-    {% if contribution.roles.exists %}
-      <small class="text-muted">
-        {% for role in contribution.roles.all %}
-          <c-badge variant="secondary"
-                   class="me-1"
-                   :text="role.label" />
-        {% endfor %}
-      </small>
-    {% endif %}
+<div class="d-flex align-items-center gap-3">
+  <c-avatar src="{{ contributor.get_profile_image }}"
+            size="md" />
+  <div class="overflow-hidden">
+    <div class="fw-semibold text-truncate">{{ contribution.contributor }}</div>
+    <div class="text-secondary small text-truncate">
+      {% for role in contribution.roles.all %}
+        <span class="me-1">{{ role.label }}
+          {% if not forloop.last %}|{% endif %}
+        </span>
+      {% endfor %}
+    </div>
   </div>
 </div>

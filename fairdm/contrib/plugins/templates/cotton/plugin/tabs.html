@@ -1,20 +1,9 @@
-{% load easy_icons %}
-
-<c-vars tabs="[]" active_tab="" :object="None" />
-{# Render Bootstrap 5 nav tabs for plugins #}
-{% if tabs %}
-  <ul class="nav nav-tabs mb-3" role="tablist">
-    {% for tab in tabs %}
-      <li class="nav-item" role="presentation">
-        <a class="nav-link{% if tab.is_active %} active{% endif %}"
-           {% if object %} href="{% url tab.url object.pk %}" {% else %} href="#" {% endif %}
-           {% if tab.is_active %}aria-current="page"{% endif %}>
-          {% if tab.icon %}
-            {% easy_icon tab.icon class="me-1" %}
-          {% endif %}
-          {{ tab.label }}
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
-{% endif %}
+<c-vars tabs active_tab="" />
+<c-nav type="underline">
+  {% for tab in tabs %}
+    <c-nav.item text="{{ tab.label }}"
+                href="{{ tab.url|default:'#' }}"
+                :active="tab.is_active"
+                icon="{{ tab.icon }}" />
+  {% endfor %}
+</c-nav>

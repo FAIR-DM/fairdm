@@ -66,7 +66,7 @@ class Sample(BasePolymorphicModel):
         _("Local ID"),
         max_length=255,
         help_text=_(
-            "An alphanumeric identifier used by the creator/s to identify the sample within a specific dataset"
+            "An alphanumeric identifier used by the creator/s to identify the sample within the context of a specific dataset"
         ),
         null=True,
         blank=True,

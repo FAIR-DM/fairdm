@@ -3,43 +3,84 @@
   {{ block.super }}
   <script type="text/javascript"
           src="{% url 'javascript-catalog' %}"></script>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-          crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
-  <script src="//unpkg.com/alpinejs" defer></script>
 {% endblock extra_css %}
 
 {% block app %}
-  <c-app fixed_sidebar
-         fixed_header
-         sidebar_collapsible
-         sidebar_expand="lg">
+  <c-app fixed_sidebar sidebar_expand="lg">
     <c-app.header>
       <c-slot name="right">
-        <c-navbar.widgets.search />
-        <c-navbar.widgets.fullscreen />
-        <c-navbar.widgets.theme-switcher />
-        <c-navbar.widgets.user show_name="never" />
+        {% comment %} <c-actions.search /> {% endcomment %}
+        {% comment %} <c-actions.fullscreen /> {% endcomment %}
+        <c-actions.create-new />
+        <c-actions.theme-switcher />
+        {% if user.is_authenticated %}
+          <c-dropdown icon="avatar"
+                      :caret="False"
+                      variant="icon"
+                      align="end">
+            <c-slot name="button">
+              <a href="#"
+                 data-bs-toggle="dropdown"
+                 aria-expanded="false"
+                 class="nav-link">
+                <c-avatar src="{{ user.profile.photo.url }}"
+                          alt="{{ user.get_full_name }}"
+                          size="md" />
+                {% comment %} <c-avatar class="fs-3 text-muted" height="1lh" width="1lh" /> {% endcomment %}
+              </a>
+            </c-slot>
+            <c-dropdown.item text="{% trans "Profile" %}"
+                             icon="person"
+                             href="{% url 'account_profile' %}" />
+            <c-dropdown.item text="{% trans "Settings" %}"
+                             icon="settings"
+                             href="{% url 'account_settings' %}" />
+            <c-dropdown.divider />
+            <c-dropdown.item text="{% trans "Log out" %}"
+                             icon="logout"
+                             href="{% url 'account_logout' %}" />
+          </c-dropdown>
+        {% else %}
+          <c-button text="{% trans "Sign in" %}"
+                    icon="login"
+                    href="{% url "account_login" %}"
+                    class="show-btn-text"
+                    variant="secondary" />
+          <c-button text="{% trans "Sign up" %}"
+                    icon="signup"
+                    href="{% url "account_signup" %}"
+                    class="show-btn-text"
+                    variant="primary" />
+        {% endif %}
       </c-slot>
-      <c-slot name="tray">
-        {% block header_tray %}
-        {% endblock header_tray %}
+      {% block header_tray %}
+      {% endblock header_tray %}
 
-      </c-slot>
     </c-app.header>
     <c-app.sidebar brand_logo="{% static "img/brand/logo.svg" %}"
                    brand_icon="{% static "img/brand/icon.svg" %}"
                    brand_text="FairDM" />
-    {% comment %} <c-slot name="footer">
-        <c-dac.sidebar.footer />
-    </c-slot> {% endcomment %}
-    {% comment %} </c-app.sidebar> {% endcomment %}
     <c-app.main>
-      {% block main %}
-      {% endblock main %}
+      {% if messages %}
+        <div class="app-content pt-3">
+          <div class="container-fluid">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                   role="alert">
+                {{ message }}
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+      {% block content %}
+      {% endblock content %}
 
     </c-app.main>
-    {% comment %} <c-app.footer /> {% endcomment %}
   </c-app>
 {% endblock app %}

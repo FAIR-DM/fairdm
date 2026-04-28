@@ -1,12 +1,11 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path, re_path
+from django.urls import include, path
 from django.views import defaults as default_views
-from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 
-from fairdm.core.utils import UUID_RE_PATTERN
-from fairdm.utils.views import DirectoryView, HomeView
+from fairdm.views.generic import FairDMHomeView
+
 
 from .setup import addon_urls
 
@@ -14,19 +13,18 @@ urlpatterns = [
     path("", include("fairdm.contrib.admin.urls")),
     path(r"jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("django-literature/", include("literature.urls")),
-    path("", HomeView.as_view(), name="home"),
-    path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
+    path("", FairDMHomeView.as_view(), name="home"),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.collections.urls")),
-    path("", include("fairdm.contrib.contributors.urls", namespace="contributors")),
+    path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
-    path("", include("fairdm.utils.urls")),
     path("", include("dac.addons.urls")),
     path("account-center/", include("dac.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
+    path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("martor/", include("martor.urls")),
     path("hijack/", include("hijack.urls")),
@@ -39,10 +37,6 @@ if addon_urls:
         urlpatterns += [
             path("", include(addon_url)),
         ]
-
-urlpatterns += [
-    re_path(UUID_RE_PATTERN, DirectoryView.as_view(), name="directory"),
-]
 
 # adds the debug toolbar to templates if installed
 if settings.DEBUG:

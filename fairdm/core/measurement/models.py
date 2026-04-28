@@ -75,6 +75,16 @@ class Measurement(BasePolymorphicModel):
         on_delete=models.PROTECT,
     )
 
+    local_id = models.CharField(
+        _("Local ID"),
+        max_length=255,
+        help_text=_(
+            "An alphanumeric identifier used by the creator/s to identify this measurement within the context of a specific dataset"
+        ),
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         verbose_name = _("measurement")
         verbose_name_plural = _("measurements")

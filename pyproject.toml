@@ -69,7 +69,7 @@ dependencies = [
     'django-guardian (>=3.0.3,<4.0.0)',
     'django-countries (>=7.6.1,<8.0.0)',
     'martor (>=1.7.11,<2.0.0)',
-    'django-accounts-center @ git+https://github.com/SamuelJennings/django-accounts-center',
+    'django-accounts-center',
     'django-polymorphic (>=4.1.0,<5.0.0)',
     'django-content-license (>=0.3.0,<0.4.0)',
     'django-setup-tools (>=0.2.5,<0.3.0)',
@@ -86,7 +86,7 @@ dependencies = [
     "dj-rest-auth (>=7.0.0,<8.0.0)",
     "django-cors-headers (>=4.7.0,<5.0.0)",
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
-    "django-mvp (>=0.1.1,<0.2.0)",
+    "django-mvp",
     "uncertainties (>=3.2.3,<4.0.0)",
 ]
 
@@ -110,6 +110,10 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3.11",
 ]
+
+[tool.poetry.dependencies]
+django-accounts-center = { path = "../../django/django-accounts-center", develop = true }
+django-mvp = { path = "../../django/django-mvp", develop = true }
 
 [tool.poetry.group.test.dependencies]
 django = ">=4.2,<6.0"

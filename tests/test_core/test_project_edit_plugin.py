@@ -47,7 +47,7 @@ class TestProjectEditPlugin:
 
         assert edit_plugin is not None
 
-        # Edit plugin inherits from EditPlugin and doesn't set a menu
+        # Edit plugin inherits from UpdatePlugin and doesn't set a menu
         # (it's meant for the Manage section, not a navigation tab)
         assert hasattr(edit_plugin, "menu")
 

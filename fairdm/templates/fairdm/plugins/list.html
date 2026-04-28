@@ -1,6 +1,6 @@
-{% extends "detail_view.html" %}
-{% load static i18n %}
-{% load plugin_tags %}
+{% extends "list_view.html" %}
+{% load static i18n plugin_tags %}
+{% load %}
 
 {% block header_tray %}
   {% get_plugin_tabs obj=object as plugin_tabs %}

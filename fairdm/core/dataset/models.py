@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from django.contrib.contenttypes.fields import GenericRelation
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
+from guardian.shortcuts import get_objects_for_user
 from licensing.fields import LicenseField
 from shortuuid.django_fields import ShortUUIDField
 
@@ -195,6 +196,27 @@ class DatasetQuerySet(QuerySet):
         - tests/unit/core/dataset/test_queryset.py: Comprehensive test suite
         - fairdm_demo/models.py: Usage examples and patterns
     """
+
+    def for_user(self, user):
+        """
+        Filter queryset based on user permissions.
+
+        This method checks the user's permissions and filters the queryset accordingly:
+        - If the user has permission to view private datasets, include them.
+        - Otherwise, return only public datasets.
+
+        Args:
+            user: The user for whom to filter the queryset.
+        Returns:
+
+            QuerySet: Filtered queryset based on user permissions.
+        """
+        qs = get_objects_for_user(user, "dataset.view_dataset", klass=self.model, accept_global_perms=False)
+        return
+
+        if user.is_authenticated and user.has_perm("dataset.view_private"):
+            return self.with_private()
+        return self.get_visible()
 
     def with_private(self) -> QuerySet["Dataset"]:
         """

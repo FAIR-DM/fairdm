@@ -6,7 +6,7 @@ from fairdm.contrib.generic.plugins import (
     KeyDatesPlugin,
     KeywordsPlugin,
 )
-from fairdm.core.plugins import EditPlugin, OverviewPlugin
+from fairdm.core.plugins import OverviewPlugin, UpdatePlugin
 from fairdm.utils.utils import user_guide
 
 from .models import Measurement, MeasurementDate, MeasurementDescription
@@ -33,7 +33,7 @@ class MeasurementManagementMixin:
 
 # ======== Management Plugins ======== #
 @plugins.register(Measurement)
-class Edit(MeasurementManagementMixin, EditPlugin):
+class Edit(MeasurementManagementMixin, UpdatePlugin):
     """Plugin for editing basic measurement information."""
 
     title = _("Basic Information")

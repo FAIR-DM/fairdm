@@ -1149,17 +1149,15 @@ optional = false
 python-versions = ">=3.12,<4.0"
 groups = ["main"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 django = ">5.2,<6.0"
-django-mvp = {git = "https://github.com/SamuelJennings/django-mvp"}
+django-mvp = {path = "D:/coding/django/django-mvp"}
 
 [package.source]
-type = "git"
-url = "https://github.com/SamuelJennings/django-accounts-center"
-reference = "HEAD"
-resolved_reference = "2cb6699b693788bbf3cf870a7bbba74daaee66dd"
+type = "directory"
+url = "../../django/django-accounts-center"
 
 [[package]]
 name = "django-addanother"
@@ -2020,7 +2018,7 @@ optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 django = ">=4.2,<6.0"
@@ -2031,15 +2029,9 @@ django-easy-icons = ">=0.5"
 django-flex-menus = ">=0.4.1,<0.5.0"
 django-libsass = ">=0.9,<0.10"
 
-[package.extras]
-all = ["django-tables2"]
-django-tables2 = ["django-tables2 (>=2.8.0,<3.0.0)"]
-
 [package.source]
-type = "git"
-url = "https://github.com/SamuelJennings/django-mvp"
-reference = "HEAD"
-resolved_reference = "b83a65dafd2e5be71cf9c256066f508ebc61f9cb"
+type = "directory"
+url = "../../django/django-mvp"
 
 [[package]]
 name = "django-ordered-model"
@@ -7051,4 +7043,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "6eb16bf37f44be81cad1af2d88f361ae6cf51fc20d5a97e426af037739924c56"
+content-hash = "8ebcc901fb5a8fbed5e14039e15c96fe4966218e0b306d74a1ae76943f3413ca"

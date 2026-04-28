@@ -2,19 +2,17 @@ from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
-from django.http import HttpResponse
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView
 
-from fairdm.utils.utils import user_guide
-from fairdm.views import FairDMBaseMixin, FairDMCreateView, FairDMListView
+from fairdm.views import FairDMCreateView, FairDMListView
 
 from .filters import DatasetFilter
 from .forms import DatasetForm
 from .models import Dataset
 
 
-class DatasetDetailView(FairDMBaseMixin, DetailView):
+class DatasetDetailView(DetailView):
     """Detail view for Dataset model with plugin support.
 
     This view displays a dataset and makes plugin URLs available.
@@ -37,21 +35,8 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
 
     model = Dataset
     form_class = DatasetForm
-    title = _("Create a Dataset")
-    heading_config = {
-        "title": _("Create a dataset"),
-        "description": _(
-            "Datasets are the foundation of FAIR research data, and the metadata they contain are key to making data Findable, Accessible, Interoperable, and Reusable. Use the form below to quickly create a new dataset. After creation, you can upload data, add contributors, enrich your descriptions, and include advanced metadata to support discovery and reuse."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("datasets"),
-                "icon": "documentation",
-            }
-        ],
-    }
-    fields = ["name", "license", "project"]
+    page_title = _("Create a Dataset")
+    default_roles = ["Creator", "ProjectMember", "ContactPerson"]
 
     def get_initial(self) -> dict[str, Any]:
         """Get initial form data, pre-populating project if provided in query params.
@@ -75,19 +60,6 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
         kwargs["request"] = self.request
         return kwargs
 
-    def form_valid(self, form: DatasetForm) -> HttpResponse:
-        """Handle successful form submission and add the creator as a contributor.
-
-        Args:
-            form: The validated DatasetForm instance.
-
-        Returns:
-            HttpResponse: The response from the parent class.
-        """
-        response = super().form_valid(form)
-        self.object.add_contributor(self.request.user, with_roles=["Creator", "ProjectMember", "ContactPerson"])
-        return response
-
 
 class DatasetListView(FairDMListView):
     """List view for displaying publicly visible datasets.
@@ -99,9 +71,9 @@ class DatasetListView(FairDMListView):
 
     model = Dataset
     filterset_class = DatasetFilter
-    title = _("Datasets")
+    page_title = _("All Datasets")
+    page_icon = "dataset"
     list_item_template = "dataset/dataset_card.html"
-    page = {}
     order_by = (
         ("-added", _("Newest First")),
         ("added", _("Oldest First")),
@@ -110,27 +82,6 @@ class DatasetListView(FairDMListView):
         ("-name", _("Name Z-A")),
     )
     search_fields = ["name", "uuid", "descriptions__value"]
-    heading_config = {
-        "icon": "dataset",
-        "title": _("Datasets"),
-        "description": _(
-            "A dataset is a structured collection of data generated or compiled during the course of a research activity. "
-            "This page lists all publicly available datasets within the portal that adhere to the metadata and quality "
-            "standards set by this community. Use the search and filter options to find datasets relevant to your research needs."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("datasets"),
-                "icon": "documentation",
-            }
-        ],
-    }
-
-    description = _(
-        "Search and filter thousands of open-access research datasets by topic, field, or format. Access high-quality "
-        "data to support your research projects."
-    )
 
     def get_queryset(self) -> QuerySet[Dataset]:
         """Return the queryset of visible datasets with prefetched contributors.
@@ -140,4 +91,3 @@ class DatasetListView(FairDMListView):
         """
         qs = super().get_queryset()
         return qs.get_visible().with_contributors()
-        # return Dataset.objects.get_visible().with_contributors()

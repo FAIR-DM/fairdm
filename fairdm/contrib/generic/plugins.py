@@ -9,7 +9,7 @@ from fairdm.contrib.generic.forms import (
     KeywordForm,
 )
 from fairdm.plugins import Plugin
-from fairdm.views import FairDMModelFormMixin, FairDMUpdateView
+from fairdm.views import FairDMUpdateView
 
 
 class KeywordsPlugin(Plugin, FairDMUpdateView):
@@ -54,7 +54,7 @@ class KeywordsPlugin(Plugin, FairDMUpdateView):
         return templates
 
 
-class DescriptionsPlugin(Plugin, FairDMModelFormMixin, InlineFormSetView):
+class DescriptionsPlugin(Plugin, InlineFormSetView):
     """Base plugin class for managing descriptions on FairDM objects using inline formsets."""
 
     name = "descriptions"
@@ -86,7 +86,7 @@ class DescriptionsPlugin(Plugin, FairDMModelFormMixin, InlineFormSetView):
         return context
 
 
-class KeyDatesPlugin(Plugin, FairDMModelFormMixin, InlineFormSetView):
+class KeyDatesPlugin(Plugin, InlineFormSetView):
     """Base plugin class for managing key dates on FairDM objects using inline formsets."""
 
     name = "key-dates"

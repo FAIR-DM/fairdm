@@ -10,7 +10,7 @@ from django.views.generic import TemplateView
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin, PluginGroup
-from fairdm.core.plugins import BaseEditPlugin, BaseOverviewPlugin
+from fairdm.core.plugins import OverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import Sample
 
 pytestmark = pytest.mark.django_db
@@ -106,10 +106,10 @@ class TestBaseClassIntegration:
     """Integration tests for reusable base classes."""
 
     def test_base_overview_plugin_integration(self, sample, user):
-        """Test BaseOverviewPlugin integration."""
+        """Test OverviewPlugin integration."""
 
         @plugins.register(Sample)
-        class Overview(BaseOverviewPlugin):
+        class Overview(OverviewPlugin):
             menu = {"label": "Overview", "icon": "info", "order": 1}
 
         # Should be registered
@@ -133,10 +133,10 @@ class TestBaseClassIntegration:
         assert "object" in context
 
     def test_base_edit_plugin_integration(self, sample, admin_user):
-        """Test BaseEditPlugin integration."""
+        """Test UpdatePlugin integration."""
 
         @plugins.register(Sample)
-        class Edit(BaseEditPlugin):
+        class Edit(UpdatePlugin):
             menu = {"label": "Edit", "icon": "edit", "order": 10}
             permission = "sample.change_sample"
             fields = ["name", "description"]

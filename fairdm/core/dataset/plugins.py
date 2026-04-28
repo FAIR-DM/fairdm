@@ -8,9 +8,9 @@ from fairdm.contrib.generic.plugins import (
     KeywordsPlugin,
 )
 from fairdm.core.plugins import (
-    BaseDeletePlugin,
-    EditPlugin,
+    DeletePlugin,
     OverviewPlugin,
+    UpdatePlugin,
 )
 from fairdm.utils.utils import user_guide
 
@@ -29,7 +29,7 @@ class Overview(OverviewPlugin):
 
 # ======== Management Plugins ======== #
 @plugins.register(Dataset)
-class Edit(EditPlugin):
+class Edit(UpdatePlugin):
     """Plugin for editing basic dataset information."""
 
     title = _("Basic Information")
@@ -44,7 +44,7 @@ class Edit(EditPlugin):
 
 
 @plugins.register(Dataset)
-class Delete(BaseDeletePlugin):
+class Delete(DeletePlugin):
     menu = {"label": _("Delete"), "icon": "delete", "order": 900}
     heading_config = {
         "title": _("Delete Dataset"),
