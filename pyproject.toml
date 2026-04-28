@@ -124,7 +124,7 @@ fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
     "dev",
 ] }
 importtime-waterfall = "^1.0.0"
-pandas = "^2.2.2"
+pandas = "^3.0.2"
 snakeviz = "^2.2.2"
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 pytest-benchmark = "^5.2.3"
