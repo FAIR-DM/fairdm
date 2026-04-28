@@ -135,7 +135,7 @@ pytest-mock = "^3.15.1"
 
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
-pydata-sphinx-theme = "^0.16.1"
+pydata-sphinx-theme = "^0.17.1"
 
 # fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
 #     "pydata-sphinx-theme",
