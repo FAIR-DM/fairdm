@@ -77,7 +77,7 @@ dependencies = [
     'django-hijack (>=3.7.4,<4.0.0)',
     'tablib[ods,xlsx] (>=3.9.0,<4.0.0)',
     'django-extra-views (>=0.16.0,<0.17.0)',
-    "rapidfuzz (>=3.14.3,<4.0.0)",
+    "rapidfuzz (>=3.14.5,<4.0.0)",
     # REST API (Feature 011)
     "djangorestframework (>=3.16.0,<4.0.0)",
     "drf-spectacular[sidecar] (>=0.29.0,<0.30.0)",
