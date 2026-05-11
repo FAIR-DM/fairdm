@@ -37,6 +37,7 @@ before_you_start
 dev-containers
 core_data_model
 registry-system
+base-views
 getting_started
 django_dev
 documentation/index
