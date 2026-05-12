@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.db.models import Model
 from django.urls import URLPattern
 
+from .menu import Tab
+
 if TYPE_CHECKING:
-    from django.db.models import Model
     from django.http import HttpRequest
 
     from .base import Plugin
@@ -63,9 +65,6 @@ class PluginRegistry:
                 msg = "register_plugin requires at least one model"
                 raise ValueError(msg)
 
-            # Validate all models first
-            from django.db.models import Model
-
             for model in models:
                 if not (isinstance(model, type) and issubclass(model, Model)):
                     msg = f"register_plugin expects Django Model subclasses, got {type(model)}"
@@ -79,9 +78,9 @@ class PluginRegistry:
 
             # Set model attribute for single-model registration
             if len(models) == 1:
-                plugin_class.model = models[0]  # type: ignore[attr-defined]
+                plugin_class.registered_model = models[0]  # type: ignore[attr-defined]
             else:
-                plugin_class.model = None  # type: ignore[attr-defined]
+                plugin_class.registered_model = None  # type: ignore[attr-defined]
 
             return plugin_class
 
@@ -143,7 +142,6 @@ class PluginRegistry:
         Returns:
             Sorted list of Tab objects (sorted by order, then label)
         """
-        from .menu import Tab
 
         tabs: list[Tab] = []
 
@@ -172,11 +170,11 @@ class PluginRegistry:
 
             # Resolve the full URL for the tab using the registered base model's namespace
             url = ""
-            if obj is not None and plugin_class.model is not None:
+            if obj is not None and plugin_class.registered_model is not None:
                 try:
                     from django.urls import reverse as django_reverse
 
-                    namespace = plugin_class.model._meta.model_name.lower()
+                    namespace = plugin_class.registered_model._meta.model_name.lower()
                     url = django_reverse(
                         f"{namespace}:{plugin_class.get_name()}",
                         kwargs={"uuid": obj.uuid},
@@ -194,5 +192,4 @@ class PluginRegistry:
         return tabs
 
 
-# Global plugin registry instance
 registry = PluginRegistry()

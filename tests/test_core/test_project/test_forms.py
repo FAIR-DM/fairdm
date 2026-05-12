@@ -1,7 +1,7 @@
 """
 Unit tests for fairdm.core.project forms.
 
-Tests the ProjectCreateForm and ProjectEditForm in isolation, focusing on field
+Tests the ProjectCreateForm and ProjectForm in isolation, focusing on field
 validation, required fields, and business logic constraints.
 
 Test-First Approach (Red-Green-Refactor):
@@ -23,20 +23,16 @@ class TestProjectCreateForm:
     def test_create_form_valid_with_required_fields(self):
         """Test that create form accepts minimal required fields.
 
-        Requirement: FR-001 - Projects must have name, status, visibility, owner.
+        Requirement: FR-011 - ProjectCreateForm includes only name, status, visibility.
         User Story: US1 - Streamlined creation with minimal required fields.
         """
-        from fairdm.contrib.contributors.models import Organization
         from fairdm.core.project.forms import ProjectCreateForm
 
-        owner = Organization.objects.create(name="Test Organization")
-
-        # Minimal form data with only required fields
+        # Minimal form data with only required fields (no owner — FR-011)
         form_data = {
             "name": "Test Project",
             "status": ProjectStatus.CONCEPT,
             "visibility": Visibility.PRIVATE,
-            "owner": owner.pk,
         }
 
         form = ProjectCreateForm(data=form_data)
@@ -50,7 +46,6 @@ class TestProjectCreateForm:
         assert project.name == "Test Project"
         assert project.status == ProjectStatus.CONCEPT
         assert project.visibility == Visibility.PRIVATE
-        assert project.owner == owner
 
     def test_create_form_invalid_without_name(self):
         """Test that create form requires name field.
@@ -107,43 +102,29 @@ class TestProjectCreateForm:
 
 
 @pytest.mark.django_db
-class TestProjectEditForm:
+class TestProjectUpdateForm:
     """Unit tests for Project edit form."""
 
-    def test_edit_form_cannot_set_public_for_concept(self):
-        """Test that concept-stage projects cannot be made public.
-
-        Requirement: FR-005 - Concept projects must remain private until published.
-        User Story: US1 - Validation prevents premature publication.
-        """
+    def test_form_allows_concept_public_combination(self):
+        """T057 — CONCEPT + PUBLIC is a valid combination; form must accept it."""
         from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.forms import ProjectEditForm
+        from fairdm.core.project.forms import ProjectForm
         from fairdm.core.project.models import Project
 
         owner = Organization.objects.create(name="Test Organization")
-
-        # Create a concept project
         project = Project.objects.create(
             name="Concept Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
         )
-
-        # Attempt to set visibility to PUBLIC while status is CONCEPT
         form_data = {
             "name": project.name,
             "status": ProjectStatus.CONCEPT,
-            "visibility": Visibility.PUBLIC,  # Invalid combination
+            "visibility": Visibility.PUBLIC,
             "owner": owner.pk,
         }
-
-        form = ProjectEditForm(data=form_data, instance=project)
-
-        # Verify form validation catches this
-        assert not form.is_valid()
-        assert "visibility" in form.errors or "__all__" in form.errors
-
-        # Check error message is helpful
-        error_message = str(form.errors)
-        assert "concept" in error_message.lower() or "public" in error_message.lower()
+        form = ProjectForm(data=form_data, instance=project)
+        assert form.is_valid(), f"Expected CONCEPT+PUBLIC to be valid, got errors: {form.errors}"
+        assert "visibility" not in form.errors
+        assert "__all__" not in form.errors
 
     def test_edit_form_allows_all_fields_for_active_project(self):
         """Test that active projects can be fully edited.
@@ -152,7 +133,7 @@ class TestProjectEditForm:
         User Story: US1 - Full editing capability for active projects.
         """
         from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.forms import ProjectEditForm
+        from fairdm.core.project.forms import ProjectForm
         from fairdm.core.project.models import Project
 
         owner = Organization.objects.create(name="Test Organization")
@@ -170,7 +151,7 @@ class TestProjectEditForm:
             "owner": owner.pk,
         }
 
-        form = ProjectEditForm(data=form_data, instance=project)
+        form = ProjectForm(data=form_data, instance=project)
 
         # Verify form is valid
         assert form.is_valid(), f"Form errors: {form.errors}"

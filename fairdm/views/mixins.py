@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from functools import cached_property
 
-from braces.views import MessageMixin
 from django.db.models import Model
 from django.shortcuts import get_object_or_404
-from meta.views import MetadataMixin
 
 from fairdm.core.utils import get_non_polymorphic_instance
 from fairdm.utils import get_model_class
@@ -13,24 +11,6 @@ from fairdm.utils import get_model_class
 # =============================================================================
 # VIEW MIXINS
 # =============================================================================
-
-
-class FairDMBaseMixin(MessageMixin, MetadataMixin):
-    """
-    A mixin class providing common context and sidebar configuration for views.
-
-    Methods:
-        get_context_data(**kwargs):
-            Extends the context data with user edit permissions and sidebar configurations.
-        user_can_edit():
-            Determines if the current user has edit permissions. Returns False by default.
-        get_meta_title(context):
-            Sets the page title in the context and returns a formatted meta title string.
-    """
-
-    @staticmethod
-    def check(request, *args, **kwargs):
-        return True
 
 
 class RelatedObjectMixin:

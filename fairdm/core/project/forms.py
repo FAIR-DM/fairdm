@@ -1,7 +1,10 @@
+from crispy_forms.bootstrap import InlineRadios
+from crispy_forms.helper import FormHelper, Layout
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
+from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.forms import ModelForm
 from fairdm.utils.choices import Visibility
@@ -10,10 +13,10 @@ from .models import Project
 
 
 class ProjectForm(ModelForm):
-    """Form for creating and editing Project instances.
+    """Base form for Project instances.
 
-    Provides fields for project image, name, visibility, and status with
-    custom widgets and help text to guide users through project creation.
+    Centralises all field declarations, help_texts, and widgets. Used directly
+    by the update view and subclassed by ProjectCreateForm.
     """
 
     image = forms.ImageField(
@@ -22,143 +25,31 @@ class ProjectForm(ModelForm):
     )
     name = forms.CharField(
         label=_("Project name"),
-        help_text=_("Provide the name of your project."),
-    )
-    visibility = forms.ChoiceField(
-        label=_("Visibility"),
-        choices=Project.VISIBILITY.choices,
-        help_text=_("Should this project be visible to the public?"),
-    )
-    status = forms.ChoiceField(
-        label=_("Current status"),
-        choices=Project.STATUS_CHOICES.choices,
-        help_text=_("In what phase of it's lifecycle is this project?"),
-    )
-
-    class Meta:
-        model = Project
-        fields = [
-            "image",
-            "name",
-            "visibility",
-            "status",
-        ]
-
-
-class ProjectCreateForm(ModelForm):
-    """Streamlined form for creating new Project instances.
-
-    Provides minimal required fields for quick project creation, following
-    a GitHub-like repository creation pattern. Users can add detailed metadata
-    through the edit interface after creation.
-
-    Required fields:
-    - name: Project name
-    - status: Current project status
-    - visibility: Public or private
-    - owner: Owning organization
-
-    Usage:
-        form = ProjectCreateForm(data=request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.created_by = request.user
-            project.save()
-    """
-
-    name = forms.CharField(
-        label=_("Project name"),
-        max_length=255,
-        help_text=_("A clear, descriptive name for your project."),
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": _("e.g., Arctic Climate Study 2024"),
-                "class": "form-control",
-            }
-        ),
-    )
-
-    status = forms.ChoiceField(
-        label=_("Status"),
-        choices=ProjectStatus.choices,
-        initial=ProjectStatus.CONCEPT,
-        help_text=_("Current phase of the project lifecycle."),
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-
-    visibility = forms.ChoiceField(
-        label=_("Visibility"),
-        choices=Visibility.choices,
-        initial=Visibility.PRIVATE,
-        help_text=_("Who can view this project? Private projects are only visible to team members."),
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-
-    owner = forms.ModelChoiceField(
-        label=_("Owner organization"),
-        queryset=None,  # Set in __init__
-        required=False,
-        help_text=_("The organization that owns this project."),
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-
-    class Meta:
-        model = Project
-        fields = ["name", "status", "visibility", "owner"]
-
-    def __init__(self, *args, **kwargs):
-        """Initialize form and set owner queryset."""
-        super().__init__(*args, **kwargs)
-        # Set owner queryset to all organizations
-        from fairdm.contrib.contributors.models import Organization
-
-        self.fields["owner"].queryset = Organization.objects.all()
-
-
-class ProjectEditForm(ModelForm):
-    """Form for editing existing Project instances.
-
-    Provides full access to project fields with validation rules to prevent
-    invalid state transitions (e.g., concept projects cannot be made public).
-
-    Validation rules:
-    - Concept projects must remain private
-    - All other statuses allow any visibility
-
-    Usage:
-        form = ProjectEditForm(data=request.POST, instance=project)
-        if form.is_valid():
-            form.save()
-    """
-
-    name = forms.CharField(
-        label=_("Project name"),
         max_length=255,
         help_text=_("A clear, descriptive name for your project."),
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
-
-    status = forms.ChoiceField(
+    status = forms.TypedChoiceField(
         label=_("Status"),
         choices=ProjectStatus.choices,
+        coerce=int,
         help_text=_("Current phase of the project lifecycle."),
         widget=forms.Select(attrs={"class": "form-control"}),
     )
-
-    visibility = forms.ChoiceField(
+    visibility = forms.TypedChoiceField(
         label=_("Visibility"),
         choices=Visibility.choices,
+        coerce=int,
+        initial=Visibility.PUBLIC,
         help_text=_("Who can view this project?"),
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
     )
-
     owner = forms.ModelChoiceField(
         label=_("Owner organization"),
         queryset=None,  # Set in __init__
         help_text=_("The organization that owns this project."),
         widget=forms.Select(attrs={"class": "form-control"}),
     )
-
     funding = forms.JSONField(
         label=_("Funding information"),
         required=False,
@@ -174,43 +65,44 @@ class ProjectEditForm(ModelForm):
 
     class Meta:
         model = Project
-        fields = ["name", "status", "visibility", "owner", "funding"]
+        # TODO: Come up with a plan for editing funding data. This is a complex field that may require a custom interface
+        # rather than a raw JSON textarea. For now, we declare the field but don't list it in meta.fields.
+        fields = ["image", "name", "status", "visibility", "owner"]
 
     def __init__(self, *args, **kwargs):
-        """Initialize form and set owner queryset."""
+        """Initialize form and set owner queryset if the field is present."""
         super().__init__(*args, **kwargs)
-        from fairdm.contrib.contributors.models import Organization
+        if "owner" in self.fields:
+            self.fields["owner"].queryset = Organization.objects.all()
 
-        self.fields["owner"].queryset = Organization.objects.all()
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            "image",
+            "name",
+            "status",
+            InlineRadios("visibility"),
+            "owner",
+        )
 
-    def clean(self):
-        """Validate form data and enforce business rules.
 
-        Rules:
-        - Concept projects cannot be made public
-        """
-        cleaned_data = super().clean()
-        status = cleaned_data.get("status")
-        visibility = cleaned_data.get("visibility")
+class ProjectCreateForm(ProjectForm):
+    """Streamlined form for creating new Project instances.
 
-        # Convert to integer if string
-        if isinstance(status, str):
-            status = int(status)
-        if isinstance(visibility, str):
-            visibility = int(visibility)
+    Restricts fields to the minimum required for project creation. Users can
+    add detailed metadata through the edit interface after creation.
+    """
 
-        # Rule: Concept projects must remain private
-        if status == ProjectStatus.CONCEPT and visibility == Visibility.PUBLIC:
-            raise ValidationError(
-                {
-                    "visibility": _(
-                        "Concept projects cannot be made public. "
-                        "Change the status to 'Planning' or 'In Progress' before making the project public."
-                    )
-                }
-            )
+    class Meta(ProjectForm.Meta):
+        fields = ["name", "status", "visibility"]
 
-        return cleaned_data
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = Layout(
+            "name",
+            "status",
+            InlineRadios("visibility"),
+        )
 
 
 class ProjectDescriptionForm(ModelForm):

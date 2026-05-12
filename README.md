@@ -133,7 +133,7 @@ That's it! You now have:
 
 - A working web interface for managing rock samples
 - Sortable/filterable tables
-- Create/edit/delete forms
+- Create/update/delete forms
 - Import/export to CSV/Excel
 - REST API endpoints (if enabled)
 
@@ -309,6 +309,7 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
 - **Pull request process**: Pre-push validation ensures CI passes
 
 **Before your first push**, install git hooks to run CI checks locally:
+
 ```bash
 poetry run invoke install-hooks
 ```

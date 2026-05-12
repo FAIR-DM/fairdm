@@ -149,7 +149,7 @@ poetry run python manage.py migrate
 
 ```python
 import pytest
-from fairdm.core.project.forms import ProjectCreateForm, ProjectEditForm
+from fairdm.core.project.forms import ProjectCreateForm, ProjectUpdateForm
 
 @pytest.mark.django_db
 class TestProjectCreateForm:
@@ -171,17 +171,6 @@ class TestProjectCreateForm:
         assert not form.is_valid()
         assert "name" in form.errors
 
-@pytest.mark.django_db
-class TestProjectEditForm:
-    def test_cannot_set_public_visibility_for_concept_status(self):
-        """Test that Concept projects cannot be made public."""
-        form = ProjectEditForm(data={
-            "name": "Test",
-            "status": 0,  # Concept
-            "visibility": 2,  # Public
-        })
-        assert not form.is_valid()
-        assert "visibility" in form.errors
 ```
 
 **Implementation**:
@@ -220,7 +209,7 @@ class ProjectCreateForm(ModelForm):
         model = Project
         fields = ["name", "status", "visibility", "owner"]
 
-class ProjectEditForm(ModelForm):
+class ProjectUpdateForm(ModelForm):
     """Comprehensive form for editing project metadata."""
 
     class Meta:
@@ -313,7 +302,7 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.urls import reverse_lazy
 from guardian.mixins import PermissionRequiredMixin as ObjectPermissionRequiredMixin
 from .models import Project
-from .forms import ProjectCreateForm, ProjectEditForm
+from .forms import ProjectCreateForm, ProjectUpdateForm
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     """Streamlined project creation view."""
@@ -617,7 +606,7 @@ class ResearchProject(Project):
 ### Phase 2: Forms
 
 - [ ] Implement ProjectCreateForm
-- [ ] Implement ProjectEditForm
+- [ ] Implement ProjectUpdateForm
 - [ ] Add form validation logic
 - [ ] Create crispy forms layouts
 - [ ] Run form unit tests

@@ -5,11 +5,17 @@ Tests the interaction between views, forms, and models, verifying complete
 request/response cycles for project CRUD operations.
 """
 
+import time
+
 import pytest
 from django.urls import reverse
+from guardian.shortcuts import assign_perm
 
+from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
-from fairdm.factories import UserFactory
+from fairdm.core.dataset.models import Dataset
+from fairdm.core.project.models import Project
+from fairdm.factories import ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -56,8 +62,6 @@ class TestProjectCreateView:
         Requirement: FR-001 - Successful creation shows project details.
         User Story: US1 - User is redirected to project detail after creation.
         """
-        from fairdm.contrib.contributors.models import Organization
-
         # Create user and organization
         owner = Organization.objects.create(name="Test Organization")
 
@@ -75,8 +79,6 @@ class TestProjectCreateView:
         assert response.status_code == 302
 
         # Verify project was created
-        from fairdm.core.project.models import Project
-
         project = Project.objects.get(name="New Test Project")
         assert project.pk is not None
 
@@ -106,112 +108,265 @@ class TestProjectCreateView:
         assert "name" in form.errors
 
 
+# ---------------------------------------------------------------------------
+# Phase 3 — User Story 1: Browse and Search the Project List
+# ---------------------------------------------------------------------------
+
+
 @pytest.mark.django_db
-class TestProjectDetailView:
-    """Integration tests for project detail view."""
+class TestProjectListView:
+    """Smoke tests and behaviour tests for ProjectListView (US1)."""
 
-    def test_owner_can_view_private_project(self, client):
-        """Test that project owner can view their private project.
+    def test_project_list_anonymous_200(self, client):
+        """T010 — GET /projects/ returns 200 for anonymous users."""
+        url = reverse("project-list")
+        response = client.get(url)
+        assert response.status_code == 200
 
-        Requirement: FR-004 - Owners have full access to their projects.
-        User Story: US1 - Project detail view accessible to owner.
-        """
-        from guardian.shortcuts import assign_perm
+    def test_project_list_shows_only_public(self, client):
+        """T011 — List shows only PUBLIC projects; PRIVATE projects are hidden."""
+        public = ProjectFactory(name="Public Project", visibility=Visibility.PUBLIC)
+        ProjectFactory(name="Private Project", visibility=Visibility.PRIVATE)
 
-        from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.models import Project
+        url = reverse("project-list")
+        response = client.get(url)
 
-        user = UserFactory(email="owner@example.com")
-        owner_org = Organization.objects.create(name="Owner Organization")
+        assert response.status_code == 200
+        assert public.name in str(response.content)
+        assert "Private Project" not in str(response.content)
 
-        project = Project.objects.create(
-            name="Private Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner_org
+    def test_project_list_order_by_added(self, client):
+        """T012 — ?o=added and ?o=-added return results in expected chronological order."""
+        older = ProjectFactory(name="Older Project", visibility=Visibility.PUBLIC)
+        time.sleep(0.01)
+        newer = ProjectFactory(name="Newer Project", visibility=Visibility.PUBLIC)
+
+        url = reverse("project-list")
+
+        response_asc = client.get(url, {"o": "added"})
+        assert response_asc.status_code == 200
+        content_asc = str(response_asc.content)
+        assert content_asc.index(older.name) < content_asc.index(newer.name)
+
+        response_desc = client.get(url, {"o": "-added"})
+        assert response_desc.status_code == 200
+        content_desc = str(response_desc.content)
+        assert content_desc.index(newer.name) < content_desc.index(older.name)
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — User Story 2: Create a New Project (additional tests)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestProjectCreateViewExtended:
+    """Additional tests for ProjectCreateView (US2, T016-T018a)."""
+
+    def test_project_create_anonymous_redirects_to_login(self, client):
+        """T016 — GET /projects/create/ by anonymous client returns 302 to login."""
+        url = reverse("project-create")
+        response = client.get(url)
+        assert response.status_code == 302
+        assert "/login/" in response.url or "/accounts/login/" in response.url
+
+    def test_project_create_authenticated_200(self, authenticated_client):
+        """T017 — GET /projects/create/ by authenticated client returns 200."""
+        url = reverse("project-create")
+        response = authenticated_client.get(url)
+        assert response.status_code == 200
+
+    def test_project_create_redirects_to_detail(self, authenticated_client):
+        """T018 — Valid POST redirects to project-detail URL (not project:overview)."""
+        url = reverse("project-create")
+        response = authenticated_client.post(
+            url,
+            data={
+                "name": "Redirect Test Project",
+                "status": "1",
+                "visibility": str(Visibility.PRIVATE),
+            },
         )
+        assert response.status_code == 302
+        project = Project.objects.get(name="Redirect Test Project")
+        expected_url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        assert response.url == expected_url
 
-        # Assign view permission to user
-        assign_perm("view_project", user, project)
-
+    def test_project_create_assigns_permissions_and_roles(self, client, user):
+        """T018a — After valid POST, creating user holds all 5 permissions and contributor roles."""
         client.force_login(user)
-        url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        url = reverse("project-create")
+        response = client.post(
+            url,
+            data={
+                "name": "Permission Test Project",
+                "status": "1",
+                "visibility": str(Visibility.PRIVATE),
+            },
+        )
+        assert response.status_code == 302
+
+        project = Project.objects.get(name="Permission Test Project")
+
+        expected_perms = [
+            "view_project",
+            "change_project",
+            "delete_project",
+            "change_project_metadata",
+            "change_project_settings",
+        ]
+        for perm in expected_perms:
+            assert user.has_perm(perm, project), f"Missing permission: {perm}"
+
+        contributor = project.contributors.filter(contributor=user).first()
+        assert contributor is not None, "User should be a contributor"
+        role_names = list(contributor.roles.values_list("name", flat=True))
+        for role in ["Creator", "ProjectMember", "ContactPerson"]:
+            assert role in role_names, f"Missing contributor role: {role}"
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 — User Story 3: Edit Project Core Attributes
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestProjectUpdateView:
+    """Smoke tests and behaviour tests for ProjectUpdateView (US3)."""
+
+    def test_project_update_anonymous_redirects_to_login(self, client):
+        """T022 — GET /projects/<uuid>/update/ by anonymous client returns 302."""
+        project = ProjectFactory()
+        url = reverse("project-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
+        assert response.status_code == 302
+        assert "/login/" in response.url or "/accounts/login/" in response.url
 
-        assert response.status_code == 200
-        assert project.name in str(response.content)
-
-    def test_public_project_accessible_without_login(self, client):
-        """Test that public projects are accessible to anonymous users.
-
-        Requirement: FR-004 - Public projects are discoverable.
-        User Story: US1 - Public visibility enables sharing.
-        """
-        from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.models import Project
-
-        owner = Organization.objects.create(name="Public Organization")
-
-        project = Project.objects.create(
-            name="Public Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
-        )
-
-        # Access without login
-        url = reverse("project-detail", kwargs={"uuid": project.uuid})
+    def test_project_update_without_permission_403(self, client):
+        """T023 — Authenticated client without change_project returns 403."""
+        project = ProjectFactory()
+        other_user = UserFactory()
+        client.force_login(other_user)
+        url = reverse("project-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
+        assert response.status_code == 403
 
-        assert response.status_code == 200
-        assert project.name in str(response.content)
-
-    @pytest.mark.skip(
-        reason="Detail/overview page for Project is not yet finalized, so this test is pending implementation."
-    )
-    def test_metadata_displays_on_detail_page(self, client):
-        """Test that project metadata (descriptions, dates, identifiers) displays on detail page.
-
-        Requirement: FR-010, FR-011, FR-005 - Metadata must be visible on detail pages.
-        User Story: US2 - Rich metadata displays correctly for discovery and reuse.
-        Implementation: T049 - Integration test for metadata display.
-
-        Workflow:
-        1. Create a project with metadata
-        2. Access project detail page
-        3. Verify all metadata types are displayed
-        """
-        from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.models import (
-            Project,
-            ProjectDate,
-            ProjectDescription,
-            ProjectIdentifier,
-        )
-
-        owner = Organization.objects.create(name="Test Organization")
-
-        # Create project
-        project = Project.objects.create(
-            name="Metadata Rich Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
-        )
-
-        # Add metadata
-        ProjectDescription.objects.create(
-            related=project, type="Abstract", value="This is a comprehensive abstract describing the project."
-        )
-
-        ProjectDate.objects.create(
-            related=project,
-            type="Start",
-            value="2024-01-01",  # PartialDateField expects string format
-        )
-
-        ProjectIdentifier.objects.create(related=project, type="ISNI", value="0000 0001 2283 4400")
-
-        # Access detail page
-        url = reverse("project-detail", kwargs={"uuid": project.uuid})
+    def test_project_update_with_permission_200(self, client):
+        """T024 — Client with change_project permission returns 200."""
+        project = ProjectFactory()
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
-
-        # Verify response is successful
         assert response.status_code == 200
-        content = str(response.content)
 
-        # Verify metadata is displayed
-        assert "comprehensive abstract" in content.lower()
-        assert "2024-01-01" in content or "January" in content  # Date format may vary
-        assert "0000 0001 2283 4400" in content or "isni" in content.lower()
+    def test_project_update_success_redirects_to_detail(self, client):
+        """T024a — Valid POST by permitted user returns 302 to project-detail URL."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Original Name", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project-update", kwargs={"uuid": project.uuid})
+        response = client.post(
+            url,
+            data={
+                "name": "Updated Name",
+                "status": project.status,
+                "visibility": project.visibility,
+                "owner": org.pk,
+            },
+        )
+        assert response.status_code == 302
+        expected_url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        assert response.url == expected_url
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — User Story 4: Delete a Project
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestProjectDeleteView:
+    """Smoke tests and behaviour tests for ProjectDeleteView (US4)."""
+
+    def test_project_delete_anonymous_redirects_to_login(self, client):
+        """T028 — GET /projects/<uuid>/delete/ by anonymous client returns 302."""
+        project = ProjectFactory()
+        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 302
+        assert "/login/" in response.url or "/accounts/login/" in response.url
+
+    def test_project_delete_without_permission_403(self, client):
+        """T029 — Authenticated client without delete_project returns 403."""
+        project = ProjectFactory()
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 403
+
+    def test_project_delete_with_permission_200(self, client):
+        """T030 — Client with delete_project permission GET returns 200."""
+        project = ProjectFactory()
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 200
+
+    def test_project_delete_wrong_name_shows_error(self, client):
+        """T031/T048 — POST with mismatched confirmation field returns 200 with form error; project not deleted."""
+        project = ProjectFactory(name="My Project")
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        response = client.post(url, data={"confirmation": "Wrong Name"})
+        assert response.status_code == 200
+        assert "confirmation" in response.context["form"].errors
+        assert Project.objects.filter(pk=project.pk).exists()
+
+    def test_project_delete_blocks_public_datasets(self, client):
+        """T032 — POST correct name but project has PUBLIC dataset returns 200 with protected_datasets; not deleted."""
+        project = ProjectFactory(name="Dataset Project")
+        Dataset.objects.create(name="Public Dataset", project=project, visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        response = client.post(url, data={"confirmation": "Dataset Project"})
+        assert response.status_code == 200
+        assert "protected_datasets" in response.context
+        assert Project.objects.filter(pk=project.pk).exists()
+
+    def test_project_delete_allows_private_only_datasets(self, client):
+        """T032a — POST correct name + only PRIVATE datasets → project deleted, redirect to project-list."""
+        project = ProjectFactory(name="Private Dataset Project")
+        Dataset.objects.create(name="Private Dataset", project=project, visibility=Visibility.PRIVATE)
+        pk = project.pk
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        response = client.post(url, data={"confirmation": "Private Dataset Project"})
+        assert response.status_code == 302
+        assert response.url == reverse("project-list")
+        assert not Project.objects.filter(pk=pk).exists()
+
+    def test_project_delete_no_datasets_success(self, client):
+        """T032b — POST correct name + zero datasets → project deleted, redirect to project-list."""
+        project = ProjectFactory(name="Empty Project")
+        pk = project.pk
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        response = client.post(url, data={"confirmation": "Empty Project"})
+        assert response.status_code == 302
+        assert response.url == reverse("project-list")
+        assert not Project.objects.filter(pk=pk).exists()

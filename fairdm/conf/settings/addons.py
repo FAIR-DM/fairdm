@@ -198,6 +198,10 @@ EASY_ICONS = {
             "api": "bi bi-braces",
             # Auth
             "login": "bi bi-box-arrow-in-right",
+            "logout": "bi bi-box-arrow-right",
+            "signup": "bi bi-person-plus",
+            # UI feedback
+            "check": "bi bi-check",
             "password": "bi bi-key",
             "mfa": "bi bi-shield-lock",
             "account": "bi bi-person-circle",

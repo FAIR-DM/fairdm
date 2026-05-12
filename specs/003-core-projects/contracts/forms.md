@@ -50,7 +50,7 @@
 
 ---
 
-## ProjectEditForm
+## ProjectUpdateForm
 
 **Purpose**: Comprehensive project metadata editing
 
@@ -306,7 +306,7 @@ layout = Layout(
 )
 ```
 
-### ProjectEditForm Layout
+### ProjectUpdateForm Layout
 
 ```python
 layout = Layout(

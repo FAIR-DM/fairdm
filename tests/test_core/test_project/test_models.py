@@ -115,36 +115,85 @@ class TestProjectModel:
             )
             assert project.visibility == visibility
 
-    def test_cannot_delete_project_with_datasets(self):
-        """Test that projects with datasets cannot be deleted.
+    def test_cannot_delete_project_with_public_datasets(self):
+        """Test that projects with PUBLIC datasets cannot be deleted.
 
-        Requirement: FR-021 - Prevent deletion of projects with associated datasets.
-        Implementation: T013 - pre_delete signal handler.
+        Requirement: FR-021 - Prevent deletion of projects with publicly visible datasets.
+        Implementation: T007 - pre_delete signal raises PublicDatasetsProtect for PUBLIC datasets.
         """
         from fairdm.contrib.contributors.models import Organization
         from fairdm.core.dataset.models import Dataset
+        from fairdm.core.project.models import PublicDatasetsProtect
 
         owner = Organization.objects.create(name="Test Organization")
 
         project = Project.objects.create(
-            name="Project with Dataset", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PRIVATE, owner=owner
+            name="Project with Public Dataset", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
         )
 
-        # Add a dataset to the project
+        # Add a PUBLIC dataset to the project
         Dataset.objects.create(
-            name="Test Dataset",
+            name="Public Dataset",
             project=project,
+            visibility=Visibility.PUBLIC,
         )
 
-        # Attempt to delete project should raise ProtectedError (due to PROTECT on ForeignKey)
-        from django.db.models.deletion import ProtectedError
-
-        with pytest.raises(ProtectedError) as exc_info:
+        # Attempt to delete project should raise PublicDatasetsProtect
+        with pytest.raises(PublicDatasetsProtect):
             project.delete()
 
-        # Verify error message indicates protection
-        error_message = str(exc_info.value)
-        assert "protected" in error_message.lower() or "cannot delete" in error_message.lower()
+
+@pytest.mark.django_db
+class TestProjectPreDeleteSignal:
+    """Tests for the pre_delete signal guard on Project model."""
+
+    def test_pre_delete_signal_blocks_public_datasets(self):
+        """Test that deleting a project with PUBLIC datasets raises PublicDatasetsProtect.
+
+        T004 - MUST FAIL before T007 implementation.
+        """
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.project.models import PublicDatasetsProtect
+
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        Dataset.objects.create(name="Public Dataset", project=project, visibility=Visibility.PUBLIC)
+
+        with pytest.raises(PublicDatasetsProtect):
+            project.delete()
+
+    def test_pre_delete_signal_allows_private_only(self):
+        """Test that deleting a project with only PRIVATE datasets succeeds.
+
+        T005 - MUST FAIL before T007 implementation.
+        """
+        from fairdm.core.dataset.models import Dataset
+
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory()
+        dataset = Dataset.objects.create(name="Private Dataset", project=project, visibility=Visibility.PRIVATE)
+        pk = project.pk
+
+        # Should not raise — private datasets do not block project deletion
+        project.delete()
+
+        assert not Project.objects.filter(pk=pk).exists()
+
+    def test_pre_delete_signal_allows_no_datasets(self):
+        """Test that deleting a project with no datasets succeeds.
+
+        T006 - MUST FAIL before T007 implementation.
+        """
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory()
+        pk = project.pk
+
+        project.delete()
+
+        assert not Project.objects.filter(pk=pk).exists()
 
 
 @pytest.mark.django_db

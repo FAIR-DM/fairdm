@@ -39,60 +39,6 @@
               {% comment %} <c-card.action href="{% plugin_url "contributors" %}" /> {% endcomment %}
             </c-slot>
           </c-card>
-          <c-card title="{% trans "Recent Activity" %}"
-                  icon="activity">
-            <c-slot name="actions">
-              {% comment %} <c-card.action href="{% plugin_url 'activity' %}" icon="arrow-right" /> {% endcomment %}
-            </c-slot>
-            {% if recent_activities %}
-              <div class="d-flex flex-column gap-2">
-                {% for activity in recent_activities %}
-                  <div class="d-flex gap-2 align-items-start pb-2 {% if not forloop.last %}border-bottom{% endif %}">
-                    {# Activity Icon #}
-                    <div class="flex-shrink-0">
-                      {% if activity.verb == "created" %}
-                        <c-icon name="add" class="text-success" size="16" />
-                      {% elif activity.verb == "updated" or activity.verb == "modified" %}
-                        <c-icon name="update" class="text-primary" size="16" />
-                      {% elif activity.verb == "deleted" %}
-                        <c-icon name="delete" class="text-danger" size="16" />
-                      {% else %}
-                        <c-icon name="activity" class="text-secondary" size="16" />
-                      {% endif %}
-                    </div>
-                    {# Activity Content #}
-                    <div class="flex-grow-1 min-w-0">
-                      <div class="small">
-                        {% if activity.actor.get_absolute_url %}
-                          <a href="{{ activity.actor.get_absolute_url }}"
-                             class="fw-semibold text-decoration-none">{{ activity.actor }}</a>
-                        {% elif activity.actor %}
-                          <span class="fw-semibold">{{ activity.actor }}</span>
-                        {% else %}
-                          <span class="fw-semibold text-muted">{% trans "System" %}</span>
-                        {% endif %}
-                        <span class="text-muted">{{ activity.verb }}</span>
-                        {% if activity.target %}
-                          {% if activity.target.get_absolute_url %}
-                            <a href="{{ activity.target.get_absolute_url }}"
-                               class="text-decoration-none">{{ activity.target|truncatewords:5 }}</a>
-                          {% else %}
-                            {{ activity.target|truncatewords:5 }}
-                          {% endif %}
-                        {% endif %}
-                      </div>
-                      <div class="text-muted" style="font-size: 0.75rem;">
-                        <c-icon name="time" size="12" class="me-1" />
-                        {{ activity.timestamp|naturaltime }}
-                      </div>
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <p class="text-muted small mb-0">{{ empty_text }}</p>
-            {% endif %}
-          </c-card>
         {% endblock content.left %}
 
       </c-col>
@@ -102,11 +48,9 @@
              class="d-flex flex-column gap-3">
         {% block content.right %}
           <c-card title="{% trans 'Quick Info' %}" icon="info">
-            <dl class="mb-0">
-              {% block quick_info_items %}
-              {% endblock quick_info_items %}
+            {% block quick_info_items %}
+            {% endblock quick_info_items %}
 
-            </dl>
           </c-card>
           <c-card title="{% trans 'Key Dates' %}"
                   icon="calendar"

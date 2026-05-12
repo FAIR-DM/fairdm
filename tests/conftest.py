@@ -24,6 +24,10 @@ def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         # Load Creative Commons licenses from django-content-license
         call_command("loaddata", "creativecommons", verbosity=0)
+        # Load all registered research vocabularies (e.g. FairDM Roles)
+        from research_vocabs.models import Concept
+
+        Concept.preload()
 
 
 @pytest.fixture

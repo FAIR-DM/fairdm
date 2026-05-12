@@ -1,18 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView, UpdateView
+from django.views.generic import DetailView
 from guardian.shortcuts import assign_perm
 
-from fairdm.views import FairDMCreateView, FairDMListView
+from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMListView, FairDMUpdateView
 
 from ..models import Project
 from .filters import ProjectFilter
-from .forms import ProjectCreateForm, ProjectEditForm
+from .forms import ProjectCreateForm, ProjectForm
+from .models import PublicDatasetsProtect
 
 
 class ProjectListView(FairDMListView):
@@ -28,8 +30,10 @@ class ProjectListView(FairDMListView):
     list_item_template = "project/project_card.html"
     search_fields = ["uuid", "name"]
     order_by = [
-        ("name", _("Name (A-Z)")),
-        ("-name", _("Name (Z-A)")),
+        ("name", _("Name (A-Z)"), "name"),
+        ("-name", _("Name (Z-A)"), "-name"),
+        ("added", _("Date created (oldest first)"), "added"),
+        ("-added", _("Date created (newest first)"), "-added"),
     ]
     image = static("img/stock/project.jpg")
     has_create_permission = False  # Creation is handled by a separate view
@@ -40,7 +44,7 @@ class ProjectListView(FairDMListView):
         Returns:
             QuerySet: Filtered and optimized Project queryset.
         """
-        return Project.objects.get_visible().with_contributors()
+        return super().get_queryset().get_visible().with_contributors()
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
@@ -106,10 +110,10 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             str: URL to project detail page.
         """
-        return self.object.get_absolute_url()
+        return reverse("project-detail", kwargs={"uuid": self.object.uuid})
 
 
-class ProjectUpdateView(LoginRequiredMixin, UpdateView):
+class ProjectUpdateView(LoginRequiredMixin, FairDMUpdateView):
     """View for editing existing Project instances.
 
     Provides full access to project fields with validation rules to prevent
@@ -119,13 +123,13 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     - change_project: To edit the project
 
     Usage:
-        URL: /projects/<uuid>/edit/
+        URL: /projects/<uuid>/update/
         Login required: Yes
         Object permission: change_project
     """
 
     model = Project
-    form_class = ProjectEditForm
+    form_class = ProjectForm
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
 
@@ -140,8 +144,6 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
 
         # Check if user has change permission
         if not self.request.user.has_perm("change_project", project):
-            from django.core.exceptions import PermissionDenied
-
             raise PermissionDenied("You do not have permission to edit this project.")
 
         return project
@@ -153,6 +155,49 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
             str: URL to project detail page.
         """
         return reverse("project-detail", kwargs={"uuid": self.object.uuid})
+
+
+class ProjectDeleteView(LoginRequiredMixin, FairDMDeleteView):
+    """View for deleting a Project instance with name-confirmation guard.
+
+    Requires:
+    - User must be authenticated (LoginRequiredMixin)
+    - User must hold the ``delete_project`` object-level permission
+    - The ``DeleteConfirmForm`` field ``confirmation`` must match the project name exactly
+
+    Public datasets block deletion; only private datasets are cascade-deleted.
+
+    Usage:
+        URL: /projects/<uuid>/delete/
+        Login required: Yes
+        Object permission: delete_project
+    """
+
+    model = Project
+    slug_field = "uuid"
+    slug_url_kwarg = "uuid"
+    success_url = reverse_lazy("project-list")
+    require_confirmation = True
+
+    def get_object(self, queryset=None):
+        """Retrieve project and enforce delete_project permission."""
+        uuid = self.kwargs.get("uuid")
+        obj = get_object_or_404(Project, uuid=uuid)
+        if not self.request.user.has_perm("delete_project", obj):
+            raise PermissionDenied("You do not have permission to delete this project.")
+        return obj
+
+    def get_confirmation_value(self):
+        """Return the project name as the required confirmation value."""
+        return self.object.name
+
+    def form_valid(self, form):
+        """Delete the project, catching the public-dataset guard if raised."""
+        try:
+            return super().form_valid(form)
+        except PublicDatasetsProtect as e:
+            context = self.get_context_data(object=self.object, protected_datasets=e.datasets)
+            return self.render_to_response(context)
 
 
 class ProjectDetailView(DetailView):
@@ -188,8 +233,6 @@ class ProjectDetailView(DetailView):
             Http404: If project not found.
             PermissionDenied: If user lacks permission to view private project.
         """
-        from django.core.exceptions import PermissionDenied
-
         uuid = self.kwargs.get("uuid")
         project = get_object_or_404(Project, uuid=uuid)
 

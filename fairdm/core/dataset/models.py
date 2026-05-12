@@ -584,7 +584,7 @@ class Dataset(BaseModel):
         verbose_name=_("project"),
         help_text=_("The project associated with the dataset."),
         related_name="datasets",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
     )

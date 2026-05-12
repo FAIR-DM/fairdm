@@ -1,3 +1,4 @@
+{% if user.is_authenticated %}
 <c-dropdown text="{% trans "Create new" %}"
             icon="plus"
             gap="1"
@@ -12,3 +13,4 @@
                    icon="dataset"
                    href="{% url "dataset-create" %}" />
 </c-dropdown>
+{% endif %}
