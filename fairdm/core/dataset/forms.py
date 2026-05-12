@@ -250,3 +250,22 @@ class DatasetForm(ModelForm):
                 DatasetIdentifier.objects.filter(related=dataset, type="DOI").delete()
 
         return dataset
+
+
+class DatasetCreateForm(DatasetForm):
+    """Restricted form for initial dataset creation.
+
+    Exposes only the minimum fields needed at creation time. All
+    other fields (image, reference, doi, descriptions) are available after
+    creation via the full DatasetForm on the update view.
+
+    Usage:
+        ```python
+        # In a create view
+        form = DatasetCreateForm(request=request, data=request.POST)
+        ```
+    """
+
+    class Meta(DatasetForm.Meta):
+        fields = ["name", "project", "license"]
+
