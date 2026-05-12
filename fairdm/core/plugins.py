@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -41,10 +43,6 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         """Default page title is the object's string representation."""
         return str(self.object)
 
-    # def get_page_title(self):
-    #     """Default page title is the object's string representation."""
-    #     return str(self.get_object())
-
 
 class UpdatePlugin(Plugin, FairDMUpdateView):
     """Reusable edit plugin for model forms.
@@ -71,12 +69,15 @@ class UpdatePlugin(Plugin, FairDMUpdateView):
         ```
     """
 
-    page_title = _("Update")
+    page_subtitle = _("Update")
     page_icon = "edit"
 
     def get_success_url(self):
         """Return to the base object's detail page after successful save."""
         return self.object.get_absolute_url()
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        return super().get_context_data(**kwargs)
 
 
 class DeletePlugin(Plugin, FairDMDeleteView):

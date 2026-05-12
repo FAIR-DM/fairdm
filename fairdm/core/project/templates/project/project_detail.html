@@ -1,4 +1,4 @@
-{% extends "fairdm/plugin.html" %}
+{% comment %} {% extends "fairdm/plugin.html" %}
 {% load i18n %}
 
 {% block page.content %}
@@ -18,8 +18,7 @@
           </div>
           {% if can_edit_project %}
             <div>
-              <a href="{% url 'project-update' uuid=project.uuid %}"
-                 class="btn btn-primary">
+              <a href="{% url 'project-update' uuid=project.uuid %}" class="btn btn-primary">
                 <i class="icon-edit"></i> {% trans "Edit Project" %}
               </a>
             </div>
@@ -201,4 +200,4 @@
       </div>
     </div>
   </div>
-{% endblock page.content %}
+{% endblock page.content %} {% endcomment %}

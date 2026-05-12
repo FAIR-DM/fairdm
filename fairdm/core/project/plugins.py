@@ -26,7 +26,7 @@ from .models import Project, ProjectDate, ProjectDescription
 class Overview(OverviewPlugin):
     """Basic project overview plugin."""
 
-    pass
+    template_name = "project/plugins/overview.html"
 
 
 @plugins.register(Project)
@@ -35,19 +35,14 @@ class Datasets(Plugin, DatasetListView):
 
     menu = {"label": _("Datasets"), "icon": "dataset", "order": 20}
     template_name = "plugins/list_view.html"
+    has_create_permission = True
 
     def get_queryset(self, *args, **kwargs):
         """Filter datasets to only those belonging to this project."""
-
         return self.object.datasets.all()
 
     def get_lookup_kwargs(self) -> dict:
         return {}
-
-    # def has_create_permission(self, user):
-    #     """Allow creating datasets if user has permission to add datasets to this project."""
-    #     return True
-    # return self.request.user.has_perm("add_dataset", self.object)
 
 
 # ============ ACTION PLUGINS =================
@@ -66,6 +61,7 @@ class Export(Plugin, FairDMTemplateView):
 class Settings(Plugin, FairDMTemplateView):
     """Project settings management plugin."""
 
+    page_title = _("Project settings")
     menu = {"label": _("Settings"), "icon": "settings", "order": 700}
 
 
@@ -73,19 +69,11 @@ class Settings(Plugin, FairDMTemplateView):
 
 
 @plugins.register(Project)
-class Edit(UpdatePlugin):
+class Update(UpdatePlugin):
     """Plugin for editing basic project information."""
 
-    page_icon = "edit"
-    page_title = _("Configure Project")
-    title = _("Basic Information")
     model = Project
     form_class = ProjectForm
-    about = _(
-        "Edit basic information about your project, including its name, visibility, and current status. "
-        "These fields help others understand your project and control who can access it."
-    )
-    learn_more = user_guide("project/edit")
 
 
 @plugins.register(Project)

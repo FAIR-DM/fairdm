@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "django_cleanup.apps.CleanupConfig",
     # FAIRDM CORE
-    "fairdm.contrib.theme",
     "fairdm",
     "fairdm.contrib.plugins",
     "fairdm.core.project",
@@ -56,6 +55,7 @@ INSTALLED_APPS = [
     "fairdm.contrib.location",
     "fairdm.utils",
     "fairdm.contrib.identity",
+    "fairdm.contrib.theme",
     "mvp",
     # "configuration",
     "polymorphic",
@@ -133,6 +133,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.contrib.sites.middleware.CurrentSiteMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_htmx.middleware.HtmxMiddleware",

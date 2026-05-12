@@ -150,7 +150,7 @@ class ProjectDescription(AbstractDescription):
 
 **Research Approach**: Review django-crispy-forms patterns, existing FairDM form patterns
 
-**Decision**: Two separate forms - ProjectCreateForm (minimal) and ProjectEditForm (comprehensive)
+**Decision**: Two separate forms - ProjectCreateForm (minimal) and ProjectUpdateForm (comprehensive)
 
 **Rationale**:
 
@@ -170,7 +170,7 @@ class ProjectCreateForm(ModelForm):
         model = Project
         fields = ["name", "status", "visibility", "owner"]
 
-class ProjectEditForm(ModelForm):
+class ProjectUpdateForm(ModelForm):
     """Comprehensive form for editing project metadata."""
 
     class Meta:

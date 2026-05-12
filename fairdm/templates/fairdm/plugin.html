@@ -1,15 +1,9 @@
 {% extends "detail_view.html" %}
 {% load static i18n %}
-{% load plugin_tags %}
 
 {% block header_tray %}
-  {% get_plugin_tabs obj=object as plugin_tabs %}
   <c-slot name="tray">
-    <c-mvp-toolbar class="container-fluid">
-      <c-slot name="start">
-        <c-plugin.tabs :tabs="plugin_tabs" />
-      </c-slot>
-    </c-mvp-toolbar>
+    <c-plugin.tabs :for="object" />
   </c-slot>
 {% endblock header_tray %}
 

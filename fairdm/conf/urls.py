@@ -19,6 +19,7 @@ urlpatterns = [
     path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
+    path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     path("", include("dac.addons.urls")),
     path("account-center/", include("dac.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),
@@ -29,7 +30,6 @@ urlpatterns = [
     path("martor/", include("martor.urls")),
     path("hijack/", include("hijack.urls")),
     # REST API — Feature 011 (namespaced to prevent URL name collision with portal UI routes)
-    path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
 ]
 
 if addon_urls:

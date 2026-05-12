@@ -1,6 +1,6 @@
 ﻿# fairdm Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-02
+Auto-generated from all feature plans. Last updated: 2026-05-11
 
 ## Active Technologies
 - Python 3.10+ (current dev environment Python 3.11) + Django, Sphinx (via `fairdm-docs`), MyST Markdown, `pydata-sphinx-theme`, `sphinx-design`, Bootstrap 5, Context7 for library docs
@@ -25,6 +25,10 @@ Auto-generated from all feature plans. Last updated: 2026-04-02
 - Python 3.11+ + Django 5.1.3+, djangorestframework, drf-spectacular[sidecar], dj-rest-auth, drf-orjson-renderer, django-cors-headers, djangorestframework-guardian (011-restful-api)
 - Python 3.12, Django 5.x + djangorestframework, drf-spectacular, django-flex-menus (`flex_menu`), djangorestframework-guardian (011-restful-api)
 - PostgreSQL (primary); SQLite (dev/tests) (011-restful-api)
+- Python 3.13 (per active virtualenv) + Django, django-mvp, django-meta (`MetadataMixin`), django-filter (`FilterView`), django-tables2 (`MVPTableViewMixin`), pytest, pytest-django (012-base-views-docs)
+- PostgreSQL (test DB via pytest-django) (012-base-views-docs)
+- Python 3.13 + Django 5.x, django-guardian (object permissions), django-filter (ProjectFilter), FairDM base views (`FairDMListView`, `FairDMCreateView`, `FairDMUpdateView`, `FairDMDeleteView`), crispy-forms (existing forms) (013-project-crud-views)
+- PostgreSQL (primary); SQLite (test/dev) (013-project-crud-views)
 
 - Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic. + `fairdm-docs` (Sphinx-based tooling and setup utilities), Sphinx, `pydata-sphinx-theme`, existing FairDM documentation sources under `docs/`.
 
@@ -45,9 +49,9 @@ cd src; pytest; ruff check .
 Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic.: Follow standard conventions
 
 ## Recent Changes
+- 013-project-crud-views: Added Python 3.13 + Django 5.x, django-guardian (object permissions), django-filter (ProjectFilter), FairDM base views (`FairDMListView`, `FairDMCreateView`, `FairDMUpdateView`, `FairDMDeleteView`), crispy-forms (existing forms)
+- 012-base-views-docs: Added Python 3.13 (per active virtualenv) + Django, django-mvp, django-meta (`MetadataMixin`), django-filter (`FilterView`), django-tables2 (`MVPTableViewMixin`), pytest, pytest-django
 - 011-restful-api: Added Python 3.12, Django 5.x + djangorestframework, drf-spectacular, django-flex-menus (`flex_menu`), djangorestframework-guardian
-- 011-restful-api: Added Python 3.12, Django 5.x + djangorestframework, drf-spectacular, django-flex-menus (`flex_menu`), djangorestframework-guardian
-- 011-restful-api: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 
 
 <!-- MANUAL ADDITIONS START -->

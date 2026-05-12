@@ -79,11 +79,11 @@
 
 - [X] T028 [US1] Run unit tests to verify they FAIL (Red phase)
 - [X] T029 [P] [US1] Create ProjectCreateForm in fairdm/core/project/forms.py
-- [X] T030 [P] [US1] Create ProjectEditForm in fairdm/core/project/forms.py
+- [X] T030 [P] [US1] Create ProjectUpdateForm in fairdm/core/project/forms.py
 - [X] T031 [US1] Implement ProjectCreateView with permission assignment in fairdm/core/project/views.py
 - [X] T032 [US1] Implement ProjectUpdateView with permission checks in fairdm/core/project/views.py
 - [X] T033 [US1] Implement ProjectDetailView with visibility logic in fairdm/core/project/views.py
-- [X] T034 [US1] Add URL patterns for create/edit/detail in fairdm/core/project/urls.py
+- [X] T034 [US1] Add URL patterns for create/update/detail in fairdm/core/project/urls.py
 - [X] T035 [P] [US1] Create project_form.html template with crispy-forms layout in fairdm/core/project/templates/project/
 - [X] T036 [P] [US1] Create project_detail.html template with metadata tabs in fairdm/core/project/templates/project/
 - [X] T037 [US1] Run unit tests to verify they PASS (Green phase)
@@ -236,7 +236,7 @@ This delivers:
 **After T026 (tests written), can run in parallel**:
 
 - Group A: T027 (ProjectCreateForm) + T033 (project_form.html)
-- Group B: T028 (ProjectEditForm)
+- Group B: T028 (ProjectUpdateForm)
 - Group C: T029 (ProjectCreateView) + T030 (ProjectUpdateView) + T031 (ProjectDetailView)
 - Group D: T034 (project_detail.html)
 

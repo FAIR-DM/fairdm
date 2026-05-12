@@ -188,7 +188,7 @@ A third-party developer wants to distribute a keyword management plugin that por
 - **FR-008**: System MUST allow plugins to specify custom URL path segments to override default naming
 - **FR-009**: System MUST support PluginGroup classes that wrap multiple simple plugin classes into a cohesive feature unit
 - **FR-010**: System MUST automatically register all plugins within a PluginGroup when the group is registered
-- **FR-011**: System MUST apply a common URL prefix to all plugins within a PluginGroup (e.g., `/metadata/` containing `/metadata/view/`, `/metadata/edit/`)
+- **FR-011**: System MUST apply a common URL prefix to all plugins within a PluginGroup (e.g., `/metadata/` containing `/metadata/view/`, `/metadata/update/`)
 - **FR-012**: System MUST render a PluginGroup as a single tab entry (not one tab per wrapped plugin)
 - **FR-013**: System MUST maintain independent view logic and template resolution for each plugin within a PluginGroup
 - **FR-014**: System MUST support permission-based visibility for individual plugins

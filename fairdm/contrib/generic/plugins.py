@@ -65,7 +65,6 @@ class DescriptionsPlugin(Plugin, InlineFormSetView):
     slug_url_kwarg = "uuid"
     slug_field = "uuid"
 
-    # Page configuration
     page_subtitle = _("Manage the descriptive metadata for this object")
     show_page_info_button = True
     page_info_modal_target = "#descriptionsInfoModal"

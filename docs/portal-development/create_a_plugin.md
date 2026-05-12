@@ -6,6 +6,7 @@ This guide walks you through creating plugins in the FairDM Framework. Plugins a
 
 **What is a Plugin?**
 A plugin is a Django class-based view (CBV) combined with the `Plugin` mixin that provides:
+
 - Automatic URL routing under model detail pages
 - Tab-based navigation (optional)
 - Permission-based access control
@@ -14,6 +15,7 @@ A plugin is a Django class-based view (CBV) combined with the `Plugin` mixin tha
 - Static asset management
 
 **Key Benefits:**
+
 - ✅ No manual URL configuration required
 - ✅ Automatic integration into model detail pages
 - ✅ Reusable across multiple models
@@ -112,6 +114,7 @@ menu = {
 ```
 
 **To hide a plugin from tabs** (accessible only via direct URL):
+
 ```python
 menu = None  # or omit the menu attribute
 ```
@@ -119,6 +122,7 @@ menu = None  # or omit the menu attribute
 ### Tab Ordering
 
 Tabs are sorted by `order` value, then alphabetically by label:
+
 - Lower numbers appear first
 - Suggested ranges:
   - **0-99**: Overview and primary content
@@ -279,10 +283,11 @@ class MetadataEdit(Plugin, UpdateView):
 class MetadataGroup(PluginGroup):
     plugins = [MetadataView, MetadataEdit]
     menu = {"label": "Metadata", "icon": "database", "order": 50}
-    url_prefix = "metadata"  # URLs: .../metadata/view/, .../metadata/edit/
+    url_prefix = "metadata"  # URLs: .../metadata/view/, .../metadata/update/
 ```
 
 **Result:**
+
 - Single "Metadata" tab in navigation
 - URLs namespaced under "metadata/"
 - Clicking tab navigates to first plugin (MetadataView)
@@ -311,6 +316,7 @@ Plugins automatically search for templates in this order:
 5. `plugins/base.html` (framework fallback)
 
 **Example:** For `AnalysisPlugin` registered with `Sample`:
+
 - `plugins/sample/analysis-plugin.html`
 - `plugins/analysis-plugin.html`
 - `plugins/base.html`
@@ -342,6 +348,7 @@ class ChartPlugin(Plugin, TemplateView):
 ```
 
 **In your template:**
+
 ```html
 {% extends "plugins/base.html" %}
 
@@ -507,6 +514,7 @@ The plugin system includes validation checks:
 **W003**: URL path contains invalid characters
 
 Run checks:
+
 ```bash
 poetry run python manage.py check
 ```
@@ -518,6 +526,7 @@ poetry run python manage.py check
 If you have plugins using the old API (`@plugin.register('model.Model', category=...)`), update them:
 
 **Old API:**
+
 ```python
 @plugin.register('sample.Sample', category=plugins.EXPLORE)
 class Analysis(BasePlugin, TemplateView):
@@ -530,6 +539,7 @@ class Analysis(BasePlugin, TemplateView):
 ```
 
 **New API:**
+
 ```python
 @plugins.register(Sample)
 class Analysis(Plugin, TemplateView):
@@ -542,6 +552,7 @@ class Analysis(Plugin, TemplateView):
 ```
 
 **Key Changes:**
+
 - ✅ Use model class instead of string: `Sample` not `'sample.Sample'`
 - ✅ Import from `fairdm.contrib.plugins` not `fairdm.plugins`
 - ✅ Inherit `Plugin` mixin, not `BasePlugin`
@@ -607,16 +618,19 @@ class GeochemistryPlugin(Plugin, TemplateView):
 ## Best Practices
 
 1. ✅ **Always inherit from both `Plugin` and a Django CBV**
+
    ```python
    class MyPlugin(Plugin, TemplateView):  # Correct
    ```
 
 2. ✅ **Use `self.object` to access the model instance**
+
    ```python
    sample = self.object  # Correct
    ```
 
 3. ✅ **Set appropriate `order` values for logical tab ordering**
+
    ```python
    menu = {"label": "Overview", "order": 0}  # First tab
    menu = {"label": "Edit", "order": 100}    # Middle tab
@@ -624,17 +638,20 @@ class GeochemistryPlugin(Plugin, TemplateView):
    ```
 
 4. ✅ **Use permission strings for access control**
+
    ```python
    permission = "myapp.change_sample"
    ```
 
 5. ✅ **Create model-specific templates for customization**
+
    ```
    templates/plugins/sample/my-plugin.html
    templates/plugins/measurement/my-plugin.html
    ```
 
 6. ✅ **Use Media class for static assets, not inline `<style>` or `<script>`**
+
    ```python
    class Media:
        css = {"all": ("myapp/plugin.css",)}
@@ -642,6 +659,7 @@ class GeochemistryPlugin(Plugin, TemplateView):
    ```
 
 7. ✅ **Test plugins with Django system checks**
+
    ```bash
    poetry run python manage.py check
    ```
@@ -651,26 +669,31 @@ class GeochemistryPlugin(Plugin, TemplateView):
 ## Troubleshooting
 
 **Plugin doesn't appear as tab:**
+
 - Check that `menu` is set (not `None`)
 - Verify user has required `permission`
 - Check that `check` function returns `True`
 
 **403 Forbidden when accessing plugin:**
+
 - Verify `permission` attribute is correct
 - Ensure user has the required permission
 - Check object-level permissions (django-guardian)
 
 **Template not found:**
+
 - Check `template_name` is correct
 - Verify template exists in search path
 - Use absolute path or rely on hierarchical resolution
 
 **URL conflict:**
+
 - Run `python manage.py check` for error E003
 - Set unique `url_path` for each plugin
 - Use PluginGroups to namespace related plugins
 
 **Assets not loading:**
+
 - Run `python manage.py collectstatic`
 - Check static file paths in Media class
 - Verify STATIC_URL in settings

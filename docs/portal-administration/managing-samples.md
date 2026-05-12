@@ -167,7 +167,7 @@ From the sample list:
 
 1. Click the sample name to open the edit page
 2. Modify any fields
-3. Add/edit/remove metadata using inline forms
+3. Add/update/remove metadata using inline forms
 4. Click **Save** or **Save and continue editing**
 
 ### Bulk Actions

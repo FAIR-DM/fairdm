@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 
 from fairdm.core.models import Project
-from fairdm.core.project.forms import ProjectForm
+from fairdm.core.project.forms import ProjectCreateForm, ProjectForm
 from fairdm.core.project.models import ProjectDate, ProjectDescription
 from fairdm.factories import PersonFactory, ProjectFactory
 from fairdm.utils.choices import Visibility
@@ -105,7 +105,7 @@ class TestProjectForm:
             "visibility": Visibility.PUBLIC,
             "status": 0,
         }
-        form = ProjectForm(data=form_data)
+        form = ProjectCreateForm(data=form_data)
 
         assert form.is_valid()
 
@@ -124,7 +124,7 @@ class TestProjectForm:
             "visibility": Visibility.PRIVATE,
             "status": 1,
         }
-        form = ProjectForm(data=form_data)
+        form = ProjectCreateForm(data=form_data)
 
         assert form.is_valid()
         project = form.save()

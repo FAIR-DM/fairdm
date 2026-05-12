@@ -31,22 +31,15 @@
   {% endif %}
 {% endblock content.left %}
 
+{% block quick_info_items %}
+  <c-data-field label="{% trans "Status" %}"
+                value="{{ object.get_status_display }}" />
+  <c-data-field label="{% trans "Visibility" %}"
+                value="{{ object.get_visibility_display }}" />
+{% endblock quick_info_items %}
+
 {% block content.right %}
   {{ block.super }}
-  {% comment %} <c-info-item label="{% trans 'Status' %}" value="{{ project.get_status_display }}" badge="{{ project.get_status_display|lower }}" /> {% endcomment %}
-  <dt class="text-muted small text-uppercase mb-1">{% trans "Visibility" %}</dt>
-  <dd class="mb-3">
-    <c-badge variant="secondary">
-      <c-icon name="{{ project.visibility|yesno:'visible,private' }}"
-              class="me-1" />
-      {{ project.get_visibility_display }}
-    </c-badge>
-  </dd>
-  {% comment %} {% if project.owner %}
-    <c-info-item label="{% trans 'Owner' %}" value="{{ project.owner }}" />
-  {% endif %}
-  <c-info-item label="{% trans 'Created' %}" value="{{ project.created|date:'N j, Y' }}" />
-  <dt class="text-muted small text-uppercase mb-1">{% trans "Last Modified" %}</dt> {% endcomment %}
   <dd class="mb-0">
     {{ project.modified|date:"N j, Y" }}
   </dd>

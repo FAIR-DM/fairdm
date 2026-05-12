@@ -1,1 +1,49 @@
 {% extends "page_view.html" %}
+{% block extra_css %}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.css" />
+{% endblock extra_css %}
+
+{% block page.header %}
+  <c-slot name="header">
+    <c-mvp.hero parallax height="75vh" :attrs="hero_content">
+      <c-slot name="actions">
+        <c-button text="{% trans "Login to your account" %}"
+                  icon="login"
+                  size="lg"
+                  variant="primary"
+                  href="{% url "account_login" %}" />
+        <c-button text="{% trans "Join the community" %}"
+                  icon="people"
+                  size="lg"
+                  variant="light"
+                  href="{% url "account_signup" %}" />
+      </c-slot>
+    </c-mvp.hero>
+  </c-slot>
+{% endblock page.header %}
+
+{% block page.content %}
+  <c-dashboard class="gap-4">
+    <c-section>
+      <c-placeholder.grid gap="3"
+                          n="5"
+                          cols="2"
+                          height="300px"
+                          class="justify-content-center" />
+    </c-section>
+    <c-section title="Next section">
+      <c-placeholder.grid gap=2 n=4 cols=4 height="120px" />
+    </c-section>
+    <c-section title="Next section">
+      <c-placeholder.grid gap=2 n=4 cols=4 height="120px" />
+    </c-section>
+    <c-section title="Next section">
+      <c-placeholder.grid gap=2 n=4 cols=4 height="120px" />
+    </c-section>
+  </c-dashboard>
+{% endblock page.content %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
+{% endblock extra_js %}

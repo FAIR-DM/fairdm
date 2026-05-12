@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Plugin Groups**: Namespace multiple plugins under shared URL prefix and single tab
   - `PluginGroup` composition class wraps related plugins
-  - Shared URL namespace (e.g., `/samples/<uuid>/metadata/view/`, `.../metadata/edit/`)
+  - Shared URL namespace (e.g., `/samples/<uuid>/metadata/view/`, `.../metadata/update/`)
   - Single tab entry linking to default (first) plugin
   - Group-level permission checking
 
@@ -127,6 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Upgrading Plugins to New API
 
 **Step 1: Update imports**
+
 ```python
 # Before
 from fairdm.plugins import plugin, MenuLink, BasePlugin
@@ -137,6 +138,7 @@ from fairdm.contrib.plugins import Plugin
 ```
 
 **Step 2: Update registration decorator**
+
 ```python
 # Before
 @plugin.register('sample.Sample', category=plugins.EXPLORE)
@@ -147,6 +149,7 @@ from .models import Sample
 ```
 
 **Step 3: Update class definition**
+
 ```python
 # Before
 class MyPlugin(BasePlugin, TemplateView):
@@ -158,6 +161,7 @@ class MyPlugin(Plugin, TemplateView):
 ```
 
 **Step 4: Update object access**
+
 ```python
 # Before
 def get_context_data(self, **kwargs):
@@ -169,6 +173,7 @@ def get_context_data(self, **kwargs):
 ```
 
 **Step 5: Run system checks**
+
 ```bash
 poetry run python manage.py check
 ```

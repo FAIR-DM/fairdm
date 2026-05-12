@@ -1,16 +1,22 @@
 <!--
 Sync Impact Report
-- Version change: 1.3.1 → 1.3.2
+- Version change: 1.3.2 → 1.4.0
 - Modified principles:
-	- Development Workflow & Quality Gates: Added new subsection "Implementation Validation & Quality Checkpoints" defining mandatory validation practices during feature implementation (Django system checks, demo app testing, documentation currency, validation frequency).
-- Added sections: "Implementation Validation & Quality Checkpoints" under Development Workflow & Quality Gates
+	- Principle V (Test-First Quality & Sustainability): Added new subsection "URL Smoke Test Coverage" mandating
+	  that any Django app registering new URL patterns MUST include at minimum a smoke test per route asserting
+	  the expected HTTP status code. Smoke tests must catch broken URL patterns, missing templates, template syntax
+	  errors, context variable exceptions, queryset errors, middleware/auth issues, and bad redirects without
+	  requiring content assertions.
+- Added sections: "URL Smoke Test Coverage" under Principle V
 - Removed sections: None
-- Templates requiring updates (✓ updated / ⚠ pending):
-	- ⚠ Speckit command templates should be reviewed to integrate validation checkpoints (e.g., `speckit.implement` could run system checks between phases)
-	- ⚠ Checklist templates may benefit from explicit validation checkpoint items
+- Templates requiring updates (✅ updated / ⚠ pending):
+	- ✅ .specify/memory/constitution.md — updated (this file)
+	- ⚠ .specify/templates/tasks-template.md — consider adding a URL smoke test task example to Phase 3+
+	- ⚠ .github/instructions/copilot.instructions.md — should reference new smoke test requirement if present
 - Follow-up TODOs:
 	- Consider adding validation checkpoint automation to speckit.implement workflow
 	- Update agent instructions (.github/instructions/copilot.instructions.md) to reference new validation requirements
+	- tasks-template.md may benefit from an explicit "URL smoke test" task type example
 -->
 
 # FairDM Constitution
@@ -68,6 +74,27 @@ FairDM is intended for long-lived research infrastructure. All behavior changes 
 - Django integration behavior MUST have pytest-django coverage with appropriate test database strategies.
 - Pull requests MUST NOT be merged with failing tests, or without new/updated tests for behavior changes.
 - The only acceptable exception is a docs-only change (no runtime behavior impact).
+
+**URL Smoke Test Coverage**:
+
+- Any Django app within the FairDM project (including `fairdm_demo` and any contrib app) that registers new URL
+  patterns MUST include at minimum one smoke test per new route.
+- A smoke test MUST assert that the HTTP response status code is as expected (e.g., `200` for public pages,
+  `302` for auth redirects, `403` for permission-denied responses) — for example:
+
+  ```python
+  def test_home_page(self):
+      response = self.client.get(reverse("home"))
+      self.assertEqual(response.status_code, 200)
+  ```
+
+- Smoke tests do NOT need to assert page content. Their purpose is to catch: broken URL patterns, missing
+  templates, template syntax errors, context variable exceptions, queryset errors, middleware/auth issues, and
+  bad redirects.
+- Smoke tests MUST be co-located in the app's own test suite (e.g., `fairdm/contrib/my_app/tests/test_views.py`
+  or `fairdm_demo/tests/test_views.py`).
+- This requirement applies to all URL-registering apps regardless of size; even a single-view app MUST have its
+  route covered by at least one smoke test.
 
 **Code Quality & Tooling**:
 
@@ -222,4 +249,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.3.2 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-02-10
+**Version**: 1.4.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-05-11

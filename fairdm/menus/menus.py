@@ -29,22 +29,27 @@ AppMenu.extend(
                 "icon": "dataset",
             },
         ),
-        MenuCollapse(
-            name=_("Samples"),
-            extra_context={
-                "icon": "sample",
-            },
-        ),
-        MenuCollapse(
-            name=_("Measurements"),
-            extra_context={
-                "icon": "measurement",
-            },
-        ),
         MenuItem(
             name=_("Literature"),
             url="#",
             extra_context={"icon": "literature"},
+        ),
+        MenuGroup(
+            _("Explore Data"),
+            children=[
+                MenuCollapse(
+                    name=_("Samples"),
+                    extra_context={
+                        "icon": "sample",
+                    },
+                ),
+                MenuCollapse(
+                    name=_("Measurements"),
+                    extra_context={
+                        "icon": "measurement",
+                    },
+                ),
+            ],
         ),
         MenuGroup(
             _("Community"),

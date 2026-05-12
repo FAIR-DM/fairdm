@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import ValidationError
 
 # from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
@@ -176,13 +175,27 @@ class ProjectIdentifier(AbstractIdentifier):
         verbose_name_plural = _("project identifiers")
 
 
+class PublicDatasetsProtect(Exception):
+    """Raised by pre_delete signal when a Project has publicly visible datasets.
+
+    Attributes:
+        datasets: QuerySet of public Dataset instances blocking deletion.
+    """
+
+    def __init__(self, datasets):
+        self.datasets = datasets
+        super().__init__(
+            f"Cannot delete project: {datasets.count()} public dataset(s) must be made private or deleted first."
+        )
+
+
 @receiver(pre_delete, sender=Project)
 def prevent_project_deletion_with_datasets(sender, instance, **kwargs):
-    """Prevent deletion of projects that have associated datasets.
+    """Prevent deletion of projects that have associated PUBLIC datasets.
 
     This signal ensures data integrity by blocking project deletion when
-    child datasets exist. Administrator can force deletion through admin
-    interface if needed.
+    publicly visible child datasets exist. Projects with only private datasets
+    can be deleted freely (private datasets are removed via CASCADE).
 
     Args:
         sender: The Project model class
@@ -190,12 +203,8 @@ def prevent_project_deletion_with_datasets(sender, instance, **kwargs):
         **kwargs: Additional signal arguments
 
     Raises:
-        ValidationError: If the project has associated datasets
+        PublicDatasetsProtect: If the project has any PUBLIC datasets
     """
-    if instance.datasets.exists():
-        raise ValidationError(
-            _(
-                "Cannot delete project '{name}' because it has {count} associated dataset(s). "
-                "Delete the datasets first or contact an administrator."
-            ).format(name=instance.name, count=instance.datasets.count())
-        )
+    public_datasets = instance.datasets.filter(visibility=Visibility.PUBLIC)
+    if public_datasets.exists():
+        raise PublicDatasetsProtect(public_datasets)

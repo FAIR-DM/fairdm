@@ -5,15 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.core.exceptions import PermissionDenied
-from django.urls import path
+from django.db.models import Model
+from django.forms.widgets import Media
+from django.http import HttpRequest, HttpResponse
+from django.urls import URLPattern, path
 from django.views.generic.base import View
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from django.db.models import Model
-    from django.http import HttpRequest, HttpResponse
-    from django.urls import URLPattern
 
 
 class Plugin(View):
@@ -245,6 +244,11 @@ class Plugin(View):
     """
 
     # Class attributes (can be overridden by subclasses)
+
+    # The model against which a plugin is registered. Set by the registry during registration.
+    registered_model: ClassVar[type[Model] | None] = None
+
+    # Plugin name (slugified class name if not set)
     name: ClassVar[str | None] = None
     url_path: ClassVar[str | None] = None
     template_name: str = ""
@@ -289,7 +293,7 @@ class Plugin(View):
             path(f"{cls.get_url_path()}/", cls.as_view(), name=cls.get_name()),
         ]
 
-    def get_object(self) -> Model:
+    def get_base_object(self) -> Model:
         """Fetch model instance from URL kwargs.
 
         Returns:
@@ -298,17 +302,17 @@ class Plugin(View):
         Raises:
             Model.DoesNotExist: If instance not found
         """
-        if not self.model:
+        if not self.registered_model:
             msg = f"Plugin {self.__class__.__name__} has no associated model"
             raise ValueError(msg)
 
         # Try pk first (integer primary key)
         if pk := self.kwargs.get("pk"):
-            return self.model.objects.get(pk=pk)
+            return self.registered_model.objects.get(pk=pk)
 
         # Try uuid (UUID field)
         if uuid := self.kwargs.get("uuid"):
-            return self.model.objects.get(uuid=uuid)
+            return self.registered_model.objects.get(uuid=uuid)
 
         msg = "Plugin URL must include 'pk' or 'uuid' kwarg"
         raise ValueError(msg)
@@ -335,14 +339,14 @@ class Plugin(View):
         plugin_name = self.get_name()
 
         # 2. Model-specific template
-        if self.model:
-            model_name = self.model._meta.model_name
+        if self.registered_model:
+            model_name = self.registered_model._meta.model_name
             templates.append(f"plugins/{model_name}/{plugin_name}.html")
 
             # 3. Parent model template (for polymorphic models)
             # Check if model has a polymorphic parent
-            if hasattr(self.model, "_meta") and hasattr(self.model._meta, "get_parent_list"):
-                for parent in self.model._meta.get_parent_list():
+            if hasattr(self.registered_model, "_meta") and hasattr(self.registered_model._meta, "get_parent_list"):
+                for parent in self.registered_model._meta.get_parent_list():
                     parent_name = parent._meta.model_name
                     templates.append(f"plugins/{parent_name}/{plugin_name}.html")
 
@@ -406,8 +410,8 @@ class Plugin(View):
         """
         # Get object for permission checking
         try:
-            obj = self.get_object()
-        except (ValueError, self.model.DoesNotExist):  # type: ignore[union-attr]
+            obj = self.get_base_object()
+        except (ValueError, self.registered_model.DoesNotExist):  # type: ignore[union-attr]
             obj = None
 
         # Check permissions
@@ -444,7 +448,7 @@ class Plugin(View):
                 context["object"] = self.object
             else:
                 try:
-                    context["object"] = self.get_object()
+                    context["object"] = self.get_base_object()
                 except (ValueError, Exception):
                     context["object"] = None
 
@@ -453,8 +457,6 @@ class Plugin(View):
 
         # Add plugin media
         if hasattr(self, "Media"):
-            from django.forms.widgets import Media
-
             context["plugin_media"] = Media(self.Media)
         else:
             context["plugin_media"] = None
@@ -470,14 +472,14 @@ class Plugin(View):
         breadcrumbs = []
 
         # Add model list view breadcrumb
-        if self.model:
-            model_name = self.model._meta.verbose_name_plural
+        if self.registered_model:
+            model_name = self.registered_model._meta.verbose_name_plural
             # TODO: Reverse model list URL
             breadcrumbs.append({"text": model_name, "href": "/"})
 
         # Add object breadcrumb
         try:
-            obj = self.get_object()
+            obj = self.get_base_object()
             obj_str = str(obj)
             # Truncate long object names
             if len(obj_str) > 50:
