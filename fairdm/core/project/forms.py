@@ -3,9 +3,11 @@ from crispy_forms.helper import FormHelper, Layout
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
+from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
+from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.forms import ModelForm
 from fairdm.utils.choices import Visibility
 
@@ -22,6 +24,9 @@ class ProjectForm(ModelForm):
     image = forms.ImageField(
         required=False,
         label=False,
+        help_text=IMAGE_HELP_TEXT,
+        validators=[validate_image_file_size],
+        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
     )
     name = forms.CharField(
         label=_("Project name"),
@@ -49,6 +54,7 @@ class ProjectForm(ModelForm):
         queryset=None,  # Set in __init__
         help_text=_("The organization that owns this project."),
         widget=forms.Select(attrs={"class": "form-control"}),
+        required=False,
     )
     funding = forms.JSONField(
         label=_("Funding information"),

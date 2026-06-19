@@ -6,6 +6,9 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django_addanother.widgets import AddAnotherWidgetWrapper
 from django_select2.forms import ModelSelect2Widget
+from easy_thumbnails.widgets import ImageClearableFileInput
+
+from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Sample
 
@@ -101,6 +104,14 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
         instantiated directly. Use concrete subclass forms instead.
     """
 
+    image = forms.ImageField(
+        required=False,
+        label=False,
+        help_text=IMAGE_HELP_TEXT,
+        validators=[validate_image_file_size],
+        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
+    )
+
     class Meta:
         model = Sample
         fields = [
@@ -126,7 +137,6 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
                     "placeholder": _("Optional local identifier..."),
                 }
             ),
-            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
         help_text = {
             "name": _("A unique, descriptive name for this sample."),
@@ -134,7 +144,6 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
             "local_id": _("Optional local identifier used in your laboratory or collection."),
             "status": _("Current status of the sample."),
             "location": _("Geographic location where the sample was collected."),
-            "image": _("Optional image of the sample."),
             "tags": _("Keywords or tags for categorization."),
             "related": _("Related samples (parent-child relationships)."),
         }

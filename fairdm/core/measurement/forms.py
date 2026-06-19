@@ -6,6 +6,9 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django_addanother.widgets import AddAnotherWidgetWrapper
 from django_select2.forms import ModelSelect2Widget
+from easy_thumbnails.widgets import ImageClearableFileInput
+
+from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Measurement
 
@@ -109,6 +112,14 @@ class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
         instantiated directly. Use concrete subclass forms instead.
     """
 
+    image = forms.ImageField(
+        required=False,
+        label=False,
+        help_text=IMAGE_HELP_TEXT,
+        validators=[validate_image_file_size],
+        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
+    )
+
     class Meta:
         model = Measurement
         fields = [
@@ -125,13 +136,11 @@ class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
                     "placeholder": _("Enter measurement name..."),
                 }
             ),
-            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
         help_text = {
             "name": _("A unique, descriptive name for this measurement."),
             "dataset": _("The dataset this measurement belongs to."),
             "sample": _("The sample that was measured (can be from a different dataset)."),
-            "image": _("Optional image or diagram of the measurement."),
             "tags": _("Keywords or tags for categorization."),
         }
 

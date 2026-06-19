@@ -17,8 +17,10 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django_addanother.widgets import AddAnotherWidgetWrapper
 from django_select2.forms import ModelSelect2Widget
+from easy_thumbnails.widgets import ImageClearableFileInput
 from licensing.models import License
 
+from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.core.models import Project
 from fairdm.forms import ModelForm
 
@@ -86,10 +88,9 @@ class DatasetForm(ModelForm):
     image = forms.ImageField(
         required=False,
         label=_("Dataset Image"),
-        help_text=_(
-            "Upload an image that represents this dataset (e.g., map, photo, diagram). "
-            "Recommended aspect ratio is 16:9 for best display in cards and previews."
-        ),
+        help_text=IMAGE_HELP_TEXT,
+        validators=[validate_image_file_size],
+        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
     )
 
     project = forms.ModelChoiceField(
