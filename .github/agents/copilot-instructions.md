@@ -1,6 +1,6 @@
 ﻿# fairdm Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-05-12
+Auto-generated from all feature plans. Last updated: 2026-05-28
 
 ## Active Technologies
 - Python 3.10+ (current dev environment Python 3.11) + Django, Sphinx (via `fairdm-docs`), MyST Markdown, `pydata-sphinx-theme`, `sphinx-design`, Bootstrap 5, Context7 for library docs
@@ -31,6 +31,8 @@ Auto-generated from all feature plans. Last updated: 2026-05-12
 - PostgreSQL (primary); SQLite (test/dev) (013-project-crud-views)
 - Python 3.12+, Django 5.x + django-guardian (object-level permissions), django-filter (`DatasetFilter`), django-select2 (autocomplete widgets), django-addanother, licensing (License model) (014-dataset-crud-views)
 - PostgreSQL (production), SQLite (dev/test) (014-dataset-crud-views)
+- Python 3.13, Django 5.x + easy-thumbnails =2.10,<3.0 (already installed); Pillow (transitive via easy-thumbnails); django-mvp (Bootstrap 5 UI) (015-image-field-spec)
+- `FileSystemStorage` (local dev), S3-compatible (production) � both already configured (015-image-field-spec)
 
 - Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic. + `fairdm-docs` (Sphinx-based tooling and setup utilities), Sphinx, `pydata-sphinx-theme`, existing FairDM documentation sources under `docs/`.
 
@@ -51,9 +53,9 @@ cd src; pytest; ruff check .
 Documentation tooling in Python (version as defined by the `fairdm-docs` package and project-wide tooling); content itself is language-agnostic.: Follow standard conventions
 
 ## Recent Changes
+- 015-image-field-spec: Added Python 3.13, Django 5.x + easy-thumbnails =2.10,<3.0 (already installed); Pillow (transitive via easy-thumbnails); django-mvp (Bootstrap 5 UI)
 - 014-dataset-crud-views: Added Python 3.12+, Django 5.x + django-guardian (object-level permissions), django-filter (`DatasetFilter`), django-select2 (autocomplete widgets), django-addanother, licensing (License model)
 - 013-project-crud-views: Added Python 3.13 + Django 5.x, django-guardian (object permissions), django-filter (ProjectFilter), FairDM base views (`FairDMListView`, `FairDMCreateView`, `FairDMUpdateView`, `FairDMDeleteView`), crispy-forms (existing forms)
-- 012-base-views-docs: Added Python 3.13 (per active virtualenv) + Django, django-mvp, django-meta (`MetadataMixin`), django-filter (`FilterView`), django-tables2 (`MVPTableViewMixin`), pytest, pytest-django
 
 
 <!-- MANUAL ADDITIONS START -->
