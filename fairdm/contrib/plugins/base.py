@@ -11,6 +11,8 @@ from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, path
 from django.views.generic.base import View
 
+from .menus import PluginTab
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -256,6 +258,7 @@ class Plugin(View):
     check: ClassVar[Callable[[HttpRequest, Model | None], bool] | None] = None
     model: ClassVar[type[Model] | None] = None
     menu: ClassVar[dict[str, Any] | None] = None
+    tab: ClassVar[PluginTab | None] = None
 
     @classmethod
     def get_name(cls) -> str:

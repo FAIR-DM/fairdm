@@ -11,8 +11,6 @@ from fairdm.core.sample.models import SampleDescription
 from fairdm.forms import PartialDateField
 from fairdm.utils.utils import get_setting
 
-# from .models import Date, Description
-
 
 class TagWidget(Select2TagWidget):
     def value_from_datadict(self, data, files, name):

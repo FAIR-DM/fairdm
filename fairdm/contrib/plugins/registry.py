@@ -6,8 +6,10 @@ from typing import TYPE_CHECKING
 
 from django.db.models import Model
 from django.urls import URLPattern
+from flex_menu import root
 
 from .menu import Tab
+from .menus import PluginMenu
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
@@ -110,6 +112,17 @@ class PluginRegistry:
         """
         return plugin in self._registry.get(model, [])
 
+    def get_plugin_menu_for_model(self, model: type[Model]) -> PluginMenu | None:
+        """Get the menu configuration for a plugin, if it exists.
+
+        Args:
+            model: Django Model class
+        Returns:
+            PluginMenu object with menu configuration, or None if no menu defined
+        """
+        menu_name = f"{model.__name__}Menu"
+        return root.get(menu_name)
+
     def get_urls_for_model(self, model: type[Model]) -> list[URLPattern]:
         """Get aggregated URL patterns from all plugins/groups for a model.
 
@@ -121,12 +134,38 @@ class PluginRegistry:
         Returns:
             List of URL patterns suitable for include() in Django URL configuration
         """
+        plugin_menu = self.get_plugin_menu_for_model(model)
         url_patterns: list[URLPattern] = []
-        for plugin_class in self.get_plugins_for_model(model):
+
+        plugins = self.get_plugins_for_model(model)
+
+        for plugin_class in plugins:
             url_patterns.extend(plugin_class.get_urls())
+            if tab := self.configure_tab(plugin_class, model):
+                plugin_menu.append(tab)
         return url_patterns
 
+    def configure_tab(self, plugin_class: type[Plugin], model: type[Model]) -> None:
+        """Configure the tab for a plugin based on its menu definition.
+
+        This method resolves the URL for the plugin's tab using the registered
+        base model's namespace and updates the tab's view_name accordingly.
+
+        Args:
+            plugin_class: The Plugin class to configure
+            model: The Django Model class associated with the plugin
+        Returns:
+            None
+        """
+        tab = plugin_class.tab
+        if not tab:
+            return
+        tab.view_name = f"{model._meta.model_name.lower()}:{plugin_class.get_name()}"
+        tab.check = plugin_class.check
+        return tab
+
     def get_tabs_for_model(self, model: type[Model], request: HttpRequest, obj: Model | None = None) -> list[Tab]:
+        # DEPRECATED: This method is no longer used in the codebase and will be removed in a future release. The PluginMenuRenderer now handles tab collection and permission filtering directly, so this method is redundant. Please use PluginMenuRenderer.get_tabs() instead for collecting tabs with permission checks.
         """Collect tabs from all registered plugins/groups with permission filtering.
 
         Only plugins/groups with a truthy `menu` attribute appear as tabs.

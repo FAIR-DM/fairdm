@@ -221,7 +221,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("contributors:contributor:overview", kwargs={"uuid": self.uuid})
+        return reverse("contributor:overview", kwargs={"uuid": self.uuid})
 
     def get_update_url(self):
         return reverse("contributor-update", kwargs={"uuid": self.uuid})

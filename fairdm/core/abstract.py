@@ -26,6 +26,7 @@ class BaseModel(models.Model):
         blank=True,
         null=True,
         upload_to=default_image_path,
+        resize_source=dict(size=(2400, 1600), crop=False),
     )
     name = models.CharField(_("name"), max_length=300)
 
@@ -70,7 +71,7 @@ class BaseModel(models.Model):
         return get_non_polymorphic_instance(self)
 
     def get_absolute_url(self):
-        return reverse(f"{self._meta.model_name}:overview", kwargs={"uuid": self.uuid})
+        return reverse(f"{self._meta.model_name}-detail", kwargs={"uuid": self.uuid})
 
     def get_api_url(self):
         return reverse(f"api:{self._meta.model_name}-detail", kwargs={"uuid": self.uuid})

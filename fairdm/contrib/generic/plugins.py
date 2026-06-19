@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
+from mvp.views import PageMixin
 
 from fairdm.contrib.generic.forms import (
     CoreInlineFormset,
@@ -54,17 +55,15 @@ class KeywordsPlugin(Plugin, FairDMUpdateView):
         return templates
 
 
-class DescriptionsPlugin(Plugin, InlineFormSetView):
+class DescriptionsPlugin(Plugin, PageMixin, InlineFormSetView):
     """Base plugin class for managing descriptions on FairDM objects using inline formsets."""
 
-    name = "descriptions"
-    title = _("Descriptions")
-    menu = None  # Subclasses should define this
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
     slug_url_kwarg = "uuid"
     slug_field = "uuid"
 
+    page_title = _("Descriptions")
     page_subtitle = _("Manage the descriptive metadata for this object")
     show_page_info_button = True
     page_info_modal_target = "#descriptionsInfoModal"
@@ -78,7 +77,6 @@ class DescriptionsPlugin(Plugin, InlineFormSetView):
             context["form"] = formset
 
         # Add page header configuration
-        context["page_subtitle"] = self.page_subtitle
         context["show_page_info_button"] = self.show_page_info_button
         context["page_info_modal_target"] = self.page_info_modal_target
 
