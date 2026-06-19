@@ -72,7 +72,6 @@ dependencies = [
     'django-polymorphic (>=4.1.0,<5.0.0)',
     'django-content-license (>=0.3.0,<0.4.0)',
     'django-setup-tools (>=0.2.5,<0.3.0)',
-    'django-flex-menus (>=0.4.0,<0.5.0)',
     'django-easy-icons (>=0.5.0,<0.6.0)',
     'django-hijack (>=3.7.4,<4.0.0)',
     'tablib[ods,xlsx] (>=3.9.0,<4.0.0)',
@@ -86,8 +85,10 @@ dependencies = [
     "django-cors-headers (>=4.7.0,<5.0.0)",
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
-    "django-mvp (>=0.1.1,<0.2.0)",
-    "django-accounts-center @ git+https://github.com/SamuelJennings/django-accounts-center",
+    'django-flex-menus',
+    "django-mvp (>=0.8.1,<0.9.0)",
+    "django-accounts-center (>=0.4.0,<0.5.0)",
+    "numpy (>=2.4.6,<3.0.0)",
 ]
 
 [project.urls]
@@ -108,41 +109,30 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [tool.poetry.group.test.dependencies]
-django = ">=4.2,<6.0"
+django = ">=5.2,<6.0"
 fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
     "test",
 ] }
 
 [tool.poetry.group.dev.dependencies]
-django-mvp = { path = "../django-mvp", develop = true }
 fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
     "test",
     "dev",
 ] }
-importtime-waterfall = "^1.0.0"
-pandas = "^2.2.2"
-snakeviz = "^2.2.2"
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
-pytest-benchmark = "^5.2.3"
-ruff = "^0.15.0"
 beautifulsoup4 = "^4.14.3"
 sphinxcontrib-mermaid = "^2.0.0"
 pytest-mock = "^3.15.1"
 
 [tool.poetry.group.docs.dependencies]
-fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
-pydata-sphinx-theme = "^0.16.1"
+fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs", extras = [
+    "pydata-sphinx-theme",
+] }
 
-# fairdm-docs = { path = "../fairdm-docs", develop = true, extras = [
-#     "pydata-sphinx-theme",
-# ] }
-# Note: Path dependencies don't work in CI. Use git URL or install separately for local dev
-toml = "^0.10.2"
-sphinxcontrib-bibtex = "^2.6.3"
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
