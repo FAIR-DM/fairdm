@@ -1,13 +1,14 @@
-<c-card :header="False" variant="{{ object_type }}">
+<c-card variant="{{ object_type }}" only>
+  {% load thumbnail static %}
   <div class="row g-0">
     <div class="col-md-4">
       <div class="card">
-        {% if not image %}
-          <img src="{{ image.url }}"
+        {% if image %}
+          <img src="{{ image|thumbnail_url:"core_small" }}"
                class="card-img"
                alt="{{ title }}" />
         {% else %}
-          <img src="https://placehold.net/600x400.png"
+          <img src="{% static 'fairdm/img/placeholder-3x2.png' %}"
                class="card-img"
                alt="{{ title }}" />
         {% endif %}
@@ -54,12 +55,11 @@
     </div>
   </div>
   <c-slot name="footer_start">
-    <c-button href="{{ object.get_absolute_url }}"
+    <c-button text="{% trans "View Details" %}"
+              href="{{ object.get_absolute_url }}"
               icon="arrow-right"
               reverse
-              subtle>
-      {% trans "View Details" %}
-    </c-button>
+              subtle />
   </c-slot>
   <c-slot name="footer_end">
     <span class="text-muted small ms-auto">

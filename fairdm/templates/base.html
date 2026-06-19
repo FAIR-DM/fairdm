@@ -6,81 +6,18 @@
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
 {% endblock extra_css %}
 
-{% block app %}
-  <c-app fixed_sidebar sidebar_expand="lg">
-    <c-app.header>
-      <c-slot name="right">
-        {% comment %} <c-actions.search /> {% endcomment %}
-        {% comment %} <c-actions.fullscreen /> {% endcomment %}
-        <c-actions.create-new />
-        <c-actions.theme-switcher />
-        {% if user.is_authenticated %}
-          <c-dropdown icon="avatar"
-                      :caret="False"
-                      variant="icon"
-                      align="end">
-            <c-slot name="button">
-              <a href="#"
-                 data-bs-toggle="dropdown"
-                 aria-expanded="false"
-                 class="nav-link">
-                <c-avatar src="{{ user.profile.photo.url }}"
-                          alt="{{ user.get_full_name }}"
-                          size="md" />
-                {% comment %} <c-avatar class="fs-3 text-muted" height="1lh" width="1lh" /> {% endcomment %}
-              </a>
-            </c-slot>
-            <c-dropdown.item text="{% trans "Profile" %}"
-                             icon="person"
-                             href="{% url 'account_profile' %}" />
-            <c-dropdown.item text="{% trans "Settings" %}"
-                             icon="settings"
-                             href="{% url 'account_settings' %}" />
-            <c-dropdown.divider />
-            <c-dropdown.item text="{% trans "Log out" %}"
-                             icon="logout"
-                             href="{% url 'account_logout' %}" />
-          </c-dropdown>
-        {% else %}
-          <c-button text="{% trans "Sign in" %}"
-                    icon="login"
-                    href="{% url "account_login" %}"
-                    class="show-btn-text"
-                    variant="secondary" />
-          <c-button text="{% trans "Sign up" %}"
-                    icon="signup"
-                    href="{% url "account_signup" %}"
-                    class="show-btn-text"
-                    variant="primary" />
-        {% endif %}
-      </c-slot>
-      {% block header_tray %}
-      {% endblock header_tray %}
-
-    </c-app.header>
-    <c-app.sidebar brand_logo="{% static "img/brand/logo.svg" %}"
-                   brand_icon="{% static "img/brand/icon.svg" %}"
-                   brand_text="FairDM" />
-    <c-app.main>
-      {% if messages %}
-        <div class="app-content pt-3">
-          <div class="container-fluid">
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
-                   role="alert">
-                {{ message }}
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                        aria-label="Close"></button>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
-      {% block content %}
-      {% endblock content %}
-
-    </c-app.main>
-  </c-app>
-{% endblock app %}
+{% block app.header.widgets %}
+  <c-actions.create-new />
+  {% if not user.is_authenticated %}
+    <c-button text="{% trans "Sign in" %}"
+              icon="login"
+              href="{% url "account_login" %}"
+              class="show-btn-text"
+              variant="secondary" />
+    <c-button text="{% trans "Sign up" %}"
+              icon="signup"
+              href="{% url "account_signup" %}"
+              class="show-btn-text"
+              variant="primary" />
+  {% endif %}
+{% endblock app.header.widgets %}

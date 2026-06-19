@@ -1,203 +1,225 @@
-{% comment %} {% extends "fairdm/plugin.html" %}
-{% load i18n %}
+{% extends "detail_view.html" %}
+{% load i18n fairdm plugin_tags contributor_tags martortags thumbnail %}
+
+{% block app.header.tray %}
+  <c-plugin.tabs :for="object" />
+{% endblock app.header.tray %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.css" />
+{% endblock extra_css %}
+
+{% block page.header %}
+  <c-mvp.toolbar class="container-fluid mb position-absolute top-0 z-3">
+    <c-slot name="start">
+      <c-breadcrumbs class="text-light" :items="page.breadcrumbs" />
+    </c-slot>
+    {% comment %} <c-widgets.share-dropdown /> {% endcomment %}
+  </c-mvp.toolbar>
+  <c-mvp.hero title="{{ page.title }}"
+              parallax
+              height="75vh"
+              bg-image="{{ object.image|thumbnail_url:"core_large" }}">
+    <c-slot name="subtitle">
+      {% block page.header.subtitle %}
+        {% if object.owner %}
+          <c-icon name="organization" />
+          {{ object.owner }}
+        {% endif %}
+      {% endblock page.header.subtitle %}
+
+    </c-slot>
+    <c-slot name="lead">
+      {% for c in object.contributors|by_role:"Creator" %}
+        <c-contributor.name :contributor="c"
+                            after="{% if not forloop.last %}{{ separator }}{% endif %}" />
+      {% endfor %}
+    </c-slot>
+  </c-mvp.hero>
+{% endblock page.header %}
+
+{% block page.title %}
+{% endblock page.title %}
 
 {% block page.content %}
-  <div class="container py-4">
-    <!-- Project Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <h1 class="display-4">{{ project.name }}</h1>
-            <div class="d-flex gap-3 mt-2">
-              <span class="badge bg-primary">{{ project.get_status_display }}</span>
-              <span class="badge {% if project.visibility == 1 %}bg-success{% else %}bg-secondary{% endif %}">
-                {{ project.get_visibility_display }}
-              </span>
-            </div>
+  {# ── Stats strip — flat tiles with accent top border ─────────── #}
+  <c-section id="project-stats">
+    <c-row class="row-cols-2 row-cols-md-4 g-3 mt-0">
+      <c-col>
+        <c-widgets.stat-tile value="{{ dataset_count|default:'0' }}"
+                             text="{% trans 'Datasets' %}"
+                             variant="success" />
+      </c-col>
+      <c-col>
+        <c-widgets.stat-tile value="{{ object.contributors.count }}"
+                             text="{% trans 'Contributors' %}"
+                             variant="primary" />
+      </c-col>
+      <c-col>
+        <c-widgets.stat-tile value="{{ project.samples.count|default:'0' }}"
+                             text="{% trans 'Samples' %}"
+                             variant="warning" />
+      </c-col>
+      <c-col>
+        <c-widgets.stat-tile value="{{ project.measurements.count|default:'0' }}"
+                             text="{% trans 'Measurements' %}"
+                             variant="danger" />
+      </c-col>
+    </c-row>
+  </c-section>
+  {# ── Abstract — visual centrepiece ────────────────────────────── #}
+  {% with object.get_abstract as abstract %}
+    <c-section id="abstract"
+               class="border-top border-bottom py-5">
+      <c-row class="justify-content-center">
+        <c-col cols=12 md=10 lg=9>
+          <c-text impact center tight>
+            {{ abstract.value }}
+            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Expedita, unde inventore atque dicta eius ipsa labore cupiditate impedit accusantium iure obcaecati soluta dolores, aliquid nisi nemo doloremque pariatur quidem officiis.
+            Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eius debitis iste ipsam minus atque eveniet dignissimos, culpa vel harum architecto. Maxime fugit dolorem molestiae libero dolore doloribus aspernatur illum laudantium.
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur quis maiores, vel porro ducimus corrupti quibusdam animi quo, nihil cum ut exercitationem pariatur sed iure illum. Perferendis magnam natus voluptatem.
+          </c-text>
+          <c-text center>
+            <a href="{% plugin_url "descriptions" %}">{% trans "Keep reading" %}</a>
+          </c-text>
+        </c-col>
+      </c-row>
+    </c-section>
+  {% endwith %}
+  {# ── Main content + sidebar ───────────────────────────────────── #}
+  <c-row gap=3>
+    {# Left — primary content #}
+    <c-col class="d-flex flex-column gap-4">
+      {% block content.left %}
+        {# Contributors #}
+        <c-card title="{% trans 'Contributors' %}"
+                icon="people"
+                edit_url="{% plugin_url 'contributors' %}">
+          <c-list-group flush>
+            {% for contribution in object.contributors.all %}
+              <c-list-group.item>
+                <c-contribution.list-item :contribution="contribution" />
+              </c-list-group.item>
+            {% empty %}
+              <c-text text="{{ empty_text }}" tight />
+            {% endfor %}
+          </c-list-group>
+        </c-card>
+        {# Funding — accent callout strip #}
+        {% if object.funding %}
+          <div class="p-4 rounded-3 bg-body-secondary border-start border-4 border-warning">
+            <p class="text-uppercase fw-semibold small text-muted mb-2">{% trans "Funding" %}</p>
+            <p class="mb-0">{{ object.funding }}</p>
           </div>
-          {% if can_edit_project %}
-            <div>
-              <a href="{% url 'project-update' uuid=project.uuid %}" class="btn btn-primary">
-                <i class="icon-edit"></i> {% trans "Edit Project" %}
-              </a>
+        {% endif %}
+      {% endblock content.left %}
+
+    </c-col>
+    {# Right — metadata sidebar #}
+    <c-col col="12"
+           md="4"
+           lg="3"
+           class="d-flex flex-column gap-3">
+      {% block content.right %}
+        {# Project details — two-part panel #}
+        <c-card title="{% trans "Project Details" %}">
+          <c-data-field label="{% trans "Identifier" %}" value=" ">
+            <code>{{ object.uuid }}</code>
+          </c-data-field>
+          <c-data-field label="{% trans "Last updated" %}"
+                        value="{{ object.modified|date }}" />
+          <c-data-field label="{% trans "Status" %}"
+                        value="{{ object.get_status_display }}" />
+          <c-data-field label="{% trans "Visibility" %}"
+                        value="{{ object.get_visibility_display }}" />
+          <c-data-field label="{% trans "Owner" %}" :value="object.owner" />
+        </c-card>
+        {# Key dates #}
+        {% with object.dates.all as dates %}
+          {% if dates %}
+            <div class="rounded-3 overflow-hidden border">
+              <div class="px-4 py-3 bg-body-secondary border-bottom">
+                <span class="text-uppercase fw-bold small text-muted">{% trans "Key Dates" %}</span>
+              </div>
+              <div class="p-4">
+                <dl class="mb-0 d-flex flex-column gap-3">
+                  {% for date in dates %}
+                    <div>
+                      <dt class="small text-muted mb-1">{{ date.get_type_display }}</dt>
+                      <dd class="mb-0 fw-semibold">
+                        {{ date.value }}
+                      </dd>
+                    </div>
+                  {% endfor %}
+                </dl>
+              </div>
             </div>
           {% endif %}
-        </div>
-      </div>
-    </div>
-    <!-- Project Content -->
-    <div class="row">
-      <div class="col-12 col-lg-8">
-        <!-- Basic Information -->
-        <div class="card mb-4">
-          <div class="card-header">
-            <h3 class="card-title mb-0">{% trans "Project Information" %}</h3>
+        {% endwith %}
+        {# Keywords #}
+        <div class="rounded-3 overflow-hidden border">
+          <div class="px-4 py-3 bg-body-secondary border-bottom d-flex align-items-center justify-content-between">
+            <span class="text-uppercase fw-bold small text-muted">{% trans "Keywords" %}</span>
+            <a href="{% plugin_url 'keywords' %}"
+               class="btn btn-sm btn-link p-0 text-muted">
+              <c-icon name="edit" size=14 />
+            </a>
           </div>
-          <div class="card-body">
-            <dl class="row">
-              <dt class="col-sm-3">{% trans "UUID" %}</dt>
-              <dd class="col-sm-9">
-                <code>{{ project.uuid }}</code>
-              </dd>
-              <dt class="col-sm-3">{% trans "Owner" %}</dt>
-              <dd class="col-sm-9">
-                {{ project.owner }}
-              </dd>
-              <dt class="col-sm-3">{% trans "Created" %}</dt>
-              <dd class="col-sm-9">
-                {{ project.created|date:"F j, Y" }}
-              </dd>
-              <dt class="col-sm-3">{% trans "Modified" %}</dt>
-              <dd class="col-sm-9">
-                {{ project.modified|date:"F j, Y" }}
-              </dd>
-            </dl>
-          </div>
-        </div>
-        <!-- Descriptions -->
-        {% if project.descriptions.exists %}
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title mb-0">{% trans "Descriptions" %}</h3>
-            </div>
-            <div class="card-body">
-              {% for description in project.descriptions.all %}
-                <div class="mb-3">
-                  <h5>{{ description.type }}</h5>
-                  <p>{{ description.value }}</p>
-                </div>
+          <div class="p-4">
+            <div class="d-flex flex-wrap gap-2">
+              {% for keyword in object.keywords.all %}
+                <span class="badge fw-normal rounded-pill border text-body px-3 py-2">{{ keyword.label }}</span>
+              {% empty %}
+                <p class="text-muted small mb-0">{{ empty_text }}</p>
               {% endfor %}
             </div>
           </div>
-        {% endif %}
-        <!-- Dates -->
-        {% if project.dates.exists %}
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title mb-0">{% trans "Important Dates" %}</h3>
-            </div>
-            <div class="card-body">
-              <dl class="row">
-                {% for date in project.dates.all %}
-                  <dt class="col-sm-4">{{ date.type }}</dt>
-                  <dd class="col-sm-8">
-                    {{ date.value|date:"F j, Y" }}
-                  </dd>
-                {% endfor %}
-              </dl>
-            </div>
-          </div>
-        {% endif %}
-        <!-- Identifiers -->
-        {% if project.identifiers.exists %}
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title mb-0">{% trans "Identifiers" %}</h3>
-            </div>
-            <div class="card-body">
-              <dl class="row">
-                {% for identifier in project.identifiers.all %}
-                  <dt class="col-sm-4">{{ identifier.type }}</dt>
-                  <dd class="col-sm-8">
-                    <code>{{ identifier.value }}</code>
-                  </dd>
-                {% endfor %}
-              </dl>
-            </div>
-          </div>
-        {% endif %}
-        <!-- Funding -->
-        {% if project.funding %}
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title mb-0">{% trans "Funding" %}</h3>
-            </div>
-            <div class="card-body">
-              {% for funding in project.funding %}
-                <div class="mb-3">
-                  <h5>{{ funding.funderName }}</h5>
-                  {% if funding.awardNumber %}
-                    <p>
-                      <strong>{% trans "Award Number" %}:</strong> {{ funding.awardNumber }}
-                    </p>
-                  {% endif %}
-                  {% if funding.awardTitle %}
-                    <p>
-                      <strong>{% trans "Award Title" %}:</strong> {{ funding.awardTitle }}
-                    </p>
-                  {% endif %}
-                  {% if funding.awardURI %}
-                    <p>
-                      <a href="{{ funding.awardURI }}" target="_blank">{% trans "View Award" %}</a>
-                    </p>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-      </div>
-      <!-- Sidebar -->
-      <div class="col-12 col-lg-4">
-        <!-- Datasets -->
-        <div class="card mb-4">
-          <div class="card-header">
-            <h3 class="card-title mb-0">{% trans "Datasets" %}</h3>
-          </div>
-          <div class="card-body">
-            {% if project.datasets.exists %}
-              <ul class="list-unstyled">
-                {% for dataset in project.datasets.all %}
-                  <li class="mb-2">
-                    <a href="#">{{ dataset.name }}</a>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-muted">{% trans "No datasets yet." %}</p>
-            {% endif %}
-          </div>
         </div>
-        <!-- Contributors -->
-        {% if project.contributors.exists %}
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title mb-0">{% trans "Contributors" %}</h3>
+        {# Tags #}
+        {% if object.tags.all %}
+          <div class="rounded-3 overflow-hidden border">
+            <div class="px-4 py-3 bg-body-secondary border-bottom">
+              <span class="text-uppercase fw-bold small text-muted">{% trans "Tags" %}</span>
             </div>
-            <div class="card-body">
-              <ul class="list-unstyled">
-                {% for contribution in project.contributors.all %}
-                  <li class="mb-2">
-                    {{ contribution.contributor }}
-                    {% if contribution.roles.exists %}
-                      <div class="small text-muted">
-                        {% for role in contribution.roles.all %}
-                          {{ role.name }}
-                          {% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                      </div>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-        {% endif %}
-        <!-- Keywords -->
-        {% if project.keywords.exists %}
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title mb-0">{% trans "Keywords" %}</h3>
-            </div>
-            <div class="card-body">
+            <div class="p-4">
               <div class="d-flex flex-wrap gap-2">
-                {% for keyword in project.keywords.all %}<span class="badge bg-secondary">{{ keyword }}</span>{% endfor %}
+                {% for tag in object.tags.all %}
+                  <span class="badge fw-normal rounded-pill bg-secondary-subtle text-secondary px-3 py-2">{{ tag.name }}</span>
+                {% endfor %}
               </div>
             </div>
           </div>
         {% endif %}
-      </div>
-    </div>
-  </div>
-{% endblock page.content %} {% endcomment %}
+      {% endblock content.right %}
+
+    </c-col>
+  </c-row>
+{% endblock page.content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
+{% endblock extra_js %}
+
+{% block info_boxes %}
+  <c-widgets.type-a label="{% trans 'Datasets' %}"
+                    class="mb-0"
+                    value="{{ dataset_count|default:"0" }}"
+                    icon="dataset"
+                    variant="success"
+                    link="{% plugin_url "datasets" %}" />
+  <div class="vr mx-3"></div>
+  <c-widgets.type-a label="{% trans 'Samples' %}"
+                    class="mb-0"
+                    value="{{ project.samples.count|default:"0" }}"
+                    icon="sample"
+                    variant="warning" />
+  <div class="vr mx-3"></div>
+  <c-widgets.type-a label="{% trans 'Measurements' %}"
+                    class="mb-0"
+                    value="{{ project.measurements.count|default:"0" }}"
+                    icon="measurement"
+                    variant="danger" />
+{% endblock info_boxes %}

@@ -1,5 +1,5 @@
 {% extends "plugins/overview.html" %}
-{% load i18n cotton %}
+{% load i18n cotton thumbnail %}
 
 {% block overview_main %}
   {{ block.super }}
@@ -65,7 +65,7 @@
         <h6 class="text-muted small text-uppercase mb-2">{% trans "Project" %}</h6>
         <div class="d-flex align-items-center">
           {% if measurement.dataset.project.image %}
-            <img src="{{ measurement.dataset.project.image.url }}"
+            <img src="{{ measurement.dataset.project.image|thumbnail_url:"core_small" }}"
                  alt="{{ measurement.dataset.project.name }}"
                  class="rounded me-3"
                  style="width: 48px;

@@ -1,5 +1,6 @@
 {% extends "page_view.html" %}
 {% block extra_css %}
+  {{ block.super }}
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.css" />
 {% endblock extra_css %}
@@ -45,5 +46,6 @@
 {% endblock page.content %}
 
 {% block extra_js %}
+  {{ block.super }}
   <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
 {% endblock extra_js %}
