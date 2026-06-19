@@ -1,49 +1,10 @@
 """Template tags for plugin system."""
 
 from django import template
-from django.db.models import Model
 
-from fairdm.contrib.plugins.registry import registry
 from fairdm.contrib.plugins.utils import reverse
 
 register = template.Library()
-
-
-@register.simple_tag(takes_context=True)
-def get_plugin_tabs(context, model=None, obj=None):
-    """Get list of Tab objects for a model.
-
-    Usage in templates:
-        {% get_plugin_tabs model=object|model obj=object as tabs %}
-
-    Args:
-        context: Template context
-        model: Model class or instance (required, can be passed via object|model filter)
-        obj: Model instance (optional, for instance-level checks)
-
-    Returns:
-        List of Tab objects sorted by order, then label
-    """
-
-    request = context.get("request")
-
-    if not model:
-        # Try to get model from object
-        if obj:
-            model = obj.__class__
-        else:
-            print("Warning: get_plugin_tabs called without model or obj in context.")
-            return []
-
-    # If model is an instance, get its class
-    if isinstance(model, Model):
-        model = model.__class__
-
-    if not request:
-        print("Warning: get_plugin_tabs called without request in context.")
-        return []
-    print(f"Getting plugin tabs for model {model} and obj {obj} with request user {request.user}")
-    return registry.get_tabs_for_model(model, request, obj)
 
 
 @register.simple_tag(takes_context=True)

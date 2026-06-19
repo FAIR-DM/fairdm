@@ -1,5 +1,34 @@
 {% extends "fairdm/plugin.html" %}
-{% load fairdm humanize plugin_tags %}
+{% load fairdm humanize plugin_tags contributor_tags thumbnail %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.css" />
+{% endblock extra_css %}
+
+{% block page.header %}
+  <c-slot name="header">
+    <c-mvp.hero title="{{ page.title }}"
+                parallax
+                height="75vh"
+                bg-image="{{ object.image|thumbnail_url:"core_large" }}">
+      <c-slot name="subtitle">
+        {% block page.header.subtitle %}
+        {% endblock page.header.subtitle %}
+
+        <c-icon name="organization" />
+        {{ object.owner }}
+      </c-slot>
+      <c-slot name="lead">
+        {% for c in object.contributors|by_role:"Creator" %}
+          <c-contributor.name :contributor="c"
+                              after="{% if not forloop.last %}{{ separator }}{% endif %}" />
+        {% endfor %}
+      </c-slot>
+    </c-mvp.hero>
+  </c-slot>
+{% endblock page.header %}
 
 {% block page.content %}
   <c-dashboard>
@@ -77,3 +106,8 @@
     </c-row>
   </c-dashboard>
 {% endblock page.content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
+{% endblock extra_js %}

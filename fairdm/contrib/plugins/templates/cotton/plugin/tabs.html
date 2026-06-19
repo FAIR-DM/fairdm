@@ -1,16 +1,8 @@
-{% load static i18n plugin_tags %}
+{% load static i18n flex_menu %}
 
-<c-vars for active_tab="" />
-{% get_plugin_tabs obj=for as tabs %}
-<c-mvp-toolbar class="container-fluid bg-body">
-  <c-slot name="start">
-    <c-nav type="underline">
-      {% for tab in tabs %}
-        <c-nav.item text="{{ tab.label }}"
-                    href="{{ tab.url|default:'#' }}"
-                    :active="tab.is_active"
-                    icon="{{ tab.icon }}" />
-      {% endfor %}
-    </c-nav>
-  </c-slot>
-</c-mvp-toolbar>
+<c-vars for />
+<c-container fluid>
+  <c-mvp.toolbar tight>
+    {% render_menu "ProjectMenu" renderer="plugin-menu-renderer" uuid=object.uuid %}
+  </c-mvp.toolbar>
+</c-container>

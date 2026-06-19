@@ -35,62 +35,61 @@
 {% endblock extra_css %}
 
 {% block page.content %}
-  <div class="mb-4 pb-5">
-    {# Formset Form #}
-    <form method="post"
-          id="descriptions-form"
-          class="descriptions-form"
-          novalidate>
-      {% csrf_token %}
-      <div class="pb-4">
-        {% for form in formset %}{{ form|crispy }}{% endfor %}
-        {# Non-field errors (if any) #}
-        {% if formset.non_field_errors %}<div class="alert alert-danger">{{ formset.non_field_errors }}</div>{% endif %}
-      </div>
-    </form>
-  </div>
+  {# Formset Form #}
+  <form method="post"
+        id="descriptions-form"
+        class="descriptions-form"
+        novalidate>
+    {% csrf_token %}
+    <c-vstack gap=2>
+      {% for form in formset %}
+        <c-card title="{{ form.value.label }}" tight>
+          {{ form.value }}
+          <c-slot name="footer_start">
+            <c-text small tight>
+              <c-icon name="info" />
+              {{ form.value.help_text }}
+            </c-text>
+          </c-slot>
+        </c-card>
+      {% endfor %}
+      {% if formset.non_field_errors %}
+        <c-alert variant="danger"
+                 text="{{ formset.non_field_errors }}" />
+      {% endif %}
+    </c-vstack>
+  </form>
   {# Form Actions - Sticky to bottom #}
-  <div class="w-100 border-top p-3">
+  <c-card>
+    <c-mvp.toolbar>
+      <c-slot name="actions">
+        <c-button text="{% trans "Cancel" %}"
+                  icon="cancel"
+                  variant="secondary"
+                  outline
+                  href="{{ base_object.get_absolute_url }}" />
+        <c-button text="{% trans "Save changes" %}"
+                  type="submit"
+                  variant="primary"
+                  icon="confirm"
+                  form="descriptions-form" />
+      </c-slot>
+    </c-mvp.toolbar>
+  </c-card>
+  {% comment %} <div class="w-100 border-top p-3">
     <div class="container-fluid">
       <div class="d-flex justify-content-end gap-2">
-        <a href="{{ base_object.get_absolute_url }}"
-           class="btn btn-outline-secondary">
+        <a href="{{ base_object.get_absolute_url }}" class="btn btn-outline-secondary">
           <c-icon name="cancel" class="me-1" />
           {% trans "Cancel" %}
         </a>
-        <button type="submit"
-                form="descriptions-form"
-                class="btn btn-primary">
+        <button type="submit" form="descriptions-form" class="btn btn-primary">
           <c-icon name="confirm" class="me-1" />
           {% trans "Save Changes" %}
         </button>
       </div>
     </div>
-  </div>
-  {% comment %} {# Page Information Modal #}
-                      <c-page-info-modal modal_id="descriptionsInfoModal"
-                                         modal_title='{% trans "About This Page" %}'
-                                         page_title='{% trans "Descriptions" %}'
-                                         :page_description="about.0"
-                                         how_to_use_text='{% trans "Fill in the description fields below. Each field has an info icon that explains what information should be provided. You can use Markdown formatting for rich text." %}'
-                                         :learn_more_url="learn_more">
-                        <c-slot name="tips">
-                          <ul class="list-unstyled small mb-0">
-                            <li class="mb-2">
-                              <strong>{% trans "Info Icons:" %}</strong> {% trans "Hover over the info icons next to field labels for detailed guidance" %}
-        </li>
-        <li class="mb-2">
-          <strong>{% trans "Markdown:" %}</strong> {% trans "Use Markdown syntax for formatting (bold, lists, links, etc.)" %}
-        </li>
-        <li class="mb-2">
-          <strong>{% trans "Optional Fields:" %}</strong> {% trans "Not all fields are required, but more detail helps others understand your project" %}
-        </li>
-        <li class="mb-0">
-          <strong>{% trans "Save Often:" %}</strong> {% trans "Click 'Save Changes' to preserve your work" %}
-        </li>
-      </ul>
-    </c-slot>
-</c-page-info-modal> {% endcomment %}
+  </div> {% endcomment %}
 {% endblock page.content %}
 
 {% block extra_js %}
