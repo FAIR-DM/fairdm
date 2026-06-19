@@ -11,29 +11,22 @@ from fairdm.contrib.generic.plugins import (
     KeywordsPlugin,
 )
 from fairdm.contrib.plugins import Plugin
-from fairdm.core.plugins import DeletePlugin, OverviewPlugin, UpdatePlugin
+from fairdm.contrib.plugins.menus import PluginTab
+from fairdm.core.plugins import DeletePlugin
 from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMTemplateView
 
 from ..dataset.views import DatasetListView
-from .forms import ProjectForm
 from .models import Project, ProjectDate, ProjectDescription
 
 # ============ EXPLORE PLUGINS =================
 
 
 @plugins.register(Project)
-class Overview(OverviewPlugin):
-    """Basic project overview plugin."""
-
-    template_name = "project/plugins/overview.html"
-
-
-@plugins.register(Project)
 class Datasets(Plugin, DatasetListView):
     """Plugin for listing datasets associated with a project."""
 
-    menu = {"label": _("Datasets"), "icon": "dataset", "order": 20}
+    tab = PluginTab("Datasets", extra_context={"label": _("Datasets"), "icon": "dataset"})
     template_name = "plugins/list_view.html"
     has_create_permission = True
 
@@ -61,19 +54,20 @@ class Export(Plugin, FairDMTemplateView):
 class Settings(Plugin, FairDMTemplateView):
     """Project settings management plugin."""
 
+    tab = PluginTab("Settings", extra_context={"label": _("Settings"), "icon": "settings", "order": 700})
     page_title = _("Project settings")
-    menu = {"label": _("Settings"), "icon": "settings", "order": 700}
+    permission = "project.change_project"
 
 
 # ============ MANAGEMENT PLUGINS =================
 
 
-@plugins.register(Project)
-class Update(UpdatePlugin):
-    """Plugin for editing basic project information."""
+# @plugins.register(Project)
+# class Update(UpdatePlugin):
+#     """Plugin for editing basic project information."""
 
-    model = Project
-    form_class = ProjectForm
+#     model = Project
+#     form_class = ProjectForm
 
 
 @plugins.register(Project)

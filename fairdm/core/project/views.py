@@ -6,10 +6,9 @@ from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView
 from guardian.shortcuts import assign_perm
 
-from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMListView, FairDMUpdateView
+from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMDetailView, FairDMListView, FairDMUpdateView
 
 from ..models import Project
 from .filters import ProjectFilter
@@ -37,6 +36,7 @@ class ProjectListView(FairDMListView):
     ]
     image = static("img/stock/project.jpg")
     has_create_permission = False  # Creation is handled by a separate view
+    has_list_permission = True  # All users can view the list of public projects
 
     def get_queryset(self) -> QuerySet[Project]:
         """Return the queryset of visible projects with prefetched contributors.
@@ -128,10 +128,15 @@ class ProjectUpdateView(LoginRequiredMixin, FairDMUpdateView):
         Object permission: change_project
     """
 
+    page_title = _("Update project")  # Override default page title for clarity
     model = Project
     form_class = ProjectForm
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
+
+    # If they can edit, they can read.
+    has_detail_permission = True
+    has_list_permission = True
 
     def get_object(self, queryset=None):
         """Get project instance and check permissions.
@@ -200,7 +205,7 @@ class ProjectDeleteView(LoginRequiredMixin, FairDMDeleteView):
             return self.render_to_response(context)
 
 
-class ProjectDetailView(DetailView):
+class ProjectDetailView(FairDMDetailView):
     """View for displaying project details.
 
     Shows comprehensive project information including metadata, contributors,
@@ -221,7 +226,6 @@ class ProjectDetailView(DetailView):
     template_name = "project/project_detail.html"
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
-    page_title = _("Overview")
 
     def get_object(self, queryset=None):
         """Get project instance and check visibility/permissions.

@@ -13,8 +13,8 @@ FAIRDM_LANDING_PAGE_HERO = {
 class FairDMHomeView(MVPHomeView):
     page_subtitle = "Welcome"
     page_title = "Getting started"
-    template_name_user = "fairdm/dashboard.html"
-    template_name_anon = "fairdm/landing.html"
+    dashboard_template_name = "fairdm/dashboard.html"
+    landing_template_name = "fairdm/landing.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -24,7 +24,7 @@ class FairDMHomeView(MVPHomeView):
     def get_page_subtitle(self):
         if self.request.user.is_authenticated:
             return f"Welcome, {self.request.user.first_name or self.request.user.username}!"
-        return self.page_title
+        return self.page_subtitle
 
     def get_page_title(self):
         if self.request.user.is_authenticated:
