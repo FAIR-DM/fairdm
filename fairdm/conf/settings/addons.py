@@ -50,6 +50,8 @@ FLEX_MENUS = {
     "renderers": {
         "adminlte": "mvp.renderers.AdminLTERenderer",
         "nav": "mvp.renderers.NavRenderer",
+        "plugin-menu-renderer": "fairdm.contrib.plugins.menus.PluginMenuRenderer",
+        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",
         # "navbar": "mvp.renderers.NavbarRenderer",
         # "mobile_navbar": "mvp.renderers.MobileNavbarRenderer",
         # "sidebar": "mvp.renderers.SidebarRenderer",

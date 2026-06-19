@@ -116,6 +116,13 @@ THUMBNAIL_SUBDIR = "thumbs"
 THUMBNAIL_DEBUG = True
 
 THUMBNAIL_ALIASES = {
+    # Project-wide 3:2 aliases used by all four core model types (Project,
+    # Dataset, Sample, Measurement). core_small is served in card/listing
+    # contexts; core_large is served in detail page headers.
+    "": {
+        "core_small": {"size": (600, 400), "crop": "smart"},
+        "core_large": {"size": (1200, 800), "crop": "smart"},
+    },
     "contributors": {
         "thumb": {"size": (48, 48), "crop": False},
         "small": {"size": (150, 150), "crop": False},
@@ -129,3 +136,6 @@ THUMBNAIL_PROCESSORS = [
     "easy_thumbnails.processors.scale_and_crop",
     "easy_thumbnails.processors.filters",
 ]
+
+# Default widget thumbnail size for admin ThumbnailerImageField previews (3:2 ratio)
+THUMBNAIL_WIDGET_OPTIONS = {"size": (150, 100)}
