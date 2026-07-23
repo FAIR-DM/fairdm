@@ -70,6 +70,18 @@ MVP_CONFIG = {
 }
 
 # =============================================================================
+# OBSERVABILITY
+# https://astro-stack.github.io/django-orbit
+# =============================================================================
+
+# Django Orbit records requests, queries and exceptions. Its dashboard (/orbit/)
+# defaults to open access when DEBUG is False, so restrict it to staff users.
+# Override AUTH_CHECK in your own project to change who can view the dashboard.
+ORBIT_CONFIG = {
+    "AUTH_CHECK": lambda request: request.user.is_authenticated and request.user.is_staff,
+}
+
+# =============================================================================
 # ICON SYSTEM
 # https://django-easy-icons.readthedocs.io
 # =============================================================================

@@ -1996,6 +1996,25 @@ django-flex-menus = ">=0.4.3"
 mergedeep = ">=1.3,<2.0"
 
 [[package]]
+name = "django-orbit"
+version = "0.12.0"
+description = "AI agent-native observability and debugging for Django"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "django_orbit-0.12.0-py3-none-any.whl", hash = "sha256:5e2a729f04bb814b0d16ecb77d8bfe4f53c88c01f3c6240ba950b2b5e8ac37a1"},
+    {file = "django_orbit-0.12.0.tar.gz", hash = "sha256:489ff5a407448851bb2ad194fe5e9d2610ba3fdb7d248016ff4f651a1a00fffc"},
+]
+
+[package.dependencies]
+Django = ">=4.0"
+
+[package.extras]
+dev = ["black (>=23.0)", "django-stubs (>=4.0)", "flake8 (>=6.0)", "isort (>=5.12)", "mcp (>=1.0)", "mypy (>=1.0)", "pytest (>=7.0)", "pytest-cov (>=4.0)", "pytest-django (>=4.5)", "requests (>=2.0)"]
+mcp = ["mcp (>=1.0)"]
+
+[[package]]
 name = "django-ordered-model"
 version = "3.7.4"
 description = "Allows Django models to be ordered and provides a simple admin interface for reordering them."
@@ -6860,4 +6879,4 @@ type = ["pytest-mypy (>=1.0.1) ; platform_python_implementation != \"PyPy\""]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "6d89bed74796e57196850103274a503eef3958b567444e9d2d0cb6c65959195e"
+content-hash = "6c31616f895df2f942ace10b35c5f6b30ad2d5faa334052a3485df3bb41f4c5b"

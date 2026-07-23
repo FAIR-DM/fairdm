@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     # some other useful apps that are required by the default installation
     "django_social_share",  # easy links to social sharing sites
     "django_htmx",
+    "orbit",  # AI agent-native observability & debugging dashboard (served at /orbit/)
     "literature",
     "licensing",
     # "laboratory",
@@ -126,6 +127,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    # Orbit observability — wraps the app stack to record requests, queries & exceptions
+    "orbit.middleware.OrbitMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

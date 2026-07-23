@@ -29,6 +29,7 @@ urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("martor/", include("martor.urls")),
     path("hijack/", include("hijack.urls")),
+    path("orbit/", include("orbit.urls")),
     # REST API — Feature 011 (namespaced to prevent URL name collision with portal UI routes)
 ]
 
@@ -38,7 +39,7 @@ if addon_urls:
             path("", include(addon_url)),
         ]
 
-# adds the debug toolbar to templates if installed
+# serve media and static files directly during development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
