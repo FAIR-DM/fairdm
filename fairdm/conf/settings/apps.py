@@ -73,7 +73,7 @@ INSTALLED_APPS = [
     # UTILITIES
     "compressor",
     "dbbackup",
-    # "django_celery_beat",  # celery based task manager
+    "django_celery_beat",  # DB-backed periodic task scheduler (see CELERY_BEAT_SCHEDULER)
     "django_cotton",
     "cotton_bs5",
     "django_extensions",
