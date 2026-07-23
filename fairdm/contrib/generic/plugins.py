@@ -1,7 +1,7 @@
 from crispy_forms.helper import FormHelper
 from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
-from mvp.views import PageMixin
+from mvp.views.base import PageMixin
 
 from fairdm.contrib.generic.forms import (
     CoreInlineFormset,

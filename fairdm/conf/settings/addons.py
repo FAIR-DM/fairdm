@@ -48,15 +48,25 @@ WAFFLE_CREATE_MISSING_SAMPELS = True
 # Custom renderers for FairDM navigation menus
 FLEX_MENUS = {
     "renderers": {
-        "adminlte": "mvp.renderers.AdminLTERenderer",
+        "sidebar": "mvp.renderers.SidebarRenderer",
+        "dock": "mvp.renderers.MobileFooterNavRenderer",
         "nav": "mvp.renderers.NavRenderer",
         "plugin-menu-renderer": "fairdm.contrib.plugins.menus.PluginMenuRenderer",
-        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",
-        # "navbar": "mvp.renderers.NavbarRenderer",
-        # "mobile_navbar": "mvp.renderers.MobileNavbarRenderer",
-        # "sidebar": "mvp.renderers.SidebarRenderer",
-        # "dropdown": "mvp.renderers.DropdownRenderer",
     }
+}
+
+# =============================================================================
+# APPLICATION SHELL
+# https://github.com/SamuelJennings/django-mvp
+# =============================================================================
+
+MVP_CONFIG = {
+    "layout": {
+        "sidebar": {
+            # Text shown beside the brand icon in the sidebar header.
+            "title": "FairDM",
+        },
+    },
 }
 
 # =============================================================================
