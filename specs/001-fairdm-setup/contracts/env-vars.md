@@ -34,7 +34,6 @@ Cache/broker:
 ## Development / local convenience
 
 - `DJANGO_DEBUG`
-- `SHOW_DEBUG_TOOLBAR`
 - `USE_DOCKER`
 
 ## Notes

@@ -413,7 +413,6 @@ per_rule_ignores = { DEP002 = [
 ], DEP001 = [
     "rest_framework_gis",
 ], DEP003 = [
-    "debug_toolbar",
     "requests",
     "rest_framework",
     "rest_framework_gis",

@@ -157,11 +157,6 @@ RANDOM_SEED = 42
 # Speed up tests by reducing iteration counts
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
-# Disable debug toolbar in tests if it's installed
-DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": lambda request: False,
-}
-
 # Override ROOT_URLCONF if needed
 ROOT_URLCONF = "fairdm.conf.urls"
 

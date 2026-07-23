@@ -47,5 +47,4 @@ env = Env(
     REDIS_URL=(str, ""),
     # REDIS_URL=(str, "redis://redis:6379/0"),
     USE_DOCKER=(bool, False),
-    SHOW_DEBUG_TOOLBAR=(bool, False),
 )

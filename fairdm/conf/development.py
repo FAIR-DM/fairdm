@@ -131,28 +131,6 @@ COMPRESS_ENABLED = False
 
 
 # =============================================================================
-# DJANGO DEBUG TOOLBAR
-# =============================================================================
-
-# Add debug toolbar if installed
-try:
-    import debug_toolbar  # noqa: F401
-
-    if "debug_toolbar" not in INSTALLED_APPS:
-        INSTALLED_APPS.insert(0, "debug_toolbar")
-
-    if "debug_toolbar.middleware.DebugToolbarMiddleware" not in MIDDLEWARE:
-        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
-
-    import socket
-
-    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    INTERNAL_IPS = ["127.0.0.1", "localhost"] + [ip[: ip.rfind(".")] + ".1" for ip in ips]
-
-except ImportError:
-    pass
-
-# =============================================================================
 # LOGGING (Verbose for development)
 # =============================================================================
 

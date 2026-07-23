@@ -205,8 +205,7 @@ improve performance. Use these patterns in your views and APIs:
    from django.conf import settings
    settings.DEBUG = True
 
-   # Check query count with django-debug-toolbar
-   # Or use django.db.connection.queries
+   # Check query count with django.db.connection.queries
    from django.db import connection
    from django.test.utils import override_settings
 
