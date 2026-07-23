@@ -75,10 +75,11 @@ MVP_CONFIG = {
 # =============================================================================
 
 # Django Orbit records requests, queries and exceptions. Its dashboard (/orbit/)
-# defaults to open access when DEBUG is False, so restrict it to staff users.
-# Override AUTH_CHECK in your own project to change who can view the dashboard.
+# defaults to open access when DEBUG is False; dashboard_access keeps it open in
+# development but restricts it to superusers in production. Override AUTH_CHECK in
+# your own project to change who can view the dashboard.
 ORBIT_CONFIG = {
-    "AUTH_CHECK": lambda request: request.user.is_authenticated and request.user.is_staff,
+    "AUTH_CHECK": "fairdm.conf.orbit.dashboard_access",
 }
 
 # =============================================================================
