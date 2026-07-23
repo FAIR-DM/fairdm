@@ -16,7 +16,7 @@ authors = [{ name = "Samuel Jennings" }]
 requires-python = '>=3.13,<4.0'
 dependencies = [
     "celery (>=5.6.2,<6.0.0)",
-    'crispy-bootstrap5 (>=2025.6,<2026.0)',
+    'crispy-tailwind (>=1.0.3,<2.0.0)',
     'django[argon2] (>=5.1.3,<6.0.0)',
     'django-admin-extra-buttons (>=1.5.8,<2.0.0)',
     'django-adminactions (>=2.0.0,<3.0.0)',
@@ -72,7 +72,6 @@ dependencies = [
     'django-polymorphic (>=4.1.0,<5.0.0)',
     'django-content-license (>=0.3.0,<0.4.0)',
     'django-setup-tools (>=0.2.5,<0.3.0)',
-    'django-easy-icons (>=0.5.0,<0.6.0)',
     'django-hijack (>=3.7.4,<4.0.0)',
     'tablib[ods,xlsx] (>=3.9.0,<4.0.0)',
     'django-extra-views (>=0.16.0,<0.17.0)',
@@ -86,7 +85,7 @@ dependencies = [
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
-    "django-mvp (>=0.8.1,<0.9.0)",
+    "django-mvp (>=0.15)",
     "django-accounts-center (>=0.4.0,<0.5.0)",
     "numpy (>=2.4.6,<3.0.0)",
 ]
@@ -381,7 +380,7 @@ package_module_name_map = { django-environ = "environ", django-filter = "django_
 
 # Ignore specific dependency issues for packages used in Django settings/templates/config
 per_rule_ignores = { DEP002 = [
-    "crispy-bootstrap5",
+    "crispy-tailwind",
     "django-admin-extra-buttons",
     "django-adminactions",
     "django-allauth",

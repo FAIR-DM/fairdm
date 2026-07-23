@@ -90,7 +90,7 @@ INSTALLED_APPS = [
     # building nice looking forms and filters
     "django_filters",
     "crispy_forms",
-    "crispy_bootstrap5",
+    "crispy_tailwind",
     "widget_tweaks",
     "django_select2",
     # some other useful apps that are required by the default installation
@@ -229,9 +229,9 @@ INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 # THIRD-PARTY APP CONFIGURATIONS
 # Settings specific to installed third-party packages
 
-# django-crispy-forms: Bootstrap 5 form rendering
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
+# django-crispy-forms: Tailwind form rendering (matches django-mvp's DaisyUI/Tailwind shell)
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+CRISPY_TEMPLATE_PACK = "tailwind"
 
 # django-tables2: Table rendering template
 # DJANGO_TABLES2_TEMPLATE = "collections/table.html"
