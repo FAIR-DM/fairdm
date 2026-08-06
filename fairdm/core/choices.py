@@ -4,64 +4,12 @@ from research_vocabs.builder.skos import Collection, Concept
 from research_vocabs.vocabularies import RemoteVocabulary, VocabularyBuilder
 
 
-class ProjectDiscoveryTags(VocabularyBuilder):
-    LookingForCollaborators = {
-        "skos:prefLabel": _("Looking for collaborators"),
-        "SKOS.definition": _("This project is actively looking for collaborators to help with the research."),
-    }
-    LookingForFunding = {
-        "skos:prefLabel": _("Looking for funding"),
-        "SKOS.definition": _("This project is actively looking for funding to support the research."),
-    }
-
-    LookingForInstrumentation = {
-        "skos:prefLabel": _("Looking for instrumentation"),
-        "SKOS.definition": _(
-            "This project is actively looking for scientific instrumentation to support the research."
-        ),
-    }
-
-    # class Meta:
-
-
 class ProjectStatus(models.IntegerChoices):
     CONCEPT = 0, _("Concept")
     PLANNING = 1, _("Planning")
     IN_PROGRESS = 2, _("In progress")
     COMPLETE = 3, _("Complete")
     SEARCHING_FOR_COLLABORATORS = 4, _("Unknown")
-
-
-class ProjectTags(models.TextChoices):
-    """A class for storing choices for tags on the Project model."""
-
-    COLLABORATORS_WANTED = "Collaborators wanted", _("Looking for collaborators")
-    FUNDING_REQUIRED = "Funding required", _("Looking for funding")
-    HAS_FUNDING = "Has funding", _("Has funding")
-    POSITIONS_OPEN = "Positions open", _("Positions open")
-    EQUIPMENT_REQUIRED = "Equipment required", _("Looking for tools")
-
-
-# NOTE: These roles attempt to follow the RAiD schema for project roles. However, RAiD specifies both position and role (via CREDiT taxonomy). Our data model only allow for roles, therefore we combien RAid position and role into a single set of choices.
-
-
-# class ProjectRoles(VocabularyBuilder):
-#     PI = {
-#         "skos:prefLabel": _("Principal Investigator"),
-#         "skos:definition": _("The person who is responsible for the overall scientific leadership of a project."),
-#     }
-#     COI = {
-#         "skos:prefLabel": _("Co-Investigator"),
-#         "skos:definition": _("A person who is responsible for a portion of the scientific leadership of a project."),
-#     }
-#     LEADER = {
-#         "skos:prefLabel": _("Leader"),
-#         "skos:definition": _("A person who is responsible for the overall leadership of a project."),
-#     }
-#     CONTACT = {
-#         "skos:prefLabel": _("Contact Person"),
-#         "skos:definition": _("A person who is responsible for communication about a project."),
-#     }
 
 
 class RAiDPositions(models.TextChoices):
