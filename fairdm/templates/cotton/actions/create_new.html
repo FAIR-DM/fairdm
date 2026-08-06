@@ -1,16 +1,18 @@
 {% if user.is_authenticated %}
-<c-dropdown text="{% trans "Create new" %}"
-            icon="plus"
-            gap="1"
-            :caret="False"
-            variant="primary"
-            size="sm"
-            class="show-btn-text">
-  <c-dropdown.item text="{% trans "Project" %}"
+  <c-dropdown text="{% trans "Create new" %}"
+              icon="plus"
+              gap="1"
+              :caret="False"
+              variant="primary"
+              size="sm"
+              class="show-btn-text">
+    <c-menu>
+      <c-menu.item label="{% trans "Project" %}"
                    icon="project"
                    href="{% url "project-create" %}" />
-  <c-dropdown.item text="{% trans "Dataset" %}"
+      <c-menu.item label="{% trans "Dataset" %}"
                    icon="dataset"
                    href="{% url "dataset-create" %}" />
-</c-dropdown>
+    </c-menu>
+  </c-dropdown>
 {% endif %}
