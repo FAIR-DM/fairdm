@@ -2,16 +2,14 @@ import contextlib
 
 from django.urls import path, reverse
 from django.views.generic import RedirectView
-from django_tables2.views import SingleTableMixin
+from django_filters.filterset import FilterSet
 
 from fairdm.contrib.import_export.utils import export_choices
 from fairdm.registry import registry
-from fairdm.views import FairDMListView, FairDMTemplateView
-
-# from fairdm.menus import AppMenu
+from fairdm.views import FairDMTableView, FairDMTemplateView
 
 
-class DataTableView(SingleTableMixin, FairDMListView):
+class DataTableView(FairDMTableView):
     """
     A view for displaying tabular data for Sample and Measurement sub-types.
 
@@ -21,9 +19,11 @@ class DataTableView(SingleTableMixin, FairDMListView):
 
     export_formats = ["csv", "xls", "xlsx", "json", "latex", "ods", "tsv", "yaml"]
     template_name_suffix = "_table"
-    template_name = "collections/table_view.html"
     model_config = None  # To be set dynamically based on the model
     paginate_by = 20
+
+    def get_filterset_class(self) -> type[FilterSet] | None:
+        return registry.get_for_model(self.model).get_filterset_class()
 
     def get_context_data(self, **kwargs):
         from django.urls import NoReverseMatch
