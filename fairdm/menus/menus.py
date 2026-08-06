@@ -1,6 +1,5 @@
 """Site navigation menu for FairDM."""
 
-from django.conf import settings as django_settings
 from django.utils.translation import gettext_lazy as _
 from flex_menu import MenuItem
 from flex_menu.checks import user_is_staff
@@ -29,36 +28,26 @@ AppMenu.extend(
                 "icon": "dataset",
             },
         ),
+        MenuCollapse(
+            name=_("Samples"),
+            extra_context={
+                "icon": "sample",
+            },
+        ),
+        MenuCollapse(
+            name=_("Measurements"),
+            extra_context={
+                "icon": "measurement",
+            },
+        ),
         MenuItem(
             name=_("Literature"),
             url="#",
             extra_context={"icon": "literature"},
         ),
         MenuGroup(
-            _("Explore Data"),
-            children=[
-                MenuCollapse(
-                    name=_("Samples"),
-                    extra_context={
-                        "icon": "sample",
-                    },
-                ),
-                MenuCollapse(
-                    name=_("Measurements"),
-                    extra_context={
-                        "icon": "measurement",
-                    },
-                ),
-            ],
-        ),
-        MenuGroup(
             _("Community"),
             children=[
-                MenuItem(
-                    name=_("Statistics"),
-                    view_name="community-dashboard",
-                    extra_context={"icon": "line-chart"},
-                ),
                 MenuItem(
                     name=_("People"),
                     view_name="people-list",
@@ -75,34 +64,19 @@ AppMenu.extend(
             name=_("Documentation"),
             children=[
                 MenuItem(
-                    name=_("User Guides"),
-                    url="https://faridm.org/user-guide/",
-                    extra_context={"icon": "literature"},
-                ),
-                MenuItem(
-                    name=_("Administrator Guides"),
-                    url="https://faridm.org/admin-guide/",
-                    check=user_is_staff,
-                    extra_context={"icon": "literature"},
-                ),
-            ],
-        ),
-        MenuGroup(
-            name=_("API"),
-            children=[
-                MenuItem(
-                    name=_("Interactive Docs"),
+                    name=_("API"),
                     view_name="api:api-docs",
                     extra_context={"icon": "api"},
                 ),
                 MenuItem(
-                    name=_("Browse API"),
-                    view_name="api:api-root",
-                    extra_context={"icon": "api"},
+                    name=_("User Guide"),
+                    url="https://faridm.org/user-guide/",
+                    extra_context={"icon": "literature"},
                 ),
                 MenuItem(
-                    name=_("How to use the API"),
-                    url=getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/"),
+                    name=_("Admin Guide"),
+                    url="https://faridm.org/admin-guide/",
+                    check=user_is_staff,
                     extra_context={"icon": "literature"},
                 ),
             ],
