@@ -69,11 +69,6 @@ AppMenu.extend(
                     view_name="organization-list",
                     extra_context={"icon": "organization"},
                 ),
-                MenuItem(
-                    name=_("Portal Team"),
-                    view_name="portal-team",
-                    extra_context={"icon": "people"},
-                ),
             ],
         ),
         MenuGroup(

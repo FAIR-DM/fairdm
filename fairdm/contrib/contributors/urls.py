@@ -5,7 +5,7 @@ from fairdm.plugins import registry
 from .models import Contributor
 from .views.claiming import ClaimProfileConfirmView, ClaimProfileView
 from .views.organization import OrganizationListView
-from .views.person import PersonCreateView, PersonListView, PortalTeamView
+from .views.person import PersonCreateView, PersonListView
 
 urlpatterns = [
     path("claim/<str:token>/", ClaimProfileView.as_view(), name="claim-profile"),
@@ -14,7 +14,6 @@ urlpatterns = [
         "community/",
         include(
             [
-                path("portal-team/", PortalTeamView.as_view(), name="portal-team"),
                 path("people/", PersonListView.as_view(), name="people-list"),
                 path("organizations/", OrganizationListView.as_view(), name="organization-list"),
                 path("add-person/", PersonCreateView.as_view(), name="person-create"),

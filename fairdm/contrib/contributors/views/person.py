@@ -1,59 +1,14 @@
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import Group
-from django.db.models import Count, Prefetch
+from django.db.models import Prefetch
 from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 
-from fairdm.views import FairDMCreateView, FairDMListView, FairDMTemplateView
+from fairdm.views import FairDMCreateView, FairDMListView
 
-from ..choices import DefaultGroups
 from ..filters import PersonFilter
 from ..forms.contribution import PersonCreateForm
 from ..models import ContributorIdentifier, Person
-
-
-class PortalTeamView(FairDMTemplateView):
-    title = _("Portal Team")
-    template_name = "pages/portal_team.html"
-    heading_config = {
-        "icon": "team",
-        "title": _("Portal Team"),
-        "description": _(
-            "The portal team is responsible for maintaining and developing this research portal. "
-            "This team ensures that the portal is user-friendly, up-to-date, and provides access to the latest data and resources. "
-            "The team consists of portal administrators, data administrators, and developers who work together to enhance the portal's functionality and user experience."
-        ),
-    }
-    groups = {
-        DefaultGroups.PORTAL_ADMIN: _("Portal Administrators"),
-        DefaultGroups.DATA_ADMIN: _("Data Administrators"),
-        DefaultGroups.DEVELOPERS: _("Developers"),
-    }
-    slider_breakpoints = {
-        0: {"slidesPerView": 1, "spaceBetween": 10},
-        768: {"slidesPerView": 4, "spaceBetween": 10},
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        group_qs = (
-            Group.objects.filter(name__in=self.groups.keys())
-            .annotate(user_count=Count("user"))
-            .filter(user_count__gt=0)
-            .prefetch_related("user_set")
-        )
-
-        # Map by internal name (untranslated)
-        group_dict = {group.name: group for group in group_qs}
-
-        # Ordered list of (translated name, group)
-        ordered_groups = [
-            {"label": self.groups[name], "group": group_dict[name]} for name in self.groups if name in group_dict
-        ]
-        context["groups"] = ordered_groups
-        return context
 
 
 class PersonListView(FairDMListView):
