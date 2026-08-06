@@ -85,8 +85,8 @@ dependencies = [
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
-    "django-mvp (>=0.15)",
-    "django-accounts-center (>=0.4.0,<0.5.0)",
+    "django-mvp (>=0.16.0,<0.17.0)",
+    "django-accounts-center (>=0.7.1,<0.8.0)",
     "numpy (>=2.4.6,<3.0.0)",
     "django-orbit[mcp] (>=0.12.0,<0.13.0)",
 ]

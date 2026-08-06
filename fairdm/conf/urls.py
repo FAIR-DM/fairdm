@@ -20,7 +20,7 @@ urlpatterns = [
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
-    path("", include("dac.addons.urls")),
+    # path("", include("dac.allauth")),
     path("account-center/", include("dac.urls")),
     path("invitations/", include("invitations.urls", namespace="invitations")),
     path("contact/", include("django_contact_form.urls")),

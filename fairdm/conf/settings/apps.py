@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     "parler",
     # AUTHENTICATION AND USERS
     "dac",
-    "dac.addons.allauth",
+    "dac.allauth",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
