@@ -1,6 +1,6 @@
 {% load flex_menu %}
 
-<c-menu horizontal>
+<c-menu horizontal hx-boost="true">
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}
