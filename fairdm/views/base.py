@@ -37,6 +37,11 @@ class FairDMTemplateView(MetadataMixin, MVPTemplateView):
             description = "Learn about our research data portal."
     """
 
+    # A default template name is set here to act as a placeholder to avoid 500 errors
+    # due to this attribute being missing.
+    # Can be removed after https://github.com/django-mvp/django-mvp/issues/187 is merged and released.
+    template_name = "page_view.html"
+
 
 class FairDMListView(MetadataMixin, MVPFilteredListView):
     """Paginated, filterable list page with card layout and SEO metadata support.
