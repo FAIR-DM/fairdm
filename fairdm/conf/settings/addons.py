@@ -66,6 +66,7 @@ MVP_CONFIG = {
             # Text shown beside the brand icon in the sidebar header.
             "title": "FairDM",
             "collapse": "icons",
+            "footer": ["user.sidebar-menu"],
         },
     },
 }
