@@ -7,58 +7,14 @@ from fairdm.contrib.generic.plugins import (
     KeyDatesPlugin,
     KeywordsPlugin,
 )
-from fairdm.core.plugins import (
-    DeletePlugin,
-    OverviewPlugin,
-    UpdatePlugin,
-)
 from fairdm.utils.utils import user_guide
 
-from .forms import DatasetForm
 from .models import Dataset, DatasetDate, DatasetDescription
 
 DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 
 
-@plugins.register(Dataset)
-class Overview(OverviewPlugin):
-    title = _("Overview")
-    menu = {"label": _("Overview"), "icon": "view", "order": 0}
-    fieldsets = DATASET_SETTINGS.get("detail", {}).get("info_block_fields", None)
-
-
 # ======== Management Plugins ======== #
-@plugins.register(Dataset)
-class Edit(UpdatePlugin):
-    """Plugin for editing basic dataset information."""
-
-    title = _("Basic Information")
-    model = Dataset
-    form_class = DatasetForm
-    fields = ["image", "name", "project", "reference", "license", "visibility"]
-    about = _(
-        "Edit basic information about your dataset, including its name, project association, and visibility. "
-        "These fields help others understand your dataset and control who can access it."
-    )
-    learn_more = user_guide("dataset/edit")
-
-
-@plugins.register(Dataset)
-class Delete(DeletePlugin):
-    menu = {"label": _("Delete"), "icon": "delete", "order": 900}
-    heading_config = {
-        "title": _("Delete Dataset"),
-        "description": _(
-            "Deleting a dataset is a permanent action that removes it from the system. Please see the documentation by clicking the link below to understand what happens when a dataset is deleted."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("dataset/delete"),
-                "icon": "documentation",
-            }
-        ],
-    }
 
 
 @plugins.register(Dataset)

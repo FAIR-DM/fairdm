@@ -8,10 +8,8 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Model
 from django.forms.widgets import Media
 from django.http import HttpRequest, HttpResponse
-from django.urls import URLPattern, path
+from django.urls import URLPattern, include, path
 from django.views.generic.base import View
-
-from .menus import PluginTab
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -20,15 +18,9 @@ if TYPE_CHECKING:
 class Plugin(View):
     """Mixin class that adds plugin behavior to Django class-based views.
 
-    Plugins extend model detail views with custom functionality. Each Plugin
-    is paired with a Django CBV (e.g., TemplateView, UpdateView, DeleteView).
-
     Attributes:
         name: Unique identifier per model (auto-derived from class name if not set)
         url_path: URL path segment (auto-derived from name if not set)
-        template_name: Explicit template path override (uses resolution if empty)
-        permission: Required permission string (e.g., "myapp.change_sample")
-        check: Visibility check callable (request, obj) -> bool
         model: Set by registry during registration (base model only)
         menu: Tab configuration dict with keys:
             - label (str, required): Display text
@@ -36,229 +28,25 @@ class Plugin(View):
             - order (int, optional, default 0): Sort position
             If None/falsey, no tab is created.
 
-    Basic Example:
-        ```python
-        from fairdm.plugins import Plugin, register_plugin
-        from django.views.generic import TemplateView
-
-
-        @register_plugin(Sample)
-        class AnalysisPlugin(Plugin, TemplateView):
-            menu = {
-                "label": "Analysis",
-                "icon": "chart-bar",
-                "order": 10,
-            }
-
-            def get_context_data(self, **kwargs):
-                context = super().get_context_data(**kwargs)
-                context["analysis_data"] = self.object.get_analysis()
-                return context
-        ```
-
-    Inheritance Patterns:
-
-        **1. Reusable Base Classes**
-        Create base plugin classes in your package that can be inherited by portal developers:
-
-        ```python
-        # In fairdm/core/plugins.py (framework base classes)
-        from fairdm.plugins import Plugin
-        from django.views.generic import TemplateView, UpdateView
-
-
-        class OverviewPlugin(Plugin, TemplateView):
-            menu = {"label": "Overview", "icon": "eye", "order": 0}
-
-            def get_context_data(self, **kwargs):
-                context = super().get_context_data(**kwargs)
-                context["activities"] = get_activities(self.object)
-                return context
-
-
-        class UpdatePlugin(Plugin, UpdateView):
-            menu = {"label": "Edit", "icon": "pencil", "order": 100}
-
-            def get_success_url(self):
-                return self.object.get_absolute_url()
-        ```
-
-        **2. Portal Developer Customization**
-        Portal developers inherit from base classes and add domain-specific behavior:
-
-        ```python
-        # In portal_app/plugins.py (portal-specific implementations)
-        from fairdm.core.plugins import OverviewPlugin, UpdatePlugin
-        from fairdm.plugins import register_plugin
-        from .models import Sample
-        from .forms import SampleForm
-
-
-        @register_plugin(Sample)
-        class SampleOverview(OverviewPlugin):
-            # Inherit menu, template_name, base behavior
-            # Add custom context
-            def get_context_data(self, **kwargs):
-                context = super().get_context_data(**kwargs)
-                context["measurements"] = self.object.measurements.all()
-                return context
-
-
-        @register_plugin(Sample)
-        class SampleEdit(UpdatePlugin):
-            form_class = SampleForm
-            permission = "samples.change_sample"
-        ```
-
-        **3. Polymorphic Visibility**
-        Use the `check` attribute to show plugins only for specific subtypes:
-
-        ```python
-        from fairdm.plugins import is_instance_of
-
-
-        @register_plugin(Sample)
-        class RockAnalysisPlugin(Plugin, TemplateView):
-            check = is_instance_of(RockSample)
-            menu = {"label": "Geochemistry", "order": 20}
-            # Only visible for RockSample instances, not WaterSample
-        ```
-
-        **4. Multi-Package Plugin Distribution**
-        Base plugins can be defined in one package and extended in another:
-
-        ```python
-        # In fairdm_geology package
-        class GeologyAnalysisPlugin(Plugin, TemplateView):
-            menu = {"label": "Geology", "order": 30}
-            template_name = "geology/analysis.html"
-
-
-        # In portal_project (inherits from fairdm_geology)
-        from fairdm_geology.plugins import GeologyAnalysisPlugin
-        from fairdm.plugins import register_plugin
-
-
-        @register_plugin(Sample)
-        class CustomGeologyPlugin(GeologyAnalysisPlugin):
-            # Inherits template, menu, behavior
-            # Can override specific methods
-            def get_context_data(self, **kwargs):
-                context = super().get_context_data(**kwargs)
-                context["custom_data"] = self.object.local_custom_analysis()
-                return context
-        ```
-
-        **5. Method Override Checklist**
-        Common methods to override when inheriting:
-        - `get_context_data()`: Add custom template variables
-        - `get_template_names()`: Customize template resolution
-        - `has_permission()`: Add custom permission logic
-        - `get_breadcrumbs()`: Customize navigation breadcrumbs
-        - `get_queryset()`: For list-based views (FormSetView, etc.)
-        - `get_success_url()`: For form-based views (UpdateView, DeleteView)
-
-        **6. Class Attributes to Set**
-        When creating plugins, consider setting:
-        - `menu`: Tab configuration (required for tab visibility)
-        - `permission`: Django permission string for access control
-        - `template_name`: Explicit template path (or rely on resolution)
-        - `url_path`: Custom URL segment (or auto-generated from name)
-        - `check`: Visibility check function for polymorphic filtering
-
-        **7. Static Assets with Django Media Class**
-        Plugins can include CSS and JavaScript assets using Django's Media class:
-
-        ```python
-        from fairdm.plugins import Plugin, register_plugin
-        from django.views.generic import TemplateView
-
-
-        @register_plugin(Sample)
-        class ChartPlugin(Plugin, TemplateView):
-            menu = {"label": "Charts", "icon": "chart", "order": 40}
-
-            class Media:
-                css = {
-                    "all": ("plugins/chart/chart.css",),
-                }
-                js = (
-                    "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js",
-                    "plugins/chart/chart-init.js",
-                )
-
-            def get_context_data(self, **kwargs):
-                context = super().get_context_data(**kwargs)
-                context["chart_data"] = self.object.get_chart_data()
-                return context
-        ```
-
-        The Media class assets are automatically included in the template context as `plugin_media`.
-        Include them in your template:
-
-        ```html
-        {% extends "plugins/base.html" %}
-
-        {% block extra_head %}
-            {{ plugin_media.css }}
-        {% endblock %}
-
-        {% block content %}
-            <canvas id="myChart"></canvas>
-        {% endblock %}
-
-        {% block extra_js %}
-            {{ plugin_media.js }}
-        {% endblock %}
-        ```
-
-        **Media Class Options:**
-        - `css`: Dict mapping media types to tuples of CSS file paths
-          - Keys: "all", "screen", "print", etc.
-          - Values: Tuples of file paths (relative to STATIC_ROOT or absolute URLs)
-        - `js`: Tuple of JavaScript file paths (order matters for dependencies)
-
-        **Best Practices:**
-        - Place plugin-specific assets in `static/plugins/{plugin_name}/`
-        - Use CDN URLs for large third-party libraries (Chart.js, D3.js, etc.)
-        - Minify assets for production
-        - Use Django's collectstatic command to gather assets
-        - Consider using webpack or vite for complex asset pipelines
-
-        **Example with Multiple CSS Media Queries:**
-        ```python
-        class Media:
-            css = {
-                "all": ("plugins/base.css",),
-                "screen": ("plugins/screen.css",),
-                "print": ("plugins/print.css",),
-            }
-            js = (
-                "plugins/vendor/jquery.min.js",  # Load first (dependency)
-                "plugins/main.js",  # Load after jQuery
-            )
-        ```
-
-    See Also:
-        - PluginGroup: For grouping multiple plugins under shared namespace
-        - register_plugin: Decorator for plugin registration
-        - is_instance_of: Helper for polymorphic visibility checks
     """
-
-    # Class attributes (can be overridden by subclasses)
 
     # The model against which a plugin is registered. Set by the registry during registration.
     registered_model: ClassVar[type[Model] | None] = None
 
     # Plugin name (slugified class name if not set)
     name: ClassVar[str | None] = None
-    url_path: ClassVar[str | None] = None
-    template_name: str = ""
+    url_path: ClassVar[str | None] = ""
+    # Note: url_path="" (default) → use slugified class name
+    #       url_path=None (explicit) → no base path for plugin or subviews
+    #       url_path="foo" → use "foo" as base path
     permission: ClassVar[str | None] = None
-    check: ClassVar[Callable[[HttpRequest, Model | None], bool] | None] = None
+    check: ClassVar[Callable[[HttpRequest, Model | None], bool] | None] = True
     model: ClassVar[type[Model] | None] = None
     menu: ClassVar[dict[str, Any] | None] = None
-    tab: ClassVar[PluginTab | None] = None
+    # tab = None
+    subviews: ClassVar[list[type[View]] | None] = []
+    slug_field = "uuid"
+    slug_url_kwarg = "uuid"
 
     @classmethod
     def get_name(cls) -> str:
@@ -274,26 +62,43 @@ class Plugin(View):
         return slugify(cls.__name__)
 
     @classmethod
-    def get_url_path(cls) -> str:
+    def get_url_path(cls) -> str | None:
         """Get the URL path segment.
 
         Returns:
-            URL path segment (e.g., "analysis" or "download")
+            URL path segment (e.g., "analysis" or "download"),
+            or None if url_path is explicitly set to None (no base path)
         """
+        if cls.url_path is None:
+            return None
         if cls.url_path:
             return cls.url_path
         return cls.get_name()
 
     @classmethod
-    def get_urls(cls) -> list[URLPattern]:
+    def get_urls(cls, menu_class) -> list[URLPattern]:
         """Generate URL pattern(s) for this plugin.
 
         Returns:
             List containing one URLPattern for simple plugins.
             Subclasses may override to return multiple patterns.
         """
+        base_name = cls.get_name()
+        base_path = cls.get_url_path()
+        urls = []
+        for subview in cls.subviews:
+            urls.append(
+                path(
+                    f"{subview.get_url_path()}/",
+                    subview.as_view(menu=menu_class),
+                    name=subview.get_name(),
+                )
+            )
+
+        base_path = f"{base_path}/" if base_path is not None else ""
         return [
-            path(f"{cls.get_url_path()}/", cls.as_view(), name=cls.get_name()),
+            path(base_path, cls.as_view(menu=menu_class), name=base_name),
+            path(base_path, include((urls, base_name), namespace=base_name)),
         ]
 
     def get_base_object(self) -> Model:
@@ -319,47 +124,6 @@ class Plugin(View):
 
         msg = "Plugin URL must include 'pk' or 'uuid' kwarg"
         raise ValueError(msg)
-
-    def get_template_names(self) -> list[str]:
-        """Hierarchical template resolution.
-
-        Returns template paths in order of precedence:
-        1. Explicit template_name if set
-        2. plugins/{model_name}/{plugin_name}.html (model-specific)
-        3. plugins/{parent_model_name}/{plugin_name}.html (for polymorphic models)
-        4. plugins/{plugin_name}.html (plugin default)
-        5. plugins/base.html (framework fallback)
-
-        Returns:
-            List of template paths to try in order
-        """
-        templates = []
-
-        # 1. Explicit template_name
-        if self.template_name:
-            templates.append(self.template_name)
-
-        plugin_name = self.get_name()
-
-        # 2. Model-specific template
-        if self.registered_model:
-            model_name = self.registered_model._meta.model_name
-            templates.append(f"plugins/{model_name}/{plugin_name}.html")
-
-            # 3. Parent model template (for polymorphic models)
-            # Check if model has a polymorphic parent
-            if hasattr(self.registered_model, "_meta") and hasattr(self.registered_model._meta, "get_parent_list"):
-                for parent in self.registered_model._meta.get_parent_list():
-                    parent_name = parent._meta.model_name
-                    templates.append(f"plugins/{parent_name}/{plugin_name}.html")
-
-        # 4. Plugin default template
-        templates.append(f"plugins/{plugin_name}.html")
-
-        # 5. Framework fallback
-        templates.append("plugins/base.html")
-
-        return templates
 
     def has_permission(self, request: HttpRequest, obj: Model | None = None) -> bool:
         """Two-tier permission check.
@@ -411,6 +175,12 @@ class Plugin(View):
         Raises:
             PermissionDenied: If user lacks required permissions
         """
+        if callable(self.check):
+            if not self.check(request):
+                raise PermissionDenied
+        elif not self.check:
+            raise PermissionDenied
+
         # Get object for permission checking
         try:
             obj = self.get_base_object()
@@ -458,6 +228,8 @@ class Plugin(View):
         # Add breadcrumbs
         context["breadcrumbs"] = self.get_breadcrumbs()
 
+        # Note: The presence of `plugin_menu` in the context is used by the base template to render the local tab navigation against an instance of the registered model.
+        context["plugin_menu"] = self.menu
         # Add plugin media
         if hasattr(self, "Media"):
             context["plugin_media"] = Media(self.Media)
@@ -494,7 +266,6 @@ class Plugin(View):
 
         # Add current page breadcrumb
         if self.menu:
-            page_title = self.menu.get("label", self.get_name())
-            breadcrumbs.append({"text": page_title})
+            breadcrumbs.append({"text": self.page_title})
 
         return breadcrumbs

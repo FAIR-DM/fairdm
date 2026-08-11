@@ -2,21 +2,15 @@
 
 from __future__ import annotations
 
+import itertools
 from typing import TYPE_CHECKING
 
 from django.db.models import Model
 from django.urls import URLPattern
-from flex_menu import root
-
-from .menu import Tab
-from .menus import PluginMenu
+from flex_menu import Menu, MenuItem, root
 
 if TYPE_CHECKING:
-    from django.http import HttpRequest
-
     from .base import Plugin
-    from .group import PluginGroup
-    from .menu import Tab
 
 
 class PluginRegistry:
@@ -39,10 +33,23 @@ class PluginRegistry:
 
     def __init__(self) -> None:
         """Initialize empty registry."""
-        # Maps base models to lists of Plugin/PluginGroup classes
-        self._registry: dict[type[Model], list[type[Plugin | PluginGroup]]] = {}
+        # Maps base models to lists of Plugin classes
+        # Registry format looks like:
+        # {
+        #     Project: [
+        #         (PluginClass, kwargs),
+        #         (PluginClass, kwargs),
+        #         ...
+        #     ],
+        #     Dataset: [
+        #         (PluginClass, kwargs),
+        #         ...
+        #     ],
+        # }
+        # kwargs are passed to the register decorator and can include menu configuration, icons, etc.
+        self._registry: dict[type[Model], list[type[Plugin]]] = {}
 
-    def register(self, *models: type[Model]):
+    def register(self, *models: type[Model], **kwargs):
         """Decorator to register a Plugin or PluginGroup with one or more models.
 
         Args:
@@ -59,10 +66,9 @@ class PluginRegistry:
             @register_plugin(Sample)
             class AnalysisPlugin(Plugin, TemplateView):
                 check = is_instance_of(RockSample)
-                menu = {"label": "Analysis", "order": 10}
         """
 
-        def decorator(plugin_class: type[Plugin | PluginGroup]) -> type[Plugin | PluginGroup]:
+        def decorator(plugin_class: type[Plugin]) -> type[Plugin]:
             if not models:
                 msg = "register_plugin requires at least one model"
                 raise ValueError(msg)
@@ -76,19 +82,13 @@ class PluginRegistry:
             for model in models:
                 if model not in self._registry:
                     self._registry[model] = []
-                self._registry[model].append(plugin_class)
-
-            # Set model attribute for single-model registration
-            if len(models) == 1:
-                plugin_class.registered_model = models[0]  # type: ignore[attr-defined]
-            else:
-                plugin_class.registered_model = None  # type: ignore[attr-defined]
+                self._registry[model].append((plugin_class, kwargs))
 
             return plugin_class
 
         return decorator
 
-    def get_plugins_for_model(self, model: type[Model]) -> list[type[Plugin | PluginGroup]]:
+    def get_plugins_for_model(self, model: type[Model]) -> list[type[Plugin]]:
         """Get all plugins/groups registered for a model.
 
         Args:
@@ -100,25 +100,13 @@ class PluginRegistry:
         """
         return self._registry.get(model, [])
 
-    def is_registered(self, plugin: type[Plugin | PluginGroup], model: type[Model]) -> bool:
-        """Check if a plugin/group is registered for a model.
-
-        Args:
-            plugin: Plugin or PluginGroup class
-            model: Django Model class
-
-        Returns:
-            True if the plugin is registered for the model
-        """
-        return plugin in self._registry.get(model, [])
-
-    def get_plugin_menu_for_model(self, model: type[Model]) -> PluginMenu | None:
+    def get_plugin_menu_for_model(self, model: type[Model]) -> Menu | None:
         """Get the menu configuration for a plugin, if it exists.
 
         Args:
             model: Django Model class
         Returns:
-            PluginMenu object with menu configuration, or None if no menu defined
+            Menu object with menu configuration, or None if no menu defined
         """
         menu_name = f"{model.__name__}Menu"
         return root.get(menu_name)
@@ -137,15 +125,14 @@ class PluginRegistry:
         plugin_menu = self.get_plugin_menu_for_model(model)
         url_patterns: list[URLPattern] = []
 
-        plugins = self.get_plugins_for_model(model)
-
-        for plugin_class in plugins:
-            url_patterns.extend(plugin_class.get_urls())
-            if tab := self.configure_tab(plugin_class, model):
+        for plugin_class, kwargs in itertools.chain(self.get_plugins_for_model(model)):
+            plugin_class.registered_model = model  # type: ignore[attr-defined]
+            url_patterns.extend(plugin_class.get_urls(menu_class=plugin_menu))
+            if tab := self.configure_tab(plugin_class, model, **kwargs):
                 plugin_menu.append(tab)
         return url_patterns
 
-    def configure_tab(self, plugin_class: type[Plugin], model: type[Model]) -> None:
+    def configure_tab(self, plugin_class: type[Plugin], model: type[Model], **kwargs) -> None:
         """Configure the tab for a plugin based on its menu definition.
 
         This method resolves the URL for the plugin's tab using the registered
@@ -157,78 +144,18 @@ class PluginRegistry:
         Returns:
             None
         """
-        tab = plugin_class.tab
-        if not tab:
-            return
-        tab.view_name = f"{model._meta.model_name.lower()}:{plugin_class.get_name()}"
-        tab.check = plugin_class.check
-        return tab
-
-    def get_tabs_for_model(self, model: type[Model], request: HttpRequest, obj: Model | None = None) -> list[Tab]:
-        # DEPRECATED: This method is no longer used in the codebase and will be removed in a future release. The PluginMenuRenderer now handles tab collection and permission filtering directly, so this method is redundant. Please use PluginMenuRenderer.get_tabs() instead for collecting tabs with permission checks.
-        """Collect tabs from all registered plugins/groups with permission filtering.
-
-        Only plugins/groups with a truthy `menu` attribute appear as tabs.
-        Tabs are filtered by:
-        1. Visibility check (plugin.check callable if present)
-        2. Permission check (plugin.has_permission)
-
-        Args:
-            model: Django Model class
-            request: HTTP request for permission checking
-            obj: Model instance (optional, for instance-level checks)
-
-        Returns:
-            Sorted list of Tab objects (sorted by order, then label)
-        """
-
-        tabs: list[Tab] = []
-
-        for plugin_class in self.get_plugins_for_model(model):
-            # Skip if no menu configuration
-            menu = getattr(plugin_class, "menu", None)
-            if not menu:
-                continue
-
-            # Check visibility filter
-            check = getattr(plugin_class, "check", None)
-            if check and not check(request, obj):
-                continue
-
-            # Check permissions
-            # Note: We create a minimal instance just for permission checking
-            # The actual view instance will be created later during request handling
-            plugin_instance = plugin_class()  # type: ignore[call-arg]
-            if not plugin_instance.has_permission(request, obj):  # type: ignore[attr-defined]
-                continue
-
-            # Build tab
-            label = menu.get("label", plugin_class.__name__)
-            icon = menu.get("icon", "")
-            order = menu.get("order", 0)
-
-            # Resolve the full URL for the tab using the registered base model's namespace
-            url = ""
-            if obj is not None and plugin_class.registered_model is not None:
-                try:
-                    from django.urls import reverse as django_reverse
-
-                    namespace = plugin_class.registered_model._meta.model_name.lower()
-                    url = django_reverse(
-                        f"{namespace}:{plugin_class.get_name()}",
-                        kwargs={"uuid": obj.uuid},
-                    )
-                except Exception:
-                    url = ""
-
-            # Check if this tab is active (based on current URL path)
-            is_active = request.path == url if url else False
-
-            tabs.append(Tab(label=label, icon=icon, url=url, order=order, is_active=is_active))
-
-        # Sort by order, then label
-        tabs.sort(key=lambda t: (t.order, t.label))
-        return tabs
+        label = kwargs.get("label") or getattr(plugin_class, "page_title", plugin_class.__name__)
+        name = plugin_class.get_name()
+        view_name = f"{model._meta.model_name.lower()}:{name}"
+        return MenuItem(
+            label,
+            view_name=view_name,
+            check=plugin_class.check,
+            extra_context={
+                "label": label,
+                "icon": kwargs.get("icon") or getattr(plugin_class, "page_icon", "circle"),
+            },
+        )
 
 
 registry = PluginRegistry()

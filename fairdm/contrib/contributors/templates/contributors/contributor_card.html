@@ -1,11 +1,24 @@
-<c-card.simple>
-  <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4">
+{% comment %} Desperately need to be reworked by design team {% endcomment %}
+<c-card>
+  <div class="flex align-center gap-3">
     <c-avatar src="{{ object.get_photo_url }}"
               alt="{{ user }}"
               size="xxl" />
     <div>
-      <h4 class="mb-1">{{ object }}</h4>
-      <p class="text-secondary mb-2">Senior Researcher · University of Example</p>
-      <p class="mb-0 small">Member since {{ object.added|date:"Y" }}. Sedimentary geochemistry and isotope analysis.</p>
+      <h2 class="card-title">
+        {{ object }}
+      </h4>
+      <c-text muted>
+        Senior Researcher · University of Example
+      </c-text>
+      <c-text small>
+        Member since {{ object.added|date:"Y" }}. Sedimentary geochemistry and isotope analysis.
+      </c-text>
+      {{ object.get_absolute_url }}
+      <c-menu horizontal>
+        <c-menu.item label="{% trans "View profile" %}"
+                     href="{{ object.get_absolute_url }}"
+                     icon="overview" />
+      </c-menu>
     </div>
-  </c-card.simple>
+  </c-card>

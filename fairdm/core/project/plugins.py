@@ -11,24 +11,17 @@ from fairdm.contrib.generic.plugins import (
     KeywordsPlugin,
 )
 from fairdm.contrib.plugins import Plugin
-from fairdm.contrib.plugins.menus import PluginTab
-from fairdm.core.plugins import DeletePlugin
-from fairdm.utils.utils import user_guide
-from fairdm.views import FairDMTemplateView
+from fairdm.views import FairDMTemplateView, FairDMUpdateView
 
 from ..dataset.views import DatasetListView
 from .models import Project, ProjectDate, ProjectDescription
 
-# ============ EXPLORE PLUGINS =================
 
-
-@plugins.register(Project)
-class Datasets(Plugin, DatasetListView):
+@plugins.register(Project, order=100)
+class DatasetList(Plugin, DatasetListView):
     """Plugin for listing datasets associated with a project."""
 
-    tab = PluginTab("Datasets", extra_context={"label": _("Datasets"), "icon": "dataset"})
-    template_name = "plugins/list_view.html"
-    has_create_permission = True
+    page_title = _("Datasets")
 
     def get_queryset(self, *args, **kwargs):
         """Filter datasets to only those belonging to this project."""
@@ -38,86 +31,39 @@ class Datasets(Plugin, DatasetListView):
         return {}
 
 
-# ============ ACTION PLUGINS =================
-
-
-@plugins.register(Project)
-class Export(Plugin, FairDMTemplateView):
+@plugins.register(Project, label=_("Export"), order=200)
+class ProjectExportView(Plugin, FairDMTemplateView):
     """Export project data plugin."""
 
-    page_icon = "export"
     page_title = _("Export Project Data")
-    menu = {"label": _("Export"), "icon": "export", "order": 600}
+    page_icon = "export"
 
 
-@plugins.register(Project)
-class Settings(Plugin, FairDMTemplateView):
+@plugins.register(Project, label=_("Configure"), icon="settings", order=300)
+class ProjectConfigure(Plugin, FairDMUpdateView):
     """Project settings management plugin."""
 
-    tab = PluginTab("Settings", extra_context={"label": _("Settings"), "icon": "settings", "order": 700})
-    page_title = _("Project settings")
+    page_title = _("Configure project")
     permission = "project.change_project"
+    model = Project
+    fields = ["name", "visibility", "owner"]
 
 
-# ============ MANAGEMENT PLUGINS =================
-
-
-# @plugins.register(Project)
-# class Update(UpdatePlugin):
-#     """Plugin for editing basic project information."""
-
-#     model = Project
-#     form_class = ProjectForm
-
-
-@plugins.register(Project)
-class Delete(DeletePlugin):
-    """Plugin for deleting a project."""
-
-    about = _(
-        "Deleting a project is a permanent action that removes it from the system. "
-        "Please see the documentation by clicking the link below to understand what happens when a project is deleted."
-    )
-    learn_more = user_guide("project/delete")
-
-
-@plugins.register(Project)
 class Descriptions(DescriptionsPlugin):
     """Plugin for managing project descriptions using inline formsets."""
 
-    about = _(
-        "Provide key details about your project, including its name and key descriptions. "
-        "This information is essential for conveying the project's purpose and scope, "
-        "helping users quickly understand its relevance."
-    )
-    learn_more = user_guide("project/descriptions")
     model = Project
     inline_model = ProjectDescription
 
 
-@plugins.register(Project)
 class Keywords(KeywordsPlugin):
     """Plugin for managing project keywords."""
 
-    about = _(
-        "Keywords enhance your project's visibility in search engines and catalogs by summarizing its content. "
-        "They help others quickly evaluate its relevance without reading the full documentation."
-    )
-    learn_more = user_guide("project/keywords")
-
-    # UpdateView configuration
     model = Project
 
 
-@plugins.register(Project)
 class KeyDates(KeyDatesPlugin):
     """Plugin for managing project key dates using inline formsets."""
-
-    about = _(
-        "Entering key dates helps track important milestones and timelines, supporting effective "
-        "project management and giving others insight into the project's history and progress."
-    )
-    learn_more = user_guide("project/key-dates")
 
     # InlineFormSetView configuration
     model = Project
