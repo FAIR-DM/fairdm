@@ -40,7 +40,9 @@ class TestCustomURLs:
             template_name = "multi.html"
 
             @classmethod
-            def get_urls(cls):
+            def get_urls(cls, menu_class=None):
+                # The registry always calls get_urls(menu_class=...); an override
+                # must accept it even if it doesn't use it.
                 return [
                     path("main/", cls.as_view(), name=f"{cls.get_name()}-main"),
                     path("export/", cls.as_view(), name=f"{cls.get_name()}-export"),
@@ -98,8 +100,10 @@ class TestURLParameters:
             menu = {"label": "Param", "icon": "param", "order": 50}
             template_name = "param.html"
 
-        # Default get_urls should return simple path (pk handled by parent route)
-        url_patterns = ParamPlugin.get_urls()
+        # Default get_urls requires menu_class (the registry passes the plugin
+        # menu for the model it's building URLs for); pass None here since
+        # this test isn't exercising menu/tab configuration.
+        url_patterns = ParamPlugin.get_urls(menu_class=None)
 
         # Should have at least one URL pattern
         assert len(url_patterns) > 0

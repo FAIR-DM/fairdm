@@ -25,8 +25,9 @@ class TestBasicRegistration:
             template_name = "test.html"
 
         # Verify registration
+        # get_plugins_for_model() returns (plugin_class, kwargs) tuples.
         registered_plugins = plugins.registry.get_plugins_for_model(Sample)
-        plugin_names = [p.__name__ for p in registered_plugins]
+        plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
         assert "TestPlugin" in plugin_names
 
     def test_register_plugin_for_multiple_models(self):
@@ -44,7 +45,7 @@ class TestBasicRegistration:
         # Verify registration on all models
         for model in [Project, Dataset, Sample]:
             registered_plugins = plugins.registry.get_plugins_for_model(model)
-            plugin_names = [p.__name__ for p in registered_plugins]
+            plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
             assert "MultiModelPlugin" in plugin_names
 
     def test_plugin_appears_in_url_patterns(self):

@@ -1,18 +1,25 @@
-# Badge color changes from red to green between 70% and 100%
-# PR pipeline fails if codecov falls with 1%
-
+# Coverage gating.
+#
+#   project — floor for overall coverage. Set to the measured baseline at the
+#             point this package adopted the shared standard (64.1% on
+#             2026-08-11), not the family's 90%, which would hold every pull
+#             request red. It is a ratchet: raise it as coverage improves,
+#             and never lower it to accommodate a regression.
+#   patch   — coverage required of the lines changed in a pull request. Held at
+#             the family standard, so new code meets the target even while the
+#             overall figure is catching up.
+#
+# The 1% threshold absorbs rounding and small, justified dips.
 coverage:
-  range: 70..100
+  range: 64..100
   round: down
   precision: 1
   status:
     project:
       default:
-        target: auto
+        target: 64%
         threshold: 1%
-
-# Ignoring Paths
-# --------------
-# which folders/files to ignore
-# ignore:
-  # - "foo/bar.py"
+    patch:
+      default:
+        target: 85%
+        threshold: 1%

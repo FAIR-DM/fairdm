@@ -20,7 +20,7 @@ class TestPluginContext:
 
     def test_plugin_get_object_returns_instance(self, sample):
         """Given a plugin view,
-        When get_object is called,
+        When get_base_object is called,
         Then it returns the model instance."""
 
         @plugins.register(Sample)
@@ -33,10 +33,11 @@ class TestPluginContext:
 
         plugin = ObjectPlugin()
         plugin.request = request
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
 
-        # Get object
-        obj = plugin.get_object()
+        # Get object (renamed from get_object() to get_base_object())
+        obj = plugin.get_base_object()
         assert obj == sample
         assert isinstance(obj, Sample)
 
@@ -46,6 +47,7 @@ class TestPluginContext:
         @plugins.register(Sample)
         class ContextObjPlugin(Plugin, TemplateView):
             menu = {"label": "Context", "icon": "ctx", "order": 20}
+            page_title = "Context"
             template_name = "context.html"
 
         factory = RequestFactory()
@@ -54,6 +56,7 @@ class TestPluginContext:
 
         plugin = ContextObjPlugin()
         plugin.request = request
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
 
         context = plugin.get_context_data()
@@ -74,6 +77,7 @@ class TestPluginBreadcrumbs:
         @plugins.register(Sample)
         class BreadcrumbPlugin(Plugin, TemplateView):
             menu = {"label": "Breadcrumb", "icon": "bread", "order": 30}
+            page_title = "Breadcrumb"
             template_name = "breadcrumb.html"
 
         factory = RequestFactory()
@@ -82,6 +86,7 @@ class TestPluginBreadcrumbs:
 
         plugin = BreadcrumbPlugin()
         plugin.request = request
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
 
         breadcrumbs = plugin.get_breadcrumbs()
@@ -98,6 +103,7 @@ class TestPluginBreadcrumbs:
         @plugins.register(Sample)
         class StructuredBreadcrumb(Plugin, TemplateView):
             menu = {"label": "Structured", "icon": "struct", "order": 40}
+            page_title = "Structured"
             template_name = "structured.html"
 
         factory = RequestFactory()
@@ -106,6 +112,7 @@ class TestPluginBreadcrumbs:
 
         plugin = StructuredBreadcrumb()
         plugin.request = request
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
 
         breadcrumbs = plugin.get_breadcrumbs()
@@ -126,6 +133,7 @@ class TestPluginContextData:
         @plugins.register(Sample)
         class CustomContextPlugin(Plugin, TemplateView):
             menu = {"label": "Custom Context", "icon": "custom", "order": 50}
+            page_title = "Custom Context"
             template_name = "custom_context.html"
 
             def get_context_data(self, **kwargs):
@@ -143,6 +151,7 @@ class TestPluginContextData:
 
         plugin = CustomContextPlugin()
         plugin.request = request
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
 
         context = plugin.get_context_data()

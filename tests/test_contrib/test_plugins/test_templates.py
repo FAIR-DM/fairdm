@@ -64,6 +64,9 @@ class TestTemplateContext:
         class ContextPlugin(Plugin, TemplateView):
             template_name = "plugins/context.html"
             menu = {"label": "Context", "icon": "database", "order": 30}
+            # Concrete plugins declare page_title; get_breadcrumbs reads it
+            # directly when the plugin contributes a menu entry.
+            page_title = "Context"
 
             def get_context_data(self, **kwargs):
                 context = super().get_context_data(**kwargs)
