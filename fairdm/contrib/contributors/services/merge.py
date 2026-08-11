@@ -110,15 +110,23 @@ def _reassign_identifiers(keep: Person, discard: Person) -> None:
     for identifier in ContributorIdentifier.objects.filter(related=discard):
         # Check for exact value match (value is globally unique — can't have 2 with same value)
         # Also check for same (related, type) combo on keep
-        value_exists = ContributorIdentifier.objects.filter(value=identifier.value).exclude(pk=identifier.pk).exists()
-        type_exists_on_keep = ContributorIdentifier.objects.filter(related=keep, type=identifier.type).exists()
+        value_exists = (
+            ContributorIdentifier.objects.filter(value=identifier.value)
+            .exclude(pk=identifier.pk)
+            .exists()
+        )
+        type_exists_on_keep = ContributorIdentifier.objects.filter(
+            related=keep, type=identifier.type
+        ).exists()
 
         if value_exists or type_exists_on_keep:
             # Skip — would violate uniqueness constraints
             identifier.delete()
         else:
             # Use update() to bypass AFTER_CREATE lifecycle hook (sync task dispatch)
-            ContributorIdentifier.objects.filter(pk=identifier.pk).update(related_id=keep.pk)
+            ContributorIdentifier.objects.filter(pk=identifier.pk).update(
+                related_id=keep.pk
+            )
 
 
 def _reassign_affiliations(keep: Person, discard: Person) -> None:
@@ -173,7 +181,10 @@ def _transfer_permissions(keep: Person, discard: Person) -> None:
                 perm.content_object,
             )
     except Exception:
-        logger.warning("guardian permission transfer failed — guardian may not be installed", exc_info=True)
+        logger.warning(
+            "guardian permission transfer failed — guardian may not be installed",
+            exc_info=True,
+        )
 
 
 def _invalidate_sessions(person: Person) -> None:

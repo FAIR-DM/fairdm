@@ -13,7 +13,9 @@ class TestPluginUrl:
 
     def test_plugin_url_with_non_polymorphic_object(self, rf, sample):
         """plugin_url should use non_polymorphic_object from context."""
-        with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
+        with patch(
+            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
+        ) as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
 
             template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
@@ -27,7 +29,9 @@ class TestPluginUrl:
 
     def test_plugin_url_fallback_to_object(self, rf, sample):
         """plugin_url should fall back to 'object' if non_polymorphic_object not present."""
-        with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
+        with patch(
+            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
+        ) as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
 
             template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
@@ -50,10 +54,14 @@ class TestPluginUrl:
 
     def test_plugin_url_with_kwargs(self, rf, sample):
         """plugin_url should pass kwargs to reverse function."""
-        with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
+        with patch(
+            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
+        ) as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
 
-            template = Template("{% load plugin_tags %}{% plugin_url 'test-view' pk=123 %}")
+            template = Template(
+                "{% load plugin_tags %}{% plugin_url 'test-view' pk=123 %}"
+            )
             context = Context({"object": sample})
 
             result = template.render(context)
@@ -63,7 +71,9 @@ class TestPluginUrl:
 
     def test_plugin_url_prefers_non_polymorphic_object(self, rf, sample, dataset):
         """plugin_url should prefer non_polymorphic_object over object."""
-        with patch("fairdm.contrib.plugins.templatetags.plugin_tags.reverse") as mock_reverse:
+        with patch(
+            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
+        ) as mock_reverse:
             mock_reverse.return_value = "/sample/abc123/test-view/"
 
             template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")

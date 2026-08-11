@@ -28,7 +28,11 @@ class Command(BaseCommand):
         # Find all permissions in DB
         all_perms = Permission.objects.all()
 
-        stale_perms = [perm for perm in all_perms if (perm.content_type_id, perm.codename) not in expected_perms]
+        stale_perms = [
+            perm
+            for perm in all_perms
+            if (perm.content_type_id, perm.codename) not in expected_perms
+        ]
 
         if not stale_perms:
             self.stdout.write(self.style.SUCCESS("No stale permissions found."))
@@ -39,6 +43,10 @@ class Command(BaseCommand):
             self.stdout.write(f"  {perm.content_type.app_label}.{perm.codename}")
 
         # Delete them
-        deleted_count, _ = Permission.objects.filter(id__in=[p.id for p in stale_perms]).delete()
+        deleted_count, _ = Permission.objects.filter(
+            id__in=[p.id for p in stale_perms]
+        ).delete()
 
-        self.stdout.write(self.style.SUCCESS(f"Deleted {deleted_count} stale permissions."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Deleted {deleted_count} stale permissions.")
+        )

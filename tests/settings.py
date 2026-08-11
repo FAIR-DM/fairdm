@@ -166,9 +166,14 @@ ROOT_URLCONF = "fairdm.conf.urls"
 # Remove mvp.context_processors.page_config which doesn't exist in test environment
 
 for template_config in TEMPLATES:
-    if "OPTIONS" in template_config and "context_processors" in template_config["OPTIONS"]:
+    if (
+        "OPTIONS" in template_config
+        and "context_processors" in template_config["OPTIONS"]
+    ):
         template_config["OPTIONS"]["context_processors"] = [
-            cp for cp in template_config["OPTIONS"]["context_processors"] if "mvp.context_processors" not in cp
+            cp
+            for cp in template_config["OPTIONS"]["context_processors"]
+            if "mvp.context_processors" not in cp
         ]
 
 # ==============================================================================

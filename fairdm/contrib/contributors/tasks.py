@@ -38,7 +38,9 @@ def sync_contributor_identifier(identifier_pk: int) -> bool:
     from .models import ContributorIdentifier
 
     try:
-        identifier = ContributorIdentifier.objects.select_related("related").get(pk=identifier_pk)
+        identifier = ContributorIdentifier.objects.select_related("related").get(
+            pk=identifier_pk
+        )
     except ContributorIdentifier.DoesNotExist:
         logger.exception(f"ContributorIdentifier {identifier_pk} does not exist")
         return False
@@ -179,7 +181,10 @@ def refresh_all_contributors() -> int:
     stale_threshold = timezone.now().date() - timedelta(days=7)
     stale_identifiers = ContributorIdentifier.objects.filter(
         type__in=["ORCID", "ROR"],
-    ).filter(Q(related__last_synced__lt=stale_threshold) | Q(related__last_synced__isnull=True))
+    ).filter(
+        Q(related__last_synced__lt=stale_threshold)
+        | Q(related__last_synced__isnull=True)
+    )
 
     count = 0
     for identifier in stale_identifiers[:100]:  # Limit to 100 per run
@@ -216,7 +221,9 @@ def detect_duplicate_contributors() -> dict:
     duplicate_groups = {k: v for k, v in duplicates.items() if len(v) >= 2}
 
     total_duplicates = sum(len(v) for v in duplicate_groups.values())
-    logger.info(f"Found {len(duplicate_groups)} potential duplicate groups with {total_duplicates} total persons")
+    logger.info(
+        f"Found {len(duplicate_groups)} potential duplicate groups with {total_duplicates} total persons"
+    )
 
     return {
         "groups_found": len(duplicate_groups),

@@ -1,10 +1,10 @@
 # Goals
 
-FairDM's goals reflect our commitment to empowering research communities with modern, FAIR-compliant data portals. These goals are grounded in our [Constitutional Principles](../../.specify/memory/constitution.md), which guide all design and development decisions.
+FairDM's goals reflect our commitment to empowering research communities with modern, FAIR-compliant data portals. These goals are grounded in our [Constitutional Principles](../../memory/constitution.md), which guide all design and development decisions.
 
 1. **Empower highly-specialised research communities to declare their own domain-specific data structures and schemas, and to deploy their own research data portals.**
 
-   FairDM is designed to be flexible and extensible, allowing researchers to create portals that meet the specific needs of their research communities. This aligns with our [Domain-Driven, Declarative Modeling](../../.specify/memory/constitution.md#ii-domain-driven-declarative-modeling) principle, which emphasizes declarative configuration over custom code. By providing a set of pre-defined templates, design patterns, and components, FairDM enables researchers to quickly and easily create portals that are tailored to their specific requirements.
+   FairDM is designed to be flexible and extensible, allowing researchers to create portals that meet the specific needs of their research communities. This aligns with our [Domain-Driven, Declarative Modeling](../../memory/constitution.md#ii-domain-driven-declarative-modeling) principle, which emphasizes declarative configuration over custom code. By providing a set of pre-defined templates, design patterns, and components, FairDM enables researchers to quickly and easily create portals that are tailored to their specific requirements.
 
 2. **Simplify the process of declaring and distributing reusable data structures**
 
@@ -12,7 +12,7 @@ FairDM's goals reflect our commitment to empowering research communities with mo
 
 3. **Facilitate the deployment of research data portals**
 
-   FairDM provides a set of pre-defined templates, design patterns, and components that enable the rapid development and deployment of research data portals. Following our [Opinionated, Production-Grade Defaults](../../.specify/memory/constitution.md#iv-opinionated-production-grade-defaults) principle, the framework provides sensible conventions that work out of the box. By following a consistent design and development approach, FairDM ensures that all portals built using the framework are user-friendly, accessible, and interoperable. This standardization makes it easier for researchers and data users to navigate and interact with different portals, enhancing the overall user experience and promoting data sharing and collaboration.
+   FairDM provides a set of pre-defined templates, design patterns, and components that enable the rapid development and deployment of research data portals. Following our [Opinionated, Production-Grade Defaults](../../memory/constitution.md#iv-opinionated-production-grade-defaults) principle, the framework provides sensible conventions that work out of the box. By following a consistent design and development approach, FairDM ensures that all portals built using the framework are user-friendly, accessible, and interoperable. This standardization makes it easier for researchers and data users to navigate and interact with different portals, enhancing the overall user experience and promoting data sharing and collaboration.
 
 4. **Foster collaboration and networking within individual research communities**
 

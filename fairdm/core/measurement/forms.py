@@ -117,7 +117,9 @@ class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
         label=False,
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
+        widget=ImageClearableFileInput(
+            thumbnail_options={"size": (150, 100), "crop": True}
+        ),
     )
 
     class Meta:
@@ -140,7 +142,9 @@ class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
         help_text = {
             "name": _("A unique, descriptive name for this measurement."),
             "dataset": _("The dataset this measurement belongs to."),
-            "sample": _("The sample that was measured (can be from a different dataset)."),
+            "sample": _(
+                "The sample that was measured (can be from a different dataset)."
+            ),
             "tags": _("Keywords or tags for categorization."),
         }
 
@@ -155,7 +159,9 @@ class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
         # Prevent direct Measurement instantiation
         if not self.instance.pk and self._meta.model == Measurement:
             raise forms.ValidationError(
-                _("Cannot create base Measurement instances directly. Please use a specific measurement type subclass.")
+                _(
+                    "Cannot create base Measurement instances directly. Please use a specific measurement type subclass."
+                )
             )
 
         return cleaned_data

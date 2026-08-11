@@ -128,7 +128,9 @@ class TestFairDMRegistryProtocolCompliance:
         # Core methods
         assert hasattr(clean_registry, "register")
         assert hasattr(clean_registry, "get_for_model")
-        assert hasattr(clean_registry, "is_registered") or True  # Optional in current implementation
+        assert (
+            hasattr(clean_registry, "is_registered") or True
+        )  # Optional in current implementation
 
         # Method signatures (test by calling)
         config = ModelConfiguration(model=TestSample, fields=["test_field"])
@@ -184,7 +186,10 @@ class TestFairDMRegistryProtocolCompliance:
 
     def test_registry_error_handling(self, clean_registry):
         """Test that registry raises appropriate errors."""
-        from fairdm.registry.exceptions import ConfigurationError, DuplicateRegistrationError
+        from fairdm.registry.exceptions import (
+            ConfigurationError,
+            DuplicateRegistrationError,
+        )
 
         # Test duplicate registration
         config = ModelConfiguration(model=TestSample, fields=["test_field"])

@@ -25,8 +25,12 @@ def openapi_schema(schema_client):
     """Fetch the OpenAPI schema from /api/v1/schema/ and return the parsed dict."""
     import yaml
 
-    response = schema_client.get("/api/v1/schema/", HTTP_ACCEPT="application/vnd.oai.openapi")
-    assert response.status_code == 200, f"Schema endpoint returned {response.status_code}"
+    response = schema_client.get(
+        "/api/v1/schema/", HTTP_ACCEPT="application/vnd.oai.openapi"
+    )
+    assert response.status_code == 200, (
+        f"Schema endpoint returned {response.status_code}"
+    )
     # drf-spectacular returns YAML by default for application/vnd.oai.openapi
     content = response.content.decode("utf-8")
     schema = yaml.safe_load(content)
@@ -49,7 +53,11 @@ class TestSchemaComponentNaming:
         E.g. RockSample, SoilSample -- NOT RockSampleAPI, SoilSampleAPI.
         """
         components = openapi_schema.get("components", {}).get("schemas", {})
-        api_named = [name for name in components if name.endswith("API") and not name.startswith("Patched")]
+        api_named = [
+            name
+            for name in components
+            if name.endswith("API") and not name.startswith("Patched")
+        ]
         assert not api_named, (
             f"Found component names with 'API' postfix: {api_named}. "
             "Auto-generated serializers should be named '{ModelName}Serializer' "
@@ -62,15 +70,23 @@ class TestSchemaComponentNaming:
         E.g. XRFMeasurement, ExampleMeasurement -- NOT XRFMeasurementAPI.
         """
         components = openapi_schema.get("components", {}).get("schemas", {})
-        measurement_api = [name for name in components if name.endswith("API") and not name.startswith("Patched")]
-        assert not measurement_api, f"Measurement component names with 'API' postfix found: {measurement_api}"
+        measurement_api = [
+            name
+            for name in components
+            if name.endswith("API") and not name.startswith("Patched")
+        ]
+        assert not measurement_api, (
+            f"Measurement component names with 'API' postfix found: {measurement_api}"
+        )
 
     def test_core_model_schemas_have_clean_names(self, openapi_schema):
         """Core model schemas (Project, Dataset, Contributor) lack 'API' postfix."""
         components = openapi_schema.get("components", {}).get("schemas", {})
         for expected_clean in ("Project", "Dataset", "Contributor"):
             # Check the clean name IS present…
-            assert expected_clean in components or any(k.startswith(expected_clean) for k in components), (
+            assert expected_clean in components or any(
+                k.startswith(expected_clean) for k in components
+            ), (
                 f"Expected schema component '{expected_clean}' not found. Available: {list(components)[:20]}"
             )
             # …and the 'API'-postfixed variant is NOT present.
@@ -85,7 +101,11 @@ class TestSchemaComponentNaming:
         E.g. PatchedRockSample -- NOT PatchedRockSampleAPI.
         """
         components = openapi_schema.get("components", {}).get("schemas", {})
-        patched_api = [name for name in components if name.startswith("Patched") and name.endswith("API")]
+        patched_api = [
+            name
+            for name in components
+            if name.startswith("Patched") and name.endswith("API")
+        ]
         assert not patched_api, (
             f"Found Patched* component names with 'API' postfix: {patched_api}. "
             "Expected clean names like PatchedRockSample, PatchedProject."
@@ -103,7 +123,9 @@ class TestSchemaComponentNaming:
     def test_demo_rock_sample_schema_name(self, openapi_schema):
         """Demo RockSample schema component is 'RockSample', not 'RockSampleAPI'."""
         components = openapi_schema.get("components", {}).get("schemas", {})
-        assert "RockSampleAPI" not in components, "Schema component 'RockSampleAPI' found -- remove the 'API' postfix."
+        assert "RockSampleAPI" not in components, (
+            "Schema component 'RockSampleAPI' found -- remove the 'API' postfix."
+        )
 
     def test_demo_xrf_measurement_schema_name(self, openapi_schema):
         """Demo XRFMeasurement schema component is 'XRFMeasurement', not 'XRFMeasurementAPI'."""
@@ -145,7 +167,9 @@ class TestEndpointDescriptions:
     def test_no_internal_implementation_details_in_descriptions(self, openapi_schema):
         """No endpoint description should expose BaseViewSet internal details."""
         descriptions = self._collect_all_operation_descriptions(openapi_schema)
-        assert descriptions, "Expected at least some endpoint descriptions in the schema."
+        assert descriptions, (
+            "Expected at least some endpoint descriptions in the schema."
+        )
         for desc in descriptions:
             for internal_str in self.INTERNAL_STRINGS:
                 assert internal_str not in desc, (
@@ -155,8 +179,12 @@ class TestEndpointDescriptions:
     def test_core_project_endpoint_has_consumer_description(self, openapi_schema):
         """The /api/v1/projects/ endpoint has a consumer-facing description."""
         paths = openapi_schema.get("paths", {})
-        project_list_path = next((p for p in paths if p.endswith("/projects/") and "{" not in p), None)
-        assert project_list_path, f"Expected /projects/ path in schema. Paths: {list(paths)[:10]}"
+        project_list_path = next(
+            (p for p in paths if p.endswith("/projects/") and "{" not in p), None
+        )
+        assert project_list_path, (
+            f"Expected /projects/ path in schema. Paths: {list(paths)[:10]}"
+        )
         operations = paths[project_list_path]
         # GET list operation
         get_op = operations.get("get", {})
@@ -171,7 +199,9 @@ class TestEndpointDescriptions:
     def test_core_dataset_endpoint_has_consumer_description(self, openapi_schema):
         """The /api/v1/datasets/ endpoint has a consumer-facing description."""
         paths = openapi_schema.get("paths", {})
-        dataset_path = next((p for p in paths if p.endswith("/datasets/") and "{" not in p), None)
+        dataset_path = next(
+            (p for p in paths if p.endswith("/datasets/") and "{" not in p), None
+        )
         assert dataset_path, "Expected /datasets/ path in schema."
         get_op = paths[dataset_path].get("get", {})
         description = get_op.get("description", "")
@@ -190,13 +220,17 @@ class TestEndpointDescriptions:
         for model in registry.samples:
             config = registry.get_for_model(model)
             desc = getattr(config, "description", None) or (
-                getattr(config.metadata, "description", None) if config.metadata else None
+                getattr(config.metadata, "description", None)
+                if config.metadata
+                else None
             )
             if not desc:
                 continue
             # Find the API endpoint path for this model
             slug = model._meta.verbose_name_plural.lower().replace(" ", "-")
-            endpoint_path = next((p for p in paths if f"samples/{slug}/" in p and "{" not in p), None)
+            endpoint_path = next(
+                (p for p in paths if f"samples/{slug}/" in p and "{" not in p), None
+            )
             if endpoint_path is None:
                 continue
             get_op = paths[endpoint_path].get("get", {})
@@ -209,7 +243,9 @@ class TestEndpointDescriptions:
                 )
             # Found and verified at least one -- sufficient
             return
-        pytest.skip("No registered sample type with a config description found in the schema.")
+        pytest.skip(
+            "No registered sample type with a config description found in the schema."
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -273,7 +309,10 @@ class TestAPIDescriptionSettings:
         settings.FAIRDM_API_DESCRIPTION = "A custom portal for my research domain."
         from django.conf import settings as django_settings
 
-        assert django_settings.FAIRDM_API_DESCRIPTION == "A custom portal for my research domain."
+        assert (
+            django_settings.FAIRDM_API_DESCRIPTION
+            == "A custom portal for my research domain."
+        )
 
 
 @pytest.mark.django_db

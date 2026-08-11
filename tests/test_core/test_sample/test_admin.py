@@ -17,7 +17,13 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 
 from fairdm.core.sample.admin import SampleChildAdmin
-from fairdm.core.sample.models import Sample, SampleDate, SampleDescription, SampleIdentifier, SampleRelation
+from fairdm.core.sample.models import (
+    Sample,
+    SampleDate,
+    SampleDescription,
+    SampleIdentifier,
+    SampleRelation,
+)
 from fairdm.factories.core import DatasetFactory, SampleFactory
 
 User = get_user_model()
@@ -27,7 +33,10 @@ User = get_user_model()
 def admin_user(db):
     """Create a superuser for admin access."""
     user = User.objects.create_superuser(
-        email="admin@example.com", first_name="Admin", last_name="User", password="admin123"
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        password="admin123",
     )
     return user
 
@@ -58,7 +67,9 @@ class TestSampleAdminSearch:
         request = request_factory.get("/admin/sample/sample/", {"q": "Granite"})
         request.user = admin_user
 
-        queryset = sample_admin.get_search_results(request, Sample.objects.all(), "Granite")[0]
+        queryset = sample_admin.get_search_results(
+            request, Sample.objects.all(), "Granite"
+        )[0]
 
         assert sample1 in queryset
         assert sample2 not in queryset
@@ -71,7 +82,9 @@ class TestSampleAdminSearch:
         request = request_factory.get("/admin/sample/sample/", {"q": "SAMPLE-001"})
         request.user = admin_user
 
-        queryset = sample_admin.get_search_results(request, Sample.objects.all(), "SAMPLE-001")[0]
+        queryset = sample_admin.get_search_results(
+            request, Sample.objects.all(), "SAMPLE-001"
+        )[0]
 
         assert sample1 in queryset
 
@@ -82,18 +95,24 @@ class TestSampleAdminSearch:
         request = request_factory.get("/admin/sample/sample/", {"q": sample1.uuid})
         request.user = admin_user
 
-        queryset = sample_admin.get_search_results(request, Sample.objects.all(), sample1.uuid)[0]
+        queryset = sample_admin.get_search_results(
+            request, Sample.objects.all(), sample1.uuid
+        )[0]
 
         assert sample1 in queryset
 
-    def test_search_returns_empty_for_no_matches(self, sample_admin, admin_user, request_factory):
+    def test_search_returns_empty_for_no_matches(
+        self, sample_admin, admin_user, request_factory
+    ):
         """Test that admin search returns empty queryset when no matches found."""
         _sample1 = SampleFactory(name="Test Sample")
 
         request = request_factory.get("/admin/sample/sample/", {"q": "NonExistent"})
         request.user = admin_user
 
-        queryset = sample_admin.get_search_results(request, Sample.objects.all(), "NonExistent")[0]
+        queryset = sample_admin.get_search_results(
+            request, Sample.objects.all(), "NonExistent"
+        )[0]
 
         assert queryset.count() == 0
 
@@ -193,7 +212,9 @@ class TestSampleAdminInlines:
         sample = SampleFactory()
 
         # Create date via inline
-        date = SampleDate.objects.create(related=sample, type="Collected", value="2024-01-15")
+        date = SampleDate.objects.create(
+            related=sample, type="Collected", value="2024-01-15"
+        )
 
         assert date.related == sample
         assert sample.dates.count() == 1
@@ -203,7 +224,9 @@ class TestSampleAdminInlines:
         sample = SampleFactory()
 
         # Create identifier via inline
-        identifier = SampleIdentifier.objects.create(related=sample, type="DOI", value="10.1234/sample.123")
+        identifier = SampleIdentifier.objects.create(
+            related=sample, type="DOI", value="10.1234/sample.123"
+        )
 
         assert identifier.related == sample
         assert sample.identifiers.count() == 1
@@ -214,7 +237,9 @@ class TestSampleAdminInlines:
         child = SampleFactory(name="Child Sample")
 
         # Create relationship via inline
-        relation = SampleRelation.objects.create(source=child, target=parent, type="child_of")
+        relation = SampleRelation.objects.create(
+            source=child, target=parent, type="child_of"
+        )
 
         assert relation.source == child
         assert relation.target == parent

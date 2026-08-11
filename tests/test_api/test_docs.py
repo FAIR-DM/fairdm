@@ -62,7 +62,14 @@ class TestOpenAPISchema:
         """Schema endpoint should return YAML or JSON content."""
         response = api_client.get("/api/v1/schema/")
         content_type = response["Content-Type"]
-        assert any(ct in content_type for ct in ("application/vnd.oai.openapi", "application/json", "application/yaml"))
+        assert any(
+            ct in content_type
+            for ct in (
+                "application/vnd.oai.openapi",
+                "application/json",
+                "application/yaml",
+            )
+        )
 
     def test_schema_contains_openapi_key(self, api_client):
         """Schema document must contain the 'openapi' version field."""
@@ -87,8 +94,12 @@ class TestOpenAPISchema:
         assert "paths" in data
         paths = data["paths"]
         # Core model endpoints must appear
-        assert any("/projects/" in p for p in paths), f"No projects path in {list(paths)[:10]}"
-        assert any("/datasets/" in p for p in paths), f"No datasets path in {list(paths)[:10]}"
+        assert any("/projects/" in p for p in paths), (
+            f"No projects path in {list(paths)[:10]}"
+        )
+        assert any("/datasets/" in p for p in paths), (
+            f"No datasets path in {list(paths)[:10]}"
+        )
 
     def test_schema_contains_registered_sample_types(self, api_client):
         """Registry-generated sample endpoints must appear in the schema."""
@@ -97,7 +108,9 @@ class TestOpenAPISchema:
         paths = data.get("paths", {})
         # RockSample registered in demo app should produce /samples/rock-sample/
         sample_paths = [p for p in paths if "/samples/" in p and p.count("/") >= 4]
-        assert len(sample_paths) > 0, f"No typed sample paths in schema. Got: {list(paths)[:15]}"
+        assert len(sample_paths) > 0, (
+            f"No typed sample paths in schema. Got: {list(paths)[:15]}"
+        )
 
     def test_schema_accessible_without_auth(self, api_client):
         """Schema endpoint must be publicly accessible."""

@@ -163,7 +163,9 @@ class TestProjectViews:
         # Should redirect to login
         assert response.status_code == 302
 
-    def test_project_create_view_accessible_when_authenticated(self, authenticated_client):
+    def test_project_create_view_accessible_when_authenticated(
+        self, authenticated_client
+    ):
         """Test that authenticated users can access project create view."""
         response = authenticated_client.get(reverse("project-create"))
 

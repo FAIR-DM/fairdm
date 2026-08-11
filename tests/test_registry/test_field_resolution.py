@@ -256,9 +256,14 @@ class TestFieldResolutionAlgorithm:
         assert len(admin_class.list_display) <= 5  # AdminFactory limits to first 5
 
         # At least verify it's a valid field list (not empty, not just __str__)
-        if len(admin_class.list_display) == 1 and admin_class.list_display[0] == "__str__":
+        if (
+            len(admin_class.list_display) == 1
+            and admin_class.list_display[0] == "__str__"
+        ):
             # This only happens if get_default_fields() returned empty list
-            pytest.fail("Admin list_display should have actual fields, not just __str__")
+            pytest.fail(
+                "Admin list_display should have actual fields, not just __str__"
+            )
 
 
 class TestCustomClassOverride:
@@ -296,7 +301,9 @@ class TestCustomClassOverride:
             model=test_model,
             form_class=CustomForm,
             fields=["sample_description"],  # Parent fields - should be ignored
-            form_fields=["sample_description"],  # Component-specific - should be ignored
+            form_fields=[
+                "sample_description"
+            ],  # Component-specific - should be ignored
         )
 
         # get_form_class() should return custom class unchanged
@@ -323,7 +330,9 @@ class TestCustomClassOverride:
             model=test_model,
             table_class=CustomTable,
             fields=["sample_description"],  # Parent fields - should be ignored
-            table_fields=["sample_description"],  # Component-specific - should be ignored
+            table_fields=[
+                "sample_description"
+            ],  # Component-specific - should be ignored
         )
 
         # get_table_class() should return custom class unchanged

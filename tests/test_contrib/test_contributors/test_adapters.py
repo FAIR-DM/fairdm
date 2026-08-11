@@ -53,13 +53,17 @@ def claimed_person_with_orcid(db):
     """Already-claimed Person with an ORCID ContributorIdentifier."""
     from fairdm.factories import PersonFactory
 
-    person = PersonFactory(email="claimed_orcid@example.com", is_active=True, is_claimed=True)
+    person = PersonFactory(
+        email="claimed_orcid@example.com", is_active=True, is_claimed=True
+    )
     ContributorIdentifier.objects.create(related=person, value=ORCID_UID, type="ORCID")
     return person
 
 
 class TestPreSocialLoginORCID:
-    def test_unclaimed_person_gets_claimed_on_orcid_login(self, db, adapter, request_mock, unclaimed_person_with_orcid):
+    def test_unclaimed_person_gets_claimed_on_orcid_login(
+        self, db, adapter, request_mock, unclaimed_person_with_orcid
+    ):
         """When an unclaimed Person has a matching ORCID, pre_social_login claims them."""
         sl = _make_sociallogin(ORCID_UID, request_mock)
 
@@ -76,15 +80,21 @@ class TestPreSocialLoginORCID:
     ):
         """After ORCID claiming, still only one Person row exists in the DB."""
         sl = _make_sociallogin(ORCID_UID, request_mock)
-        count_before = Person.objects.filter(identifiers__value=ORCID_UID, identifiers__type="ORCID").count()
+        count_before = Person.objects.filter(
+            identifiers__value=ORCID_UID, identifiers__type="ORCID"
+        ).count()
 
         with contextlib.suppress(ImmediateHttpResponse):
             adapter.pre_social_login(request_mock, sl)
 
-        count_after = Person.objects.filter(identifiers__value=ORCID_UID, identifiers__type="ORCID").count()
+        count_after = Person.objects.filter(
+            identifiers__value=ORCID_UID, identifiers__type="ORCID"
+        ).count()
         assert count_after == count_before
 
-    def test_claimed_person_gets_account_connected(self, db, adapter, request_mock, claimed_person_with_orcid):
+    def test_claimed_person_gets_account_connected(
+        self, db, adapter, request_mock, claimed_person_with_orcid
+    ):
         """An already-claimed Person with ORCID simply gets the social account connected."""
         sl = _make_sociallogin(ORCID_UID, request_mock)
 
@@ -95,7 +105,9 @@ class TestPreSocialLoginORCID:
         assert sl.user == claimed_person_with_orcid
         sl.connect.assert_called_once()
 
-    def test_new_orcid_with_no_matching_person_falls_through(self, db, adapter, request_mock):
+    def test_new_orcid_with_no_matching_person_falls_through(
+        self, db, adapter, request_mock
+    ):
         """An ORCID not known to the system falls through to normal allauth signup."""
         sl = _make_sociallogin("0000-0009-9999-9999", request_mock)
 

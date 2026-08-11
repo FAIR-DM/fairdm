@@ -41,7 +41,9 @@ class KeywordsPlugin(Plugin, FairDMUpdateView):
         # Check if we have a base_model
         if self.base_model:
             # Model-specific plugin template (e.g., project/plugins/keywords.html)
-            templates.append(f"{self.base_model._meta.model_name}/plugins/keywords.html")
+            templates.append(
+                f"{self.base_model._meta.model_name}/plugins/keywords.html"
+            )
 
         # Framework-specific plugin template
         templates.append("fairdm/plugins/keywords.html")

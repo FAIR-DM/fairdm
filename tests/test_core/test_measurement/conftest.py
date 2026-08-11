@@ -7,7 +7,13 @@ Provides reusable fixtures for testing the Measurement model and related functio
 import pytest
 from django.contrib.auth import get_user_model
 
-from fairdm.factories import DatasetFactory, MeasurementFactory, PersonFactory, ProjectFactory, SampleFactory
+from fairdm.factories import (
+    DatasetFactory,
+    MeasurementFactory,
+    PersonFactory,
+    ProjectFactory,
+    SampleFactory,
+)
 from fairdm.registry import registry
 
 User = get_user_model()

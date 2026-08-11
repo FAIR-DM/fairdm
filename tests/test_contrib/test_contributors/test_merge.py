@@ -22,7 +22,9 @@ def keep_person(db):
     """The person that survives the merge."""
     from fairdm.factories import PersonFactory
 
-    return PersonFactory(first_name="Keep", last_name="Person", is_claimed=True, is_active=True)
+    return PersonFactory(
+        first_name="Keep", last_name="Person", is_claimed=True, is_active=True
+    )
 
 
 @pytest.fixture
@@ -83,7 +85,9 @@ class TestMergeContributions:
         merge_persons(keep_person, discard_person)
         assert Contribution.objects.filter(contributor=keep_person).exists()
 
-    def test_duplicate_contributions_not_duplicated(self, db, keep_person, discard_person):
+    def test_duplicate_contributions_not_duplicated(
+        self, db, keep_person, discard_person
+    ):
         """If both persons are contributors to same object, no duplicate is created."""
         from fairdm.contrib.contributors.models import Contribution
         from fairdm.contrib.contributors.services.merge import merge_persons
@@ -110,11 +114,17 @@ class TestMergeIdentifiers:
         from fairdm.contrib.contributors.models import ContributorIdentifier
         from fairdm.contrib.contributors.services.merge import merge_persons
 
-        ContributorIdentifier.objects.create(related=discard_person, type="ORCID", value="0000-0000-0000-0001")
+        ContributorIdentifier.objects.create(
+            related=discard_person, type="ORCID", value="0000-0000-0000-0001"
+        )
         merge_persons(keep_person, discard_person)
-        assert ContributorIdentifier.objects.filter(related=keep_person, type="ORCID").exists()
+        assert ContributorIdentifier.objects.filter(
+            related=keep_person, type="ORCID"
+        ).exists()
 
-    def test_duplicate_identifiers_not_duplicated(self, db, keep_person, discard_person):
+    def test_duplicate_identifiers_not_duplicated(
+        self, db, keep_person, discard_person
+    ):
         """Identifiers from discard are moved to keep; globally unique value constraint respected.
 
         AbstractIdentifier.value has unique=True globally, so exact value duplicates
@@ -125,10 +135,14 @@ class TestMergeIdentifiers:
         from fairdm.contrib.contributors.services.merge import merge_persons
 
         # Discard has an identifier that keep does NOT have — should be transferred
-        ContributorIdentifier.objects.create(related=discard_person, type="ORCID", value="0000-0000-0000-9999")
+        ContributorIdentifier.objects.create(
+            related=discard_person, type="ORCID", value="0000-0000-0000-9999"
+        )
         merge_persons(keep_person, discard_person)
         # Identifier should now belong to keep
-        assert ContributorIdentifier.objects.filter(related=keep_person, value="0000-0000-0000-9999").exists()
+        assert ContributorIdentifier.objects.filter(
+            related=keep_person, value="0000-0000-0000-9999"
+        ).exists()
 
 
 class TestMergeAffiliations:
@@ -153,7 +167,9 @@ class TestMergeGuards:
         with pytest.raises(ClaimingError):
             merge_persons(keep_person, keep_person)
 
-    def test_atomic_rollback_on_error(self, db, keep_person, discard_person, monkeypatch):
+    def test_atomic_rollback_on_error(
+        self, db, keep_person, discard_person, monkeypatch
+    ):
         """An unexpected error should roll back the entire merge."""
         from fairdm.contrib.contributors.models import Person
         from fairdm.contrib.contributors.services import merge as merge_module

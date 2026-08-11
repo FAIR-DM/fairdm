@@ -48,7 +48,9 @@ class TestDemoSampleDiscovery:
         catalog_names = {t["name"] for t in types}
 
         for model in registry.samples:
-            assert model.__name__ in catalog_names, f"Expected demo Sample '{model.__name__}' in discovery catalog"
+            assert model.__name__ in catalog_names, (
+                f"Expected demo Sample '{model.__name__}' in discovery catalog"
+            )
 
     def test_catalog_entries_have_required_keys(self, api_client):
         """Each catalog entry has name, endpoint, fields, and count keys."""
@@ -76,7 +78,9 @@ class TestDemoMeasurementDiscovery:
         catalog_names = {t["name"] for t in types}
 
         for model in registry.measurements:
-            assert model.__name__ in catalog_names, f"Expected demo Measurement '{model.__name__}' in discovery catalog"
+            assert model.__name__ in catalog_names, (
+                f"Expected demo Measurement '{model.__name__}' in discovery catalog"
+            )
 
 
 # ---------------------------------------------------------------------------

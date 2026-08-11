@@ -113,7 +113,10 @@ class TestProjectUpdateForm:
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Concept Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Concept Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
         form_data = {
             "name": project.name,
@@ -122,7 +125,9 @@ class TestProjectUpdateForm:
             "owner": owner.pk,
         }
         form = ProjectForm(data=form_data, instance=project)
-        assert form.is_valid(), f"Expected CONCEPT+PUBLIC to be valid, got errors: {form.errors}"
+        assert form.is_valid(), (
+            f"Expected CONCEPT+PUBLIC to be valid, got errors: {form.errors}"
+        )
         assert "visibility" not in form.errors
         assert "__all__" not in form.errors
 
@@ -140,7 +145,10 @@ class TestProjectUpdateForm:
 
         # Create an active project
         project = Project.objects.create(
-            name="Active Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PRIVATE, owner=owner
+            name="Active Project",
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         # Edit to make public (allowed for active projects)
@@ -182,11 +190,16 @@ class TestProjectDescriptionForm:
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Test Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         # Create first description of type "Abstract"
-        ProjectDescription.objects.create(related=project, type="Abstract", value="Existing abstract")
+        ProjectDescription.objects.create(
+            related=project, type="Abstract", value="Existing abstract"
+        )
 
         # Attempt to create second description with same type should fail
         form_data = {"type": "Abstract", "value": "Duplicate abstract"}
@@ -248,7 +261,10 @@ class TestProjectIdentifierForm:
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Test Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         # Test with valid ISNI identifier

@@ -35,14 +35,18 @@ class FixtureUploadView(View):
 
     def get(self, request):
         form = FixtureUploadForm()
-        return render(request, self.template_name, {"form": form, "title": "Upload Fixture File"})
+        return render(
+            request, self.template_name, {"form": form, "title": "Upload Fixture File"}
+        )
 
     def post(self, request):
         form = FixtureUploadForm(request.POST, request.FILES)
         if form.is_valid():
             fixture_file = request.FILES["fixture_file"]
             upload_ext = get_full_extension(fixture_file.name)
-            with tempfile.NamedTemporaryFile(delete=False, suffix=upload_ext) as tmp_file:
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=upload_ext
+            ) as tmp_file:
                 for chunk in fixture_file.chunks():
                     tmp_file.write(chunk)
                 tmp_file_path = tmp_file.name
@@ -56,4 +60,6 @@ class FixtureUploadView(View):
                 os.remove(tmp_file_path)
 
             return redirect("admin:index")
-        return render(request, self.template_name, {"form": form, "title": "Upload Fixture File"})
+        return render(
+            request, self.template_name, {"form": form, "title": "Upload Fixture File"}
+        )

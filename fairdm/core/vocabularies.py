@@ -14,7 +14,9 @@ class FairDMIdentifiers(VocabularyBuilder):
 
     RESEARCHER_ID = {
         "skos:prefLabel": _("ResearcherID"),
-        "skos:definition": _("An identifier assigned to researchers by Web of Science to track author publications."),
+        "skos:definition": _(
+            "An identifier assigned to researchers by Web of Science to track author publications."
+        ),
         "dcterms:source": "https://www.researcherid.com/",
     }
 
@@ -53,7 +55,9 @@ class FairDMIdentifiers(VocabularyBuilder):
 
     CROSSREF_FUNDER_ID = {
         "skos:prefLabel": _("Crossref Funder ID"),
-        "skos:definition": _("An identifier assigned by Crossref to uniquely identify funding organizations."),
+        "skos:definition": _(
+            "An identifier assigned by Crossref to uniquely identify funding organizations."
+        ),
         "dcterms:source": "https://www.crossref.org/fundingdata/",
     }
 
@@ -63,12 +67,16 @@ class FairDMIdentifiers(VocabularyBuilder):
         namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Identifiers"),
-            "skos:definition": _("Identifiers for the purpose of metadata archival of research projects."),
+            "skos:definition": _(
+                "Identifiers for the purpose of metadata archival of research projects."
+            ),
         }
         collections = {
             "Person": Collection(
                 prefLabel=_("Person Identifiers"),
-                definition=_("Persistent identifiers for individual researchers and scholars."),
+                definition=_(
+                    "Persistent identifiers for individual researchers and scholars."
+                ),
                 ordered=True,
                 members=[
                     "ORCID",
@@ -77,7 +85,9 @@ class FairDMIdentifiers(VocabularyBuilder):
             ),
             "Organization": Collection(
                 prefLabel=_("Organization Identifiers"),
-                definition=_("Persistent identifiers for research organizations and institutions."),
+                definition=_(
+                    "Persistent identifiers for research organizations and institutions."
+                ),
                 ordered=True,
                 members=[
                     "ROR",
@@ -136,7 +146,9 @@ class FairDMDescriptions(VocabularyBuilder):
 
     ExpectedOutput = Concept(
         prefLabel=_("Expected Output"),
-        definition=_("The expected research data outputs (i.e. the expected datasets to come from this project)."),
+        definition=_(
+            "The expected research data outputs (i.e. the expected datasets to come from this project)."
+        ),
     )
 
     Conclusions = Concept(
@@ -146,7 +158,9 @@ class FairDMDescriptions(VocabularyBuilder):
 
     Other = Concept(
         prefLabel=_("Other"),
-        definition=_("Any additional descriptive information that does not fit into the defined categories."),
+        definition=_(
+            "Any additional descriptive information that does not fit into the defined categories."
+        ),
     )
 
     SampleCollection = {
@@ -196,12 +210,16 @@ class FairDMDescriptions(VocabularyBuilder):
         namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Descriptions"),
-            "skos:definition": _("Description types for the purpose of metadata archival of research projects."),
+            "skos:definition": _(
+                "Description types for the purpose of metadata archival of research projects."
+            ),
         }
         collections = {
             "Project": Collection(
                 prefLabel=_("Project Descriptions"),
-                definition=_("Description types for the purpose of metadata archival of research projects."),
+                definition=_(
+                    "Description types for the purpose of metadata archival of research projects."
+                ),
                 ordered=True,
                 members=[
                     "Abstract",
@@ -216,7 +234,9 @@ class FairDMDescriptions(VocabularyBuilder):
             ),
             "Dataset": Collection(
                 prefLabel=_("Dataset Descriptions"),
-                definition=_("Description types for the purpose of metadata archival of research datasets."),
+                definition=_(
+                    "Description types for the purpose of metadata archival of research datasets."
+                ),
                 ordered=True,
                 members=[
                     "Abstract",
@@ -228,7 +248,9 @@ class FairDMDescriptions(VocabularyBuilder):
             ),
             "Sample": Collection(
                 prefLabel=_("Sample Descriptions"),
-                definition=_("Description types for the purpose of metadata archival of research samples."),
+                definition=_(
+                    "Description types for the purpose of metadata archival of research samples."
+                ),
                 ordered=True,
                 members=[
                     "SampleCollection",
@@ -240,7 +262,9 @@ class FairDMDescriptions(VocabularyBuilder):
             ),
             "Measurement": Collection(
                 prefLabel=_("Measurement Descriptions"),
-                definition=_("Description types for the purpose of metadata archival of research measurements."),
+                definition=_(
+                    "Description types for the purpose of metadata archival of research measurements."
+                ),
                 ordered=True,
                 members=[
                     "MeasurementConditions",
@@ -255,7 +279,9 @@ class FairDMDescriptions(VocabularyBuilder):
 class FairDMDates(VocabularyBuilder):
     Available = {
         "skos:prefLabel": _("Date Available"),
-        "skos:definition": _("The date on which the dataset becomes available to the public."),
+        "skos:definition": _(
+            "The date on which the dataset becomes available to the public."
+        ),
     }
 
     CollectionStart = {
@@ -282,7 +308,9 @@ class FairDMDates(VocabularyBuilder):
     # Dataset date types
     Submitted = {
         "skos:prefLabel": _("Submission Date"),
-        "skos:definition": _("The date on which the dataset was submitted for publication."),
+        "skos:definition": _(
+            "The date on which the dataset was submitted for publication."
+        ),
     }
 
     Published = {
@@ -292,7 +320,9 @@ class FairDMDates(VocabularyBuilder):
 
     Withdrawn = {
         "skos:prefLabel": _("Withdrawal Date"),
-        "skos:definition": _("The date on which the dataset was withdrawn from publication."),
+        "skos:definition": _(
+            "The date on which the dataset was withdrawn from publication."
+        ),
     }
 
     # Sample date types
@@ -339,7 +369,9 @@ class FairDMDates(VocabularyBuilder):
 
     TearDown = {
         "skos:prefLabel": _("Tear down date"),
-        "skos:definition": _("The date on which the measurement teardown was completed"),
+        "skos:definition": _(
+            "The date on which the measurement teardown was completed"
+        ),
     }
 
     class Meta:
@@ -348,12 +380,16 @@ class FairDMDates(VocabularyBuilder):
         namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Date Types"),
-            "skos:definition": _("Important dates regarding archival of metadata related to project management."),
+            "skos:definition": _(
+                "Important dates regarding archival of metadata related to project management."
+            ),
         }
         collections = {
             "Project": Collection(
                 prefLabel=_("Project Dates"),
-                definition=_("Important dates regarding archival of metadata related to project management."),
+                definition=_(
+                    "Important dates regarding archival of metadata related to project management."
+                ),
                 ordered=True,
                 members=[
                     "Start",
@@ -362,7 +398,9 @@ class FairDMDates(VocabularyBuilder):
             ),
             "Dataset": Collection(
                 prefLabel=_("Dataset Dates"),
-                definition=_("Important dates regarding archival of metadata related to dataset management."),
+                definition=_(
+                    "Important dates regarding archival of metadata related to dataset management."
+                ),
                 ordered=True,
                 members=[
                     "Available",
@@ -375,7 +413,9 @@ class FairDMDates(VocabularyBuilder):
             ),
             "Sample": Collection(
                 prefLabel=_("Sample Dates"),
-                definition=_("Important dates regarding archival of metadata related to sample management."),
+                definition=_(
+                    "Important dates regarding archival of metadata related to sample management."
+                ),
                 ordered=True,
                 members=[
                     "Created",
@@ -389,7 +429,9 @@ class FairDMDates(VocabularyBuilder):
             ),
             "Measurement": Collection(
                 prefLabel=_("Measurement Dates"),
-                definition=_("Important dates regarding archival of metadata related to measurement management."),
+                definition=_(
+                    "Important dates regarding archival of metadata related to measurement management."
+                ),
                 ordered=True,
                 members=[
                     "Setup",
@@ -402,17 +444,23 @@ class FairDMDates(VocabularyBuilder):
 class FairDMRoles(VocabularyBuilder):
     Creator = Concept(
         prefLabel=_("Creator"),
-        definition=_("The person or organization responsible for creating the resource."),
+        definition=_(
+            "The person or organization responsible for creating the resource."
+        ),
     )
 
     Contributor = Concept(
         prefLabel=_("Contributor"),
-        definition=_("A person or organization responsible for making contributions to the resource."),
+        definition=_(
+            "A person or organization responsible for making contributions to the resource."
+        ),
     )
 
     Publisher = Concept(
         prefLabel=_("Publisher"),
-        definition=_("The person or organization responsible for making the resource available."),
+        definition=_(
+            "The person or organization responsible for making the resource available."
+        ),
     )
 
     RightsHolder = Concept(
@@ -560,12 +608,16 @@ class FairDMRoles(VocabularyBuilder):
         namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("FairDM Roles"),
-            "skos:definition": _("Roles for the purpose of metadata archival of research projects."),
+            "skos:definition": _(
+                "Roles for the purpose of metadata archival of research projects."
+            ),
         }
         collections = {
             "Project": Collection(
                 prefLabel=_("Project Roles"),
-                definition=_("Roles for the purpose of metadata archival of research projects."),
+                definition=_(
+                    "Roles for the purpose of metadata archival of research projects."
+                ),
                 ordered=True,
                 members=[
                     "Creator",
@@ -578,7 +630,9 @@ class FairDMRoles(VocabularyBuilder):
             ),
             "Dataset": Collection(
                 prefLabel=_("Dataset Roles"),
-                definition=_("Roles for the purpose of metadata archival of research datasets."),
+                definition=_(
+                    "Roles for the purpose of metadata archival of research datasets."
+                ),
                 ordered=True,
                 members=[
                     "Creator",
@@ -601,7 +655,9 @@ class FairDMRoles(VocabularyBuilder):
             ),
             "Sample": Collection(
                 prefLabel=_("Sample Roles"),
-                definition=_("Roles for the purpose of metadata archival of research samples."),
+                definition=_(
+                    "Roles for the purpose of metadata archival of research samples."
+                ),
                 ordered=True,
                 members=[
                     "Collection",
@@ -613,7 +669,9 @@ class FairDMRoles(VocabularyBuilder):
             ),
             "Measurement": Collection(
                 prefLabel=_("Measurement Roles"),
-                definition=_("Roles for the purpose of metadata archival of research measurements."),
+                definition=_(
+                    "Roles for the purpose of metadata archival of research measurements."
+                ),
                 ordered=True,
                 members=[
                     "MeasurementPreparation",

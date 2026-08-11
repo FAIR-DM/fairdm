@@ -48,7 +48,9 @@ class TestPrivacyFirstDefault:
     by default, requiring explicit method call to access PRIVATE data.
     """
 
-    @pytest.mark.skip(reason="Privacy-first filtering not currently enabled - see Dataset.objects comment")
+    @pytest.mark.skip(
+        reason="Privacy-first filtering not currently enabled - see Dataset.objects comment"
+    )
     def test_default_manager_excludes_private_datasets(self):
         """Skipped - privacy-first filtering currently disabled in Dataset model."""
         pass
@@ -65,12 +67,16 @@ class TestPrivacyFirstDefault:
         assert result.count() == 1
         assert ds_public in result
 
-    @pytest.mark.skip(reason="INTERNAL visibility does not exist - only PUBLIC and PRIVATE")
+    @pytest.mark.skip(
+        reason="INTERNAL visibility does not exist - only PUBLIC and PRIVATE"
+    )
     def test_default_manager_includes_internal_datasets(self):
         """Skipped - INTERNAL visibility level does not exist."""
         pass
 
-    @pytest.mark.skip(reason="Privacy-first filtering not currently enabled - see Dataset.objects comment")
+    @pytest.mark.skip(
+        reason="Privacy-first filtering not currently enabled - see Dataset.objects comment"
+    )
     def test_filter_preserves_privacy_first_behavior(self):
         """Skipped - privacy-first filtering currently disabled in Dataset model."""
         pass
@@ -84,17 +90,23 @@ class TestExplicitPrivateAccess:
     PRIVATE ones, providing explicit opt-in for private data access.
     """
 
-    @pytest.mark.skip(reason="with_private() method depends on privacy-first filtering being enabled")
+    @pytest.mark.skip(
+        reason="with_private() method depends on privacy-first filtering being enabled"
+    )
     def test_with_private_includes_all_visibility_levels(self):
         """Skipped - with_private() only relevant when privacy-first is enabled."""
         pass
 
-    @pytest.mark.skip(reason="with_private() method depends on privacy-first filtering being enabled")
+    @pytest.mark.skip(
+        reason="with_private() method depends on privacy-first filtering being enabled"
+    )
     def test_with_private_on_filtered_queryset(self):
         """Skipped - with_private() only relevant when privacy-first is enabled."""
         pass
 
-    @pytest.mark.skip(reason="with_private() method depends on privacy-first filtering being enabled")
+    @pytest.mark.skip(
+        reason="with_private() method depends on privacy-first filtering being enabled"
+    )
     def test_with_private_returns_queryset_for_chaining(self):
         """Skipped - with_private() only relevant when privacy-first is enabled."""
         pass
@@ -158,7 +170,9 @@ class TestWithRelatedOptimization:
         DatasetFactory()
 
         # Act
-        result = Dataset.objects.with_related().filter(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
+        result = Dataset.objects.with_related().filter(
+            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
 
         # Assert
         assert isinstance(result, type(Dataset.objects.all()))
@@ -172,7 +186,9 @@ class TestWithContributorsOptimization:
     for cases where project data is not needed.
     """
 
-    def test_with_contributors_prefetches_contributors(self, django_assert_max_num_queries):
+    def test_with_contributors_prefetches_contributors(
+        self, django_assert_max_num_queries
+    ):
         """with_contributors() should prefetch contributors to prevent N+1 queries."""
         # Arrange
         datasets = DatasetFactory.create_batch(5)
@@ -224,7 +240,9 @@ class TestWithContributorsOptimization:
         DatasetFactory()
 
         # Act
-        result = Dataset.objects.with_contributors().filter(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
+        result = Dataset.objects.with_contributors().filter(
+            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
 
         # Assert
         assert isinstance(result, type(Dataset.objects.all()))
@@ -256,8 +274,12 @@ class TestMethodChaining:
         """Should be able to chain with_private() with filter()."""
         # Arrange
         project = ProjectFactory()
-        ds_match = DatasetFactory(project=project, visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
-        DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)  # Different project
+        ds_match = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PRIVATE
+        )
+        DatasetFactory(
+            visibility=Dataset.VISIBILITY_CHOICES.PRIVATE
+        )  # Different project
 
         # Act
         result = Dataset.objects.with_private().filter(project=project)
@@ -274,13 +296,17 @@ class TestMethodChaining:
         DatasetFactory()  # Different project
 
         # Act
-        result = Dataset.objects.filter(project=project).with_related().with_contributors()
+        result = (
+            Dataset.objects.filter(project=project).with_related().with_contributors()
+        )
 
         # Assert
         assert result.count() == 1
         assert ds_match in result
 
-    @pytest.mark.skip(reason="with_private() method depends on privacy-first filtering being enabled")
+    @pytest.mark.skip(
+        reason="with_private() method depends on privacy-first filtering being enabled"
+    )
     def test_chain_all_methods(self):
         """Skipped - with_private() only relevant when privacy-first is enabled."""
         pass
@@ -331,14 +357,20 @@ class TestPerformanceOptimization:
         # Assert - Optimized should use 80%+ fewer queries
         # Note: Actual reduction might be slightly less due to fixed baseline queries
         # The key metric is eliminating N+1 queries (should be ~3 optimized vs 12 naive)
-        reduction_percent = ((naive_query_count - optimized_query_count) / naive_query_count) * 100
+        reduction_percent = (
+            (naive_query_count - optimized_query_count) / naive_query_count
+        ) * 100
         assert reduction_percent >= 70, (
             f"Expected 70%+ query reduction, got {reduction_percent:.1f}% "
             f"(naive: {naive_query_count}, optimized: {optimized_query_count})"
         )
         # Also verify absolute numbers make sense
-        assert optimized_query_count <= 4, f"Expected ≤4 optimized queries, got {optimized_query_count}"
-        assert naive_query_count >= 10, f"Expected ≥10 naive queries, got {naive_query_count}"
+        assert optimized_query_count <= 4, (
+            f"Expected ≤4 optimized queries, got {optimized_query_count}"
+        )
+        assert naive_query_count >= 10, (
+            f"Expected ≥10 naive queries, got {naive_query_count}"
+        )
 
     def test_with_contributors_reduces_contributor_queries(self):
         """with_contributors() should eliminate N+1 queries for contributors."""
@@ -368,10 +400,16 @@ class TestPerformanceOptimization:
 
         # Assert - Optimized should use significantly fewer queries
         # Should be 2 queries (dataset + contributors) vs 11 queries (dataset + 10x contributors)
-        assert optimized_query_count <= 2, f"Expected ≤2 queries, got {optimized_query_count}"
-        assert naive_query_count >= 10, f"Expected ≥10 queries (naive), got {naive_query_count}"
+        assert optimized_query_count <= 2, (
+            f"Expected ≤2 queries, got {optimized_query_count}"
+        )
+        assert naive_query_count >= 10, (
+            f"Expected ≥10 queries (naive), got {naive_query_count}"
+        )
 
-    def test_chained_optimizations_compound_benefits(self, django_assert_max_num_queries):
+    def test_chained_optimizations_compound_benefits(
+        self, django_assert_max_num_queries
+    ):
         """Chaining multiple optimizations should provide compound benefits."""
         # Arrange
         datasets = []
@@ -388,7 +426,9 @@ class TestPerformanceOptimization:
             # 2. Projects
             # 3. Contributors
             # 4. Possible join table
-            result = list(Dataset.objects.with_private().with_related().with_contributors())
+            result = list(
+                Dataset.objects.with_private().with_related().with_contributors()
+            )
             for ds in result:
                 _ = ds.project.name if ds.project else None
                 _ = list(ds.contributors.all())

@@ -80,9 +80,13 @@ def discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[st
             try:
                 module_file_path = get_module_path(setup_module_path)
                 setup_modules.append(module_file_path)
-                logger.info(f"✓ Loaded addon setup module: {addon_name} → {setup_module_path}")
+                logger.info(
+                    f"✓ Loaded addon setup module: {addon_name} → {setup_module_path}"
+                )
             except (ModuleNotFoundError, ValueError) as e:
-                logger.error(f"❌ Could not locate setup module '{setup_module_path}' for addon '{addon_name}': {e}")
+                logger.error(
+                    f"❌ Could not locate setup module '{setup_module_path}' for addon '{addon_name}': {e}"
+                )
 
         except ImproperlyConfigured:
             # Re-raise configuration errors (production/staging fail-fast)
@@ -137,7 +141,9 @@ def load_addons(addons: list[str], env_profile: str) -> list[str]:
     Returns:
         list[str]: List of absolute paths to addon setup module files
     """
-    logger.info(f"Loading {len(addons)} addon(s): {', '.join(addons) if addons else '(none)'}")
+    logger.info(
+        f"Loading {len(addons)} addon(s): {', '.join(addons) if addons else '(none)'}"
+    )
 
     # Discover settings modules
     setup_modules = discover_addon_setup_modules(addons, env_profile)

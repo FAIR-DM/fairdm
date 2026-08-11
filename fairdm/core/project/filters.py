@@ -58,7 +58,9 @@ class ProjectFilter(BaseListFilter):
         # Dynamically set owner queryset to only organizations that own projects
         from fairdm.contrib.contributors.models import Organization
 
-        self.filters["owner"].queryset = Organization.objects.filter(owned_projects__isnull=False).distinct()
+        self.filters["owner"].queryset = Organization.objects.filter(
+            owned_projects__isnull=False
+        ).distinct()
 
         # Dynamically create keyword filters based on configuration
         from research_vocabs.models import Concept
@@ -77,10 +79,14 @@ class ProjectFilter(BaseListFilter):
                 # Create the filter using autocomplete field
                 self.filters[filter_name] = df.ModelMultipleChoiceFilter(
                     field_name="keywords",
-                    queryset=Concept.objects.filter(vocabulary__name=vocab_name, projects__isnull=False).distinct(),
+                    queryset=Concept.objects.filter(
+                        vocabulary__name=vocab_name, projects__isnull=False
+                    ).distinct(),
                     conjoined=False,  # OR logic: match ANY selected keyword
                     label=field_name,
-                    widget=ConceptMultiSelect(vocabulary=vocab_path, required=False).widget,
+                    widget=ConceptMultiSelect(
+                        vocabulary=vocab_path, required=False
+                    ).widget,
                 )
         else:
             # Create a generic keywords filter for all vocabularies
@@ -106,7 +112,10 @@ class ProjectFilter(BaseListFilter):
             vocabularies = get_setting("PROJECT", "keywords") or []
             if vocabularies:
                 # Add vocabulary filter names to Meta.fields
-                vocab_fields = [f"keywords_{import_string(vocab).__name__}" for vocab in vocabularies]
+                vocab_fields = [
+                    f"keywords_{import_string(vocab).__name__}"
+                    for vocab in vocabularies
+                ]
                 self._meta.fields = [*list(self._meta.fields), *vocab_fields]
             else:
                 # Add generic keywords field

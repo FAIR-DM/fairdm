@@ -240,7 +240,9 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # DJANGO_TABLES2_TEMPLATE = "collections/table.html"
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-mvp.html"
 # django-accounts-center: Avatar URL retrieval
-ACCOUNT_MANAGEMENT_GET_AVATAR_URL = "fairdm.contrib.contributors.utils.get_contributor_avatar"
+ACCOUNT_MANAGEMENT_GET_AVATAR_URL = (
+    "fairdm.contrib.contributors.utils.get_contributor_avatar"
+)
 
 # django-setup-tools: Deployment pipeline configuration
 DJANGO_SETUP_TOOLS = {

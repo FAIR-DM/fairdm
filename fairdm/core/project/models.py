@@ -94,7 +94,9 @@ class Project(BaseModel):
         null=True,
         blank=True,
     )
-    status = models.IntegerField(_("status"), choices=STATUS_CHOICES, default=STATUS_CHOICES.CONCEPT)
+    status = models.IntegerField(
+        _("status"), choices=STATUS_CHOICES, default=STATUS_CHOICES.CONCEPT
+    )
     contributors = GenericRelation("contributors.Contribution")
 
     # RELATIONS
@@ -143,10 +145,18 @@ class ProjectDescription(AbstractDescription):
             from django.core.exceptions import ValidationError
 
             existing = (
-                ProjectDescription.objects.filter(related=self.related, type=self.type).exclude(pk=self.pk).exists()
+                ProjectDescription.objects.filter(related=self.related, type=self.type)
+                .exclude(pk=self.pk)
+                .exists()
             )
             if existing:
-                raise ValidationError({"type": _("A description of this type already exists for this project.")})
+                raise ValidationError(
+                    {
+                        "type": _(
+                            "A description of this type already exists for this project."
+                        )
+                    }
+                )
 
 
 class ProjectDate(AbstractDate):
@@ -163,7 +173,9 @@ class ProjectDate(AbstractDate):
         if self.date and self.end_date and self.end_date < self.date:
             from django.core.exceptions import ValidationError
 
-            raise ValidationError({"end_date": _("End date cannot be before start date.")})
+            raise ValidationError(
+                {"end_date": _("End date cannot be before start date.")}
+            )
 
 
 class ProjectIdentifier(AbstractIdentifier):

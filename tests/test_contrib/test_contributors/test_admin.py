@@ -21,7 +21,9 @@ from fairdm.contrib.contributors.models import Affiliation
 class TestPersonAdminChangelist:
     """Verify Person admin changelist view loads correctly."""
 
-    def test_person_admin_changelist_loads(self, admin_client, person, unclaimed_person):
+    def test_person_admin_changelist_loads(
+        self, admin_client, person, unclaimed_person
+    ):
         """Person admin changelist loads with both claimed and unclaimed persons."""
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url)
@@ -65,7 +67,9 @@ class TestPersonAdminClaimFilter:
         # The filter title is wrapped in heading tags in Django admin
         assert "Claimed Status" in content
 
-    def test_person_admin_filter_claimed_only(self, admin_client, person, unclaimed_person):
+    def test_person_admin_filter_claimed_only(
+        self, admin_client, person, unclaimed_person
+    ):
         """Filtering for claimed persons shows only claimed accounts."""
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url, {"is_claimed": "claimed"})
@@ -78,7 +82,9 @@ class TestPersonAdminClaimFilter:
         # Unclaimed person should NOT appear
         assert unclaimed_person.name not in content or "0 persons" in content.lower()
 
-    def test_person_admin_filter_unclaimed_only(self, admin_client, person, unclaimed_person):
+    def test_person_admin_filter_unclaimed_only(
+        self, admin_client, person, unclaimed_person
+    ):
         """Filtering for unclaimed persons shows only unclaimed profiles."""
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url, {"is_claimed": "unclaimed"})
@@ -110,7 +116,9 @@ class TestPersonAdminInlineAffiliations:
         # Inline should be present (look for inline formset or affiliation fields)
         assert "affiliation" in content.lower() or "organization" in content.lower()
 
-    def test_person_admin_affiliation_inline_shows_existing(self, admin_client, person, affiliation):
+    def test_person_admin_affiliation_inline_shows_existing(
+        self, admin_client, person, affiliation
+    ):
         """Existing affiliations appear in inline formset."""
         url = reverse("admin:contributors_person_change", args=[person.pk])
         response = admin_client.get(url)
@@ -121,7 +129,9 @@ class TestPersonAdminInlineAffiliations:
         # Existing affiliation's organization should be visible
         assert affiliation.organization.name in content
 
-    def test_person_admin_can_add_affiliation_inline(self, admin_client, person, organization):
+    def test_person_admin_can_add_affiliation_inline(
+        self, admin_client, person, organization
+    ):
         """Can add a new affiliation via inline formset.
 
         Note: This test verifies the admin interface provides the ability to add
@@ -182,7 +192,9 @@ class TestOrganizationAdminChangelist:
 class TestOrganizationAdminInlineMembers:
     """Verify member inline management in Organization admin (US3b)."""
 
-    def test_organization_admin_members_inline_present(self, admin_client, organization):
+    def test_organization_admin_members_inline_present(
+        self, admin_client, organization
+    ):
         """Members inline form is present in Organization change view."""
         url = reverse("admin:contributors_organization_change", args=[organization.pk])
         response = admin_client.get(url)
@@ -193,7 +205,9 @@ class TestOrganizationAdminInlineMembers:
         # Inline should be present (look for inline formset or member/affiliation fields)
         assert "member" in content.lower() or "affiliation" in content.lower()
 
-    def test_organization_admin_members_inline_shows_existing(self, admin_client, organization, affiliation):
+    def test_organization_admin_members_inline_shows_existing(
+        self, admin_client, organization, affiliation
+    ):
         """Existing members appear in inline formset."""
         # affiliation fixture links a person to an organization
         url = reverse("admin:contributors_organization_change", args=[organization.pk])
@@ -205,7 +219,9 @@ class TestOrganizationAdminInlineMembers:
         # Existing member (person) should be visible via their affiliation
         assert affiliation.person.name in content or affiliation.person.email in content
 
-    def test_organization_admin_sub_organizations_inline_present(self, admin_client, organization):
+    def test_organization_admin_sub_organizations_inline_present(
+        self, admin_client, organization
+    ):
         """Sub-organizations inline is present for hierarchical organization structure."""
         url = reverse("admin:contributors_organization_change", args=[organization.pk])
         response = admin_client.get(url)
@@ -226,7 +242,9 @@ class TestOrganizationAdminInlineMembers:
 class TestOrganizationAdminRORSync:
     """Verify ROR sync admin action in Organization admin (US3b)."""
 
-    def test_organization_admin_ror_sync_action_present(self, admin_client, organization):
+    def test_organization_admin_ror_sync_action_present(
+        self, admin_client, organization
+    ):
         """ROR sync action appears in Organization admin actions."""
         url = reverse("admin:contributors_organization_changelist")
         response = admin_client.get(url)
@@ -238,10 +256,14 @@ class TestOrganizationAdminRORSync:
         # Django admin actions are in a <select> element
         assert "sync" in content.lower() and "ror" in content.lower()
 
-    def test_organization_admin_ror_sync_action_works(self, admin_client, organization, mocker):
+    def test_organization_admin_ror_sync_action_works(
+        self, admin_client, organization, mocker
+    ):
         """ROR sync action triggers sync_contributor_identifier task."""
         # Mock the Celery task to prevent actual API calls
-        mock_task = mocker.patch("fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay")
+        mock_task = mocker.patch(
+            "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+        )
 
         # Create a ROR identifier for the organization
         from fairdm.contrib.contributors.models import ContributorIdentifier

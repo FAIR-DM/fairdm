@@ -38,7 +38,9 @@ class TestSampleModel(models.Model):
 
     # Numeric fields
     count = models.IntegerField(default=0)
-    measurement = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    measurement = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )
 
     # File fields
     image = models.ImageField(upload_to="test/", blank=True)
@@ -49,7 +51,9 @@ class TestSampleModel(models.Model):
     contact_email = models.EmailField(blank=True)
 
     # Foreign key (to self for testing)
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
 
     # Internal/auto fields that should be excluded
     internal_id = models.CharField(max_length=50, editable=False)

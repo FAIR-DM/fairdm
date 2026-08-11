@@ -58,7 +58,9 @@ class BaseImportExportView(MessageMixin, FormView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_resource(self):
-        return self.resource_model.config.get_resource_class()(dataset=self.get_object())
+        return self.resource_model.config.get_resource_class()(
+            dataset=self.get_object()
+        )
 
     def get_resource_model(self):
         """
@@ -137,7 +139,9 @@ class DataImportView(BaseImportExportView):
             }
         ],
     }
-    menu_item = plugins.PluginMenuItem(name=_("Import Data"), category=plugins.ACTIONS, icon="import")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Import Data"), category=plugins.ACTIONS, icon="import"
+    )
     sections = {
         "components.form.default",
     }
@@ -206,7 +210,9 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
             }
         ],
     }
-    menu_item = plugins.PluginMenuItem(name=_("Publish Dataset"), category=plugins.ACTIONS, icon="export")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Publish Dataset"), category=plugins.ACTIONS, icon="export"
+    )
     sections = {
         "components.form.default",
     }
@@ -234,11 +240,17 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
 @method_decorator(require_POST, name="dispatch")
 @plugins.register
 class DataExportView(VirtualDownloadView, BaseImportExportView):
-    menu_item = plugins.PluginMenuItem(name=_("Export Data"), category=plugins.ACTIONS, icon="export")
+    menu_item = plugins.PluginMenuItem(
+        name=_("Export Data"), category=plugins.ACTIONS, icon="export"
+    )
     form_class = ExportForm
 
     def get_file(self):
-        qs = self.resource_model.objects.none() if self.request.POST.get("template") else self.get_resource_qs()
+        qs = (
+            self.resource_model.objects.none()
+            if self.request.POST.get("template")
+            else self.get_resource_qs()
+        )
 
         tablib_dataset = self.get_resource().export(queryset=qs)
         return ContentFile(
@@ -252,7 +264,9 @@ class DataExportView(VirtualDownloadView, BaseImportExportView):
         if form.is_valid():
             self.format = form.cleaned_data["format"]
             self.format_class = self.get_format()
-            return self.render_to_response(content_type=self.format_class.get_content_type())
+            return self.render_to_response(
+                content_type=self.format_class.get_content_type()
+            )
 
         raise ValueError(f"Unsupported export format {self.request.GET.get('format')}.")
 

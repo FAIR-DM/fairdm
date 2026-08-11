@@ -74,7 +74,9 @@ class FieldResolver:
         # Tier 3: Smart defaults
         from fairdm.config import ModelConfiguration
 
-        return list(ModelConfiguration.get_default_fields(self.model))  # Ensure it's a list[str]
+        return list(
+            ModelConfiguration.get_default_fields(self.model)
+        )  # Ensure it's a list[str]
 
     def filter_for_component(
         self,

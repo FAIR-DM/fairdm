@@ -184,8 +184,14 @@ class TestSampleViews:
         sample = SampleFactory()
         # Note: URL pattern may vary, adjust as needed
         try:
-            response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
-            assert response.status_code in [200, 302, 404]  # May vary based on permissions
+            response = client.get(
+                reverse("sample:overview", kwargs={"uuid": sample.uuid})
+            )
+            assert response.status_code in [
+                200,
+                302,
+                404,
+            ]  # May vary based on permissions
         except Exception:
             # URL may not be configured or may require different namespace
             pytest.skip("Sample detail URL not configured")
@@ -260,8 +266,12 @@ class TestSampleQuerySetWithMetadata:
     def test_with_metadata_prefetches_descriptions(self):
         """Test that with_metadata() prefetches SampleDescription objects."""
         sample = SampleFactory()
-        desc1 = SampleDescription.objects.create(related=sample, type="Abstract", value="Description 1")
-        desc2 = SampleDescription.objects.create(related=sample, type="Methods", value="Description 2")
+        desc1 = SampleDescription.objects.create(
+            related=sample, type="Abstract", value="Description 1"
+        )
+        desc2 = SampleDescription.objects.create(
+            related=sample, type="Methods", value="Description 2"
+        )
 
         result = Sample.objects.with_metadata().get(pk=sample.pk)
         descriptions = list(result.descriptions.all())
@@ -273,8 +283,12 @@ class TestSampleQuerySetWithMetadata:
     def test_with_metadata_prefetches_dates(self):
         """Test that with_metadata() prefetches SampleDate objects."""
         sample = SampleFactory()
-        date1 = SampleDate.objects.create(related=sample, type="Created", value="2024-01-01")
-        date2 = SampleDate.objects.create(related=sample, type="Published", value="2024-06-01")
+        date1 = SampleDate.objects.create(
+            related=sample, type="Created", value="2024-01-01"
+        )
+        date2 = SampleDate.objects.create(
+            related=sample, type="Published", value="2024-06-01"
+        )
 
         result = Sample.objects.with_metadata().get(pk=sample.pk)
         dates = list(result.dates.all())
@@ -336,7 +350,9 @@ class TestSampleQuerySetByRelationship:
         SampleRelation.objects.create(source=child1, target=parent, type="child_of")
         SampleRelation.objects.create(source=child2, target=parent, type="child_of")
 
-        results = Sample.objects.by_relationship(relationship_type="child_of").filter(name="Alpha")
+        results = Sample.objects.by_relationship(relationship_type="child_of").filter(
+            name="Alpha"
+        )
 
         assert results.count() == 1
         assert results.first().pk == child1.pk

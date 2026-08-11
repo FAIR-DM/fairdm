@@ -190,7 +190,9 @@ class TestModelMetadata:
 
     def test_model_metadata_with_all_fields(self):
         """Test creating metadata with all fields populated."""
-        authority = Authority(name="Test Authority", short_name="TA", website="https://example.com")
+        authority = Authority(
+            name="Test Authority", short_name="TA", website="https://example.com"
+        )
         citation = Citation(text="Test Citation", doi="10.1234/test")
 
         metadata = ModelMetadata(
@@ -225,7 +227,9 @@ class TestAuthority:
 
     def test_authority_complete(self):
         """Test creating authority with all fields."""
-        authority = Authority(name="Test Authority", short_name="TA", website="https://example.com")
+        authority = Authority(
+            name="Test Authority", short_name="TA", website="https://example.com"
+        )
 
         assert authority.name == "Test Authority"
         assert authority.short_name == "TA"

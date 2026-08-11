@@ -99,20 +99,20 @@ poetry run python .github/scripts/check-internal-links.py
 Link to constitutional principles using this exact pattern:
 
 ```markdown
-[Constitution: Principle Name](../../.specify/memory/constitution.md#anchor)
+[Constitution: Principle Name](../../memory/constitution.md#anchor)
 ```
 
 Or with shortened display text:
 
 ```markdown
-[Principle Name](../../.specify/memory/constitution.md#anchor)
+[Principle Name](../../memory/constitution.md#anchor)
 ```
 
 ### Components
 
 **Display Name**: Either "Constitution: Principle Name" or just "Principle Name"
 
-**Path**: Always `../../.specify/memory/constitution.md` from any file in `docs/`
+**Path**: Always `../../memory/constitution.md` from any file in `docs/`
 
 **Anchor**: Section identifier in kebab-case (lowercase with hyphens)
 
@@ -121,7 +121,7 @@ Or with shortened display text:
 **Basic constitution reference**:
 
 ```markdown
-FairDM follows the [FAIR-First](../../.specify/memory/constitution.md#i-fair-first-research-portals)
+FairDM follows the [FAIR-First](../../memory/constitution.md#i-fair-first-research-portals)
 principle, ensuring all portals promote Findable, Accessible, Interoperable, and
 Reusable research data.
 ```
@@ -129,8 +129,8 @@ Reusable research data.
 **Multiple principles**:
 
 ```markdown
-All contributions must align with our [Test-First Quality](../../.specify/memory/constitution.md#v-test-first-quality-sustainability)
-commitment and adhere to [Documentation Critical](../../.specify/memory/constitution.md#vi-documentation-critical)
+All contributions must align with our [Test-First Quality](../../memory/constitution.md#v-test-first-quality-sustainability)
+commitment and adhere to [Documentation Critical](../../memory/constitution.md#vi-documentation-critical)
 standards.
 ```
 
@@ -139,12 +139,12 @@ standards.
 ```markdown
 The FairDM framework is built on six constitutional principles:
 
-1. [FAIR-First Research Portals](../../.specify/memory/constitution.md#i-fair-first-research-portals)
-2. [Domain-Driven, Declarative Modeling](../../.specify/memory/constitution.md#ii-domain-driven-declarative-modeling)
-3. [Configuration Over Custom Plumbing](../../.specify/memory/constitution.md#iii-configuration-over-custom-plumbing)
-4. [Opinionated, Production-Grade Defaults](../../.specify/memory/constitution.md#iv-opinionated-production-grade-defaults)
-5. [Test-First Quality & Sustainability](../../.specify/memory/constitution.md#v-test-first-quality-sustainability)
-6. [Documentation Critical](../../.specify/memory/constitution.md#vi-documentation-critical)
+1. [FAIR-First Research Portals](../../memory/constitution.md#i-fair-first-research-portals)
+2. [Domain-Driven, Declarative Modeling](../../memory/constitution.md#ii-domain-driven-declarative-modeling)
+3. [Configuration Over Custom Plumbing](../../memory/constitution.md#iii-configuration-over-custom-plumbing)
+4. [Opinionated, Production-Grade Defaults](../../memory/constitution.md#iv-opinionated-production-grade-defaults)
+5. [Test-First Quality & Sustainability](../../memory/constitution.md#v-test-first-quality-sustainability)
+6. [Documentation Critical](../../memory/constitution.md#vi-documentation-critical)
 ```
 
 ### When to Use Constitution References
@@ -236,7 +236,7 @@ When adding documentation that references other materials, verify:
 
 ### For Constitution References
 
-- [ ] Path is exactly `../../.specify/memory/constitution.md`
+- [ ] Path is exactly `../../memory/constitution.md`
 - [ ] Anchor is in kebab-case (lowercase, hyphens only)
 - [ ] Anchor matches a heading in constitution.md
 - [ ] Reference explains **why** (principle), not just **what** (feature)
@@ -267,7 +267,7 @@ in [Spec: Sample API](../../specs/042-sample-api/spec.md).
 
 ## Creating a Custom Sample
 
-Follow the [Domain-Driven Modeling](../../.specify/memory/constitution.md#ii-domain-driven-declarative-modeling)
+Follow the [Domain-Driven Modeling](../../memory/constitution.md#ii-domain-driven-declarative-modeling)
 principle by defining your sample's domain attributes declaratively...
 ```
 
@@ -282,7 +282,7 @@ principle by defining your sample's domain attributes declaratively...
 ```markdown
 # Feature Development Workflow
 
-All feature development follows our [Test-First Quality](../../.specify/memory/constitution.md#v-test-first-quality-sustainability)
+All feature development follows our [Test-First Quality](../../memory/constitution.md#v-test-first-quality-sustainability)
 principle:
 
 1. Write specification in `specs/###-feature-name/spec.md`
@@ -327,7 +327,7 @@ the new plugin-based registry system defined in
 
 ## Why This Changed
 
-The old registry violated our [Configuration Over Custom Plumbing](../../.specify/memory/constitution.md#iii-configuration-over-custom-plumbing)
+The old registry violated our [Configuration Over Custom Plumbing](../../memory/constitution.md#iii-configuration-over-custom-plumbing)
 principle by requiring too much boilerplate code...
 
 ## Migration Steps

@@ -59,7 +59,9 @@ class TestAnonymousAccess:
 
     def test_post_returns_401(self):
         """Anonymous write must return 401 (not 403)."""
-        response = APIClient().post(reverse("api:project-list"), {"name": "X"}, format="json")
+        response = APIClient().post(
+            reverse("api:project-list"), {"name": "X"}, format="json"
+        )
         assert response.status_code == 401
 
     def test_patch_public_project_returns_401(self):
@@ -119,7 +121,9 @@ class TestAuthenticatedNoPermission:
     def test_create_project_succeeds(self):
         """Any authenticated user can create a project (permissions assigned on creation)."""
         client = make_token_client(UserFactory())
-        response = client.post(reverse("api:project-list"), {"name": "My New Project"}, format="json")
+        response = client.post(
+            reverse("api:project-list"), {"name": "My New Project"}, format="json"
+        )
         assert response.status_code == 201
 
 
@@ -168,7 +172,9 @@ class TestAuthenticatedWithPermission:
         user = UserFactory()
         client = make_token_client(user)
 
-        post_resp = client.post(reverse("api:project-list"), {"name": "Owner Project"}, format="json")
+        post_resp = client.post(
+            reverse("api:project-list"), {"name": "Owner Project"}, format="json"
+        )
         assert post_resp.status_code == 201
         uuid = post_resp.json()["uuid"]
         url = reverse("api:project-detail", kwargs={"uuid": uuid})

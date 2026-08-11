@@ -172,7 +172,9 @@ class ProjectFactory(DjangoModelFactory):
             return
 
         if not isinstance(extracted, int):
-            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+            raise TypeError(
+                f"descriptions must be an int, got {type(extracted).__name__}"
+            )
 
         # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = ProjectDescription.VOCABULARY.values
@@ -182,7 +184,9 @@ class ProjectFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid description types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(
@@ -220,7 +224,9 @@ class ProjectFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid date types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(
@@ -296,7 +302,9 @@ class DatasetFactory(DjangoModelFactory):
             return
 
         if not isinstance(extracted, int):
-            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+            raise TypeError(
+                f"descriptions must be an int, got {type(extracted).__name__}"
+            )
 
         # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = DatasetDescription.VOCABULARY.values
@@ -306,7 +314,9 @@ class DatasetFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid description types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(
@@ -334,7 +344,9 @@ class DatasetFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid date types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(
@@ -407,7 +419,9 @@ class SampleFactory(DjangoModelFactory):
             return
 
         if not isinstance(extracted, int):
-            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+            raise TypeError(
+                f"descriptions must be an int, got {type(extracted).__name__}"
+            )
 
         # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = SampleDescription.VOCABULARY.values
@@ -417,7 +431,9 @@ class SampleFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid description types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(
@@ -445,7 +461,9 @@ class SampleFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid date types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(
@@ -498,7 +516,9 @@ class MeasurementFactory(DjangoModelFactory):
     # Relations - both dataset and sample are required
     # Create dataset first, then create sample in that dataset
     dataset = SubFactory(DatasetFactory)
-    sample = SubFactory(SampleFactory, dataset=LazyAttribute(lambda o: o.factory_parent.dataset))
+    sample = SubFactory(
+        SampleFactory, dataset=LazyAttribute(lambda o: o.factory_parent.dataset)
+    )
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):
@@ -507,7 +527,9 @@ class MeasurementFactory(DjangoModelFactory):
             return
 
         if not isinstance(extracted, int):
-            raise TypeError(f"descriptions must be an int, got {type(extracted).__name__}")
+            raise TypeError(
+                f"descriptions must be an int, got {type(extracted).__name__}"
+            )
 
         # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = MeasurementDescription.VOCABULARY.values
@@ -517,7 +539,9 @@ class MeasurementFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid description types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid description types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(
@@ -545,7 +569,9 @@ class MeasurementFactory(DjangoModelFactory):
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
-                raise ValueError(f"Invalid date types: {invalid_types}. Valid types are: {valid_types}")
+                raise ValueError(
+                    f"Invalid date types: {invalid_types}. Valid types are: {valid_types}"
+                )
 
         if extracted > len(types):
             raise ValueError(

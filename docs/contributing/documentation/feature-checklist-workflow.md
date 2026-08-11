@@ -160,7 +160,7 @@ For implementation details, see the [Custom Sample Fields Specification](../../s
 If your feature aligns with constitution principles, reference them:
 
 ```markdown
-This feature implements the [FAIR-First principle](../../.specify/memory/constitution.md#i-fair-first-research-portals) by ensuring all custom fields have proper metadata.
+This feature implements the [FAIR-First principle](../../memory/constitution.md#i-fair-first-research-portals) by ensuring all custom fields have proper metadata.
 ```
 
 ```{important}
@@ -375,7 +375,7 @@ Consider running `/speckit.validate-docs` (if available) to automatically check 
 - [Information Architecture Guide](./information-architecture.md) — Where to put documentation
 - [Documentation Standards](./documentation-standards.md) — Writing style and formatting (coming soon)
 - [Documentation Validation](./validation.md) — Detailed validation guide (coming soon)
-- [Constitution: Documentation Principles](../../.specify/memory/constitution.md#documentation-principles) — Governance principles
+- [Constitution: Documentation Principles](../../memory/constitution.md#documentation-principles) — Governance principles
 
 ---
 

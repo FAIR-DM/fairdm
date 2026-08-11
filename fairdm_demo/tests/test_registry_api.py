@@ -47,7 +47,9 @@ class TestDemoRegistryIntrospection:
         ]
 
         for sample_model in expected_samples:
-            assert sample_model in samples, f"{sample_model.__name__} should be registered"
+            assert sample_model in samples, (
+                f"{sample_model.__name__} should be registered"
+            )
 
         # Demonstrate accessing configuration for each sample
         for sample_model in samples:
@@ -64,13 +66,17 @@ class TestDemoRegistryIntrospection:
         expected_measurements = [ExampleMeasurement]
 
         for measurement_model in expected_measurements:
-            assert measurement_model in measurements, f"{measurement_model.__name__} should be registered"
+            assert measurement_model in measurements, (
+                f"{measurement_model.__name__} should be registered"
+            )
 
         # Demonstrate accessing configuration for each measurement
         for measurement_model in measurements:
             config = registry.get_for_model(measurement_model)
             assert config is not None
-            print(f"Measurement: {measurement_model.__name__} - Fields: {config.fields}")
+            print(
+                f"Measurement: {measurement_model.__name__} - Fields: {config.fields}"
+            )
 
     def test_iterate_over_all_registered_models(self):
         """Demonstrate iterating over all registered models (samples + measurements)."""
@@ -146,7 +152,9 @@ class TestDemoRegistryIntrospection:
         # Add sample choices
         for sample_model in registry.samples:
             config = registry.get_for_model(sample_model)
-            model_choices.append((sample_model.__name__, config.display_name or sample_model.__name__))
+            model_choices.append(
+                (sample_model.__name__, config.display_name or sample_model.__name__)
+            )
 
         # Add measurement choices
         for measurement_model in registry.measurements:
@@ -199,7 +207,11 @@ class TestDemoRegistryIntrospection:
             config = registry.get_for_model(model_class)
 
             # Only access components we need
-            form = config.form_class if hasattr(config, "form_class") and config.form_class else config.form
+            form = (
+                config.form_class
+                if hasattr(config, "form_class") and config.form_class
+                else config.form
+            )
 
             assert form is not None
             print(f"{model_class.__name__} uses form: {form.__name__}")
@@ -217,7 +229,9 @@ class TestDemoRegistryAPIPatterns:
             if "location" in config.fields:
                 samples_with_location.append(sample_model)
 
-        print(f"Samples with location field: {[s.__name__ for s in samples_with_location]}")
+        print(
+            f"Samples with location field: {[s.__name__ for s in samples_with_location]}"
+        )
 
         # Filter by custom configuration
         samples_with_custom_forms = []
@@ -226,7 +240,9 @@ class TestDemoRegistryAPIPatterns:
             if hasattr(config, "form_class") and config.form_class:
                 samples_with_custom_forms.append(sample_model)
 
-        print(f"Samples with custom forms: {[s.__name__ for s in samples_with_custom_forms]}")
+        print(
+            f"Samples with custom forms: {[s.__name__ for s in samples_with_custom_forms]}"
+        )
 
     def test_registry_integration_with_django_admin(self):
         """Demonstrate how to integrate registry with Django admin dynamically."""

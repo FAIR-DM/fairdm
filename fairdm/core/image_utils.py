@@ -33,6 +33,8 @@ def validate_image_file_size(file):
     if file.size > MAX_IMAGE_UPLOAD_BYTES:
         actual_mb = file.size / (1024 * 1024)
         raise ValidationError(
-            _("The uploaded file is %(actual).1f MB. Please upload an image smaller than 5 MB."),
+            _(
+                "The uploaded file is %(actual).1f MB. Please upload an image smaller than 5 MB."
+            ),
             params={"actual": actual_mb},
         )

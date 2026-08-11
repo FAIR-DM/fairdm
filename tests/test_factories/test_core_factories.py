@@ -2,7 +2,11 @@ import pytest
 from django.test import TestCase
 
 from fairdm.core.dataset.models import Dataset, DatasetDate, DatasetDescription
-from fairdm.core.measurement.models import Measurement, MeasurementDate, MeasurementDescription
+from fairdm.core.measurement.models import (
+    Measurement,
+    MeasurementDate,
+    MeasurementDescription,
+)
 from fairdm.core.models import Project, Sample
 from fairdm.core.project.models import ProjectDate, ProjectDescription
 from fairdm.core.sample.models import SampleDate, SampleDescription
@@ -188,11 +192,15 @@ class TestCoreFactoriesBasic(TestCase):
 
         # Check each has the expected descriptions and dates
         for project in projects:
-            self.assertEqual(ProjectDescription.objects.filter(related=project).count(), 2)
+            self.assertEqual(
+                ProjectDescription.objects.filter(related=project).count(), 2
+            )
             self.assertEqual(ProjectDate.objects.filter(related=project).count(), 1)
 
         for dataset in datasets:
-            self.assertEqual(DatasetDescription.objects.filter(related=dataset).count(), 2)
+            self.assertEqual(
+                DatasetDescription.objects.filter(related=dataset).count(), 2
+            )
             self.assertEqual(DatasetDate.objects.filter(related=dataset).count(), 1)
 
     def test_sample_factory_specific_features(self):
@@ -284,14 +292,22 @@ class TestFactoryVocabularyValidation(TestCase):
     def test_factories_accept_valid_vocabulary_types(self):
         """Test factories accept all valid types from VOCABULARY."""
         # Test with valid types from vocabularies
-        project = ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Introduction"])
-        dataset = DatasetFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
+        project = ProjectFactory(
+            descriptions=2, descriptions__types=["Abstract", "Introduction"]
+        )
+        dataset = DatasetFactory(
+            descriptions=2, descriptions__types=["Abstract", "Methods"]
+        )
 
         self.assertEqual(ProjectDescription.objects.filter(related=project).count(), 2)
         self.assertEqual(DatasetDescription.objects.filter(related=dataset).count(), 2)
 
         # Verify the types were used
-        desc_types = list(ProjectDescription.objects.filter(related=project).values_list("type", flat=True))
+        desc_types = list(
+            ProjectDescription.objects.filter(related=project).values_list(
+                "type", flat=True
+            )
+        )
         self.assertIn("Abstract", desc_types)
         self.assertIn("Introduction", desc_types)
 

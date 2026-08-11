@@ -726,7 +726,7 @@ After completing this feature:
 - [pytest-django Documentation](https://pytest-django.readthedocs.io/)
 - [pytest-playwright Documentation](https://playwright.dev/python/docs/test-runners)
 - [DataCite Metadata Schema](https://schema.datacite.org/)
-- FairDM Constitution (`.specify/memory/constitution.md`)
+- FairDM Constitution (`memory/constitution.md`)
 - FairDM Testing Guide (`.github/instructions/testing.instructions.md`)
 
 ---

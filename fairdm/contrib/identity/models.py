@@ -95,7 +95,9 @@ class Authority(BrandAssets, SingletonModel, TranslatableModel):
 
     translations = TranslatedFields(
         name=models.CharField(_("Name"), max_length=255),
-        short_name=models.CharField(_("Short Name"), max_length=255, blank=True, null=True),
+        short_name=models.CharField(
+            _("Short Name"), max_length=255, blank=True, null=True
+        ),
         description=models.TextField(_("Description")),
     )
 
@@ -112,13 +114,17 @@ class Identity(BrandAssets, SingletonModel, TranslatableModel):
     keywords: models.ManyToManyField = models.ManyToManyField(
         "research_vocabs.Concept",
         verbose_name=_("Keywords"),
-        help_text=_("A set of keywords from controlled vocabularies describing the portal."),
+        help_text=_(
+            "A set of keywords from controlled vocabularies describing the portal."
+        ),
         blank=True,
     )
 
     translations = TranslatedFields(
         name=models.CharField(_("Name"), max_length=255),
-        short_name=models.CharField(_("Short Name"), max_length=255, blank=True, null=True),
+        short_name=models.CharField(
+            _("Short Name"), max_length=255, blank=True, null=True
+        ),
         description=models.TextField(_("Description")),
     )
 

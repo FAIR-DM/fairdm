@@ -67,7 +67,9 @@ def validate_claim_token(token_string: str) -> Person | None:
     except SignatureExpired as exc:
         raise ClaimingError("Claim token has expired.") from exc
     except BadSignature as exc:
-        raise ClaimingError("Claim token is invalid or has been tampered with.") from exc
+        raise ClaimingError(
+            "Claim token is invalid or has been tampered with."
+        ) from exc
 
     try:
         person = Person.objects.get(pk=pk_str)

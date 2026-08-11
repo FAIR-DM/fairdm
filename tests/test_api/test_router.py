@@ -75,7 +75,9 @@ class TestSampleDiscoveryEndpoint:
         returned_names = {entry["name"] for entry in data["types"]}
         # At minimum the demo models must appear
         for name in expected_names:
-            assert name in returned_names, f"Expected '{name}' in discovery catalog, got {returned_names}"
+            assert name in returned_names, (
+                f"Expected '{name}' in discovery catalog, got {returned_names}"
+            )
 
     def test_count_is_zero_when_no_records(self, api_client):
         """With no sample records, each type should report count=0."""
@@ -89,15 +91,21 @@ class TestSampleDiscoveryEndpoint:
 
         # Create one public and one private sample
         public_sample = CustomParentSampleFactory(dataset=public_dataset)
-        private_dataset_factory = __import__("fairdm.factories", fromlist=["DatasetFactory"]).DatasetFactory
+        private_dataset_factory = __import__(
+            "fairdm.factories", fromlist=["DatasetFactory"]
+        ).DatasetFactory
         from fairdm.factories import DatasetFactory
 
-        private_ds = DatasetFactory(project=public_dataset.project, visibility=Visibility.PRIVATE)
+        private_ds = DatasetFactory(
+            project=public_dataset.project, visibility=Visibility.PRIVATE
+        )
         private_sample = CustomParentSampleFactory(dataset=private_ds)
 
         data = api_client.get(reverse("api:api-sample-discovery")).json()
         # Find the CustomParentSample entry
-        entry = next((e for e in data["types"] if e["name"] == "CustomParentSample"), None)
+        entry = next(
+            (e for e in data["types"] if e["name"] == "CustomParentSample"), None
+        )
         assert entry is not None
         # Anonymous user should only count public samples (those in a PUBLIC dataset)
         assert entry["count"] == 1
@@ -189,30 +197,36 @@ class TestAPIRootContainsDiscoveryLinks:
         response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
         assert response.status_code == 200
         data = response.json()
-        assert "sample-types" in data, f"'sample-types' missing from API root keys: {list(data.keys())}"
+        assert "sample-types" in data, (
+            f"'sample-types' missing from API root keys: {list(data.keys())}"
+        )
 
     def test_api_root_contains_measurement_types_key(self, api_client):
         """API root JSON response must contain a 'measurement-types' key."""
         response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
         assert response.status_code == 200
         data = response.json()
-        assert "measurement-types" in data, f"'measurement-types' missing from API root keys: {list(data.keys())}"
+        assert "measurement-types" in data, (
+            f"'measurement-types' missing from API root keys: {list(data.keys())}"
+        )
 
     def test_sample_types_url_points_to_discovery_endpoint(self, api_client):
         """The 'sample-types' URL in the API root must end with '/api/v1/samples/'."""
         response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
         data = response.json()
         url = data.get("sample-types", "")
-        assert url.endswith("/api/v1/samples/") or "/api/v1/samples/" in url, f"Unexpected sample-types URL: {url!r}"
+        assert url.endswith("/api/v1/samples/") or "/api/v1/samples/" in url, (
+            f"Unexpected sample-types URL: {url!r}"
+        )
 
     def test_measurement_types_url_points_to_discovery_endpoint(self, api_client):
         """The 'measurement-types' URL in the API root must end with '/api/v1/measurements/'."""
         response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
         data = response.json()
         url = data.get("measurement-types", "")
-        assert url.endswith("/api/v1/measurements/") or "/api/v1/measurements/" in url, (
-            f"Unexpected measurement-types URL: {url!r}"
-        )
+        assert (
+            url.endswith("/api/v1/measurements/") or "/api/v1/measurements/" in url
+        ), f"Unexpected measurement-types URL: {url!r}"
 
     def test_fairdm_api_router_is_fairdm_router_subclass(self):
         """fairdm_api_router must be an instance of FairDMAPIRouter."""
@@ -241,13 +255,17 @@ class TestAPIURLNamespaceIsolation:
     def test_portal_project_list_resolves_to_portal_view(self):
         """reverse('project-list') must resolve to the portal HTML list view, not the API."""
         url = reverse("project-list")
-        assert "/api/v1/" not in url, f"'project-list' should resolve to the portal UI, not the API. Got: {url!r}"
+        assert "/api/v1/" not in url, (
+            f"'project-list' should resolve to the portal UI, not the API. Got: {url!r}"
+        )
         assert "/projects/" in url
 
     def test_portal_dataset_list_resolves_to_portal_view(self):
         """reverse('dataset-list') must resolve to the portal HTML list view, not the API."""
         url = reverse("dataset-list")
-        assert "/api/v1/" not in url, f"'dataset-list' should resolve to the portal UI, not the API. Got: {url!r}"
+        assert "/api/v1/" not in url, (
+            f"'dataset-list' should resolve to the portal UI, not the API. Got: {url!r}"
+        )
         assert "/datasets/" in url
 
     def test_api_project_list_resolves_to_api_endpoint(self):
@@ -264,10 +282,14 @@ class TestAPIURLNamespaceIsolation:
         """Portal and API project-list URLs must not be the same path."""
         portal_url = reverse("project-list")
         api_url = reverse("api:project-list")
-        assert portal_url != api_url, f"Portal and API project-list resolved to the same URL: {portal_url!r}"
+        assert portal_url != api_url, (
+            f"Portal and API project-list resolved to the same URL: {portal_url!r}"
+        )
 
     def test_portal_and_api_dataset_urls_are_different(self):
         """Portal and API dataset-list URLs must not be the same path."""
         portal_url = reverse("dataset-list")
         api_url = reverse("api:dataset-list")
-        assert portal_url != api_url, f"Portal and API dataset-list resolved to the same URL: {portal_url!r}"
+        assert portal_url != api_url, (
+            f"Portal and API dataset-list resolved to the same URL: {portal_url!r}"
+        )

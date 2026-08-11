@@ -34,7 +34,9 @@ class MyFormatter(PrettyFormatter):
         sort_func=None,
         **babel_kwds,
     ) -> str:
-        result = super().format_measurement(measurement, meas_spec, sort_func, **babel_kwds)
+        result = super().format_measurement(
+            measurement, meas_spec, sort_func, **babel_kwds
+        )
         result = result.replace("(", "").replace(")", "")
         return result
 
@@ -98,7 +100,9 @@ def get_fields(obj, fields):
 
 @register.simple_tag
 def edit_url(obj, fields=None):
-    url = reverse(f"{obj._meta.model_name}-update", kwargs={"uuid": obj.uuid})  # Adjust the URL name as needed
+    url = reverse(
+        f"{obj._meta.model_name}-update", kwargs={"uuid": obj.uuid}
+    )  # Adjust the URL name as needed
     if fields:
         return f"{url}?fields={','.join(fields)}"
     return url

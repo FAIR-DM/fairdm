@@ -37,7 +37,9 @@ class TestPluginPermissions:
 
         # Grant permission to one user
         content_type = ContentType.objects.get_for_model(Sample)
-        change_perm = Permission.objects.get(codename="change_sample", content_type=content_type)
+        change_perm = Permission.objects.get(
+            codename="change_sample", content_type=content_type
+        )
         user_with_perm.user_permissions.add(change_perm)
 
         # Check permission
@@ -56,7 +58,9 @@ class TestPluginPermissions:
             template_name = "plugins/overview.html"
 
         # Plugin should not have permission requirement
-        assert not hasattr(PublicPlugin, "permission") or PublicPlugin.permission is None
+        assert (
+            not hasattr(PublicPlugin, "permission") or PublicPlugin.permission is None
+        )
 
     def test_permission_shown_in_tab(self, sample, admin_user):
         """Tab should include permission information."""

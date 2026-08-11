@@ -19,7 +19,11 @@ class UserIdentifierFormSet(BaseInlineFormSet):
 
         # Get the instance being edited in this form (if any)
         current_instance = None
-        if self.queryset is not None and index is not None and index < len(self.queryset):
+        if (
+            self.queryset is not None
+            and index is not None
+            and index < len(self.queryset)
+        ):
             current_instance = self.queryset[index]
 
         # Collect types from all existing identifiers except the current one

@@ -56,10 +56,14 @@ class UserProfileForm(ModelForm):
             "profile": _("Biography"),
         }
         help_texts = {
-            "name": _("Your full name as it appears in formal research documents and citations."),
+            "name": _(
+                "Your full name as it appears in formal research documents and citations."
+            ),
             "first_name": _("Your given name."),
             "last_name": _("Your family name."),
-            "profile": _("A brief biography or professional summary. This will be publicly visible."),
+            "profile": _(
+                "A brief biography or professional summary. This will be publicly visible."
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -77,7 +81,9 @@ class MergePersonForm(forms.Form):
     merge_into = forms.ModelChoiceField(
         queryset=None,
         label=_("Merge into"),
-        help_text=_("Select the Person record that should survive the merge. The current record will be deleted."),
+        help_text=_(
+            "Select the Person record that should survive the merge. The current record will be deleted."
+        ),
     )
 
     def __init__(self, *args, exclude_pk=None, **kwargs):

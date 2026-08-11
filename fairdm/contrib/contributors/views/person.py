@@ -39,7 +39,9 @@ class PersonListView(FairDMListView):
         )
 
         # Step 4: Apply select_related and prefetch_related
-        qs = qs.prefetch_related(orcid_prefetch, orcid_accounts_prefetch, "affiliations")
+        qs = qs.prefetch_related(
+            orcid_prefetch, orcid_accounts_prefetch, "affiliations"
+        )
 
         return qs
 

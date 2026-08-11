@@ -112,10 +112,14 @@ class SampleTable(BaseTable):
     name = tables.Column(linkify=True)
     latitude = tables.Column(accessor="location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="location.y", verbose_name=_("Longitude"))
-    location = tables.Column(accessor="location", linkify=True, verbose_name=False, orderable=False)
+    location = tables.Column(
+        accessor="location", linkify=True, verbose_name=False, orderable=False
+    )
 
     class Meta:
-        attrs = {"class": "table table-striped table-hover overflow-auto align-middle mb-0"}
+        attrs = {
+            "class": "table table-striped table-hover overflow-auto align-middle mb-0"
+        }
 
 
 class MeasurementTable(BaseTable):
@@ -124,10 +128,14 @@ class MeasurementTable(BaseTable):
     sample = tables.Column(linkify=True)
     latitude = tables.Column(accessor="sample.location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="sample.location.y", verbose_name=_("Longitude"))
-    location = tables.Column(accessor="sample.location", linkify=True, verbose_name=False, orderable=False)
+    location = tables.Column(
+        accessor="sample.location", linkify=True, verbose_name=False, orderable=False
+    )
 
     class Meta:
-        attrs = {"class": "table table-striped table-hover overflow-auto align-middle mb-0"}
+        attrs = {
+            "class": "table table-striped table-hover overflow-auto align-middle mb-0"
+        }
 
     def __init__(self, data=None, *args, **kwargs):
         # modify the queryset (data) here if required

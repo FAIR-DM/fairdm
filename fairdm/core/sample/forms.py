@@ -61,7 +61,11 @@ class SampleFormMixin:
             )
 
             # Filter dataset queryset based on user permissions
-            if self.request and hasattr(self.request, "user") and self.request.user.is_authenticated:
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user.is_authenticated
+            ):
                 # Filter to datasets where user has add_sample permission
                 from guardian.shortcuts import get_objects_for_user
 
@@ -109,7 +113,9 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
         label=False,
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
+        widget=ImageClearableFileInput(
+            thumbnail_options={"size": (150, 100), "crop": True}
+        ),
     )
 
     class Meta:
@@ -141,7 +147,9 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
         help_text = {
             "name": _("A unique, descriptive name for this sample."),
             "dataset": _("The dataset this sample belongs to."),
-            "local_id": _("Optional local identifier used in your laboratory or collection."),
+            "local_id": _(
+                "Optional local identifier used in your laboratory or collection."
+            ),
             "status": _("Current status of the sample."),
             "location": _("Geographic location where the sample was collected."),
             "tags": _("Keywords or tags for categorization."),
@@ -159,7 +167,9 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
         # Prevent direct Sample instantiation
         if not self.instance.pk and self._meta.model == Sample:
             raise forms.ValidationError(
-                _("Cannot create base Sample instances directly. Please use a specific sample type subclass.")
+                _(
+                    "Cannot create base Sample instances directly. Please use a specific sample type subclass."
+                )
             )
 
         return cleaned_data

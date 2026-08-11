@@ -16,7 +16,11 @@ urlpatterns = [
         include(
             [
                 path("people/", PersonListView.as_view(), name="people-list"),
-                path("organizations/", OrganizationListView.as_view(), name="organization-list"),
+                path(
+                    "organizations/",
+                    OrganizationListView.as_view(),
+                    name="organization-list",
+                ),
             ]
         ),
     ),

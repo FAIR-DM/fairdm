@@ -36,7 +36,9 @@ class TestDatasetLiteratureRelationValidation:
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
-        relation = DatasetLiteratureRelation(dataset=dataset, literature_item=paper, relationship_type="InvalidType")
+        relation = DatasetLiteratureRelation(
+            dataset=dataset, literature_item=paper, relationship_type="InvalidType"
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             relation.full_clean()
@@ -49,7 +51,9 @@ class TestDatasetLiteratureRelationValidation:
         paper = LiteratureItemFactory()
 
         for type_code, _type_label in DATACITE_RELATIONSHIP_TYPES:
-            relation = DatasetLiteratureRelation(dataset=dataset, literature_item=paper, relationship_type=type_code)
+            relation = DatasetLiteratureRelation(
+                dataset=dataset, literature_item=paper, relationship_type=type_code
+            )
             relation.full_clean()  # Should not raise
 
     def test_dataset_required(self):
@@ -88,7 +92,9 @@ class TestUniqueTogetherConstraint:
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
-        DatasetLiteratureRelation.objects.create(dataset=dataset, literature_item=paper, relationship_type="IsCitedBy")
+        DatasetLiteratureRelation.objects.create(
+            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
+        )
 
         with pytest.raises(IntegrityError):
             DatasetLiteratureRelation.objects.create(
@@ -100,7 +106,9 @@ class TestUniqueTogetherConstraint:
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
-        DatasetLiteratureRelation.objects.create(dataset=dataset, literature_item=paper, relationship_type="IsCitedBy")
+        DatasetLiteratureRelation.objects.create(
+            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
+        )
         DatasetLiteratureRelation.objects.create(
             dataset=dataset, literature_item=paper, relationship_type="IsDocumentedBy"
         )
@@ -117,7 +125,9 @@ class TestCascadeBehavior:
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
-        DatasetLiteratureRelation.objects.create(dataset=dataset, literature_item=paper, relationship_type="IsCitedBy")
+        DatasetLiteratureRelation.objects.create(
+            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
+        )
 
         dataset.delete()
 
@@ -128,7 +138,9 @@ class TestCascadeBehavior:
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
-        DatasetLiteratureRelation.objects.create(dataset=dataset, literature_item=paper, relationship_type="IsCitedBy")
+        DatasetLiteratureRelation.objects.create(
+            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
+        )
 
         paper.delete()
 
@@ -145,12 +157,16 @@ class TestQueryingRelationships:
         paper1 = LiteratureItemFactory()
         paper2 = LiteratureItemFactory()
 
-        DatasetLiteratureRelation.objects.create(dataset=dataset, literature_item=paper1, relationship_type="IsCitedBy")
+        DatasetLiteratureRelation.objects.create(
+            dataset=dataset, literature_item=paper1, relationship_type="IsCitedBy"
+        )
         DatasetLiteratureRelation.objects.create(
             dataset=dataset, literature_item=paper2, relationship_type="IsDocumentedBy"
         )
 
-        citing = dataset.related_literature.filter(dataset_relations__relationship_type="IsCitedBy")
+        citing = dataset.related_literature.filter(
+            dataset_relations__relationship_type="IsCitedBy"
+        )
 
         assert citing.count() == 1
         assert paper1 in citing
@@ -160,6 +176,8 @@ class TestQueryingRelationships:
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
-        DatasetLiteratureRelation.objects.create(dataset=dataset, literature_item=paper, relationship_type="IsCitedBy")
+        DatasetLiteratureRelation.objects.create(
+            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
+        )
 
         assert paper in dataset.related_literature.all()

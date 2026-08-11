@@ -159,7 +159,9 @@ class TestAdminListFilterOptions:
         """
         # TODO: Replace with actual License model import during implementation
         # from fairdm.contrib.content_license.models import License
-        pytest.skip("License filtering test pending implementation - needs correct License model import")
+        pytest.skip(
+            "License filtering test pending implementation - needs correct License model import"
+        )
 
         # Create licenses
         # cc_by = License.objects.get_or_create(name="CC BY 4.0")[0]
@@ -185,7 +187,9 @@ class TestAdminListFilterOptions:
         DatasetFactory(name="Private Dataset", visibility=Visibility.PRIVATE.value)
 
         url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url, {"visibility__exact": str(Visibility.PUBLIC.value)})
+        response = admin_client.get(
+            url, {"visibility__exact": str(Visibility.PUBLIC.value)}
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
@@ -205,7 +209,9 @@ class TestInlineDescriptionEditing:
         assert response.status_code == 200
         content = response.content.decode()
         # Look for inline formset elements
-        assert "datasetdescription" in content.lower() or "description" in content.lower()
+        assert (
+            "datasetdescription" in content.lower() or "description" in content.lower()
+        )
 
     def test_can_add_description_via_inline(self, admin_client):
         """Test adding a description through inline form."""
@@ -245,7 +251,9 @@ class TestInlineDescriptionEditing:
                 # Extract error messages for debugging
                 import re
 
-                errors = re.findall(r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL)
+                errors = re.findall(
+                    r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL
+                )
                 for error in errors:
                     print(error)
 
@@ -254,7 +262,9 @@ class TestInlineDescriptionEditing:
 
         # Check that description was created
         descriptions = DatasetDescription.objects.filter(related=dataset)
-        assert descriptions.count() > 0, f"Expected descriptions to be created, but found {descriptions.count()}"
+        assert descriptions.count() > 0, (
+            f"Expected descriptions to be created, but found {descriptions.count()}"
+        )
 
     def test_can_edit_existing_description_via_inline(self, admin_client):
         """Test editing an existing description through inline form."""
@@ -351,7 +361,9 @@ class TestInlineDateEditing:
                 # Extract error messages for debugging
                 import re
 
-                errors = re.findall(r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL)
+                errors = re.findall(
+                    r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL
+                )
                 for error in errors:
                     print(error)
 
@@ -360,7 +372,9 @@ class TestInlineDateEditing:
 
         # Check that date was created
         dates = DatasetDate.objects.filter(related=dataset)
-        assert dates.count() > 0, f"Expected dates to be created, but found {dates.count()}"
+        assert dates.count() > 0, (
+            f"Expected dates to be created, but found {dates.count()}"
+        )
 
 
 @pytest.mark.django_db
@@ -482,7 +496,9 @@ class TestAutocompleteOnForeignKeys:
         content = response.content.decode()
         # Look for autocomplete widget indicators (data-autocomplete-light, select2, etc.)
         assert (
-            "autocomplete" in content.lower() or "select2" in content.lower() or "data-autocomplete" in content.lower()
+            "autocomplete" in content.lower()
+            or "select2" in content.lower()
+            or "data-autocomplete" in content.lower()
         )
 
     def test_license_field_has_autocomplete(self, admin_client):
@@ -498,7 +514,9 @@ class TestAutocompleteOnForeignKeys:
         assert "license" in content.lower()
         # Should have autocomplete capabilities
         assert (
-            "autocomplete" in content.lower() or "select2" in content.lower() or "data-autocomplete" in content.lower()
+            "autocomplete" in content.lower()
+            or "select2" in content.lower()
+            or "data-autocomplete" in content.lower()
         )
 
 
@@ -568,7 +586,9 @@ class TestLicenseChangeWarningWithDOI:
         """
         # TODO: Replace with actual License model import during implementation
         # from fairdm.contrib.content_license.models import License
-        pytest.skip("License change warning test pending implementation - needs correct License model import")
+        pytest.skip(
+            "License change warning test pending implementation - needs correct License model import"
+        )
 
         # Create new license
         # new_license = License.objects.get_or_create(name="CC BY-SA 4.0")[0]
@@ -611,7 +631,9 @@ class TestLicenseChangeWarningWithDOI:
         """
         # TODO: Replace with actual License model import during implementation
         # from fairdm.contrib.content_license.models import License
-        pytest.skip("License change warning test pending implementation - needs correct License model import")
+        pytest.skip(
+            "License change warning test pending implementation - needs correct License model import"
+        )
 
         # Create dataset without DOI
         # dataset_no_doi = DatasetFactory(name="Unpublished Dataset")

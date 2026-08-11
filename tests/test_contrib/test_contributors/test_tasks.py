@@ -124,7 +124,9 @@ class TestRORSyncTask:
         assert result is True
 
     @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_ror_sync_task_updates_organization_location(self, mock_get, organization, ror_identifier):
+    def test_ror_sync_task_updates_organization_location(
+        self, mock_get, organization, ror_identifier
+    ):
         """ROR sync updates organization city and country."""
         from fairdm.contrib.contributors.tasks import sync_contributor_identifier
 
@@ -156,7 +158,9 @@ class TestPeriodicRefresh:
     """Verify periodic refresh task."""
 
     @patch("fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay")
-    def test_refresh_all_contributors(self, mock_sync_task, orcid_identifier, ror_identifier):
+    def test_refresh_all_contributors(
+        self, mock_sync_task, orcid_identifier, ror_identifier
+    ):
         """Refresh all task queues sync for all identifiers."""
         from fairdm.contrib.contributors.tasks import refresh_all_contributors
 

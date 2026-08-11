@@ -75,7 +75,9 @@ class ClaimProfileView(TemplateView):
 
         # (d) Banned target
         if not person.is_active:
-            context["error_message"] = _("This profile is banned and cannot be claimed.")
+            context["error_message"] = _(
+                "This profile is banned and cannot be claimed."
+            )
             context["error"] = True
             context["token"] = token
             return self.render_to_response(context)

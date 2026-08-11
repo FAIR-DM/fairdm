@@ -35,7 +35,9 @@ class TestAssignOrganizationOwner:
         # Verify guardian permission was granted
         assert person.has_perm("manage_organization", organization)
 
-    def test_removing_owner_type_revokes_permission(self, organization, owner_affiliation):
+    def test_removing_owner_type_revokes_permission(
+        self, organization, owner_affiliation
+    ):
         """Changing affiliation type from OWNER revokes manage_organization permission."""
         person = owner_affiliation.person
 
@@ -89,7 +91,9 @@ class TestAssignOrganizationOwner:
 class TestOwnerCanEditOrganization:
     """Verify owner can edit organization details."""
 
-    def test_owner_can_edit_organization_name(self, client, organization, owner_affiliation):
+    def test_owner_can_edit_organization_name(
+        self, client, organization, owner_affiliation
+    ):
         """Owner can edit organization name via admin or view."""
         person = owner_affiliation.person
         client.force_login(person)
@@ -129,7 +133,9 @@ class TestOwnerCanEditOrganization:
         # Verify affiliation was created
         assert organization.affiliations.filter(person=new_member).exists()
 
-    def test_owner_can_manage_sub_organizations(self, client, organization, owner_affiliation):
+    def test_owner_can_manage_sub_organizations(
+        self, client, organization, owner_affiliation
+    ):
         """Owner can create sub-organizations."""
         person = owner_affiliation.person
         client.force_login(person)
@@ -182,7 +188,9 @@ class TestNonOwnerCannotEdit:
 class TestTransferOwnership:
     """Verify ownership transfer functionality."""
 
-    def test_transfer_ownership_via_affiliation_change(self, organization, owner_affiliation):
+    def test_transfer_ownership_via_affiliation_change(
+        self, organization, owner_affiliation
+    ):
         """Transferring ownership updates affiliation and permissions."""
         old_owner = owner_affiliation.person
 
@@ -217,7 +225,9 @@ class TestTransferOwnership:
         assert not old_owner_fresh.has_perm("manage_organization", organization)
         assert new_owner_fresh.has_perm("manage_organization", organization)
 
-    def test_transfer_ownership_preserves_history(self, organization, owner_affiliation):
+    def test_transfer_ownership_preserves_history(
+        self, organization, owner_affiliation
+    ):
         """Ownership transfer preserves affiliation history with dates."""
         old_owner = owner_affiliation.person
 

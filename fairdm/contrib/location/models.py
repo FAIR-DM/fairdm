@@ -75,4 +75,6 @@ class Point(models.Model):
 
     def get_absolute_url(self):
         """Returns the absolute URL for this site"""
-        return reverse("point-detail", kwargs={"lon": self.longitude, "lat": self.latitude})
+        return reverse(
+            "point-detail", kwargs={"lon": self.longitude, "lat": self.latitude}
+        )

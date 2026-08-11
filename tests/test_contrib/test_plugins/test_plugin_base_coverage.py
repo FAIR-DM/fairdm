@@ -134,7 +134,9 @@ class TestPluginHasPermission:
         # User with permission
         user_with_perm = UserFactory()
         content_type = ContentType.objects.get_for_model(Sample)
-        perm = Permission.objects.get(codename="change_sample", content_type=content_type)
+        perm = Permission.objects.get(
+            codename="change_sample", content_type=content_type
+        )
         user_with_perm.user_permissions.add(perm)
         request.user = user_with_perm
 
@@ -415,7 +417,9 @@ class TestPluginGetBreadcrumbs:
 
         assert len(breadcrumbs) > 0
         # First breadcrumb should be model name
-        assert Sample._meta.verbose_name_plural.lower() in breadcrumbs[0]["text"].lower()
+        assert (
+            Sample._meta.verbose_name_plural.lower() in breadcrumbs[0]["text"].lower()
+        )
 
     def test_get_breadcrumbs_includes_object_str(self, sample):
         """Breadcrumbs should include object string representation."""
@@ -454,7 +458,9 @@ class TestPluginGetBreadcrumbs:
         breadcrumbs = plugin.get_breadcrumbs()
 
         # Find object breadcrumb
-        obj_breadcrumb = next((b for b in breadcrumbs if "..." in b.get("text", "")), None)
+        obj_breadcrumb = next(
+            (b for b in breadcrumbs if "..." in b.get("text", "")), None
+        )
         if obj_breadcrumb:
             # Should be truncated to 50 chars
             assert len(obj_breadcrumb["text"]) <= 50

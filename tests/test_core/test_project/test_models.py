@@ -35,7 +35,10 @@ class TestProjectModel:
 
         # Create project with minimal required fields
         project = Project.objects.create(
-            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Test Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         # Verify project was created successfully
@@ -57,11 +60,17 @@ class TestProjectModel:
         owner = Organization.objects.create(name="Test Organization")
 
         project1 = Project.objects.create(
-            name="Project 1", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Project 1",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         project2 = Project.objects.create(
-            name="Project 2", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Project 2",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         # Verify UUIDs are unique
@@ -89,7 +98,10 @@ class TestProjectModel:
 
         for status in valid_statuses:
             project = Project.objects.create(
-                name=f"Project {status}", status=status, visibility=Visibility.PRIVATE, owner=owner
+                name=f"Project {status}",
+                status=status,
+                visibility=Visibility.PRIVATE,
+                owner=owner,
             )
             assert project.status == status
 
@@ -111,7 +123,10 @@ class TestProjectModel:
 
         for visibility in valid_visibilities:
             project = Project.objects.create(
-                name=f"Project {visibility}", status=ProjectStatus.CONCEPT, visibility=visibility, owner=owner
+                name=f"Project {visibility}",
+                status=ProjectStatus.CONCEPT,
+                visibility=visibility,
+                owner=owner,
             )
             assert project.visibility == visibility
 
@@ -128,7 +143,10 @@ class TestProjectModel:
         owner = Organization.objects.create(name="Test Organization")
 
         project = Project.objects.create(
-            name="Project with Public Dataset", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
+            name="Project with Public Dataset",
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+            owner=owner,
         )
 
         # Add a PUBLIC dataset to the project
@@ -157,7 +175,9 @@ class TestProjectPreDeleteSignal:
         from fairdm.factories import ProjectFactory
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        Dataset.objects.create(name="Public Dataset", project=project, visibility=Visibility.PUBLIC)
+        Dataset.objects.create(
+            name="Public Dataset", project=project, visibility=Visibility.PUBLIC
+        )
 
         with pytest.raises(PublicDatasetsProtect):
             project.delete()
@@ -171,7 +191,9 @@ class TestProjectPreDeleteSignal:
         from fairdm.factories import ProjectFactory
 
         project = ProjectFactory()
-        dataset = Dataset.objects.create(name="Private Dataset", project=project, visibility=Visibility.PRIVATE)
+        dataset = Dataset.objects.create(
+            name="Private Dataset", project=project, visibility=Visibility.PRIVATE
+        )
         pk = project.pk
 
         # Should not raise — private datasets do not block project deletion
@@ -208,14 +230,21 @@ class TestProjectDescriptionModel:
 
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Test Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         # Create first description
-        ProjectDescription.objects.create(related=project, type="Abstract", value="First abstract")
+        ProjectDescription.objects.create(
+            related=project, type="Abstract", value="First abstract"
+        )
 
         # Attempt to create duplicate type should fail at validation
-        desc2 = ProjectDescription(related=project, type="Abstract", value="Second abstract")
+        desc2 = ProjectDescription(
+            related=project, type="Abstract", value="Second abstract"
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             desc2.clean()
@@ -243,7 +272,10 @@ class TestProjectDateModel:
 
         owner = Organization.objects.create(name="Test Organization")
         Project.objects.create(
-            name="Test Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner
+            name="Test Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
         )
 
         # Skip this test until end_date field is added to ProjectDate model

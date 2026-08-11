@@ -96,7 +96,9 @@ def setup(
         # Base files (stack.env, stack.{profile}.env) respect existing env vars
         is_custom_file = env_path == env_file
         environ.Env.read_env(env_path, overwrite=is_custom_file)
-        logger.debug(f"Loaded environment file: {env_path} (overwrite={is_custom_file})")
+        logger.debug(
+            f"Loaded environment file: {env_path} (overwrite={is_custom_file})"
+        )
 
     # Inject essential variables into caller's namespace
     caller_globals.update(

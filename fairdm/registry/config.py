@@ -243,7 +243,9 @@ class ModelConfiguration:
                 should_use_class_value = False
 
                 if attr_name == "model":
-                    should_use_class_value = instance_value is None and class_value is not None
+                    should_use_class_value = (
+                        instance_value is None and class_value is not None
+                    )
                 elif attr_name in ("display_name", "description"):
                     should_use_class_value = not instance_value and class_value
                 elif attr_name in ("fields", "exclude"):
@@ -251,10 +253,14 @@ class ModelConfiguration:
                     # Use class value if it's not the default (empty list) and instance hasn't been modified
                     should_use_class_value = class_value and instance_value == []
                 elif attr_name == "metadata":
-                    should_use_class_value = instance_value is None and class_value is not None
+                    should_use_class_value = (
+                        instance_value is None and class_value is not None
+                    )
                 else:
                     # For component-specific fields and custom classes (all default to None)
-                    should_use_class_value = instance_value is None and class_value is not None
+                    should_use_class_value = (
+                        instance_value is None and class_value is not None
+                    )
 
                 if should_use_class_value:
                     object.__setattr__(self, attr_name, class_value)
@@ -320,7 +326,9 @@ class ModelConfiguration:
                     # Try to find similar field names for helpful error message
                     import difflib
 
-                    suggestions = difflib.get_close_matches(base_field, valid_fields, n=3, cutoff=0.6)
+                    suggestions = difflib.get_close_matches(
+                        base_field, valid_fields, n=3, cutoff=0.6
+                    )
 
                     error_msg = f"Invalid field: {field_name} in {field_list_name}"
                     if suggestions:
@@ -420,14 +428,19 @@ class ModelConfiguration:
             # Skip ManyToMany fields with custom through models (admin.E013)
             if isinstance(field_obj, models.ManyToManyField):
                 try:
-                    if hasattr(field_obj, "remote_field") and hasattr(field_obj.remote_field, "through"):
+                    if hasattr(field_obj, "remote_field") and hasattr(
+                        field_obj.remote_field, "through"
+                    ):
                         through = field_obj.remote_field.through
                         if through is not None:
                             # String reference means explicitly set (not auto-created)
                             if isinstance(through, str):
                                 continue
                             # Model class - check if auto_created
-                            if hasattr(through, "_meta") and not through._meta.auto_created:
+                            if (
+                                hasattr(through, "_meta")
+                                and not through._meta.auto_created
+                            ):
                                 continue
                 except (AttributeError, TypeError):
                     # If we can't determine, be safe and exclude it
@@ -494,7 +507,9 @@ class ModelConfiguration:
             return "Unknown Models"
         return str(self.model._meta.verbose_name_plural)
 
-    def _flatten_fields(self, field_list: list[str | tuple[str, ...]] | None) -> list[str]:
+    def _flatten_fields(
+        self, field_list: list[str | tuple[str, ...]] | None
+    ) -> list[str]:
         """Flatten a field list that may contain tuples for grouping.
 
         Args:
@@ -527,7 +542,9 @@ class ModelConfiguration:
         assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use (component-specific > parent > defaults)
-        resolved_fields = self.form_fields or self.fields or self.get_default_fields(self.model)
+        resolved_fields = (
+            self.form_fields or self.fields or self.get_default_fields(self.model)
+        )
         # Flatten any tuples in field list (used for UI grouping)
         resolved_fields = self._flatten_fields(resolved_fields)
 
@@ -547,7 +564,9 @@ class ModelConfiguration:
 
         assert self.model is not None  # noqa: S101 # Validated in __post_init__
         # Determine which fields to use
-        resolved_fields = self.table_fields or self.fields or self.get_default_fields(self.model)
+        resolved_fields = (
+            self.table_fields or self.fields or self.get_default_fields(self.model)
+        )
         # Flatten any tuples in field list
         resolved_fields = self._flatten_fields(resolved_fields)
 
@@ -568,7 +587,9 @@ class ModelConfiguration:
         assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
-        resolved_fields = self.filterset_fields or self.fields or self.get_default_fields(self.model)
+        resolved_fields = (
+            self.filterset_fields or self.fields or self.get_default_fields(self.model)
+        )
         # Flatten any tuples in field list
         resolved_fields = self._flatten_fields(resolved_fields)
 
@@ -590,7 +611,9 @@ class ModelConfiguration:
         assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
-        resolved_fields = self.serializer_fields or self.fields or self.get_default_fields(self.model)
+        resolved_fields = (
+            self.serializer_fields or self.fields or self.get_default_fields(self.model)
+        )
         # Flatten any tuples in field list
         resolved_fields = self._flatten_fields(resolved_fields)
 
@@ -612,7 +635,9 @@ class ModelConfiguration:
         assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
-        resolved_fields = self.resource_fields or self.fields or self.get_default_fields(self.model)
+        resolved_fields = (
+            self.resource_fields or self.fields or self.get_default_fields(self.model)
+        )
         # Flatten any tuples in field list
         resolved_fields = self._flatten_fields(resolved_fields)
 
@@ -633,7 +658,11 @@ class ModelConfiguration:
         assert self.model is not None  # noqa: S101 # Validated in __post_init__
 
         # Determine which fields to use
-        resolved_fields = self.admin_list_display or self.fields or self.get_default_fields(self.model)
+        resolved_fields = (
+            self.admin_list_display
+            or self.fields
+            or self.get_default_fields(self.model)
+        )
         # Flatten any tuples in field list
         resolved_fields = self._flatten_fields(resolved_fields)
 

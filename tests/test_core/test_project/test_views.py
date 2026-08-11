@@ -334,7 +334,9 @@ class TestProjectDeleteView:
     def test_project_delete_blocks_public_datasets(self, client):
         """T032 — POST correct name but project has PUBLIC dataset returns 200 with protected_datasets; not deleted."""
         project = ProjectFactory(name="Dataset Project")
-        Dataset.objects.create(name="Public Dataset", project=project, visibility=Visibility.PUBLIC)
+        Dataset.objects.create(
+            name="Public Dataset", project=project, visibility=Visibility.PUBLIC
+        )
         user = UserFactory()
         assign_perm("delete_project", user, project)
         client.force_login(user)
@@ -347,7 +349,9 @@ class TestProjectDeleteView:
     def test_project_delete_allows_private_only_datasets(self, client):
         """T032a — POST correct name + only PRIVATE datasets → project deleted, redirect to project-list."""
         project = ProjectFactory(name="Private Dataset Project")
-        Dataset.objects.create(name="Private Dataset", project=project, visibility=Visibility.PRIVATE)
+        Dataset.objects.create(
+            name="Private Dataset", project=project, visibility=Visibility.PRIVATE
+        )
         pk = project.pk
         user = UserFactory()
         assign_perm("delete_project", user, project)

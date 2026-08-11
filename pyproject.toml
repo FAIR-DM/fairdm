@@ -172,12 +172,9 @@ exclude = [
     "*/migrations/*.py",
     "staticfiles/*",
     "docs/",
-    # Vendored agent tooling and spec-kit scripts: owned upstream, linted there.
-    ".github/skills/",
-    ".github/scripts/",
-    ".specify/scripts/",
 ]
-line-length = 120
+# line-length is deliberately unset: Ruff's default is 88, which is the
+# organisation standard. Do not restate it.
 fix = true
 
 [tool.ruff.lint]

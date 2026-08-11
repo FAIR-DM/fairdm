@@ -82,7 +82,9 @@ try:
             basename=f"samples-{_slug}",
         )
 except Exception as _e:
-    _logger.warning("FairDM API: failed to register sample viewsets: %s", _e, exc_info=True)
+    _logger.warning(
+        "FairDM API: failed to register sample viewsets: %s", _e, exc_info=True
+    )
 
 # ── 3. Registry-registered Measurement types ───────────────────────────────
 try:
@@ -98,4 +100,6 @@ try:
             basename=f"measurements-{_slug}",
         )
 except Exception as _e:
-    _logger.warning("FairDM API: failed to register measurement viewsets: %s", _e, exc_info=True)
+    _logger.warning(
+        "FairDM API: failed to register measurement viewsets: %s", _e, exc_info=True
+    )

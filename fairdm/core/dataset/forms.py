@@ -80,7 +80,9 @@ class DatasetForm(ModelForm):
         label=_("Cover Image"),
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
+        widget=ImageClearableFileInput(
+            thumbnail_options={"size": (150, 100), "crop": True}
+        ),
     )
 
     name = forms.CharField(
@@ -181,7 +183,11 @@ class DatasetForm(ModelForm):
         project_field = self.fields.get("project")
         if project_field and self.request:
             # Only filter if request is provided
-            if hasattr(self.request, "user") and self.request.user is not None and self.request.user.is_authenticated:
+            if (
+                hasattr(self.request, "user")
+                and self.request.user is not None
+                and self.request.user.is_authenticated
+            ):
                 # Show only user's accessible projects
                 project_field.queryset = self.request.user.projects.all()
             else:
@@ -209,11 +215,15 @@ class DatasetForm(ModelForm):
                     del self.fields["reference"]
                     # Update Meta.fields to exclude reference
                     if hasattr(self.Meta, "fields") and "reference" in self.Meta.fields:
-                        self.Meta.fields = [f for f in self.Meta.fields if f != "reference"]
+                        self.Meta.fields = [
+                            f for f in self.Meta.fields if f != "reference"
+                        ]
 
         # Pre-populate DOI field if editing existing dataset with DOI
         if self.instance and self.instance.pk:
-            doi_identifier = DatasetIdentifier.objects.filter(related=self.instance, type="DOI").first()
+            doi_identifier = DatasetIdentifier.objects.filter(
+                related=self.instance, type="DOI"
+            ).first()
             if doi_identifier:
                 self.fields["doi"].initial = doi_identifier.value
 

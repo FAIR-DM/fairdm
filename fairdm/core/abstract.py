@@ -74,7 +74,9 @@ class BaseModel(models.Model):
         return reverse(f"{self._meta.model_name}-detail", kwargs={"uuid": self.uuid})
 
     def get_api_url(self):
-        return reverse(f"api:{self._meta.model_name}-detail", kwargs={"uuid": self.uuid})
+        return reverse(
+            f"api:{self._meta.model_name}-detail", kwargs={"uuid": self.uuid}
+        )
 
     def add_contributor(self, contributor, with_roles=None):
         """Adds a new contributor the object with the specified roles."""
@@ -101,9 +103,9 @@ class BaseModel(models.Model):
         from fairdm.contrib.contributors.models import Organization, Person
 
         return Organization.objects.filter(
-            pk__in=self.contributors.filter(contributor__in=Person.objects.all()).values_list(
-                "affiliation_id", flat=True
-            )
+            pk__in=self.contributors.filter(
+                contributor__in=Person.objects.all()
+            ).values_list("affiliation_id", flat=True)
         ).distinct()
 
     def get_all_contributors(self):
@@ -111,7 +113,9 @@ class BaseModel(models.Model):
         from fairdm.contrib.contributors.models import Contributor
 
         direct = self.contributors.values_list("contributor_id", flat=True)
-        affiliated = self.contributors.exclude(affiliation__isnull=True).values_list("affiliation_id", flat=True)
+        affiliated = self.contributors.exclude(affiliation__isnull=True).values_list(
+            "affiliation_id", flat=True
+        )
 
         all_ids = set(direct) | set(affiliated)
         return Contributor.objects.filter(pk__in=all_ids).distinct()
@@ -263,7 +267,9 @@ class GenericModel(Model):
         return super().__init_subclass__()
 
     def __str__(self):
-        return f"{self.type}: {self.value}"  # Display the type and a preview of the text
+        return (
+            f"{self.type}: {self.value}"  # Display the type and a preview of the text
+        )
 
     def __repr__(self):
         return f"<{self}>"
@@ -318,7 +324,9 @@ class AbstractDate(GenericModel):
 
 class AbstractIdentifier(GenericModel):
     type = models.CharField(max_length=50)
-    value = models.CharField(_("identifier"), max_length=255, db_index=True, unique=True)
+    value = models.CharField(
+        _("identifier"), max_length=255, db_index=True, unique=True
+    )
 
     class Meta:
         abstract = True
@@ -338,7 +346,11 @@ class AbstractIdentifier(GenericModel):
         return IdentifierLookup.get(self.type)
 
     def get_absolute_url(self):
-        value = func() if (func := getattr(self, f"slugify_{self.type.lower()}", None)) else self.value
+        value = (
+            func()
+            if (func := getattr(self, f"slugify_{self.type.lower()}", None))
+            else self.value
+        )
         return f"{self.get_root_url()}{value}"
 
     def slugify_isni(self):

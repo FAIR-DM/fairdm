@@ -140,7 +140,9 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         # Set status queryset (all Concepts from SampleStatus vocabulary)
         from fairdm.core.choices import SampleStatus
 
-        self.filters["status"].queryset = Concept.objects.filter(vocabulary__name=SampleStatus._meta.name)
+        self.filters["status"].queryset = Concept.objects.filter(
+            vocabulary__name=SampleStatus._meta.name
+        )
 
     def filter_search(self, queryset, name, value):
         """Filter by generic search across name, local_id, and uuid fields.
@@ -156,7 +158,11 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         if not value:
             return queryset
 
-        return queryset.filter(Q(name__icontains=value) | Q(local_id__icontains=value) | Q(uuid__icontains=value))
+        return queryset.filter(
+            Q(name__icontains=value)
+            | Q(local_id__icontains=value)
+            | Q(uuid__icontains=value)
+        )
 
     class Meta(SampleFilterMixin.Meta):
         """Meta configuration for SampleFilter."""

@@ -305,7 +305,9 @@ class XRFMeasurementFilterExample(SampleFilter):
         if not value:
             return queryset
 
-        return queryset.filter(Q(name__icontains=value) | Q(uuid__icontains=value)).distinct()
+        return queryset.filter(
+            Q(name__icontains=value) | Q(uuid__icontains=value)
+        ).distinct()
 
 
 # ============================================================================
@@ -382,7 +384,9 @@ class DatasetFilterExample(SampleFilter):
         if not value:
             return queryset
 
-        return queryset.filter(Q(name__icontains=value) | Q(uuid__icontains=value)).distinct()
+        return queryset.filter(
+            Q(name__icontains=value) | Q(uuid__icontains=value)
+        ).distinct()
 
 
 # ============================================================================

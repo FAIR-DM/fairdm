@@ -23,7 +23,9 @@ class OrganizationCreateForm(ModelForm):
     from_ror = forms.CharField(
         label=_("ROR ID"),
         required=False,
-        help_text=_("Search the Research Organization Registry. Type at least 3 characters."),
+        help_text=_(
+            "Search the Research Organization Registry. Type at least 3 characters."
+        ),
         widget=RORWidget(
             attrs={
                 "data-placeholder": _("Search for an organization..."),
@@ -44,7 +46,9 @@ class OrganizationCreateForm(ModelForm):
             "country": _("Country"),
         }
         help_texts = {
-            "name": _("How the organization will be displayed in the portal and publications."),
+            "name": _(
+                "How the organization will be displayed in the portal and publications."
+            ),
             "country": _("The country where the organization is based."),
             "location": _("Geographic location or address."),
         }
@@ -56,7 +60,9 @@ class OrganizationCreateForm(ModelForm):
     def clean_name(self):
         name = self.cleaned_data.get("name")
         if self.action == "from_form" and not name:
-            raise ValidationError(_("Organization name is required when adding manually."))
+            raise ValidationError(
+                _("Organization name is required when adding manually.")
+            )
         return name
 
     def clean_country(self):
@@ -105,7 +111,9 @@ class OrganizationProfileForm(ModelForm):
             "name": _("Official name of the organization."),
             "country": _("Country where the organization is headquartered."),
             "location": _("Specific location or address."),
-            "profile": _("Brief description of the organization's purpose and activities."),
+            "profile": _(
+                "Brief description of the organization's purpose and activities."
+            ),
         }
 
     def __init__(self, *args, **kwargs):

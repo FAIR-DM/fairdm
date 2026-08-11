@@ -67,7 +67,9 @@ class TestLicenseFilter:
         DatasetFactory(license=cc0)  # Should be excluded
 
         # Act
-        filterset = DatasetFilter(data={"license": cc_by.id}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"license": cc_by.id}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -107,7 +109,9 @@ class TestProjectFilter:
         DatasetFactory(project=project2)  # Should be excluded
 
         # Act
-        filterset = DatasetFilter(data={"project": project1.id}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"project": project1.id}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -146,7 +150,8 @@ class TestVisibilityFilter:
 
         # Act
         filterset = DatasetFilter(
-            data={"visibility": Dataset.VISIBILITY_CHOICES.PUBLIC}, queryset=Dataset.objects.all()
+            data={"visibility": Dataset.VISIBILITY_CHOICES.PUBLIC},
+            queryset=Dataset.objects.all(),
         )
 
         # Assert
@@ -162,7 +167,8 @@ class TestVisibilityFilter:
 
         # Act
         filterset = DatasetFilter(
-            data={"visibility": Dataset.VISIBILITY_CHOICES.PRIVATE}, queryset=Dataset.objects.all()
+            data={"visibility": Dataset.VISIBILITY_CHOICES.PRIVATE},
+            queryset=Dataset.objects.all(),
         )
 
         # Assert
@@ -170,7 +176,9 @@ class TestVisibilityFilter:
         assert filterset.qs.count() == 1
         assert ds_private in filterset.qs
 
-    @pytest.mark.skip(reason="INTERNAL visibility does not exist - only PUBLIC and PRIVATE")
+    @pytest.mark.skip(
+        reason="INTERNAL visibility does not exist - only PUBLIC and PRIVATE"
+    )
     def test_filter_by_visibility_internal(self):
         """Skipped - INTERNAL visibility level does not exist."""
         pass
@@ -191,7 +199,9 @@ class TestGenericSearch:
         DatasetFactory(name="Weather Station Data")
 
         # Act
-        filterset = DatasetFilter(data={"search": "Geological"}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"search": "Geological"}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -206,14 +216,18 @@ class TestGenericSearch:
 
         # Act - search by first 8 characters of UUID
         search_term = str(ds_match.uuid)[:8]
-        filterset = DatasetFilter(data={"search": search_term}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"search": search_term}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
         assert filterset.qs.count() == 1
         assert ds_match in filterset.qs
 
-    @pytest.mark.skip(reason="TermFactory not yet implemented - keyword filtering pending")
+    @pytest.mark.skip(
+        reason="TermFactory not yet implemented - keyword filtering pending"
+    )
     def test_search_by_keyword(self):
         """Generic search should match dataset keywords."""
         # TODO: Implement TermFactory or use alternative approach
@@ -225,7 +239,9 @@ class TestGenericSearch:
         ds_match = DatasetFactory(name="Geological Survey")
 
         # Act
-        filterset = DatasetFilter(data={"search": "geological"}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"search": "geological"}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -238,7 +254,9 @@ class TestGenericSearch:
         ds_match = DatasetFactory(name="Geological Survey 2024")
 
         # Act
-        filterset = DatasetFilter(data={"search": "Survey"}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"search": "Survey"}, queryset=Dataset.objects.all()
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -266,19 +284,25 @@ class TestCrossRelationshipFilters:
     DatasetDescription and DatasetDate fields.
     """
 
-    @pytest.mark.skip(reason="Cross-relationship filtering by description type not yet implemented in DatasetFilter")
+    @pytest.mark.skip(
+        reason="Cross-relationship filtering by description type not yet implemented in DatasetFilter"
+    )
     def test_filter_by_description_type(self):
         """Should filter datasets by description type."""
         # TODO: Implement description_type filter in DatasetFilter
         pass
 
-    @pytest.mark.skip(reason="Cross-relationship filtering by date type not yet implemented in DatasetFilter")
+    @pytest.mark.skip(
+        reason="Cross-relationship filtering by date type not yet implemented in DatasetFilter"
+    )
     def test_filter_by_date_type(self):
         """Should filter datasets by date type."""
         # TODO: Implement date_type filter in DatasetFilter
         pass
 
-    @pytest.mark.skip(reason="Cross-relationship filtering not yet implemented in DatasetFilter")
+    @pytest.mark.skip(
+        reason="Cross-relationship filtering not yet implemented in DatasetFilter"
+    )
     def test_cross_relationship_filter_with_no_related_data(self):
         """Cross-relationship filter should handle datasets without related data."""
         pass
@@ -305,7 +329,10 @@ class TestMultipleFilterCombinations:
         DatasetFactory(license=cc0, project=project1)  # Wrong license
 
         # Act
-        filterset = DatasetFilter(data={"license": cc_by.id, "project": project1.id}, queryset=Dataset.objects.all())
+        filterset = DatasetFilter(
+            data={"license": cc_by.id, "project": project1.id},
+            queryset=Dataset.objects.all(),
+        )
 
         # Assert
         assert filterset.is_valid()
@@ -315,7 +342,9 @@ class TestMultipleFilterCombinations:
     def test_combine_search_and_visibility(self):
         """Combining search and visibility filters should use AND logic."""
         # Arrange
-        ds_match = DatasetFactory(name="Geological Survey", visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
+        ds_match = DatasetFactory(
+            name="Geological Survey", visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
         DatasetFactory(
             name="Weather Station",  # Wrong search
             visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
@@ -327,7 +356,10 @@ class TestMultipleFilterCombinations:
 
         # Act
         filterset = DatasetFilter(
-            data={"search": "Geological", "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC},
+            data={
+                "search": "Geological",
+                "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC,
+            },
             queryset=Dataset.objects.all(),
         )
 
@@ -343,13 +375,24 @@ class TestMultipleFilterCombinations:
         project = ProjectFactory()
 
         ds_match = DatasetFactory(
-            name="Geological Survey", license=cc_by, project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+            name="Geological Survey",
+            license=cc_by,
+            project=project,
+            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
         )
 
         # Create datasets that don't match all criteria
-        DatasetFactory(name="Other", license=cc_by, project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         DatasetFactory(
-            name="Geological Survey", license=cc_by, project=project, visibility=Dataset.VISIBILITY_CHOICES.PRIVATE
+            name="Other",
+            license=cc_by,
+            project=project,
+            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
+        )
+        DatasetFactory(
+            name="Geological Survey",
+            license=cc_by,
+            project=project,
+            visibility=Dataset.VISIBILITY_CHOICES.PRIVATE,
         )
 
         # Act
@@ -390,7 +433,9 @@ class TestFilterPerformance:
         # Act & Assert - Should use at most 5 queries regardless of dataset count
         # (1 for filter setup, 1 for count, 1 for main query, 2 for joins)
         with django_assert_max_num_queries(5):
-            filterset = DatasetFilter(data={"description_type": "ABSTRACT"}, queryset=Dataset.objects.all())
+            filterset = DatasetFilter(
+                data={"description_type": "ABSTRACT"}, queryset=Dataset.objects.all()
+            )
             result_count = filterset.qs.count()
             assert result_count == 25
 
@@ -401,7 +446,9 @@ class TestFilterPerformance:
 
         # Act & Assert - Should use at most 5 queries
         with django_assert_max_num_queries(5):
-            filterset = DatasetFilter(data={"search": "Dataset"}, queryset=Dataset.objects.all())
+            filterset = DatasetFilter(
+                data={"search": "Dataset"}, queryset=Dataset.objects.all()
+            )
             list(filterset.qs)  # Force query execution
 
 

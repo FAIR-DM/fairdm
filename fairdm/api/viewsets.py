@@ -214,7 +214,9 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
         else:
             ser_base_class = None
 
-        serializer_cls = build_model_serializer(model, fields, view_name=view_name, base_class=ser_base_class)
+        serializer_cls = build_model_serializer(
+            model, fields, view_name=view_name, base_class=ser_base_class
+        )
 
     # Determine filterset
     filterset_class = None
@@ -244,7 +246,9 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     description: str = ""
     if getattr(config, "description", None):
         description = config.description
-    elif getattr(config, "metadata", None) and getattr(config.metadata, "description", None):
+    elif getattr(config, "metadata", None) and getattr(
+        config.metadata, "description", None
+    ):
         description = config.metadata.description
     elif model.__doc__:
         description = model.__doc__
@@ -310,15 +314,23 @@ class _BaseDiscoveryView(APIView):
                     # Samples/Measurements cascade visibility via dataset;
                     # fall back to total count if the field is absent
                     if hasattr(model, "visibility"):
-                        count = model.objects.filter(visibility=Visibility.PUBLIC).count()
+                        count = model.objects.filter(
+                            visibility=Visibility.PUBLIC
+                        ).count()
                     else:
-                        count = model.objects.filter(dataset__visibility=Visibility.PUBLIC).count()
+                        count = model.objects.filter(
+                            dataset__visibility=Visibility.PUBLIC
+                        ).count()
             except Exception:
                 count = 0
 
             # Gather field metadata
             fields = list(config.fields or [])
-            filterable = list(getattr(config, "filter_fields", None) or getattr(config, "filterset_fields", None) or [])
+            filterable = list(
+                getattr(config, "filter_fields", None)
+                or getattr(config, "filterset_fields", None)
+                or []
+            )
 
             types.append(
                 {

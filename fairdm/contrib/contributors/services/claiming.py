@@ -80,7 +80,9 @@ def claim_via_orcid(person: Person, sociallogin: SocialLogin) -> Person:
     person.save(update_fields=["is_claimed", "is_active"])
 
     # Connect the social account
-    sociallogin.connect(sociallogin.request if hasattr(sociallogin, "request") else None, person)
+    sociallogin.connect(
+        sociallogin.request if hasattr(sociallogin, "request") else None, person
+    )
 
     log_claiming_event(
         method=ClaimMethod.ORCID,

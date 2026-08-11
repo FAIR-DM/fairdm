@@ -23,7 +23,9 @@ class TestDatasetIdentifierValidation:
     def test_create_identifier_with_valid_type(self):
         """Can create identifier with valid identifier_type."""
         dataset = DatasetFactory()
-        identifier = DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/xyz123")
+        identifier = DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.1000/xyz123"
+        )
 
         assert identifier.pk is not None
         assert identifier.identifier_type == "DOI"
@@ -31,7 +33,9 @@ class TestDatasetIdentifierValidation:
     def test_identifier_type_vocabulary_validation(self):
         """identifier_type must be from predefined vocabulary."""
         dataset = DatasetFactory()
-        identifier = DatasetIdentifier(related=dataset, type="InvalidType", value="some-identifier")
+        identifier = DatasetIdentifier(
+            related=dataset, type="InvalidType", value="some-identifier"
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             identifier.full_clean()
@@ -44,7 +48,9 @@ class TestDatasetIdentifierValidation:
 
         # Test all types from Dataset.IDENTIFIER_TYPES
         for type_code, _type_label in Dataset.IDENTIFIER_TYPES:
-            identifier = DatasetIdentifier(related=dataset, type=type_code, value=f"test-{type_code}")
+            identifier = DatasetIdentifier(
+                related=dataset, type=type_code, value=f"test-{type_code}"
+            )
             identifier.full_clean()  # Should not raise
 
     def test_identifier_field_required(self):
@@ -80,7 +86,9 @@ class TestDOISupport:
     def test_create_doi_identifier(self):
         """Can create DOI identifier."""
         dataset = DatasetFactory()
-        doi = DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/xyz123")
+        doi = DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.1000/xyz123"
+        )
 
         assert doi.identifier_type == "DOI"
         assert doi.identifier == "10.1000/xyz123"
@@ -88,7 +96,9 @@ class TestDOISupport:
     def test_query_datasets_with_doi(self):
         """Can query datasets that have DOI."""
         dataset_with_doi = DatasetFactory()
-        DatasetIdentifier.objects.create(related=dataset_with_doi, type="DOI", value="10.1000/xyz123")
+        DatasetIdentifier.objects.create(
+            related=dataset_with_doi, type="DOI", value="10.1000/xyz123"
+        )
 
         dataset_without_doi = DatasetFactory()
 
@@ -101,15 +111,21 @@ class TestDOISupport:
         """Dataset can have multiple identifiers of different types."""
         dataset = DatasetFactory()
 
-        DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/xyz123")
-        DatasetIdentifier.objects.create(related=dataset, type="ARK", value="ark:/12345/abc")
+        DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.1000/xyz123"
+        )
+        DatasetIdentifier.objects.create(
+            related=dataset, type="ARK", value="ark:/12345/abc"
+        )
 
         assert dataset.identifiers.count() == 2
 
     def test_get_doi_helper(self):
         """Can retrieve DOI via query."""
         dataset = DatasetFactory()
-        DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/xyz123")
+        DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.1000/xyz123"
+        )
 
         doi = dataset.identifiers.filter(type="DOI").first()
         assert doi is not None
@@ -118,7 +134,9 @@ class TestDOISupport:
     def test_cascade_delete_with_dataset(self):
         """Deleting dataset deletes associated identifiers."""
         dataset = DatasetFactory()
-        DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/xyz123")
+        DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.1000/xyz123"
+        )
 
         dataset_id = dataset.pk
         dataset.delete()
@@ -129,8 +147,12 @@ class TestDOISupport:
         """Dataset can have only one identifier per identifier_type."""
         dataset = DatasetFactory()
 
-        DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/xyz123")
+        DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.1000/xyz123"
+        )
 
         # Attempt duplicate identifier_type
         with pytest.raises(IntegrityError):
-            DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/different")
+            DatasetIdentifier.objects.create(
+                related=dataset, type="DOI", value="10.1000/different"
+            )

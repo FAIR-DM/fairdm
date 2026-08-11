@@ -169,7 +169,9 @@ class TestMeasurementPermissionInheritance:
 class TestCrossDatasetPermissionBoundaries:
     """Test permission boundaries when measurements reference samples from different datasets (User Story 2)."""
 
-    def test_measurement_permissions_based_on_measurement_dataset_not_sample_dataset(self, user):
+    def test_measurement_permissions_based_on_measurement_dataset_not_sample_dataset(
+        self, user
+    ):
         """Test that measurement permissions are determined by the measurement's dataset, not the sample's dataset."""
         # Create two datasets
         dataset_a = DatasetFactory(name="Dataset A")
@@ -189,7 +191,9 @@ class TestCrossDatasetPermissionBoundaries:
         # User should NOT be able to edit the sample (in dataset B)
         assert not user.has_perm("sample.change_sample", sample_b)
 
-    def test_cannot_edit_cross_dataset_sample_without_sample_dataset_permission(self, user):
+    def test_cannot_edit_cross_dataset_sample_without_sample_dataset_permission(
+        self, user
+    ):
         """Test that editing a sample requires permission on the sample's dataset, even if measurement is editable."""
         # Create two datasets
         dataset_a = DatasetFactory(name="Dataset A")
@@ -220,16 +224,24 @@ class TestCrossDatasetPermissionBoundaries:
         sample_a = MeasurementFactory.create(dataset=dataset_a)
         sample_b = MeasurementFactory.create(dataset=dataset_b)
 
-        measurement_in_c_ref_sample_a = MeasurementFactory(dataset=dataset_c, sample=sample_a)
-        measurement_in_c_ref_sample_b = MeasurementFactory(dataset=dataset_c, sample=sample_b)
+        measurement_in_c_ref_sample_a = MeasurementFactory(
+            dataset=dataset_c, sample=sample_a
+        )
+        measurement_in_c_ref_sample_b = MeasurementFactory(
+            dataset=dataset_c, sample=sample_b
+        )
 
         # Grant user permissions on dataset C and dataset A (but not dataset B)
         assign_perm("dataset.change_dataset", user, dataset_c)
         assign_perm("dataset.view_dataset", user, dataset_a)
 
         # User can edit both measurements (both in dataset C)
-        assert user.has_perm("measurement.change_measurement", measurement_in_c_ref_sample_a)
-        assert user.has_perm("measurement.change_measurement", measurement_in_c_ref_sample_b)
+        assert user.has_perm(
+            "measurement.change_measurement", measurement_in_c_ref_sample_a
+        )
+        assert user.has_perm(
+            "measurement.change_measurement", measurement_in_c_ref_sample_b
+        )
 
         # User can view sample A but not edit it (view permission on dataset A)
         assert user.has_perm("sample.view_sample", sample_a)
@@ -274,7 +286,9 @@ class TestAnonymousUserPermissions:
 
         assert not anonymous.has_perm("measurement.delete_measurement", measurement)
 
-    def test_public_dataset_measurements_not_accessible_to_anonymous_without_explicit_permission(self, client):
+    def test_public_dataset_measurements_not_accessible_to_anonymous_without_explicit_permission(
+        self, client
+    ):
         """Test that measurements in public datasets still require explicit permissions for anonymous users."""
         from django.contrib.auth.models import AnonymousUser
 

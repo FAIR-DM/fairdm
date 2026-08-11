@@ -193,7 +193,10 @@ class TestDatasetLicense:
         dataset = DatasetFactory()
         new_license, _ = License.objects.get_or_create(
             name="CC BY-SA 4.0",
-            defaults={"slug": "cc-by-sa-4-0", "canonical_url": "https://creativecommons.org/licenses/by-sa/4.0/"},
+            defaults={
+                "slug": "cc-by-sa-4-0",
+                "canonical_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            },
         )
 
         dataset.license = new_license
@@ -293,4 +296,6 @@ class TestDatasetHasDataProperty:
 
         # Should use EXISTS query (efficient)
         assert result is False
-        assert len(context.captured_queries) <= 2  # Max 2 queries (samples + measurements)
+        assert (
+            len(context.captured_queries) <= 2
+        )  # Max 2 queries (samples + measurements)

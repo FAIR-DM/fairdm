@@ -270,7 +270,9 @@ class TestFilterFactory:
 
     def test_get_filter_overrides_smart_detection(self):
         """Test that filters are smartly detected for different field types."""
-        factory = FilterFactory(SampleModel, fields=["collected_at", "is_published", "status"])
+        factory = FilterFactory(
+            SampleModel, fields=["collected_at", "is_published", "status"]
+        )
 
         filterset_class = factory.generate()
 

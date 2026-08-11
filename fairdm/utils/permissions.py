@@ -16,7 +16,9 @@ OBJECT_PERMS = [
 
 def assign_all_model_perms(user, obj):
     ctype = ContentType.objects.get_for_model(obj)
-    perms = Permission.objects.filter(content_type=ctype).values_list("codename", flat=True)
+    perms = Permission.objects.filter(content_type=ctype).values_list(
+        "codename", flat=True
+    )
     for perm in perms:
         assign_perm(perm, user, obj)
 

@@ -77,7 +77,10 @@ class TestProjectPermissions:
         owner_org = Organization.objects.create(name="Owner Organization")
 
         project = Project.objects.create(
-            name="Private Project", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE, owner=owner_org
+            name="Private Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner_org,
         )
 
         # Create different user (non-contributor)
@@ -107,7 +110,10 @@ class TestProjectPermissions:
         owner_org = Organization.objects.create(name="Owner Organization")
 
         project = Project.objects.create(
-            name="Shared Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PRIVATE, owner=owner_org
+            name="Shared Project",
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PRIVATE,
+            owner=owner_org,
         )
 
         # Create editor user and assign permission

@@ -148,7 +148,9 @@ class TestPolymorphicMeasurementQueries:
         assert measurement.element == xrf_measurement.element
         assert measurement.concentration_ppm == xrf_measurement.concentration_ppm
 
-    def test_mixed_polymorphic_queries(self, xrf_measurement, icp_ms_measurement, example_measurement):
+    def test_mixed_polymorphic_queries(
+        self, xrf_measurement, icp_ms_measurement, example_measurement
+    ):
         """Test querying multiple measurement types returns correct subclass instances."""
         from fairdm.core.measurement.models import Measurement
 

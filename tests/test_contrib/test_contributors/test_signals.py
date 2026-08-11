@@ -22,7 +22,9 @@ def unclaimed_person_with_email(db):
 
 
 class TestHandleEmailConfirmed:
-    def test_email_confirmed_triggers_claim_when_mandatory(self, db, unclaimed_person_with_email, settings):
+    def test_email_confirmed_triggers_claim_when_mandatory(
+        self, db, unclaimed_person_with_email, settings
+    ):
         """When ACCOUNT_EMAIL_VERIFICATION='mandatory' and email matches, claim is triggered."""
         from allauth.account.models import EmailAddress
         from allauth.account.signals import email_confirmed
@@ -41,7 +43,9 @@ class TestHandleEmailConfirmed:
             )
             mock_claim.assert_called_once_with(unclaimed_person_with_email)
 
-    def test_email_confirmed_no_op_when_not_mandatory(self, db, unclaimed_person_with_email, settings):
+    def test_email_confirmed_no_op_when_not_mandatory(
+        self, db, unclaimed_person_with_email, settings
+    ):
         """When ACCOUNT_EMAIL_VERIFICATION != 'mandatory', no claim is attempted."""
         from allauth.account.models import EmailAddress
         from allauth.account.signals import email_confirmed
@@ -59,7 +63,9 @@ class TestHandleEmailConfirmed:
             )
             mock_claim.assert_not_called()
 
-    def test_email_confirmed_no_op_when_no_matching_unclaimed_person(self, db, settings):
+    def test_email_confirmed_no_op_when_no_matching_unclaimed_person(
+        self, db, settings
+    ):
         """When the confirmed email doesn't match any unclaimed Person, nothing happens."""
         from allauth.account.models import EmailAddress
         from allauth.account.signals import email_confirmed

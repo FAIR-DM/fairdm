@@ -57,7 +57,7 @@ CI calls the shared family workflows in `django-mvp/shared`, pinned to `v0.2.0`,
 ## Development workflow
 
 Feature work follows a spec-driven process: spec → plan → tasks → implement → review → PR, with a
-`specs/NNN-slug/` directory per feature. The toolchain is vendored in `.specify/`.
+`specs/NNN-slug/` directory per feature. `specs/` holds the specs written so far and stays as the
+record of what was built and why.
 
-Project standards and the quality bar live in `.specify/memory/constitution.md`, which is the
-path the vendored tooling reads.
+Project standards and the quality bar live in `memory/constitution.md`.

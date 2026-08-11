@@ -87,7 +87,9 @@ class DatasetLiteratureRelation(models.Model):
         _("relationship type"),
         max_length=50,
         choices=DATACITE_RELATIONSHIP_TYPES,
-        help_text=_("DataCite relationship type (e.g., IsCitedBy, Cites, IsDocumentedBy)"),
+        help_text=_(
+            "DataCite relationship type (e.g., IsCitedBy, Cites, IsDocumentedBy)"
+        ),
     )
 
     class Meta:
@@ -370,7 +372,9 @@ class DatasetManager(models.Manager):
         Returns:
             DatasetQuerySet excluding datasets with visibility=PRIVATE
         """
-        return DatasetQuerySet(self.model, using=self._db).exclude(visibility=Visibility.PRIVATE)
+        return DatasetQuerySet(self.model, using=self._db).exclude(
+            visibility=Visibility.PRIVATE
+        )
 
 
 class Dataset(BaseModel):
@@ -572,7 +576,9 @@ class Dataset(BaseModel):
     # )
 
     # GENERIC RELATIONS
-    contributors = GenericRelation("contributors.Contribution", related_query_name="dataset")
+    contributors = GenericRelation(
+        "contributors.Contribution", related_query_name="dataset"
+    )
 
     # RELATIONS
     project = models.ForeignKey(

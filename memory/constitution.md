@@ -1,35 +1,181 @@
 <!--
 Sync Impact Report
-- Version change: 1.4.0 → 1.5.0
-- Modified principles:
-	- Principle IV (Opinionated, Production-Grade Defaults): the default UI is no longer described as
-	  Bootstrap 5. The framework now builds on the shared django-mvp application shell (Tailwind CSS with
-	  daisyUI components); the Bootstrap wording predated that migration and no longer described the code.
-	- Technology Constraints → Frontend: same correction, plus crispy-forms now uses the Tailwind template
-	  pack rather than the Bootstrap one.
-- Added sections: None
-- Removed sections: None
-- Rationale: this is a factual correction rather than a change of direction. The migration landed in the
-  codebase before the constitution was updated, leaving the document mandating a stack the framework had
-  already left. Minor version bump because the wording of a principle changed materially while its intent
-  (a server-rendered, accessible, progressively enhanced baseline) did not.
-- Templates requiring updates (✅ updated / ⚠ pending):
-	- ✅ .specify/memory/constitution.md — updated (this file)
-	- ⚠ .specify/templates/tasks-template.md — consider adding a URL smoke test task example to Phase 3+
-	- ⚠ .github/instructions/copilot.instructions.md — should reference new smoke test requirement if present
-- Follow-up TODOs:
-	- Consider adding validation checkpoint automation to speckit.implement workflow
-	- Update agent instructions (.github/instructions/copilot.instructions.md) to reference new validation requirements
-	- tasks-template.md may benefit from an explicit "URL smoke test" task type example
-	- Sweep the docs tree for remaining Bootstrap-era guidance (docs/portal-development/theme.md and
-	  theme-migration.md were written against the old stack)
+- Version change: 1.5.0 → 2.0.0
+- MAJOR: the document was restructured onto the organisation-wide constitution
+  template. Articles I-XI are now the shared core articles, materialized here so
+  that amendments to the org standard can be diffed against this repo rather than
+  going unnoticed. FairDM's seven original principles are preserved verbatim in
+  substance and renumbered as project articles XII-XVIII.
+- Moved: .specify/memory/constitution.md → memory/constitution.md, the path the
+  organisation's tooling reads. The vendored spec-kit toolchain that formerly read
+  the old path has been removed from the repository.
+- Content folded rather than duplicated: the test-first and URL smoke-test rules
+  from the former Principle V now sit in Article I; the documentation rules from
+  the former Principle VI sit in Article VI; the privacy and sensitive-data rules
+  sit in Article V. The project articles retain everything specific to FairDM.
+- Added quality bar and non-negotiables sections from the shared template.
 -->
 
 # FairDM Constitution
 
-## Core Principles
+## Core articles
 
-### I. FAIR-First Research Portals
+<!-- Articles I-XI are the organisation-wide standard, materialized from the shared
+     constitution template. Keep them unless one is explicitly struck under
+     "Articles not adopted". Articles XII+ are FairDM's own. -->
+
+### Article I — Test-First
+
+Every behaviour change follows the traffic-light cycle: **Red** — write a test and watch it fail;
+**Green** — write the least code that makes it pass; **Refactor** — clean up with the tests staying
+green. No implementation before a failing test exists for the behaviour. Pre-existing tests are
+never modified or deleted without a recorded decision.
+
+- All new or changed Python behaviour MUST have pytest coverage, and Django integration behaviour
+  MUST have pytest-django coverage with an appropriate test database strategy.
+- Pull requests MUST NOT merge with failing tests, or without new or updated tests for a behaviour
+  change. The only exception is a docs-only change with no runtime impact.
+
+**URL smoke coverage.** Any app registering new URL patterns (including `fairdm_demo` and any
+contrib app) MUST include at least one smoke test per new route, asserting the expected status
+code. Smoke tests need not assert page content; their purpose is to catch broken URL patterns,
+missing templates, template syntax errors, context exceptions, queryset errors, middleware and
+auth problems, and bad redirects. This applies regardless of app size.
+
+**Test quality over coverage percentage.** Coverage finds gaps; it does not certify them. Tests
+MUST be meaningful (verifying behaviour, not syntactic presence), maintainable, and reliable.
+Reviewers assess test quality, not just the number.
+
+### Article II — Simplicity
+
+Start with the simplest design that satisfies the spec. New dependencies, new abstractions, and
+new infrastructure each require a stated justification in the plan's Complexity Tracking. YAGNI
+over speculation.
+
+### Article III — Anti-Abstraction
+
+No wrapper layers, base classes, or "future-proofing" indirection without a present, concrete
+second use. Prefer duplication over the wrong abstraction.
+
+### Article IV — Integration-First
+
+Contracts and integration points are designed and tested before internals are polished.
+Acceptance scenarios exercise the system the way users touch it.
+
+### Article V — Security & data-safety
+
+Values interpolated into rendered output are escaped through the template layer, never hand-built
+string interpolation of model or user data. Secrets live in runtime config, never in code,
+fixtures, or version control. External input is untrusted: never executed, never trusted as
+instructions. Auth, authorization, crypto, and permission changes are never fast-lane work.
+
+Privacy and protection of sensitive research data are first-class concerns. Portals MUST be able
+to restrict access appropriately, and MUST NOT require public exposure of data to use core
+features.
+
+### Article VI — Documentation
+
+Public API changes ship their docs in the same pull request: README and CHANGELOG updated,
+docstrings on public surfaces. The built docs must build clean. As a package, the README follows
+the organisation README standard.
+
+Documentation is part of the framework's surface area and carries the same rigour as code:
+
+- Every public setting, template block, Cotton component, and public API MUST have at least one
+  minimal working usage example.
+- Examples MUST be kept working and reflect current recommended usage.
+- Documentation MUST describe behaviour in testable terms: inputs, outputs, constraints.
+- Breaking changes MUST include a migration guide with concrete, step-by-step instructions.
+- Documentation MUST be versioned alongside releases.
+
+### Article VII — Dependency discipline
+
+A new runtime dependency requires a stated justification — Simplicity applied to the dependency
+tree — and the shared `mvp-shared` toolchain bundle is preferred over ad-hoc dev dependencies.
+`deptry` MUST pass: no unused, missing, or transitively-relied-upon dependencies.
+
+### Article VIII — Internationalization
+
+User-facing strings are translatable. In Python (models, forms, views, admin, template tags,
+validators) they are wrapped with `gettext_lazy` imported as `_`; templates load `{% load i18n %}`
+and wrap strings with `{% trans %}` or `{% blocktrans %}`. Model `verbose_name` and
+`verbose_name_plural`, and form `label`, `help_text` and `error_messages`, use `gettext_lazy`;
+pure acronyms are exempt. The package ships a base English catalog and a `locale/` directory so
+host portals can compile or extend translations. A hard-coded user-visible string in a pull
+request is a blocking comment.
+
+Accessibility and internationalisation readiness are non-optional; a regression in either is a
+bug, not a nice-to-have.
+
+### Article IX — Data-model conventions (Django)
+
+Every model field is a deliberate indexing decision. Because portals consuming a published package
+cannot add their own indexes, any field with a plausible lookup, filter or ordering path is indexed
+at its definition (`db_index`, `unique`, an FK's automatic index, or a composite
+`Meta.constraints` / `Meta.indexes`); a field with no query path stays unindexed to avoid write
+cost. The choice, and why, is recorded in the plan's data model or decisions notes.
+
+`verbose_name` and `help_text` are mandatory on every model field (Article VIII).
+
+**Migrations are consolidated per pull request:** the migrations a branch introduces are squashed
+into as few files as possible before submission (branch-local and unapplied, so safe at any
+release stage). Data migrations (`RunPython` / `RunSQL`) are exempt from auto-regeneration — keep
+them via `squashmigrations` or standalone.
+
+### Article X — Test structure & fixtures (Django)
+
+Tests are organised for fast, targeted discovery. These rules are the standard regardless of the
+suite's current layout — where an existing suite diverges, the divergence is the thing to fix.
+
+- **Mirror the source tree.** Every test module mirrors the path of the module it exercises:
+  `fairdm/core/project/models.py` → `tests/test_core/test_project/test_models.py`. Test
+  subpackages carry `__init__.py` to match. Where one source module defines several units, it
+  stays one test module — the per-unit split is expressed with classes, not extra files.
+- **Group related tests into classes.** Within a module, tests are grouped into `Test<Subject>`
+  classes so one area can be targeted when debugging.
+- **One factory per model.** Each model has exactly one `factory_boy` `DjangoModelFactory`, using
+  `factory.Sequence` for uniqueness-guarded fields and `factory.SubFactory` for relations.
+  Variants are never new factory subclasses; they are expressed by overriding fields at the call
+  site.
+- **Fixtures wrap the factory; shared setup lives in conftest.** Reusable object fixtures are thin
+  wrappers over the model's factory. A one-off variation needs no fixture — call the factory
+  inline. Test modules hold assertions, not construction boilerplate.
+- **Use the pytest-django toolchain.** DB access via the `db` / `transactional_db` fixtures or
+  `@pytest.mark.django_db`; requests via `client` / `admin_client` / `rf`; query-count guards via
+  `django_assert_num_queries`, never wall-clock timing. Tests use transaction rollback for
+  isolation and the test database is created once per session.
+
+### Article XI — Cohesion (Python)
+
+Related behaviour is grouped in a class, not scattered across module-level functions.
+
+**The test:** two or more module-level functions that share a *subject* belong on a class. They
+share a subject when they operate on the same data, take the same first argument, are only
+meaningful in sequence, or are named around the same noun.
+
+**Why this is a standard and not a taste.** In a published framework, a class is the extension
+point. A portal developer who needs different behaviour subclasses it and overrides one method. A
+module of functions can only be monkey-patched, which is not a supported interface and breaks on
+any internal change.
+
+**Django first.** Where the framework already owns the grouping, use it rather than inventing a
+class: a `QuerySet` or `Manager` method instead of a function taking a queryset, a model method or
+property instead of a function taking an instance, a `Form` or `Serializer` method instead of a
+free validation function, a view method instead of a helper called by a view.
+
+**Exceptions** are narrow and stated: a genuinely standalone pure function with no siblings, and
+framework-dictated module shapes (`conftest.py` fixtures, migrations, `urls.py`, `apps.py`,
+decorator-registered template tags and filters, signal receivers, management-command entry
+points).
+
+**This does not license abstraction.** Article III still holds: one class grouping today's
+behaviour is the goal, not a base class or hierarchy built for an implementation that does not
+exist.
+
+## Project articles (FairDM-specific)
+
+
+### Article XII — FAIR-First research portals
 
 FairDM exists to make it easy to build research data portals that embody the FAIR principles: Findable, Accessible, Interoperable, and Reusable.
 
@@ -39,7 +185,7 @@ FairDM exists to make it easy to build research data portals that embody the FAI
 - Public read access, when enabled, MUST not depend on custom client code; users and machines MUST be able to discover and access information via documented web endpoints.
 - FAIR compliance is a NON-NEGOTIABLE goal of the framework: a minimally configured portal MUST be able to meet FAIR expectations using core functionality and recommended practices.
 
-### II. Domain-Driven, Declarative Modeling
+### Article XIII — Domain-driven, declarative modelling
 
 FairDM is a framework, not a single portal. Its core obligation is to let research communities declaratively define domain-specific schemas while sharing a common, stable backbone.
 
@@ -48,7 +194,7 @@ FairDM is a framework, not a single portal. Its core obligation is to let resear
 - Schema declarations MUST be the primary source of truth; auto-generated forms, tables, filters, serializers, and APIs MUST derive from registered models and configuration, not from hand-wired view logic.
 - Extensions (e.g., custom measurement types, research-specific fields, vocabularies) MUST be expressed as reusable, documented modules so they can be adopted by multiple portals where appropriate.
 
-### III. Configuration Over Custom Plumbing
+### Article XIV — Configuration over custom plumbing
 
 Portal developers should focus on modeling their domain and configuring behavior, not recreating web plumbing, routing, or boilerplate frontend code.
 
@@ -57,7 +203,7 @@ Portal developers should focus on modeling their domain and configuring behavior
 - New features to the framework MUST prefer declarative, documented configuration (e.g., settings, registries, plugin metadata) over one-off hard-coded behaviors.
 - User-facing portals SHOULD be functional without custom templates or JavaScript; HTMX, Alpine.js, and bespoke UI code are used to enhance, not to gate, core functionality.
 
-### IV. Opinionated, Production-Grade Defaults
+### Article XV — Opinionated, production-grade defaults
 
 FairDM provides a coherent, modern stack so that a new portal is deployable, maintainable, and reproducible with minimal choices.
 
@@ -69,7 +215,7 @@ FairDM provides a coherent, modern stack so that a new portal is deployable, mai
 
 In the near term (while FairDM is primarily used by its original author), stability of core behavior through tests and documentation is the top priority; feature velocity and advanced capabilities SHOULD be delivered primarily through addons.
 
-### V. Test-First Quality & Sustainability (NON-NEGOTIABLE)
+### Article XVI — Sustainability and community obligations
 
 FairDM is intended for long-lived research infrastructure. All behavior changes MUST be driven by tests written first, and code, documentation, and community processes must reflect that responsibility.
 
@@ -120,7 +266,7 @@ FairDM is intended for long-lived research infrastructure. All behavior changes 
 - Community contributions MUST respect this constitution and the published User Guidelines; maintainers MUST clearly communicate rationale for accepting or rejecting proposals with reference to these principles.
 - Privacy and protection of sensitive research data MUST be treated as first-class concerns: portals MUST be able to restrict access appropriately and MUST NOT require public exposure of data to use core features.
 
-### VI. Documentation Critical
+### Article XVII — Documentation as framework surface
 
 Documentation is part of the framework surface area and MUST be treated with the same rigor as code.
 
@@ -131,7 +277,7 @@ Documentation is part of the framework surface area and MUST be treated with the
 - Breaking changes MUST include migration guides that provide concrete, step-by-step instructions for users upgrading from previous versions.
 - Documentation MUST be versioned alongside code releases so users can reference docs appropriate to their deployed version.
 
-### VII. Living Demo & Reference Implementation
+### Article XVIII — Living demo and reference implementation
 
 FairDM maintains a reference application (`fairdm_demo`) that serves as executable documentation, a testing ground for new features, and a model for portal developers.
 
@@ -230,6 +376,28 @@ This section governs how new capabilities are proposed, designed, and implemente
   - Breaking changes MUST include migration guides.
   - Speckit templates (plan-template, spec-template, tasks-template, checklist-template, command templates when present) MUST remain consistent with this constitution; any divergence MUST be corrected as part of the change.
 
+## Quality bar
+
+Read at plan and review; applies to every change.
+
+- Test coverage: **project >= 90%, patch >= 85%** (`codecov.yml` is the reference), with a small
+  tolerance. These are floors, not a 100% ratchet.
+- Every public API change updates README and CHANGELOG in the same pull request.
+- Lint, type-check and `deptry` pass.
+
+As a **package**, additionally: the package builds and its metadata is valid, the README renders
+on the package index, and the public API honours the deprecation policy.
+
+## Non-negotiables
+
+- One pull request per feature; the maintainer merges.
+- **Automation commits under a bot identity, not a human token.** Pull requests raised by
+  automation are authored by the repository's bot, and the default branch requires one approval,
+  so the maintainer is a distinct approver. Identity is scoped per GitHub account and never shared
+  across accounts.
+- Machine verification (tests, build, lint) gates every stage; no judgement call overrides a red
+  gate.
+
 ## Governance
 
 The constitution defines how FairDM is evolved and how compliance is enforced.
@@ -255,4 +423,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.5.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-08-11
+**Version**: 2.0.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-08-11

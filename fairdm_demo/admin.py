@@ -236,7 +236,9 @@ class XRFMeasurementAdminExample(admin.ModelAdmin):
                     # "quality_score",
                 ),
                 "classes": ("collapse",),
-                "description": _("These values are automatically calculated and cannot be edited manually."),
+                "description": _(
+                    "These values are automatically calculated and cannot be edited manually."
+                ),
             },
         ),
         (
@@ -331,7 +333,13 @@ See: `tests/integration/core/dataset/test_admin.py` for comprehensive admin test
 from fairdm.core.measurement.admin import MeasurementChildAdmin
 from fairdm.core.sample.admin import SampleChildAdmin
 
-from .models import ExampleMeasurement, ICP_MS_Measurement, RockSample, WaterSample, XRFMeasurement
+from .models import (
+    ExampleMeasurement,
+    ICP_MS_Measurement,
+    RockSample,
+    WaterSample,
+    XRFMeasurement,
+)
 
 
 @admin.register(RockSample)

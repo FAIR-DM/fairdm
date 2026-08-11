@@ -188,7 +188,13 @@ class TestCustomSampleFormIntegration:
 
             class Meta:
                 model = WaterSample
-                fields = ["name", "dataset", "water_source", "ph_level", "temperature_celsius"]
+                fields = [
+                    "name",
+                    "dataset",
+                    "water_source",
+                    "ph_level",
+                    "temperature_celsius",
+                ]
 
         dataset = DatasetFactory()
         form_data = {

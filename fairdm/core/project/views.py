@@ -8,7 +8,13 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from guardian.shortcuts import assign_perm
 
-from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMDetailView, FairDMListView, FairDMUpdateView
+from fairdm.views import (
+    FairDMCreateView,
+    FairDMDeleteView,
+    FairDMDetailView,
+    FairDMListView,
+    FairDMUpdateView,
+)
 
 from ..models import Project
 from .filters import ProjectFilter
@@ -100,7 +106,9 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
             assign_perm(perm, user, project)
 
         # Add creator as contributor
-        project.add_contributor(user, with_roles=["Creator", "ProjectMember", "ContactPerson"])
+        project.add_contributor(
+            user, with_roles=["Creator", "ProjectMember", "ContactPerson"]
+        )
 
         return response
 
@@ -201,7 +209,9 @@ class ProjectDeleteView(LoginRequiredMixin, FairDMDeleteView):
         try:
             return super().form_valid(form)
         except PublicDatasetsProtect as e:
-            context = self.get_context_data(object=self.object, protected_datasets=e.datasets)
+            context = self.get_context_data(
+                object=self.object, protected_datasets=e.datasets
+            )
             return self.render_to_response(context)
 
 
@@ -270,7 +280,9 @@ class ProjectDetailView(FairDMDetailView):
 
         # Check if user has permission to edit
         if self.request.user.is_authenticated:
-            context["can_edit_project"] = self.request.user.has_perm("change_project", self.object)
+            context["can_edit_project"] = self.request.user.has_perm(
+                "change_project", self.object
+            )
         else:
             context["can_edit_project"] = False
 

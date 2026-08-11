@@ -117,7 +117,9 @@ class Measurement(BasePolymorphicModel):
         # Prevent direct instantiation of base Measurement model
         if self.__class__ == Measurement:
             raise ValidationError(
-                _("Cannot create base Measurement instances directly. Please use a specific measurement type subclass.")
+                _(
+                    "Cannot create base Measurement instances directly. Please use a specific measurement type subclass."
+                )
             )
 
     @classproperty

@@ -21,7 +21,9 @@ def documentation_menu_group():
     from mvp.menus import AppMenu
 
     groups = [item for item in AppMenu.children if str(item.name) == "Documentation"]
-    assert groups, "No 'Documentation' MenuGroup found in AppMenu. Check fairdm/menus/menus.py."
+    assert groups, (
+        "No 'Documentation' MenuGroup found in AppMenu. Check fairdm/menus/menus.py."
+    )
     return groups[0]
 
 
@@ -32,7 +34,9 @@ class TestDocumentationMenuGroupPresent:
         """AppMenu must contain a group whose name is 'Documentation'."""
         assert documentation_menu_group is not None
 
-    def test_documentation_group_has_exactly_three_children(self, documentation_menu_group):
+    def test_documentation_group_has_exactly_three_children(
+        self, documentation_menu_group
+    ):
         """The Documentation MenuGroup must have exactly 3 child MenuItems."""
         assert len(documentation_menu_group.children) == 3, (
             f"Expected 3 children in Documentation menu group, found {len(documentation_menu_group.children)}"
@@ -46,7 +50,9 @@ class TestAPIMenuItem:
         """First child must be 'API' using view_name 'api:api-docs'."""
         child = documentation_menu_group.children[0]
         assert str(child.name) == "API"
-        assert child.view_name == "api:api-docs", f"Unexpected view_name: {child.view_name!r}"
+        assert child.view_name == "api:api-docs", (
+            f"Unexpected view_name: {child.view_name!r}"
+        )
 
     def test_api_child_uses_view_name_not_hardcoded_url(self, documentation_menu_group):
         """API item must use view_name reversal, not a hardcoded URL string."""

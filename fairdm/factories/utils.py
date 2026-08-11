@@ -41,7 +41,11 @@ class FairDMProvider(BaseProvider):
     def random_instance(self, model=None, queryset=None):
         if not model and not queryset:
             raise ValueError("Must provide either a model or a queryset")
-        qs = (queryset if queryset is not None else model.objects.all()) if model is not None else queryset
+        qs = (
+            (queryset if queryset is not None else model.objects.all())
+            if model is not None
+            else queryset
+        )
         if qs is not None:
             return qs.order_by("?").first()
         return None

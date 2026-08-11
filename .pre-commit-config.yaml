@@ -12,9 +12,7 @@
 # replacement, and ruff's UP rules cover pyupgrade (enable them in the repo's
 # `[tool.ruff.lint]` select list).
 
-# The trailing three paths hold vendored agent tooling and spec-kit scripts
-# rather than this package's own source, so they are linted by their upstreams.
-exclude: "^docs/|/migrations/|^tests/|^\\.github/skills/|^\\.github/scripts/|^\\.specify/scripts/"
+exclude: "^docs/|/migrations/|^tests/"
 default_stages: [pre-commit]
 
 repos:
@@ -23,8 +21,8 @@ repos:
     rev: v6.0.0
     hooks:
       # Scoped to this package's own sources. Unscoped (the family default)
-      # these rewrite vendored agent tooling under .github/skills and .specify,
-      # the spec archive, fixtures and SVG assets — churn this repo does not own.
+      # these also rewrite the spec archive, fixtures and SVG assets, which is
+      # churn unrelated to any change being committed.
       - id: trailing-whitespace
         files: ^(fairdm|fairdm_demo|tests)/.*\.py$
       - id: end-of-file-fixer

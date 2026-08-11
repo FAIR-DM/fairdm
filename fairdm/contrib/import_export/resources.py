@@ -59,7 +59,9 @@ class SampleResource(BaseFairDMResource):
         if obj_id:
             return self.model.objects.filter(id=obj_id).first()
         elif local_id and dataset_id:
-            return self.model.objects.filter(local_id=local_id, dataset_id=dataset_id).first()
+            return self.model.objects.filter(
+                local_id=local_id, dataset_id=dataset_id
+            ).first()
 
         return None  # No existing instance found
 
@@ -80,7 +82,9 @@ class SampleWidget(ForeignKeyWidget):
 
 
 class MeasurementResource(BaseFairDMResource):
-    sample = fields.Field(attribute="sample", column_name="sample", widget=SampleWidget())
+    sample = fields.Field(
+        attribute="sample", column_name="sample", widget=SampleWidget()
+    )
 
     # class Meta:
     #     # class Meta:

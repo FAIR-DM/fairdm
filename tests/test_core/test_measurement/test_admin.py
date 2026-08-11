@@ -18,7 +18,12 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 
 from fairdm.core.measurement.admin import MeasurementChildAdmin
-from fairdm.core.measurement.models import Measurement, MeasurementDate, MeasurementDescription, MeasurementIdentifier
+from fairdm.core.measurement.models import (
+    Measurement,
+    MeasurementDate,
+    MeasurementDescription,
+    MeasurementIdentifier,
+)
 from fairdm.factories.core import MeasurementFactory
 
 User = get_user_model()
@@ -28,7 +33,10 @@ User = get_user_model()
 def admin_user(db):
     """Create a superuser for admin access."""
     user = User.objects.create_superuser(
-        email="admin@example.com", first_name="Admin", last_name="User", password="admin123"
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        password="admin123",
     )
     return user
 
@@ -58,7 +66,9 @@ class TestMeasurementAdminSearch:
         request = request_factory.get("/admin/measurement/measurement/", {"q": "XRF"})
         request.user = admin_user
 
-        queryset = measurement_admin.get_search_results(request, Measurement.objects.all(), "XRF")[0]
+        queryset = measurement_admin.get_search_results(
+            request, Measurement.objects.all(), "XRF"
+        )[0]
 
         assert measurement1 in queryset
         assert measurement2 not in queryset
@@ -67,21 +77,31 @@ class TestMeasurementAdminSearch:
         """Test that admin search finds measurements by UUID."""
         measurement1 = MeasurementFactory()
 
-        request = request_factory.get("/admin/measurement/measurement/", {"q": measurement1.uuid})
+        request = request_factory.get(
+            "/admin/measurement/measurement/", {"q": measurement1.uuid}
+        )
         request.user = admin_user
 
-        queryset = measurement_admin.get_search_results(request, Measurement.objects.all(), measurement1.uuid)[0]
+        queryset = measurement_admin.get_search_results(
+            request, Measurement.objects.all(), measurement1.uuid
+        )[0]
 
         assert measurement1 in queryset
 
-    def test_search_returns_empty_for_no_matches(self, measurement_admin, admin_user, request_factory):
+    def test_search_returns_empty_for_no_matches(
+        self, measurement_admin, admin_user, request_factory
+    ):
         """Test that admin search returns empty queryset when no matches found."""
         _measurement1 = MeasurementFactory(name="Test Measurement")
 
-        request = request_factory.get("/admin/measurement/measurement/", {"q": "NonExistent"})
+        request = request_factory.get(
+            "/admin/measurement/measurement/", {"q": "NonExistent"}
+        )
         request.user = admin_user
 
-        queryset = measurement_admin.get_search_results(request, Measurement.objects.all(), "NonExistent")[0]
+        queryset = measurement_admin.get_search_results(
+            request, Measurement.objects.all(), "NonExistent"
+        )[0]
 
         assert queryset.count() == 0
 
@@ -103,7 +123,11 @@ class TestMeasurementAdminFilters:
         from fairdm_demo.models import XRFMeasurement
 
         measurement1 = XRFMeasurement.objects.create(
-            name="XRF 1", sample=sample1, dataset=dataset1, element="Si", concentration_ppm=250000.0
+            name="XRF 1",
+            sample=sample1,
+            dataset=dataset1,
+            element="Si",
+            concentration_ppm=250000.0,
         )
 
         # Create sample in dataset2 for measurement2
@@ -111,7 +135,11 @@ class TestMeasurementAdminFilters:
 
         sample2 = SampleFactory(dataset=dataset2)
         measurement2 = XRFMeasurement.objects.create(
-            name="XRF 2", sample=sample2, dataset=dataset2, element="Fe", concentration_ppm=50000.0
+            name="XRF 2",
+            sample=sample2,
+            dataset=dataset2,
+            element="Fe",
+            concentration_ppm=50000.0,
         )
 
         # Simulate filtering by dataset1
@@ -128,10 +156,18 @@ class TestMeasurementAdminFilters:
         sample2 = SampleFactory(dataset=sample.dataset)
 
         measurement1 = XRFMeasurement.objects.create(
-            name="XRF 1", sample=sample, dataset=sample.dataset, element="Si", concentration_ppm=250000.0
+            name="XRF 1",
+            sample=sample,
+            dataset=sample.dataset,
+            element="Si",
+            concentration_ppm=250000.0,
         )
         measurement2 = XRFMeasurement.objects.create(
-            name="XRF 2", sample=sample2, dataset=sample.dataset, element="Fe", concentration_ppm=50000.0
+            name="XRF 2",
+            sample=sample2,
+            dataset=sample.dataset,
+            element="Fe",
+            concentration_ppm=50000.0,
         )
 
         # Simulate filtering by sample
@@ -147,7 +183,11 @@ class TestMeasurementAdminFilters:
         from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
-            name="XRF", sample=sample, dataset=sample.dataset, element="Si", concentration_ppm=250000.0
+            name="XRF",
+            sample=sample,
+            dataset=sample.dataset,
+            element="Si",
+            concentration_ppm=250000.0,
         )
         icp = ICP_MS_Measurement.objects.create(
             name="ICP-MS",
@@ -208,7 +248,9 @@ class TestMeasurementAdminInlines:
     def test_inline_dates_can_be_created(self, measurement_admin, measurement):
         """Test that inline date objects can be created for a measurement."""
         # Create date via inline
-        date = MeasurementDate.objects.create(related=measurement, type="measured", value="2024-01-15")
+        date = MeasurementDate.objects.create(
+            related=measurement, type="measured", value="2024-01-15"
+        )
 
         assert date.related == measurement
         assert measurement.dates.count() == 1
@@ -216,7 +258,9 @@ class TestMeasurementAdminInlines:
     def test_inline_identifiers_can_be_created(self, measurement_admin, measurement):
         """Test that inline identifier objects can be created for a measurement."""
         # Create identifier via inline
-        identifier = MeasurementIdentifier.objects.create(related=measurement, type="DOI", value="10.1234/meas.123")
+        identifier = MeasurementIdentifier.objects.create(
+            related=measurement, type="DOI", value="10.1234/meas.123"
+        )
 
         assert identifier.related == measurement
         assert measurement.identifiers.count() == 1
@@ -229,7 +273,9 @@ class TestMeasurementAdminVocabularyCorrectness:
     def test_measurement_description_uses_measurement_vocabulary(self, measurement):
         """Test that MeasurementDescription inline uses Measurement vocabulary collection."""
         # Create a description with a Measurement-specific type
-        description = MeasurementDescription.objects.create(related=measurement, type="method", value="Test method")
+        description = MeasurementDescription.objects.create(
+            related=measurement, type="method", value="Test method"
+        )
 
         # Verify the vocabulary is from Measurement collection (not Sample)
         assert description.VOCABULARY is not None
@@ -238,7 +284,9 @@ class TestMeasurementAdminVocabularyCorrectness:
     def test_measurement_date_uses_measurement_vocabulary(self, measurement):
         """Test that MeasurementDate inline uses Measurement vocabulary collection."""
         # Create a date with a Measurement-specific type
-        date = MeasurementDate.objects.create(related=measurement, type="measured", value="2024-01-15")
+        date = MeasurementDate.objects.create(
+            related=measurement, type="measured", value="2024-01-15"
+        )
 
         # Verify the vocabulary is from Measurement collection (not Sample)
         assert date.VOCABULARY is not None
@@ -249,7 +297,9 @@ class TestMeasurementAdminVocabularyCorrectness:
 class TestMeasurementAdminPolymorphicHandling:
     """Tests for polymorphic type handling in admin."""
 
-    def test_parent_admin_shows_type_selection_interface(self, admin_user, request_factory):
+    def test_parent_admin_shows_type_selection_interface(
+        self, admin_user, request_factory
+    ):
         """Test that parent admin provides polymorphic type selection."""
         from fairdm.core.measurement.admin import MeasurementParentAdmin
 
@@ -268,11 +318,17 @@ class TestMeasurementAdminPolymorphicHandling:
 
         # Create an XRF measurement
         xrf = XRFMeasurement.objects.create(
-            name="XRF Test", sample=sample, dataset=sample.dataset, element="Si", concentration_ppm=250000.0
+            name="XRF Test",
+            sample=sample,
+            dataset=sample.dataset,
+            element="Si",
+            concentration_ppm=250000.0,
         )
 
         # Child admin should render with all inlines
-        assert len(measurement_admin.inlines) == 4  # Descriptions, Dates, Identifiers, Contributors
+        assert (
+            len(measurement_admin.inlines) == 4
+        )  # Descriptions, Dates, Identifiers, Contributors
 
 
 @pytest.mark.django_db

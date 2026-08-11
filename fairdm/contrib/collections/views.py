@@ -63,7 +63,9 @@ class DataTableView(FairDMTableView):
 
         context["available_collections"] = collection_list
         context["current_model_verbose_name"] = self.model_config.get_verbose_name()
-        context["current_model_verbose_name_plural"] = self.model_config.get_verbose_name_plural()
+        context["current_model_verbose_name_plural"] = (
+            self.model_config.get_verbose_name_plural()
+        )
 
         # Page information for modal
         context["page"] = {
@@ -249,7 +251,9 @@ class CollectionsOverview(FairDMTemplateView):
                 import logging
 
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Failed to add sample type {sample_model.__name__}: {e}")
+                logger.warning(
+                    f"Failed to add sample type {sample_model.__name__}: {e}"
+                )
 
         # Prepare measurement type information with statistics
         measurement_types = []
@@ -280,7 +284,9 @@ class CollectionsOverview(FairDMTemplateView):
                 import logging
 
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Failed to add measurement type {measurement_model.__name__}: {e}")
+                logger.warning(
+                    f"Failed to add measurement type {measurement_model.__name__}: {e}"
+                )
 
         context.update(
             {
@@ -348,7 +354,9 @@ class SamplesOverview(FairDMTemplateView):
                 import logging
 
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Failed to add sample type {sample_model.__name__}: {e}")
+                logger.warning(
+                    f"Failed to add sample type {sample_model.__name__}: {e}"
+                )
 
         # Sort by count descending
         sample_types.sort(key=lambda x: x["count"], reverse=True)
@@ -420,7 +428,9 @@ class MeasurementsOverview(FairDMTemplateView):
                 import logging
 
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Failed to add measurement type {measurement_model.__name__}: {e}")
+                logger.warning(
+                    f"Failed to add measurement type {measurement_model.__name__}: {e}"
+                )
 
         # Sort by count descending
         measurement_types.sort(key=lambda x: x["count"], reverse=True)

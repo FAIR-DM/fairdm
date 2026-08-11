@@ -227,7 +227,9 @@ class TestSampleQuerySetOptimizations:
             rock_type="igneous",
             collection_date=date.today(),
         )
-        SampleDescription.objects.create(related=sample, type="abstract", value="Test description")
+        SampleDescription.objects.create(
+            related=sample, type="abstract", value="Test description"
+        )
         SampleDate.objects.create(related=sample, type="collected", value="2024-01-15")
 
         # Test without optimization
@@ -251,7 +253,9 @@ class TestSampleQuerySetOptimizations:
         # Assert optimization reduces queries
         # Note: For a single sample, prefetch may add overhead
         # The benefit shows with multiple samples
-        assert queries_with <= 4  # Should be ~4 queries (samples, descriptions, dates, identifiers)
+        assert (
+            queries_with <= 4
+        )  # Should be ~4 queries (samples, descriptions, dates, identifiers)
 
     def test_polymorphic_queryset_returns_correct_typed_instances(self, dataset):
         """Test that PolymorphicQuerySet automatically returns correctly typed instances."""

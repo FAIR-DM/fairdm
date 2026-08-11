@@ -29,7 +29,9 @@ class TestFactoryIntegration(TestCase):
         ContributionFactory(contributor=research_institution, content_object=project)
 
         # Create dataset under the project
-        dataset = DatasetFactory(project=project, name="Temperature Measurements Dataset")
+        dataset = DatasetFactory(
+            project=project, name="Temperature Measurements Dataset"
+        )
 
         # Create samples in the dataset
         samples = SampleFactory.create_batch(3, dataset=dataset)
@@ -47,7 +49,9 @@ class TestFactoryIntegration(TestCase):
         self.assertEqual(len(measurements), 3)
 
         # Verify contributors
-        project_contributions = Contribution.objects.filter(content_type__model="project", object_id=project.pk)
+        project_contributions = Contribution.objects.filter(
+            content_type__model="project", object_id=project.pk
+        )
         self.assertEqual(project_contributions.count(), 2)
 
         # Verify all relationships are properly connected
@@ -74,7 +78,9 @@ class TestFactoryIntegration(TestCase):
         # Create measurements
         all_measurements = []
         for sample in all_samples:
-            measurements = MeasurementFactory.create_batch(2, dataset=sample.dataset, sample=sample)
+            measurements = MeasurementFactory.create_batch(
+                2, dataset=sample.dataset, sample=sample
+            )
             all_measurements.extend(measurements)
 
         # Verify structure
@@ -109,7 +115,9 @@ class TestFactoryIntegration(TestCase):
         contributions = [
             ContributionFactory(contributor=person, content_object=project),
             ContributionFactory(contributor=organization, content_object=project),
-            ContributionFactory(contributor=contributor_as_person, content_object=project),
+            ContributionFactory(
+                contributor=contributor_as_person, content_object=project
+            ),
         ]
 
         # Verify all contributions are linked to project
@@ -117,7 +125,9 @@ class TestFactoryIntegration(TestCase):
             self.assertEqual(contribution.content_object, project)
 
         # Verify we have 3 contributors
-        project_contributions = Contribution.objects.filter(content_type__model="project", object_id=project.pk)
+        project_contributions = Contribution.objects.filter(
+            content_type__model="project", object_id=project.pk
+        )
         self.assertEqual(project_contributions.count(), 3)
 
     def test_sample_measurement_contributor_workflow(self):
@@ -132,8 +142,12 @@ class TestFactoryIntegration(TestCase):
         lab_analyst = PersonFactory(first_name="Lab", last_name="Analyst")
 
         # Add contributors at different levels
-        sample_contribution = ContributionFactory(contributor=sample_collector, content_object=sample)
-        measurement_contribution = ContributionFactory(contributor=lab_analyst, content_object=measurement)
+        sample_contribution = ContributionFactory(
+            contributor=sample_collector, content_object=sample
+        )
+        measurement_contribution = ContributionFactory(
+            contributor=lab_analyst, content_object=measurement
+        )
 
         # Verify contributions
         self.assertEqual(sample_contribution.content_object, sample)
@@ -164,11 +178,14 @@ class TestFactoryIntegration(TestCase):
         """Test creating instances with custom parameters."""
         # Create project with specific parameters
         custom_project = ProjectFactory(
-            name="Custom Project Name", funding={"agency": "Custom Agency", "amount": 100000}
+            name="Custom Project Name",
+            funding={"agency": "Custom Agency", "amount": 100000},
         )
 
         # Create person with specific parameters
-        custom_person = PersonFactory(first_name="John", last_name="Doe", email="john.doe@example.org")
+        custom_person = PersonFactory(
+            first_name="John", last_name="Doe", email="john.doe@example.org"
+        )
 
         # Verify custom values
         self.assertEqual(custom_project.name, "Custom Project Name")

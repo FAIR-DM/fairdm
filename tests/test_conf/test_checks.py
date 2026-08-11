@@ -38,7 +38,11 @@ class TestDatabaseChecks:
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
 
-    @override_settings(DATABASES={"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}})
+    @override_settings(
+        DATABASES={
+            "default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}
+        }
+    )
     def test_check_database_configured_valid(self):
         """Check returns empty list when database is properly configured."""
         from fairdm.conf.checks import check_database_configured
@@ -47,7 +51,11 @@ class TestDatabaseChecks:
 
         assert errors == []
 
-    @override_settings(DATABASES={"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db.sqlite3"}})
+    @override_settings(
+        DATABASES={
+            "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db.sqlite3"}
+        }
+    )
     def test_check_database_production_ready_sqlite(self):
         """Check returns ERROR when using SQLite."""
         from fairdm.conf.checks import check_database_production_ready
@@ -60,7 +68,11 @@ class TestDatabaseChecks:
         assert "SQLite" in errors[0].msg
         assert "PostgreSQL" in errors[0].hint
 
-    @override_settings(DATABASES={"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}})
+    @override_settings(
+        DATABASES={
+            "default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}
+        }
+    )
     def test_check_database_production_ready_postgresql(self):
         """Check returns empty list when using PostgreSQL."""
         from fairdm.conf.checks import check_database_production_ready
@@ -73,7 +85,9 @@ class TestDatabaseChecks:
 class TestCacheChecks:
     """Tests for cache configuration checks."""
 
-    @override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    )
     def test_check_cache_backend_locmem(self):
         """Check returns ERROR when using locmem cache."""
         from fairdm.conf.checks import check_cache_backend
@@ -86,7 +100,9 @@ class TestCacheChecks:
         assert "locmem" in errors[0].msg.lower()
         assert "Redis" in errors[0].hint
 
-    @override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}})
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
     def test_check_cache_backend_dummy(self):
         """Check returns ERROR when using dummy cache."""
         from fairdm.conf.checks import check_cache_backend
@@ -98,7 +114,12 @@ class TestCacheChecks:
         assert "dummy" in errors[0].msg.lower()
 
     @override_settings(
-        CACHES={"default": {"BACKEND": "django_redis.cache.RedisCache", "LOCATION": "redis://localhost:6379/1"}}
+        CACHES={
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": "redis://localhost:6379/1",
+            }
+        }
     )
     def test_check_cache_backend_redis(self):
         """Check returns empty list when using Redis cache."""
@@ -269,8 +290,15 @@ class TestCheckCommandIntegration:
 
     @override_settings(
         SECRET_KEY="a" * 50,
-        DATABASES={"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}},
-        CACHES={"default": {"BACKEND": "django_redis.cache.RedisCache", "LOCATION": "redis://localhost:6379/1"}},
+        DATABASES={
+            "default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}
+        },
+        CACHES={
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": "redis://localhost:6379/1",
+            }
+        },
         ALLOWED_HOSTS=["example.com"],
         DEBUG=False,
         SESSION_COOKIE_SECURE=True,

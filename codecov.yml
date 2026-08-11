@@ -1,23 +1,14 @@
-# Coverage gating.
-#
-#   project — floor for overall coverage. Set to the measured baseline at the
-#             point this package adopted the shared standard (64.1% on
-#             2026-08-11), not the family's 90%, which would hold every pull
-#             request red. It is a ratchet: raise it as coverage improves,
-#             and never lower it to accommodate a regression.
-#   patch   — coverage required of the lines changed in a pull request. Held at
-#             the family standard, so new code meets the target even while the
-#             overall figure is catching up.
-#
+# Family coverage gating — materialized into each repo at onboarding.
+# 100% is brittle (it fails a PR over a single defensive branch or unreachable
+# guard). These are floors with headroom, not a ratchet.
+#   project — overall coverage floor for the package.
+#   patch   — coverage required of the lines changed in a PR (new code).
 # The 1% threshold absorbs rounding and small, justified dips.
 coverage:
-  range: 64..100
-  round: down
-  precision: 1
   status:
     project:
       default:
-        target: 64%
+        target: 90%
         threshold: 1%
     patch:
       default:

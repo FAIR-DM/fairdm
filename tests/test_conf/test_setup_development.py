@@ -25,7 +25,9 @@ def minimal_dev_env():
 
     # Clear Django-related env vars
     for key in list(os.environ.keys()):
-        if key.startswith(("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")):
+        if key.startswith(
+            ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+        ):
             del os.environ[key]
 
     # Set test environment
@@ -53,7 +55,9 @@ class TestDevelopmentSetup:
                     "NAME": "/tmp/db.sqlite3",
                 }
             },
-            "CACHES": {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}},
+            "CACHES": {
+                "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+            },
             "SECRET_KEY": "dev-key-12345",  # Short but acceptable in dev
             "ALLOWED_HOSTS": ["*"],
             "DEBUG": True,

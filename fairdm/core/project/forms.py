@@ -26,7 +26,9 @@ class ProjectForm(ModelForm):
         label=False,
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
+        widget=ImageClearableFileInput(
+            thumbnail_options={"size": (150, 100), "crop": True}
+        ),
     )
     name = forms.CharField(
         label=_("Project name"),
@@ -64,7 +66,9 @@ class ProjectForm(ModelForm):
             attrs={
                 "class": "form-control",
                 "rows": 10,
-                "placeholder": _('[\n  {\n    "funderName": "...",\n    "awardNumber": "..."\n  }\n]'),
+                "placeholder": _(
+                    '[\n  {\n    "funderName": "...",\n    "awardNumber": "..."\n  }\n]'
+                ),
             }
         ),
     )
@@ -175,7 +179,9 @@ class ProjectDescriptionForm(ModelForm):
             from .models import ProjectDescription
 
             existing = (
-                ProjectDescription.objects.filter(related=self.instance.related, type=description_type)
+                ProjectDescription.objects.filter(
+                    related=self.instance.related, type=description_type
+                )
                 .exclude(pk=self.instance.pk)
                 .exists()
             )
@@ -183,9 +189,9 @@ class ProjectDescriptionForm(ModelForm):
             if existing:
                 raise ValidationError(
                     {
-                        "type": _("A description of type '{type}' already exists for this project.").format(
-                            type=description_type
-                        )
+                        "type": _(
+                            "A description of type '{type}' already exists for this project."
+                        ).format(type=description_type)
                     }
                 )
 

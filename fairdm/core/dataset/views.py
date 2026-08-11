@@ -8,7 +8,12 @@ from django.utils.translation import gettext as _
 from django.views.generic import DetailView
 
 # from guardian.shortcuts import assign_perm
-from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMListView, FairDMUpdateView
+from fairdm.views import (
+    FairDMCreateView,
+    FairDMDeleteView,
+    FairDMListView,
+    FairDMUpdateView,
+)
 
 from .filters import DatasetFilter
 from .forms import DatasetForm
@@ -88,7 +93,9 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
         # for perm in permissions:
         #     assign_perm(perm, user, dataset)
 
-        dataset.add_contributor(user, with_roles=["Creator", "ProjectMember", "ContactPerson"])
+        dataset.add_contributor(
+            user, with_roles=["Creator", "ProjectMember", "ContactPerson"]
+        )
 
         return response
 

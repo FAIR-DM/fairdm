@@ -185,7 +185,9 @@ class TestDatasetViews:
         # Should redirect to login
         assert response.status_code == 302
 
-    def test_dataset_create_view_accessible_when_authenticated(self, authenticated_client):
+    def test_dataset_create_view_accessible_when_authenticated(
+        self, authenticated_client
+    ):
         """Test that authenticated users can access dataset create view."""
         response = authenticated_client.get(reverse("dataset-create"))
 
@@ -195,7 +197,9 @@ class TestDatasetViews:
         """Test dataset creation with project parameter in URL."""
         project = ProjectFactory()
 
-        response = authenticated_client.get(reverse("dataset-create"), {"project": project.pk})
+        response = authenticated_client.get(
+            reverse("dataset-create"), {"project": project.pk}
+        )
 
         assert response.status_code == 200
 

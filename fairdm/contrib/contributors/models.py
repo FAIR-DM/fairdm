@@ -99,7 +99,9 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         blank=True,
         null=True,
         upload_to=default_image_path,
-        help_text=_("A profile image for the contributor. This is displayed in the contributor's profile."),
+        help_text=_(
+            "A profile image for the contributor. This is displayed in the contributor's profile."
+        ),
         resize_source={
             "size": (1200, 1200),
             "format": "WEBP",
@@ -140,7 +142,9 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     last_synced = models.DateField(
         verbose_name=_("last synced"),
-        help_text=_("The last time the contributor was synced with the external provider (e.g. ORCID, ROR)."),
+        help_text=_(
+            "The last time the contributor was synced with the external provider (e.g. ORCID, ROR)."
+        ),
         editable=False,
         null=True,
         blank=True,
@@ -149,7 +153,9 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     synced_data = models.JSONField(
         verbose_name=_("synced data"),
-        help_text=_("A JSON representation of the contributor's data from the external provider."),
+        help_text=_(
+            "A JSON representation of the contributor's data from the external provider."
+        ),
         editable=False,
         null=True,
         blank=True,
@@ -177,7 +183,9 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     privacy_settings = models.JSONField(
         verbose_name=_("privacy settings"),
-        help_text=_("Per-field privacy controls. Keys: field names. Values: 'public' or 'private'."),
+        help_text=_(
+            "Per-field privacy controls. Keys: field names. Values: 'public' or 'private'."
+        ),
         default=dict,
         blank=True,
     )
@@ -316,7 +324,11 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         has_identifiers = 1.0 if self.identifiers.exists() else 0.0
 
         # Weighted sum
-        weight = (contribution_count * 0.5) + (profile_completion * 0.3) + (has_identifiers * 0.2)
+        weight = (
+            (contribution_count * 0.5)
+            + (profile_completion * 0.3)
+            + (has_identifiers * 0.2)
+        )
 
         return round(weight, 2)
 
@@ -374,10 +386,14 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             <QuerySet [<Contribution: John Doe: ['ContactPerson']>]>
         """
         content_type = ContentType.objects.get(
-            app_label=(model_name.split(".")[0] if "." in model_name else model_name.lower()),
+            app_label=(
+                model_name.split(".")[0] if "." in model_name else model_name.lower()
+            ),
             model=model_name.split(".")[-1].lower(),
         )
-        return self.contributions.filter(content_type=content_type).select_related("content_type")
+        return self.contributions.filter(content_type=content_type).select_related(
+            "content_type"
+        )
 
     def has_contribution_to(self, obj) -> bool:
         """
@@ -394,7 +410,9 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             True
         """
         content_type = ContentType.objects.get_for_model(obj)
-        return self.contributions.filter(content_type=content_type, object_id=obj.pk).exists()
+        return self.contributions.filter(
+            content_type=content_type, object_id=obj.pk
+        ).exists()
 
     def get_co_contributors(self, limit: int | None = None):
         """
@@ -413,13 +431,17 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             <QuerySet [<Person: Jane Smith>, <Person: Bob Wilson>, ...]>
         """
         # Get all content objects this contributor has contributed to
-        my_contributions = self.contributions.values_list("content_type_id", "object_id")
+        my_contributions = self.contributions.values_list(
+            "content_type_id", "object_id"
+        )
 
         # Find other contributors to those same objects
         from django.db.models import Count
 
         co_contributors = (
-            Contributor.objects.filter(contributions__content_type_id__in=[ct for ct, _ in my_contributions])
+            Contributor.objects.filter(
+                contributions__content_type_id__in=[ct for ct, _ in my_contributions]
+            )
             .filter(contributions__object_id__in=[oid for _, oid in my_contributions])
             .exclude(pk=self.pk)  # Exclude self
             .annotate(collaboration_count=Count("contributions"))
@@ -442,7 +464,9 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         if roles:
             from research_vocabs.models import Concept
 
-            roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles", name__in=roles)
+            roles_qs = Concept.objects.filter(
+                vocabulary__name="fairdm-roles", name__in=roles
+            )
             contribution.roles.set(roles_qs)
         return contribution
 
@@ -503,7 +527,9 @@ class Person(AbstractUser, Contributor):
     is_claimed = models.BooleanField(
         _("is claimed"),
         default=False,
-        help_text=_("True if this person has claimed their account. False for ghost/invited profiles."),
+        help_text=_(
+            "True if this person has claimed their account. False for ghost/invited profiles."
+        ),
     )
 
     USERNAME_FIELD = "email"
@@ -543,15 +569,24 @@ class Person(AbstractUser, Contributor):
 
         # Prevent claimed users from nulling their email
         # A claimed user has a usable password and is active (was previously claimed)
-        if self.pk and self.has_usable_password() and self.is_active and self.email is None:
-            raise ValidationError({"email": _("Claimed users cannot remove their email address.")})
+        if (
+            self.pk
+            and self.has_usable_password()
+            and self.is_active
+            and self.email is None
+        ):
+            raise ValidationError(
+                {"email": _("Claimed users cannot remove their email address.")}
+            )
 
         # Validate and normalize email if provided
         if self.email:
             try:
                 validate_email(self.email)
             except ValidationError:
-                raise ValidationError({"email": _("Enter a valid email address.")}) from None
+                raise ValidationError(
+                    {"email": _("Enter a valid email address.")}
+                ) from None
             # Fully lowercase the email (Django only lowercases domain)
             self.email = self.email.lower()
 
@@ -569,7 +604,11 @@ class Person(AbstractUser, Contributor):
             orcid_pattern = r"^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]$"
             if not re.match(orcid_pattern, orcid.value):
                 raise ValidationError(
-                    {"identifiers": _(f"Invalid ORCID format: {orcid.value}. Expected format: 0000-0000-0000-0000")}
+                    {
+                        "identifiers": _(
+                            f"Invalid ORCID format: {orcid.value}. Expected format: 0000-0000-0000-0000"
+                        )
+                    }
                 )
 
     def orcid(self):
@@ -585,7 +624,11 @@ class Person(AbstractUser, Contributor):
         Returns:
             Affiliation or None: The primary organizational affiliation, or None if not set.
         """
-        return self.affiliations.select_related("organization").filter(is_primary=True).first()
+        return (
+            self.affiliations.select_related("organization")
+            .filter(is_primary=True)
+            .first()
+        )
 
     def current_affiliations(self):
         """Get all current affiliations for this person.
@@ -595,7 +638,9 @@ class Person(AbstractUser, Contributor):
         Returns:
             QuerySet: Current Affiliation objects.
         """
-        return self.affiliations.select_related("organization").filter(end_date__isnull=True, type__gte=1)
+        return self.affiliations.select_related("organization").filter(
+            end_date__isnull=True, type__gte=1
+        )
 
     @property
     def given(self):
@@ -629,11 +674,15 @@ class Person(AbstractUser, Contributor):
 
         if name_format == "family_given":
             parts = [p for p in [last, first] if p]
-            return ", ".join(parts) if len(parts) > 1 else parts[0] if parts else self.name
+            return (
+                ", ".join(parts) if len(parts) > 1 else parts[0] if parts else self.name
+            )
         elif name_format == "family_initial":
             initial = f"{first[0]}." if first else ""
             parts = [p for p in [last, initial] if p]
-            return ", ".join(parts) if len(parts) > 1 else parts[0] if parts else self.name
+            return (
+                ", ".join(parts) if len(parts) > 1 else parts[0] if parts else self.name
+            )
         elif name_format == "initials_family":
             initial = f"{first[0]}." if first else ""
             parts = [p for p in [initial, last] if p]
@@ -676,7 +725,9 @@ class Person(AbstractUser, Contributor):
         if person and person.pk:
             orcid_identifier = person.identifiers.filter(type="ORCID").first()
             if orcid_identifier:
-                transaction.on_commit(lambda: sync_contributor_identifier.delay(orcid_identifier.pk))
+                transaction.on_commit(
+                    lambda: sync_contributor_identifier.delay(orcid_identifier.pk)
+                )
 
         return person
 
@@ -706,7 +757,9 @@ class Person(AbstractUser, Contributor):
     @cached_property
     def is_data_admin(self):
         """Check if the contributor is a data administrator."""
-        return self.is_superuser or self.groups.filter(name="Data Administrators").exists()
+        return (
+            self.is_superuser or self.groups.filter(name="Data Administrators").exists()
+        )
 
     def get_location_display(self):
         """Get a human-readable location string."""
@@ -769,18 +822,24 @@ class Affiliation(models.Model):
         _("type"),
         choices=MembershipType,
         default=MembershipType.MEMBER,
-        help_text=_("The verification state / role of the person within the organization."),
+        help_text=_(
+            "The verification state / role of the person within the organization."
+        ),
     )
 
     is_primary = models.BooleanField(
         _("primary organization"),
         default=False,
-        help_text=_("Denotes whether this is the primary affiliation of the contributor."),
+        help_text=_(
+            "Denotes whether this is the primary affiliation of the contributor."
+        ),
     )
 
     start_date = PartialDateField(
         verbose_name=_("start date"),
-        help_text=_("When the affiliation began. Supports year, year-month, or full date precision."),
+        help_text=_(
+            "When the affiliation began. Supports year, year-month, or full date precision."
+        ),
         null=True,
         blank=True,
     )
@@ -801,7 +860,9 @@ class Affiliation(models.Model):
         """Ensure only one primary affiliation per person."""
         if self.is_primary:
             # Unset other primary affiliations for this person
-            Affiliation.objects.filter(person=self.person, is_primary=True).exclude(pk=self.pk).update(is_primary=False)
+            Affiliation.objects.filter(person=self.person, is_primary=True).exclude(
+                pk=self.pk
+            ).update(is_primary=False)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -825,7 +886,9 @@ class Organization(Contributor):
         through="contributors.Affiliation",
         verbose_name=_("members"),
         related_name="+",
-        help_text=_("A list of personal contributors that are members of the organization."),
+        help_text=_(
+            "A list of personal contributors that are members of the organization."
+        ),
     )
 
     parent = models.ForeignKey(
@@ -895,7 +958,11 @@ class Organization(Contributor):
 
             if not re.match(ror_pattern, ror.value):
                 raise ValidationError(
-                    {"identifiers": _(f"Invalid ROR format: {ror.value}. Expected format: 0xxxxxx00")}
+                    {
+                        "identifiers": _(
+                            f"Invalid ROR format: {ror.value}. Expected format: 0xxxxxx00"
+                        )
+                    }
                 ) from None
 
     @hook(AFTER_CREATE)
@@ -939,7 +1006,9 @@ class Organization(Contributor):
         if commit and org and org.pk:
             ror_identifier = org.identifiers.filter(type="ROR").first()
             if ror_identifier:
-                transaction.on_commit(lambda: sync_contributor_identifier.delay(ror_identifier.pk))
+                transaction.on_commit(
+                    lambda: sync_contributor_identifier.delay(ror_identifier.pk)
+                )
 
         return org
 
@@ -957,7 +1026,11 @@ class Organization(Contributor):
 
     def owner(self):
         """Returns the owner of the organization."""
-        if membership := self.get_memberships().filter(type=Affiliation.MembershipType.OWNER).first():
+        if (
+            membership := self.get_memberships()
+            .filter(type=Affiliation.MembershipType.OWNER)
+            .first()
+        ):
             return membership.person
         return None
 
@@ -1004,7 +1077,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     contributor = models.ForeignKey(
         "contributors.Contributor",
         verbose_name=_("contributor"),
-        help_text=_("The person or organisation that contributed to the project or dataset."),
+        help_text=_(
+            "The person or organisation that contributed to the project or dataset."
+        ),
         related_name="contributions",
         null=True,
         on_delete=models.SET_NULL,
@@ -1019,7 +1094,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     affiliation = models.ForeignKey(
         "contributors.Organization",
         verbose_name=_("affiliation"),
-        help_text=_("The organization that the contributor is affiliated with for this contribution."),
+        help_text=_(
+            "The organization that the contributor is affiliated with for this contribution."
+        ),
         related_name="+",
         null=True,
         blank=True,
@@ -1044,15 +1121,23 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         if roles:
             from research_vocabs.models import Concept
 
-            roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles", name__in=roles)
+            roles_qs = Concept.objects.filter(
+                vocabulary__name="fairdm-roles", name__in=roles
+            )
             contribution.roles.set(roles_qs)
         return contribution
 
     def save(self, *args, **kwargs):
-        if self.contributor.type_of == Person and self.contributor.is_superuser and settings.DEBUG is False:
+        if (
+            self.contributor.type_of == Person
+            and self.contributor.is_superuser
+            and settings.DEBUG is False
+        ):
             # disallow superusers from being contributors
             raise ValueError(
-                _("Superusers cannot be contributors. Please remove the superuser status or use a different account.")
+                _(
+                    "Superusers cannot be contributors. Please remove the superuser status or use a different account."
+                )
             )
 
         return super().save(*args, **kwargs)
@@ -1106,7 +1191,10 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     def get_update_url(self):
         related_name = self.content_object._meta.model_name
         letter = related_name[0]
-        return reverse("contribution-update", kwargs={"uuid": self.content_object.uuid, "model": letter})
+        return reverse(
+            "contribution-update",
+            kwargs={"uuid": self.content_object.uuid, "model": letter},
+        )
 
 
 class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
@@ -1128,7 +1216,9 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
 
                 sync_contributor_identifier.delay(self.pk)
             except Exception as e:
-                logger.warning(f"Failed to dispatch sync task for identifier {self.pk}: {e}")
+                logger.warning(
+                    f"Failed to dispatch sync task for identifier {self.pk}: {e}"
+                )
 
         transaction.on_commit(_dispatch)
 
@@ -1143,7 +1233,9 @@ class ClaimMethod(models.TextChoices):
 
 class ClaimingAuditLogManager(models.Manager):
     def for_person(self, pk):
-        return self.filter(models.Q(source_person_id=pk) | models.Q(target_person_id=pk))
+        return self.filter(
+            models.Q(source_person_id=pk) | models.Q(target_person_id=pk)
+        )
 
     def failures(self):
         return self.filter(success=False)
@@ -1229,7 +1321,9 @@ class ClaimingAuditLog(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValueError("ClaimingAuditLog records are immutable and cannot be updated.")
+            raise ValueError(
+                "ClaimingAuditLog records are immutable and cannot be updated."
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -1244,7 +1338,10 @@ def forwards():
     def get_users_with_multiple_primary_email():
         user_uuids = []
         for email_address_dict in (
-            EmailAddress.objects.filter(primary=True).values("user").annotate(Count("user")).filter(user__count__gt=1)
+            EmailAddress.objects.filter(primary=True)
+            .values("user")
+            .annotate(Count("user"))
+            .filter(user__count__gt=1)
         ):
             user_uuids.append(email_address_dict["user"])
         return User.objects.filter(uuid__in=user_uuids)

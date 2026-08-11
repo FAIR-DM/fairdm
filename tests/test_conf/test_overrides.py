@@ -19,7 +19,9 @@ def clean_env():
 
     # Clear Django-related env vars
     for key in list(os.environ.keys()):
-        if key.startswith(("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")):
+        if key.startswith(
+            ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+        ):
             del os.environ[key]
 
     # Set minimal production environment
@@ -250,10 +252,15 @@ fairdm.setup(env_file='{custom_env_posix}')
         spec.loader.exec_module(test_settings)
 
         # Verify custom env file values were loaded
-        assert test_settings.SECRET_KEY == "custom_secret_key_from_file_123456789012345678901234567890"
+        assert (
+            test_settings.SECRET_KEY
+            == "custom_secret_key_from_file_123456789012345678901234567890"
+        )
         assert "custom.example.com" in test_settings.ALLOWED_HOSTS
 
-    @pytest.mark.skip(reason="Windows path escaping issue in dynamically generated settings file")
+    @pytest.mark.skip(
+        reason="Windows path escaping issue in dynamically generated settings file"
+    )
     def test_env_file_takes_precedence(self, clean_env, tmp_path):
         """Test that env_file values override base environment."""
         pass
@@ -291,4 +298,7 @@ fairdm.setup(env_file="{custom_env}")
         spec.loader.exec_module(test_settings)
 
         # env_file value should override base environment
-        assert test_settings.SECRET_KEY == "override_secret_key_from_file_1234567890123456789012345"
+        assert (
+            test_settings.SECRET_KEY
+            == "override_secret_key_from_file_1234567890123456789012345"
+        )

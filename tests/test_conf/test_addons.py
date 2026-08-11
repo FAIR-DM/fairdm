@@ -17,7 +17,9 @@ def addon_env():
 
     # Clear Django-related env vars
     for key in list(os.environ.keys()):
-        if key.startswith(("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")):
+        if key.startswith(
+            ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+        ):
             del os.environ[key]
 
     # Set minimal development environment (for graceful handling)
@@ -74,7 +76,9 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
             # Verify addon app was added to INSTALLED_APPS
             assert "tests.test_conf.dummy_addon" in test_settings.INSTALLED_APPS
 
-    @pytest.mark.skip(reason="Windows path escaping issue in dynamically generated settings file")
+    @pytest.mark.skip(
+        reason="Windows path escaping issue in dynamically generated settings file"
+    )
     def test_addon_without_setup_module_logs_warning(self, addon_env, tmp_path, caplog):
         """Test that addon without __fdm_setup_module__ logs a warning."""
         pass
@@ -105,10 +109,17 @@ fairdm.setup(addons=["no_setup_addon"])
                 spec.loader.exec_module(test_settings)
 
             # Check that warning was logged
-            assert any("does not define '__fdm_setup_module__'" in record.message for record in caplog.records)
+            assert any(
+                "does not define '__fdm_setup_module__'" in record.message
+                for record in caplog.records
+            )
 
-    @pytest.mark.skip(reason="Windows path escaping issue in dynamically generated settings file")
-    def test_addon_with_invalid_module_fails_gracefully_in_development(self, addon_env, tmp_path, caplog):
+    @pytest.mark.skip(
+        reason="Windows path escaping issue in dynamically generated settings file"
+    )
+    def test_addon_with_invalid_module_fails_gracefully_in_development(
+        self, addon_env, tmp_path, caplog
+    ):
         """Test that addon with invalid setup module fails gracefully in development."""
         pass
 
@@ -139,7 +150,10 @@ fairdm.setup(addons=["broken_addon"])
                 spec.loader.exec_module(test_settings)
 
             # Should log warning about skipping
-            assert any("skipping in development" in record.message.lower() for record in caplog.records)
+            assert any(
+                "skipping in development" in record.message.lower()
+                for record in caplog.records
+            )
 
     def test_addon_url_discovery(self, addon_env, tmp_path):
         """Test that addon URL configurations are discovered."""
@@ -177,7 +191,9 @@ class TestAddonValidation:
         # Create addon with broken setup module
         addon_dir = tmp_path / "broken_prod_addon"
         addon_dir.mkdir()
-        (addon_dir / "__init__.py").write_text('__fdm_setup_module__ = "broken_prod_addon.nonexistent"')
+        (addon_dir / "__init__.py").write_text(
+            '__fdm_setup_module__ = "broken_prod_addon.nonexistent"'
+        )
 
         settings_file = tmp_path / "settings.py"
         settings_file.write_text(

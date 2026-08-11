@@ -68,7 +68,9 @@ class BaseTransform:
         """
         raise NotImplementedError(f"{self.__class__.__name__} must implement export()")
 
-    def import_data(self, data: dict, instance: Contributor | None = None, save: bool = True) -> Contributor:
+    def import_data(
+        self, data: dict, instance: Contributor | None = None, save: bool = True
+    ) -> Contributor:
         """
         Import external format data into a Contributor instance.
 
@@ -83,7 +85,9 @@ class BaseTransform:
         Raises:
             NotImplementedError: Subclasses must implement this method
         """
-        raise NotImplementedError(f"{self.__class__.__name__} must implement import_data()")
+        raise NotImplementedError(
+            f"{self.__class__.__name__} must implement import_data()"
+        )
 
     def validate(self, data: dict) -> bool:
         """
@@ -119,7 +123,11 @@ class DataCiteTransform(BaseTransform):
         """
         data = {
             "name": contributor.name,
-            "nameType": ("Organizational" if isinstance(contributor, Organization) else "Personal"),
+            "nameType": (
+                "Organizational"
+                if isinstance(contributor, Organization)
+                else "Personal"
+            ),
         }
 
         # Add name identifiers (ORCID/ROR)
@@ -129,7 +137,9 @@ class DataCiteTransform(BaseTransform):
                 {
                     "nameIdentifier": default_id.value,
                     "nameIdentifierScheme": default_id.type,
-                    "schemeURI": (default_id.get_url() if hasattr(default_id, "get_url") else None),
+                    "schemeURI": (
+                        default_id.get_url() if hasattr(default_id, "get_url") else None
+                    ),
                 }
             )
 
@@ -157,7 +167,9 @@ class DataCiteTransform(BaseTransform):
 
         return data
 
-    def import_data(self, data: dict, instance: Contributor | None = None, save: bool = True) -> Contributor:
+    def import_data(
+        self, data: dict, instance: Contributor | None = None, save: bool = True
+    ) -> Contributor:
         """
         Import DataCite creator/contributor data into a Contributor.
 
@@ -281,11 +293,17 @@ class SchemaOrgTransform(BaseTransform):
             data["description"] = contributor.profile
 
         if contributor.links:
-            data["url"] = contributor.links[0] if isinstance(contributor.links, list) else contributor.links
+            data["url"] = (
+                contributor.links[0]
+                if isinstance(contributor.links, list)
+                else contributor.links
+            )
 
         return data
 
-    def import_data(self, data: dict, instance: Contributor | None = None, save: bool = True) -> Contributor:
+    def import_data(
+        self, data: dict, instance: Contributor | None = None, save: bool = True
+    ) -> Contributor:
         """
         Import Schema.org Person/Organization data into a Contributor.
 
@@ -378,12 +396,16 @@ class CSLJSONTransform(BaseTransform):
             data["ORCID"] = f"https://orcid.org/{orcid.value}"
 
         # Add affiliation for persons
-        if isinstance(contributor, Person) and (affiliation := contributor.primary_affiliation()):
+        if isinstance(contributor, Person) and (
+            affiliation := contributor.primary_affiliation()
+        ):
             data["affiliation"] = [{"name": affiliation.organization.name}]
 
         return data
 
-    def import_data(self, data: dict, instance: Contributor | None = None, save: bool = True) -> Contributor:
+    def import_data(
+        self, data: dict, instance: Contributor | None = None, save: bool = True
+    ) -> Contributor:
         """
         Import CSL-JSON author data into a Contributor.
 
@@ -400,7 +422,9 @@ class CSLJSONTransform(BaseTransform):
 
         # Try to find existing contributor by ORCID
         if instance is None and (orcid := data.get("ORCID")):
-            orcid_value = orcid.split("orcid.org/")[-1] if "orcid.org/" in orcid else orcid
+            orcid_value = (
+                orcid.split("orcid.org/")[-1] if "orcid.org/" in orcid else orcid
+            )
             instance = Contributor.objects.filter(
                 identifiers__type="ORCID",
                 identifiers__value=orcid_value,
@@ -423,7 +447,9 @@ class CSLJSONTransform(BaseTransform):
             if orcid := data.get("ORCID"):
                 from fairdm.contrib.contributors.models import ContributorIdentifier
 
-                orcid_value = orcid.split("orcid.org/")[-1] if "orcid.org/" in orcid else orcid
+                orcid_value = (
+                    orcid.split("orcid.org/")[-1] if "orcid.org/" in orcid else orcid
+                )
                 ContributorIdentifier.objects.update_or_create(
                     type="ORCID",
                     value=orcid_value,
@@ -473,7 +499,9 @@ class ORCIDTransform(BaseTransform):
                     stacklevel=2,
                 )
             elif 500 <= response.status_code < 600:
-                warnings.warn(f"Server error {response.status_code} from ORCID API.", stacklevel=2)
+                warnings.warn(
+                    f"Server error {response.status_code} from ORCID API.", stacklevel=2
+                )
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -510,29 +538,47 @@ class ORCIDTransform(BaseTransform):
             },
             "person": {
                 "name": {
-                    "credit-name": ({"value": contributor.name} if contributor.name else None),
-                    "given-names": ({"value": contributor.first_name} if contributor.first_name else None),
-                    "family-name": ({"value": contributor.last_name} if contributor.last_name else None),
+                    "credit-name": (
+                        {"value": contributor.name} if contributor.name else None
+                    ),
+                    "given-names": (
+                        {"value": contributor.first_name}
+                        if contributor.first_name
+                        else None
+                    ),
+                    "family-name": (
+                        {"value": contributor.last_name}
+                        if contributor.last_name
+                        else None
+                    ),
                 },
-                "biography": ({"content": contributor.profile} if contributor.profile else None),
+                "biography": (
+                    {"content": contributor.profile} if contributor.profile else None
+                ),
             },
         }
 
         # Add alternative names
         if contributor.alternative_names:
             data["person"]["other-names"] = {
-                "other-name": [{"content": name} for name in contributor.alternative_names]
+                "other-name": [
+                    {"content": name} for name in contributor.alternative_names
+                ]
             }
 
         # Add researcher URLs
         if contributor.links:
             data["person"]["researcher-urls"] = {
-                "researcher-url": [{"url": {"value": link}} for link in contributor.links]
+                "researcher-url": [
+                    {"url": {"value": link}} for link in contributor.links
+                ]
             }
 
         return data
 
-    def import_data(self, data: dict, instance: Person | None = None, save: bool = True) -> Person:
+    def import_data(
+        self, data: dict, instance: Person | None = None, save: bool = True
+    ) -> Person:
         """
         Import ORCID API data into a Person instance.
 
@@ -553,8 +599,12 @@ class ORCIDTransform(BaseTransform):
 
         # Extract name fields
         person.name = self.dictget(data, ["person", "name", "credit-name", "value"])
-        person.first_name = self.dictget(data, ["person", "name", "given-names", "value"])
-        person.last_name = self.dictget(data, ["person", "name", "family-name", "value"])
+        person.first_name = self.dictget(
+            data, ["person", "name", "given-names", "value"]
+        )
+        person.last_name = self.dictget(
+            data, ["person", "name", "family-name", "value"]
+        )
 
         # If name is not set, compute it from first/last name
         if not person.name:
@@ -563,11 +613,15 @@ class ORCIDTransform(BaseTransform):
         person.profile = self.dictget(data, ["person", "biography", "content"])
 
         # Extract alternative names
-        if other_names := self.dictget(data, ["person", "other-names", "other-name"], []):
+        if other_names := self.dictget(
+            data, ["person", "other-names", "other-name"], []
+        ):
             person.alternative_names = [name["content"] for name in other_names]
 
         # Extract researcher URLs
-        if links := self.dictget(data, ["person", "researcher-urls", "researcher-url"], []):
+        if links := self.dictget(
+            data, ["person", "researcher-urls", "researcher-url"], []
+        ):
             person.links = [link["url"]["value"] for link in links]
 
         if save:
@@ -586,7 +640,9 @@ class ORCIDTransform(BaseTransform):
         return person
 
     @classmethod
-    def update_or_create(cls, orcid: str, force: bool = False, **kwargs) -> tuple[Person, bool]:
+    def update_or_create(
+        cls, orcid: str, force: bool = False, **kwargs
+    ) -> tuple[Person, bool]:
         """
         Update an existing Person or create a new one using ORCID data.
 
@@ -613,7 +669,11 @@ class ORCIDTransform(BaseTransform):
         try:
             obj = Person.objects.get(Q(**kwargs) | Q(identifiers__value=orcid))
             # Only fetch new data if last_synced is None or more than 1 day ago, unless force is True
-            if force or not obj.last_synced or obj.last_synced < timezone.now().date() - timedelta(days=1):
+            if (
+                force
+                or not obj.last_synced
+                or obj.last_synced < timezone.now().date() - timedelta(days=1)
+            ):
                 orcid_data = cls.fetch_from_api(orcid)
                 person = cls().import_data(orcid_data, instance=obj, save=True)
             else:
@@ -710,7 +770,9 @@ class RORTransform(BaseTransform):
                     stacklevel=2,
                 )
             elif 500 <= response.status_code < 600:
-                warnings.warn(f"Server error {response.status_code} from ROR API.", stacklevel=2)
+                warnings.warn(
+                    f"Server error {response.status_code} from ROR API.", stacklevel=2
+                )
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -749,8 +811,12 @@ class RORTransform(BaseTransform):
 
         # Add aliases and acronyms
         if contributor.alternative_names:
-            data["aliases"] = [name for name in contributor.alternative_names if len(name) > 5]
-            data["acronyms"] = [name for name in contributor.alternative_names if len(name) <= 5]
+            data["aliases"] = [
+                name for name in contributor.alternative_names if len(name) > 5
+            ]
+            data["acronyms"] = [
+                name for name in contributor.alternative_names if len(name) <= 5
+            ]
 
         # Add location data
         addresses = []
@@ -778,7 +844,9 @@ class RORTransform(BaseTransform):
 
         return data
 
-    def import_data(self, data: dict, instance: Organization | None = None, save: bool = True) -> Organization:
+    def import_data(
+        self, data: dict, instance: Organization | None = None, save: bool = True
+    ) -> Organization:
         """
         Import ROR API data into an Organization instance.
 
@@ -791,7 +859,11 @@ class RORTransform(BaseTransform):
             Organization: Created or updated Organization instance
         """
         # Extract ROR ID from URL
-        ror_id = self.dictget(data, ["id"]).split("/")[-1] if self.dictget(data, ["id"]) else None
+        ror_id = (
+            self.dictget(data, ["id"]).split("/")[-1]
+            if self.dictget(data, ["id"])
+            else None
+        )
 
         # Create or use provided instance
         org = instance or Organization()
@@ -799,7 +871,9 @@ class RORTransform(BaseTransform):
         org.name = self.dictget(data, ["name"])
 
         # Combine aliases and acronyms
-        org.alternative_names = self.dictget(data, ["aliases"], []) + self.dictget(data, ["acronyms"], [])
+        org.alternative_names = self.dictget(data, ["aliases"], []) + self.dictget(
+            data, ["acronyms"], []
+        )
 
         # Set location fields
         org.city = self.dictget(data, ["addresses", 0, "city"])
@@ -837,7 +911,9 @@ class RORTransform(BaseTransform):
         return org
 
     @classmethod
-    def update_or_create(cls, ror_id: str, force: bool = False, **kwargs) -> tuple[Organization, bool]:
+    def update_or_create(
+        cls, ror_id: str, force: bool = False, **kwargs
+    ) -> tuple[Organization, bool]:
         """
         Update an existing Organization or create a new one using ROR data.
 
@@ -866,7 +942,11 @@ class RORTransform(BaseTransform):
         try:
             obj = Organization.objects.get(Q(**kwargs) | Q(identifiers__value=clean_id))
             # Only fetch new data if last_synced is None or more than 1 day ago, unless force is True
-            if force or not obj.last_synced or obj.last_synced < timezone.now().date() - timedelta(days=1):
+            if (
+                force
+                or not obj.last_synced
+                or obj.last_synced < timezone.now().date() - timedelta(days=1)
+            ):
                 ror_data = cls.fetch_from_api(clean_id)
                 org = cls().import_data(ror_data, instance=obj, save=True)
             else:

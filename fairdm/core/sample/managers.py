@@ -151,7 +151,9 @@ class SampleQuerySet(PolymorphicQuerySet):
 
             # Get all samples that have current level samples as sources
             next_level = set(
-                SampleRelation.objects.filter(source_id__in=current_level).values_list("target_id", flat=True)
+                SampleRelation.objects.filter(source_id__in=current_level).values_list(
+                    "target_id", flat=True
+                )
             )
 
             # Remove any samples we've already seen to prevent cycles
@@ -199,7 +201,9 @@ class SampleQuerySet(PolymorphicQuerySet):
 
             # Get all samples that have current level samples as targets
             next_level = set(
-                SampleRelation.objects.filter(target_id__in=current_level).values_list("source_id", flat=True)
+                SampleRelation.objects.filter(target_id__in=current_level).values_list(
+                    "source_id", flat=True
+                )
             )
 
             # Remove any samples we've already seen to prevent cycles
