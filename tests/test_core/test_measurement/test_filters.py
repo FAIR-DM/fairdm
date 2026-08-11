@@ -52,7 +52,9 @@ class TestMeasurementFilterDatasetFiltering:
         )
 
         # Filter by dataset1
-        filterset = MeasurementFilter(data={"dataset": dataset1.id}, queryset=XRFMeasurement.objects.all())
+        filterset = MeasurementFilter(
+            data={"dataset": dataset1.id}, queryset=XRFMeasurement.objects.all()
+        )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
         assert measurement2 not in filterset.qs
@@ -84,7 +86,9 @@ class TestMeasurementFilterSampleFiltering:
         )
 
         # Filter by sample1
-        filterset = MeasurementFilter(data={"sample": sample1.id}, queryset=XRFMeasurement.objects.all())
+        filterset = MeasurementFilter(
+            data={"sample": sample1.id}, queryset=XRFMeasurement.objects.all()
+        )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
         assert measurement2 not in filterset.qs
@@ -122,13 +126,17 @@ class TestMeasurementFilterPolymorphicTypeFiltering:
         # Filter by XRFMeasurement type
         from fairdm.core.measurement.models import Measurement
 
-        filterset = MeasurementFilter(data={"polymorphic_ctype": xrf_ct.id}, queryset=Measurement.objects.all())
+        filterset = MeasurementFilter(
+            data={"polymorphic_ctype": xrf_ct.id}, queryset=Measurement.objects.all()
+        )
         assert filterset.is_valid()
         assert xrf_measurement in filterset.qs
         assert icpms_measurement not in filterset.qs
 
         # Filter by ICP_MS_Measurement type
-        filterset = MeasurementFilter(data={"polymorphic_ctype": icpms_ct.id}, queryset=Measurement.objects.all())
+        filterset = MeasurementFilter(
+            data={"polymorphic_ctype": icpms_ct.id}, queryset=Measurement.objects.all()
+        )
         assert filterset.is_valid()
         assert icpms_measurement in filterset.qs
         assert xrf_measurement not in filterset.qs
@@ -165,7 +173,9 @@ class TestMeasurementFilterSearchFunctionality:
         )
 
         # Search by name
-        filterset = MeasurementFilter(data={"search": "Iron"}, queryset=XRFMeasurement.objects.all())
+        filterset = MeasurementFilter(
+            data={"search": "Iron"}, queryset=XRFMeasurement.objects.all()
+        )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
         assert measurement2 not in filterset.qs
@@ -173,7 +183,9 @@ class TestMeasurementFilterSearchFunctionality:
 
         # Search by UUID (partial match)
         uuid_str = str(measurement2.uuid)[:8]
-        filterset = MeasurementFilter(data={"search": uuid_str}, queryset=XRFMeasurement.objects.all())
+        filterset = MeasurementFilter(
+            data={"search": uuid_str}, queryset=XRFMeasurement.objects.all()
+        )
         assert filterset.is_valid()
         assert measurement2 in filterset.qs
 
@@ -222,7 +234,9 @@ class TestMeasurementFilterCrossRelationshipFiltering:
         assert measurement1 in filterset.qs
         assert measurement2 not in filterset.qs
 
-    @pytest.mark.skip(reason="PartialDateField filtering requires investigation - field validation complex")
+    @pytest.mark.skip(
+        reason="PartialDateField filtering requires investigation - field validation complex"
+    )
     def test_filter_by_date_range(self, user, project, dataset):
         """Test filtering measurements by associated date ranges."""
 
@@ -252,9 +266,15 @@ class TestMeasurementFilterCrossRelationshipFiltering:
         )
 
         # Add dates (PartialDateField expects string format)
-        MeasurementDate.objects.create(related=measurement1, type="analysis", value="2024-01-15")
-        MeasurementDate.objects.create(related=measurement2, type="analysis", value="2024-02-20")
-        MeasurementDate.objects.create(related=measurement3, type="analysis", value="2024-03-10")
+        MeasurementDate.objects.create(
+            related=measurement1, type="analysis", value="2024-01-15"
+        )
+        MeasurementDate.objects.create(
+            related=measurement2, type="analysis", value="2024-02-20"
+        )
+        MeasurementDate.objects.create(
+            related=measurement3, type="analysis", value="2024-03-10"
+        )
 
         # Filter by date_after
         filterset = MeasurementFilter(
@@ -333,7 +353,9 @@ class TestMeasurementFilterMixinUsage:
 
         # Create a custom filter class that inherits from the mixin
         class CustomXRFFilter(MeasurementFilterMixin, django_filters.FilterSet):
-            element = django_filters.CharFilter(field_name="element", lookup_expr="icontains")
+            element = django_filters.CharFilter(
+                field_name="element", lookup_expr="icontains"
+            )
 
             class Meta(MeasurementFilterMixin.Meta):
                 model = XRFMeasurement
@@ -358,7 +380,9 @@ class TestMeasurementFilterMixinUsage:
         )
 
         # Use custom filter
-        filterset = CustomXRFFilter(data={"dataset": dataset.id}, queryset=XRFMeasurement.objects.all())
+        filterset = CustomXRFFilter(
+            data={"dataset": dataset.id}, queryset=XRFMeasurement.objects.all()
+        )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
         assert measurement2 in filterset.qs

@@ -62,7 +62,9 @@ class TestPagination:
         assert data["previous"] is not None
 
     def test_last_page_has_no_next_link(self, api_client, many_public_projects):
-        response = api_client.get(reverse("api:project-list"), {"page": 2, "page_size": 25})
+        response = api_client.get(
+            reverse("api:project-list"), {"page": 2, "page_size": 25}
+        )
         data = response.json()
         # Page 2 with page_size=25 should be the last page (5 items)
         assert data["next"] is None
@@ -76,7 +78,9 @@ class TestPagination:
         data = response.json()
         assert data["count"] == public_count
 
-    def test_count_increases_for_authenticated_user_with_permissions(self, authenticated_client, user, db):
+    def test_count_increases_for_authenticated_user_with_permissions(
+        self, authenticated_client, user, db
+    ):
         """Authenticated user with guardian view permission sees private records."""
         from guardian.shortcuts import assign_perm
 

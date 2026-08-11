@@ -96,7 +96,9 @@ class Config:
 
     fieldsets: list[Any] = []
 
-    def __init__(self, model_class: type[Any], fairdm: Any, inherited: dict, app_config: Any):
+    def __init__(
+        self, model_class: type[Any], fairdm: Any, inherited: dict, app_config: Any
+    ):
         """
         Initializes the Config instance.
 
@@ -249,7 +251,9 @@ class Metadata:
     """
 
     def __init__(self, model_class, new_meta, old_meta, app_config):
-        self.name: str = getattr(new_meta, "name", None) or getattr(model_class._meta, "verbose_name", None)
+        self.name: str = getattr(new_meta, "name", None) or getattr(
+            model_class._meta, "verbose_name", None
+        )
         self.name_plural: str = getattr(new_meta, "name_plural", None) or getattr(
             model_class._meta, "verbose_name_plural", None
         )
@@ -258,13 +262,15 @@ class Metadata:
             raise ValueError("Metadata description is required")
         self.description: str = new_meta.description
 
-        self.authority: Authority | None = getattr(new_meta, "authority", None) or getattr(
-            app_config, "authority", None
-        )
+        self.authority: Authority | None = getattr(
+            new_meta, "authority", None
+        ) or getattr(app_config, "authority", None)
         if self.authority is not None and not isinstance(self.authority, Authority):
             raise ValueError("Metadata item `authority` must be an Authority instance.")
 
-        self.maintainer: str = getattr(new_meta, "maintainer", None) or getattr(app_config, "maintainer", None)
+        self.maintainer: str = getattr(new_meta, "maintainer", None) or getattr(
+            app_config, "maintainer", None
+        )
 
         self.repository_url: str = getattr(new_meta, "repository_url", None) or getattr(
             app_config, "repository_url", None
@@ -274,7 +280,9 @@ class Metadata:
                 "Metadata item `repository_url` is required and must be defined in the model FairDM class or the applications AppConfig."
             )
 
-        self.keywords: list[Concept] = getattr(new_meta, "keywords", []) + getattr(app_config, "keywords", [])
+        self.keywords: list[Concept] = getattr(new_meta, "keywords", []) + getattr(
+            app_config, "keywords", []
+        )
         if getattr(old_meta, "keywords", None):
             self.keywords += old_meta.keywords
 
@@ -298,14 +306,20 @@ class Metadata:
             dict: A dictionary representation of the metadata.
         """
         # Manually handle citation to ensure it's a list of dictionaries
-        citations = [citation.as_dict() if isinstance(citation, Citation) else citation for citation in self.citation]
+        citations = [
+            citation.as_dict() if isinstance(citation, Citation) else citation
+            for citation in self.citation
+        ]
 
         return {
             "name": self.name,
             "name_plural": self.name_plural,
             "description": self.description,
             "authority": self.authority.as_dict() if self.authority else None,
-            "keywords": [keyword.as_dict() if isinstance(keyword, Concept) else keyword for keyword in self.keywords],
+            "keywords": [
+                keyword.as_dict() if isinstance(keyword, Concept) else keyword
+                for keyword in self.keywords
+            ],
             "repository_url": self.repository_url,
             "maintainer": self.maintainer,
             "citation": citations,
@@ -413,7 +427,9 @@ class FairDMBase(PolymorphicModelBase):
 
         # If FairDM is provided, merge configurations into the new class
         if fairdm:
-            options = FairDMOptions(new_class, fairdm, inherited_config, AppLevelConfig(app_config))
+            options = FairDMOptions(
+                new_class, fairdm, inherited_config, AppLevelConfig(app_config)
+            )
             new_class.add_to_class("_fairdm", options)
 
         return new_class

@@ -357,7 +357,7 @@ class Sample(LifecycleModel):
 ## Next Steps
 
 - **[Understand the contribution workflow](getting_started.md)**: Learn how to create issues, branches, and pull requests
-- **[Review the FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/.specify/memory/constitution.md)**: Align your contributions with FairDM's core principles
+- **[Review the FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md)**: Align your contributions with FairDM's core principles
 
 ```{seealso}
 **Frontend Development**: If you're working on templates or JavaScript, see [Frontend Development Guide](frontend_dev.md) for additional quality gates (djlint, ESLint, etc.).

@@ -306,7 +306,9 @@ class TestMeasurementFactories:
     def test_measurement_description_factory(self):
         """Test MeasurementDescriptionFactory creates valid descriptions."""
         measurement = MeasurementFactory()
-        description = MeasurementDescriptionFactory(related=measurement, type="Abstract")
+        description = MeasurementDescriptionFactory(
+            related=measurement, type="Abstract"
+        )
 
         assert isinstance(description, MeasurementDescription)
         assert description.pk is not None

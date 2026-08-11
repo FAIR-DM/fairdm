@@ -22,7 +22,9 @@ class TestDatasetDescriptionValidation:
     def test_create_description_with_valid_type(self):
         """Can create description with valid description_type."""
         dataset = DatasetFactory()
-        description = DatasetDescription.objects.create(related=dataset, type="Abstract", value="This is an abstract")
+        description = DatasetDescription.objects.create(
+            related=dataset, type="Abstract", value="This is an abstract"
+        )
 
         assert description.pk is not None
         assert description.description_type == "Abstract"
@@ -30,7 +32,9 @@ class TestDatasetDescriptionValidation:
     def test_description_type_vocabulary_validation(self):
         """description_type must be from predefined vocabulary."""
         dataset = DatasetFactory()
-        description = DatasetDescription(related=dataset, type="InvalidType", value="Test description")
+        description = DatasetDescription(
+            related=dataset, type="InvalidType", value="Test description"
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             description.full_clean()
@@ -45,7 +49,9 @@ class TestDatasetDescriptionValidation:
 
         # Test all types from Dataset.DESCRIPTION_TYPES.choices
         for type_code, _type_label in Dataset.DESCRIPTION_TYPES.choices:
-            description = DatasetDescription(related=dataset, type=type_code, value=f"Test {type_code}")
+            description = DatasetDescription(
+                related=dataset, type=type_code, value=f"Test {type_code}"
+            )
             description.full_clean()  # Should not raise
 
     def test_description_field_required(self):
@@ -77,16 +83,22 @@ class TestDatasetDescriptionValidation:
         """Dataset can have only one description per type (unique_together constraint)."""
         dataset = DatasetFactory()
 
-        DatasetDescription.objects.create(related=dataset, type="Methods", value="Method 1")
+        DatasetDescription.objects.create(
+            related=dataset, type="Methods", value="Method 1"
+        )
 
         # Attempt to create duplicate description with same type should fail
         with pytest.raises(IntegrityError):
-            DatasetDescription.objects.create(related=dataset, type="Methods", value="Method 2")
+            DatasetDescription.objects.create(
+                related=dataset, type="Methods", value="Method 2"
+            )
 
     def test_cascade_delete_with_dataset(self):
         """Deleting dataset deletes associated descriptions."""
         dataset = DatasetFactory()
-        DatasetDescription.objects.create(related=dataset, type="Abstract", value="Test")
+        DatasetDescription.objects.create(
+            related=dataset, type="Abstract", value="Test"
+        )
 
         dataset_id = dataset.pk
         dataset.delete()

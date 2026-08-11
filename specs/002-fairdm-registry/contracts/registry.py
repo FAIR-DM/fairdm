@@ -48,7 +48,9 @@ class FairDMRegistryProtocol(Protocol):
                 print(f"Sample: {model.__name__}")
     """
 
-    def register(self, config_class: type["ModelConfigurationProtocol"]) -> type["ModelConfigurationProtocol"]:
+    def register(
+        self, config_class: type["ModelConfigurationProtocol"]
+    ) -> type["ModelConfigurationProtocol"]:
         """Register a ModelConfiguration class via decorator.
 
         This method is designed to be used as a decorator on ModelConfiguration
@@ -209,7 +211,9 @@ class RegistryDecoratorProtocol(Protocol):
     Currently only the direct decorator pattern is used.
     """
 
-    def __call__(self, config_class: type["ModelConfigurationProtocol"]) -> type["ModelConfigurationProtocol"]:
+    def __call__(
+        self, config_class: type["ModelConfigurationProtocol"]
+    ) -> type["ModelConfigurationProtocol"]:
         """Decorator function for registering configuration classes.
 
         Args:

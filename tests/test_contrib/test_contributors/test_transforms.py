@@ -62,7 +62,12 @@ class TestDataCitePersonExport:
             "givenName": "Jane",
             "familyName": "Doe",
             "nameType": "Personal",
-            "nameIdentifiers": [{"nameIdentifier": "0000-0002-1234-5678", "nameIdentifierScheme": "ORCID"}],
+            "nameIdentifiers": [
+                {
+                    "nameIdentifier": "0000-0002-1234-5678",
+                    "nameIdentifierScheme": "ORCID",
+                }
+            ],
         }
 
         person = transform.import_data(datacite_data)
@@ -88,7 +93,9 @@ class TestSchemaOrgOrganizationExport:
         assert schema_org_data["@type"] == "Organization"
         assert schema_org_data["name"] == organization.name
 
-    def test_schema_org_export_organization_with_ror(self, organization, ror_identifier):
+    def test_schema_org_export_organization_with_ror(
+        self, organization, ror_identifier
+    ):
         """Organization with ROR exports with @id identifier."""
         transform = SchemaOrgTransform()
         schema_org_data = transform.export(organization)

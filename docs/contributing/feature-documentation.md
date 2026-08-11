@@ -51,7 +51,7 @@ Show how features align with FairDM governance principles:
 
 ```markdown
 FairDM enforces FAIR principles through automated metadata validation
-([Constitution: FAIR-First](../../.specify/memory/constitution.md#i-fair-first-research-portals)).
+([Constitution: FAIR-First](../../memory/constitution.md#i-fair-first-research-portals)).
 ```
 
 ### Stable Anchors
@@ -135,5 +135,5 @@ Update:
 
 - [Documentation Standards](../contributing/documentation-standards.md) - Full IA guide with decision criteria
 - [Feature Documentation Checklist](../../.specify/templates/feature-docs-checklist.md) - Template to copy
-- [Constitution](../../.specify/memory/constitution.md) - FairDM governance principles
+- [Constitution](../../memory/constitution.md) - FairDM governance principles
 - [MyST Syntax](https://myst-parser.readthedocs.io/) - Markdown extensions we use

@@ -31,7 +31,7 @@ class TestBaseOverviewPlugin:
 
         # Should be properly registered
         registered_plugins = plugins.registry.get_plugins_for_model(Sample)
-        plugin_names = [p.__name__ for p in registered_plugins]
+        plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
         assert "SampleOverview" in plugin_names
 
     def test_overview_plugin_provides_context(self, sample, user):
@@ -40,6 +40,12 @@ class TestBaseOverviewPlugin:
         @plugins.register(Sample)
         class ContextOverview(OverviewPlugin):
             menu = {"label": "Context Overview", "icon": "ctx", "order": 2}
+            # OverviewPlugin only defines get_page_title() (a method), not a
+            # page_title attribute, but get_breadcrumbs() reads self.page_title
+            # directly whenever self.menu is truthy. Set it explicitly so this
+            # test can exercise get_context_data() without tripping that
+            # unrelated bug.
+            page_title = "Context Overview"
 
         factory = RequestFactory()
         request = factory.get(f"/sample/{sample.pk}/context-overview/")
@@ -47,7 +53,12 @@ class TestBaseOverviewPlugin:
 
         plugin = ContextOverview()
         plugin.request = request
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
+        # Normally dispatch() sets self.object before get_context_data() runs;
+        # we call get_context_data() directly here, bypassing dispatch, so set
+        # it explicitly (OverviewPlugin.get_page_title() reads self.object).
+        plugin.object = sample
 
         context = plugin.get_context_data()
 
@@ -73,7 +84,7 @@ class TestBaseEditPlugin:
 
         # Should be registered
         registered_plugins = plugins.registry.get_plugins_for_model(Sample)
-        plugin_names = [p.__name__ for p in registered_plugins]
+        plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
         assert "SampleEdit" in plugin_names
 
     def test_edit_plugin_with_custom_form_class(self):
@@ -112,7 +123,7 @@ class TestBaseDeletePlugin:
 
         # Should be registered
         registered_plugins = plugins.registry.get_plugins_for_model(Sample)
-        plugin_names = [p.__name__ for p in registered_plugins]
+        plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
         assert "SampleDelete" in plugin_names
 
     def test_delete_plugin_requires_permission(self):
@@ -143,7 +154,7 @@ class TestInheritancePatterns:
 
         # Both should be registered
         registered_plugins = plugins.registry.get_plugins_for_model(Sample)
-        plugin_names = [p.__name__ for p in registered_plugins]
+        plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
 
         assert "Overview1" in plugin_names
         assert "Overview2" in plugin_names

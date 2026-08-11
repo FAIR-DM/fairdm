@@ -78,7 +78,10 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
                 return True
             # Cascaded visibility via parent Dataset (Sample, Measurement)
             parent = getattr(obj, "dataset", None)
-            if parent is not None and getattr(parent, "visibility", None) == Visibility.PUBLIC:
+            if (
+                parent is not None
+                and getattr(parent, "visibility", None) == Visibility.PUBLIC
+            ):
                 return True
             # For private objects, check object-level permission
             if not request.user or not request.user.is_authenticated:
@@ -98,16 +101,18 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
         # "private + no perm at all → 404".
         visibility = getattr(obj, "visibility", None)
         parent_vis = getattr(getattr(obj, "dataset", None), "visibility", None)
-        is_publicly_visible = (visibility is not None and visibility == Visibility.PUBLIC) or (
-            parent_vis is not None and parent_vis == Visibility.PUBLIC
-        )
+        is_publicly_visible = (
+            visibility is not None and visibility == Visibility.PUBLIC
+        ) or (parent_vis is not None and parent_vis == Visibility.PUBLIC)
 
         # Check object-level write permission directly via guardian.
         # We intentionally bypass super().has_object_permission() here because
         # DjangoObjectPermissions.has_object_permission() itself raises Http404
         # when the user lacks BOTH write AND read permissions — which would suppress
         # the correct 403 we want for publicly-visible objects.
-        write_perms = self.get_required_object_permissions(request.method, obj.__class__)
+        write_perms = self.get_required_object_permissions(
+            request.method, obj.__class__
+        )
         has_perm = all(request.user.has_perm(perm, obj) for perm in write_perms)
 
         if not has_perm and not is_publicly_visible:

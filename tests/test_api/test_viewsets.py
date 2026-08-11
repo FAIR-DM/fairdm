@@ -42,12 +42,16 @@ class TestProjectListEndpoint:
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(private_project.uuid) not in uuids
 
-    def test_authenticated_sees_public_project(self, authenticated_client, public_project):
+    def test_authenticated_sees_public_project(
+        self, authenticated_client, public_project
+    ):
         response = authenticated_client.get(reverse("api:project-list"))
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(public_project.uuid) in uuids
 
-    def test_authenticated_still_hidden_from_private_without_permission(self, authenticated_client, private_project):
+    def test_authenticated_still_hidden_from_private_without_permission(
+        self, authenticated_client, private_project
+    ):
         response = authenticated_client.get(reverse("api:project-list"))
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(private_project.uuid) not in uuids
@@ -71,7 +75,9 @@ class TestProjectListEndpoint:
         assert names == sorted(names, reverse=True)
 
     def test_unauthenticated_post_returns_401(self, api_client):
-        response = api_client.post(reverse("api:project-list"), {"name": "New Project"}, format="json")
+        response = api_client.post(
+            reverse("api:project-list"), {"name": "New Project"}, format="json"
+        )
         assert response.status_code in (401, 403)
 
 
@@ -101,7 +107,9 @@ class TestProjectDetailEndpoint:
         for field in ("uuid", "name", "visibility"):
             assert field in data
 
-    def test_private_project_returns_404_to_anonymous(self, api_client, private_project):
+    def test_private_project_returns_404_to_anonymous(
+        self, api_client, private_project
+    ):
         url = reverse("api:project-detail", kwargs={"uuid": private_project.uuid})
         response = api_client.get(url)
         assert response.status_code == 404
@@ -149,8 +157,12 @@ class TestDatasetListEndpoint:
             assert field in ds
 
     def test_dataset_ordering_ascending(self, api_client, public_project, db):
-        DatasetFactory(project=public_project, name="A Dataset", visibility=Visibility.PUBLIC)
-        DatasetFactory(project=public_project, name="Z Dataset", visibility=Visibility.PUBLIC)
+        DatasetFactory(
+            project=public_project, name="A Dataset", visibility=Visibility.PUBLIC
+        )
+        DatasetFactory(
+            project=public_project, name="Z Dataset", visibility=Visibility.PUBLIC
+        )
         response = api_client.get(reverse("api:dataset-list"), {"ordering": "name"})
         assert response.status_code == 200
         names = [d["name"] for d in response.json()["results"]]
@@ -171,7 +183,9 @@ class TestDatasetDetailEndpoint:
         response = api_client.get(url)
         assert response.status_code == 200
 
-    def test_private_dataset_returns_404_to_anonymous(self, api_client, private_dataset):
+    def test_private_dataset_returns_404_to_anonymous(
+        self, api_client, private_dataset
+    ):
         url = reverse("api:dataset-detail", kwargs={"uuid": private_dataset.uuid})
         response = api_client.get(url)
         assert response.status_code == 404
@@ -202,7 +216,9 @@ class TestContributorListEndpoint:
 
     def test_post_not_allowed(self, authenticated_client):
         """ContributorViewSet is read-only; POST must be rejected (405 or 403)."""
-        response = authenticated_client.post(reverse("api:contributor-list"), {"name": "New"}, format="json")
+        response = authenticated_client.post(
+            reverse("api:contributor-list"), {"name": "New"}, format="json"
+        )
         # DRF may return 403 (permission denied) before 405 (method not allowed)
         # when object-level permissions fire before method routing.
         assert response.status_code in (403, 405)
@@ -255,7 +271,9 @@ class TestProjectCRUD:
         uuid = post_resp.json()["uuid"]
 
         url = reverse("api:project-detail", kwargs={"uuid": uuid})
-        patch_resp = authenticated_client.patch(url, {"name": "Updated Name"}, format="json")
+        patch_resp = authenticated_client.patch(
+            url, {"name": "Updated Name"}, format="json"
+        )
         assert patch_resp.status_code == 200
         assert patch_resp.json()["name"] == "Updated Name"
 

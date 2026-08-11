@@ -62,12 +62,16 @@ class AutoGenerationFactories:
         from django.forms import ModelForm
 
         # Determine fields to include
-        fields = getattr(config, "detail_fields", None) or getattr(config, "list_fields", None)
+        fields = getattr(config, "detail_fields", None) or getattr(
+            config, "list_fields", None
+        )
         if fields is None:
             # Use all fields except those in private_fields
             private_fields = getattr(config, "private_fields", [])
             fields = [
-                f.name for f in model_class._meta.fields if f.name not in private_fields and not f.name.startswith("_")
+                f.name
+                for f in model_class._meta.fields
+                if f.name not in private_fields and not f.name.startswith("_")
             ]
 
         # Create form using modelform_factory
@@ -96,7 +100,9 @@ class AutoGenerationFactories:
         if not filter_fields:
             # Default filter fields - common filterable fields
             default_fields = ["created", "modified", "name"]
-            filter_fields = [f.name for f in model_class._meta.fields if f.name in default_fields]
+            filter_fields = [
+                f.name for f in model_class._meta.fields if f.name in default_fields
+            ]
 
         # Create filterset using filterset_factory
         filterset_class = filterset_factory(
@@ -125,13 +131,17 @@ class AutoGenerationFactories:
         if not list_fields:
             # Default table fields
             default_fields = ["name", "created", "modified"]
-            list_fields = [f.name for f in model_class._meta.fields if f.name in default_fields]
+            list_fields = [
+                f.name for f in model_class._meta.fields if f.name in default_fields
+            ]
 
         # Always add an actions column
         fields = [*list_fields, "actions"]
 
         # Create table using table_factory
-        table_class = table_factory(model_class, fields=fields, **getattr(config, "table_options", {}))
+        table_class = table_factory(
+            model_class, fields=fields, **getattr(config, "table_options", {})
+        )
 
         # Add actions column for detail link
         if "actions" in fields:

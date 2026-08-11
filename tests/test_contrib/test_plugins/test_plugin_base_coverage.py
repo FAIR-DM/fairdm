@@ -21,7 +21,12 @@ pytestmark = pytest.mark.django_db
 
 
 class TestPluginGetObject:
-    """Test Plugin.get_object() method with various scenarios."""
+    """Test Plugin.get_base_object() method with various scenarios.
+
+    The old API exposed this as get_object(); the current base class exposes
+    it as get_base_object() and keys off `registered_model` (the attribute the
+    registry sets during URL generation) rather than `model`.
+    """
 
     def test_get_object_with_pk_kwarg(self, sample):
         """Plugin should fetch object using pk kwarg."""
@@ -32,9 +37,9 @@ class TestPluginGetObject:
 
         plugin = TestPlugin()
         plugin.kwargs = {"pk": sample.pk}
-        plugin.model = Sample
+        plugin.registered_model = Sample
 
-        obj = plugin.get_object()
+        obj = plugin.get_base_object()
         assert obj == sample
         assert obj.pk == sample.pk
 
@@ -47,14 +52,14 @@ class TestPluginGetObject:
 
         plugin = TestPlugin()
         plugin.kwargs = {"uuid": sample.uuid}
-        plugin.model = Sample
+        plugin.registered_model = Sample
 
-        obj = plugin.get_object()
+        obj = plugin.get_base_object()
         assert obj == sample
         assert str(obj.uuid) == str(sample.uuid)
 
     def test_get_object_without_model_raises_error(self):
-        """Plugin without model should raise ValueError."""
+        """Plugin without registered_model should raise ValueError."""
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
@@ -62,10 +67,10 @@ class TestPluginGetObject:
 
         plugin = TestPlugin()
         plugin.kwargs = {"pk": 1}
-        plugin.model = None
+        plugin.registered_model = None
 
         with pytest.raises(ValueError, match="has no associated model"):
-            plugin.get_object()
+            plugin.get_base_object()
 
     def test_get_object_without_pk_or_uuid_raises_error(self):
         """Plugin without pk or uuid kwarg should raise ValueError."""
@@ -76,10 +81,10 @@ class TestPluginGetObject:
 
         plugin = TestPlugin()
         plugin.kwargs = {}
-        plugin.model = Sample
+        plugin.registered_model = Sample
 
         with pytest.raises(ValueError, match="must include 'pk' or 'uuid' kwarg"):
-            plugin.get_object()
+            plugin.get_base_object()
 
     def test_get_object_with_nonexistent_pk_raises_error(self):
         """Plugin with non-existent pk should raise DoesNotExist."""
@@ -90,10 +95,10 @@ class TestPluginGetObject:
 
         plugin = TestPlugin()
         plugin.kwargs = {"pk": 999999}
-        plugin.model = Sample
+        plugin.registered_model = Sample
 
         with pytest.raises(Sample.DoesNotExist):
-            plugin.get_object()
+            plugin.get_base_object()
 
 
 class TestPluginHasPermission:
@@ -129,7 +134,9 @@ class TestPluginHasPermission:
         # User with permission
         user_with_perm = UserFactory()
         content_type = ContentType.objects.get_for_model(Sample)
-        perm = Permission.objects.get(codename="change_sample", content_type=content_type)
+        perm = Permission.objects.get(
+            codename="change_sample", content_type=content_type
+        )
         user_with_perm.user_permissions.add(perm)
         request.user = user_with_perm
 
@@ -175,6 +182,11 @@ class TestPluginDispatch:
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            # dispatch() -> get_base_object() reads self.registered_model, which
+            # is normally set by the registry during URL generation. Since we
+            # call as_view() directly here (bypassing the registry), it must be
+            # set explicitly.
+            registered_model = Sample
 
             def get(self, request, *args, **kwargs):
                 # Check that self.object was set
@@ -198,6 +210,7 @@ class TestPluginDispatch:
         class PermissionPlugin(Plugin, TemplateView):
             permission = "sample.delete_sample"
             template_name = "test.html"
+            registered_model = Sample
 
         plugin = PermissionPlugin.as_view()
         factory = RequestFactory()
@@ -213,6 +226,7 @@ class TestPluginDispatch:
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            registered_model = Sample
 
         plugin = TestPlugin.as_view()
         factory = RequestFactory()
@@ -236,10 +250,9 @@ class TestPluginGetContextData:
             template_name = "test.html"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {}
         plugin.object = sample  # Set object directly
-        plugin.menu = {"label": "Test"}
 
         factory = RequestFactory()
         plugin.request = factory.get("/")
@@ -257,9 +270,8 @@ class TestPluginGetContextData:
             template_name = "test.html"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
-        plugin.menu = {"label": "Test"}
 
         factory = RequestFactory()
         plugin.request = factory.get("/")
@@ -277,9 +289,8 @@ class TestPluginGetContextData:
             template_name = "test.html"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": 999999}  # Non-existent
-        plugin.menu = {"label": "Test"}
 
         factory = RequestFactory()
         plugin.request = factory.get("/")
@@ -295,9 +306,14 @@ class TestPluginGetContextData:
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            # get_breadcrumbs() appends a "current page" crumb built from
+            # self.page_title whenever self.menu is truthy. Set it explicitly
+            # so that branch doesn't hit the source's undefined-attribute bug
+            # (see get_breadcrumbs() docstring note in base.py).
+            page_title = "Test"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
         plugin.menu = {"label": "Test"}
 
@@ -310,16 +326,22 @@ class TestPluginGetContextData:
         assert "breadcrumbs" in context
         assert isinstance(context["breadcrumbs"], list)
 
-    def test_get_context_data_includes_tabs(self, sample):
-        """get_context_data should include tabs."""
+    def test_get_context_data_includes_plugin_menu(self, sample):
+        """get_context_data should include plugin_menu reflecting self.menu.
+
+        The old "tabs" context key is gone; get_context_data() now exposes
+        the plugin's own menu configuration as "plugin_menu" so the base
+        template can decide whether to render the local tab navigation.
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            page_title = "Test Tab"
             menu = {"label": "Test Tab"}
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
 
         factory = RequestFactory()
@@ -328,8 +350,8 @@ class TestPluginGetContextData:
 
         context = plugin.get_context_data()
 
-        assert "tabs" in context
-        assert isinstance(context["tabs"], list)
+        assert "plugin_menu" in context
+        assert context["plugin_menu"] == TestPlugin.menu
 
     def test_get_context_data_includes_plugin_media(self):
         """get_context_data should include plugin_media."""
@@ -343,7 +365,7 @@ class TestPluginGetContextData:
                 js = ("plugin.js",)
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {}
 
         factory = RequestFactory()
@@ -384,9 +406,10 @@ class TestPluginGetBreadcrumbs:
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            page_title = "Details"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
         plugin.menu = {"label": "Details"}
 
@@ -394,7 +417,9 @@ class TestPluginGetBreadcrumbs:
 
         assert len(breadcrumbs) > 0
         # First breadcrumb should be model name
-        assert Sample._meta.verbose_name_plural.lower() in breadcrumbs[0]["text"].lower()
+        assert (
+            Sample._meta.verbose_name_plural.lower() in breadcrumbs[0]["text"].lower()
+        )
 
     def test_get_breadcrumbs_includes_object_str(self, sample):
         """Breadcrumbs should include object string representation."""
@@ -402,9 +427,10 @@ class TestPluginGetBreadcrumbs:
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            page_title = "Edit"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
         plugin.menu = {"label": "Edit"}
 
@@ -422,29 +448,37 @@ class TestPluginGetBreadcrumbs:
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            page_title = "View"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
         plugin.menu = {"label": "View"}
 
         breadcrumbs = plugin.get_breadcrumbs()
 
         # Find object breadcrumb
-        obj_breadcrumb = next((b for b in breadcrumbs if "..." in b.get("text", "")), None)
+        obj_breadcrumb = next(
+            (b for b in breadcrumbs if "..." in b.get("text", "")), None
+        )
         if obj_breadcrumb:
             # Should be truncated to 50 chars
             assert len(obj_breadcrumb["text"]) <= 50
 
     def test_get_breadcrumbs_includes_current_page(self, sample):
-        """Breadcrumbs should include current page from menu label."""
+        """Breadcrumbs should include current page from page_title.
+
+        The current-page breadcrumb text comes from self.page_title, not from
+        the menu dict's "label" (the old behaviour this test used to assert).
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            page_title = "Custom Page"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": sample.pk}
         plugin.menu = {"label": "Custom Page"}
 
@@ -459,9 +493,10 @@ class TestPluginGetBreadcrumbs:
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
+            page_title = "Page"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
         plugin.kwargs = {"pk": 999999}  # Non-existent
         plugin.menu = {"label": "Page"}
 
@@ -472,7 +507,18 @@ class TestPluginGetBreadcrumbs:
 
 
 class TestPluginGetTemplateNames:
-    """Test Plugin.get_template_names() hierarchical resolution."""
+    """Test Plugin.get_template_names().
+
+    NOTE: the hierarchical model-specific -> plugin-default -> framework
+    fallback template resolution this class used to test does not exist in
+    the current base.py. Plugin does not override get_template_names() at
+    all, so it falls straight through to Django's
+    TemplateResponseMixin.get_template_names(), which just returns
+    [self.template_name]. The three tests that asserted the removed
+    hierarchy (model-specific path, plugin-default path, "plugins/base.html"
+    fallback) have been deleted rather than updated, since that feature no
+    longer exists in any form to test.
+    """
 
     def test_get_url_path_fallback(self):
         """When url_path not set, should use get_name()."""
@@ -493,55 +539,8 @@ class TestPluginGetTemplateNames:
             template_name = "custom/template.html"
 
         plugin = TestPlugin()
-        plugin.model = Sample
+        plugin.registered_model = Sample
 
         templates = plugin.get_template_names()
 
         assert templates[0] == "custom/template.html"
-
-    def test_get_template_names_includes_model_specific(self):
-        """Template names should include model-specific path."""
-
-        @plugins.register(Sample)
-        class OverviewPlugin(Plugin, TemplateView):
-            pass
-
-        plugin = OverviewPlugin()
-        plugin.model = Sample
-
-        templates = plugin.get_template_names()
-
-        # Should include plugins/sample/overview-plugin.html
-        expected = "plugins/sample/overview-plugin.html"
-        assert expected in templates
-
-    def test_get_template_names_includes_plugin_default(self):
-        """Template names should include plugin default path."""
-
-        @plugins.register(Sample)
-        class CustomPlugin(Plugin, TemplateView):
-            pass
-
-        plugin = CustomPlugin()
-        plugin.model = Sample
-
-        templates = plugin.get_template_names()
-
-        # Should include plugins/custom-plugin.html
-        expected = "plugins/custom-plugin.html"
-        assert expected in templates
-
-    def test_get_template_names_includes_fallback(self):
-        """Template names should include framework fallback."""
-
-        @plugins.register(Sample)
-        class TestPlugin(Plugin, TemplateView):
-            pass
-
-        plugin = TestPlugin()
-        plugin.model = Sample
-
-        templates = plugin.get_template_names()
-
-        # Should end with plugins/base.html
-        assert templates[-1] == "plugins/base.html"

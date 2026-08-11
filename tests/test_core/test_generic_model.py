@@ -3,7 +3,11 @@
 import pytest
 
 from fairdm.core.dataset.models import DatasetDescription
-from fairdm.factories.core import DatasetDateFactory, DatasetDescriptionFactory, DatasetFactory
+from fairdm.factories.core import (
+    DatasetDateFactory,
+    DatasetDescriptionFactory,
+    DatasetFactory,
+)
 
 
 @pytest.mark.django_db
@@ -15,10 +19,18 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         # Create descriptions in random order
-        DatasetDescriptionFactory.create(related=dataset, type="Abstract", value="This is the abstract")
-        DatasetDescriptionFactory.create(related=dataset, type="Other", value="Some other info")
-        DatasetDescriptionFactory.create(related=dataset, type="Methods", value="The methods used")
-        DatasetDescriptionFactory.create(related=dataset, type="TechnicalInfo", value="Technical details")
+        DatasetDescriptionFactory.create(
+            related=dataset, type="Abstract", value="This is the abstract"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset, type="Other", value="Some other info"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset, type="Methods", value="The methods used"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset, type="TechnicalInfo", value="Technical details"
+        )
 
         # Order by vocabulary using the queryset method
         ordered = dataset.descriptions.in_order()
@@ -34,8 +46,12 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         # Create dates in random order
-        DatasetDateFactory.create(related=dataset, type="CollectionEnd", value="2024-12-31")
-        DatasetDateFactory.create(related=dataset, type="CollectionStart", value="2024-01-01")
+        DatasetDateFactory.create(
+            related=dataset, type="CollectionEnd", value="2024-12-31"
+        )
+        DatasetDateFactory.create(
+            related=dataset, type="CollectionStart", value="2024-01-01"
+        )
         DatasetDateFactory.create(related=dataset, type="Available", value="2024-06-15")
 
         # Order by vocabulary using the queryset method
@@ -52,14 +68,24 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         # Create multiple descriptions
-        DatasetDescriptionFactory.create(related=dataset, type="Abstract", value="Abstract 1")
-        DatasetDescriptionFactory.create(related=dataset, type="Methods", value="Methods 1")
+        DatasetDescriptionFactory.create(
+            related=dataset, type="Abstract", value="Abstract 1"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset, type="Methods", value="Methods 1"
+        )
         DatasetDescriptionFactory.create(related=dataset, type="Other", value="Other 1")
-        DatasetDescriptionFactory.create(related=dataset, type="TechnicalInfo", value="Tech 1")
-        DatasetDescriptionFactory.create(related=dataset, type="SeriesInformation", value="Series 1")
+        DatasetDescriptionFactory.create(
+            related=dataset, type="TechnicalInfo", value="Tech 1"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset, type="SeriesInformation", value="Series 1"
+        )
 
         # Filter and order
-        filtered = dataset.descriptions.filter(type__in=["Other", "Abstract", "Methods"])
+        filtered = dataset.descriptions.filter(
+            type__in=["Other", "Abstract", "Methods"]
+        )
         ordered = filtered.in_order()
 
         # Should be Abstract, Methods, Other (in that vocabulary order)
@@ -75,9 +101,15 @@ class TestGenericModelQuerySet:
         dataset1 = DatasetFactory.create()
         dataset2 = DatasetFactory.create()
 
-        DatasetDescriptionFactory.create(related=dataset1, type="Other", value="Other 1")
-        DatasetDescriptionFactory.create(related=dataset1, type="Abstract", value="Abstract 1")
-        DatasetDescriptionFactory.create(related=dataset2, type="Methods", value="Methods 1")
+        DatasetDescriptionFactory.create(
+            related=dataset1, type="Other", value="Other 1"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset1, type="Abstract", value="Abstract 1"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset2, type="Methods", value="Methods 1"
+        )
 
         # Get all descriptions in vocabulary order
         all_ordered = DatasetDescription.objects.in_order()
@@ -87,7 +119,9 @@ class TestGenericModelQuerySet:
 
         # Verify the ordering for the items we created
         # (there may be other items from previous tests, but ours should be ordered correctly)
-        our_items = [d for d in all_ordered if d.value in ["Other 1", "Abstract 1", "Methods 1"]]
+        our_items = [
+            d for d in all_ordered if d.value in ["Other 1", "Abstract 1", "Methods 1"]
+        ]
         actual_types = [d.type for d in our_items]
 
         # They should appear in vocabulary order: Abstract, Methods, Other
@@ -106,7 +140,9 @@ class TestGenericModelQuerySet:
         """Test that in_order() works with a single item."""
         dataset = DatasetFactory.create()
 
-        DatasetDescriptionFactory.create(related=dataset, type="Abstract", value="Only one")
+        DatasetDescriptionFactory.create(
+            related=dataset, type="Abstract", value="Only one"
+        )
 
         ordered = dataset.descriptions.in_order()
 
@@ -134,11 +170,15 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         # Create first description
-        DatasetDescriptionFactory.create(related=dataset, type="Abstract", value="First abstract")
+        DatasetDescriptionFactory.create(
+            related=dataset, type="Abstract", value="First abstract"
+        )
 
         # Try to create another description with the same type - should fail
         with pytest.raises(IntegrityError):
-            DatasetDescriptionFactory.create(related=dataset, type="Abstract", value="Second abstract")
+            DatasetDescriptionFactory.create(
+                related=dataset, type="Abstract", value="Second abstract"
+            )
 
     def test_duplicate_type_different_related_object_allowed(self):
         """Test that the same type can exist on different related objects."""
@@ -146,8 +186,12 @@ class TestGenericModelQuerySet:
         dataset2 = DatasetFactory.create()
 
         # Create descriptions with same type on different datasets - should succeed
-        desc1 = DatasetDescriptionFactory.create(related=dataset1, type="Abstract", value="First abstract")
-        desc2 = DatasetDescriptionFactory.create(related=dataset2, type="Abstract", value="Second abstract")
+        desc1 = DatasetDescriptionFactory.create(
+            related=dataset1, type="Abstract", value="First abstract"
+        )
+        desc2 = DatasetDescriptionFactory.create(
+            related=dataset2, type="Abstract", value="Second abstract"
+        )
 
         assert desc1.type == desc2.type
         assert desc1.related != desc2.related
@@ -157,8 +201,12 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         # Create descriptions with different types - should succeed
-        desc1 = DatasetDescriptionFactory.create(related=dataset, type="Abstract", value="Abstract text")
-        desc2 = DatasetDescriptionFactory.create(related=dataset, type="Methods", value="Methods text")
+        desc1 = DatasetDescriptionFactory.create(
+            related=dataset, type="Abstract", value="Abstract text"
+        )
+        desc2 = DatasetDescriptionFactory.create(
+            related=dataset, type="Methods", value="Methods text"
+        )
 
         assert desc1.related == desc2.related
         assert desc1.type != desc2.type

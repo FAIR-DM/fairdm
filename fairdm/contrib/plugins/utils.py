@@ -39,7 +39,11 @@ def class_to_slug(name: str | object | type) -> str:
 
     Converts class names to slugs. Use slugify() for new code.
     """
-    name_str = (name.__name__ if hasattr(name, "__name__") else str(name)) if not isinstance(name, str) else name  # type: ignore[attr-defined,unused-ignore]
+    name_str = (
+        (name.__name__ if hasattr(name, "__name__") else str(name))
+        if not isinstance(name, str)
+        else name
+    )  # type: ignore[attr-defined,unused-ignore]
     return slugify(name_str)
 
 

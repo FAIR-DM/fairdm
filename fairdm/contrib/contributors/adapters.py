@@ -37,7 +37,9 @@ class AccountAdapter(DefaultAccountAdapter):
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request, socialogin):
-        return waffle.switch_is_active("allow_signup") and super().is_open_for_signup(request, socialogin)
+        return waffle.switch_is_active("allow_signup") and super().is_open_for_signup(
+            request, socialogin
+        )
 
     def get_signup_form_initial_data(self, sociallogin):
         initial = super().get_signup_form_initial_data(sociallogin)
@@ -50,7 +52,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         """
         Retrieve a user from the database by their ORCID ID.
         """
-        existing = ContributorIdentifier.objects.filter(value=orcid_id, type="ORCID").first()
+        existing = ContributorIdentifier.objects.filter(
+            value=orcid_id, type="ORCID"
+        ).first()
         if existing:
             return existing.related
 
@@ -66,15 +70,21 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 elif not existing_user.is_claimed:
                     # Unclaimed Person with a matching ORCID identifier — claim it automatically.
                     from fairdm.contrib.contributors.exceptions import ClaimingError
-                    from fairdm.contrib.contributors.services.claiming import claim_via_orcid
+                    from fairdm.contrib.contributors.services.claiming import (
+                        claim_via_orcid,
+                    )
 
                     sociallogin.user = existing_user
                     try:
                         claim_via_orcid(existing_user, sociallogin)
                     except ClaimingError as exc:
-                        raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin)) from exc
+                        raise ImmediateHttpResponse(
+                            redirect_to_signup(request, sociallogin)
+                        ) from exc
                     # Complete the login — the Person is now claimed and active.
-                    raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin))
+                    raise ImmediateHttpResponse(
+                        redirect_to_signup(request, sociallogin)
+                    )
 
                 # message = (
                 #     f"User with ORCID {orcid_id} already exists. "
@@ -107,5 +117,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         # This method will help populate the user with data from the social login.
         user = super().populate_user(request, sociallogin, data)
         if is_provider("orcid", sociallogin):
-            user = ORCIDTransform().import_data(sociallogin.account.extra_data, instance=user, save=False)
+            user = ORCIDTransform().import_data(
+                sociallogin.account.extra_data, instance=user, save=False
+            )
         return user

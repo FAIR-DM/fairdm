@@ -112,7 +112,9 @@ class CustomSampleFactory(SampleFactory):
     date_field = factory.Faker("date")
     date_time_field = factory.Faker("date_time")
     time_field = factory.Faker("time")
-    decimal_field = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
+    decimal_field = factory.Faker(
+        "pydecimal", left_digits=3, right_digits=2, positive=True
+    )
     float_field = factory.Faker("random_int")
 
     class Meta:
@@ -143,7 +145,9 @@ class ExampleMeasurementFactory(MeasurementFactory):
     date_field = factory.Faker("date")
     date_time_field = factory.Faker("date_time")
     time_field = factory.Faker("time")
-    decimal_field = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
+    decimal_field = factory.Faker(
+        "pydecimal", left_digits=3, right_digits=2, positive=True
+    )
     float_field = factory.Faker("random_int")
 
     class Meta:
@@ -160,7 +164,9 @@ class RockSampleFactory(SampleFactory):
     See: Developer Guide > Testing > Sample Factories
     """
 
-    rock_type = factory.Faker("random_element", elements=["igneous", "sedimentary", "metamorphic"])
+    rock_type = factory.Faker(
+        "random_element", elements=["igneous", "sedimentary", "metamorphic"]
+    )
     mineral_content = factory.Faker(
         "random_element",
         elements=[
@@ -206,11 +212,21 @@ class WaterSampleFactory(SampleFactory):
         "random_element",
         elements=["river", "lake", "groundwater", "ocean", "stream", "pond"],
     )
-    temperature_celsius = factory.Faker("pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=35)
-    ph_level = factory.Faker("pydecimal", left_digits=1, right_digits=2, min_value=4, max_value=10)
-    turbidity_ntu = factory.Faker("pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=100)
-    dissolved_oxygen_mg_l = factory.Faker("pyfloat", left_digits=2, right_digits=2, min_value=0.1, max_value=15)
-    conductivity_us_cm = factory.Faker("pyfloat", left_digits=4, right_digits=1, min_value=10, max_value=2000)
+    temperature_celsius = factory.Faker(
+        "pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=35
+    )
+    ph_level = factory.Faker(
+        "pydecimal", left_digits=1, right_digits=2, min_value=4, max_value=10
+    )
+    turbidity_ntu = factory.Faker(
+        "pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=100
+    )
+    dissolved_oxygen_mg_l = factory.Faker(
+        "pyfloat", left_digits=2, right_digits=2, min_value=0.1, max_value=15
+    )
+    conductivity_us_cm = factory.Faker(
+        "pyfloat", left_digits=4, right_digits=1, min_value=10, max_value=2000
+    )
 
     class Meta:
         model = WaterSample
@@ -234,7 +250,9 @@ class PersonFactory(factory.django.DjangoModelFactory):
 
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
-    email = factory.LazyAttribute(lambda obj: f"{obj.first_name.lower()}.{obj.last_name.lower()}@example.com")
+    email = factory.LazyAttribute(
+        lambda obj: f"{obj.first_name.lower()}.{obj.last_name.lower()}@example.com"
+    )
     is_active = True  # Claimed users are active by default
 
     class Meta:

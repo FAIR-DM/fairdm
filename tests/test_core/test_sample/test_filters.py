@@ -26,7 +26,9 @@ pytestmark = pytest.mark.django_db
 class TestSampleFilterStatusFiltering:
     """Test status filtering functionality."""
 
-    @pytest.mark.skip(reason="Status filtering requires populated SampleStatus vocabulary")
+    @pytest.mark.skip(
+        reason="Status filtering requires populated SampleStatus vocabulary"
+    )
     def test_filter_by_status(self, user, project, dataset):
         """Test filtering samples by status field.
 
@@ -41,7 +43,9 @@ class TestSampleFilterStatusFiltering:
 
         vocab, _ = Vocabulary.objects.get_or_create(name=SampleStatus._meta.name)
         available_status, _ = Concept.objects.get_or_create(
-            vocabulary=vocab, prefLabel="available", defaults={"definition": "Sample is available"}
+            vocabulary=vocab,
+            prefLabel="available",
+            defaults={"definition": "Sample is available"},
         )
         unavailable_status, _ = Concept.objects.get_or_create(
             vocabulary=vocab,
@@ -66,7 +70,9 @@ class TestSampleFilterStatusFiltering:
         )
 
         # Filter by available status
-        filterset = SampleFilter(data={"status": available_status.id}, queryset=RockSample.objects.all())
+        filterset = SampleFilter(
+            data={"status": available_status.id}, queryset=RockSample.objects.all()
+        )
         assert filterset.is_valid()
         assert available_sample in filterset.qs
         assert unavailable_sample not in filterset.qs
@@ -96,7 +102,9 @@ class TestSampleFilterDatasetFiltering:
         )
 
         # Filter by dataset1
-        filterset = SampleFilter(data={"dataset": dataset1.id}, queryset=RockSample.objects.all())
+        filterset = SampleFilter(
+            data={"dataset": dataset1.id}, queryset=RockSample.objects.all()
+        )
         assert filterset.is_valid()
         assert sample1 in filterset.qs
         assert sample2 not in filterset.qs
@@ -131,13 +139,17 @@ class TestSampleFilterPolymorphicTypeFiltering:
         # Filter by RockSample type
         from fairdm.core.sample.models import Sample
 
-        filterset = SampleFilter(data={"polymorphic_ctype": rock_ct.id}, queryset=Sample.objects.all())
+        filterset = SampleFilter(
+            data={"polymorphic_ctype": rock_ct.id}, queryset=Sample.objects.all()
+        )
         assert filterset.is_valid()
         assert rock_sample in filterset.qs
         assert water_sample not in filterset.qs
 
         # Filter by WaterSample type
-        filterset = SampleFilter(data={"polymorphic_ctype": water_ct.id}, queryset=Sample.objects.all())
+        filterset = SampleFilter(
+            data={"polymorphic_ctype": water_ct.id}, queryset=Sample.objects.all()
+        )
         assert filterset.is_valid()
         assert water_sample in filterset.qs
         assert rock_sample not in filterset.qs
@@ -165,20 +177,26 @@ class TestSampleFilterSearchFunctionality:
         )
 
         # Search by name fragment
-        filterset = SampleFilter(data={"search": "Granite"}, queryset=RockSample.objects.all())
+        filterset = SampleFilter(
+            data={"search": "Granite"}, queryset=RockSample.objects.all()
+        )
         assert filterset.is_valid()
         assert sample1 in filterset.qs
         assert sample2 not in filterset.qs
 
         # Search by local_id
-        filterset = SampleFilter(data={"search": "ROCK-002"}, queryset=RockSample.objects.all())
+        filterset = SampleFilter(
+            data={"search": "ROCK-002"}, queryset=RockSample.objects.all()
+        )
         assert filterset.is_valid()
         assert sample2 in filterset.qs
         assert sample1 not in filterset.qs
 
         # Search by partial uuid
         uuid_fragment = str(sample1.uuid)[:8]
-        filterset = SampleFilter(data={"search": uuid_fragment}, queryset=RockSample.objects.all())
+        filterset = SampleFilter(
+            data={"search": uuid_fragment}, queryset=RockSample.objects.all()
+        )
         assert filterset.is_valid()
         assert sample1 in filterset.qs
 
@@ -186,7 +204,9 @@ class TestSampleFilterSearchFunctionality:
 class TestSampleFilterDescriptionFiltering:
     """Test cross-relationship filtering by description content."""
 
-    @pytest.mark.skip(reason="Description filtering requires SampleDescription model implementation")
+    @pytest.mark.skip(
+        reason="Description filtering requires SampleDescription model implementation"
+    )
     def test_filter_by_description_content(self, user, project, dataset):
         """Test filtering samples by description text (cross-relationship)."""
         # Create samples with descriptions
@@ -207,7 +227,9 @@ class TestSampleFilterDescriptionFiltering:
         sample2.descriptions.create(text="Rich in iron oxide minerals")
 
         # Filter by description content
-        filterset = SampleFilter(data={"description": "silica"}, queryset=RockSample.objects.all())
+        filterset = SampleFilter(
+            data={"description": "silica"}, queryset=RockSample.objects.all()
+        )
         assert filterset.is_valid()
         assert sample1 in filterset.qs
         assert sample2 not in filterset.qs
@@ -249,7 +271,9 @@ class TestSampleFilterDateRangeFiltering:
 class TestSampleFilterCombinedFilters:
     """Test combination of multiple filters."""
 
-    @pytest.mark.skip(reason="Combined filters with descriptions require SampleDescription model implementation")
+    @pytest.mark.skip(
+        reason="Combined filters with descriptions require SampleDescription model implementation"
+    )
     def test_combined_filters(self, user, project, dataset):
         """Test applying multiple filters simultaneously."""
         # Create samples with various attributes
@@ -278,7 +302,9 @@ class TestSampleFilterCombinedFilters:
             rock_type="igneous",
             collection_date="2024-01-01",
         )
-        excluded_sample2.descriptions.create(text="Normal properties")  # Wrong description
+        excluded_sample2.descriptions.create(
+            text="Normal properties"
+        )  # Wrong description
 
         # Apply combined filters: status=available AND description contains "Special"
         filterset = SampleFilter(
@@ -302,13 +328,17 @@ class TestSampleFilterMixinConfiguration:
         # Check that SampleFilter has these filters configured
         filter_instance = SampleFilter()
         for filter_name in expected_filters:
-            assert filter_name in filter_instance.filters, f"Expected filter '{filter_name}' not found in SampleFilter"
+            assert filter_name in filter_instance.filters, (
+                f"Expected filter '{filter_name}' not found in SampleFilter"
+            )
 
 
 class TestCustomSampleFilterIntegration:
     """Test custom sample filters inherit from SampleFilterMixin."""
 
-    @pytest.mark.skip(reason="RockSampleFilter rock_type field not configured in Meta.fields")
+    @pytest.mark.skip(
+        reason="RockSampleFilter rock_type field not configured in Meta.fields"
+    )
     def test_custom_filter_inherits_from_mixin(self, user, project, dataset):
         """Test that custom sample filters use SampleFilterMixin and work correctly."""
         # Create rock sample
@@ -320,7 +350,9 @@ class TestCustomSampleFilterIntegration:
         )
 
         # Use custom RockSampleFilter (should inherit mixin filters)
-        filterset = RockSampleFilter(data={"search": "Granite"}, queryset=RockSample.objects.all())
+        filterset = RockSampleFilter(
+            data={"search": "Granite"}, queryset=RockSample.objects.all()
+        )
         assert filterset.is_valid()
         assert rock_sample in filterset.qs
 

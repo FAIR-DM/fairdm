@@ -24,7 +24,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Production expects DATABASE_URL or POSTGRES_* (validation in checks.py)
 
 if env("DATABASE_URL"):
-    logger.info(f"Database: PostgreSQL via DATABASE_URL")
+    logger.info("Database: PostgreSQL via DATABASE_URL")
     DATABASES = {
         "default": env.db(),
     }
@@ -55,7 +55,9 @@ else:
 
 # Database performance settings
 DATABASES["default"]["ATOMIC_REQUESTS"] = True  # Wrap each request in a transaction
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # Persistent connections (60s)
+DATABASES["default"]["CONN_MAX_AGE"] = env.int(
+    "CONN_MAX_AGE", default=60
+)  # Persistent connections (60s)
 
 # DATABASE BACKUP CONFIGURATION (django-dbbackup)
 # https://django-dbbackup.readthedocs.io/
@@ -64,7 +66,9 @@ DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
 DBBACKUP_STORAGE_OPTIONS = {"location": "/app/dbbackups/"}
 
 DBBACKUP_FILENAME_TEMPLATE = "{databasename}-{servername}-{datetime}.{extension}"
-DBBACKUP_MEDIA_FILENAME_TEMPLATE = "{databasename}_media-{servername}-{datetime}.{extension}"
+DBBACKUP_MEDIA_FILENAME_TEMPLATE = (
+    "{databasename}_media-{servername}-{datetime}.{extension}"
+)
 
 # Keep last 10 backups
 DBBACKUP_CLEANUP_KEEP = 10

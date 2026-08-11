@@ -32,7 +32,9 @@ from fairdm.registry import registry
 
 
 @checks.register()
-def check_registry_field_names(app_configs: Any = None, **kwargs: Any) -> list[checks.CheckMessage]:
+def check_registry_field_names(
+    app_configs: Any = None, **kwargs: Any
+) -> list[checks.CheckMessage]:
     """Check that all registered models have valid field names.
 
     Args:
@@ -82,7 +84,9 @@ def check_registry_field_names(app_configs: Any = None, **kwargs: Any) -> list[c
 
 
 @checks.register()
-def check_registry_custom_classes(app_configs: Any = None, **kwargs: Any) -> list[checks.CheckMessage]:
+def check_registry_custom_classes(
+    app_configs: Any = None, **kwargs: Any
+) -> list[checks.CheckMessage]:
     """Check that custom component classes have correct base classes.
 
     Args:
@@ -144,7 +148,9 @@ def check_registry_custom_classes(app_configs: Any = None, **kwargs: Any) -> lis
 
 
 @checks.register()
-def check_registry_performance(app_configs: Any = None, **kwargs: Any) -> list[checks.CheckMessage]:
+def check_registry_performance(
+    app_configs: Any = None, **kwargs: Any
+) -> list[checks.CheckMessage]:
     """Check for performance issues in registry configurations.
 
     Args:

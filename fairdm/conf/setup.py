@@ -14,7 +14,6 @@ import environ
 from split_settings.tools import include
 
 from .addons import load_addons
-from .checks import validate_services
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +96,9 @@ def setup(
         # Base files (stack.env, stack.{profile}.env) respect existing env vars
         is_custom_file = env_path == env_file
         environ.Env.read_env(env_path, overwrite=is_custom_file)
-        logger.debug(f"Loaded environment file: {env_path} (overwrite={is_custom_file})")
+        logger.debug(
+            f"Loaded environment file: {env_path} (overwrite={is_custom_file})"
+        )
 
     # Inject essential variables into caller's namespace
     caller_globals.update(
@@ -112,7 +113,6 @@ def setup(
 
     # Load all settings modules from settings/ directory (production baseline)
     logger.info("Loading production baseline settings...")
-    settings_dir = Path(__file__).parent / "settings"
 
     # Define explicit order for settings modules to ensure dependencies are met
     settings_modules = [
@@ -177,4 +177,4 @@ def setup(
 
 
 # Export addon_urls for backward compatibility
-from .addons import addon_urls  # noqa: E402, F401
+from .addons import addon_urls  # noqa: F401

@@ -15,7 +15,7 @@ def check(c):
 
 
 @task
-def format(c):
+def format(c):  # noqa: A001 — the task name is the `invoke format` CLI contract
     """
     Auto-fix all formatting issues (runs ruff format + ruff --fix)
     """

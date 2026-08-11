@@ -87,6 +87,16 @@ dependencies = [
     'django-flex-menus',
     "django-mvp (>=0.17.0,<0.18.0)",
     "django-accounts-center (>=0.7.1,<0.8.0)",
+    # Imported directly (fairdm/contrib/collections/tables.py,
+    # fairdm/contrib/contributors/models.py) and registered as a template
+    # builtin, so it is declared here rather than relied on transitively.
+    "django-easy-icons (>=0.6.0,<1.0.0)",
+    # Imported directly rather than reached through another package: pint via
+    # fairdm/templatetags/fairdm.py, partial_date via fairdm/db/fields.py and
+    # fairdm/forms/, requests via fairdm/contrib/contributors/tasks.py.
+    "pint (>=0.24,<1.0)",
+    "django-partial-date (>=1.3,<2.0)",
+    "requests (>=2.32,<3.0)",
     "numpy (>=2.4.6,<3.0.0)",
     "django-orbit[mcp] (>=0.12.0,<0.13.0)",
 ]
@@ -104,25 +114,22 @@ requires-poetry = '>=2.0,<3.0'
 packages = [{ include = "fairdm" }, { include = "fairdm_demo" }]
 include = ["README.md", "LICENSE"]
 classifiers = [
-    "Development Status :: 1 - Planning",
-    "Framework :: Django :: 5.0",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.13",
 ]
 
 [tool.poetry.group.test.dependencies]
-django = ">=5.2,<6.0"
-fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
-    "test",
-] }
+django = ">=5.1,<6.0"
 
 [tool.poetry.group.dev.dependencies]
-fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
-    "test",
-    "dev",
-] }
+# Family toolchain bundle; the pin tag is the family-standard version. Ships
+# ruff, mypy, deptry, pre-commit, pytest, pytest-django, coverage, django-stubs.
+# Replaces the former fairdm-dev-tools git dependency (family ADR 0002).
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.2.0", extras = ["dev", "test"], python = ">=3.12" }
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 beautifulsoup4 = "^4.14.3"
 sphinxcontrib-mermaid = "^2.0.0"
@@ -166,7 +173,8 @@ exclude = [
     "staticfiles/*",
     "docs/",
 ]
-line-length = 120
+# line-length is deliberately unset: Ruff's default is 88, which is the
+# organisation standard. Do not restate it.
 fix = true
 
 [tool.ruff.lint]
@@ -257,8 +265,17 @@ exclude = ["fairdm/conf/*"]
     "E402", # Import ordering in admin (after register decorators)
 ]
 "fairdm/conf/*" = [
-    "F405", # Star imports in config files
-    "F403", # Star imports in config files
+    "F405",   # Star imports in config files
+    "F403",   # Star imports in config files
+    # Django settings modules are assembled top-to-bottom and import
+    # conditionally partway through, so import placement is deliberate.
+    "E402",
+    # Style-only rules in settings and startup code. The behaviour here is
+    # intended; rewriting it to satisfy a preference is not worth the risk.
+    "TRY300", # return in try rather than else
+    "TRY301", # raise inside try rather than an inner function
+    "TRY400", # logging.error rather than logging.exception
+    "RUF005", # list concatenation rather than iterable unpacking
 ]
 
 [tool.ruff.format]
@@ -370,11 +387,64 @@ extend_exclude = [
     ".*tests",
     "tests/",
     "fairdm_demo/tests/",
+    # Factories are test-support code and depend on factory_boy, which is a
+    # dev/test dependency rather than a runtime one.
     "fairdm/factories/",
+    "fairdm_demo/factories.py",
 ]
 
 # Map Django package names to their import names
 known_first_party = ["fairdm", "fairdm_demo"]
+
+[tool.deptry.per_rule_ignores]
+# DEP002 = declared but never imported. Django wires most of its moving parts
+# through settings strings (INSTALLED_APPS, MIDDLEWARE, storage and cache
+# backends) and deploys others as processes, so a static import scan cannot see
+# them. Everything below is genuinely used; none of it is dead weight, with one
+# noted exception.
+#
+# numpy is the exception: nothing in this package imports it, and django-pint
+# does not require it — it only enables pint's optional array support. Retained
+# pending a decision on whether the measurement stack needs that support;
+# dropping it is a separate, testable change.
+DEP002 = [
+    "crispy-tailwind",
+    "dj-rest-auth",
+    "django-accounts-center",
+    "django-admin-extra-buttons",
+    "django-celery-beat",
+    "django-classy-tags",
+    "django-cleanup",
+    "django-compressor",
+    "django-contact-form",
+    "django-cors-headers",
+    "django-dbbackup",
+    "django-htmx",
+    "django-invitations",
+    "django-libsass",
+    "django-orbit",
+    "django-redis",
+    "django-setup-tools",
+    "django-social-share",
+    "django-storages",
+    "django-widget-tweaks",
+    "drf-orjson-renderer",
+    "flower",
+    "gunicorn",
+    "numpy",
+    "psycopg2-binary",
+    "redis",
+    "tablib",
+    "uncertainties",
+    "whitenoise",
+]
+# DEP001 = imported but not declared anywhere. fairdm/contrib/location/
+# (serializers.py, api.py) imports rest_framework_gis, which is not installed,
+# so those modules cannot currently be imported. Declaring the package would
+# pull in GDAL and turn optional GIS support into a hard requirement, so the
+# import is left recorded here as a known defect rather than silently fixed.
+DEP001 = ["rest_framework_gis"]
+
 
 # Package to module name mappings for Django packages that use different import names
 package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = "pint", django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }

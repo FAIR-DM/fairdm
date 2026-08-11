@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from django.contrib.contenttypes.fields import GenericRelation
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from guardian.shortcuts import get_objects_for_user
 from licensing.fields import LicenseField
 from shortuuid.django_fields import ShortUUIDField
 
@@ -88,7 +87,9 @@ class DatasetLiteratureRelation(models.Model):
         _("relationship type"),
         max_length=50,
         choices=DATACITE_RELATIONSHIP_TYPES,
-        help_text=_("DataCite relationship type (e.g., IsCitedBy, Cites, IsDocumentedBy)"),
+        help_text=_(
+            "DataCite relationship type (e.g., IsCitedBy, Cites, IsDocumentedBy)"
+        ),
     )
 
     class Meta:
@@ -207,13 +208,10 @@ class DatasetQuerySet(QuerySet):
 
         Args:
             user: The user for whom to filter the queryset.
-        Returns:
 
+        Returns:
             QuerySet: Filtered queryset based on user permissions.
         """
-        qs = get_objects_for_user(user, "dataset.view_dataset", klass=self.model, accept_global_perms=False)
-        return
-
         if user.is_authenticated and user.has_perm("dataset.view_private"):
             return self.with_private()
         return self.get_visible()
@@ -374,7 +372,9 @@ class DatasetManager(models.Manager):
         Returns:
             DatasetQuerySet excluding datasets with visibility=PRIVATE
         """
-        return DatasetQuerySet(self.model, using=self._db).exclude(visibility=Visibility.PRIVATE)
+        return DatasetQuerySet(self.model, using=self._db).exclude(
+            visibility=Visibility.PRIVATE
+        )
 
 
 class Dataset(BaseModel):
@@ -576,7 +576,9 @@ class Dataset(BaseModel):
     # )
 
     # GENERIC RELATIONS
-    contributors = GenericRelation("contributors.Contribution", related_query_name="dataset")
+    contributors = GenericRelation(
+        "contributors.Contribution", related_query_name="dataset"
+    )
 
     # RELATIONS
     project = models.ForeignKey(

@@ -46,5 +46,7 @@ class TestAllAdminAddPages:
 
         # Assert all pages loaded successfully
         if failed_pages:
-            failure_msg = "\n".join([f"  - {url}: {error}" for url, status, error in failed_pages])
+            failure_msg = "\n".join(
+                [f"  - {url}: {error}" for url, status, error in failed_pages]
+            )
             pytest.fail(f"The following admin add pages failed to load:\n{failure_msg}")

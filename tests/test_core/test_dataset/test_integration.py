@@ -71,7 +71,7 @@ class TestDatasetModel:
         dataset = DatasetFactory()
         url = dataset.get_absolute_url()
 
-        assert url == reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        assert url == reverse("dataset-detail", kwargs={"uuid": dataset.uuid})
 
     def test_dataset_has_data_property(self):
         """Test has_data cached property."""
@@ -185,7 +185,9 @@ class TestDatasetViews:
         # Should redirect to login
         assert response.status_code == 302
 
-    def test_dataset_create_view_accessible_when_authenticated(self, authenticated_client):
+    def test_dataset_create_view_accessible_when_authenticated(
+        self, authenticated_client
+    ):
         """Test that authenticated users can access dataset create view."""
         response = authenticated_client.get(reverse("dataset-create"))
 
@@ -195,17 +197,26 @@ class TestDatasetViews:
         """Test dataset creation with project parameter in URL."""
         project = ProjectFactory()
 
-        response = authenticated_client.get(reverse("dataset-create"), {"project": project.pk})
+        response = authenticated_client.get(
+            reverse("dataset-create"), {"project": project.pk}
+        )
 
         assert response.status_code == 200
 
     def test_dataset_detail_view_accessible(self, client):
-        """Test that dataset detail view is accessible."""
+        """Test that dataset detail view serves the requested dataset.
+
+        This asserts on the context rather than the rendered body. Unlike
+        ProjectDetailView, DatasetDetailView subclasses plain DetailView rather
+        than FairDMDetailView, so no `page` title context is built, and
+        dataset_detail.html never renders `object.name` itself. The name is
+        therefore absent from the response even when the view works correctly.
+        """
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+        response = client.get(reverse("dataset-detail", kwargs={"uuid": dataset.uuid}))
 
         assert response.status_code == 200
-        assert dataset.name.encode() in response.content
+        assert response.context["dataset"] == dataset
 
 
 @pytest.mark.django_db

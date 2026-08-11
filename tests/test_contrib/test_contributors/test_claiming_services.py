@@ -65,7 +65,9 @@ def mock_sociallogin(unclaimed_person):
 class TestClaimViaOrcid:
     """Tests for claim_via_orcid() — imported after T009 implementation."""
 
-    def test_happy_path_activates_and_claims_person(self, db, unclaimed_person, mock_sociallogin):
+    def test_happy_path_activates_and_claims_person(
+        self, db, unclaimed_person, mock_sociallogin
+    ):
         """claim_via_orcid sets is_claimed=True and is_active=True on the unclaimed person."""
         from fairdm.contrib.contributors.services.claiming import claim_via_orcid
 
@@ -76,7 +78,9 @@ class TestClaimViaOrcid:
         assert unclaimed_person.is_claimed is True
         assert unclaimed_person.is_active is True
 
-    def test_happy_path_connects_social_account(self, db, unclaimed_person, mock_sociallogin):
+    def test_happy_path_connects_social_account(
+        self, db, unclaimed_person, mock_sociallogin
+    ):
         """claim_via_orcid connects the social account to the person."""
         from fairdm.contrib.contributors.services.claiming import claim_via_orcid
 
@@ -84,14 +88,18 @@ class TestClaimViaOrcid:
 
         mock_sociallogin.connect.assert_called_once()
 
-    def test_already_claimed_raises_claiming_error(self, db, claimed_person, mock_sociallogin):
+    def test_already_claimed_raises_claiming_error(
+        self, db, claimed_person, mock_sociallogin
+    ):
         """claim_via_orcid raises ClaimingError if person is already claimed."""
         from fairdm.contrib.contributors.services.claiming import claim_via_orcid
 
         with pytest.raises(ClaimingError):
             claim_via_orcid(claimed_person, mock_sociallogin)
 
-    def test_banned_person_raises_claiming_error(self, db, banned_person, mock_sociallogin):
+    def test_banned_person_raises_claiming_error(
+        self, db, banned_person, mock_sociallogin
+    ):
         """claim_via_orcid raises ClaimingError if person is banned (FR-017)."""
         from fairdm.contrib.contributors.services.claiming import claim_via_orcid
 
@@ -111,7 +119,9 @@ class TestClaimViaOrcid:
         assert log.success is True
         assert log.source_person_id == unclaimed_person.pk
 
-    def test_failed_claim_logged_with_failure_reason(self, db, claimed_person, mock_sociallogin):
+    def test_failed_claim_logged_with_failure_reason(
+        self, db, claimed_person, mock_sociallogin
+    ):
         """claim_via_orcid writes a failure audit log when the claim is rejected."""
         from fairdm.contrib.contributors.services.claiming import claim_via_orcid
 
@@ -133,10 +143,11 @@ class TestClaimViaOrcid:
 class TestClaimViaEmail:
     """Tests for claim_via_email() — added in Phase 4 (T016)."""
 
-    def test_happy_path_claims_person(self, db, unclaimed_person):
+    def test_happy_path_claims_person(self, db, unclaimed_person, settings):
         """claim_via_email sets is_claimed=True and is_active=True."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
         result = claim_via_email(unclaimed_person)
 
         unclaimed_person.refresh_from_db()
@@ -144,7 +155,9 @@ class TestClaimViaEmail:
         assert unclaimed_person.is_claimed is True
         assert unclaimed_person.is_active is True
 
-    def test_mandatory_verification_guard_silent_noop(self, db, unclaimed_person, settings):
+    def test_mandatory_verification_guard_silent_noop(
+        self, db, unclaimed_person, settings
+    ):
         """claim_via_email is a silent no-op when ACCOUNT_EMAIL_VERIFICATION != 'mandatory'."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
@@ -157,17 +170,19 @@ class TestClaimViaEmail:
         assert unclaimed_person.is_claimed is False
         assert result is None
 
-    def test_already_claimed_raises_claiming_error(self, db, claimed_person):
+    def test_already_claimed_raises_claiming_error(self, db, claimed_person, settings):
         """claim_via_email raises ClaimingError if person is already claimed."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
         with pytest.raises(ClaimingError):
             claim_via_email(claimed_person)
 
-    def test_banned_person_raises_claiming_error(self, db, banned_person):
+    def test_banned_person_raises_claiming_error(self, db, banned_person, settings):
         """claim_via_email raises ClaimingError if person is banned (FR-017)."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
         with pytest.raises(ClaimingError):
             claim_via_email(banned_person)
 
@@ -184,7 +199,9 @@ class TestClaimViaEmail:
         assert log.method == "email"
         assert log.success is True
 
-    def test_failed_claim_logged_with_failure_reason(self, db, claimed_person, settings):
+    def test_failed_claim_logged_with_failure_reason(
+        self, db, claimed_person, settings
+    ):
         """claim_via_email writes a failure audit log when rejected."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
@@ -207,7 +224,9 @@ class TestClaimViaEmail:
 class TestClaimViaToken:
     """Tests for claim_via_token() — added in Phase 5 (T024)."""
 
-    def test_valid_token_and_user_claims_person(self, db, unclaimed_person, claimed_person):
+    def test_valid_token_and_user_claims_person(
+        self, db, unclaimed_person, claimed_person
+    ):
         """claim_via_token with a valid token activates and returns the unclaimed person."""
         from fairdm.contrib.contributors.services.claiming import claim_via_token
         from fairdm.contrib.contributors.utils.tokens import generate_claim_token
@@ -220,7 +239,9 @@ class TestClaimViaToken:
         assert unclaimed_person.is_claimed is True
         assert unclaimed_person.is_active is True
 
-    def test_already_claimed_token_raises_claiming_error(self, db, unclaimed_person, claimed_person):
+    def test_already_claimed_token_raises_claiming_error(
+        self, db, unclaimed_person, claimed_person
+    ):
         """claim_via_token raises ClaimingError if the token resolves to an already-claimed person."""
         from fairdm.contrib.contributors.services.claiming import claim_via_token
         from fairdm.contrib.contributors.utils.tokens import generate_claim_token
@@ -229,7 +250,9 @@ class TestClaimViaToken:
         # First claim succeeds
         claim_via_token(token, claimed_person)
         # Refresh to re-create a fresh user for the second attempt
-        other_person = Person.objects.create_unclaimed(first_name="Other", last_name="User")
+        other_person = Person.objects.create_unclaimed(
+            first_name="Other", last_name="User"
+        )
         other_person.email = "other@example.com"
         other_person.is_claimed = True
         other_person.save()
@@ -237,7 +260,9 @@ class TestClaimViaToken:
         with pytest.raises(ClaimingError):
             claim_via_token(token, other_person)
 
-    def test_expired_token_raises_claiming_error(self, db, unclaimed_person, claimed_person, settings):
+    def test_expired_token_raises_claiming_error(
+        self, db, unclaimed_person, claimed_person, settings
+    ):
         """claim_via_token raises ClaimingError if token has expired."""
         import time
 
@@ -251,14 +276,18 @@ class TestClaimViaToken:
         with pytest.raises(ClaimingError):
             claim_via_token(token, claimed_person)
 
-    def test_tampered_token_raises_claiming_error(self, db, unclaimed_person, claimed_person):
+    def test_tampered_token_raises_claiming_error(
+        self, db, unclaimed_person, claimed_person
+    ):
         """claim_via_token raises ClaimingError on tampered tokens."""
         from fairdm.contrib.contributors.services.claiming import claim_via_token
 
         with pytest.raises(ClaimingError):
             claim_via_token("this.is.not.a.valid.token", claimed_person)
 
-    def test_banned_target_person_raises_claiming_error(self, db, banned_person, claimed_person):
+    def test_banned_target_person_raises_claiming_error(
+        self, db, banned_person, claimed_person
+    ):
         """claim_via_token raises ClaimingError if the target person is banned (FR-017)."""
         from fairdm.contrib.contributors.services.claiming import claim_via_token
         from fairdm.contrib.contributors.utils.tokens import generate_claim_token
@@ -268,7 +297,9 @@ class TestClaimViaToken:
         with pytest.raises(ClaimingError):
             claim_via_token(token, claimed_person)
 
-    def test_failed_claim_logged_with_failure_reason(self, db, unclaimed_person, claimed_person):
+    def test_failed_claim_logged_with_failure_reason(
+        self, db, unclaimed_person, claimed_person
+    ):
         """claim_via_token writes a failure audit log on tampered/expired/banned token."""
         from fairdm.contrib.contributors.services.claiming import claim_via_token
 

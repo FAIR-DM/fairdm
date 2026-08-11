@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 from django.conf import settings
-from django.core.checks import Error, Tags, Warning, register
+from django.core.checks import Error, Tags, register
 from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
@@ -307,8 +307,12 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
             errors.append(msg)
         else:
             warnings_list.append(msg)
-    elif default_db.get("ENGINE") == "django.db.backends.sqlite3" and is_production_like:
-        errors.append("SQLite is not recommended for production. Set DATABASE_URL to a PostgreSQL connection string.")
+    elif (
+        default_db.get("ENGINE") == "django.db.backends.sqlite3" and is_production_like
+    ):
+        errors.append(
+            "SQLite is not recommended for production. Set DATABASE_URL to a PostgreSQL connection string."
+        )
 
     # =============================================================================
     # CACHE VALIDATION
@@ -335,7 +339,9 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
     secret_key = settings_dict.get("SECRET_KEY", "")
 
     if not secret_key:
-        errors.append("SECRET_KEY is not set. Set DJANGO_SECRET_KEY environment variable.")
+        errors.append(
+            "SECRET_KEY is not set. Set DJANGO_SECRET_KEY environment variable."
+        )
     elif "insecure" in secret_key.lower() and is_production_like:
         errors.append(
             "SECRET_KEY contains 'insecure' - this appears to be a development key. "
@@ -356,7 +362,9 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
 
     if is_production_like:
         if not allowed_hosts:
-            errors.append("ALLOWED_HOSTS is empty. Set DJANGO_ALLOWED_HOSTS environment variable.")
+            errors.append(
+                "ALLOWED_HOSTS is empty. Set DJANGO_ALLOWED_HOSTS environment variable."
+            )
         elif "*" in allowed_hosts:
             errors.append(
                 "ALLOWED_HOSTS contains '*' (wildcard). This is insecure for production. "
@@ -380,7 +388,9 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
 
     if is_production_like:
         if not settings_dict.get("SECURE_SSL_REDIRECT", False):
-            warnings_list.append("SECURE_SSL_REDIRECT is False. Consider enabling HTTPS redirect in production.")
+            warnings_list.append(
+                "SECURE_SSL_REDIRECT is False. Consider enabling HTTPS redirect in production."
+            )
 
         if settings_dict.get("SESSION_COOKIE_SECURE", True) is False:
             errors.append("SESSION_COOKIE_SECURE must be True in production.")
@@ -470,7 +480,9 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
 
         return True
     except (ImportError, ModuleNotFoundError) as e:
-        error_msg = f"Addon '{addon_name}' setup module '{module_path}' could not be found: {e}"
+        error_msg = (
+            f"Addon '{addon_name}' setup module '{module_path}' could not be found: {e}"
+        )
 
         if is_production_like:
             raise ImproperlyConfigured(error_msg) from e
@@ -478,7 +490,9 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
             logger.debug(f"⚠️  {error_msg} (skipping in development)")
             return False
     except Exception as e:
-        error_msg = f"Addon '{addon_name}' setup module '{module_path}' validation failed: {e}"
+        error_msg = (
+            f"Addon '{addon_name}' setup module '{module_path}' validation failed: {e}"
+        )
 
         if is_production_like:
             raise ImproperlyConfigured(error_msg) from e

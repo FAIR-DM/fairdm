@@ -54,7 +54,9 @@ class BaseMetaClass:
                 elif val:
                     custom_conf[key] = val
 
-            custom_conf["fields"] = meta_fields  # preserve fields in case they are nested
+            custom_conf["fields"] = (
+                meta_fields  # preserve fields in case they are nested
+            )
 
             if custom_conf["fieldsets"]:
                 meta.fields = flatten_fieldsets(custom_conf["fieldsets"])

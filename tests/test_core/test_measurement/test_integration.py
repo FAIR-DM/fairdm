@@ -8,7 +8,12 @@ from django.urls import reverse
 from fairdm.core.measurement.forms import MeasurementForm
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Measurement, Sample
-from fairdm.factories import DatasetFactory, MeasurementFactory, PersonFactory, SampleFactory
+from fairdm.factories import (
+    DatasetFactory,
+    MeasurementFactory,
+    PersonFactory,
+    SampleFactory,
+)
 
 
 @pytest.mark.django_db
@@ -135,8 +140,14 @@ class TestMeasurementViews:
         measurement = MeasurementFactory()
         # Note: URL pattern may vary, adjust as needed
         try:
-            response = client.get(reverse("measurement:overview", kwargs={"uuid": measurement.uuid}))
-            assert response.status_code in [200, 302, 404]  # May vary based on permissions
+            response = client.get(
+                reverse("measurement:overview", kwargs={"uuid": measurement.uuid})
+            )
+            assert response.status_code in [
+                200,
+                302,
+                404,
+            ]  # May vary based on permissions
         except Exception:
             # URL may not be configured or may require different namespace
             pytest.skip("Measurement detail URL not configured")
@@ -164,7 +175,9 @@ class TestMeasurementCRUDWorkflow:
         dataset = DatasetFactory(name="Test Dataset")
         sample = SampleFactory(dataset=dataset)
 
-        measurement = MeasurementFactory(name="Test Measurement", dataset=dataset, sample=sample)
+        measurement = MeasurementFactory(
+            name="Test Measurement", dataset=dataset, sample=sample
+        )
 
         assert measurement.pk is not None
         assert measurement.name == "Test Measurement"
@@ -268,7 +281,9 @@ class TestCrossDatasetMeasurementSampleLinking:
         dataset_b = DatasetFactory(name="Sample Dataset")
 
         sample = SampleFactory(dataset=dataset_b, name="Sample from B")
-        measurement = MeasurementFactory(dataset=dataset_a, name="Measurement in A", sample=sample)
+        measurement = MeasurementFactory(
+            dataset=dataset_a, name="Measurement in A", sample=sample
+        )
 
         # Verify provenance
         assert measurement.dataset.name == "Measurement Dataset"
@@ -396,7 +411,9 @@ class TestMeasurementFAIRMetadata:
         measurement = MeasurementFactory()
 
         # Create a description with a Measurement-specific type
-        description = MeasurementDescription.objects.create(related=measurement, type="method", value="XRF Analysis")
+        description = MeasurementDescription.objects.create(
+            related=measurement, type="method", value="XRF Analysis"
+        )
 
         assert description.type == "method"
         assert description.related == measurement
@@ -409,7 +426,9 @@ class TestMeasurementFAIRMetadata:
         measurement = MeasurementFactory()
 
         # Create a date with a Measurement-specific type
-        measurement_date = MeasurementDate.objects.create(related=measurement, type="measured", value="2024-02-15")
+        measurement_date = MeasurementDate.objects.create(
+            related=measurement, type="measured", value="2024-02-15"
+        )
 
         assert measurement_date.type == "measured"
         assert measurement_date.related == measurement
@@ -423,7 +442,9 @@ class TestMeasurementFAIRMetadata:
         measurement = MeasurementFactory()
 
         # Create description with measurement-specific type
-        desc = MeasurementDescription.objects.create(related=measurement, type="method", value="Test")
+        desc = MeasurementDescription.objects.create(
+            related=measurement, type="method", value="Test"
+        )
 
         # Verify the vocabulary is Measurement-specific (not Sample)
         assert desc.VOCABULARY is not None
@@ -434,9 +455,13 @@ class TestMeasurementFAIRMetadata:
         """Test that measurements can have multiple descriptions with different vocabulary types."""
         measurement = MeasurementFactory()
 
-        desc1 = MeasurementDescription.objects.create(related=measurement, type="method", value="XRF Spectroscopy")
+        desc1 = MeasurementDescription.objects.create(
+            related=measurement, type="method", value="XRF Spectroscopy"
+        )
 
-        desc2 = MeasurementDescription.objects.create(related=measurement, type="instrument", value="Bruker S8 Tiger")
+        desc2 = MeasurementDescription.objects.create(
+            related=measurement, type="instrument", value="Bruker S8 Tiger"
+        )
 
         descriptions = MeasurementDescription.objects.filter(related=measurement)
 
@@ -449,9 +474,13 @@ class TestMeasurementFAIRMetadata:
         """Test that measurements can have multiple dates with different vocabulary types."""
         measurement = MeasurementFactory()
 
-        date1 = MeasurementDate.objects.create(related=measurement, type="measured", value="2024-02-15")
+        date1 = MeasurementDate.objects.create(
+            related=measurement, type="measured", value="2024-02-15"
+        )
 
-        date2 = MeasurementDate.objects.create(related=measurement, type="calibrated", value="2024-02-10")
+        date2 = MeasurementDate.objects.create(
+            related=measurement, type="calibrated", value="2024-02-10"
+        )
 
         dates = MeasurementDate.objects.filter(related=measurement)
 
@@ -493,8 +522,12 @@ class TestMeasurementQuerySetOptimization:
         """Test that with_metadata() prefetches descriptions, dates, and identifiers."""
         # Create measurement with metadata
         measurement = MeasurementFactory()
-        MeasurementDescription.objects.create(related=measurement, type="method", value="XRF")
-        MeasurementDate.objects.create(related=measurement, type="measured", value="2024")
+        MeasurementDescription.objects.create(
+            related=measurement, type="method", value="XRF"
+        )
+        MeasurementDate.objects.create(
+            related=measurement, type="measured", value="2024"
+        )
 
         with CaptureQueriesContext(connection) as queries:
             measurements = list(Measurement.objects.with_metadata().all())
@@ -513,10 +546,14 @@ class TestMeasurementQuerySetOptimization:
         dataset = DatasetFactory()
         for _ in range(3):
             measurement = MeasurementFactory(dataset=dataset)
-            MeasurementDescription.objects.create(related=measurement, type="method", value="Test")
+            MeasurementDescription.objects.create(
+                related=measurement, type="method", value="Test"
+            )
 
         # Chain methods
-        measurements = Measurement.objects.with_related().with_metadata().filter(dataset=dataset)
+        measurements = (
+            Measurement.objects.with_related().with_metadata().filter(dataset=dataset)
+        )
 
         assert measurements.count() == 3
 
@@ -556,7 +593,9 @@ class TestMeasurementQuerySetOptimization:
             all_measurements = Measurement.objects.all()
 
             # Verify polymorphic instances are returned as correct type
-            xrf_count = sum(1 for m in all_measurements if isinstance(m, XRFMeasurement))
+            xrf_count = sum(
+                1 for m in all_measurements if isinstance(m, XRFMeasurement)
+            )
             base_count = sum(1 for m in all_measurements if type(m) is Measurement)
 
             assert xrf_count >= 2
@@ -572,23 +611,31 @@ class TestMeasurementQuerySetOptimization:
         for i in range(50):
             m = MeasurementFactory(name=f"Measurement {i}")
             m.add_contributor(PersonFactory(), with_roles=["Creator"])
-            MeasurementDescription.objects.create(related=m, type="method", value=f"Method {i}")
+            MeasurementDescription.objects.create(
+                related=m, type="method", value=f"Method {i}"
+            )
             measurements.append(m)
 
         # Query with optimizations
         with CaptureQueriesContext(connection) as queries:
-            optimized_results = list(Measurement.objects.with_related().with_metadata().all())
+            optimized_results = list(
+                Measurement.objects.with_related().with_metadata().all()
+            )
 
             # Access all related data
             for m in optimized_results:
                 _ = m.sample.name
                 _ = m.dataset.name
                 _ = list(m.contributors.all())
-                _ = list(m.descriptions.all())  # Use prefetched data instead of filtering
+                _ = list(
+                    m.descriptions.all()
+                )  # Use prefetched data instead of filtering
 
         optimized_query_count = len(queries)
 
         # Should use significantly fewer queries than N+1 pattern
         # With 50 measurements, unoptimized would be 50*4 = 200+ queries
         # Optimized should be < 20 queries
-        assert optimized_query_count < 20, f"Query count too high: {optimized_query_count}"
+        assert optimized_query_count < 20, (
+            f"Query count too high: {optimized_query_count}"
+        )

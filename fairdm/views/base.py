@@ -4,7 +4,13 @@ from django_filters.views import FilterView
 from meta.views import MetadataMixin
 from mvp.integrations.django_filters.views import MVPFilteredListView
 from mvp.integrations.django_tables.views import MVPTableViewMixin
-from mvp.views import MVPCreateView, MVPDeleteView, MVPDetailView, MVPTemplateView, MVPUpdateView
+from mvp.views import (
+    MVPCreateView,
+    MVPDeleteView,
+    MVPDetailView,
+    MVPTemplateView,
+    MVPUpdateView,
+)
 
 
 class FairDMTemplateView(MetadataMixin, MVPTemplateView):

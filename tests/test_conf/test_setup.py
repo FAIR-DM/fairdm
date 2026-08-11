@@ -112,7 +112,9 @@ class TestValidationLogic:
 
         test_settings = {
             "DATABASES": {"default": {"ENGINE": "django.db.backends.postgresql"}},
-            "CACHES": {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}},
+            "CACHES": {
+                "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+            },
             "SECRET_KEY": "a" * 50,
             "ALLOWED_HOSTS": ["example.com"],
             "DEBUG": False,
@@ -166,7 +168,9 @@ class TestValidationLogic:
 
         test_settings = {
             "DATABASES": {"default": {"ENGINE": "django.db.backends.sqlite3"}},
-            "CACHES": {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}},
+            "CACHES": {
+                "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+            },
             "SECRET_KEY": "dev-key",
             "ALLOWED_HOSTS": ["*"],
             "DEBUG": True,

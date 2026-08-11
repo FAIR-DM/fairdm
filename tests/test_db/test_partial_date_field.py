@@ -44,7 +44,9 @@ class TestPartialDateField:
     def test_formfield_accepts_kwargs_override(self):
         """Test that formfield() allows kwargs to override defaults."""
         model_field = PartialDateField(blank=True)
-        form_field = model_field.formfield(required=True, label="Custom Label", help_text="Custom help text")
+        form_field = model_field.formfield(
+            required=True, label="Custom Label", help_text="Custom help text"
+        )
 
         assert form_field.required is True
         assert form_field.label == "Custom Label"

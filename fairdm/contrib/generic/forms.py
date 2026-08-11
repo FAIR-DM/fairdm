@@ -30,7 +30,9 @@ class FormsetMixin:
 
     def get_initial(self, qs):
         existing_choices = qs.values_list("type", flat=True)
-        missing_choices = [c for c in self.vocabulary.values if c not in existing_choices]
+        missing_choices = [
+            c for c in self.vocabulary.values if c not in existing_choices
+        ]
         initial = [{"type": choice} for choice in missing_choices]
         self.extra = len(missing_choices)
         return initial
@@ -38,7 +40,9 @@ class FormsetMixin:
     def __iter__(self):
         # Yield forms in the order defined in the vocabulary. Without this, forms are displayed first by those that
         # are already in the database, then by the order they were added to the formset (which can be confusing.).
-        form_map = {form.initial.get("type", form.instance.type): form for form in self.forms}
+        form_map = {
+            form.initial.get("type", form.instance.type): form for form in self.forms
+        }
         for type_value in self.vocabulary.values:
             if type_value in form_map:
                 yield form_map[type_value]
@@ -54,7 +58,10 @@ class FormsetMixin:
         for i, form in enumerate(self.forms):
             # if the form has no date value, mark it for deletion. This is prettier and IMO more user-friendly than
             # the default formset behavior of providing flags for deletion.
-            if not form.cleaned_data.get("value") and i not in self._deleted_form_indexes:
+            if (
+                not form.cleaned_data.get("value")
+                and i not in self._deleted_form_indexes
+            ):
                 self._deleted_form_indexes.append(i)
 
         return super().save(commit=commit)
@@ -75,7 +82,9 @@ class CoreInlineFormset(FormsetMixin, BaseInlineFormSet):
     """
 
     def __init__(self, *args, instance=None, **kwargs):
-        kwargs["queryset"] = self.model._default_manager.filter(**{self.fk.name: instance})
+        kwargs["queryset"] = self.model._default_manager.filter(
+            **{self.fk.name: instance}
+        )
         super().__init__(*args, instance=instance, **kwargs)
 
 
@@ -169,13 +178,17 @@ class KeywordForm(forms.ModelForm):
             field_name = vocab_class.__name__
 
             # Use the simplified ConceptMultiSelect field
-            self.fields[field_name] = ConceptMultiSelect(vocabulary=vocab_str, required=False)
+            self.fields[field_name] = ConceptMultiSelect(
+                vocabulary=vocab_str, required=False
+            )
 
             # Set initial values from existing keywords that match this vocabulary
             if existing_keywords:
                 # Get the vocabulary name to filter existing keywords
                 vocab_name = vocab_class._meta.name
-                matching_keywords = [kw for kw in existing_keywords if kw.vocabulary.name == vocab_name]
+                matching_keywords = [
+                    kw for kw in existing_keywords if kw.vocabulary.name == vocab_name
+                ]
                 if matching_keywords:
                     self.initial[field_name] = matching_keywords
 
@@ -202,7 +215,10 @@ class KeywordForm(forms.ModelForm):
             # Collect all selected concepts from vocabulary fields
             concepts = []
             for field_name, field in self.fields.items():
-                if isinstance(field, ConceptMultiSelect) and field_name in self.cleaned_data:
+                if (
+                    isinstance(field, ConceptMultiSelect)
+                    and field_name in self.cleaned_data
+                ):
                     concepts.extend(self.cleaned_data[field_name])
 
             # Set the keywords M2M relationship (always set, even if empty to clear old values)
@@ -213,7 +229,13 @@ class KeywordForm(forms.ModelForm):
                 tags_value = self.cleaned_data["tags"]
                 if tags_value:
                     # TagWidget returns a list of tag names
-                    instance.tags.set(*(tags_value.split(",") if isinstance(tags_value, str) else tags_value))
+                    instance.tags.set(
+                        *(
+                            tags_value.split(",")
+                            if isinstance(tags_value, str)
+                            else tags_value
+                        )
+                    )
                 else:
                     # Clear tags if empty
                     instance.tags.clear()

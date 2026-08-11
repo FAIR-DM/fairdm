@@ -60,7 +60,7 @@ class TestProjectModel:
         project = ProjectFactory()
         url = project.get_absolute_url()
 
-        assert url == reverse("project:overview", kwargs={"uuid": project.uuid})
+        assert url == reverse("project-detail", kwargs={"uuid": project.uuid})
 
     def test_project_descriptions_relationship(self):
         """Test that project descriptions can be created correctly."""
@@ -163,7 +163,9 @@ class TestProjectViews:
         # Should redirect to login
         assert response.status_code == 302
 
-    def test_project_create_view_accessible_when_authenticated(self, authenticated_client):
+    def test_project_create_view_accessible_when_authenticated(
+        self, authenticated_client
+    ):
         """Test that authenticated users can access project create view."""
         response = authenticated_client.get(reverse("project-create"))
 
@@ -190,7 +192,7 @@ class TestProjectViews:
     def test_project_detail_view_accessible(self, client):
         """Test that project detail view is accessible."""
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project:overview", kwargs={"uuid": project.uuid}))
+        response = client.get(reverse("project-detail", kwargs={"uuid": project.uuid}))
 
         assert response.status_code == 200
         assert project.name.encode() in response.content

@@ -62,6 +62,8 @@ class RelatedObjectMixin:
         context["base_object"] = self.base_object
         context["base_model"] = self.base_model
         context["base_model_name"] = self.base_model._meta.model_name
-        context["non_polymorphic_object"] = get_non_polymorphic_instance(self.base_object)
+        context["non_polymorphic_object"] = get_non_polymorphic_instance(
+            self.base_object
+        )
         context[self.base_model._meta.model_name] = self.base_object
         return context

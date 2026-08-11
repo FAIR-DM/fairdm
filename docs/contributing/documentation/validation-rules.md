@@ -117,7 +117,7 @@ poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
 
 - Relative links to other documentation pages
 - Specification cross-references (`../../specs/###-spec-name/spec.md`)
-- Constitution cross-references (`../../.specify/memory/constitution.md`)
+- Constitution cross-references (`../../memory/constitution.md`)
 - Anchors within documents (`#section-heading`)
 - Image paths and file references
 

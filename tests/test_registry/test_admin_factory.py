@@ -72,7 +72,14 @@ class TestListDisplay:
 
     def test_auto_list_display_from_parent_fields(self, sample_model):
         """Test list_display with specified fields."""
-        fields = ["name", "description", "collected_at", "status", "is_public", "contributor"]
+        fields = [
+            "name",
+            "description",
+            "collected_at",
+            "status",
+            "is_public",
+            "contributor",
+        ]
         factory = AdminFactory(sample_model, fields=fields)
         admin_class = factory.generate()
 
@@ -154,7 +161,15 @@ class TestFieldsets:
     def test_explicit_fieldsets_dict_format(self, sample_model):
         """Test fieldsets are auto-generated when many fields."""
         factory = AdminFactory(
-            sample_model, fields=["name", "description", "collected_at", "status", "is_public", "contributor"]
+            sample_model,
+            fields=[
+                "name",
+                "description",
+                "collected_at",
+                "status",
+                "is_public",
+                "contributor",
+            ],
         )
         admin_class = factory.generate()
 
@@ -164,7 +179,15 @@ class TestFieldsets:
     def test_explicit_fieldsets_django_format(self, sample_model):
         """Test fieldsets format is correct."""
         factory = AdminFactory(
-            sample_model, fields=["name", "description", "collected_at", "status", "is_public", "contributor"]
+            sample_model,
+            fields=[
+                "name",
+                "description",
+                "collected_at",
+                "status",
+                "is_public",
+                "contributor",
+            ],
         )
         admin_class = factory.generate()
 

@@ -208,7 +208,9 @@ class TestInternationalizedHelpText:
         for field_name in important_fields:
             if field_name in form.fields:
                 field = form.fields[field_name]
-                assert field.help_text, f"Field {field_name} should have help_text for user guidance"
+                assert field.help_text, (
+                    f"Field {field_name} should have help_text for user guidance"
+                )
 
 
 @pytest.mark.django_db
@@ -228,7 +230,10 @@ class TestAutocompleteWidgets:
             # If wrapped, get the inner widget
             if hasattr(widget, "widget"):
                 inner_widget_name = type(widget.widget).__name__
-                assert "Select2" in inner_widget_name or "Autocomplete" in inner_widget_name, (
+                assert (
+                    "Select2" in inner_widget_name
+                    or "Autocomplete" in inner_widget_name
+                ), (
                     f"Project field should use autocomplete widget, got {inner_widget_name} (wrapped in {widget_name})"
                 )
             else:
@@ -245,7 +250,11 @@ class TestAutocompleteWidgets:
             # Widget should support autocomplete for many license options
             widget_name = type(license_field.widget).__name__
             # Should use Select2 or similar
-            assert "Select2" in widget_name or "Autocomplete" in widget_name or "Select" in widget_name
+            assert (
+                "Select2" in widget_name
+                or "Autocomplete" in widget_name
+                or "Select" in widget_name
+            )
 
     def test_reference_field_uses_autocomplete_widget(self):
         """Test that reference field (literature) uses autocomplete widget."""
@@ -255,7 +264,11 @@ class TestAutocompleteWidgets:
         if reference_field:
             widget_name = type(reference_field.widget).__name__
             # Literature references should use autocomplete for large lists
-            assert "Select2" in widget_name or "Autocomplete" in widget_name or "AddAnother" in widget_name
+            assert (
+                "Select2" in widget_name
+                or "Autocomplete" in widget_name
+                or "AddAnother" in widget_name
+            )
 
 
 @pytest.mark.django_db
@@ -295,7 +308,9 @@ class TestDOIEntryField:
         dataset = form.save()
 
         # Should have created a DatasetIdentifier
-        doi_identifier = DatasetIdentifier.objects.filter(related=dataset, type="DOI").first()
+        doi_identifier = DatasetIdentifier.objects.filter(
+            related=dataset, type="DOI"
+        ).first()
         assert doi_identifier is not None, "DOI identifier should be created"
         assert doi_identifier.value == "10.1000/test123"
 
@@ -305,7 +320,9 @@ class TestDOIEntryField:
         license = License.objects.get_or_create(name="CC BY 4.0")[0]
 
         # Create initial DOI
-        DatasetIdentifier.objects.create(related=dataset, type="DOI", value="10.1000/original")
+        DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.1000/original"
+        )
 
         # Update DOI via form
         form = DatasetForm(
@@ -343,7 +360,9 @@ class TestDOIEntryField:
         dataset = form.save()
 
         # Should NOT have created a DOI identifier
-        doi_count = DatasetIdentifier.objects.filter(related=dataset, type="DOI").count()
+        doi_count = DatasetIdentifier.objects.filter(
+            related=dataset, type="DOI"
+        ).count()
         assert doi_count == 0, "Empty DOI should not create identifier"
 
     def test_doi_field_has_helpful_text(self):

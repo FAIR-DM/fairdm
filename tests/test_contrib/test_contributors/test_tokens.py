@@ -10,7 +10,10 @@ import pytest
 
 from fairdm.contrib.contributors.exceptions import ClaimingError
 from fairdm.contrib.contributors.models import Person
-from fairdm.contrib.contributors.utils.tokens import generate_claim_token, validate_claim_token
+from fairdm.contrib.contributors.utils.tokens import (
+    generate_claim_token,
+    validate_claim_token,
+)
 
 
 @pytest.fixture
@@ -39,7 +42,9 @@ class TestGenerateClaimToken:
 
     def test_different_persons_produce_different_tokens(self, db, unclaimed_person):
         """Each person produces a unique token."""
-        person2 = Person.objects.create_unclaimed(first_name="Other", last_name="Person")
+        person2 = Person.objects.create_unclaimed(
+            first_name="Other", last_name="Person"
+        )
         token1 = generate_claim_token(unclaimed_person)
         token2 = generate_claim_token(person2)
         assert token1 != token2

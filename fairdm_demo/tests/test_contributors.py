@@ -148,7 +148,9 @@ class TestDemoAffiliationWorkflow:
         )
 
         assert affiliation.start_date is not None
-        assert str(affiliation.start_date) == "2020"  # PartialDate string representation
+        assert (
+            str(affiliation.start_date) == "2020"
+        )  # PartialDate string representation
         assert affiliation.is_primary
 
         # Transition to admin (e.g., after promotion)
@@ -184,7 +186,10 @@ class TestDemoAdminViewsLoad:
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url)
         assert response.status_code == 200
-        assert b"Select person to change" in response.content or b"person" in response.content.lower()
+        assert (
+            b"Select person to change" in response.content
+            or b"person" in response.content.lower()
+        )
 
     def test_person_admin_change_view_loads(self, admin_client):
         """Verify Person admin change view shows affiliation inline."""
@@ -208,4 +213,7 @@ class TestDemoAdminViewsLoad:
         response = admin_client.get(url)
         assert response.status_code == 200
         # Check for members inline presence
-        assert b"members" in response.content.lower() or b"affiliation" in response.content.lower()
+        assert (
+            b"members" in response.content.lower()
+            or b"affiliation" in response.content.lower()
+        )

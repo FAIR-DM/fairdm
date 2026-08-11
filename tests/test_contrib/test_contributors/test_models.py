@@ -291,7 +291,9 @@ class TestContributionGFKRelationships:
     """Verify Contribution model with GenericForeignKey."""
 
     @pytest.mark.django_db
-    def test_contribution_links_person_to_project(self, contribution, person, project_for_contributions):
+    def test_contribution_links_person_to_project(
+        self, contribution, person, project_for_contributions
+    ):
         """Contribution correctly links a contributor to a project."""
         assert contribution.contributor == person
         assert contribution.content_object == project_for_contributions
@@ -325,7 +327,9 @@ class TestContributionGFKRelationships:
         assert c.affiliation == organization
 
     @pytest.mark.django_db
-    def test_contribution_has_contribution_to(self, person, contribution, project_for_contributions):
+    def test_contribution_has_contribution_to(
+        self, person, contribution, project_for_contributions
+    ):
         """Contributor.has_contribution_to() returns True for contributed entities."""
         assert person.has_contribution_to(project_for_contributions) is True
 
@@ -336,7 +340,9 @@ class TestContributionGFKRelationships:
         assert projects.count() >= 1
 
     @pytest.mark.django_db
-    def test_contribution_manager_for_entity(self, contribution, project_for_contributions):
+    def test_contribution_manager_for_entity(
+        self, contribution, project_for_contributions
+    ):
         """ContributionManager.for_entity() filters by entity."""
         qs = Contribution.objects.for_entity(project_for_contributions)
         assert qs.count() >= 1

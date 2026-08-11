@@ -10,23 +10,35 @@ overview_context = {"label": _("Overview"), "icon": "overview"}
 
 ProjectMenu = Menu(
     "ProjectMenu",
-    children=[MenuItem("Overview", view_name="project-detail", extra_context=overview_context)],
+    children=[
+        MenuItem("Overview", view_name="project-detail", extra_context=overview_context)
+    ],
 )
 DatasetMenu = Menu(
     "DatasetMenu",
-    children=[MenuItem("Overview", view_name="dataset-detail", extra_context=overview_context)],
+    children=[
+        MenuItem("Overview", view_name="dataset-detail", extra_context=overview_context)
+    ],
 )
 SampleMenu = Menu(
     "SampleMenu",
-    children=[MenuItem("Overview", view_name="sample-detail", extra_context=overview_context)],
+    children=[
+        MenuItem("Overview", view_name="sample-detail", extra_context=overview_context)
+    ],
 )
 PersonMenu = Menu(
     "ContributorMenu",
-    children=[MenuItem("Overview", view_name="person-detail", extra_context=overview_context)],
+    children=[
+        MenuItem("Overview", view_name="person-detail", extra_context=overview_context)
+    ],
 )
 OrganizationMenu = Menu(
     "OrganizationMenu",
-    children=[MenuItem("Overview", view_name="organization-detail", extra_context=overview_context)],
+    children=[
+        MenuItem(
+            "Overview", view_name="organization-detail", extra_context=overview_context
+        )
+    ],
 )
 
 

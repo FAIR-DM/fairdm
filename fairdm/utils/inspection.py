@@ -61,7 +61,9 @@ class FieldInspector:
             List of Django field instances
         """
         if self._fields_cache is None:
-            self._fields_cache = [f for f in self.model._meta.get_fields() if isinstance(f, Field)]
+            self._fields_cache = [
+                f for f in self.model._meta.get_fields() if isinstance(f, Field)
+            ]
         return self._fields_cache
 
     def _get_field_map(self) -> dict[str, Field]:
@@ -135,7 +137,9 @@ class FieldInspector:
         if isinstance(field, models.ManyToManyField):
             try:
                 # Check if through model exists and is not auto-created
-                if hasattr(field, "remote_field") and hasattr(field.remote_field, "through"):
+                if hasattr(field, "remote_field") and hasattr(
+                    field.remote_field, "through"
+                ):
                     through = field.remote_field.through
                     if through is not None:
                         # String reference means it's explicitly set (not auto-created)
@@ -193,7 +197,9 @@ class FieldInspector:
         """
         date_fields = []
         for field in self._get_all_fields():
-            if isinstance(field, (models.DateField, models.DateTimeField, models.TimeField)):
+            if isinstance(
+                field, (models.DateField, models.DateTimeField, models.TimeField)
+            ):
                 date_fields.append(field.name)
         return date_fields
 
@@ -444,7 +450,9 @@ class FieldInspector:
 
         # Foreign keys (but not M2M to avoid complexity)
         for field in self._get_all_fields():
-            if isinstance(field, models.ForeignKey) and not self.should_exclude_field(field.name):
+            if isinstance(field, models.ForeignKey) and not self.should_exclude_field(
+                field.name
+            ):
                 filter_fields.append(field.name)
 
         return list(set(filter_fields))  # Remove duplicates

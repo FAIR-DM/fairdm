@@ -120,7 +120,9 @@ class TestContributionForEntity:
     """Test ContributionManager.for_entity() method."""
 
     @pytest.mark.django_db
-    def test_for_entity_filters_by_object(self, contribution, project_for_contributions, organization):
+    def test_for_entity_filters_by_object(
+        self, contribution, project_for_contributions, organization
+    ):
         """for_entity() returns only contributions for the specified entity."""
         from fairdm.factories import ProjectFactory
 
@@ -209,7 +211,11 @@ class TestAffiliationQuerysetMethods:
     @pytest.mark.django_db
     def test_affiliation_primary_method(self, db):
         """primary() returns the affiliation with is_primary=True."""
-        from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
 
         person = PersonFactory()
         org1 = OrganizationFactory(name="Org 1")
@@ -237,7 +243,11 @@ class TestAffiliationQuerysetMethods:
     @pytest.mark.django_db
     def test_affiliation_primary_returns_none_when_no_primary(self, db):
         """primary() returns None when no affiliation is marked primary."""
-        from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
 
         person = PersonFactory()
         org = OrganizationFactory()
@@ -256,7 +266,11 @@ class TestAffiliationQuerysetMethods:
     @pytest.mark.django_db
     def test_affiliation_current_method(self, db):
         """current() returns affiliations with end_date=None."""
-        from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
 
         person = PersonFactory()
         org1 = OrganizationFactory(name="Current Org")
@@ -287,7 +301,11 @@ class TestAffiliationQuerysetMethods:
     @pytest.mark.django_db
     def test_affiliation_past_method(self, db):
         """past() returns affiliations with end_date IS NOT NULL."""
-        from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
 
         person = PersonFactory()
         org1 = OrganizationFactory(name="Current Org")
@@ -318,7 +336,11 @@ class TestAffiliationQuerysetMethods:
     @pytest.mark.django_db
     def test_affiliation_current_and_past_mutually_exclusive(self, db):
         """current() and past() return mutually exclusive querysets."""
-        from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
 
         person = PersonFactory()
         org1 = OrganizationFactory(name="Org 1")

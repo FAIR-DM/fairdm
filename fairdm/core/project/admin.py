@@ -105,19 +105,25 @@ class ProjectAdmin(admin.ModelAdmin):
     def make_concept(self, request, queryset):
         """Bulk action to set projects to Concept status."""
         updated = queryset.update(status=0)
-        self.message_user(request, _("%(count)d project(s) marked as Concept.") % {"count": updated})
+        self.message_user(
+            request, _("%(count)d project(s) marked as Concept.") % {"count": updated}
+        )
 
     @admin.action(description=_("Mark selected projects as Active"))
     def make_active(self, request, queryset):
         """Bulk action to set projects to Active status."""
         updated = queryset.update(status=1)
-        self.message_user(request, _("%(count)d project(s) marked as Active.") % {"count": updated})
+        self.message_user(
+            request, _("%(count)d project(s) marked as Active.") % {"count": updated}
+        )
 
     @admin.action(description=_("Mark selected projects as Completed"))
     def make_completed(self, request, queryset):
         """Bulk action to set projects to Completed status."""
         updated = queryset.update(status=2)
-        self.message_user(request, _("%(count)d project(s) marked as Completed.") % {"count": updated})
+        self.message_user(
+            request, _("%(count)d project(s) marked as Completed.") % {"count": updated}
+        )
 
     @admin.action(description=_("Export selected projects as JSON"))
     def export_json(self, request, queryset):
@@ -129,14 +135,18 @@ class ProjectAdmin(admin.ModelAdmin):
                 "name": project.name,
                 "status": project.status,
                 "visibility": (
-                    project.visibility.value if hasattr(project.visibility, "value") else project.visibility
+                    project.visibility.value
+                    if hasattr(project.visibility, "value")
+                    else project.visibility
                 ),
                 "added": project.added.isoformat() if project.added else None,
                 "modified": project.modified.isoformat() if project.modified else None,
             }
             projects_data.append(data)
 
-        response = HttpResponse(json.dumps(projects_data, indent=2), content_type="application/json")
+        response = HttpResponse(
+            json.dumps(projects_data, indent=2), content_type="application/json"
+        )
         response["Content-Disposition"] = 'attachment; filename="projects_export.json"'
         return response
 
@@ -157,6 +167,10 @@ class ProjectAdmin(admin.ModelAdmin):
             }
             datacite_records.append(record)
 
-        response = HttpResponse(json.dumps(datacite_records, indent=2), content_type="application/json")
-        response["Content-Disposition"] = 'attachment; filename="projects_datacite.json"'
+        response = HttpResponse(
+            json.dumps(datacite_records, indent=2), content_type="application/json"
+        )
+        response["Content-Disposition"] = (
+            'attachment; filename="projects_datacite.json"'
+        )
         return response

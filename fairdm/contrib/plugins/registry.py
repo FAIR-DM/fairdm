@@ -132,7 +132,9 @@ class PluginRegistry:
                 plugin_menu.append(tab)
         return url_patterns
 
-    def configure_tab(self, plugin_class: type[Plugin], model: type[Model], **kwargs) -> None:
+    def configure_tab(
+        self, plugin_class: type[Plugin], model: type[Model], **kwargs
+    ) -> None:
         """Configure the tab for a plugin based on its menu definition.
 
         This method resolves the URL for the plugin's tab using the registered
@@ -144,7 +146,9 @@ class PluginRegistry:
         Returns:
             None
         """
-        label = kwargs.get("label") or getattr(plugin_class, "page_title", plugin_class.__name__)
+        label = kwargs.get("label") or getattr(
+            plugin_class, "page_title", plugin_class.__name__
+        )
         name = plugin_class.get_name()
         view_name = f"{model._meta.model_name.lower()}:{name}"
         return MenuItem(
@@ -153,7 +157,8 @@ class PluginRegistry:
             check=plugin_class.check,
             extra_context={
                 "label": label,
-                "icon": kwargs.get("icon") or getattr(plugin_class, "page_icon", "circle"),
+                "icon": kwargs.get("icon")
+                or getattr(plugin_class, "page_icon", "circle"),
             },
         )
 

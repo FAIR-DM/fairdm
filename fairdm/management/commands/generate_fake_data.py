@@ -136,10 +136,14 @@ class Command(BaseCommand):
                 # Categorize by base type
                 if issubclass(model_class, Sample):
                     sample_factories.append((factory_class, model_class))
-                    self.stdout.write(f"  ✓ Loaded Sample factory: {class_name} for {model_class.__name__}")
+                    self.stdout.write(
+                        f"  ✓ Loaded Sample factory: {class_name} for {model_class.__name__}"
+                    )
                 elif issubclass(model_class, Measurement):
                     measurement_factories.append((factory_class, model_class))
-                    self.stdout.write(f"  ✓ Loaded Measurement factory: {class_name} for {model_class.__name__}")
+                    self.stdout.write(
+                        f"  ✓ Loaded Measurement factory: {class_name} for {model_class.__name__}"
+                    )
                 else:
                     self.stdout.write(
                         self.style.WARNING(
@@ -147,12 +151,18 @@ class Command(BaseCommand):
                         )
                     )
             except (ImportError, AttributeError) as e:
-                self.stdout.write(self.style.WARNING(f"  ⚠ Could not load factory {factory_path}: {e}"))
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"  ⚠ Could not load factory {factory_path}: {e}"
+                    )
+                )
 
         # Warn if no factories configured - we should never create base Sample/Measurement instances
         if not sample_factories:
             self.stdout.write(
-                self.style.WARNING("  ⚠ No Sample factories configured in FAIRDM_FACTORIES. Samples will be skipped.")
+                self.style.WARNING(
+                    "  ⚠ No Sample factories configured in FAIRDM_FACTORIES. Samples will be skipped."
+                )
             )
 
         if not measurement_factories:
@@ -223,7 +233,9 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("\n" + "=" * 50))
         self.stdout.write(self.style.SUCCESS("✓ Fake data generation complete!"))
         self.stdout.write(self.style.SUCCESS("=" * 50))
-        self.stdout.write(f"  Contributors: {len(all_contributors)} ({num_people} people, {num_organizations} orgs)")
+        self.stdout.write(
+            f"  Contributors: {len(all_contributors)} ({num_people} people, {num_organizations} orgs)"
+        )
         self.stdout.write(f"  Projects: {len(projects)}")
 
         total_datasets = Dataset.objects.count()
@@ -281,7 +293,9 @@ class Command(BaseCommand):
 
         # Add contributors with varied roles
         num_contributors = random.randint(3, 6)
-        project_contributors = random.sample(all_contributors, min(num_contributors, len(all_contributors)))
+        project_contributors = random.sample(
+            all_contributors, min(num_contributors, len(all_contributors))
+        )
         self._add_contributors(project, project_contributors, is_project=True)
 
         # Set a project owner (must be an Organization)
@@ -330,7 +344,9 @@ class Command(BaseCommand):
 
         # Add contributors
         num_contributors = random.randint(2, 5)
-        dataset_contributors = random.sample(all_contributors, min(num_contributors, len(all_contributors)))
+        dataset_contributors = random.sample(
+            all_contributors, min(num_contributors, len(all_contributors))
+        )
         self._add_contributors(dataset, dataset_contributors, is_project=False)
 
         self.stdout.write(f"    ✓ Created dataset: {dataset.name}")
@@ -344,7 +360,11 @@ class Command(BaseCommand):
                 sample = self._create_sample(dataset, factories["sample_factories"])
                 samples.append(sample)
         else:
-            self.stdout.write(self.style.WARNING("      ⚠ Skipping sample creation (no Sample factories configured)"))
+            self.stdout.write(
+                self.style.WARNING(
+                    "      ⚠ Skipping sample creation (no Sample factories configured)"
+                )
+            )
 
         # Create measurements for this dataset using configured factories
         num_measurements = random.randint(min_measurements, max_measurements)
@@ -353,10 +373,14 @@ class Command(BaseCommand):
             for _ in range(num_measurements):
                 # Randomly associate measurements with samples in this dataset
                 related_sample = random.choice(samples) if samples else None
-                self._create_measurement(dataset, related_sample, factories["measurement_factories"])
+                self._create_measurement(
+                    dataset, related_sample, factories["measurement_factories"]
+                )
         else:
             self.stdout.write(
-                self.style.WARNING("      ⚠ Skipping measurement creation (no Measurement factories configured)")
+                self.style.WARNING(
+                    "      ⚠ Skipping measurement creation (no Measurement factories configured)"
+                )
             )
 
         return dataset
@@ -395,7 +419,9 @@ class Command(BaseCommand):
         measurement = factory_class(dataset=dataset, sample=sample)
 
         # Add descriptions and dates
-        self._add_descriptions(measurement, MeasurementDescription, random.randint(1, 2))
+        self._add_descriptions(
+            measurement, MeasurementDescription, random.randint(1, 2)
+        )
         self._add_dates(measurement, MeasurementDate, random.randint(1, 2))
 
         return measurement
@@ -409,7 +435,9 @@ class Command(BaseCommand):
             "Table of Contents",
         ]
         # Use sample to avoid duplicates (UniqueConstraint on related+type)
-        selected_types = random.sample(description_types, min(count, len(description_types)))
+        selected_types = random.sample(
+            description_types, min(count, len(description_types))
+        )
         for desc_type in selected_types:
             description_model.objects.create(
                 related=obj,
@@ -465,7 +493,9 @@ class Command(BaseCommand):
         for contributor in contributors:
             # Randomly assign 1-3 roles to each contributor
             num_roles = random.randint(1, 3)
-            selected_roles = random.sample(available_roles, min(num_roles, len(available_roles)))
+            selected_roles = random.sample(
+                available_roles, min(num_roles, len(available_roles))
+            )
 
             # Create contribution
             contribution = Contribution.objects.create(

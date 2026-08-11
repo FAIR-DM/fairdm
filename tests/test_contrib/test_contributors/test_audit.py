@@ -80,8 +80,16 @@ class TestClaimingAuditLogManager:
             target_person=person_b,
             success=True,
         )
-        assert ClaimingAuditLog.objects.for_person(person_a.pk).filter(pk=entry.pk).exists()
-        assert ClaimingAuditLog.objects.for_person(person_b.pk).filter(pk=entry.pk).exists()
+        assert (
+            ClaimingAuditLog.objects.for_person(person_a.pk)
+            .filter(pk=entry.pk)
+            .exists()
+        )
+        assert (
+            ClaimingAuditLog.objects.for_person(person_b.pk)
+            .filter(pk=entry.pk)
+            .exists()
+        )
 
     def test_for_person_excludes_unrelated_entries(self, db, person_a, person_b):
         from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
@@ -94,7 +102,11 @@ class TestClaimingAuditLogManager:
             target_person=person_b,
             success=True,
         )
-        assert not ClaimingAuditLog.objects.for_person(unrelated.pk).filter(pk=entry.pk).exists()
+        assert (
+            not ClaimingAuditLog.objects.for_person(unrelated.pk)
+            .filter(pk=entry.pk)
+            .exists()
+        )
 
     def test_failures_filter(self, db, person_a, person_b):
         from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
@@ -158,6 +170,8 @@ class TestClaimingAuditLogAdminView:
         """Change URL should return 403 since we disabled change permission."""
         from django.urls import reverse
 
-        url = reverse("admin:contributors_claimingauditlog_change", args=[audit_log_entry.pk])
+        url = reverse(
+            "admin:contributors_claimingauditlog_change", args=[audit_log_entry.pk]
+        )
         response = admin_client.get(url)
         assert response.status_code == 403

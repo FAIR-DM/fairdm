@@ -5,5 +5,7 @@ from .views import PointDetailView
 
 urlpatterns = [
     # path("loc/<str:uuid>/", include(plugins["location"].get_urls())),
-    path("location/<str:lon>/<str:lat>/", PointDetailView.as_view(), name="point-detail"),
+    path(
+        "location/<str:lon>/<str:lat>/", PointDetailView.as_view(), name="point-detail"
+    ),
 ]

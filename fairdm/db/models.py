@@ -1,6 +1,11 @@
 from django.db.models import *  # isort:skip
 
-from auto_prefetch import ForeignKey, Manager, OneToOneField, QuerySet  # type: ignore[no-redef]
+from auto_prefetch import (  # type: ignore[no-redef]
+    ForeignKey,
+    Manager,
+    OneToOneField,
+    QuerySet,
+)
 from auto_prefetch import Model as PrefetchModel
 from django.db import models
 from django.db.models import __all__ as django_models_all

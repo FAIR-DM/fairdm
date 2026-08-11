@@ -36,7 +36,9 @@ class CustomAdminSite(admin.AdminSite):
             form = FixtureUploadForm(request.POST, request.FILES)
             if form.is_valid():
                 fixture_file = request.FILES["fixture_file"]
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp_file:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".json"
+                ) as tmp_file:
                     for chunk in fixture_file.chunks():
                         tmp_file.write(chunk)
                     tmp_file_path = tmp_file.name

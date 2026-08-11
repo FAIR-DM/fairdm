@@ -49,7 +49,11 @@ class TestBasicRegistration:
 
         assert registered_config.model is GraniteRockSample
         assert registered_config.table_fields == ["rock_type", "weight_grams"]
-        assert registered_config.form_fields == ["rock_type", "mineral_content", "weight_grams"]
+        assert registered_config.form_fields == [
+            "rock_type",
+            "mineral_content",
+            "weight_grams",
+        ]
 
     def test_verify_all_component_properties_accessible(self, clean_registry):
         """Test that all 6 component properties work after registration."""
@@ -156,9 +160,15 @@ class TestBasicRegistration:
                 app_label = "test_app"
 
         # Register all three with ModelConfiguration
-        rock_config = fairdm.config.ModelConfiguration(model=MarbleRockSample, fields=["rock_type"])
-        soil_config = fairdm.config.ModelConfiguration(model=ClaySoilSample, fields=["soil_location"])
-        water_config = fairdm.config.ModelConfiguration(model=SeaWaterSample, fields=["ph_level"])
+        rock_config = fairdm.config.ModelConfiguration(
+            model=MarbleRockSample, fields=["rock_type"]
+        )
+        soil_config = fairdm.config.ModelConfiguration(
+            model=ClaySoilSample, fields=["soil_location"]
+        )
+        water_config = fairdm.config.ModelConfiguration(
+            model=SeaWaterSample, fields=["ph_level"]
+        )
 
         clean_registry.register(MarbleRockSample, config=rock_config)
         clean_registry.register(ClaySoilSample, config=soil_config)

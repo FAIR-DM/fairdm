@@ -135,16 +135,21 @@ class FormFactory(ComponentFactory):
                 field = self.model._meta.get_field(field_name)
 
                 # Date fields get DateInput with HTML5 type
-                if isinstance(field, models.DateField) and not isinstance(field, models.DateTimeField):
+                if isinstance(field, models.DateField) and not isinstance(
+                    field, models.DateTimeField
+                ):
                     widgets[field_name] = forms.DateInput(attrs={"type": "date"})
 
                 # DateTime fields get DateTimeInput with HTML5 type
                 elif isinstance(field, models.DateTimeField):
-                    widgets[field_name] = forms.DateTimeInput(attrs={"type": "datetime-local"})
+                    widgets[field_name] = forms.DateTimeInput(
+                        attrs={"type": "datetime-local"}
+                    )
 
                 # Large text fields get Textarea
                 elif isinstance(field, models.TextField) or (
-                    isinstance(field, models.CharField) and getattr(field, "max_length", 0) > 200
+                    isinstance(field, models.CharField)
+                    and getattr(field, "max_length", 0) > 200
                 ):
                     widgets[field_name] = forms.Textarea(attrs={"rows": 4})
 
@@ -230,7 +235,10 @@ class TableFactory(ComponentFactory):
                 # Skip TextField and long CharField
                 if isinstance(field, models.TextField):
                     continue
-                if isinstance(field, models.CharField) and getattr(field, "max_length", 0) > 200:
+                if (
+                    isinstance(field, models.CharField)
+                    and getattr(field, "max_length", 0) > 200
+                ):
                     continue
 
                 filtered.append(field_name)
@@ -259,7 +267,9 @@ class TableFactory(ComponentFactory):
                 field = self.model._meta.get_field(field_name)
 
                 # Date fields get DateColumn
-                if isinstance(field, models.DateField) and not isinstance(field, models.DateTimeField):
+                if isinstance(field, models.DateField) and not isinstance(
+                    field, models.DateTimeField
+                ):
                     columns[field_name] = tables.DateColumn(format="Y-m-d")
 
                 # DateTime fields get DateTimeColumn
@@ -398,7 +408,9 @@ class FilterFactory(ComponentFactory):
                 field = self.model._meta.get_field(field_name)
 
                 # Date fields get DateFromToRangeFilter
-                if isinstance(field, models.DateField) and not isinstance(field, models.DateTimeField):
+                if isinstance(field, models.DateField) and not isinstance(
+                    field, models.DateTimeField
+                ):
                     filter_overrides[field_name] = filters.DateFromToRangeFilter()
 
                 # DateTime fields get DateTimeFromToRangeFilter
@@ -411,19 +423,27 @@ class FilterFactory(ComponentFactory):
 
                 # Choice fields get ChoiceFilter
                 elif hasattr(field, "choices") and field.choices:
-                    filter_overrides[field_name] = filters.ChoiceFilter(choices=field.choices)
+                    filter_overrides[field_name] = filters.ChoiceFilter(
+                        choices=field.choices
+                    )
 
                 # ForeignKey fields get ModelChoiceFilter
                 elif isinstance(field, models.ForeignKey):
-                    filter_overrides[field_name] = filters.ModelChoiceFilter(queryset=field.related_model.objects.all())
+                    filter_overrides[field_name] = filters.ModelChoiceFilter(
+                        queryset=field.related_model.objects.all()
+                    )
 
                 # Numeric fields get RangeFilter
-                elif isinstance(field, (models.IntegerField, models.FloatField, models.DecimalField)):
+                elif isinstance(
+                    field, (models.IntegerField, models.FloatField, models.DecimalField)
+                ):
                     filter_overrides[field_name] = filters.RangeFilter()
 
                 # Text fields get CharFilter with icontains lookup
                 elif isinstance(field, (models.CharField, models.TextField)):
-                    filter_overrides[field_name] = filters.CharFilter(lookup_expr="icontains")
+                    filter_overrides[field_name] = filters.CharFilter(
+                        lookup_expr="icontains"
+                    )
 
             except Exception:  # noqa: S110
                 # Skip fields that can't be resolved
@@ -505,7 +525,9 @@ class AdminFactory(ComponentFactory):
 
         return admin_class
 
-    def _get_list_display(self, fields: list[str], inspector: FieldInspector) -> list[str]:
+    def _get_list_display(
+        self, fields: list[str], inspector: FieldInspector
+    ) -> list[str]:
         """Get list_display fields for admin changelist.
 
         Args:
@@ -539,14 +561,20 @@ class AdminFactory(ComponentFactory):
             # Skip TextField and large CharField
             if isinstance(field, models.TextField):
                 continue
-            if isinstance(field, models.CharField) and field.max_length and field.max_length > 200:
+            if (
+                isinstance(field, models.CharField)
+                and field.max_length
+                and field.max_length > 200
+            ):
                 continue
 
             display_fields.append(field_name)
 
         return display_fields if display_fields else ["__str__"]
 
-    def _get_search_fields(self, fields: list[str], inspector: FieldInspector) -> list[str]:
+    def _get_search_fields(
+        self, fields: list[str], inspector: FieldInspector
+    ) -> list[str]:
         """Get search_fields for admin search.
 
         Args:
@@ -571,7 +599,9 @@ class AdminFactory(ComponentFactory):
 
         return search_fields
 
-    def _get_list_filter(self, fields: list[str], inspector: FieldInspector) -> list[str]:
+    def _get_list_filter(
+        self, fields: list[str], inspector: FieldInspector
+    ) -> list[str]:
         """Get list_filter fields for admin sidebar.
 
         Args:
@@ -639,7 +669,9 @@ class AdminFactory(ComponentFactory):
 
         return None
 
-    def _get_fieldsets(self, fields: list[str], inspector: FieldInspector) -> tuple[tuple[str | None, dict], ...]:
+    def _get_fieldsets(
+        self, fields: list[str], inspector: FieldInspector
+    ) -> tuple[tuple[str | None, dict], ...]:
         """Get fieldsets for admin form grouping.
 
         Args:
@@ -678,7 +710,9 @@ class AdminFactory(ComponentFactory):
                 meta_fields.append(field_name)
 
         if meta_fields:
-            fieldsets.append(("Metadata", {"fields": meta_fields, "classes": ["collapse"]}))
+            fieldsets.append(
+                ("Metadata", {"fields": meta_fields, "classes": ["collapse"]})
+            )
 
         # Convert to tuple - django-polymorphic requires tuples for fieldsets concatenation
         return tuple(fieldsets) if fieldsets else ((None, {"fields": fields}),)
@@ -883,9 +917,13 @@ class ResourceFactory(ComponentFactory):
                 if isinstance(field, models.ForeignKey):
                     # Use natural_key if available, otherwise pk
                     if hasattr(field.related_model, "natural_key"):
-                        fk_widgets[field_name] = widgets.ForeignKeyWidget(field.related_model, "natural_key")
+                        fk_widgets[field_name] = widgets.ForeignKeyWidget(
+                            field.related_model, "natural_key"
+                        )
                     else:
-                        fk_widgets[field_name] = widgets.ForeignKeyWidget(field.related_model, "pk")
+                        fk_widgets[field_name] = widgets.ForeignKeyWidget(
+                            field.related_model, "pk"
+                        )
 
             except Exception:  # noqa: S110
                 # Skip fields that can't be resolved

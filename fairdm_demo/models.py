@@ -424,8 +424,12 @@ class CustomSample(Sample):
         blank=True,
         null=True,
     )
-    text_field = models.TextField("Text Field", help_text="Enter a large amount of text.", blank=True, null=True)
-    integer_field = models.IntegerField("Integer Field", help_text="Enter an integer.", blank=True, null=True)
+    text_field = models.TextField(
+        "Text Field", help_text="Enter a large amount of text.", blank=True, null=True
+    )
+    integer_field = models.IntegerField(
+        "Integer Field", help_text="Enter an integer.", blank=True, null=True
+    )
     big_integer_field = models.BigIntegerField(
         "Big Integer Field", help_text="Enter a large integer.", blank=True, null=True
     )
@@ -451,11 +455,15 @@ class CustomSample(Sample):
         blank=True,
         null=True,
     )
-    date_field = models.DateField("Date Field", help_text="Select a date.", blank=True, null=True)
+    date_field = models.DateField(
+        "Date Field", help_text="Select a date.", blank=True, null=True
+    )
     date_time_field = models.DateTimeField(
         "Date Time Field", help_text="Select a date and time.", blank=True, null=True
     )
-    time_field = models.TimeField("Time Field", help_text="Select a time.", blank=True, null=True)
+    time_field = models.TimeField(
+        "Time Field", help_text="Select a time.", blank=True, null=True
+    )
     decimal_field = models.DecimalField(
         "Decimal Field",
         max_digits=5,
@@ -464,7 +472,9 @@ class CustomSample(Sample):
         blank=True,
         null=True,
     )
-    float_field = models.FloatField("Float Field", help_text="Enter a floating point number.", blank=True, null=True)
+    float_field = models.FloatField(
+        "Float Field", help_text="Enter a floating point number.", blank=True, null=True
+    )
 
     class Meta:
         verbose_name = "Thin Section"
@@ -488,8 +498,12 @@ class ExampleMeasurement(Measurement):
         blank=True,
         null=True,
     )
-    text_field = models.TextField("Text Field", help_text="Enter a large amount of text.", blank=True, null=True)
-    integer_field = models.IntegerField("Integer Field", help_text="Enter an integer.", blank=True, null=True)
+    text_field = models.TextField(
+        "Text Field", help_text="Enter a large amount of text.", blank=True, null=True
+    )
+    integer_field = models.IntegerField(
+        "Integer Field", help_text="Enter an integer.", blank=True, null=True
+    )
     big_integer_field = models.BigIntegerField(
         "Big Integer Field", help_text="Enter a large integer.", blank=True, null=True
     )
@@ -515,11 +529,15 @@ class ExampleMeasurement(Measurement):
         blank=True,
         null=True,
     )
-    date_field = models.DateField("Date Field", help_text="Select a date.", blank=True, null=True)
+    date_field = models.DateField(
+        "Date Field", help_text="Select a date.", blank=True, null=True
+    )
     date_time_field = models.DateTimeField(
         "Date Time Field", help_text="Select a date and time.", blank=True, null=True
     )
-    time_field = models.TimeField("Time Field", help_text="Select a time.", blank=True, null=True)
+    time_field = models.TimeField(
+        "Time Field", help_text="Select a time.", blank=True, null=True
+    )
     decimal_field = models.DecimalField(
         "Decimal Field",
         max_digits=5,
@@ -528,7 +546,9 @@ class ExampleMeasurement(Measurement):
         blank=True,
         null=True,
     )
-    float_field = models.FloatField("Float Field", help_text="Enter a floating point number.", blank=True, null=True)
+    float_field = models.FloatField(
+        "Float Field", help_text="Enter a floating point number.", blank=True, null=True
+    )
 
 
 class XRFMeasurement(Measurement):
@@ -539,7 +559,9 @@ class XRFMeasurement(Measurement):
     and custom configuration patterns in the registry.
     """
 
-    element = models.CharField("Element", max_length=10, help_text="Chemical element symbol (e.g., Si, Al, Fe)")
+    element = models.CharField(
+        "Element", max_length=10, help_text="Chemical element symbol (e.g., Si, Al, Fe)"
+    )
     concentration_ppm = models.DecimalField(
         "Concentration (ppm)",
         max_digits=10,

@@ -40,7 +40,9 @@ class FairDMRegistry:
     """
 
     def __init__(self) -> None:
-        self._registry: dict[type[Model], ModelConfiguration] = {}  # Stores model -> config_instance mapping
+        self._registry: dict[
+            type[Model], ModelConfiguration
+        ] = {}  # Stores model -> config_instance mapping
         self._auto_factories = None  # Lazy loaded factories
 
     def _validate_model_class(self, model_class: type[Model]) -> None:
@@ -57,7 +59,9 @@ class FairDMRegistry:
             from fairdm.core.measurement.models import Measurement
             from fairdm.core.sample.models import Sample
 
-            if not (issubclass(model_class, Sample) or issubclass(model_class, Measurement)):
+            if not (
+                issubclass(model_class, Sample) or issubclass(model_class, Measurement)
+            ):
                 raise TypeError(
                     f"Model {model_class.__name__} must be a subclass of "
                     f"fairdm.core.sample.models.Sample or fairdm.core.measurement.models.Measurement"
@@ -115,7 +119,9 @@ class FairDMRegistry:
             try:
                 model_cls = apps.get_model(app_label, model_name)
             except LookupError as err:
-                raise LookupError(f"Model '{model_reference}' not found in Django apps") from err
+                raise LookupError(
+                    f"Model '{model_reference}' not found in Django apps"
+                ) from err
         else:
             # Assume it's a model class
             model_cls = model_reference
@@ -123,7 +129,9 @@ class FairDMRegistry:
         # Check if model is registered
         if model_cls not in self._registry:
             model_name = getattr(model_cls._meta, "label", str(model_cls))
-            raise KeyError(f"Model '{model_name}' is not registered with the FairDM registry")
+            raise KeyError(
+                f"Model '{model_name}' is not registered with the FairDM registry"
+            )
 
         return self._registry[model_cls]
 
@@ -202,7 +210,9 @@ class FairDMRegistry:
         """
         return list(self._registry.values())
 
-    def register(self, model_class: type[Model], config: ModelConfiguration | None = None) -> None:
+    def register(
+        self, model_class: type[Model], config: ModelConfiguration | None = None
+    ) -> None:
         """
         Registers a Sample or Measurement subclass with associated configuration.
 
@@ -225,7 +235,9 @@ class FairDMRegistry:
             from fairdm.core.measurement.models import Measurement
             from fairdm.core.sample.models import Sample
 
-            if not (issubclass(model_class, Sample) or issubclass(model_class, Measurement)):
+            if not (
+                issubclass(model_class, Sample) or issubclass(model_class, Measurement)
+            ):
                 raise ConfigurationError(
                     f"{model_class.__name__} must inherit from Sample or Measurement",
                     model=model_class,
@@ -252,7 +264,9 @@ class FairDMRegistry:
         # Store just the config instance
         self._registry[model_class] = config_instance
 
-    def register_admin(self, model_class: type[Model], config_instance: ModelConfiguration) -> None:
+    def register_admin(
+        self, model_class: type[Model], config_instance: ModelConfiguration
+    ) -> None:
         """Register model with Django admin using auto-generated admin class from config."""
         try:
             # Get admin class from config

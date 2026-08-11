@@ -39,17 +39,24 @@ class TestProjectDescriptions:
         # Create project
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Research Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
+            name="Research Project",
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+            owner=owner,
         )
 
         # Add Abstract description
         ProjectDescription.objects.create(
-            related=project, type="Abstract", value="This project studies the impact of X on Y using Z methodology."
+            related=project,
+            type="Abstract",
+            value="This project studies the impact of X on Y using Z methodology.",
         )
 
         # Add Methods description
         ProjectDescription.objects.create(
-            related=project, type="Methods", value="We collected samples from 10 sites and analyzed them using XRF."
+            related=project,
+            type="Methods",
+            value="We collected samples from 10 sites and analyzed them using XRF.",
         )
 
         # Verify both descriptions exist
@@ -92,7 +99,10 @@ class TestProjectDates:
         # Create project
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Time-Bound Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
+            name="Time-Bound Project",
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+            owner=owner,
         )
 
         # Add start date
@@ -150,15 +160,22 @@ class TestProjectIdentifiers:
         # Create project
         owner = Organization.objects.create(name="Test Organization")
         project = Project.objects.create(
-            name="Funded Project", status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC, owner=owner
+            name="Funded Project",
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+            owner=owner,
         )
 
         # Add ISNI identifier
-        ProjectIdentifier.objects.create(related=project, type="ISNI", value="0000 0001 2283 4400")
+        ProjectIdentifier.objects.create(
+            related=project, type="ISNI", value="0000 0001 2283 4400"
+        )
 
         # Add Crossref Funder ID (like a grant number)
         ProjectIdentifier.objects.create(
-            related=project, type="CROSSREF_FUNDER_ID", value="https://doi.org/10.13039/100000001"
+            related=project,
+            type="CROSSREF_FUNDER_ID",
+            value="https://doi.org/10.13039/100000001",
         )
 
         # Verify both identifiers exist

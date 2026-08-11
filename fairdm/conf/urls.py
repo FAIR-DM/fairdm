@@ -6,7 +6,6 @@ from django.views.i18n import JavaScriptCatalog
 
 from fairdm.views.generic import FairDMHomeView
 
-
 from .setup import addon_urls
 
 urlpatterns = [

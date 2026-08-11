@@ -114,7 +114,9 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     )
     exclude = ("username",)
     formfield_overrides = {
-        models.ManyToManyField: {"widget": autocomplete.ModelSelect2Multiple(url="admin:autocomplete")},
+        models.ManyToManyField: {
+            "widget": autocomplete.ModelSelect2Multiple(url="admin:autocomplete")
+        },
         # models.ImageField: {
         #     "widget": ClientsideCroppingWidget(
         #         width=1200,
@@ -229,7 +231,9 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         """Inject fuzzy-match duplicate candidates into the change-form context."""
-        from fairdm.contrib.contributors.services.matching import find_duplicate_candidates
+        from fairdm.contrib.contributors.services.matching import (
+            find_duplicate_candidates,
+        )
 
         extra_context = extra_context or {}
         try:
@@ -287,8 +291,12 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
         person = get_object_or_404(Person, pk=pk)
         token = generate_claim_token(person)
-        claim_url = request.build_absolute_uri(reverse("contributors:claim-profile", kwargs={"token": token}))
-        audit_log = ClaimingAuditLog.objects.for_person(person.pk).order_by("-timestamp")[:20]
+        claim_url = request.build_absolute_uri(
+            reverse("contributors:claim-profile", kwargs={"token": token})
+        )
+        audit_log = ClaimingAuditLog.objects.for_person(person.pk).order_by(
+            "-timestamp"
+        )[:20]
 
         context = {
             **self.admin_site.each_context(request),
@@ -326,9 +334,12 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     merge_persons(person_keep=keep, person_discard=person)
                     messages.success(
                         request,
-                        _("Successfully merged %(discard)s into %(keep)s.") % {"discard": person, "keep": keep},
+                        _("Successfully merged %(discard)s into %(keep)s.")
+                        % {"discard": person, "keep": keep},
                     )
-                    return redirect(reverse("admin:contributors_person_change", args=[keep.pk]))
+                    return redirect(
+                        reverse("admin:contributors_person_change", args=[keep.pk])
+                    )
                 except ClaimingError as exc:
                     messages.error(request, str(exc))
         else:
@@ -356,8 +367,15 @@ class OrganizationAdmin(admin.ModelAdmin):
     list_display = ["name", "city", "country", "lat", "lon"]
     search_fields = ["name"]
     readonly_fields = ["synced_data", "last_synced"]
-    exclude = ("alternative_names", "links", "lang")  # Exclude JSON array fields to avoid widget issues
-    actions = ["sync_from_ror", "transfer_ownership_action"]  # Add ROR sync and ownership transfer actions
+    exclude = (
+        "alternative_names",
+        "links",
+        "lang",
+    )  # Exclude JSON array fields to avoid widget issues
+    actions = [
+        "sync_from_ror",
+        "transfer_ownership_action",
+    ]  # Add ROR sync and ownership transfer actions
 
     def get_readonly_fields(self, request, obj: Organization | None = None):
         if obj and obj.synced_data:
@@ -460,7 +478,14 @@ class ClaimingAuditLogAdmin(admin.ModelAdmin):
     All claim events are immutable by design — add, change, and delete are disabled.
     """
 
-    list_display = ["timestamp", "method", "source_person", "target_person", "initiated_by", "success"]
+    list_display = [
+        "timestamp",
+        "method",
+        "source_person",
+        "target_person",
+        "initiated_by",
+        "success",
+    ]
     list_filter = ["method", "success"]
     search_fields = ["source_person__name", "target_person__name", "initiated_by__name"]
     date_hierarchy = "timestamp"

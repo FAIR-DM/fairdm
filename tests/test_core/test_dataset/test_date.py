@@ -22,7 +22,9 @@ class TestDatasetDateValidation:
     def test_create_date_with_valid_type(self):
         """Can create date with valid date_type."""
         dataset = DatasetFactory()
-        dataset_date = DatasetDate.objects.create(related=dataset, type="Created", value="2024-01-15")
+        dataset_date = DatasetDate.objects.create(
+            related=dataset, type="Created", value="2024-01-15"
+        )
 
         assert dataset_date.pk is not None
         assert dataset_date.type == "Created"
@@ -32,7 +34,9 @@ class TestDatasetDateValidation:
     def test_date_type_vocabulary_validation(self):
         """date_type must be from predefined vocabulary."""
         dataset = DatasetFactory()
-        dataset_date = DatasetDate(related=dataset, type="InvalidType", value="2024-01-15")
+        dataset_date = DatasetDate(
+            related=dataset, type="InvalidType", value="2024-01-15"
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             dataset_date.full_clean()
@@ -47,7 +51,9 @@ class TestDatasetDateValidation:
 
         # Test all types from Dataset.DATE_TYPES.choices
         for type_code, _type_label in Dataset.DATE_TYPES.choices:
-            dataset_date = DatasetDate(related=dataset, type=type_code, value="2024-01-15")
+            dataset_date = DatasetDate(
+                related=dataset, type=type_code, value="2024-01-15"
+            )
             dataset_date.full_clean()  # Should not raise
 
     def test_date_field_required(self):
@@ -83,14 +89,18 @@ class TestDatasetDateValidation:
 
         # Attempt duplicate
         with pytest.raises(IntegrityError):
-            DatasetDate.objects.create(related=dataset, type="Created", value="2024-02-20")
+            DatasetDate.objects.create(
+                related=dataset, type="Created", value="2024-02-20"
+            )
 
     def test_multiple_date_types_allowed(self):
         """Dataset can have multiple dates of different types."""
         dataset = DatasetFactory()
 
         DatasetDate.objects.create(related=dataset, type="Created", value="2024-01-15")
-        DatasetDate.objects.create(related=dataset, type="Submitted", value="2024-02-01")
+        DatasetDate.objects.create(
+            related=dataset, type="Submitted", value="2024-02-01"
+        )
 
         assert dataset.dates.count() == 2
 

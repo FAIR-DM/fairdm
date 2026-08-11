@@ -84,7 +84,9 @@ class TestSampleRelationCreation:
         )
 
         # Assert: Relationships exist independently
-        assert SampleRelation.objects.filter(source=sample_b, target=sample_a).count() == 1
+        assert (
+            SampleRelation.objects.filter(source=sample_b, target=sample_a).count() == 1
+        )
         assert rel1.type == "child_of"
 
 
@@ -200,12 +202,16 @@ class TestComplexSampleHierarchies:
     def test_multi_level_hierarchy(self, dataset):
         """Test creating and querying multi-level sample hierarchy (grandparent→parent→child)."""
         # Arrange: Create 3-level hierarchy
-        grandparent = create_rock_sample("Grandparent Rock", dataset, rock_type="igneous")
+        grandparent = create_rock_sample(
+            "Grandparent Rock", dataset, rock_type="igneous"
+        )
         parent = create_rock_sample("Parent Section", dataset, rock_type="igneous")
         child = create_rock_sample("Child Thin Section", dataset, rock_type="igneous")
 
         # Create hierarchical relationships
-        SampleRelation.objects.create(source=parent, target=grandparent, type="child_of")
+        SampleRelation.objects.create(
+            source=parent, target=grandparent, type="child_of"
+        )
         SampleRelation.objects.create(source=child, target=parent, type="child_of")
 
         # Act & Assert: Query relationships
@@ -228,7 +234,9 @@ class TestComplexSampleHierarchies:
         # Arrange: Create deep hierarchy (4 levels)
         samples = []
         for i in range(4):
-            sample = create_rock_sample(f"Level {i} Sample", dataset, rock_type="igneous")
+            sample = create_rock_sample(
+                f"Level {i} Sample", dataset, rock_type="igneous"
+            )
             samples.append(sample)
             # Create relationship to previous level
             if i > 0:
@@ -275,7 +283,9 @@ class TestSampleQuerySetRelationshipMethods:
         SampleRelation.objects.create(source=child2, target=parent, type="child_of")
 
         # Act: Filter by relationship type
-        children_queryset = Sample.objects.by_relationship(related_to=parent, relationship_type="child_of")
+        children_queryset = Sample.objects.by_relationship(
+            related_to=parent, relationship_type="child_of"
+        )
 
         # Assert: Both children are returned
         assert children_queryset.count() == 2

@@ -38,7 +38,9 @@ def production_env(tmp_path):
 
     # Clear Django-related env vars
     for key in list(os.environ.keys()):
-        if key.startswith(("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")):
+        if key.startswith(
+            ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+        ):
             del os.environ[key]
 
     # Set test environment
@@ -73,7 +75,9 @@ fairdm.setup(apps=["test_app"])
 
         try:
             # This should not raise any errors
-            with mock.patch("fairdm.conf.setup.include"):  # Mock include to avoid loading actual files
+            with mock.patch(
+                "fairdm.conf.setup.include"
+            ):  # Mock include to avoid loading actual files
                 # Create a mock caller namespace
                 caller_namespace = {"__file__": str(settings_module)}
 

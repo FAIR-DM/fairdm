@@ -162,7 +162,9 @@ class RockSampleFormExample(ModelForm):
     project = forms.ModelChoiceField(
         queryset=None,  # Set in __init__ based on user
         label=_("Project"),
-        help_text=_("Optionally associate this sample with a research project for better organization and tracking."),
+        help_text=_(
+            "Optionally associate this sample with a research project for better organization and tracking."
+        ),
         required=False,
         widget=ModelSelect2Widget(
             search_fields=["name__icontains"],
@@ -207,12 +209,18 @@ class RockSampleFormExample(ModelForm):
         # Filter dataset queryset based on user permissions
         dataset_field = self.fields.get("dataset")
         if dataset_field:
-            if self.request and hasattr(self.request, "user") and self.request.user.is_authenticated:
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user.is_authenticated
+            ):
                 # Show only datasets where user is a contributor
                 from fairdm.core.dataset.models import Dataset
 
                 # This is a simplified example - adjust based on your permission logic
-                dataset_field.queryset = Dataset.objects.filter(contributors__person=self.request.user)
+                dataset_field.queryset = Dataset.objects.filter(
+                    contributors__person=self.request.user
+                )
             else:
                 # Anonymous or no request - show no datasets (prevents data leakage)
                 from fairdm.core.dataset.models import Dataset
@@ -222,7 +230,11 @@ class RockSampleFormExample(ModelForm):
         # Filter project queryset based on user permissions
         project_field = self.fields.get("project")
         if project_field:
-            if self.request and hasattr(self.request, "user") and self.request.user.is_authenticated:
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user.is_authenticated
+            ):
                 # Show only user's accessible projects
                 project_field.queryset = self.request.user.projects.all()
             else:
@@ -339,7 +351,9 @@ class DatasetEnhancedFormExample(ModelForm):
         if self.instance and self.instance.pk:
             from fairdm.core.dataset.models import DatasetIdentifier
 
-            doi_identifier = DatasetIdentifier.objects.filter(related=self.instance, type="DOI").first()
+            doi_identifier = DatasetIdentifier.objects.filter(
+                related=self.instance, type="DOI"
+            ).first()
             if doi_identifier:
                 self.fields["doi"].initial = doi_identifier.value
 
@@ -520,9 +534,15 @@ class RockSampleForm(SampleFormMixin, ModelForm):
                     "placeholder": _("List primary minerals..."),
                 }
             ),
-            "weight_grams": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
-            "hardness_mohs": forms.NumberInput(attrs={"class": "form-control", "min": "1", "max": "10", "step": "0.1"}),
-            "collection_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "weight_grams": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "step": "0.01"}
+            ),
+            "hardness_mohs": forms.NumberInput(
+                attrs={"class": "form-control", "min": "1", "max": "10", "step": "0.1"}
+            ),
+            "collection_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
             "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
         help_text = {
@@ -531,7 +551,9 @@ class RockSampleForm(SampleFormMixin, ModelForm):
             "local_id": _("Optional local identifier used in your laboratory."),
             "status": _("Current status of the sample."),
             "location": _("Geographic location where the sample was collected."),
-            "rock_type": _("Classification of the rock (igneous, sedimentary, metamorphic)."),
+            "rock_type": _(
+                "Classification of the rock (igneous, sedimentary, metamorphic)."
+            ),
             "mineral_content": _("Primary minerals present in the sample."),
             "weight_grams": _("Sample weight in grams."),
             "hardness_mohs": _("Hardness on the Mohs scale (1-10)."),
@@ -602,10 +624,18 @@ class WaterSampleForm(SampleFormMixin, ModelForm):
                     "step": "0.1",
                 }
             ),
-            "ph_level": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "14", "step": "0.01"}),
-            "turbidity_ntu": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
-            "dissolved_oxygen_mg_l": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
-            "conductivity_us_cm": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.1"}),
+            "ph_level": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "max": "14", "step": "0.01"}
+            ),
+            "turbidity_ntu": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "step": "0.01"}
+            ),
+            "dissolved_oxygen_mg_l": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "step": "0.01"}
+            ),
+            "conductivity_us_cm": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0", "step": "0.1"}
+            ),
             "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
         help_text = {
@@ -617,9 +647,13 @@ class WaterSampleForm(SampleFormMixin, ModelForm):
             "water_source": _("Type of water source (river, lake, groundwater, etc.)."),
             "temperature_celsius": _("Water temperature in degrees Celsius."),
             "ph_level": _("pH level on a 0-14 scale."),
-            "turbidity_ntu": _("Turbidity measured in Nephelometric Turbidity Units (NTU)."),
+            "turbidity_ntu": _(
+                "Turbidity measured in Nephelometric Turbidity Units (NTU)."
+            ),
             "dissolved_oxygen_mg_l": _("Dissolved oxygen concentration in mg/L."),
-            "conductivity_us_cm": _("Electrical conductivity in microsiemens per centimeter (µS/cm)."),
+            "conductivity_us_cm": _(
+                "Electrical conductivity in microsiemens per centimeter (µS/cm)."
+            ),
             "image": _("Optional photo of the water sample or sampling location."),
             "tags": _("Keywords or tags for categorization."),
         }

@@ -10,7 +10,12 @@ from django import forms
 from django.contrib.auth import get_user_model
 
 from fairdm.core.measurement.forms import MeasurementFormMixin
-from fairdm.factories import DatasetFactory, PersonFactory, ProjectFactory, SampleFactory
+from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+    SampleFactory,
+)
 from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
 
 User = get_user_model()

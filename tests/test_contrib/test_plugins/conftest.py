@@ -26,7 +26,9 @@ def user(db):
 def project(db):
     """Create a test project."""
     return Project.objects.create(
-        name="Test Project", visibility=Project.VISIBILITY.PUBLIC, status=Project.STATUS_CHOICES.IN_PROGRESS
+        name="Test Project",
+        visibility=Project.VISIBILITY.PUBLIC,
+        status=Project.STATUS_CHOICES.IN_PROGRESS,
     )
 
 

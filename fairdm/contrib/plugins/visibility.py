@@ -8,7 +8,9 @@ if TYPE_CHECKING:
     from django.http import HttpRequest
 
 
-def is_instance_of(*model_classes: type["Model"]) -> Callable[["HttpRequest", "Model | None"], bool]:
+def is_instance_of(
+    *model_classes: type["Model"],
+) -> Callable[["HttpRequest", "Model | None"], bool]:
     """Returns a check function that passes if obj is an instance of any model_class.
 
     Args:

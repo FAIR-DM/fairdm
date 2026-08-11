@@ -59,7 +59,9 @@ class TestRegistrySamplesProperty:
             config = fairdm.config.ModelConfiguration(model=model, fields=["name"])
             clean_registry.register(model, config=config)
 
-        config = fairdm.config.ModelConfiguration(model=TemperatureMeasurement, fields=["value"])
+        config = fairdm.config.ModelConfiguration(
+            model=TemperatureMeasurement, fields=["value"]
+        )
         clean_registry.register(TemperatureMeasurement, config=config)
 
         # Test registry.samples property
@@ -84,13 +86,17 @@ class TestRegistrySamplesProperty:
                 app_label = "test_app"
 
         # Register only a Measurement
-        config = fairdm.config.ModelConfiguration(model=PressureMeasurement, fields=["value"])
+        config = fairdm.config.ModelConfiguration(
+            model=PressureMeasurement, fields=["value"]
+        )
         clean_registry.register(PressureMeasurement, config=config)
 
         # samples should be empty
         assert clean_registry.samples == []
 
-    def test_samples_property_returns_empty_list_when_registry_empty(self, clean_registry):
+    def test_samples_property_returns_empty_list_when_registry_empty(
+        self, clean_registry
+    ):
         """Verify registry.samples returns empty list when registry is empty."""
         assert clean_registry.samples == []
 
@@ -98,7 +104,9 @@ class TestRegistrySamplesProperty:
 class TestRegistryMeasurementsProperty:
     """T036: Unit test for registry.measurements property."""
 
-    def test_measurements_property_returns_only_measurement_subclasses(self, clean_registry):
+    def test_measurements_property_returns_only_measurement_subclasses(
+        self, clean_registry
+    ):
         """Verify registry.measurements returns only Measurement subclasses."""
 
         # Define test models
@@ -125,7 +133,9 @@ class TestRegistryMeasurementsProperty:
             config = fairdm.config.ModelConfiguration(model=model, fields=["value"])
             clean_registry.register(model, config=config)
 
-        config = fairdm.config.ModelConfiguration(model=RockSample, fields=["rock_type"])
+        config = fairdm.config.ModelConfiguration(
+            model=RockSample, fields=["rock_type"]
+        )
         clean_registry.register(RockSample, config=config)
 
         # Test registry.measurements property
@@ -139,7 +149,9 @@ class TestRegistryMeasurementsProperty:
         # Should exclude Sample models
         assert RockSample not in measurements
 
-    def test_measurements_property_returns_empty_list_when_no_measurements(self, clean_registry):
+    def test_measurements_property_returns_empty_list_when_no_measurements(
+        self, clean_registry
+    ):
         """Verify registry.measurements returns empty list when no Measurements registered."""
 
         class SoilSample(Sample):
@@ -155,7 +167,9 @@ class TestRegistryMeasurementsProperty:
         # measurements should be empty
         assert clean_registry.measurements == []
 
-    def test_measurements_property_returns_empty_list_when_registry_empty(self, clean_registry):
+    def test_measurements_property_returns_empty_list_when_registry_empty(
+        self, clean_registry
+    ):
         """Verify registry.measurements returns empty list when registry is empty."""
         assert clean_registry.measurements == []
 
@@ -183,7 +197,9 @@ class TestRegistryGetForModel:
         assert retrieved_config.model is MarbleSample
         assert retrieved_config.fields == ["color"]
 
-    def test_get_for_model_with_unregistered_model_raises_keyerror(self, clean_registry):
+    def test_get_for_model_with_unregistered_model_raises_keyerror(
+        self, clean_registry
+    ):
         """Verify get_for_model() raises KeyError for unregistered model."""
 
         class UnregisteredSample(Sample):
@@ -212,10 +228,14 @@ class TestRegistryGetForModel:
                 app_label = "test_app"
 
         # Register both with different fields
-        rock_config = fairdm.config.ModelConfiguration(model=RockSample, fields=["rock_type"])
+        rock_config = fairdm.config.ModelConfiguration(
+            model=RockSample, fields=["rock_type"]
+        )
         clean_registry.register(RockSample, config=rock_config)
 
-        soil_config = fairdm.config.ModelConfiguration(model=SoilSample, fields=["ph_level"])
+        soil_config = fairdm.config.ModelConfiguration(
+            model=SoilSample, fields=["ph_level"]
+        )
         clean_registry.register(SoilSample, config=soil_config)
 
         # Verify each returns correct config
@@ -258,13 +278,19 @@ class TestRegistryIteration:
                 app_label = "test_app"
 
         # Register all three with simple field lists
-        rock_config = fairdm.config.ModelConfiguration(model=RockSample, fields=["rock_type", "weight_grams"])
+        rock_config = fairdm.config.ModelConfiguration(
+            model=RockSample, fields=["rock_type", "weight_grams"]
+        )
         clean_registry.register(RockSample, config=rock_config)
 
-        soil_config = fairdm.config.ModelConfiguration(model=SoilSample, fields=["ph_level", "organic_matter_percent"])
+        soil_config = fairdm.config.ModelConfiguration(
+            model=SoilSample, fields=["ph_level", "organic_matter_percent"]
+        )
         clean_registry.register(SoilSample, config=soil_config)
 
-        water_config = fairdm.config.ModelConfiguration(model=WaterSample, fields=["temperature", "salinity"])
+        water_config = fairdm.config.ModelConfiguration(
+            model=WaterSample, fields=["temperature", "salinity"]
+        )
         clean_registry.register(WaterSample, config=water_config)
 
         # Iterate over registered samples
@@ -307,7 +333,9 @@ class TestRegistryIteration:
 
         # Register both
         for model in [TemperatureMeasurement, PressureMeasurement]:
-            config = fairdm.config.ModelConfiguration(model=model, fields=["value", "unit"])
+            config = fairdm.config.ModelConfiguration(
+                model=model, fields=["value", "unit"]
+            )
             clean_registry.register(model, config=config)
 
         # Iterate over registered measurements
@@ -343,10 +371,14 @@ class TestRegistryIteration:
                 app_label = "test_app"
 
         # Register both
-        rock_config = fairdm.config.ModelConfiguration(model=RockSample, fields=["rock_type"])
+        rock_config = fairdm.config.ModelConfiguration(
+            model=RockSample, fields=["rock_type"]
+        )
         clean_registry.register(RockSample, config=rock_config)
 
-        temp_config = fairdm.config.ModelConfiguration(model=TemperatureMeasurement, fields=["value"])
+        temp_config = fairdm.config.ModelConfiguration(
+            model=TemperatureMeasurement, fields=["value"]
+        )
         clean_registry.register(TemperatureMeasurement, config=temp_config)
 
         # Test registry.models property (combined list)
@@ -357,18 +389,24 @@ class TestRegistryIteration:
         assert TemperatureMeasurement in all_models
 
         # Verify samples + measurements = models
-        assert set(clean_registry.samples + clean_registry.measurements) == set(all_models)
+        assert set(clean_registry.samples + clean_registry.measurements) == set(
+            all_models
+        )
 
 
 class TestRegistryEnhancedMethods:
     """Tests for enhanced registry methods: get_for_model, is_registered, get_all_configs."""
 
-    def test_get_for_model_with_string_raises_lookuperror_for_invalid_app(self, clean_registry):
+    def test_get_for_model_with_string_raises_lookuperror_for_invalid_app(
+        self, clean_registry
+    ):
         """Verify get_for_model raises LookupError for invalid app reference."""
         with pytest.raises(LookupError, match="not found in Django apps"):
             clean_registry.get_for_model("invalid_app.model")
 
-    def test_get_for_model_with_class_raises_keyerror_for_unregistered(self, clean_registry):
+    def test_get_for_model_with_class_raises_keyerror_for_unregistered(
+        self, clean_registry
+    ):
         """Verify get_for_model raises KeyError for unregistered model class."""
 
         class UnregisteredSample(Sample):
@@ -380,7 +418,10 @@ class TestRegistryEnhancedMethods:
 
     def test_get_for_model_with_invalid_string_format(self, clean_registry):
         """Verify get_for_model raises ValueError for invalid string format."""
-        with pytest.raises(ValueError, match="Invalid model reference format.*Expected 'app_label.model_name'"):
+        with pytest.raises(
+            ValueError,
+            match="Invalid model reference format.*Expected 'app_label.model_name'",
+        ):
             clean_registry.get_for_model("invalid_format")
 
     def test_is_registered_returns_true_for_registered_model(self, clean_registry):
@@ -436,6 +477,8 @@ class TestRegistryEnhancedMethods:
         for config in all_configs:
             assert isinstance(config, fairdm.config.ModelConfiguration)
 
-    def test_get_all_configs_returns_empty_list_when_no_models_registered(self, clean_registry):
+    def test_get_all_configs_returns_empty_list_when_no_models_registered(
+        self, clean_registry
+    ):
         """Verify get_all_configs returns empty list when no models are registered."""
         assert clean_registry.get_all_configs() == []

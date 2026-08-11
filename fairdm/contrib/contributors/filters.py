@@ -18,8 +18,12 @@ class PersonFilter(df.FilterSet):
         label=_("Contributor Name"),
         lookup_expr="icontains",
     )
-    city = df.CharFilter(label=_("City"), field_name="affiliations__city", lookup_expr="icontains")
-    country = df.CharFilter(label=_("Country"), field_name="affiliations__country", lookup_expr="icontains")
+    city = df.CharFilter(
+        label=_("City"), field_name="affiliations__city", lookup_expr="icontains"
+    )
+    country = df.CharFilter(
+        label=_("Country"), field_name="affiliations__country", lookup_expr="icontains"
+    )
     affiliation = df.CharFilter(
         label=_("Affiliation"),
         field_name="affiliations__organization__name",

@@ -159,10 +159,12 @@ class UpdateContributionForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.base_object = kwargs.pop("base_object", None)
         super().__init__(*args, **kwargs)
-        self.fields["affiliation"].queryset = self.instance.contributor.affiliations.all()
-        roles_qs = Concept.get_for_vocabulary(Contribution.roles_vocab.__class__).filter(
-            name__in=self.base_object.CONTRIBUTOR_ROLES.values
-        )
+        self.fields[
+            "affiliation"
+        ].queryset = self.instance.contributor.affiliations.all()
+        roles_qs = Concept.get_for_vocabulary(
+            Contribution.roles_vocab.__class__
+        ).filter(name__in=self.base_object.CONTRIBUTOR_ROLES.values)
         self.fields["roles"].queryset = roles_qs
         self.fields["roles"].choices = roles_qs.values_list("id", "label")
 

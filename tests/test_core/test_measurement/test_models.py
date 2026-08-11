@@ -145,7 +145,9 @@ class TestMeasurementVocabularyValidation:
         from fairdm.core.measurement.models import MeasurementDate
 
         # Create a date
-        date = MeasurementDate.objects.create(related=measurement, type="measured", value="2024-01-15")
+        date = MeasurementDate.objects.create(
+            related=measurement, type="measured", value="2024-01-15"
+        )
 
         # Verify the vocabulary type comes from Measurement collection
         assert date.type == "measured"  # type field returns string value
@@ -320,7 +322,10 @@ class TestMeasurementQuerySetOptimizations:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
+        from fairdm.core.measurement.models import (
+            MeasurementDate,
+            MeasurementDescription,
+        )
         from fairdm_demo.models import XRFMeasurement
 
         # Create measurement with metadata
@@ -332,12 +337,18 @@ class TestMeasurementQuerySetOptimizations:
             concentration_ppm=15000.0,
             detection_limit_ppm=2.0,
         )
-        MeasurementDescription.objects.create(related=measurement, type="method", value="XRF analysis")
-        MeasurementDate.objects.create(related=measurement, type="measured", value="2024-01-15")
+        MeasurementDescription.objects.create(
+            related=measurement, type="method", value="XRF analysis"
+        )
+        MeasurementDate.objects.create(
+            related=measurement, type="measured", value="2024-01-15"
+        )
 
         # Test without optimization
         with CaptureQueriesContext(connection) as context_without:
-            measurements_without = list(XRFMeasurement.objects.filter(pk=measurement.pk))
+            measurements_without = list(
+                XRFMeasurement.objects.filter(pk=measurement.pk)
+            )
             for m in measurements_without:
                 _ = list(m.descriptions.all())
                 _ = list(m.dates.all())
@@ -346,7 +357,9 @@ class TestMeasurementQuerySetOptimizations:
 
         # Test with optimization
         with CaptureQueriesContext(connection) as context_with:
-            measurements_with = list(XRFMeasurement.objects.filter(pk=measurement.pk).with_metadata())
+            measurements_with = list(
+                XRFMeasurement.objects.filter(pk=measurement.pk).with_metadata()
+            )
             for m in measurements_with:
                 _ = list(m.descriptions.all())
                 _ = list(m.dates.all())
@@ -356,7 +369,9 @@ class TestMeasurementQuerySetOptimizations:
         # Assert optimization reduces queries
         # Note: For a single measurement, prefetch may add overhead
         # The benefit shows with multiple measurements
-        assert queries_with <= 4  # Should be ~4 queries (measurements, descriptions, dates, identifiers)
+        assert (
+            queries_with <= 4
+        )  # Should be ~4 queries (measurements, descriptions, dates, identifiers)
 
     def test_polymorphic_queryset_returns_correct_typed_instances(self, sample):
         """Test that PolymorphicQuerySet automatically returns correctly typed instances."""
@@ -394,10 +409,16 @@ class TestMeasurementQuerySetOptimizations:
         # Verify we got actual subclass instances with polymorphic behavior
         for measurement in measurements:
             # Should be typed as subclass, not base Measurement
-            assert type(measurement).__name__ in ["XRFMeasurement", "ICP_MS_Measurement", "ExampleMeasurement"]
+            assert type(measurement).__name__ in [
+                "XRFMeasurement",
+                "ICP_MS_Measurement",
+                "ExampleMeasurement",
+            ]
             # Should have subclass-specific attributes
             assert (
-                hasattr(measurement, "element") or hasattr(measurement, "isotope") or hasattr(measurement, "char_field")
+                hasattr(measurement, "element")
+                or hasattr(measurement, "isotope")
+                or hasattr(measurement, "char_field")
             )
 
     def test_queryset_method_chaining_works_correctly(self, sample):
@@ -431,7 +452,9 @@ class TestMeasurementQuerySetOptimizations:
             assert measurement.element == "Si"
 
     @pytest.mark.slow
-    def test_1000_measurements_load_with_minimal_queries_using_with_related(self, sample):
+    def test_1000_measurements_load_with_minimal_queries_using_with_related(
+        self, sample
+    ):
         """Performance test: 1000 measurements should load with <10 queries using with_related()."""
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
@@ -502,7 +525,10 @@ class TestMeasurementQuerySetOptimizations:
         # Verify we got typed instances automatically
         assert len(measurements) >= 100
         for measurement in measurements[:5]:  # Check first 5
-            assert type(measurement).__name__ in ["XRFMeasurement", "ICP_MS_Measurement"]
+            assert type(measurement).__name__ in [
+                "XRFMeasurement",
+                "ICP_MS_Measurement",
+            ]
 
         # Performance check - should be reasonably fast even for 100+ measurements
         # Target: <500ms for 100 measurements (django-polymorphic adds some overhead)

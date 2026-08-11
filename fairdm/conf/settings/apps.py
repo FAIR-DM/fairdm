@@ -12,6 +12,7 @@ This is the production baseline. Environment-specific overrides in local.py/stag
 import socket
 
 from django.contrib.messages import constants as messages
+
 from fairdm.conf.environment import env
 
 # Access environment variables via shared env instance
@@ -75,7 +76,6 @@ INSTALLED_APPS = [
     "dbbackup",
     "django_celery_beat",  # DB-backed periodic task scheduler (see CELERY_BEAT_SCHEDULER)
     "django_cotton",
-    "cotton_bs5",
     "django_extensions",
     "django_setup_tools",
     "django_tables2",
@@ -240,7 +240,9 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # DJANGO_TABLES2_TEMPLATE = "collections/table.html"
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-mvp.html"
 # django-accounts-center: Avatar URL retrieval
-ACCOUNT_MANAGEMENT_GET_AVATAR_URL = "fairdm.contrib.contributors.utils.get_contributor_avatar"
+ACCOUNT_MANAGEMENT_GET_AVATAR_URL = (
+    "fairdm.contrib.contributors.utils.get_contributor_avatar"
+)
 
 # django-setup-tools: Deployment pipeline configuration
 DJANGO_SETUP_TOOLS = {

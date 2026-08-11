@@ -52,7 +52,9 @@ class OrganizationCreateView(FairDMCreateView):
 
 @login_required
 @require_POST
-@permission_required_or_403("contributors.manage_organization", (Organization, "pk", "org_pk"))
+@permission_required_or_403(
+    "contributors.manage_organization", (Organization, "pk", "org_pk")
+)
 def transfer_ownership(request, org_pk, new_owner_pk):
     """Transfer organization ownership to a new person.
 
@@ -84,7 +86,9 @@ def transfer_ownership(request, org_pk, new_owner_pk):
         return redirect("admin:contributors_organization_change", org_pk)
 
     # Get current owner affiliation
-    current_owner_affiliation = organization.affiliations.filter(type=Affiliation.MembershipType.OWNER).first()
+    current_owner_affiliation = organization.affiliations.filter(
+        type=Affiliation.MembershipType.OWNER
+    ).first()
 
     # Demote current owner to ADMIN if exists
     if current_owner_affiliation:

@@ -151,7 +151,9 @@ class Plugin(View):
                 from guardian.shortcuts import get_objects_for_user
 
                 # Check if user has object-level permission
-                queryset = get_objects_for_user(request.user, self.permission, klass=obj.__class__)
+                queryset = get_objects_for_user(
+                    request.user, self.permission, klass=obj.__class__
+                )
                 return queryset.filter(pk=obj.pk).exists()
             except ImportError:
                 # Guardian not available, rely on model-level check

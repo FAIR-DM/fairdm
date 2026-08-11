@@ -1,12 +1,12 @@
 """Tests for image field behaviour across all four core model forms.
 
 Covers:
-- US1: Help text, widget, file-size validation (T009–T012, T034, T035)
+- US1: Help text, widget, file-size validation (T009-T012, T034, T035)
 - US2: Thumbnail alias resolution (T019, T020)
 - US3: Cross-model consistency (T026)
 
 Test-first (TDD): these tests are written before the implementation tasks
-T013–T016, T022. They should be RED initially and GREEN after implementation.
+T013-T016, T022. They should be RED initially and GREEN after implementation.
 """
 
 import io
@@ -32,7 +32,9 @@ def _make_small_jpeg() -> bytes:
     return buf.getvalue()
 
 
-def _make_uploaded_file(content: bytes, name: str, content_type: str, size: int | None = None):
+def _make_uploaded_file(
+    content: bytes, name: str, content_type: str, size: int | None = None
+):
     """Wrap *content* in an InMemoryUploadedFile.
 
     *size* overrides the reported file size so we can test the validator
@@ -79,7 +81,9 @@ def test_image_help_text_contains_ratio(import_path):
     form_cls = getattr(mod, class_name)
     form = form_cls()
     help_text = str(form.fields["image"].help_text)
-    assert "3:2" in help_text, f"{class_name}.image.help_text does not contain '3:2'. Got: {help_text!r}"
+    assert "3:2" in help_text, (
+        f"{class_name}.image.help_text does not contain '3:2'. Got: {help_text!r}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +134,9 @@ def test_image_field_rejects_oversized_file():
     form = ProjectForm(data={}, files={"image": oversized})
     assert "image" in form.errors, "Expected 'image' in form.errors for 6 MB file"
     error_text = " ".join(str(e) for e in form.errors["image"])
-    assert "5" in error_text or "MB" in error_text, f"Expected file-size error message, got: {error_text!r}"
+    assert "5" in error_text or "MB" in error_text, (
+        f"Expected file-size error message, got: {error_text!r}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -199,7 +205,9 @@ def test_image_field_clear_shows_placeholder():
 
     # Create a project that initially has an image (factory generates one by default)
     project = ProjectFactory()
-    assert project.image, "Precondition: project should have an image after factory creation"
+    assert project.image, (
+        "Precondition: project should have an image after factory creation"
+    )
 
     # Clear the image by saving the project without an image
     project.image = None
@@ -223,7 +231,8 @@ def test_image_field_clear_shows_placeholder():
         },
     )
     assert "placeholder-3x2.png" in html, (
-        "object_card template should render the local placeholder image when 'image' is falsy. Got:\n" + html[:500]
+        "object_card template should render the local placeholder image when 'image' is falsy. Got:\n"
+        + html[:500]
     )
 
 
@@ -287,7 +296,9 @@ def test_all_core_forms_image_field_uniform(import_path):
     field = form.fields["image"]
 
     # help_text contains "3:2"
-    assert "3:2" in str(field.help_text), f"{class_name}: help_text must contain '3:2', got {field.help_text!r}"
+    assert "3:2" in str(field.help_text), (
+        f"{class_name}: help_text must contain '3:2', got {field.help_text!r}"
+    )
 
     # widget is ImageClearableFileInput
     assert isinstance(field.widget, ImageClearableFileInput), (
@@ -300,4 +311,6 @@ def test_all_core_forms_image_field_uniform(import_path):
     )
 
     # required is False
-    assert field.required is False, f"{class_name}: image field must not be required, got required={field.required}"
+    assert field.required is False, (
+        f"{class_name}: image field must not be required, got required={field.required}"
+    )

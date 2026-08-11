@@ -127,7 +127,9 @@ class Sample(BasePolymorphicModel):
         # Prevent direct instantiation of base Sample model
         if self.__class__ == Sample:
             raise ValidationError(
-                _("Cannot create base Sample instances directly. Please use a specific sample type subclass.")
+                _(
+                    "Cannot create base Sample instances directly. Please use a specific sample type subclass."
+                )
             )
 
     def get_absolute_url(self):
@@ -153,7 +155,9 @@ class Sample(BasePolymorphicModel):
             >>> for rel in relationships:
             >>>     print(f"{rel.source} {rel.type} {rel.target}")
         """
-        return SampleRelation.objects.filter(django_models.Q(source=self) | django_models.Q(target=self))
+        return SampleRelation.objects.filter(
+            django_models.Q(source=self) | django_models.Q(target=self)
+        )
 
     def get_related_samples(self, relationship_type=None):
         """Get all samples related to this sample.
@@ -197,7 +201,9 @@ class Sample(BasePolymorphicModel):
             >>>     print(f"{child.name} is a child of {parent.name}")
         """
         # Children are samples where this sample is the target of a "child_of" relationship
-        child_ids = SampleRelation.objects.filter(target=self, type="child_of").values_list("source_id", flat=True)
+        child_ids = SampleRelation.objects.filter(
+            target=self, type="child_of"
+        ).values_list("source_id", flat=True)
         return Sample.objects.filter(id__in=child_ids)
 
     def get_parents(self):
@@ -213,7 +219,9 @@ class Sample(BasePolymorphicModel):
             >>>     print(f"{child.name} is a child of {parent.name}")
         """
         # Parents are samples where this sample is the source of a "child_of" relationship
-        parent_ids = SampleRelation.objects.filter(source=self, type="child_of").values_list("target_id", flat=True)
+        parent_ids = SampleRelation.objects.filter(
+            source=self, type="child_of"
+        ).values_list("target_id", flat=True)
         return Sample.objects.filter(id__in=parent_ids)
 
     def get_descendants(self, depth=None):
@@ -245,9 +253,9 @@ class Sample(BasePolymorphicModel):
         while current_level and (depth is None or current_depth < depth):
             # Get children of current level
             child_ids = set(
-                SampleRelation.objects.filter(target_id__in=current_level, type="child_of").values_list(
-                    "source_id", flat=True
-                )
+                SampleRelation.objects.filter(
+                    target_id__in=current_level, type="child_of"
+                ).values_list("source_id", flat=True)
             )
 
             # Remove already visited to prevent cycles
@@ -295,7 +303,13 @@ class SampleDescription(AbstractDescription):
         if self.type:
             valid_types = [item["id"] for item in self.VOCABULARY]
             if self.type not in valid_types:
-                raise ValidationError({"type": _("Description type must be from FairDM Sample description vocabulary")})
+                raise ValidationError(
+                    {
+                        "type": _(
+                            "Description type must be from FairDM Sample description vocabulary"
+                        )
+                    }
+                )
 
 
 class SampleDate(AbstractDate):
@@ -320,7 +334,9 @@ class SampleDate(AbstractDate):
         if self.type:
             valid_types = [item["id"] for item in self.VOCABULARY]
             if self.type not in valid_types:
-                raise ValidationError({"type": _("Date type must be from FairDM Sample date vocabulary")})
+                raise ValidationError(
+                    {"type": _("Date type must be from FairDM Sample date vocabulary")}
+                )
 
 
 class SampleIdentifier(AbstractIdentifier):
@@ -348,14 +364,24 @@ class SampleIdentifier(AbstractIdentifier):
         if self.type:
             valid_types = [item["id"] for item in self.VOCABULARY]
             if self.type not in valid_types:
-                raise ValidationError({"type": _("Identifier type must be from FairDM identifier vocabulary")})
+                raise ValidationError(
+                    {
+                        "type": _(
+                            "Identifier type must be from FairDM identifier vocabulary"
+                        )
+                    }
+                )
 
         # Validate IGSN format: 10273/[A-Z0-9]{9,}
         if self.type == "IGSN" and self.value:
             igsn_pattern = r"^10273/[A-Z0-9]{9,}$"
             if not re.match(igsn_pattern, self.value):
                 raise ValidationError(
-                    {"value": _("IGSN identifier must match format: 10273/[A-Z0-9]{{9,}} (e.g., 10273/ABCD123456789)")}
+                    {
+                        "value": _(
+                            "IGSN identifier must match format: 10273/[A-Z0-9]{{9,}} (e.g., 10273/ABCD123456789)"
+                        )
+                    }
                 )
 
 
@@ -379,7 +405,9 @@ class SampleRelation(models.Model):
     RELATION_TYPES = [
         ("child_of", _("child of")),
     ]
-    type = models.CharField(max_length=255, verbose_name=_("type"), choices=RELATION_TYPES)
+    type = models.CharField(
+        max_length=255, verbose_name=_("type"), choices=RELATION_TYPES
+    )
     source = models.ForeignKey(
         "Sample",
         verbose_name=_("source"),
@@ -416,7 +444,9 @@ class SampleRelation(models.Model):
         if self.source_id and self.target_id and self.type:  # noqa: SIM102
             # Check if reverse relationship already exists
             if (
-                SampleRelation.objects.filter(source_id=self.target_id, target_id=self.source_id, type=self.type)
+                SampleRelation.objects.filter(
+                    source_id=self.target_id, target_id=self.source_id, type=self.type
+                )
                 .exclude(pk=self.pk)
                 .exists()
             ):

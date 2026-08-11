@@ -178,7 +178,11 @@ class DatasetFilter(BaseListFilter):
         # Set project queryset
         from fairdm.core.models import Project
 
-        if self.request and hasattr(self.request, "user") and self.request.user.is_authenticated:
+        if (
+            self.request
+            and hasattr(self.request, "user")
+            and self.request.user.is_authenticated
+        ):
             # Show all projects for authenticated users
             # (Views should handle permission filtering)
             self.filters["project"].queryset = Project.objects.all()
@@ -216,5 +220,7 @@ class DatasetFilter(BaseListFilter):
             return queryset
 
         return queryset.filter(
-            Q(name__icontains=value) | Q(uuid__icontains=value) | Q(keywords__name__icontains=value)
+            Q(name__icontains=value)
+            | Q(uuid__icontains=value)
+            | Q(keywords__name__icontains=value)
         ).distinct()  # distinct() prevents duplicate results from keywords join

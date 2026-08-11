@@ -38,7 +38,10 @@ class RAiDRoles(models.TextChoices):
     VALIDATION = "Validation", _("Validation")
     VISUALIZATION = "Visualization", _("Visualization")
     WRITING_ORIGINAL_DRAFT = "Writing - Original Draft", _("Writing - Original Draft")
-    WRITING_REVIEW_EDITING = "Writing - Review & Editing", _("Writing - Review & Editing")
+    WRITING_REVIEW_EDITING = (
+        "Writing - Review & Editing",
+        _("Writing - Review & Editing"),
+    )
 
 
 class DatasetDescriptions(VocabularyBuilder):
@@ -50,7 +53,9 @@ class DatasetDescriptions(VocabularyBuilder):
     )
     Methods = Concept(
         prefLabel=_("Methods"),
-        definition=_("A detailed description of the methods used to collect, process, and analyze the data."),
+        definition=_(
+            "A detailed description of the methods used to collect, process, and analyze the data."
+        ),
     )
     SeriesInformation = Concept(
         prefLabel=_("Series Information"),
@@ -75,7 +80,9 @@ class DatasetDescriptions(VocabularyBuilder):
         namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
             "skos:prefLabel": _("Dataset Description Types"),
-            "skos:definition": _("Description types for the purpose of metadata archival of datasets."),
+            "skos:definition": _(
+                "Description types for the purpose of metadata archival of datasets."
+            ),
         }
 
 

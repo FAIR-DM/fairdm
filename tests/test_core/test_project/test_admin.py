@@ -78,7 +78,9 @@ class TestAdminFilterByStatus:
         ProjectFactory(name="Private Project", visibility=Visibility.PRIVATE)
 
         url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url, {"visibility__exact": str(Visibility.PUBLIC.value)})
+        response = admin_client.get(
+            url, {"visibility__exact": str(Visibility.PUBLIC.value)}
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
@@ -94,7 +96,9 @@ class TestAdminFilterByStatus:
         from django.utils import timezone
 
         today = timezone.now().date()
-        response = admin_client.get(url, {"added__year": str(today.year), "added__month": str(today.month)})
+        response = admin_client.get(
+            url, {"added__year": str(today.year), "added__month": str(today.month)}
+        )
 
         assert response.status_code == 200
         # All test projects were created today, should all be present
@@ -115,7 +119,9 @@ class TestAdminInlineEditing:
         assert response.status_code == 200
         content = response.content.decode()
         # Look for inline formset elements
-        assert "projectdescription" in content.lower() or "description" in content.lower()
+        assert (
+            "projectdescription" in content.lower() or "description" in content.lower()
+        )
 
     def test_can_add_description_via_inline(self, admin_client):
         """Test adding a description through inline form."""
@@ -160,7 +166,9 @@ class TestAdminInlineEditing:
                 # Extract error messages for debugging
                 import re
 
-                errors = re.findall(r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL)
+                errors = re.findall(
+                    r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL
+                )
                 for error in errors:
                     print(error)
 
@@ -169,7 +177,9 @@ class TestAdminInlineEditing:
 
         # Check that description was created
         descriptions = ProjectDescription.objects.filter(related=project)
-        assert descriptions.count() > 0, f"Expected descriptions to be created, but found {descriptions.count()}"
+        assert descriptions.count() > 0, (
+            f"Expected descriptions to be created, but found {descriptions.count()}"
+        )
 
 
 @pytest.mark.django_db

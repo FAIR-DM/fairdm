@@ -39,7 +39,9 @@ class Overview(OverviewPlugin):
             dict: Mapping of model verbose names to contribution counts
                   (e.g., {"Projects": 5, "Datasets": 3})
         """
-        contributions_by_type = self.object.contributions.values("content_type").annotate(count=Count("id"))
+        contributions_by_type = self.object.contributions.values(
+            "content_type"
+        ).annotate(count=Count("id"))
         result = {}
         for entry in contributions_by_type:
             content_type = ContentType.objects.get(pk=entry["content_type"])
@@ -93,11 +95,15 @@ class Statistics(Plugin, FairDMTemplateView):
 
         # Get contribution counts by type
         contributions_by_type = {}
-        for entry in self.object.contributions.values("content_type").annotate(count=Count("id")):
+        for entry in self.object.contributions.values("content_type").annotate(
+            count=Count("id")
+        ):
             content_type = ContentType.objects.get(pk=entry["content_type"])
             model_class = content_type.model_class()
             if model_class:
-                contributions_by_type[model_class._meta.verbose_name_plural] = entry["count"]
+                contributions_by_type[model_class._meta.verbose_name_plural] = entry[
+                    "count"
+                ]
 
         context.update(
             {

@@ -107,7 +107,9 @@ class TestSamplePermissionInheritance:
         # Sample should inherit delete permission
         assert user.has_perm("sample.delete_sample", rock_sample)
 
-    def test_sample_does_not_inherit_without_dataset_permission(self, rock_sample, user):
+    def test_sample_does_not_inherit_without_dataset_permission(
+        self, rock_sample, user
+    ):
         """Test that Sample does not have permissions if Dataset permissions not granted."""
         # No permissions assigned to dataset or sample
         assert not user.has_perm("sample.view_sample", rock_sample)

@@ -81,7 +81,11 @@ def bbox_for_dataset(dataset):
     precision = Decimal("0.00001")  # 5 decimal places
     # Round to 5 decimal places
     rounded_bounds = {
-        key: (value.quantize(precision, rounding=ROUND_DOWN) if value is not None else None)
+        key: (
+            value.quantize(precision, rounding=ROUND_DOWN)
+            if value is not None
+            else None
+        )
         for key, value in bounds.items()
     }
 

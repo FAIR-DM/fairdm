@@ -42,7 +42,9 @@ class TestRegistrationValidation:
             class Meta:
                 app_label = "test_app"
 
-        with pytest.raises(ConfigurationError, match="must inherit from Sample or Measurement"):
+        with pytest.raises(
+            ConfigurationError, match="must inherit from Sample or Measurement"
+        ):
             clean_registry.register(InvalidModel)
 
     def test_duplicate_registration_rejected(self, clean_registry):
@@ -74,7 +76,9 @@ class TestRegistrationValidation:
             class Meta:
                 app_label = "test_app"
 
-        with pytest.raises(FieldValidationError, match="Invalid field: nonexistent_field"):
+        with pytest.raises(
+            FieldValidationError, match="Invalid field: nonexistent_field"
+        ):
             ModelConfiguration(
                 model=RockSample,
                 fields=["rock_type", "nonexistent_field"],

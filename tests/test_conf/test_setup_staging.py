@@ -31,7 +31,9 @@ def staging_env():
 
     # Clear Django-related env vars
     for key in list(os.environ.keys()):
-        if key.startswith(("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")):
+        if key.startswith(
+            ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+        ):
             del os.environ[key]
 
     # Set test environment
@@ -82,7 +84,9 @@ class TestStagingSetup:
             "CSRF_COOKIE_SECURE": True,
         }
 
-        with pytest.raises(Exception, match="Cache backend.*not suitable for production"):
+        with pytest.raises(
+            Exception, match="Cache backend.*not suitable for production"
+        ):
             validate_services("staging", test_settings)
 
     def test_staging_requires_secret_key(self, staging_env):

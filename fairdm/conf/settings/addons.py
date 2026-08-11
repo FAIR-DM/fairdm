@@ -265,7 +265,8 @@ EASY_ICONS = {
 # https://django-import-export.readthedocs.io
 # =============================================================================
 
-from import_export.formats.base_formats import DEFAULT_FORMATS, CSV, TSV, XLS, XLSX, ODS
+from import_export.formats.base_formats import CSV, DEFAULT_FORMATS, ODS, TSV, XLS, XLSX
+
 from fairdm.contrib.import_export.formats import LaTex
 
 IMPORT_EXPORT_FORMATS = [LaTex, *DEFAULT_FORMATS]

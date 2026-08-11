@@ -24,7 +24,9 @@ def get_import_formats():
     return {f().get_title(): f for f in formats if f().can_import()}
 
 
-export_choices = {f().get_title(): f().get_title() for f in get_export_formats() if f().can_export()}
+export_choices = {
+    f().get_title(): f().get_title() for f in get_export_formats() if f().can_export()
+}
 
 import_choices = {f: f for f in get_import_formats()}
 
@@ -36,7 +38,9 @@ import_choices = {f: f for f in get_import_formats()}
 def build_metadata(dataset, request):
     template_name = "publishing/datacite44.xml"
     uri = request.build_absolute_uri(dataset.get_absolute_url())
-    xml = render_to_string(template_name, {"dataset": dataset, "uri": uri}, request=request)
+    xml = render_to_string(
+        template_name, {"dataset": dataset, "uri": uri}, request=request
+    )
     dom = parseString(xml)
     return dom.toprettyxml(indent="  ")
 
@@ -99,7 +103,9 @@ class DataPackage:
     def add_measurements(self, zip_file):
         """Add the measurements to the ZIP."""
         # get a list of all sample types collected by this dataset
-        measurements = self.dataset.measurements.values_list("polymorphic_ctype", flat=True)
+        measurements = self.dataset.measurements.values_list(
+            "polymorphic_ctype", flat=True
+        )
 
         ctypes = ContentType.objects.filter(id__in=measurements)
 
@@ -108,4 +114,6 @@ class DataPackage:
             model = model_ctype.model_class()
             qs = model.objects.filter(dataset=self.dataset)
             export = build_export_for_datatype(self.dataset, qs)
-            zip_file.writestr(f"measurements/{model._meta.verbose_name_plural}.csv", export)
+            zip_file.writestr(
+                f"measurements/{model._meta.verbose_name_plural}.csv", export
+            )
