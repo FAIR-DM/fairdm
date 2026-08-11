@@ -1,6 +1,7 @@
 <c-card variant="{{ object_type }}" only>
   {% load thumbnail static %}
-  <div class="row g-0">
+
+  <c-grid cols=2>
     <div class="col-md-4">
       <div class="card">
         {% if image %}
@@ -14,15 +15,18 @@
         {% endif %}
       </div>
     </div>
-    <div class="col-md-8">
-      <div class="card-body py-0">
-        <div class="card-title w-100 d-flex justify-content-between align-items-center">
+    <div class="flex flex-col">
+      <div>
+        <c-text small tight>
+          <c-icon name="date" class="me-1" />
+          {{ date|date:"F j, Y" }}
+        </c-text>
+        <div class="card-title mb-1">
           <h1 class="fs-3">{{ object.title }}</h1>
-          <div class="actions">
-            {% comment %} <c-button :condition="user == object" text="{% trans "Edit" %}" variant="primary" icon="edit" small /> {% endcomment %}
-          </div>
         </div>
-        <p class="card-text text-muted">{{ subtitle }}</p>
+        <c-text muted small>
+          {{ subtitle }}
+        </c-text>
         <div class="d-flex justify-content-between align-items-start mb-2">
           {% if badge_text %}
             <span class="badge {% if object_type == 'sample' %}bg-primary{% elif object_type == 'dataset' %}bg-success{% elif object_type == 'measurement' %}bg-warning text-dark{% elif object_type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
@@ -52,19 +56,12 @@
           {% endif %}
         </small>
       </div>
+      <c-menu horizontal class="mt-auto shrink">
+        <c-menu.item label="{% trans "View Details" %}"
+                     href="{{ object.get_absolute_url }}"
+                     icon="overview"
+                     subtle />
+      </c-menu>
     </div>
-  </div>
-  <c-slot name="footer_start">
-    <c-button text="{% trans "View Details" %}"
-              href="{{ object.get_absolute_url }}"
-              icon="arrow-right"
-              reverse
-              subtle />
-  </c-slot>
-  <c-slot name="footer_end">
-    <span class="text-muted small ms-auto">
-      <c-icon name="date" class="me-1" />
-      {{ date|date:"F j, Y" }}
-    </span>
-  </c-slot>
+  </c-grid>
 </c-card>
