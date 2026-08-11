@@ -21,17 +21,22 @@ def clean_registry():
     This fixture:
     - Clears any previously registered models
     - Yields the clean registry for the test
-    - Clears the registry after the test completes
+    - Restores the original registrations after the test completes
 
     Use this fixture when tests register models to avoid conflicts.
+
+    Restoring rather than clearing matters: the registry is global state
+    populated once at app load, so a test that empties it and walks away
+    breaks every later test that expects the demo models to be registered.
     """
-    # Clear registry before test
+    saved = dict(registry._registry)
+
     registry._registry.clear()
 
     yield registry
 
-    # Clear registry after test
     registry._registry.clear()
+    registry._registry.update(saved)
 
 
 @pytest.fixture

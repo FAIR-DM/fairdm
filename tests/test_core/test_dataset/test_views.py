@@ -5,6 +5,9 @@ Tests the interaction between views, forms, and models, verifying complete
 request/response cycles for dataset CRUD operations.
 
 Phases 3-8 map to User Stories 1-6 from spec/014-dataset-crud-views.
+
+Also covers general list/create/permission smoke tests moved from the former
+test_integration.py.
 """
 
 import time
@@ -13,7 +16,8 @@ import pytest
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 
-from fairdm.factories import DatasetFactory, UserFactory
+from fairdm.core.dataset.models import Dataset
+from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
 # ---------------------------------------------------------------------------
@@ -301,3 +305,97 @@ class TestDatasetDeleteView:
         assert response.status_code == 302
         assert response.url == reverse("dataset-list")
         assert not Dataset.objects.filter(pk=pk).exists()
+
+
+@pytest.mark.django_db
+class TestDatasetViews:
+    """Tests for Dataset views."""
+
+    def test_dataset_list_view_accessible(self, client):
+        """Test that dataset list view is accessible."""
+        response = client.get(reverse("dataset-list"))
+
+        assert response.status_code == 200
+
+    def test_dataset_list_view_shows_public_datasets(self, client):
+        """Test that only public datasets are shown in list view."""
+        public_dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        private_dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+
+        response = client.get(reverse("dataset-list"))
+
+        # Check that public dataset is visible
+        assert public_dataset.name.encode() in response.content
+        # Check that private dataset is not visible
+        assert private_dataset.name.encode() not in response.content
+
+    def test_dataset_create_view_requires_authentication(self, client):
+        """Test that dataset creation requires login."""
+        response = client.get(reverse("dataset-create"))
+
+        # Should redirect to login
+        assert response.status_code == 302
+
+    def test_dataset_create_view_accessible_when_authenticated(
+        self, authenticated_client
+    ):
+        """Test that authenticated users can access dataset create view."""
+        response = authenticated_client.get(reverse("dataset-create"))
+
+        assert response.status_code == 200
+
+    def test_dataset_create_view_with_project_param(self, authenticated_client):
+        """Test dataset creation with project parameter in URL."""
+        project = ProjectFactory()
+
+        response = authenticated_client.get(
+            reverse("dataset-create"), {"project": project.pk}
+        )
+
+        assert response.status_code == 200
+
+    def test_dataset_detail_view_accessible(self, client):
+        """Test that dataset detail view serves the requested dataset.
+
+        This asserts on the context rather than the rendered body. Unlike
+        ProjectDetailView, DatasetDetailView subclasses plain DetailView rather
+        than FairDMDetailView, so no `page` title context is built, and
+        dataset_detail.html never renders `object.name` itself. The name is
+        therefore absent from the response even when the view works correctly.
+        """
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset-detail", kwargs={"uuid": dataset.uuid}))
+
+        assert response.status_code == 200
+        assert response.context["dataset"] == dataset
+
+
+@pytest.mark.django_db
+class TestDatasetPermissions:
+    """Tests for Dataset permissions and access control."""
+
+    def test_anonymous_user_cannot_create_dataset(self, client):
+        """Test that anonymous users cannot create datasets."""
+        form_data = {
+            "name": "Test Dataset",
+        }
+
+        response = client.post(reverse("dataset-create"), data=form_data)
+
+        # Should redirect to login
+        assert response.status_code == 302
+        # Check that redirect URL contains 'login'
+        assert "login" in response["Location"]
+
+    def test_dataset_creator_becomes_contributor(self, authenticated_client):
+        """Test that dataset creator is automatically added as contributor."""
+        form_data = {
+            "name": "Test Dataset",
+        }
+
+        authenticated_client.post(reverse("dataset-create"), data=form_data)
+
+        dataset = Dataset.objects.filter(name="Test Dataset").first()
+        if dataset:
+            # Check that the dataset has contributors
+            assert dataset.contributors.count() > 0

@@ -7,6 +7,7 @@ Tests cover:
 - Organization admin changelist loading (T054)
 - Organization admin inline members management (T055)
 - Organization admin ROR sync action (T056)
+- ClaimingAuditLog admin changelist and read-only permissions (T046)
 """
 
 import pytest
@@ -288,3 +289,35 @@ class TestOrganizationAdminRORSync:
 
         # Verify task was called for the ROR identifier
         mock_task.assert_called_once_with(ror_id.pk)
+
+
+# ── T046: ClaimingAuditLog admin view ────────────────────────────────────────
+
+
+class TestClaimingAuditLogAdminView:
+    """Verify that the admin changelist view for ClaimingAuditLog loads correctly."""
+
+    def test_changelist_view_returns_200(self, db, admin_client, audit_log_entry):
+        from django.urls import reverse
+
+        url = reverse("admin:contributors_claimingauditlog_changelist")
+        response = admin_client.get(url)
+        assert response.status_code == 200
+
+    def test_admin_has_no_add_permission(self, db, admin_client):
+        """Add URL should return 403 since we disabled add permission."""
+        from django.urls import reverse
+
+        url = reverse("admin:contributors_claimingauditlog_add")
+        response = admin_client.get(url)
+        assert response.status_code == 403
+
+    def test_admin_has_no_change_permission(self, db, admin_client, audit_log_entry):
+        """Change URL should return 403 since we disabled change permission."""
+        from django.urls import reverse
+
+        url = reverse(
+            "admin:contributors_claimingauditlog_change", args=[audit_log_entry.pk]
+        )
+        response = admin_client.get(url)
+        assert response.status_code == 403
