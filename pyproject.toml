@@ -114,10 +114,10 @@ requires-poetry = '>=2.0,<3.0'
 packages = [{ include = "fairdm" }, { include = "fairdm_demo" }]
 include = ["README.md", "LICENSE"]
 classifiers = [
-    "Development Status :: 1 - Planning",
-    "Framework :: Django :: 5.0",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.13",
 ]
