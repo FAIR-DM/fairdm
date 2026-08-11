@@ -6,12 +6,12 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView
-from guardian.shortcuts import assign_perm
 
+# from guardian.shortcuts import assign_perm
 from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMListView, FairDMUpdateView
 
 from .filters import DatasetFilter
-from .forms import DatasetCreateForm, DatasetForm
+from .forms import DatasetForm
 from .models import Dataset
 
 
@@ -37,7 +37,8 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
     """
 
     model = Dataset
-    form_class = DatasetCreateForm
+    # form_class = DatasetCreateForm
+    fields = ["name", "project", "license"]
     page_title = _("Create a Dataset")
     default_roles = ["Creator", "ProjectMember", "ContactPerson"]
 
@@ -48,7 +49,7 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
             dict: Form kwargs including the current request.
         """
         kwargs = super().get_form_kwargs()
-        kwargs["request"] = self.request
+        # kwargs["request"] = self.request
         return kwargs
 
     def get_success_url(self) -> str:
@@ -75,17 +76,17 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
 
         user = self.request.user
         dataset = self.object
+        # TODO: Re-enable permission assignment when permissions are fully implemented and tested.
+        # permissions = [
+        #     "view_dataset",
+        #     "change_dataset",
+        #     "delete_dataset",
+        #     "change_dataset_metadata",
+        #     "change_dataset_settings",
+        # ]
 
-        permissions = [
-            "view_dataset",
-            "change_dataset",
-            "delete_dataset",
-            "change_dataset_metadata",
-            "change_dataset_settings",
-        ]
-
-        for perm in permissions:
-            assign_perm(perm, user, dataset)
+        # for perm in permissions:
+        #     assign_perm(perm, user, dataset)
 
         dataset.add_contributor(user, with_roles=["Creator", "ProjectMember", "ContactPerson"])
 
@@ -144,6 +145,7 @@ class DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView):
     form_class = DatasetForm
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
+    template_name = "plugins/form_view.html"
 
     def get_object(self, queryset=None):
         """Retrieve dataset and enforce change_dataset permission."""

@@ -107,7 +107,9 @@ class ProjectCreateForm(ProjectForm):
         self.helper.layout = Layout(
             "name",
             "status",
-            InlineRadios("visibility"),
+            InlineRadios(
+                "visibility"
+            ),  # BUG: Inline radios is causing a layout error with crispy forms. Submit buttons render inside the radio group. Need to investigate and fix this issue.
         )
 
 

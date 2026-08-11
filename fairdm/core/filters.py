@@ -1,7 +1,7 @@
 # import django_filters as df
+import django_filters
+from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as df
-
-from .models import Measurement, Sample
 
 
 class BaseListFilter(df.FilterSet):
@@ -10,14 +10,9 @@ class BaseListFilter(df.FilterSet):
     render the top filters. This class should be used as a base class for all list filters in the project.
     """
 
-
-class SampleFilter(BaseListFilter):
-    class Meta:
-        model = Sample
-        fields = ["status"]
-
-
-class MeasurementFilter(BaseListFilter):
-    class Meta:
-        fields = []
-        model = Measurement
+    image = django_filters.BooleanFilter(
+        field_name="images",
+        lookup_expr="isnull",
+        exclude=True,
+        label=_("Has image"),
+    )

@@ -1,11 +1,38 @@
 {% extends "mvp/base.html" %}
-{% block extra_css %}
+{% load flex_menu %}
+
+{% block head %}
   {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+          integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+          crossorigin="anonymous"></script>
   <script type="text/javascript"
           src="{% url 'javascript-catalog' %}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
-{% endblock extra_css %}
+  {% comment %} temporary until spacing fixed in django-mvp {% endcomment %}
+  <style>
+    .mvp-header {
+      /* px-3 */
+      padding-inline: calc(var(--spacing) * 3);
+    }
+
+    .mvp-header>* {
+      padding: 0;
+    }
+  </style>
+  {{ plugin_media.css }}
+{% endblock head %}
 
 {% block app.header.widgets %}
   <c-actions.create-new />
 {% endblock app.header.widgets %}
+
+{% block app.header.tray %}
+  {% if plugin_menu %}
+    {% render_menu plugin_menu renderer="plugin-menu-renderer" uuid=object.uuid %}
+  {% endif %}
+{% endblock app.header.tray %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {{ plugin_media.js }}
+{% endblock extra_js %}

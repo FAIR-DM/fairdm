@@ -224,8 +224,6 @@ class ProjectDetailView(FairDMDetailView):
 
     model = Project
     template_name = "project/project_detail.html"
-    slug_field = "uuid"
-    slug_url_kwarg = "uuid"
 
     def get_object(self, queryset=None):
         """Get project instance and check visibility/permissions.

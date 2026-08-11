@@ -75,6 +75,14 @@ class DatasetForm(ModelForm):
         - tests/unit/core/dataset/test_form.py
     """
 
+    image = forms.ImageField(
+        required=False,
+        label=_("Cover Image"),
+        help_text=IMAGE_HELP_TEXT,
+        validators=[validate_image_file_size],
+        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
+    )
+
     name = forms.CharField(
         label=_("Name"),
         help_text=_(
@@ -83,14 +91,6 @@ class DatasetForm(ModelForm):
         ),
         required=True,
         max_length=300,
-    )
-
-    image = forms.ImageField(
-        required=False,
-        label=_("Dataset Image"),
-        help_text=IMAGE_HELP_TEXT,
-        validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(thumbnail_options={"size": (150, 100), "crop": True}),
     )
 
     project = forms.ModelChoiceField(
@@ -118,10 +118,6 @@ class DatasetForm(ModelForm):
             "Choose a license that defines how others can use this dataset. "
             "CC BY 4.0 (default) allows sharing and adaptation with attribution. "
             "You can change this until the dataset is published."
-        ),
-        widget=ModelSelect2Widget(
-            search_fields=["name__icontains"],
-            attrs={"data-placeholder": _("Select a license...")},
         ),
     )
 
@@ -163,7 +159,7 @@ class DatasetForm(ModelForm):
 
     class Meta:
         model = Dataset
-        fields = ["name", "image", "project", "license", "reference", "doi"]
+        fields = ["image", "name", "project", "license", "reference", "doi"]
 
     def __init__(self, request=None, *args, **kwargs):
         """Initialize form with optional request parameter for permission filtering.
@@ -268,5 +264,4 @@ class DatasetCreateForm(DatasetForm):
     """
 
     class Meta(DatasetForm.Meta):
-        fields = ["name", "project", "license"]
-
+        fields = ["name", "license"]

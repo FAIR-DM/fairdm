@@ -38,6 +38,13 @@ class SampleFilterMixin:
                 fields = SampleFilterMixin.Meta.fields + ['custom_field']
     """
 
+    image = django_filters.BooleanFilter(
+        field_name="images",
+        lookup_expr="isnull",
+        exclude=True,
+        label=_("Has image"),
+    )
+
     class Meta:
         """Meta configuration for SampleFilterMixin."""
 

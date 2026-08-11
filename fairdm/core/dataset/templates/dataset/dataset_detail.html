@@ -2,16 +2,16 @@
 {% load i18n fairdm flex_menu %}
 
 {% block app.header.tray %}
-  {% render_menu "ProjectMenu" renderer="plugin-menu-renderer" uuid=object.uuid %}
+  {% render_menu "DatasetMenu" renderer="plugin-menu-renderer" uuid=object.uuid %}
 {% endblock app.header.tray %}
 
 {% block page.content %}
   {# ── Stats strip — flat tiles with accent top border ─────────── #}
   <c-section id="project-stats">
     <c-grid cols="1" md="4" gap="4">
-      <c-cards.statistic value="{{ dataset_count|default:'0' }}"
-                         title="{% trans 'Datasets' %}"
-                         icon="dataset"
+      <c-cards.statistic title="{% trans 'Project' %}"
+                         icon="project"
+                         message="{{ object.project|default:"-" }}"
                          variant="success" />
       <c-cards.statistic value="{{ object.contributors.count }}"
                          title="{% trans 'Contributors' %}"
