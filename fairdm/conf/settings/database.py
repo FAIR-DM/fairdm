@@ -24,7 +24,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Production expects DATABASE_URL or POSTGRES_* (validation in checks.py)
 
 if env("DATABASE_URL"):
-    logger.info(f"Database: PostgreSQL via DATABASE_URL")
+    logger.info("Database: PostgreSQL via DATABASE_URL")
     DATABASES = {
         "default": env.db(),
     }

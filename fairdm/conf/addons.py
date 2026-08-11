@@ -9,7 +9,6 @@ import importlib.util
 import logging
 import os
 from importlib import import_module
-from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 

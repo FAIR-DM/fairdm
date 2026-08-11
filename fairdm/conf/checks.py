@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 from django.conf import settings
-from django.core.checks import Error, Tags, Warning, register
+from django.core.checks import Error, Tags, register
 from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)

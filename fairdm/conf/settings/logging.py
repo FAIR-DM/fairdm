@@ -8,14 +8,14 @@ Local/Development: Uses console logging (override in local.py)
 This is the production baseline. Environment-specific overrides in local.py/staging.py.
 """
 
-import os
+import logging
+
+import environ
 import sentry_sdk
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
-import logging
-import environ
+from sentry_sdk.integrations.redis import RedisIntegration
 
 localenv = environ.Env(
     SENTRY_DSN=(str, ""),

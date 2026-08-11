@@ -1,82 +1,87 @@
-exclude: "^docs/|/migrations/|/fixtures/|^.github/skills/|^.github/scripts/|^.specify/scripts/"
+# Family-standard pre-commit configuration for django-mvp repositories.
+#
+# Copy to the repo root as `.pre-commit-config.yaml` and replace
+# fairdm with the repo's package directory (e.g. `licensing`).
+#
+# The Python tools (ruff, mypy, deptry) run as *local* hooks inside the Poetry
+# env, so their versions come from the mvp-shared[dev] bundle — one version
+# source for the whole family, instead of per-repo `rev:` pins that drift under
+# autoupdate. It also means `poetry run <tool>` behaves identically to the hook.
+#
+# black and pyupgrade are deliberately absent: `ruff format` is a drop-in black
+# replacement, and ruff's UP rules cover pyupgrade (enable them in the repo's
+# `[tool.ruff.lint]` select list).
+
+# The trailing three paths hold vendored agent tooling and spec-kit scripts
+# rather than this package's own source, so they are linted by their upstreams.
+exclude: "^docs/|/migrations/|^tests/|^\\.github/skills/|^\\.github/scripts/|^\\.specify/scripts/"
 default_stages: [pre-commit]
 
 repos:
-  # Basic file quality checks
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Scoped to this package's own sources. Unscoped (the family default)
+      # these rewrite vendored agent tooling under .github/skills and .specify,
+      # the spec archive, fixtures and SVG assets — churn this repo does not own.
       - id: trailing-whitespace
         files: ^(fairdm|fairdm_demo|tests)/.*\.py$
-        exclude: /fixtures/
       - id: end-of-file-fixer
         files: ^(fairdm|fairdm_demo|tests)/.*\.py$
-        exclude: /fixtures/
       - id: check-yaml
-      - id: check-toml
-      - id: check-json
-        exclude: /fixtures/
-      - id: check-added-large-files
-        args: [--maxkb=1000]
-      - id: check-merge-conflict
-      - id: debug-statements
-        types: [python]
-        files: ^(fairdm|fairdm_demo|tests)/
 
-  # Python code upgrades
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
-    hooks:
-      - id: pyupgrade
-        args: [--py313-plus]
-        types: [python]
-        files: ^(fairdm|fairdm_demo|tests)/
-        exclude: /migrations/
-
-  # Ruff - fast Python linter and formatter
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.7
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-        types: [python]
-        files: ^(fairdm|fairdm_demo|tests)/
-        exclude: /migrations/
-      - id: ruff-format
-        types: [python]
-        files: ^(fairdm|fairdm_demo|tests)/
-        exclude: /migrations/
-
-  # Poetry validation (manual only)
   - repo: https://github.com/python-poetry/poetry
-    rev: "2.3.2"
+    rev: '2.3.4'
     hooks:
       - id: poetry-check
       - id: poetry-lock
-        stages: [manual]
+        stages: [manual]  # Only run manually, not in CI
 
-  # Local hooks that use Poetry environment
+  # Local hooks that use the Poetry environment
   - repo: local
     hooks:
-      # - id: mypy
-      #   name: mypy type checking
-      #   entry: poetry run mypy
-      #   language: system
-      #   types: [python]
-      #   files: ^fairdm/
-      #   require_serial: true
-
-      - id: deptry
-        name: deptry dependency checking
-        entry: poetry run deptry
+      - id: ruff
+        name: ruff (lint)
+        entry: poetry run ruff check --fix
         language: system
-        args: [.]
+        types: [python]
+        require_serial: true
+      - id: ruff-format
+        name: ruff (format)
+        entry: poetry run ruff format
+        language: system
+        types: [python]
+        require_serial: true
+      # DEVIATION from the family template: mypy is staged manually rather than
+      # on every commit. Under the family's own lenient settings this package
+      # currently reports 214 errors across 44 files, so a blocking hook would
+      # hold every pull request red and could only be cleared by a dedicated
+      # typing pass. Run it with `pre-commit run --hook-stage manual mypy`.
+      # Restore the family default (drop the `stages` key) once that pass lands.
+      #
+      # Without require_serial, pre-commit splits the file list into parallel
+      # batches, and concurrent mypy processes race on the shared .mypy_cache —
+      # INTERNAL ERROR on a cold cache. One serial invocation is also what
+      # mirrors-mypy ships.
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy
+        language: system
+        require_serial: true
+        types: [python]
+        files: ^fairdm/
+        stages: [manual]
+      - id: deptry
+        name: deptry
+        entry: poetry run deptry .
+        language: system
         pass_filenames: false
         always_run: true
-        require_serial: true
 
-# sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
+# pre-commit.ci runs only the env-independent hooks; the local Poetry-env hooks
+# run in each repo's own CI (the shared build workflow's Code Quality job).
 ci:
   autoupdate_schedule: monthly
-  skip: [poetry-lock, mypy, deptry]
+  skip: [poetry-lock, ruff, ruff-format, mypy, deptry]
   submodules: false

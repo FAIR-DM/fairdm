@@ -27,12 +27,12 @@ from fairdm.api.settings import (
 
 # Re-export so split_settings include() picks them up in the caller's namespace
 __all__ = [
-    "REST_FRAMEWORK",
-    "SPECTACULAR_SETTINGS",
-    "CORS_ALLOW_ALL_ORIGINS",
     "CORS_ALLOWED_ORIGINS",
+    "CORS_ALLOW_ALL_ORIGINS",
     "CORS_URLS_REGEX",
+    "FAIRDM_API_DESCRIPTION",
     "FAIRDM_API_DOCS_URL",
     "FAIRDM_API_TITLE",
-    "FAIRDM_API_DESCRIPTION",
+    "REST_FRAMEWORK",
+    "SPECTACULAR_SETTINGS",
 ]

@@ -14,7 +14,7 @@ MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 # Communicates the expected aspect ratio, accepted formats, size cap, and
 # the centre-crop behaviour applied when the source does not match 3:2.
 IMAGE_HELP_TEXT = _(
-    "Upload a representative image (recommended 3:2 ratio, e.g. 1200×800 px). "
+    "Upload a representative image (recommended 3:2 ratio, e.g. 1200x800 px). "
     "Accepted formats: JPEG, PNG, WebP. Maximum file size: 5 MB. "
     "Images that do not match the 3:2 ratio will be centre-cropped on display."
 )

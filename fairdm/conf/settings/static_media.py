@@ -8,9 +8,8 @@ Development: Uses local filesystem for both static and media
 This is the production baseline. Environment-specific overrides in local.py/staging.py.
 """
 
-import os
-from pathlib import Path
 import logging
+import os
 
 # Access environment variables via shared env instance
 env = globals()["env"]

@@ -154,7 +154,6 @@ class TestProjectPreDeleteSignal:
         """
         from fairdm.core.dataset.models import Dataset
         from fairdm.core.project.models import PublicDatasetsProtect
-
         from fairdm.factories import ProjectFactory
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -169,7 +168,6 @@ class TestProjectPreDeleteSignal:
         T005 - MUST FAIL before T007 implementation.
         """
         from fairdm.core.dataset.models import Dataset
-
         from fairdm.factories import ProjectFactory
 
         project = ProjectFactory()

@@ -14,7 +14,6 @@ import environ
 from split_settings.tools import include
 
 from .addons import load_addons
-from .checks import validate_services
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +111,6 @@ def setup(
 
     # Load all settings modules from settings/ directory (production baseline)
     logger.info("Loading production baseline settings...")
-    settings_dir = Path(__file__).parent / "settings"
 
     # Define explicit order for settings modules to ensure dependencies are met
     settings_modules = [
@@ -177,4 +175,4 @@ def setup(
 
 
 # Export addon_urls for backward compatibility
-from .addons import addon_urls  # noqa: E402, F401
+from .addons import addon_urls  # noqa: F401

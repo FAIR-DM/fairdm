@@ -26,7 +26,7 @@ class BaseModel(models.Model):
         blank=True,
         null=True,
         upload_to=default_image_path,
-        resize_source=dict(size=(2400, 1600), crop=False),
+        resize_source={"size": (2400, 1600), "crop": False},
     )
     name = models.CharField(_("name"), max_length=300)
 

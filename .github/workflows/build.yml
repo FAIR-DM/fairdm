@@ -1,0 +1,26 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'fairdm/**'
+      - 'fairdm_demo/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.pre-commit-config.yaml'
+      - '.github/workflows/build.yml'
+  # No paths filter on pull_request: these checks are ruleset-required, and a
+  # path-filtered required check never reports on out-of-scope PRs, blocking merge.
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  call-build:
+    uses: django-mvp/shared/.github/workflows/build.yml@v0.2.0
+    with:
+      source-dir: fairdm
+      python-version: '3.13'
+    secrets: inherit

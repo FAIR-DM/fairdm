@@ -1,0 +1,30 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'fairdm/**'
+      - 'fairdm_demo/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.github/workflows/tests.yml'
+  # No paths filter on pull_request: these checks are ruleset-required, and a
+  # path-filtered required check never reports on out-of-scope PRs, blocking merge.
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  call-tests:
+    uses: django-mvp/shared/.github/workflows/tests.yml@v0.2.0
+    with:
+      coverage-package: fairdm
+      # Django 6.0 is outside this package's supported range (see the django
+      # constraint in pyproject.toml), so the family default is narrowed here.
+      python-versions: '["3.13"]'
+      django-versions: '["5.1", "5.2"]'
+      poetry-install-args: '--with test'
+    secrets: inherit
