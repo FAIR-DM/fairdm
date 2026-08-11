@@ -152,3 +152,32 @@ def ror_identifier(db, organization):
         type="ROR",
         value="https://ror.org/02nr0ka47",
     )
+
+
+# ── Claiming Audit Log Fixtures ──────────────────────────────────────────────
+
+
+@pytest.fixture
+def person_a(db):
+    from fairdm.factories import PersonFactory
+
+    return PersonFactory()
+
+
+@pytest.fixture
+def person_b(db):
+    from fairdm.factories import PersonFactory
+
+    return PersonFactory()
+
+
+@pytest.fixture
+def audit_log_entry(db, person_a, person_b):
+    from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
+
+    return ClaimingAuditLog.objects.create(
+        method=ClaimMethod.TOKEN,
+        source_person=person_a,
+        target_person=person_b,
+        success=True,
+    )
