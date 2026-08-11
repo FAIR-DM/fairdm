@@ -1,64 +1,88 @@
-"""Tests for the API sidebar menu group (Feature 011 — US7/FR-017).
+"""Tests for the API entry in the default application menu.
 
-Covers:
-- AppMenu contains a group named "API"
-- The group has exactly 3 child MenuItems
-- Child URLs are "/api/docs/", "/api/v1/", and FAIRDM_API_DOCS_URL (default)
-- Overriding FAIRDM_API_DOCS_URL changes the third child's URL
+Covers the current shape of the "Documentation" MenuGroup in AppMenu:
+- AppMenu contains a group named "Documentation"
+- The group has exactly 3 child MenuItems: API, User Guide, Admin Guide
+- The "API" child points at the interactive API docs view ("api:api-docs")
+- FAIRDM_API_DOCS_URL remains a valid, independently overridable Django setting
+
+Commit 2a6106f ("chore: cleaned up default app menu") collapsed the former
+standalone "API" MenuGroup (Interactive Docs / Browse API / How to use the
+API) into a single "API" MenuItem nested inside the "Documentation" group.
+The menu no longer reads FAIRDM_API_DOCS_URL at all — see fairdm/menus/menus.py.
 """
 
 import pytest
 
 
 @pytest.fixture()
-def api_menu_group():
-    """Return the 'API' MenuGroup from AppMenu."""
+def documentation_menu_group():
+    """Return the 'Documentation' MenuGroup from AppMenu."""
     from mvp.menus import AppMenu
 
-    groups = [item for item in AppMenu.children if str(item.name) == "API"]
-    assert groups, "No 'API' MenuGroup found in AppMenu.  Check fairdm/menus/menus.py."
+    groups = [item for item in AppMenu.children if str(item.name) == "Documentation"]
+    assert groups, "No 'Documentation' MenuGroup found in AppMenu. Check fairdm/menus/menus.py."
     return groups[0]
 
 
-class TestAPIMenuGroupPresent:
-    """The AppMenu must contain a MenuGroup named 'API'."""
+class TestDocumentationMenuGroupPresent:
+    """The AppMenu must contain a MenuGroup named 'Documentation'."""
 
-    def test_api_group_exists_in_app_menu(self, api_menu_group):
-        """AppMenu must contain a group whose name is 'API'."""
-        assert api_menu_group is not None
+    def test_documentation_group_exists_in_app_menu(self, documentation_menu_group):
+        """AppMenu must contain a group whose name is 'Documentation'."""
+        assert documentation_menu_group is not None
 
-    def test_api_group_has_exactly_three_children(self, api_menu_group):
-        """The API MenuGroup must have exactly 3 child MenuItems."""
-        assert len(api_menu_group.children) == 3, (
-            f"Expected 3 children in API menu group, found {len(api_menu_group.children)}"
+    def test_documentation_group_has_exactly_three_children(self, documentation_menu_group):
+        """The Documentation MenuGroup must have exactly 3 child MenuItems."""
+        assert len(documentation_menu_group.children) == 3, (
+            f"Expected 3 children in Documentation menu group, found {len(documentation_menu_group.children)}"
         )
 
 
-class TestAPIMenuGroupChildURLs:
-    """Each child MenuItem must point to the correct URL."""
+class TestAPIMenuItem:
+    """The Documentation group's first child links to the interactive API docs."""
 
-    def test_first_child_is_interactive_docs(self, api_menu_group):
-        """First child must be 'Interactive Docs' using view_name 'api:api-docs'."""
-        child = api_menu_group.children[0]
-        assert str(child.name) == "Interactive Docs"
+    def test_first_child_is_api(self, documentation_menu_group):
+        """First child must be 'API' using view_name 'api:api-docs'."""
+        child = documentation_menu_group.children[0]
+        assert str(child.name) == "API"
         assert child.view_name == "api:api-docs", f"Unexpected view_name: {child.view_name!r}"
 
-    def test_second_child_is_browse_api(self, api_menu_group):
-        """Second child must be 'Browse API' using view_name 'api:api-root'."""
-        child = api_menu_group.children[1]
-        assert str(child.name) == "Browse API"
-        assert child.view_name == "api:api-root", f"Unexpected view_name: {child.view_name!r}"
+    def test_api_child_uses_view_name_not_hardcoded_url(self, documentation_menu_group):
+        """API item must use view_name reversal, not a hardcoded URL string."""
+        child = documentation_menu_group.children[0]
+        assert child.view_name == "api:api-docs"
+        assert child._url == "", "Internal links must not carry a hardcoded _url"
 
-    def test_third_child_is_how_to_use_api_default_url(self, api_menu_group):
-        """Third child must use _url (external link) pointing to FAIRDM_API_DOCS_URL default."""
-        from django.conf import settings
+    def test_api_child_icon_context(self, documentation_menu_group):
+        """API child must have 'api' icon in extra_context."""
+        child = documentation_menu_group.children[0]
+        assert child.extra_context.get("icon") == "api"
 
-        expected_url = getattr(settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/")
-        child = api_menu_group.children[2]
-        assert str(child.name) == "How to use the API"
-        # External link — uses _url, not view_name
-        assert child._url == expected_url, f"Unexpected URL: {child._url!r} (expected {expected_url!r})"
-        assert child.view_name == "", "External link must not have a view_name"
+
+class TestDocumentationMenuGroupOtherChildren:
+    """The remaining two children are the user-facing and admin-facing guides."""
+
+    def test_second_child_is_user_guide(self, documentation_menu_group):
+        """Second child must be 'User Guide', an external link."""
+        child = documentation_menu_group.children[1]
+        assert str(child.name) == "User Guide"
+        assert child._url == "https://faridm.org/user-guide/"
+
+    def test_third_child_is_admin_guide(self, documentation_menu_group):
+        """Third child must be 'Admin Guide', gated behind the staff-only check."""
+        child = documentation_menu_group.children[2]
+        assert str(child.name) == "Admin Guide"
+        assert child._url == "https://faridm.org/admin-guide/"
+
+
+class TestFairDMAPIDocsURLSetting:
+    """FAIRDM_API_DOCS_URL remains a valid, independently defined Django setting.
+
+    It is no longer consumed by the menu (see module docstring), but portal
+    developers can still read/override it for their own use (e.g. custom
+    templates or views), so the setting's default value is still worth pinning.
+    """
 
     def test_third_child_default_url_is_fairdm_org(self):
         """Default FAIRDM_API_DOCS_URL must be 'https://fairdm.org/api/'."""
@@ -66,59 +90,9 @@ class TestAPIMenuGroupChildURLs:
 
         assert FAIRDM_API_DOCS_URL == "https://fairdm.org/api/"
 
-    def test_first_child_uses_view_name_not_hardcoded_url(self, api_menu_group):
-        """Interactive Docs must use view_name reversal, not a hardcoded URL string."""
-        child = api_menu_group.children[0]
-        assert child.view_name == "api:api-docs"
-        assert child._url == "", "Internal links must not carry a hardcoded _url"
-
-    def test_second_child_uses_view_name_not_hardcoded_url(self, api_menu_group):
-        """Browse API must use view_name reversal, not a hardcoded URL string."""
-        child = api_menu_group.children[1]
-        assert child.view_name == "api:api-root"
-        assert child._url == "", "Internal links must not carry a hardcoded _url"
-
-    def test_first_child_icon_context(self, api_menu_group):
-        """Interactive Docs child must have 'api' icon in extra_context."""
-        child = api_menu_group.children[0]
-        assert child.extra_context.get("icon") == "api"
-
-    def test_second_child_icon_context(self, api_menu_group):
-        """Browse API child must have 'api' icon in extra_context."""
-        child = api_menu_group.children[1]
-        assert child.extra_context.get("icon") == "api"
-
-    def test_third_child_icon_context(self, api_menu_group):
-        """How to use the API child must have 'literature' icon."""
-        child = api_menu_group.children[2]
-        assert child.extra_context.get("icon") == "literature"
-
-
-@pytest.mark.django_db
-class TestFairDMAPIDocsURLSetting:
-    """FAIRDM_API_DOCS_URL can be overridden in Django settings."""
-
+    @pytest.mark.django_db
     def test_override_fairdm_api_docs_url_respected(self, settings):
-        """Overriding FAIRDM_API_DOCS_URL must change the third child's URL."""
-        from mvp.menus import AppMenu
-
+        """Overriding FAIRDM_API_DOCS_URL via Django settings is respected."""
         settings.FAIRDM_API_DOCS_URL = "https://custom.example.org/api/"
 
-        # Re-evaluate the third child URL (it uses getattr at menu construction time)
-        from django.conf import settings as django_settings
-
-        import fairdm.menus.menus  # noqa: F401 — ensure menu is loaded
-
-        api_group = next(item for item in AppMenu.children if str(item.name) == "API")
-        third_child = api_group.children[2]
-
-        # The URL was captured at menu construction time via getattr(django_settings, ...)
-        # so the child's _url reflects the value at import time.
-        # The setting's default is "https://fairdm.org/api/" — verify the default path works.
-        expected = getattr(django_settings, "FAIRDM_API_DOCS_URL", "https://fairdm.org/api/")
-        # Since settings is overridden above, the expected value should match the override
-        assert expected == "https://custom.example.org/api/"
-        # Note: third_child._url was captured at module import time (before override),
-        # so this test only verifies that the setting lookup mechanism works correctly.
-        # In a real deployment, changing FAIRDM_API_DOCS_URL at startup will set the URL.
-        assert third_child._url in ("https://fairdm.org/api/", "https://custom.example.org/api/")
+        assert settings.FAIRDM_API_DOCS_URL == "https://custom.example.org/api/"

@@ -133,10 +133,11 @@ class TestClaimViaOrcid:
 class TestClaimViaEmail:
     """Tests for claim_via_email() — added in Phase 4 (T016)."""
 
-    def test_happy_path_claims_person(self, db, unclaimed_person):
+    def test_happy_path_claims_person(self, db, unclaimed_person, settings):
         """claim_via_email sets is_claimed=True and is_active=True."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
         result = claim_via_email(unclaimed_person)
 
         unclaimed_person.refresh_from_db()
@@ -157,17 +158,19 @@ class TestClaimViaEmail:
         assert unclaimed_person.is_claimed is False
         assert result is None
 
-    def test_already_claimed_raises_claiming_error(self, db, claimed_person):
+    def test_already_claimed_raises_claiming_error(self, db, claimed_person, settings):
         """claim_via_email raises ClaimingError if person is already claimed."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
         with pytest.raises(ClaimingError):
             claim_via_email(claimed_person)
 
-    def test_banned_person_raises_claiming_error(self, db, banned_person):
+    def test_banned_person_raises_claiming_error(self, db, banned_person, settings):
         """claim_via_email raises ClaimingError if person is banned (FR-017)."""
         from fairdm.contrib.contributors.services.claiming import claim_via_email
 
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
         with pytest.raises(ClaimingError):
             claim_via_email(banned_person)
 

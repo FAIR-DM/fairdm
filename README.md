@@ -24,13 +24,33 @@ FairDM is an opinionated **Django framework** (not a library) designed specifica
 - Import/export data in multiple formats with zero configuration
 - Control access with fine-grained **object-level permissions**
 
-### Core Philosophy
+---
 
-- **Configuration over code** — Declarative model registration with sensible defaults
-- **Domain-first modeling** — Focus on accurate scientific data representation
-- **Progressive complexity** — Simple defaults, powerful extension points for advanced users
-- **Frontend-free for users** — No template/JS knowledge required for basic portals
-- **FAIR by design** — Metadata, stable identifiers, and APIs built-in
+## Scope & philosophy
+
+### What FairDM is
+
+A batteries-included Django framework for building research data portals. You describe your
+samples and measurements as Django models, register them, and get the portal without writing that
+layer yourself: views, URLs, forms, filters, tables, admin and API.
+
+### What FairDM is deliberately not
+
+- **Not a library of parts.** It is opinionated and owns the application shell. If you want to
+  assemble your own stack from independent components, this is the wrong starting point.
+- **Not a generic CMS.** The core model (projects, datasets, samples, measurements and
+  contributors) is fixed, because it is what makes portals interoperable and citable.
+- **Not a single portal.** Domain-specific schemas belong in portals that build on FairDM, not
+  in the framework itself.
+- **Not a JavaScript application.** The server-rendered baseline is the product, not a fallback.
+
+### When principles collide
+
+- **Configuration over code** — declarative model registration with sensible defaults.
+- **Domain-first modelling** — accurate scientific representation outranks framework convenience.
+- **Progressive complexity** — simple defaults first, extension points for those who need them.
+- **No frontend knowledge required** — a working portal must not depend on template or JS skills.
+- **FAIR by design** — metadata, stable identifiers and machine access are built in, not added on.
 
 ---
 
@@ -179,7 +199,7 @@ Extend FairDM with custom functionality:
 
 ### 🌍 Modern Frontend Stack
 
-- **Bootstrap 5** — Responsive, accessible UI components
+- **django-mvp** — Shared application shell built on Tailwind CSS and daisyUI
 - **HTMX** — Dynamic interactions without writing JavaScript
 - **Alpine.js** — Lightweight reactivity for complex interactions
 - **Django Cotton** — Reusable component-based templates

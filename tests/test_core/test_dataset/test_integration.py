@@ -71,7 +71,7 @@ class TestDatasetModel:
         dataset = DatasetFactory()
         url = dataset.get_absolute_url()
 
-        assert url == reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        assert url == reverse("dataset-detail", kwargs={"uuid": dataset.uuid})
 
     def test_dataset_has_data_property(self):
         """Test has_data cached property."""
@@ -202,7 +202,7 @@ class TestDatasetViews:
     def test_dataset_detail_view_accessible(self, client):
         """Test that dataset detail view is accessible."""
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+        response = client.get(reverse("dataset-detail", kwargs={"uuid": dataset.uuid}))
 
         assert response.status_code == 200
         assert dataset.name.encode() in response.content

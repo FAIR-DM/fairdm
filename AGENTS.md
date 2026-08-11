@@ -12,11 +12,16 @@ datasets, samples, measurements, contributors) plus a demo application in `faird
 - **Stack:** Python 3.13, Django 5.1+, Poetry-managed, PostgreSQL in production
 - **Install:** `poetry install --with dev,test,docs`
 - **Test:** `poetry run pytest` (or `poetry run invoke test` for coverage)
-- **Lint:** `poetry run ruff check .`
+- **Lint:** `poetry run pre-commit run --all-files` — this is the gate CI enforces.
+  Raw `poetry run ruff check .` covers a wider file set and is not the gate.
 - **Format:** `poetry run invoke format`
-- **All checks:** `poetry run invoke pre-push`
-- **Type-check:** none — mypy is configured but disabled in CI and pre-commit
+- **Type-check:** `poetry run pre-commit run --hook-stage manual mypy`. Staged manually
+  rather than on every commit: the package currently reports 214 errors across 44 files,
+  so making it blocking would hold every pull request red until a dedicated typing pass.
 - **Build:** `poetry build`
+
+Development tooling comes from the `mvp-shared[dev,test]` bundle pinned in `pyproject.toml`,
+so `poetry run <tool>` and the pre-commit hooks always agree on versions.
 
 The `docker-compose.yml` local development environment is not currently working and is not part
 of any verification path.
@@ -37,14 +42,22 @@ Single-context layout — `CONTEXT.md` at the root, `docs/adr/` for architectura
 
 ### CI checks
 
-Required status checks the pipeline reads (exact names):
-`Lint & Format`, `Type Check`, `Test (Python 3.13, Django 5.1)`, `CI Success`.
+Required status checks (exact names, as they report on a pull request):
 
-CI is repo-native and defined in `.github/workflows/ci.yml`.
+- `call-build / Code Quality`
+- `call-build / Security Scan`
+- `call-build / Build Package`
+- `call-tests / Test Python 3.13, Django 5.1`
+- `call-tests / Test Python 3.13, Django 5.2`
+
+CI calls the shared family workflows in `django-mvp/shared`, pinned to `v0.2.0`, from
+`.github/workflows/build.yml` and `.github/workflows/tests.yml`. Releases run through
+`prepare-release.yml` → `tag-release.yml` → `publish.yml`.
 
 ## Development workflow
 
 Feature work follows a spec-driven process: spec → plan → tasks → implement → review → PR, with a
 `specs/NNN-slug/` directory per feature. The toolchain is vendored in `.specify/`.
 
-Project standards and the quality bar live in `memory/constitution.md`.
+Project standards and the quality bar live in `.specify/memory/constitution.md`, which is the
+path the vendored tooling reads.

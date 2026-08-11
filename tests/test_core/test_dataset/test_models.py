@@ -15,7 +15,6 @@ Tests cover:
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.db.models.deletion import ProtectedError
 
 from fairdm.core.dataset.models import Dataset
 from fairdm.factories import DatasetFactory, ProjectFactory
@@ -113,15 +112,17 @@ class TestDatasetVisibility:
 
 @pytest.mark.django_db
 class TestDatasetProjectRelationship:
-    """Test Dataset-Project relationship and PROTECT behavior."""
+    """Test Dataset-Project relationship and CASCADE behavior."""
 
-    def test_project_delete_raises_protected_error(self):
-        """Deleting project with datasets raises ProtectedError."""
+    def test_project_delete_cascades_to_dataset(self):
+        """Deleting a project with datasets cascades and deletes the datasets too."""
         project = ProjectFactory()
-        DatasetFactory(project=project)
+        dataset = DatasetFactory(project=project)
+        dataset_id = dataset.pk
 
-        with pytest.raises(ProtectedError):
-            project.delete()
+        project.delete()
+
+        assert not Dataset.objects.filter(pk=dataset_id).exists()
 
     def test_project_delete_succeeds_without_datasets(self):
         """Deleting project without datasets succeeds."""
@@ -134,13 +135,15 @@ class TestDatasetProjectRelationship:
 
         assert not Project.objects.filter(pk=project_id).exists()
 
-    def test_multiple_datasets_prevent_project_deletion(self):
-        """Multiple datasets prevent project deletion."""
+    def test_multiple_datasets_deleted_with_project(self):
+        """Deleting a project cascades and deletes all of its datasets."""
         project = ProjectFactory()
-        DatasetFactory.create_batch(3, project=project)
+        datasets = DatasetFactory.create_batch(3, project=project)
+        dataset_ids = [dataset.pk for dataset in datasets]
 
-        with pytest.raises(ProtectedError):
-            project.delete()
+        project.delete()
+
+        assert not Dataset.objects.filter(pk__in=dataset_ids).exists()
 
 
 @pytest.mark.django_db

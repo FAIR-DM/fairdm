@@ -107,3 +107,6 @@ staticfiles
 fairdm/templates/fairdm/cards/standard_copy.html
 *.env
 !stack.development.env
+
+# Local Obsidian working notes for the domain model (not part of the package).
+vault/

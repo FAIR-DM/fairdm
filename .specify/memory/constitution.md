@@ -1,14 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: 1.3.2 → 1.4.0
+- Version change: 1.4.0 → 1.5.0
 - Modified principles:
-	- Principle V (Test-First Quality & Sustainability): Added new subsection "URL Smoke Test Coverage" mandating
-	  that any Django app registering new URL patterns MUST include at minimum a smoke test per route asserting
-	  the expected HTTP status code. Smoke tests must catch broken URL patterns, missing templates, template syntax
-	  errors, context variable exceptions, queryset errors, middleware/auth issues, and bad redirects without
-	  requiring content assertions.
-- Added sections: "URL Smoke Test Coverage" under Principle V
+	- Principle IV (Opinionated, Production-Grade Defaults): the default UI is no longer described as
+	  Bootstrap 5. The framework now builds on the shared django-mvp application shell (Tailwind CSS with
+	  daisyUI components); the Bootstrap wording predated that migration and no longer described the code.
+	- Technology Constraints → Frontend: same correction, plus crispy-forms now uses the Tailwind template
+	  pack rather than the Bootstrap one.
+- Added sections: None
 - Removed sections: None
+- Rationale: this is a factual correction rather than a change of direction. The migration landed in the
+  codebase before the constitution was updated, leaving the document mandating a stack the framework had
+  already left. Minor version bump because the wording of a principle changed materially while its intent
+  (a server-rendered, accessible, progressively enhanced baseline) did not.
 - Templates requiring updates (✅ updated / ⚠ pending):
 	- ✅ .specify/memory/constitution.md — updated (this file)
 	- ⚠ .specify/templates/tasks-template.md — consider adding a URL smoke test task example to Phase 3+
@@ -17,6 +21,8 @@ Sync Impact Report
 	- Consider adding validation checkpoint automation to speckit.implement workflow
 	- Update agent instructions (.github/instructions/copilot.instructions.md) to reference new validation requirements
 	- tasks-template.md may benefit from an explicit "URL smoke test" task type example
+	- Sweep the docs tree for remaining Bootstrap-era guidance (docs/portal-development/theme.md and
+	  theme-migration.md were written against the old stack)
 -->
 
 # FairDM Constitution
@@ -58,7 +64,7 @@ FairDM provides a coherent, modern stack so that a new portal is deployable, mai
 - The primary backend MUST remain Django-based, using the recommended ecosystem (e.g., django-tables2, django-filter, django-guardian, django-allauth, Celery, DRF where applicable) unless a governance-approved RFC justifies change.
 - Default deployment targets MUST be container-friendly and reproducible (e.g., Docker, docker-compose, 12-factor-style configuration via environment variables).
 - The default database for production deployments SHOULD be PostgreSQL; alternative databases MAY be supported where they do not break guarantees of the core data model.
-- The default UI MUST be a responsive, accessible Bootstrap 5-based interface with small progressive enhancements (HTMX, Alpine.js) rather than a heavy, bespoke SPA.
+- The default UI MUST be a responsive, accessible interface built on the shared django-mvp application shell (Tailwind CSS with daisyUI components) with small progressive enhancements (HTMX, Alpine.js) rather than a heavy, bespoke SPA.
 - Any new core feature MUST ship with sensible defaults (configuration, UI, permissions) so that a fresh project can enable it with minimal effort.
 
 In the near term (while FairDM is primarily used by its original author), stability of core behavior through tests and documentation is the top priority; feature velocity and advanced capabilities SHOULD be delivered primarily through addons.
@@ -158,7 +164,7 @@ This section defines the non-negotiable architectural boundaries and technology 
 - **Asynchronous Work**: Long-running or high-volume operations (e.g., imports, exports, heavy analysis) SHOULD be executed using Celery or a governance-approved equivalent, with clear task monitoring guidance.
 - **API Layer**: When REST or programmatic access is enabled, Django REST Framework (or a governance-approved successor) SHOULD be used, and generated APIs MUST honor FAIR metadata and permission rules.
 - **Frontend**:
-  - Server-rendered templates with Bootstrap 5, Cotton components, and small HTMX/Alpine.js enhancements are the default.
+  - Server-rendered templates with the django-mvp shell (Tailwind CSS, daisyUI), Cotton components, and small HTMX/Alpine.js enhancements are the default. Forms are rendered through crispy-forms with the Tailwind template pack.
   - Alternative frontends MAY be added as optional integrations but MUST NOT break or remove the server-rendered baseline.
 - **Configuration & Settings**:
   - Environment-based configuration (e.g., django-environ) is REQUIRED for secrets and deployment-specific settings.
@@ -249,4 +255,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 1.4.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-05-11
+**Version**: 1.5.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-08-11
