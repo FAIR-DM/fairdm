@@ -784,7 +784,7 @@ A full REST API module is planned for a future release, which will include:
 - Permission integration with object-level access control
 - API documentation generation
 
-For more information, see the [project roadmap](../../roadmap.md).
+For more information, see the [project roadmap](../ROADMAP.md).
 
 **Current Workaround:**
 
