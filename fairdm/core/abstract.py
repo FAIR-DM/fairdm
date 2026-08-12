@@ -277,7 +277,7 @@ class GenericModel(Model):
     def get_update_url(self):
         return reverse(
             f"{self._meta.model_name}-update",
-            kwargs={"uuid": self.uuid, "object_id": self.object_id},  # type: ignore[attr-defined]
+            kwargs={"uuid": self.uuid, "object_id": self.object_id},
         )
 
     def verbose_name(self):

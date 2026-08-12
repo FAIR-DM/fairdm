@@ -17,7 +17,7 @@ from fairdm.views import (
 
 from .filters import DatasetFilter
 from .forms import DatasetForm
-from .models import Dataset
+from .models import Dataset, DatasetQuerySet
 
 
 class DatasetDetailView(FairDMDetailView):
@@ -128,7 +128,7 @@ class DatasetListView(FairDMListView):
         Returns:
             QuerySet: Filtered and optimized Dataset queryset.
         """
-        qs = super().get_queryset()
+        qs: DatasetQuerySet = super().get_queryset()
         return qs.get_visible().with_contributors()
 
 

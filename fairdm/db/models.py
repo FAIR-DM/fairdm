@@ -1,6 +1,6 @@
 from django.db.models import *  # isort:skip
 
-from auto_prefetch import (  # type: ignore[no-redef]
+from auto_prefetch import (
     ForeignKey,
     Manager,
     OneToOneField,

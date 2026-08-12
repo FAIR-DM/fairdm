@@ -13,6 +13,8 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from django.db.models import Model
+
     from fairdm.config import ModelConfiguration
 
 
@@ -25,8 +27,9 @@ class FieldResolver:
         Args:
             config: The ModelConfiguration instance to resolve fields for
         """
+        assert config.model is not None  # noqa: S101 # Validated in __post_init__
         self.config = config
-        self.model = config.model
+        self.model: type[Model] = config.model
 
     def resolve_fields_for_component(self, component_type: str) -> list[str]:
         """Resolve field list for a specific component type.

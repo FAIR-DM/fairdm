@@ -17,6 +17,7 @@ from fairdm.views import (
 )
 
 from ..models import Project
+from .models import ProjectQuerySet
 from .filters import ProjectFilter
 from .forms import ProjectCreateForm, ProjectForm
 from .models import PublicDatasetsProtect
@@ -50,7 +51,8 @@ class ProjectListView(FairDMListView):
         Returns:
             QuerySet: Filtered and optimized Project queryset.
         """
-        return super().get_queryset().get_visible().with_contributors()
+        qs: ProjectQuerySet = super().get_queryset()
+        return qs.get_visible().with_contributors()
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):

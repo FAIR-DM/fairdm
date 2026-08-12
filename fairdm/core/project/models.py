@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from django.contrib.contenttypes.fields import GenericRelation
 
 # from django.db.models import QuerySet
@@ -22,22 +20,18 @@ from ..vocabularies import (
     FairDMRoles,
 )
 
-if TYPE_CHECKING:
-    from fairdm.core.project.models import Project
-
-
 class ProjectQuerySet(QuerySet):
     """Custom QuerySet for Project model with optimized query methods."""
 
-    def get_visible(self) -> QuerySet["Project"]:
+    def get_visible(self) -> "ProjectQuerySet":
         """Return only projects with public visibility."""
         return self.filter(visibility=Visibility.PUBLIC)
 
-    def with_contributors(self) -> QuerySet["Project"]:
+    def with_contributors(self) -> "ProjectQuerySet":
         """Prefetch related contributors for optimized access."""
         return self.prefetch_related("contributors")
 
-    def with_metadata(self) -> QuerySet["Project"]:
+    def with_metadata(self) -> "ProjectQuerySet":
         """Prefetch all related metadata for detail views.
 
         Includes descriptions, dates, identifiers, and contributors to minimize
@@ -51,7 +45,7 @@ class ProjectQuerySet(QuerySet):
             "keywords",
         )
 
-    def with_list_data(self) -> QuerySet["Project"]:
+    def with_list_data(self) -> "ProjectQuerySet":
         """Optimized queryset for list views.
 
         Only prefetches owner and keywords, avoiding expensive related data

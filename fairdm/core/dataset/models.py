@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from django.contrib.contenttypes.fields import GenericRelation
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -18,10 +16,6 @@ from ..vocabularies import (
     FairDMIdentifiers,
     FairDMRoles,
 )
-
-if TYPE_CHECKING:
-    from fairdm.core.dataset.models import Dataset
-
 
 # DataCite RelationType Vocabulary for Dataset-Literature Relationships
 # Source: DataCite Metadata Schema 4.4
@@ -216,7 +210,7 @@ class DatasetQuerySet(QuerySet):
             return self.with_private()
         return self.get_visible()
 
-    def with_private(self) -> QuerySet["Dataset"]:
+    def with_private(self) -> "DatasetQuerySet":
         """
         Include PRIVATE datasets in the queryset (explicit opt-in).
 
@@ -244,9 +238,9 @@ class DatasetQuerySet(QuerySet):
         """
         # Return a new DatasetQuerySet with all() to include private datasets
         # Using self.all() ensures we get the right queryset class with all methods
-        return DatasetQuerySet(self.model, using=self._db).all()
+        return DatasetQuerySet(self.model, using=self.db).all()
 
-    def get_visible(self) -> QuerySet["Dataset"]:
+    def get_visible(self) -> "DatasetQuerySet":
         """
         Return only datasets with PUBLIC visibility (legacy method).
 
@@ -266,7 +260,7 @@ class DatasetQuerySet(QuerySet):
         """
         return self.filter(visibility=Visibility.PUBLIC)
 
-    def with_related(self) -> QuerySet["Dataset"]:
+    def with_related(self) -> "DatasetQuerySet":
         """
         Prefetch project and contributors for optimized access (max 3 queries).
 
@@ -305,7 +299,7 @@ class DatasetQuerySet(QuerySet):
             "contributors",
         )
 
-    def with_contributors(self) -> QuerySet["Dataset"]:
+    def with_contributors(self) -> "DatasetQuerySet":
         """
         Prefetch only contributors for optimized access (max 2 queries).
 

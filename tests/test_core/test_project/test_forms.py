@@ -105,6 +105,15 @@ class TestProjectCreateForm:
 class TestProjectUpdateForm:
     """Unit tests for Project edit form."""
 
+    def test_image_field_renders_no_label_text(self):
+        """The image field is captioned by its widget, so it must render an empty
+        label. A boolean suppresses nothing and renders the word "False"."""
+        from fairdm.core.project.forms import ProjectForm
+
+        form = ProjectForm()
+
+        assert "False" not in form["image"].label_tag()
+
     def test_form_allows_concept_public_combination(self):
         """T057 — CONCEPT + PUBLIC is a valid combination; form must accept it."""
         from fairdm.contrib.contributors.models import Organization
