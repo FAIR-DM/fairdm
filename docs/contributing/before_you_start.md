@@ -91,6 +91,10 @@ Follow these steps to set up a local FairDM development environment:
 
    This creates a virtual environment and installs all project dependencies including development tools (pytest, mypy, ruff, etc.).
 
+   ```{note}
+   **GIS support is optional.** `fairdm.contrib.location.serializers` and `fairdm.contrib.location.api` depend on `djangorestframework-gis`, which pulls in GDAL and is not installed by default. If you're working on GIS-related code, install it with the `gis` extra: `poetry install --extras gis`. Without it, those two modules raise `ImproperlyConfigured` on import.
+   ```
+
 2. **Activate the Poetry shell** (optional but recommended):
 
    ```bash

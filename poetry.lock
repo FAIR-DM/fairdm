@@ -2391,6 +2391,24 @@ files = [
 django = ">=4.2"
 
 [[package]]
+name = "djangorestframework-gis"
+version = "1.2.1"
+description = "Geographic add-ons for Django Rest Framework"
+optional = true
+python-versions = "*"
+groups = ["main"]
+markers = "extra == \"gis\""
+files = [
+    {file = "djangorestframework_gis-1.2.1-py2.py3-none-any.whl", hash = "sha256:73acb51918b18e484407c0fff61aca11a1f5a216fa694bc4c0c734b7097ecc77"},
+    {file = "djangorestframework_gis-1.2.1.tar.gz", hash = "sha256:649ad0cb361dd85f2113b1796248eb2b198a01fa3d64c5e486106224c0ad51fd"},
+]
+
+[package.dependencies]
+django = ">=4.2"
+django-filter = ">=23.5,<26.0"
+djangorestframework = ">=3.12,<3.18"
+
+[[package]]
 name = "djangorestframework-guardian"
 version = "0.4.0"
 description = "django-guardian support for Django REST Framework"
@@ -7226,7 +7244,10 @@ enabler = ["pytest-enabler (>=3.4)"]
 test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more_itertools", "pytest (>=6,!=8.1.*)", "pytest-ignore-flaky"]
 type = ["pytest-mypy (>=1.0.1) ; platform_python_implementation != \"PyPy\""]
 
+[extras]
+gis = ["djangorestframework-gis"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "cb4e1453f97497667dbc19c5dfe1b566799f62f7621e8a1caf17b4f32b6e1abf"
+content-hash = "bb149463e8f9d7d4aefba63b94cb1fede0dc5000357902706286822130c432c0"
