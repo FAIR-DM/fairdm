@@ -1113,14 +1113,14 @@ with-social = ["django-allauth[socialaccount] (>=64.0.0)"]
 
 [[package]]
 name = "django"
-version = "5.2.16"
+version = "5.2.17"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev", "test"]
 files = [
-    {file = "django-5.2.16-py3-none-any.whl", hash = "sha256:04f354bf9d807a86ad1a8392fe3808d362358a8eafc322848e0e43e59b24371d"},
-    {file = "django-5.2.16.tar.gz", hash = "sha256:59ea02020c3136fce14bef0bbece21a10a4febef5eed1c51c22ae468efa22200"},
+    {file = "django-5.2.17-py3-none-any.whl", hash = "sha256:f04fb3b36ee119e1af4fa1d397d5fd6cf12700f49321e84d4f4c642c5b1973db"},
+    {file = "django-5.2.17.tar.gz", hash = "sha256:9d4d93be539a18ab80d058eb515900e10951e04c537c5a6b394fc49528d3251f"},
 ]
 
 [package.dependencies]
@@ -1213,14 +1213,14 @@ xlwt = "*"
 
 [[package]]
 name = "django-allauth"
-version = "65.18.0"
+version = "65.19.0"
 description = "Integrated set of Django applications addressing authentication, registration, account management as well as 3rd party (social) account authentication."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_allauth-65.18.0-py3-none-any.whl", hash = "sha256:e508640c83b94eaf1a9b4e9ac5332dc310dcdc83fca40d58a3f670e15bad1e84"},
-    {file = "django_allauth-65.18.0.tar.gz", hash = "sha256:afb82e2c545b9a5539370ad120468faaed84715e095a7b6e76972dacdc6376fe"},
+    {file = "django_allauth-65.19.0-py3-none-any.whl", hash = "sha256:e37efea604d0bf40a6b16edd5b00e1560414e2c3ed07c2431b6e5bb058e2a771"},
+    {file = "django_allauth-65.19.0.tar.gz", hash = "sha256:9a615fd7f48f31985e1e3d886f8983e12d09e189f8d00d7a9750b3d300b7b366"},
 ]
 
 [package.dependencies]
@@ -1738,14 +1738,14 @@ django = ">=5.1"
 
 [[package]]
 name = "django-guardian"
-version = "3.3.2"
+version = "3.3.3"
 description = "Per object permissions for Django"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_guardian-3.3.2-py3-none-any.whl", hash = "sha256:d5245d6be77a6c632f5b0c739221a44e6469dfa4925c75653ea49cec388e6765"},
-    {file = "django_guardian-3.3.2.tar.gz", hash = "sha256:f8edcf1576eb15d1593e23955693723ef351a7340667f9159e7bec786559c1ab"},
+    {file = "django_guardian-3.3.3-py3-none-any.whl", hash = "sha256:490c04c81564a15470a95cd39a5844c5898adefa4334eed6a70aa7bb41a0b7e3"},
+    {file = "django_guardian-3.3.3.tar.gz", hash = "sha256:fa9be851e5e7df4fccd0b0d7a171042cdbfaf0412a9aa54c56361d642eaccff1"},
 ]
 
 [package.dependencies]
@@ -1773,14 +1773,14 @@ test = ["pytest", "pytest-cov", "pytest-django"]
 
 [[package]]
 name = "django-htmx"
-version = "1.28.0"
+version = "1.29.0"
 description = "Extensions for using Django with htmx."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_htmx-1.28.0-py3-none-any.whl", hash = "sha256:e6911acccf3e7905d511c4fd6ab86fe06572205e80a0f32ca7aa94a115ae0619"},
-    {file = "django_htmx-1.28.0.tar.gz", hash = "sha256:699e229de0bbf19b3ee1a5d419702f5c154fa956e6921fec89faa7401b99e536"},
+    {file = "django_htmx-1.29.0-py3-none-any.whl", hash = "sha256:0ec5be1645ed71e6787bd75e0250624f00274ac3bb1730f07b6629a95688929b"},
+    {file = "django_htmx-1.29.0.tar.gz", hash = "sha256:337dfa35b8da13fd68bf968f2b9cc9a4144a4e71f06c204d7ff10f7343988102"},
 ]
 
 [package.dependencies]
@@ -2080,14 +2080,14 @@ testing = ["pytest (>=6.1)", "pytest-cov (>=2.1)", "pytest-django (>=0.4)", "tox
 
 [[package]]
 name = "django-polymorphic"
-version = "4.11.6"
+version = "4.11.7"
 description = "Seamless polymorphic inheritance for Django models."
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "django_polymorphic-4.11.6-py3-none-any.whl", hash = "sha256:240e1edf7d1bb17a50794b1a7954843ee264e0289e654a0be029655d0b23d7f2"},
-    {file = "django_polymorphic-4.11.6.tar.gz", hash = "sha256:993240e219d3f6e90548d4adedf1e702a56f79a5880ac4f44f0fbf53bda04897"},
+    {file = "django_polymorphic-4.11.7-py3-none-any.whl", hash = "sha256:23ee903f79b9c4ebd36fee952f955d80c3d51f3eee9fa23639c4bafe3be616a2"},
+    {file = "django_polymorphic-4.11.7.tar.gz", hash = "sha256:9d616e9e2870efd62a5ee387294830c80935a31786e50da137bd76668dd5437d"},
 ]
 
 [package.dependencies]
@@ -2377,14 +2377,14 @@ django = ">=4.2"
 
 [[package]]
 name = "djangorestframework"
-version = "3.17.1"
+version = "3.17.2"
 description = "Web APIs for Django, made easy."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "djangorestframework-3.17.1-py3-none-any.whl", hash = "sha256:c3c74dd3e83a5a3efc37b3c18d92bd6f86a6791c7b7d4dff62bb068500e76457"},
-    {file = "djangorestframework-3.17.1.tar.gz", hash = "sha256:a6def5f447fe78ff853bff1d47a3c59bf38f5434b031780b351b0c73a62db1a5"},
+    {file = "djangorestframework-3.17.2-py3-none-any.whl", hash = "sha256:cb0546a7415d5b46c04e0f4fe0a54b2109f4fdd5e83ca773c8c6183a6493d042"},
+    {file = "djangorestframework-3.17.2.tar.gz", hash = "sha256:89ed713b6dc83e1539f214b7d10808ae19bb8511004beba886225da6d5c9dafa"},
 ]
 
 [package.dependencies]
@@ -6414,14 +6414,14 @@ full = ["httpx (>=0.27.0,<0.29.0)", "httpx2 (>=2.0.0)", "itsdangerous", "jinja2"
 
 [[package]]
 name = "tablib"
-version = "3.9.0"
+version = "3.10.0"
 description = "Format agnostic tabular data library (XLS, JSON, YAML, CSV, etc.)"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "tablib-3.9.0-py3-none-any.whl", hash = "sha256:eda17cd0d4dda614efc0e710227654c60ddbeb1ca92cdcfc5c3bd1fc5f5a6e4a"},
-    {file = "tablib-3.9.0.tar.gz", hash = "sha256:1b6abd8edb0f35601e04c6161d79660fdcde4abb4a54f66cc9f9054bd55d5fe2"},
+    {file = "tablib-3.10.0-py3-none-any.whl", hash = "sha256:5721bf3a52d491f8f843628a3a3200db164f6ad9e92fb6eaa64dc3f945f30ad9"},
+    {file = "tablib-3.10.0.tar.gz", hash = "sha256:781cfa9a42de8f33c52aff857fd0a04e483de4fd1c53eaaa9a6aeac62bad11de"},
 ]
 
 [package.dependencies]
@@ -7196,4 +7196,4 @@ gis = ["djangorestframework-gis"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "17f9252b91d2a990e3c83a85b0b430ee4a56f52aa3fa5f8f029eb99d392289f4"
+content-hash = "35c401c7b6e64520af23e9ed64c134b6c9bed89b902b3959302431b0584d0ad7"
