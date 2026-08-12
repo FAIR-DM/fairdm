@@ -10,12 +10,11 @@ This guide explains how to document features in FairDM, including where document
 
 When you implement a new feature:
 
-1. **Copy the checklist template** from `.specify/templates/feature-docs-checklist.md` to your feature directory
-2. **Identify relevant sections** based on your feature type (models, UI, config, etc.)
-3. **Update documentation** in the appropriate guide (developer/admin/contributor/contributing)
-4. **Add cross-references** to your spec and constitution principles
-5. **Validate locally** with `poetry run sphinx-build -W docs docs/_build`
-6. **Complete the checklist** and mark your feature documentation as done
+1. **Identify relevant sections** based on your feature type (models, UI, config, etc.)
+2. **Update documentation** in the appropriate guide (developer/admin/contributor/contributing)
+3. **Add cross-references** to your spec and constitution principles
+4. **Validate locally** with `poetry run sphinx-build -W docs docs/_build`
+5. **Note what you updated** in your pull request description, so reviewers can confirm coverage
 
 ---
 
@@ -66,28 +65,11 @@ Constitution principle anchors:
 
 ---
 
-## Feature Documentation Checklist
-
-Use the checklist template to ensure complete documentation coverage:
-
-**Template**: `.specify/templates/feature-docs-checklist.md`
-
-The checklist helps you:
-
-- Identify which documentation sections need updates
-- Track progress as you document
-- Verify all required content is complete
-- Link to updated documentation pages
-
-**Example completed checklist**: See [example spec structure](../../specs/003-core-projects/spec.md)
-
----
-
 ## Validation
 
 Before submitting documentation:
 
-```powershell
+```bash
 # Build docs and check for errors
 poetry run sphinx-build -W docs docs/_build
 
@@ -95,12 +77,7 @@ poetry run sphinx-build -W docs docs/_build
 poetry run sphinx-build -b linkcheck docs docs/_build
 ```
 
-CI automatically validates:
-
-- ✅ Documentation builds without errors or warnings
-- ✅ Internal links resolve correctly (hard block)
-- ⚠️ External links checked (warnings only)
-- ✅ Feature checklists are complete
+There's no CI job that runs these checks yet, so run them yourself before opening a pull request.
 
 ---
 
@@ -134,6 +111,5 @@ Update:
 ## Related Documentation
 
 - [Documentation Standards](../contributing/documentation-standards.md) - Full IA guide with decision criteria
-- [Feature Documentation Checklist](../../.specify/templates/feature-docs-checklist.md) - Template to copy
 - [Constitution](../../memory/constitution.md) - FairDM governance principles
 - [MyST Syntax](https://myst-parser.readthedocs.io/) - Markdown extensions we use

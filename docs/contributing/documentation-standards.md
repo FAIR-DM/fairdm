@@ -88,9 +88,9 @@ Choose this section if your documentation answers:
 
 ## Special Documentation Locations
 
-### Governance Materials (`.specify/memory/`)
+### Governance Materials (`memory/`)
 
-The **constitution** and core governance documents reside in `.specify/memory/`:
+The **constitution** and core governance documents reside in `memory/`:
 
 - `memory/constitution.md` - Core principles and governance rules
 
@@ -100,7 +100,7 @@ The **constitution** and core governance documents reside in `.specify/memory/`:
 
 ### Feature Specifications (`specs/`)
 
-Feature specifications follow the **Speckit** structure in `specs/###-feature-name/`:
+Feature specifications live in `specs/###-feature-name/`, using this structure:
 
 - `specs/###-feature-name/spec.md` - Requirements and user stories
 - `specs/###-feature-name/plan.md` - Implementation plan
@@ -214,19 +214,7 @@ This configuration-first approach follows the principle of
 
 ## Feature Documentation Checklist
 
-When implementing a new feature, use the **feature documentation checklist** to ensure complete documentation coverage.
-
-**Template location**: `.specify/templates/feature-docs-checklist.md`
-
-**Process**:
-
-1. Copy template to `specs/###-feature-name/checklists/documentation.md`
-2. Mark relevant sections for your feature type
-3. Complete documentation for each marked section
-4. Link to updated documentation pages
-5. Validate checklist completion before marking feature done
-
-**See**: [Feature Documentation Checklist Template](../../.specify/templates/feature-docs-checklist.md)
+When implementing a new feature, confirm you've covered every section it touches before opening a pull request. There's no template or automated checklist for this step. Work through the questions in [Decision Criteria: Where Does My Documentation Go?](#decision-criteria-where-does-my-documentation-go) for each of the four sections, and note in your PR description which ones you updated.
 
 ---
 
@@ -257,51 +245,17 @@ All FairDM documentation MUST meet these requirements:
 
 Before submitting documentation:
 
-```powershell
+```bash
 # Build documentation and check for errors
 poetry run sphinx-build -W docs docs/_build
 
 # Run link validation
 poetry run sphinx-build -b linkcheck docs docs/_build
-
-# Run checklist validation
-poetry run python .specify/scripts/powershell/validate-checklists.py
 ```
-
-### Conformance Audit
-
-Periodically run the conformance audit to check for documentation quality issues:
-
-```powershell
-# Text output to console
-.\.specify\scripts\powershell\audit-docs.ps1
-
-# Generate JSON report
-.\.specify\scripts\powershell\audit-docs.ps1 -OutputFormat Json -OutputFile audit-report.json
-
-# Generate HTML report
-.\.specify\scripts\powershell\audit-docs.ps1 -OutputFormat Html -OutputFile audit-report.html
-```
-
-The audit checks for:
-
-- **Missing spec cross-references**: Feature-related documentation should link to specifications
-- **Misplaced files**: Content in wrong directory (e.g., admin content not in portal-administration/)
-- **Missing alt text**: Images without descriptive alt text
-- **Heading hierarchy violations**: Heading levels that skip (e.g., H1 → H3)
-
-Use the audit report to prioritize documentation improvements and track conformance over time.
 
 ### CI Validation
 
-All pull requests are validated automatically:
-
-- ✅ **Sphinx build check**: Documentation must build without errors or warnings
-- ✅ **Internal link check**: All internal links must resolve (hard block)
-- ⚠️ **External link check**: External links checked, failures are warnings
-- ✅ **Checklist validation**: Feature checklists must be complete
-
-**CI Status**: ![Docs Validation](https://github.com/FAIR-DM/fairdm/workflows/docs-validation/badge.svg)
+There is currently no CI job that runs the documentation build or link check on pull requests. Run the commands above locally before submitting. See [Validation Rules](documentation/validation-rules.md) for the full set of checks and how to interpret their output.
 
 ---
 
@@ -313,7 +267,7 @@ All pull requests are validated automatically:
 2. **During development**: Update relevant documentation pages
 3. **Complete checklist**: Use feature documentation checklist
 4. **Local validation**: Run Sphinx build and linkcheck locally
-5. **Submit PR**: Documentation validation runs automatically in CI
+5. **Submit PR**: Include the build and link check output if either found issues you couldn't resolve
 
 ### For Portal Developers
 
@@ -402,17 +356,6 @@ This is a warning.
 - If permanent: update or remove link
 - External failures don't block PRs (warnings only)
 
-### "Checklist validation failed"
-
-**Cause**: Feature documentation checklist is incomplete
-
-**Solution**:
-
-- Open `specs/###-feature-name/checklists/documentation.md`
-- Complete all relevant sections
-- Mark items with `[x]`
-- Update status to "completed"
-
 ---
 
 ## FAQ
@@ -421,7 +364,7 @@ This is a warning.
 A: Not every change requires documentation. Bug fixes and internal refactoring usually don't need docs updates. New features and configuration changes always require documentation.
 
 **Q: Which section should I update for a feature that affects multiple audiences?**
-A: Update all relevant sections. Use the feature documentation checklist to identify which sections need updates. A new model might need portal-development (configuration), portal-administration (permissions), and user-guide (usage).
+A: Update all relevant sections, and note which ones you touched in your PR description. A new model might need portal-development (configuration), portal-administration (permissions), and user-guide (usage).
 
 **Q: How do I mark experimental features?**
 A: Add an experimental notice at the top of the page and note that the API may change:
@@ -432,14 +375,13 @@ This is an experimental feature. The API may change in future versions without a
 :::
 ```
 
-**Q: Can I skip validation for urgent fixes?**
-A: No. Documentation validation is enforced with no bypass mechanism. This ensures documentation quality and prevents broken links from reaching users.
+**Q: Can I skip the build and link check for urgent fixes?**
+A: There's no automated gate, so nothing stops you. But a broken build or a broken link still reaches readers. Run the checks anyway.
 
 ---
 
 ## Related Documentation
 
-- [Feature Documentation Checklist Template](../../.specify/templates/feature-docs-checklist.md)
 - [FairDM Constitution](../../memory/constitution.md)
 - [MyST Parser Documentation](https://myst-parser.readthedocs.io/)
 - [Sphinx Documentation](https://www.sphinx-doc.org/)

@@ -20,15 +20,6 @@ Learn where documentation lives and how to determine the correct location for ne
 [Read the IA Guide →](information-architecture)
 :::
 
-:::{grid-item-card} {octicon}`checklist;1.5em` Feature Documentation Checklist
-:link: feature-checklist-workflow
-:link-type: doc
-
-Track documentation updates for new features with a structured workflow
-+++
-[Learn the Workflow →](feature-checklist-workflow)
-:::
-
 :::{grid-item-card} {octicon}`link;1.5em` Cross-Reference Patterns
 :link: cross-references
 :link-type: doc
@@ -52,7 +43,6 @@ Ensure your documentation builds correctly and meets quality standards
 ## Quick Links
 
 - **Where do I add documentation?** → [Information Architecture](information-architecture)
-- **How do I track documentation updates?** → [Feature Checklist Workflow](feature-checklist-workflow)
 - **How do I add cross-references?** → [Cross-Reference Patterns](cross-references)
 - **How do I validate documentation?** → [Validation Rules](validation-rules)
 - **What are the writing standards?** → Coming soon
@@ -123,7 +113,6 @@ FairDM documentation follows these core principles from our [Constitution](memor
 :maxdepth: 2
 
 information-architecture
-feature-checklist-workflow
 cross-references
 validation-rules
 ```

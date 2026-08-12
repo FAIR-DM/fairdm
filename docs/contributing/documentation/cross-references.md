@@ -85,11 +85,8 @@ All specification links are validated during documentation builds:
 Run validation locally:
 
 ```bash
-# Check all links including spec references
+# Check all links, including spec references
 poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
-
-# Or use the dedicated script
-poetry run python .github/scripts/check-internal-links.py
 ```
 
 ## Constitution Cross-References
@@ -286,12 +283,11 @@ All feature development follows our [Test-First Quality](../../memory/constituti
 principle:
 
 1. Write specification in `specs/###-feature-name/spec.md`
-2. Create feature checklist (see [Feature Checklist Workflow](../documentation/feature-checklist-workflow.md))
-3. Write tests before implementation
-4. Implement feature
-5. Document feature following established documentation conventions
+2. Write tests before implementation
+3. Implement feature
+4. Document feature following established documentation conventions
 
-Each feature must have a completed checklist that links back to its specification.
+Each feature's documentation must link back to its specification.
 ```
 
 **Why**: Constitution reference establishes the philosophical foundation. Spec reference provides implementation details.
@@ -338,39 +334,6 @@ principle by requiring too much boilerplate code...
 
 **Why**: Spec reference provides new implementation details. Constitution reference justifies the breaking change. Internal doc link guides migration.
 
-## Integration with Feature Workflow
-
-Cross-references are mandatory in the feature checklist workflow:
-
-### Step 1: Create Feature Checklist
-
-Every feature checklist must include a spec reference:
-
-```markdown
-# Feature Documentation Checklist
-
-**Feature**: Your Feature Name
-**Spec**: [Your Feature](../spec.md)
-**Author**: Your Name
-**Date**: 2026-01-07
-```
-
-### Step 4: Add Content Requirements
-
-The feature checklist workflow (Step 4) requires adding cross-references:
-
-```markdown
-### Content Requirements
-
-- [x] Feature overview
-- [x] Usage examples
-- [x] Configuration options
-- [ ] Migration guide (if applicable)
-- [x] **Cross-references to spec and related docs** ← Mandatory
-```
-
-See [Feature Checklist Workflow](./feature-checklist-workflow.md#step-4-add-content-requirements) for details.
-
 ## Validation Commands
 
 Verify all cross-references work before committing:
@@ -385,26 +348,16 @@ poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
 cat docs/_build/linkcheck/output.txt | grep -E "(broken|redirected)"
 ```
 
-### Internal Links Only
+### Running the Check Locally
 
-```bash
-# Fast internal link check (specs and constitution)
-poetry run python .github/scripts/check-internal-links.py
+There's no CI job that runs this check automatically. Run the link check yourself before opening a pull request.
 
-# Returns exit code 1 if any internal links are broken
-```
-
-### CI/CD Integration
-
-The documentation validation workflow automatically checks all cross-references on every pull request. Internal link failures block PR merge.
-
-See [Validation Rules](./validation-rules.md) for complete CI/CD integration details.
+See [Validation Rules](./validation-rules.md) for more on what the build and link checks cover.
 
 ## Related Documentation
 
-- [Feature Checklist Workflow](./feature-checklist-workflow.md) - When and where to add cross-references
 - [Information Architecture](./information-architecture.md) - Understanding documentation structure
-- [Validation Rules](./validation-rules.md) - Automated quality checks for cross-references
+- [Validation Rules](./validation-rules.md) - Quality checks for cross-references
 
 ## Questions & Troubleshooting
 
