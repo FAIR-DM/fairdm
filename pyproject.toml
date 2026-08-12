@@ -97,9 +97,18 @@ dependencies = [
     "pint (>=0.24,<1.0)",
     "django-partial-date (>=1.3,<2.0)",
     "requests (>=2.32,<3.0)",
-    "numpy (>=2.4.6,<3.0.0)",
     "django-orbit[mcp] (>=0.12.0,<0.13.0)",
 ]
+
+[project.optional-dependencies]
+# GIS support (fairdm/contrib/location/serializers.py, api.py) is dormant:
+# django.contrib.gis is commented out of INSTALLED_APPS, and
+# djangorestframework-gis pulls in GDAL, a heavy system library. Declaring it
+# as a hard dependency would tax every portal install, so it lives behind the
+# `gis` extra instead: `pip install fairdm[gis]`. The two modules that need it
+# guard their imports and raise ImproperlyConfigured naming the extra when it
+# is absent.
+gis = ["djangorestframework-gis (>=1.2.1,<2.0.0)"]
 
 [project.urls]
 Homepage = "https://www.fairdm.com"
@@ -402,19 +411,13 @@ known_first_party = ["fairdm", "fairdm_demo"]
 # Django packages whose distribution name differs from the name they are
 # imported under. Without this, deptry reads every one of them as declared but
 # never used.
-package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle", djangorestframework-gis = "rest_framework_gis" }
 
 [tool.deptry.per_rule_ignores]
 # DEP002 = declared but never imported. Django wires most of its moving parts
 # through settings strings (INSTALLED_APPS, MIDDLEWARE, storage and cache
 # backends) and deploys others as processes, so a static import scan cannot see
-# them. Everything below is genuinely used; none of it is dead weight, with one
-# noted exception.
-#
-# numpy is the exception: nothing in this package imports it, and django-pint
-# does not require it — it only enables pint's optional array support. Retained
-# pending a decision on whether the measurement stack needs that support;
-# dropping it is a separate, testable change.
+# them. Everything below is genuinely used and none of it is dead weight.
 DEP002 = [
     "crispy-tailwind",
     "dj-rest-auth",
@@ -439,19 +442,12 @@ DEP002 = [
     "drf-orjson-renderer",
     "flower",
     "gunicorn",
-    "numpy",
     "psycopg2-binary",
     "redis",
     "tablib",
     "uncertainties",
     "whitenoise",
 ]
-# DEP001 = imported but not declared anywhere. fairdm/contrib/location/
-# (serializers.py, api.py) imports rest_framework_gis, which is not installed,
-# so those modules cannot currently be imported. Declaring the package would
-# pull in GDAL and turn optional GIS support into a hard requirement, so the
-# import is left recorded here as a known defect rather than silently fixed.
-DEP001 = ["rest_framework_gis"]
 
 [tool.fairdm.docs]
 port = 8010                   # Live server port (default: 5000)

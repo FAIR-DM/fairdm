@@ -26,7 +26,6 @@ The top-level structure defined here is **immutable**. Future features MUST use 
 
 - **Constitution & Governance**: `memory/constitution.md` (immutable)
 - **Feature Specifications**: `specs/###-feature-name/` (immutable)
-- **Templates**: `.specify/templates/`
 - **Overview Content**: `docs/overview/` (project goals, background, data model)
 
 ---
@@ -147,7 +146,7 @@ graph TD
     Q1 -->|Portal administrators| AdminGuide[docs/portal-administration/]
     Q1 -->|Portal developers| DevGuide[docs/portal-development/]
     Q1 -->|Framework contributors| Contributing[docs/contributing/]
-    Q1 -->|Governance/principles| Constitution[.specify/memory/]
+    Q1 -->|Governance/principles| Constitution[memory/]
     Q1 -->|Feature specification| Specs[specs/###-feature-name/]
 
     UserGuide --> Q2{Type of content?}
@@ -197,7 +196,7 @@ graph TD
 - **Specification** → `specs/###-feature-name/spec.md`
 
 ```{note}
-**Feature Documentation Checklists**: When implementing a new feature, create a documentation checklist at `specs/###-feature-name/checklists/documentation.md` to track required documentation updates. See the [Feature Checklist Workflow](./feature-checklist-workflow.md) guide for details.
+**Feature documentation**: When implementing a new feature, note in your pull request description which of the four sections above you updated. There's no automated checklist for this. A short list in the PR description is enough for reviewers to confirm coverage.
 ```
 
 ---
@@ -488,14 +487,12 @@ When you've added or updated documentation, ensure it's properly integrated:
 
 1. **Build check**: `poetry run sphinx-build -W -b html docs docs/_build/html`
 2. **Link check**: `poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck`
-3. **Validate internal links**: `poetry run python .github/scripts/check-internal-links.py`
 
 ---
 
 ## Related Documentation
 
-- Feature Documentation Checklist Workflow (Coming in Phase 4) — How to track documentation updates for new features
-- Documentation Standards (Coming soon) — Writing style, formatting, and quality guidelines
+- [Documentation Standards](../documentation-standards.md) — Writing style, formatting, and quality guidelines
 - [Constitution: Documentation Principles](memory/constitution.md#documentation-principles) — Governance principles for documentation
 
 ---

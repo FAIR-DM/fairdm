@@ -1,4 +1,12 @@
-from rest_framework_gis import filters
+from django.core.exceptions import ImproperlyConfigured
+
+try:
+    from rest_framework_gis import filters
+except ModuleNotFoundError as exc:
+    raise ImproperlyConfigured(
+        "fairdm.contrib.location.gis_utils requires djangorestframework-gis, "
+        "which is not installed. Install the 'gis' extra: pip install fairdm[gis]"
+    ) from exc
 
 
 class DistanceToPointOrderingFilter(filters.DistanceToPointOrderingFilter):

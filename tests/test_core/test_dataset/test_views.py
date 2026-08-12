@@ -355,19 +355,14 @@ class TestDatasetViews:
         assert response.status_code == 200
 
     def test_dataset_detail_view_accessible(self, client):
-        """Test that dataset detail view serves the requested dataset.
-
-        This asserts on the context rather than the rendered body. Unlike
-        ProjectDetailView, DatasetDetailView subclasses plain DetailView rather
-        than FairDMDetailView, so no `page` title context is built, and
-        dataset_detail.html never renders `object.name` itself. The name is
-        therefore absent from the response even when the view works correctly.
-        """
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        """Test that dataset detail view serves the requested dataset and
+        renders its name in the page body (FAIR-DM/fairdm#113)."""
+        dataset = DatasetFactory(name="Reef Survey Dataset", visibility=Visibility.PUBLIC)
         response = client.get(reverse("dataset-detail", kwargs={"uuid": dataset.uuid}))
 
         assert response.status_code == 200
         assert response.context["dataset"] == dataset
+        assert dataset.name.encode() in response.content
 
 
 @pytest.mark.django_db

@@ -1,9 +1,17 @@
 from collections import OrderedDict
 
+from django.core.exceptions import ImproperlyConfigured
 from rest_framework import serializers
 from rest_framework.fields import Field as Field
 from rest_framework.serializers import LIST_SERIALIZER_KWARGS, ListSerializer
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
+
+try:
+    from rest_framework_gis.serializers import GeoFeatureModelSerializer
+except ModuleNotFoundError as exc:
+    raise ImproperlyConfigured(
+        "fairdm.contrib.location.serializers requires djangorestframework-gis, "
+        "which is not installed. Install the 'gis' extra: pip install fairdm[gis]"
+    ) from exc
 
 from .models import Point
 

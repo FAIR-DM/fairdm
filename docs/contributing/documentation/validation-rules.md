@@ -7,19 +7,18 @@
 
 ## Overview
 
-FairDM enforces automated validation of all documentation to ensure quality, consistency, and correctness. This guide documents all validation rules, how to run them locally, and how to fix common failures.
+FairDM documentation is validated by building it with Sphinx and checking its links. This guide documents both checks, how to run them locally, and how to fix common failures.
 
 ```{important}
-**All validation checks must pass before documentation can be merged.** The CI/CD pipeline automatically runs these validations on every pull request affecting documentation files.
+There is currently no CI job that runs these checks automatically on pull requests. Run them locally before you submit documentation changes.
 ```
 
 ## Validation Categories
 
-Documentation validation consists of three main categories:
+Documentation validation consists of two checks:
 
 1. **Build Validation** — Ensures documentation compiles without errors or warnings
 2. **Link Validation** — Verifies all cross-references and links resolve correctly
-3. **Checklist Validation** — Confirms feature documentation checklists are complete and well-formed
 
 ---
 
@@ -33,7 +32,7 @@ Build validation ensures that all documentation can be successfully compiled by 
 
 #### Rule: Build Must Complete Without Errors
 
-**Severity**: ❌ Error (blocking)
+**Severity**: Error (blocking)
 
 **Command**:
 
@@ -105,7 +104,7 @@ Link validation ensures all cross-references, specification links, constitution 
 
 #### Rule: All Internal Links Must Resolve
 
-**Severity**: ❌ Error (blocking)
+**Severity**: Error (blocking)
 
 **Command**:
 
@@ -151,7 +150,7 @@ docs/contributing/documentation/cross-references.md:45: [broken] ../../specs/042
 
 #### Rule: External Links Checked (Warning Only)
 
-**Severity**: ⚠️ Warning (non-blocking)
+**Severity**: Warning (non-blocking)
 
 **What it checks**:
 
@@ -190,242 +189,11 @@ docs/overview/background.md:15: [broken] https://example.com/old-page - 404 Clie
 
 ---
 
-## Checklist Validation
+## Continuous Integration
 
-### Purpose
+There is no CI workflow that builds or link-checks the documentation on pull requests today. A previous workflow (`docs-validation.yml`) was removed because it had been failing on an unrelated Sphinx theme error for months and never published anything. ReadTheDocs builds the documentation independently of this repository's CI.
 
-Checklist validation ensures that feature documentation checklists exist, are well-formed, and contain all required sections.
-
-### Rules
-
-#### Rule: Feature Specs Must Have Checklists
-
-**Severity**: ❌ Error (blocking)
-
-**Command**:
-
-```bash
-poetry run pytest tests/integration/docs/test_documentation_validation.py::test_checklist_exists -v
-```
-
-**What it checks**:
-
-- Every `specs/###-feature-name/` directory has at least one checklist
-- Checklist files are in `specs/###-feature-name/checklists/` directory
-- Checklist files have `.md` extension
-
-**Validation criteria**:
-
-- At least one `*.md` file exists in `specs/###-feature-name/checklists/`
-
-**Exception**: `specs/000-*/` directories (spec 000 reserved for meta-specs)
-
-**Example failure**:
-
-```
-The following specs are missing checklists:
-  042-plugin-system
-```
-
-**How to fix**:
-
-1. Create the checklists directory:
-
-   ```bash
-   mkdir -p specs/042-plugin-system/checklists
-   ```
-
-2. Copy the template:
-
-   ```bash
-   cp .specify/templates/feature-docs-checklist.md specs/042-plugin-system/checklists/documentation.md
-   ```
-
-3. Fill in the metadata and sections
-
-#### Rule: Checklists Must Have Required Structure
-
-**Severity**: ❌ Error (blocking)
-
-**Command**:
-
-```bash
-poetry run pytest tests/integration/docs/test_documentation_validation.py::test_checklist_structure -v
-```
-
-**What it checks**:
-
-- Checklist has metadata section with `**Feature**:`, `**Spec**:`, `**Author**:`, `**Date**:`
-- Checklist has `## Documentation Updates` section
-- Checklist has `### Section Checklist` section
-- Checklist has `### Content Requirements` section
-
-**Validation criteria**:
-
-- All required metadata fields present
-- All required section headings present
-- Sections formatted correctly (Markdown heading syntax)
-
-**Example failure**:
-
-```
-The following checklists have invalid structure:
-  - 042-plugin-system/documentation.md: missing metadata (Feature, Spec, Author, Date)
-```
-
-**How to fix**:
-
-1. Add missing metadata at the top of the checklist:
-
-   ```markdown
-   # Feature Documentation Checklist
-
-   **Feature**: Plugin System
-   **Spec**: [Plugin System](../spec.md)
-   **Author**: Your Name
-   **Date Created**: 2026-01-07
-   **Status**: in-progress
-   ```
-
-2. Add missing sections:
-
-   ```markdown
-   ## Documentation Updates
-
-   ### Section Checklist
-
-   ### Content Requirements
-   ```
-
-#### Rule: Spec References Must Resolve
-
-**Severity**: ❌ Error (blocking)
-
-**Command**:
-
-```bash
-poetry run pytest tests/integration/docs/test_documentation_validation.py::test_spec_reference_resolves -v
-```
-
-**What it checks**:
-
-- Checklist's `**Spec**:` field contains link to `../spec.md` or `./spec.md`
-- Target `spec.md` file exists in parent directory
-
-**Validation criteria**:
-
-- `../spec.md` or `./spec.md` appears in content
-- File `specs/###-feature-name/spec.md` exists
-
-**Example failure**:
-
-```
-The following checklists have broken spec references:
-  - 042-plugin-system/documentation.md: Spec field present but no link to spec.md
-```
-
-**How to fix**:
-
-1. Ensure `**Spec**:` field has proper link:
-
-   ```markdown
-   **Spec**: [Plugin System](../spec.md)
-   ```
-
-2. Verify spec.md exists:
-
-   ```bash
-   ls specs/042-plugin-system/spec.md
-   ```
-
-#### Rule: At Least One Section Must Be Marked
-
-**Severity**: ❌ Error (blocking)
-
-**Command**:
-
-```bash
-poetry run pytest tests/integration/docs/test_documentation_validation.py::test_checklist_section_checkbox_marked -v
-```
-
-**What it checks**:
-
-- At least one of the four documentation sections is checked: `[x]` or `[X]`
-- Sections: user-guide/, portal-administration/, portal-development/, contributing/
-
-**Validation criteria**:
-
-- One or more section checkboxes marked as complete
-
-**Example failure**:
-
-```
-The following checklists have no documentation sections marked:
-  - 042-plugin-system/documentation.md
-
-At least one of user-guide, portal-administration, portal-development, or contributing should be checked.
-```
-
-**How to fix**:
-
-1. Mark applicable sections in the Section Checklist:
-
-   ```markdown
-   ### Section Checklist
-
-   - [ ] **user-guide/** - Not applicable
-   - [ ] **portal-administration/** - Not applicable
-   - [x] **portal-development/** - Developers need API docs
-     - [x] Plugin API documented
-   - [x] **contributing/** - Framework contributors need guidelines
-     - [x] Plugin development workflow documented
-   ```
-
----
-
-## CI/CD Integration
-
-### Automated Validation Workflow
-
-All validation checks run automatically on every pull request that modifies documentation files.
-
-**Workflow file**: `.github/workflows/docs-validation.yml`
-
-**Trigger paths**:
-
-- `docs/**` — Any documentation file
-- `specs/**` — Any specification file
-- `**.md` — Any Markdown file anywhere
-- `.specify/templates/feature-docs-checklist.md` — Template changes
-
-**Workflow steps**:
-
-1. **Build documentation** (warnings as errors)
-   - Runs: `sphinx-build -W -b html docs docs/_build/html`
-   - Blocks PR if: Build fails or warnings present
-
-2. **Check links** (internal hard fail, external warn)
-   - Runs: `sphinx-build -b linkcheck docs docs/_build/linkcheck`
-   - Blocks PR if: Internal links broken
-   - Warns if: External links broken (non-blocking)
-
-3. **Validate checklists**
-   - Runs: `pytest tests/integration/docs/test_documentation_validation.py`
-   - Blocks PR if: Any test fails
-
-4. **Generate validation report**
-   - Runs: `python .github/scripts/generate-validation-report.py`
-   - Non-blocking (informational only)
-
-### PR Merge Requirements
-
-For a PR to be mergeable, all of the following must pass:
-
-- ✅ Build validation: `validate-docs / Build documentation` — PASS
-- ✅ Link validation: `validate-docs / Check internal links` — PASS
-- ✅ Checklist validation: `validate-docs / Validate feature documentation checklists` — PASS
-
-External link warnings do **not** block merge but should be reviewed and fixed when reasonable.
+Until a replacement workflow exists, treat the commands below as a manual pre-submission step rather than a merge gate.
 
 ---
 
@@ -433,7 +201,7 @@ External link warnings do **not** block merge but should be reviewed and fixed w
 
 ### Before Committing
 
-Run all validation checks locally before pushing to catch issues early:
+Run both checks locally before pushing, to catch issues early:
 
 ```bash
 # 1. Build documentation
@@ -441,35 +209,23 @@ poetry run sphinx-build -W -b html docs docs/_build/html
 
 # 2. Check links
 poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
-
-# 3. Check internal links specifically
-poetry run python .github/scripts/check-internal-links.py
-
-# 4. Validate checklists
-poetry run pytest tests/integration/docs/test_documentation_validation.py -v
-
-# 5. Generate validation report (optional)
-poetry run python .github/scripts/generate-validation-report.py
 ```
 
 ### Quick Validation Script
 
-Create a local script `validate-docs.sh` (or `.ps1` for Windows):
+Create a local script `validate-docs.sh`:
 
 ```bash
 #!/bin/bash
 set -e
 
-echo "🔨 Building documentation..."
+echo "Building documentation..."
 poetry run sphinx-build -W -b html docs docs/_build/html
 
-echo "🔗 Checking links..."
+echo "Checking links..."
 poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
 
-echo "✅ Validating checklists..."
-poetry run pytest tests/integration/docs/test_documentation_validation.py -v
-
-echo "✨ All validation checks passed!"
+echo "All validation checks passed."
 ```
 
 Make it executable and run:
@@ -534,46 +290,6 @@ chmod +x validate-docs.sh
 - Update or remove link if resource no longer exists
 - Ignore if transient (CI will retry)
 
-### Checklist Failures
-
-**Issue**: Spec missing checklists
-
-**Solution**:
-
-```bash
-mkdir -p specs/###-feature-name/checklists
-cp .specify/templates/feature-docs-checklist.md specs/###-feature-name/checklists/documentation.md
-# Fill in metadata and sections
-```
-
-**Issue**: Invalid checklist structure
-
-**Solution**:
-
-1. Verify metadata block present:
-
-   ```markdown
-   **Feature**: Name
-   **Spec**: [Link](../spec.md)
-   **Author**: Name
-   **Date Created**: YYYY-MM-DD
-   ```
-
-2. Verify required sections present:
-   - `## Documentation Updates`
-   - `### Section Checklist`
-   - `### Content Requirements`
-
-**Issue**: No sections marked in checklist
-
-**Solution**:
-
-1. Mark at least one applicable section:
-
-   ```markdown
-   - [x] **portal-development/** - Developers need this
-   ```
-
 ---
 
 ## Validation Configuration
@@ -595,22 +311,11 @@ linkcheck_timeout = 10             # Seconds per link
 linkcheck_workers = 5              # Parallel workers
 ```
 
-### Pytest Configuration
-
-Test configuration in `tests/integration/docs/test_documentation_validation.py`:
-
-- **test_checklist_exists**: Verifies checklists exist
-- **test_checklist_structure**: Validates required sections
-- **test_spec_reference_resolves**: Checks spec links
-- **test_checklist_has_checkboxes**: Ensures checkboxes present
-- **test_checklist_section_checkbox_marked**: Verifies sections marked
-
 ---
 
 ## Related Documentation
 
 - [Information Architecture](./information-architecture.md) — Where documentation belongs
-- [Feature Checklist Workflow](./feature-checklist-workflow.md) — How to create and complete checklists
 - [Cross-Reference Patterns](./cross-references.md) — Linking to specs and constitution
 
 ---
@@ -619,19 +324,17 @@ Test configuration in `tests/integration/docs/test_documentation_validation.py`:
 
 FairDM's documentation validation ensures:
 
-- ✅ **Quality**: Documentation builds without errors or warnings
-- ✅ **Correctness**: All links and cross-references resolve properly
-- ✅ **Completeness**: Feature documentation checklists are present and well-formed
-- ✅ **Traceability**: Specifications and constitution references are valid
+- **Quality**: Documentation builds without errors or warnings
+- **Correctness**: All links and cross-references resolve properly
+- **Traceability**: Specifications and constitution references are valid
 
-All validation checks must pass before documentation can be merged. Run validation locally before pushing to catch issues early and speed up the review process.
+Run both checks locally before opening a pull request.
 
 **Quick validation command**:
 
 ```bash
 poetry run sphinx-build -W -b html docs docs/_build/html && \
-poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck && \
-poetry run pytest tests/integration/docs/test_documentation_validation.py -v
+poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
 ```
 
-If all three succeed, your documentation is ready for review! ✨
+If both succeed, your documentation is ready for review.
