@@ -77,7 +77,7 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             HttpResponse: Redirect to dataset detail page.
         """
-        response = super().form_valid(form)
+        response: HttpResponse = super().form_valid(form)
 
         user = self.request.user
         dataset = self.object

@@ -90,7 +90,7 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             HttpResponse: Redirect to project detail page.
         """
-        response = super().form_valid(form)
+        response: HttpResponse = super().form_valid(form)
 
         # Assign full permissions to creator
         user = self.request.user

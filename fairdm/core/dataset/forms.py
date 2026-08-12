@@ -124,7 +124,7 @@ class DatasetForm(ModelForm):
     )
 
     # Note: reference field queryset is set in __init__ to avoid AppRegistryNotReady
-    reference = forms.ModelChoiceField(
+    reference: forms.ModelChoiceField = forms.ModelChoiceField(
         queryset=None,  # Set in __init__
         label=_("Data Publication"),
         help_text=_(

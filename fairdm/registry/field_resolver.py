@@ -182,19 +182,18 @@ class FieldResolver:
 
         # Validate related field path
         parts = field_path.split("__")
-        current_model = self.model
+        current_model: type[Model] | None = self.model
 
         for i, part in enumerate(parts):
             try:
+                if current_model is None:
+                    # An earlier part of the path was not a relation.
+                    return False
                 field = current_model._meta.get_field(part)
 
                 # If not the last part, get the related model
                 if i < len(parts) - 1:
-                    if hasattr(field, "related_model"):
-                        current_model = field.related_model
-                    else:
-                        # Not a relation field in the middle of path
-                        return False
+                    current_model = field.related_model
             except Exception:
                 return False
 

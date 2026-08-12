@@ -592,7 +592,7 @@ class Dataset(BaseModel):
         blank=True,
         on_delete=models.SET_NULL,
     )
-    related_literature = models.ManyToManyField(
+    related_literature: models.ManyToManyField = models.ManyToManyField(
         "literature.LiteratureItem",
         help_text=_("Any literature that is related to this dataset."),
         through="DatasetLiteratureRelation",

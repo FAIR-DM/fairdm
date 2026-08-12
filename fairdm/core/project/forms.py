@@ -51,7 +51,7 @@ class ProjectForm(ModelForm):
         help_text=_("Who can view this project?"),
         widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
     )
-    owner = forms.ModelChoiceField(
+    owner: forms.ModelChoiceField = forms.ModelChoiceField(
         label=_("Owner organization"),
         queryset=None,  # Set in __init__
         help_text=_("The organization that owns this project."),

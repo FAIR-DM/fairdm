@@ -48,12 +48,12 @@ class BaseViewSet(ModelViewSet):
 
     lookup_field = "uuid"
 
-    def perform_create(self, serializer: serializers.Serializer) -> None:
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to create objects.")
         serializer.save()
 
-    def perform_update(self, serializer: serializers.Serializer) -> None:
+    def perform_update(self, serializer: serializers.BaseSerializer) -> None:
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to update objects.")
         serializer.save()
@@ -280,7 +280,7 @@ def _model_to_slug(model) -> str:
         - ``verbose_name_plural="rock samples"`` → ``"rock-samples"``
         - ``verbose_name_plural="ICP-MS measurements"`` → ``"icp-ms-measurements"``
     """
-    return model._meta.verbose_name_plural.lower().replace(" ", "-")
+    return str(model._meta.verbose_name_plural).lower().replace(" ", "-")
 
 
 # ---------------------------------------------------------------------------

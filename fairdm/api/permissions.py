@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from rest_framework.exceptions import NotAuthenticated, NotFound
 from rest_framework.permissions import DjangoObjectPermissions
@@ -110,8 +110,10 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
         # DjangoObjectPermissions.has_object_permission() itself raises Http404
         # when the user lacks BOTH write AND read permissions — which would suppress
         # the correct 403 we want for publicly-visible objects.
+        # `method` is Optional only for a request that has not been through the
+        # handler; anything reaching a permission check has one.
         write_perms = self.get_required_object_permissions(
-            request.method, obj.__class__
+            cast(str, request.method), obj.__class__
         )
         has_perm = all(request.user.has_perm(perm, obj) for perm in write_perms)
 

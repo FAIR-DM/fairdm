@@ -90,9 +90,9 @@ except Exception as _e:
 try:
     from fairdm.registry import registry as _registry
 
-    for _model in _registry.measurements:
-        _slug = _model_to_slug(_model)
-        _config = _registry.get_for_model(_model)
+    for _measurement_model in _registry.measurements:
+        _slug = _model_to_slug(_measurement_model)
+        _config = _registry.get_for_model(_measurement_model)
         _viewset = generate_viewset(_config)
         fairdm_api_router.register(
             rf"measurements/{_slug}",

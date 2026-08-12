@@ -268,9 +268,9 @@ def build_model_serializer(
     # base_class is given (e.g. BaseSampleSerializer) use it directly since it
     # already includes ObjectPermissionsAssignmentMixin in its MRO.  Otherwise
     # fall back to the generic mixin + ModelSerializer combination.
-    effective_base = base_class if base_class is not None else None
-    if effective_base is not None:
-        bases = (effective_base,)
+    bases: tuple[type, ...]
+    if base_class is not None:
+        bases = (base_class,)
     else:
         bases = (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer)
 

@@ -30,7 +30,7 @@ class BaseModel(models.Model):
     )
     name = models.CharField(_("name"), max_length=300)
 
-    keywords = models.ManyToManyField(
+    keywords: models.ManyToManyField = models.ManyToManyField(
         "research_vocabs.Concept",
         verbose_name=_("keywords"),
         help_text=_("Controlled keywords for discoverability"),
