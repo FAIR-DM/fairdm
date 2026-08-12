@@ -17,10 +17,9 @@ from fairdm.views import (
 )
 
 from ..models import Project
-from .models import ProjectQuerySet
 from .filters import ProjectFilter
 from .forms import ProjectCreateForm, ProjectForm
-from .models import PublicDatasetsProtect
+from .models import ProjectQuerySet, PublicDatasetsProtect
 
 
 class ProjectListView(FairDMListView):

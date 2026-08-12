@@ -47,7 +47,7 @@ class Measurement(BasePolymorphicModel):
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Measurement")
     DATE_TYPES = FairDMDates.from_collection("Measurement")
 
-    objects = PolymorphicManager.from_queryset(MeasurementQuerySet)()
+    objects = PolymorphicManager.from_queryset(MeasurementQuerySet)()  # type: ignore[assignment,misc]
 
     dataset = models.ForeignKey(
         "dataset.Dataset",

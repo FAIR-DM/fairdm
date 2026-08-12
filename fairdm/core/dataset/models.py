@@ -547,7 +547,7 @@ class Dataset(BaseModel):
     # Default manager includes all datasets (no filtering by default)
     # To implement privacy-first behavior, uncomment DatasetManager below
     # objects = DatasetManager()
-    objects = DatasetQuerySet.as_manager()
+    objects = DatasetQuerySet.as_manager()  # type: ignore[assignment,misc]
 
     uuid = ShortUUIDField(
         editable=False,

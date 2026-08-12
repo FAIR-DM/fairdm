@@ -150,7 +150,7 @@ class BaseModel(models.Model):
 # WARNING: PolymorphicModel must always be listed first in the inheritance list to ensure
 # proper polymorphic behavior across relations and queries.
 # SEE: https://github.com/jazzband/django-polymorphic/issues/437#issuecomment-677638021
-class BasePolymorphicModel(PolymorphicModel, BaseModel):
+class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
     @classonlymethod
     def get_inheritance_chain(cls):
         return get_inheritance_chain(cls, cls.type_of)

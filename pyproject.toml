@@ -353,9 +353,19 @@ disable_error_code = ["var-annotated"]
 module = "fairdm.db.gis.base"
 disable_error_code = ["var-annotated"]
 
+# The Django plugin synthesises a manager class for every `as_manager()` and
+# `from_queryset()` call, and the ones built on django-polymorphic's generic
+# managers reference type variables it never imports. It reports them against
+# the module holding the queryset, at a line past the end of that file, so an
+# inline comment cannot reach them. Everywhere the report lands on a real line
+# the suppression is inline instead.
 [[tool.mypy.overrides]]
-module = "fairdm.models"
-disable_error_code = ["var-annotated"]
+module = [
+    "fairdm.core.measurement.managers",
+    "fairdm.core.sample.managers",
+    "fairdm.db.models",
+]
+disable_error_code = ["name-defined"]
 
 [tool.django-stubs]
 django_settings_module = "tests.settings"

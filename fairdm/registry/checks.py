@@ -23,7 +23,6 @@ References:
 from typing import Any
 
 from django.core import checks
-from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.forms import ModelForm
 from django_filters import FilterSet
@@ -215,7 +214,8 @@ def _get_invalid_fields(model: type[models.Model], field_names: list[str]) -> li
                     if current_model is None:
                         # An earlier part of the path was not a relation, so the
                         # remainder cannot resolve to a field.
-                        raise FieldDoesNotExist(field_name)
+                        invalid.append(field_name)
+                        break
                     field = current_model._meta.get_field(part)
                     current_model = field.related_model
             else:

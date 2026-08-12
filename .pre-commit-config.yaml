@@ -48,12 +48,11 @@ repos:
         language: system
         types: [python]
         require_serial: true
-      # DEVIATION from the family template: mypy is staged manually rather than
-      # on every commit. Under the family's own lenient settings this package
-      # currently reports 214 errors across 44 files, so a blocking hook would
-      # hold every pull request red and could only be cleared by a dedicated
-      # typing pass. Run it with `pre-commit run --hook-stage manual mypy`.
-      # Restore the family default (drop the `stages` key) once that pass lands.
+      # pass_filenames is off so the run is scoped by `[tool.mypy]` in
+      # pyproject.toml. Handing mypy a file list overrides both `files` and
+      # `exclude`, which drags in the settings, contrib and plugin modules the
+      # config deliberately leaves out. `files` and `types` below still decide
+      # whether the hook runs at all.
       #
       # Without require_serial, pre-commit splits the file list into parallel
       # batches, and concurrent mypy processes race on the shared .mypy_cache —
@@ -64,9 +63,9 @@ repos:
         entry: poetry run mypy
         language: system
         require_serial: true
+        pass_filenames: false
         types: [python]
         files: ^fairdm/
-        stages: [manual]
       - id: deptry
         name: deptry
         entry: poetry run deptry .

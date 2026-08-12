@@ -20,6 +20,7 @@ from ..vocabularies import (
     FairDMRoles,
 )
 
+
 class ProjectQuerySet(QuerySet):
     """Custom QuerySet for Project model with optimized query methods."""
 
@@ -67,7 +68,7 @@ class Project(BaseModel):
     STATUS_CHOICES = ProjectStatus
     VISIBILITY = Visibility
 
-    objects = ProjectQuerySet.as_manager()
+    objects = ProjectQuerySet.as_manager()  # type: ignore[assignment,misc]
 
     uuid = ShortUUIDField(
         editable=False,
