@@ -43,14 +43,25 @@ layer yourself: views, URLs, forms, filters, tables, admin and API.
 - **Not a single portal.** Domain-specific schemas belong in portals that build on FairDM, not
   in the framework itself.
 - **Not a JavaScript application.** The server-rendered baseline is the product, not a fallback.
+- **Not a formal publisher.** Publishing a dataset in FairDM makes it visible to other users of
+  the portal. Sending metadata to a data publisher and receiving a DOI in return is a separate
+  act, and it belongs to an addon rather than the core.
+- **Not the home of every feature.** The core stays small and the framework grows through
+  addons. A capability that only some portals need is an addon, not a core concern.
 
 ### When principles collide
 
 - **Configuration over code** — declarative model registration with sensible defaults.
 - **Domain-first modelling** — accurate scientific representation outranks framework convenience.
-- **Progressive complexity** — simple defaults first, extension points for those who need them.
+- **Progressive complexity** — registering a model works on its own. Custom forms, filters and
+  views come later, and only for the portals that need them.
 - **No frontend knowledge required** — a working portal must not depend on template or JS skills.
 - **FAIR by design** — metadata, stable identifiers and machine access are built in, not added on.
+- **A stable backbone beats a fast one** — research portals outlive their funding, so the core
+  model changes slowly and deliberately.
+
+Where the framework is headed is a separate question from what it is. That lives in
+[GOALS.md](https://github.com/FAIR-DM/fairdm/blob/main/GOALS.md).
 
 ---
 
