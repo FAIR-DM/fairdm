@@ -18,12 +18,16 @@ Key principles include:
 - **Opinionated, Production-Grade Defaults**: Modern Django stack with sensible defaults
 - **Quality, Sustainability, and Community**: Tests, documentation, and clear contribution guidelines
 
+## Where FairDM is headed
+
+[GOALS.md](https://github.com/FAIR-DM/fairdm/blob/main/GOALS.md) lists the standing directions the
+framework works toward, and how important each one is.
+
 ```{toctree}
 :maxdepth: 2
 
 introduction
 background
-goals
 features
 data_model
 contributors

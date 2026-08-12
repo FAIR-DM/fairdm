@@ -26,7 +26,7 @@ The top-level structure defined here is **immutable**. Future features MUST use 
 
 - **Constitution & Governance**: `memory/constitution.md` (immutable)
 - **Feature Specifications**: `specs/###-feature-name/` (immutable)
-- **Overview Content**: `docs/overview/` (project goals, background, data model)
+- **Overview Content**: `docs/overview/` (background, data model, tech stack)
 
 ---
 
