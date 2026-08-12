@@ -101,19 +101,19 @@ Serves G4.
 
 ### R10 — Profile claiming
 
-*Delivered · needs verification · advances G4, G14*
+*Delivered · needs verification · advances G4, G15*
 
 A person credited on a record before they ever visited the portal can take ownership of that profile by signing in with an external identity, instead of a duplicate account being created alongside the credit.
 
-Serves G4 and G14.
+Serves G4 and G15.
 
 ### R11 — The machine-readable API
 
-*Delivered · needs verification · advances G9*
+*Delivered · needs verification · advances G10*
 
 Projects, datasets, contributors and every registered sample and measurement type are reachable over a versioned HTTP API with authentication, pagination, filtering, ordering and generated interactive documentation.
 
-Serves G9.
+Serves G10.
 
 ### R12 — Editing projects and datasets in the portal
 
@@ -125,11 +125,11 @@ Serves G6.
 
 ### R13 — Identifier synchronisation
 
-*Delivered · needs verification · advances G14*
+*Delivered · needs verification · advances G15*
 
 An ORCID or ROR identifier recorded against a person or organisation is resolved against the issuing registry in the background, so the local record is populated from the authoritative source rather than retyped.
 
-Serves G14.
+Serves G15.
 
 ## Essential goals: v0.1.0
 
@@ -137,7 +137,7 @@ Everything needed to reach a minimum usable release.
 
 ### R14 — Access rules hold on every surface
 
-*feature · advances G8, G11*
+*feature · advances G8, G12*
 
 Visibility is decided per record and is enforced in some places and not others. A private dataset is readable by anyone who has its address, and the collection tables that list samples and measurements across the portal show rows belonging to private datasets. Until one rule governs every surface, no portal can hold embargoed data, and every capability built on top of visibility inherits the same hole. This comes first because it is the only item on the roadmap whose absence loses a research group its data.
 
@@ -149,7 +149,7 @@ Visibility is decided per record and is enforced in some places and not others. 
 - A regression test per surface that a private record is not returned to a viewer without rights to it.
 - The documentation for portal administrators states what private means and where it applies.
 
-Serves G8 and G11. Out of scope: roles and their default permissions, which are R15.
+Serves G8 and G12. Out of scope: roles and their default permissions, which are R15.
 
 ### R15 — Portal roles ship with the framework
 
@@ -181,11 +181,11 @@ Registering a sample or measurement type produces its components but not its pag
 - Access rules from R14 and R15 apply to the generated pages.
 - The developer documentation shows what registration produces and how a portal overrides one page without taking over the rest.
 
-Serves G6 and G2. Out of scope: bulk entry through file import, which is R20.
+Serves G6 and G2. Out of scope: bulk entry through file import, which is R21.
 
-### R30 — Records can be found, sorted and filtered
+### R17 — Records can be found, sorted and filtered
 
-*feature · advances G21*
+*feature · advances G9*
 
 Filtering is generated from a registered model and works. Search is not: it matches a typed phrase against a handful of fields as plain substrings, with no ranking and no index behind it, so it degrades as soon as a portal holds real data. Sorting is inconsistent between one list and the next. A portal whose records cannot be found is a portal nobody uses, and this becomes visible the moment R16 gives every registered type a list of its own.
 
@@ -198,9 +198,9 @@ Filtering is generated from a registered model and works. Search is not: it matc
 - The same search, sort and filter available through the API.
 - Only records the viewer may see are returned, under the rule from R14.
 
-Serves G21. Out of scope: searching across portals, which is R27.
+Serves G9. Out of scope: searching across portals, which is R29.
 
-### R17 — Plugins attach to any registered model
+### R18 — Plugins attach to any registered model
 
 *feature · advances G3*
 
@@ -214,9 +214,9 @@ Extension points are fixed in advance rather than derived from what is registere
 - A startup check reports every registered plugin and where it attached, so an addon author can see the result.
 - The addon documentation describes the attachment points and what a plugin can add.
 
-Serves G3. Out of scope: removing the code that this defect left stranded, which is R19.
+Serves G3. Out of scope: removing the code that this defect left stranded, which is R20.
 
-### R18 — Contributions can be managed on every core record
+### R19 — Contributions can be managed on every core record
 
 *feature · advances G4*
 
@@ -232,9 +232,9 @@ A contribution can be recorded against any record in the core model, but the pag
 
 Serves G4. Out of scope: sending credit to an external publisher, which belongs to a publication addon.
 
-### R19 — Retire the code that never runs
+### R20 — Retire the code that never runs
 
-*feature · advances G3, G17*
+*feature · advances G3, G18*
 
 Several modules are shipped but unreachable: the import and export views, the geographic location helpers that import modules which do not exist, a second component-generation system that nothing calls, a second declarative configuration system with one remaining consumer, and a data manager whose surrounding documentation still describes it as active. Their presence is worse than their absence, because each one reads as a working feature to anyone extending the framework, and one of them has already misled its own tests. The core cannot stay small while it carries a second version of itself.
 
@@ -246,15 +246,15 @@ Several modules are shipped but unreachable: the import and export views, the ge
 - Nothing in the package imports a module that does not exist.
 - Anything deferred rather than removed is recorded as an issue with a reason.
 
-Serves G3 and G17. Out of scope: the import and export feature itself, which is R20 and decides whether those views are worth wiring or replacing.
+Serves G3 and G18. Out of scope: the import and export feature itself, which is R21 and decides whether those views are worth wiring or replacing.
 
 ## Expected goals: v1.0.0
 
 The capabilities a complete, dependable version of the framework is expected to have.
 
-### R20 — Tabular data goes in and comes back out
+### R21 — Tabular data goes in and comes back out
 
-*multi-feature · advances G10*
+*multi-feature · advances G11*
 
 Import and export is written but nobody can reach it. The pages are not routed, one of the templates does not exist, and the work runs in the request rather than in the background. A research group's existing data arrives as spreadsheets, so this is the capability that decides whether a portal can be populated at all.
 
@@ -266,11 +266,11 @@ Import and export is written but nobody can reach it. The pages are not routed, 
 - A dataset exports as one archive covering its samples, measurements and metadata.
 - Import validates before it writes, and reports what it would reject.
 
-Serves G10. Out of scope: import across several related tables in one pass, which follows once single-table import is dependable.
+Serves G11. Out of scope: import across several related tables in one pass, which follows once single-table import is dependable.
 
-### R21 — A dataset moves from working to visible through a checked process
+### R22 — A dataset moves from working to visible through a checked process
 
-*feature · advances G12*
+*feature · advances G13*
 
 Visibility is a switch anyone with rights can flip. There is no point at which a dataset is checked for completeness before the rest of the portal sees it, which is what a portal administrator is being asked to guarantee.
 
@@ -281,11 +281,11 @@ Visibility is a switch anyone with rights can flip. There is no point at which a
 - A review step that a nominated role performs, with the outcome recorded against the dataset.
 - The dataset's history of state changes is visible to the people responsible for it.
 
-Serves G12. Out of scope: submitting to an external publisher, which belongs to an addon.
+Serves G13. Out of scope: submitting to an external publisher, which belongs to an addon.
 
-### R31 — Datasets carry versions
+### R23 — Datasets carry versions
 
-*multi-feature · advances G22*
+*multi-feature · advances G19*
 
 A dataset that has been cited keeps changing, and nothing records what it looked like when the citation was made. Comparable repositories treat a version as the thing that gets cited, so a reader can retrieve the exact state a paper referred to. Without it, a citation to a dataset stops referring to anything specific.
 
@@ -297,11 +297,11 @@ A dataset that has been cited keeps changing, and nothing records what it looked
 - Citation of a dataset resolves to a specific version.
 - Versions are reachable through the API alongside the current state.
 
-Serves G22. Out of scope: minting a separate identifier per version with an external agency, which belongs to a publication addon.
+Serves G19. Out of scope: minting a separate identifier per version with an external agency, which belongs to a publication addon.
 
-### R22 — Dataset metadata is complete enough to hand to a publisher
+### R24 — Dataset metadata is complete enough to hand to a publisher
 
-*feature · advances G13*
+*feature · advances G14*
 
 The record model carries most of what a publisher needs, but the publication-shaped output of a dataset refers to fields the dataset does not have and omits the identifier entirely, so it renders mostly empty. An addon that submits a dataset for formal publication cannot work until the metadata a dataset exposes is both complete and correct.
 
@@ -312,11 +312,11 @@ The record model carries most of what a publisher needs, but the publication-sha
 - The mapping is covered by tests that fail when a field is renamed or removed.
 - The developer documentation states what an addon can rely on.
 
-Serves G13. Out of scope: minting identifiers or talking to a registration agency.
+Serves G14. Out of scope: minting identifiers or talking to a registration agency.
 
-### R23 — Records are machine-readable where machines look
+### R25 — Records are machine-readable where machines look
 
-*feature · advances G9*
+*feature · advances G10*
 
 The API is the deliberate machine route, but discovery services do not use it. Comparable repositories publish structured metadata in the page itself and offer a listing that a crawler can walk. Without those, a portal's records stay invisible to dataset search engines however good its API is, and findable is the first thing FAIR asks for.
 
@@ -327,11 +327,11 @@ The API is the deliberate machine route, but discovery services do not use it. C
 - Only public records appear in either, under the rule from R14.
 - The documentation for administrators explains what is exposed and how to verify it.
 
-Serves G9. Out of scope: harvesting protocols for portal-to-portal exchange, which is R27.
+Serves G10. Out of scope: harvesting protocols for portal-to-portal exchange, which is R29.
 
-### R24 — A research group can deploy the shipped stack
+### R26 — A research group can deploy the shipped stack
 
-*feature · advances G15*
+*feature · advances G16*
 
 The deployment story does not run. The container stack builds from a directory that is not in the repository, points at an environment file that is not there, and the production configuration described in the documentation does not exist. A group with no operations staff has nothing to follow.
 
@@ -343,11 +343,11 @@ The deployment story does not run. The container stack builds from a directory t
 - A first-run path from empty to a portal with an administrator account.
 - The deployment documentation matches what the repository ships, verified by following it.
 
-Serves G15. Out of scope: hosting choices and managed services, which are the deploying group's decision.
+Serves G16. Out of scope: hosting choices and managed services, which are the deploying group's decision.
 
-### R25 — Installing a schema package is all a portal needs
+### R27 — Installing a schema package is all a portal needs
 
-*feature · advances G16, G17*
+*feature · advances G17, G18*
 
 A community can package a domain schema today, but the receiving portal has to name it in configuration for anything to happen, and the contract an addon is written against is described in prose rather than checked. Adoption across communities depends on installation being uneventful.
 
@@ -358,11 +358,11 @@ A community can package a domain schema today, but the receiving portal has to n
 - A reference schema package, kept working by the framework's own tests.
 - Documentation covering authoring, publishing and installing a schema package.
 
-Serves G16 and G17. Out of scope: a registry or index of published schemas.
+Serves G17 and G18. Out of scope: a registry or index of published schemas.
 
-### R26 — Identifiers stay meaningful
+### R28 — Identifiers stay meaningful
 
-*resolve · advances G14*
+*resolve · advances G15*
 
 Identifiers are recorded against people and organisations and resolved for two schemes. Samples and datasets accept identifiers with no validation, so a mistyped one is stored as readily as a real one, and nothing distinguishes them later.
 
@@ -372,32 +372,32 @@ Identifiers are recorded against people and organisations and resolved for two s
 - Sample and dataset identifiers resolve to their registry from the record page.
 - An invalid or unresolvable identifier is reported to the person who entered it.
 
-Serves G14. Out of scope: minting new identifiers, which requires an agreement with an issuing agency.
+Serves G15. Out of scope: minting new identifiers, which requires an agreement with an issuing agency.
 
 ## Aspirational goals: v2.0
 
 Genuine wants whose absence never makes the framework incomplete.
 
-### R27 — Portals exchange data with one another
+### R29 — Portals exchange data with one another
 
-*multi-feature · advances G18*
+*multi-feature · advances G20*
 
 One portal can find and reuse records held by another, through the harvesting protocols the research data community already runs, rather than by manual export and re-import.
 
-Serves G18.
+Serves G20.
 
-### R28 — A portal supports its research community
+### R30 — A portal supports its research community
 
-*multi-feature · advances G19*
+*multi-feature · advances G21*
 
 Discussion, news and collaboration around the data, so a portal is somewhere a research community works rather than only a place its data is stored.
 
-Serves G19.
+Serves G21.
 
-### R29 — Contributors work in their own language
+### R31 — Contributors work in their own language
 
-*feature · advances G20*
+*feature · advances G22*
 
 Translation is prepared for throughout the framework and no translation exists: there are no message catalogues, the configured translation path points at a directory that is not there, and there is no way for a visitor to change language. Regional conventions for dates and numbers follow the same gap.
 
-Serves G20.
+Serves G22.
