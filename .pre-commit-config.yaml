@@ -1,8 +1,5 @@
 # Family-standard pre-commit configuration for django-mvp repositories.
 #
-# Copy to the repo root as `.pre-commit-config.yaml` and replace
-# fairdm with the repo's package directory (e.g. `licensing`).
-#
 # The Python tools (ruff, mypy, deptry) run as *local* hooks inside the Poetry
 # env, so their versions come from the mvp-shared[dev] bundle — one version
 # source for the whole family, instead of per-repo `rev:` pins that drift under

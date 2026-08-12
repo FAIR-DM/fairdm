@@ -2,7 +2,7 @@
 
 ## Overview
 
-As of FairDM version 2014.1, all theme-related assets (templates, static files, templatetags, and configuration) have been moved to a new reusable app: `fairdm.contrib.theme`.
+All theme-related assets (templates, static files, templatetags, and configuration) now live in a reusable app, `fairdm.contrib.theme`.
 
 This change allows the FairDM theme to be:
 - More easily maintained and updated

@@ -109,7 +109,7 @@ Issues = "https://github.com/FAIR-DM/fairdm/issues"
 Changelog = "https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md"
 
 [tool.poetry]
-version = "2025.0"
+version = "0.0.1"
 requires-poetry = '>=2.0,<3.0'
 packages = [{ include = "fairdm" }, { include = "fairdm_demo" }]
 include = ["README.md", "LICENSE"]
@@ -131,14 +131,13 @@ django = ">=5.1,<6.0"
 # Replaces the former fairdm-dev-tools git dependency (family ADR 0002).
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.2.0", extras = ["dev", "test"], python = ">=3.12" }
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
-beautifulsoup4 = "^4.14.3"
-sphinxcontrib-mermaid = "^2.0.0"
 pytest-mock = "^3.15.1"
 
 [tool.poetry.group.docs.dependencies]
 fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs", extras = [
     "pydata-sphinx-theme",
 ] }
+sphinxcontrib-mermaid = "^2.0.0"
 
 
 [build-system]
@@ -284,6 +283,11 @@ docstring-code-line-length = 88
 line-ending = "lf"
 exclude = ["*/migrations/*.py"]
 
+# djlint is not currently enforced: it runs in no pre-commit hook and no CI job.
+# The settings below are kept because they encode real knowledge about the
+# template syntax in use, and would have to be rediscovered otherwise. Arming
+# the tool means working through its findings across the whole template tree,
+# which is a separate piece of work.
 [tool.djlint]
 blank_line_after_tag = "load,endpartialdef,endblock"
 close_void_tags = true
@@ -393,8 +397,12 @@ extend_exclude = [
     "fairdm_demo/factories.py",
 ]
 
-# Map Django package names to their import names
 known_first_party = ["fairdm", "fairdm_demo"]
+
+# Django packages whose distribution name differs from the name they are
+# imported under. Without this, deptry reads every one of them as declared but
+# never used.
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
 
 [tool.deptry.per_rule_ignores]
 # DEP002 = declared but never imported. Django wires most of its moving parts
@@ -444,78 +452,6 @@ DEP002 = [
 # pull in GDAL and turn optional GIS support into a hard requirement, so the
 # import is left recorded here as a known defect rather than silently fixed.
 DEP001 = ["rest_framework_gis"]
-
-
-# Package to module name mappings for Django packages that use different import names
-package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = "pint", django-solo = "solo", django-split-settings = "split_settings", django-autocomplete-light = "dal", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
-
-# Ignore specific dependency issues for packages used in Django settings/templates/config
-per_rule_ignores = { DEP002 = [
-    "crispy-tailwind",
-    "django-admin-extra-buttons",
-    "django-adminactions",
-    "django-allauth",
-    "django-celery-beat",
-    "django-classy-tags",
-    "django-cleanup",
-    "django-compressor",
-    "django-crispy-forms",
-    "django-dbbackup",
-    "django-htmx",
-    "django-invitations",
-    "django-libsass",
-    "django-redis",
-    "django-social-share",
-    "django-storages",
-    "django-widget-tweaks",
-    "django-render-fields",
-    "django-accounts-center",
-    "django-setup-tools",
-    "flower",
-    "gunicorn",
-    "psycopg2-binary",
-    "redis",
-    "whitenoise",
-    "tablib",
-    "drf-orjson-renderer",
-    "dj-rest-auth",
-    "django-cors-headers",
-    "uncertainties",
-], DEP001 = [
-    "rest_framework_gis",
-], DEP003 = [
-    "requests",
-    "rest_framework",
-    "rest_framework_gis",
-    "partial_date",
-    "quantityfield",
-    "factory",
-    "faker",
-] }
-
-# PEP621 dev dependency groups (currently using Poetry, so this doesn't apply)
-# pep621_dev_dependency_groups = ["test", "dev", "docs"]
-
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-skipsdist = true
-envlist = py310, py311
-
-[gh-actions]
-python =
-    3.10: py310
-    3.11: py311
-
-[testenv]
-passenv = PYTHON_VERSION
-allowlist_externals = poetry
-commands =
-    poetry install -v --without docs
-    pytest --doctest-modules tests --cov --cov-config=pyproject.toml --cov-report=xml
-    mypy
-"""
 
 [tool.fairdm.docs]
 port = 8010                   # Live server port (default: 5000)
