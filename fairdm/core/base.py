@@ -1,4 +1,5 @@
-from typing import Any
+from dataclasses import asdict
+from typing import Any, cast
 
 from django.apps import apps
 from django.db import models
@@ -97,7 +98,7 @@ class Config:
     fieldsets: list[Any] = []
 
     def __init__(
-        self, model_class: type[Any], fairdm: Any, inherited: dict, app_config: Any
+        self, model_class: type[Any], fairdm: Any, inherited: Any, app_config: Any
     ):
         """
         Initializes the Config instance.
@@ -141,7 +142,7 @@ class Config:
             ImportError: If the class path is invalid.
         """
         if isinstance(class_or_path, str):
-            return import_string(class_or_path)
+            return cast(type[Any], import_string(class_or_path))
         return class_or_path
 
     def get_fields(self):
@@ -159,10 +160,13 @@ class Config:
         Returns:
             Type[FilterSet]: A FilterSet subclass.
         """
-        return factories.filterset_factory(
-            self.model,
-            filterset=self._get_class(self.filterset_class),
-            **self.filterset_kwargs,
+        return cast(
+            type[FilterSet],
+            factories.filterset_factory(
+                self.model,
+                filterset=self._get_class(self.filterset_class),
+                **self.filterset_kwargs,
+            ),
         )
 
     def get_form_class(self) -> type[ModelForm]:
@@ -187,10 +191,13 @@ class Config:
         Returns:
             Type[ModelSerializer]: A ModelSerializer subclass.
         """
-        return factories.serializer_factory(
-            self.model,
-            serializer_class=self._get_class(self.serializer_class),
-            **self.serializer_kwargs,
+        return cast(
+            type[ModelSerializer],
+            factories.serializer_factory(
+                self.model,
+                serializer_class=self._get_class(self.serializer_class),
+                **self.serializer_kwargs,
+            ),
         )
 
     def get_table_class(self) -> type[Table]:
@@ -200,10 +207,13 @@ class Config:
         Returns:
             Type[Table]: A django-tables2 Table subclass.
         """
-        return table_factory(
-            self.model,
-            table=self._get_class(self.table_class),
-            **self.table_kwargs,
+        return cast(
+            type[Table],
+            table_factory(
+                self.model,
+                table=self._get_class(self.table_class),
+                **self.table_kwargs,
+            ),
         )
 
     def get_resource_class(self) -> type[ModelResource]:
@@ -228,10 +238,13 @@ class Config:
             ],
             **self.resource_kwargs,
         }
-        return factories.modelresource_factory(
-            self.model,
-            resource_class=self._get_class(self.resource_class),
-            **kwargs,
+        return cast(
+            type[ModelResource],
+            factories.modelresource_factory(
+                self.model,
+                resource_class=self._get_class(self.resource_class),
+                **kwargs,
+            ),
         )
 
 
@@ -307,7 +320,7 @@ class Metadata:
         """
         # Manually handle citation to ensure it's a list of dictionaries
         citations = [
-            citation.as_dict() if isinstance(citation, Citation) else citation
+            asdict(citation) if isinstance(citation, Citation) else citation
             for citation in self.citation
         ]
 
@@ -315,7 +328,7 @@ class Metadata:
             "name": self.name,
             "name_plural": self.name_plural,
             "description": self.description,
-            "authority": self.authority.as_dict() if self.authority else None,
+            "authority": asdict(self.authority) if self.authority else None,
             "keywords": [
                 keyword.as_dict() if isinstance(keyword, Concept) else keyword
                 for keyword in self.keywords

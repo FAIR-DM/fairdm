@@ -328,8 +328,13 @@ no_implicit_optional = "True"
 check_untyped_defs = "False"
 warn_return_any = "True"
 warn_unused_ignores = "True"
-follow_imports = "skip"
-pretty = "True"
+show_error_codes = "True"
+# follow_imports, pretty and mypy_path are deliberately unset. Each one broke the
+# run rather than shaping it: "skip" left the django-stubs user-model alias
+# unresolved and crashed the semantic analyser, "./fairdm/" made every module
+# reachable under two names, and "pretty" indexes the source line of every error
+# — which raises IndexError on the synthetic nodes the Django plugin reports past
+# the end of a file.
 exclude = [
     "docs/",
     "migrations/",
@@ -338,7 +343,6 @@ exclude = [
     "fairdm/contrib/*",
     ".*/plugins\\.py$",
 ]
-mypy_path = "./fairdm/"
 plugins = ["mypy_django_plugin.main"]
 
 [[tool.mypy.overrides]]
@@ -349,9 +353,19 @@ disable_error_code = ["var-annotated"]
 module = "fairdm.db.gis.base"
 disable_error_code = ["var-annotated"]
 
+# The Django plugin synthesises a manager class for every `as_manager()` and
+# `from_queryset()` call, and the ones built on django-polymorphic's generic
+# managers reference type variables it never imports. It reports them against
+# the module holding the queryset, at a line past the end of that file, so an
+# inline comment cannot reach them. Everywhere the report lands on a real line
+# the suppression is inline instead.
 [[tool.mypy.overrides]]
-module = "fairdm.models"
-disable_error_code = ["var-annotated"]
+module = [
+    "fairdm.core.measurement.managers",
+    "fairdm.core.sample.managers",
+    "fairdm.db.models",
+]
+disable_error_code = ["name-defined"]
 
 [tool.django-stubs]
 django_settings_module = "tests.settings"

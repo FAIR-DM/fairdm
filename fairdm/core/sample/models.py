@@ -100,7 +100,7 @@ class Sample(BasePolymorphicModel):
     )
 
     # CUSTOM MANAGER
-    objects = PolymorphicManager.from_queryset(SampleQuerySet)()
+    objects = PolymorphicManager.from_queryset(SampleQuerySet)()  # type: ignore[assignment,misc]
 
     class Meta:
         verbose_name = _("sample")

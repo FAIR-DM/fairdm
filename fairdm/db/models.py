@@ -1,6 +1,6 @@
 from django.db.models import *  # isort:skip
 
-from auto_prefetch import (  # type: ignore[no-redef]
+from auto_prefetch import (
     ForeignKey,
     Manager,
     OneToOneField,
@@ -90,7 +90,7 @@ class PrefetchPolymorphicBase(PrefetchBase, PolymorphicModelBase):
     pass
 
 
-class PrefetchPolymorphicQuerySet(QuerySet, managers.PolymorphicQuerySet):
+class PrefetchPolymorphicQuerySet(QuerySet, managers.PolymorphicQuerySet):  # type: ignore[misc,metaclass]
     pass
 
 
@@ -105,7 +105,7 @@ class PrefetchPolymorphicManager(managers.PolymorphicManager):
         - managers.PolymorphicManager
     """
 
-    queryset_class = PrefetchPolymorphicQuerySet
+    queryset_class = PrefetchPolymorphicQuerySet  # type: ignore[assignment]
 
 
 class PolymorphicQuerySet(managers.PolymorphicQuerySet):
@@ -134,7 +134,7 @@ class PolymorphicManager(managers.PolymorphicManager):
         - managers.PolymorphicManager
     """
 
-    queryset_class = PolymorphicQuerySet
+    queryset_class = PolymorphicQuerySet  # type: ignore[assignment]
 
 
 class PolymorphicModel(BasePolymorphicModel, metaclass=PrefetchPolymorphicBase):
@@ -152,7 +152,7 @@ class PolymorphicModel(BasePolymorphicModel, metaclass=PrefetchPolymorphicBase):
     """
 
     # objects = PolymorphicManager()
-    objects = PrefetchPolymorphicManager()
+    objects = PrefetchPolymorphicManager()  # type: ignore[misc]
     prefetch_manager = PrefetchPolymorphicManager()
 
     class Meta:

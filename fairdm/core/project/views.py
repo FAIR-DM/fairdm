@@ -19,7 +19,7 @@ from fairdm.views import (
 from ..models import Project
 from .filters import ProjectFilter
 from .forms import ProjectCreateForm, ProjectForm
-from .models import PublicDatasetsProtect
+from .models import ProjectQuerySet, PublicDatasetsProtect
 
 
 class ProjectListView(FairDMListView):
@@ -50,7 +50,8 @@ class ProjectListView(FairDMListView):
         Returns:
             QuerySet: Filtered and optimized Project queryset.
         """
-        return super().get_queryset().get_visible().with_contributors()
+        qs: ProjectQuerySet = super().get_queryset()
+        return qs.get_visible().with_contributors()
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
@@ -88,7 +89,7 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             HttpResponse: Redirect to project detail page.
         """
-        response = super().form_valid(form)
+        response: HttpResponse = super().form_valid(form)
 
         # Assign full permissions to creator
         user = self.request.user

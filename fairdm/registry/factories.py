@@ -115,7 +115,7 @@ class FormFactory(ComponentFactory):
             self.helper.form_method = "post"
             self.helper.add_input(Submit("submit", "Save"))
 
-        form_class.__init__ = __init__
+        form_class.__init__ = __init__  # type: ignore[method-assign]
 
         return form_class
 
@@ -127,7 +127,7 @@ class FormFactory(ComponentFactory):
         """
         from django import forms
 
-        widgets = {}
+        widgets: dict[str, forms.Widget] = {}
         fields = self.get_fields()
 
         for field_name in fields:
@@ -430,7 +430,7 @@ class FilterFactory(ComponentFactory):
                 # ForeignKey fields get ModelChoiceFilter
                 elif isinstance(field, models.ForeignKey):
                     filter_overrides[field_name] = filters.ModelChoiceFilter(
-                        queryset=field.related_model.objects.all()
+                        queryset=field.related_model._default_manager.all()
                     )
 
                 # Numeric fields get RangeFilter
@@ -615,6 +615,8 @@ class AdminFactory(ComponentFactory):
 
         for field_name in fields:
             field = inspector.get_field(field_name)
+            if field is None:
+                continue
 
             # Include boolean fields
             if isinstance(field, models.BooleanField):
@@ -681,7 +683,7 @@ class AdminFactory(ComponentFactory):
         Returns:
             Tuple of fieldset tuples (django-polymorphic expects tuples, not lists)
         """
-        fieldsets = []
+        fieldsets: list[tuple[str | None, dict[str, Any]]] = []
 
         # Group 1: Basic information
         basic_fields = []
@@ -827,7 +829,7 @@ class SerializerFactory(ComponentFactory):
         except ImportError:
             return {}
 
-        nested: dict[str, type] = {}
+        nested: dict[str, serializers.Field] = {}
         fields = self.get_fields()
 
         for field_name in fields:

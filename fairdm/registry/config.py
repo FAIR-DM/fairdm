@@ -9,11 +9,13 @@ This implements the FairDM Registry System specification with:
 """
 
 import contextlib
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import TYPE_CHECKING, cast
 
 from django.forms import ModelForm
+from django.utils.functional import Promise
 from django.utils.module_loading import import_string
 from django_filters import FilterSet
 from django_tables2 import Table
@@ -37,8 +39,12 @@ class Authority:
         website: The authority's website URL
     """
 
-    name: str
-    """The name of the authority that created this metadata. This is required."""
+    name: str | Promise
+    """The name of the authority that created this metadata. This is required.
+
+    Accepts a lazy translation as well as a plain string, so an app config can
+    declare its authority with ``gettext_lazy`` before the translations load.
+    """
 
     short_name: str = ""
     """The short name of the authority that created this metadata."""
@@ -508,7 +514,7 @@ class ModelConfiguration:
         return str(self.model._meta.verbose_name_plural)
 
     def _flatten_fields(
-        self, field_list: list[str | tuple[str, ...]] | None
+        self, field_list: Sequence[str | tuple[str, ...]] | None
     ) -> list[str]:
         """Flatten a field list that may contain tuples for grouping.
 

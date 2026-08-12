@@ -44,7 +44,7 @@ def check_registry_field_names(
     Returns:
         List of Error/Warning objects for invalid fields
     """
-    errors = []
+    errors: list[checks.CheckMessage] = []
 
     # Only check if registry has models
     if not hasattr(registry, "_registry") or not registry._registry:
@@ -96,7 +96,7 @@ def check_registry_custom_classes(
     Returns:
         List of Error/Warning objects for invalid custom classes
     """
-    errors = []
+    errors: list[checks.CheckMessage] = []
 
     # Only check if registry has models
     if not hasattr(registry, "_registry") or not registry._registry:
@@ -160,7 +160,7 @@ def check_registry_performance(
     Returns:
         List of Warning objects for potential performance issues
     """
-    warnings = []
+    warnings: list[checks.CheckMessage] = []
 
     # Only check if registry has models
     if not hasattr(registry, "_registry") or not registry._registry:
@@ -193,7 +193,7 @@ def _get_invalid_fields(model: type[models.Model], field_names: list[str]) -> li
     Returns:
         List of invalid field names
     """
-    invalid = []
+    invalid: list[str] = []
 
     for field_name in field_names:
         # Handle tuples (e.g., from admin_list_display with callables)
@@ -208,13 +208,16 @@ def _get_invalid_fields(model: type[models.Model], field_names: list[str]) -> li
             # Handle related field paths like "author__name"
             if "__" in field_name:
                 parts = field_name.split("__")
-                current_model = model
+                current_model: type[models.Model] | None = model
 
                 for part in parts:
-                    current_model._meta.get_field(part)
+                    if current_model is None:
+                        # An earlier part of the path was not a relation, so the
+                        # remainder cannot resolve to a field.
+                        invalid.append(field_name)
+                        break
                     field = current_model._meta.get_field(part)
-                    if hasattr(field, "related_model"):
-                        current_model = field.related_model
+                    current_model = field.related_model
             else:
                 model._meta.get_field(field_name)
 

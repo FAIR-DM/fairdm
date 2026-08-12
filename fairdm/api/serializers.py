@@ -36,7 +36,7 @@ class BaseSampleSerializer(
     def get_permissions_map(self, created: bool) -> dict[str, list]:
         """Assign guardian object permissions to the requesting user on create/update."""
         current_user = self.context["request"].user
-        model_name = self.Meta.model._meta.model_name  # type: ignore[attr-defined]
+        model_name = self.Meta.model._meta.model_name
         return {
             f"view_{model_name}": [current_user],
             f"change_{model_name}": [current_user],
@@ -79,7 +79,7 @@ class BaseMeasurementSerializer(
     def get_permissions_map(self, created: bool) -> dict[str, list]:
         """Assign guardian object permissions to the requesting user on create/update."""
         current_user = self.context["request"].user
-        model_name = self.Meta.model._meta.model_name  # type: ignore[attr-defined]
+        model_name = self.Meta.model._meta.model_name
         return {
             f"view_{model_name}": [current_user],
             f"change_{model_name}": [current_user],
@@ -250,7 +250,7 @@ def build_model_serializer(
     # (view, change, delete) to the submitting user when objects are created or
     # updated via the API.  The permission codenames follow Django's convention:
     # <action>_<model_name> (e.g. "view_project", "change_project").
-    model_name = model._meta.model_name  # type: ignore[union-attr]
+    model_name = model._meta.model_name
     perm_codenames = [
         f"view_{model_name}",
         f"change_{model_name}",
@@ -268,9 +268,9 @@ def build_model_serializer(
     # base_class is given (e.g. BaseSampleSerializer) use it directly since it
     # already includes ObjectPermissionsAssignmentMixin in its MRO.  Otherwise
     # fall back to the generic mixin + ModelSerializer combination.
-    effective_base = base_class if base_class is not None else None
-    if effective_base is not None:
-        bases = (effective_base,)
+    bases: tuple[type, ...]
+    if base_class is not None:
+        bases = (base_class,)
     else:
         bases = (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer)
 

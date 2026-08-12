@@ -13,6 +13,8 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from django.db.models import Model
+
     from fairdm.config import ModelConfiguration
 
 
@@ -25,8 +27,9 @@ class FieldResolver:
         Args:
             config: The ModelConfiguration instance to resolve fields for
         """
+        assert config.model is not None  # noqa: S101 # Validated in __post_init__
         self.config = config
-        self.model = config.model
+        self.model: type[Model] = config.model
 
     def resolve_fields_for_component(self, component_type: str) -> list[str]:
         """Resolve field list for a specific component type.
@@ -179,19 +182,18 @@ class FieldResolver:
 
         # Validate related field path
         parts = field_path.split("__")
-        current_model = self.model
+        current_model: type[Model] | None = self.model
 
         for i, part in enumerate(parts):
             try:
+                if current_model is None:
+                    # An earlier part of the path was not a relation.
+                    return False
                 field = current_model._meta.get_field(part)
 
                 # If not the last part, get the related model
                 if i < len(parts) - 1:
-                    if hasattr(field, "related_model"):
-                        current_model = field.related_model
-                    else:
-                        # Not a relation field in the middle of path
-                        return False
+                    current_model = field.related_model
             except Exception:
                 return False
 

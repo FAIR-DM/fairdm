@@ -110,7 +110,7 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
 
     image = forms.ImageField(
         required=False,
-        label=False,
+        label="",
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
         widget=ImageClearableFileInput(

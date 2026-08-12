@@ -20,6 +20,13 @@ User = get_user_model()
 class TestSampleFormRendering:
     """Test SampleForm renders with appropriate fields and widgets."""
 
+    def test_image_field_declares_no_label_text(self):
+        """The image field is captioned by its widget, so it must declare an empty
+        label. A boolean suppresses nothing and renders the word "False"."""
+        from fairdm.core.sample.forms import SampleForm
+
+        assert SampleForm.base_fields["image"].label == ""
+
     def test_form_renders_with_all_base_fields(self):
         """Test that SampleForm renders with all base Sample fields (T061)."""
 

@@ -30,7 +30,7 @@ class BaseModel(models.Model):
     )
     name = models.CharField(_("name"), max_length=300)
 
-    keywords = models.ManyToManyField(
+    keywords: models.ManyToManyField = models.ManyToManyField(
         "research_vocabs.Concept",
         verbose_name=_("keywords"),
         help_text=_("Controlled keywords for discoverability"),
@@ -150,7 +150,7 @@ class BaseModel(models.Model):
 # WARNING: PolymorphicModel must always be listed first in the inheritance list to ensure
 # proper polymorphic behavior across relations and queries.
 # SEE: https://github.com/jazzband/django-polymorphic/issues/437#issuecomment-677638021
-class BasePolymorphicModel(PolymorphicModel, BaseModel):
+class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
     @classonlymethod
     def get_inheritance_chain(cls):
         return get_inheritance_chain(cls, cls.type_of)
@@ -277,7 +277,7 @@ class GenericModel(Model):
     def get_update_url(self):
         return reverse(
             f"{self._meta.model_name}-update",
-            kwargs={"uuid": self.uuid, "object_id": self.object_id},  # type: ignore[attr-defined]
+            kwargs={"uuid": self.uuid, "object_id": self.object_id},
         )
 
     def verbose_name(self):
