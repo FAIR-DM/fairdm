@@ -183,6 +183,23 @@ Registering a sample or measurement type produces its components but not its pag
 
 Serves G6 and G2. Out of scope: bulk entry through file import, which is R20.
 
+### R30 — Records can be found, sorted and filtered
+
+*feature · advances G21*
+
+Filtering is generated from a registered model and works. Search is not: it matches a typed phrase against a handful of fields as plain substrings, with no ranking and no index behind it, so it degrades as soon as a portal holds real data. Sorting is inconsistent between one list and the next. A portal whose records cannot be found is a portal nobody uses, and this becomes visible the moment R16 gives every registered type a list of its own.
+
+**Deliverables:**
+
+- Search across the core record types that tolerates partial words and returns the closest matches first.
+- Sorting on every list, on the columns a reader would expect to sort by.
+- Filters generated from a registered model's own fields, on its own list pages.
+- Indexes that keep search and filtering usable as a portal grows, with a stated expectation of what "usable" means.
+- The same search, sort and filter available through the API.
+- Only records the viewer may see are returned, under the rule from R14.
+
+Serves G21. Out of scope: searching across portals, which is R27.
+
 ### R17 — Plugins attach to any registered model
 
 *feature · advances G3*
@@ -265,6 +282,22 @@ Visibility is a switch anyone with rights can flip. There is no point at which a
 - The dataset's history of state changes is visible to the people responsible for it.
 
 Serves G12. Out of scope: submitting to an external publisher, which belongs to an addon.
+
+### R31 — Datasets carry versions
+
+*multi-feature · advances G22*
+
+A dataset that has been cited keeps changing, and nothing records what it looked like when the citation was made. Comparable repositories treat a version as the thing that gets cited, so a reader can retrieve the exact state a paper referred to. Without it, a citation to a dataset stops referring to anything specific.
+
+**Deliverables:**
+
+- A published dataset that changes produces a new version rather than overwriting the old one.
+- Earlier versions stay retrievable and are marked as superseded.
+- A dataset's version history is visible on the record, with what changed between versions.
+- Citation of a dataset resolves to a specific version.
+- Versions are reachable through the API alongside the current state.
+
+Serves G22. Out of scope: minting a separate identifier per version with an external agency, which belongs to a publication addon.
 
 ### R22 — Dataset metadata is complete enough to hand to a publisher
 

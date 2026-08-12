@@ -24,6 +24,7 @@ Importance is a tag on each goal, not a ranking:
 | G6 | Core records can be created and edited by hand through the portal | Essential | | |
 | G7 | Development and production settings stay out of a portal's way while remaining configurable where it matters | Essential | | |
 | G8 | Portal roles and their permissions ship with the framework, so running a portal is a standard job rather than a bespoke setup | Essential | | |
+| G21 | Records in the core model can be searched, sorted and filtered from the portal | Essential | | |
 | G9 | Data and metadata are reachable by machines through a documented API | Expected | | |
 | G10 | Round-trip import and export of tabular data | Expected | | |
 | G11 | Private and public data sit side by side, controlled per object | Expected | | |
@@ -33,6 +34,7 @@ Importance is a tag on each goal, not a ranking:
 | G15 | A research group with no operations staff can deploy and run its own portal | Expected | | |
 | G16 | A domain schema built by one community installs as a package in another portal | Expected | | |
 | G17 | The framework grows through addons while the core stays small | Expected | | |
+| G22 | A dataset carries versions, so an earlier state of it stays retrievable and citable | Expected | | |
 | G18 | Portals exchange data with one another | Aspirational | | |
 | G19 | A portal supports the research community around it, not only its data | Aspirational | | |
 | G20 | Contributors use a portal in their own language and regional conventions | Aspirational | | |
