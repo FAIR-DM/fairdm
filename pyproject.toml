@@ -97,7 +97,6 @@ dependencies = [
     "pint (>=0.24,<1.0)",
     "django-partial-date (>=1.3,<2.0)",
     "requests (>=2.32,<3.0)",
-    "numpy (>=2.4.6,<3.0.0)",
     "django-orbit[mcp] (>=0.12.0,<0.13.0)",
 ]
 
@@ -418,13 +417,7 @@ package_module_name_map = { django-environ = "environ", django-filter = "django_
 # DEP002 = declared but never imported. Django wires most of its moving parts
 # through settings strings (INSTALLED_APPS, MIDDLEWARE, storage and cache
 # backends) and deploys others as processes, so a static import scan cannot see
-# them. Everything below is genuinely used; none of it is dead weight, with one
-# noted exception.
-#
-# numpy is the exception: nothing in this package imports it, and django-pint
-# does not require it — it only enables pint's optional array support. Retained
-# pending a decision on whether the measurement stack needs that support;
-# dropping it is a separate, testable change.
+# them. Everything below is genuinely used and none of it is dead weight.
 DEP002 = [
     "crispy-tailwind",
     "dj-rest-auth",
@@ -449,7 +442,6 @@ DEP002 = [
     "drf-orjson-renderer",
     "flower",
     "gunicorn",
-    "numpy",
     "psycopg2-binary",
     "redis",
     "tablib",
