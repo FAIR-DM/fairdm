@@ -5,12 +5,12 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView
 
 # from guardian.shortcuts import assign_perm
 from fairdm.views import (
     FairDMCreateView,
     FairDMDeleteView,
+    FairDMDetailView,
     FairDMListView,
     FairDMUpdateView,
 )
@@ -20,7 +20,7 @@ from .forms import DatasetForm
 from .models import Dataset
 
 
-class DatasetDetailView(DetailView):
+class DatasetDetailView(FairDMDetailView):
     """Detail view for Dataset model with plugin support.
 
     This view displays a dataset and makes plugin URLs available.
