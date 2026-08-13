@@ -100,10 +100,18 @@ def _scratch_scope(scope: dict) -> dict:
     that shared the baseline's own ``INSTALLED_APPS`` list would have
     mutated it before raising, corrupting the real scope regardless (T101,
     T102).
+
+    Only settings are copied. Django reads uppercase names and nothing
+    else, so everything lowercase — the portal's own imports and helpers,
+    and ``__builtins__``, which is a dict in an imported module — stays in
+    the scratch scope by reference. Copying those too would mean merging
+    the copies back over the originals, silently rebinding a container the
+    portal shares with another module to something only its settings file
+    can see (T111).
     """
     scratch = {}
     for key, value in scope.items():
-        if isinstance(value, _MUTABLE_CONTAINERS):
+        if key.isupper() and isinstance(value, _MUTABLE_CONTAINERS):
             try:
                 value = copy.deepcopy(value)
             except Exception:  # pragma: no cover — defensive

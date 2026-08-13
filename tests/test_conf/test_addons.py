@@ -107,43 +107,34 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
             # Verify addon app was added to INSTALLED_APPS
             assert "tests.test_conf.dummy_addon" in test_settings.INSTALLED_APPS
 
-    @pytest.mark.skip(
-        reason="Windows path escaping issue in dynamically generated settings file"
-    )
-    def test_addon_without_setup_module_logs_warning(self, addon_env, tmp_path, caplog):
-        """Test that addon without __fdm_setup_module__ logs a warning."""
-        pass
+    def test_addon_without_setup_module_logs_warning(
+        self, production_env, tmp_path, settings_module
+    ):
+        """An addon defining no ``__fdm_setup_module__`` is warned about by
+        name and skipped, and the portal starts (T112, FR-022).
 
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            f"""
-import os
-import sys
-from pathlib import Path
+        Restores a test that was skipped for a Windows path-escaping problem
+        in a hand-built settings file, and whose body began with a bare
+        ``pass`` before dead code — so it asserted nothing on any platform.
+        The ``settings_module`` fixture removes the path escaping the skip
+        was about; the warning is observed by patching the call because
+        ``tests/settings.py`` disables logging for the whole suite.
+        """
+        os.environ["DJANGO_ENV"] = "development"
 
-sys.path.insert(0, "{tmp_path}")
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(addons=["no_setup_addon"])
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_2", settings_file)
-        if spec and spec.loader:
-            test_settings = importlib.util.module_from_spec(spec)
-
-            with caplog.at_level("WARNING"):
-                spec.loader.exec_module(test_settings)
-
-            # Check that warning was logged
-            assert any(
-                "does not define '__fdm_setup_module__'" in record.message
-                for record in caplog.records
+        with mock.patch("fairdm.conf.addons.logger.warning") as mock_warning:
+            module = settings_module(
+                setup_call="fairdm.setup(addons=['tests.test_conf.no_setup_addon'])",
+                directory=tmp_path,
             )
+
+        assert module.DJANGO_ENV == "development"
+
+        warned_text = " ".join(
+            str(call.args[0]) for call in mock_warning.call_args_list
+        )
+        assert "does not define '__fdm_setup_module__'" in warned_text
+        assert "no_setup_addon" in warned_text
 
     def test_addon_with_invalid_module_fails_gracefully_in_development(
         self, production_env, tmp_path, settings_module
@@ -422,3 +413,58 @@ class TestAddonPartialFailure:
         )
         assert addons_layer.found is False
         assert "BROKEN_EXECUTION_ADDON_PARTIAL" not in addons_layer.settings
+
+
+class TestAddonScopeIsolation:
+    """Applying an addon's settings leaves everything that is not a Django
+    setting in the portal's own namespace exactly as it was (T111)."""
+
+    def test_portal_non_setting_objects_keep_their_identity(
+        self, production_env, tmp_path, settings_module
+    ):
+        """A container the portal's settings module shares with another
+        module is still the same object after ``setup()`` applied an addon.
+
+        Layer 3 executes each addon against a private copy of the scope and
+        merges it back on success. Copying names Django never reads, and
+        merging those back, silently rebinds them: a portal that imports a
+        shared list or dict and appends to it after the ``setup()`` call
+        would be appending to a copy nothing else can see.
+        """
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module(
+            setup_call=(
+                "shared = {'a': 1}\n"
+                "alias = shared\n"
+                "fairdm.setup(addons=['tests.test_conf.conflicting_addon'])"
+            ),
+            after="SHARED_IDENTITY_KEPT = shared is alias",
+            directory=tmp_path,
+        )
+
+        assert module.SHARED_IDENTITY_KEPT is True
+        # The addon still applied — the isolation is scoped, not disabled.
+        assert module.DEBUG == "addon-value"
+
+    def test_in_place_mutation_by_a_failing_addon_is_discarded(
+        self, production_env, tmp_path, settings_module
+    ):
+        """An addon that appends to a settings container in place and then
+        raises leaves that container as it was (T113).
+
+        The scratch scope has to copy the container, not just the binding:
+        a shallow copy shares the list ``INSTALLED_APPS += [...]`` mutates,
+        so discarding it would not undo the append.
+        """
+        os.environ["DJANGO_ENV"] = "development"
+
+        with mock.patch("fairdm.conf.setup.logger.warning"):
+            module = settings_module(
+                setup_call=(
+                    "fairdm.setup(addons=['tests.test_conf.mutating_broken_addon'])"
+                ),
+                directory=tmp_path,
+            )
+
+        assert "tests.test_conf.mutating_broken_addon" not in module.INSTALLED_APPS
