@@ -5,6 +5,17 @@ from django.utils.module_loading import autodiscover_modules
 class FairDMConfig(AppConfig):
     name = "fairdm"
 
+    def resolved_environment(self) -> str:
+        """
+        The environment ``fairdm.setup()`` resolved, recorded as the
+        ``DJANGO_ENV`` setting for ``ready()`` to read once ``django.setup()``
+        has populated the app registry (research R1). Defaults to
+        ``production`` — the safe direction — when unset.
+        """
+        from django.conf import settings
+
+        return getattr(settings, "DJANGO_ENV", "production")
+
     def ready(self) -> None:
         # adds a default renderer to all forms to keep a consistent look across the site. This way we don't have to specify it every time
         # patch django-filters to not use crispy forms. should be safe to remove on the
