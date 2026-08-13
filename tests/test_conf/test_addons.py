@@ -5,6 +5,7 @@ Tests verify that fairdm.setup() correctly discovers, loads, and validates addon
 """
 
 import os
+from unittest import mock
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
@@ -144,46 +145,46 @@ fairdm.setup(addons=["no_setup_addon"])
                 for record in caplog.records
             )
 
-    @pytest.mark.skip(
-        reason="Windows path escaping issue in dynamically generated settings file"
-    )
     def test_addon_with_invalid_module_fails_gracefully_in_development(
-        self, addon_env, tmp_path, caplog
+        self, production_env, tmp_path, settings_module
     ):
-        """Test that addon with invalid setup module fails gracefully in development."""
-        pass
+        """An addon that cannot be loaded emits a WARNING naming it, is
+        skipped, and the portal starts — in any non-production environment
+        (T099, T100; FR-022, scenario 3).
 
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            f"""
-import os
-import sys
-from pathlib import Path
+        Replaces a skip whose body began with a bare ``pass`` before dead
+        code: it asserted nothing and predated the ``settings_module``
+        fixture this story's other layer tests use.
 
-sys.path.insert(0, "{tmp_path}")
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+        ``tests/settings.py`` disables logging for the whole suite (see
+        ``TestPortalOverride.test_no_usable_file_skips_portal_override_with_warning``
+        in ``test_setup.py``), so the warning is observed by patching the
+        call rather than via ``caplog``.
+        """
+        os.environ["DJANGO_ENV"] = "development"
 
-import fairdm
-
-fairdm.setup(addons=["broken_addon"])
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_3", settings_file)
-        if spec and spec.loader:
-            test_settings = importlib.util.module_from_spec(spec)
-
-            # Should not raise in development
-            with caplog.at_level("WARNING"):
-                spec.loader.exec_module(test_settings)
-
-            # Should log warning about skipping
-            assert any(
-                "skipping in development" in record.message.lower()
-                for record in caplog.records
+        with mock.patch("fairdm.conf.checks.logger.warning") as mock_warning:
+            module = settings_module(
+                setup_call="fairdm.setup(addons=['tests.test_conf.unloadable_addon'])",
+                directory=tmp_path,
             )
+
+        # The portal started — setup() returned a usable module.
+        assert module.DJANGO_ENV == "development"
+
+        assert mock_warning.called
+        warned_text = " ".join(
+            str(call.args[0]) for call in mock_warning.call_args_list
+        )
+        assert "unloadable_addon" in warned_text
+
+        from fairdm.conf import record
+
+        addons_layer = next(
+            layer for layer in record.layers() if layer.name == "addons"
+        )
+        assert addons_layer.found is False
+        assert addons_layer.settings == ()
 
     def test_addon_url_discovery(self, addon_env, tmp_path):
         """Test that addon URL configurations are discovered."""
@@ -366,3 +367,58 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
 
             # Verify addon's custom logger was added
             assert "dummy_addon" in test_settings.LOGGING["loggers"]
+
+
+class TestAddonPartialFailure:
+    """An addon whose setup module imports cleanly but raises partway
+    through execution is treated as unloadable by the same path as any
+    other broken addon — fail in production, warn and skip elsewhere — and
+    the settings scope is not left holding its partial writes (T101, T102;
+    edge case, FR-022)."""
+
+    def test_partial_write_does_not_reach_settings_in_production(
+        self, production_addon_env, tmp_path, settings_module
+    ):
+        with pytest.raises(ImproperlyConfigured) as exc_info:
+            settings_module(
+                setup_call=(
+                    "fairdm.setup(addons=['tests.test_conf.broken_execution_addon'])"
+                ),
+                directory=tmp_path,
+            )
+
+        assert "broken_execution_addon" in str(exc_info.value)
+
+    def test_partial_write_does_not_reach_settings_in_development(
+        self, production_env, tmp_path, settings_module
+    ):
+        """``tests/settings.py`` disables logging for the whole suite, so
+        the warning is observed by patching the call rather than via
+        ``caplog`` (see ``TestPortalOverride`` in ``test_setup.py``)."""
+        os.environ["DJANGO_ENV"] = "development"
+
+        with mock.patch("fairdm.conf.setup.logger.warning") as mock_warning:
+            module = settings_module(
+                setup_call=(
+                    "fairdm.setup(addons=['tests.test_conf.broken_execution_addon'])"
+                ),
+                directory=tmp_path,
+            )
+
+        # The portal started, and the addon's partial write never reached
+        # the composed scope — assert the scope, not just the exception.
+        assert not hasattr(module, "BROKEN_EXECUTION_ADDON_PARTIAL")
+
+        assert mock_warning.called
+        warned_text = " ".join(
+            str(call.args[0]) for call in mock_warning.call_args_list
+        )
+        assert "broken_execution_addon" in warned_text
+
+        from fairdm.conf import record
+
+        addons_layer = next(
+            layer for layer in record.layers() if layer.name == "addons"
+        )
+        assert addons_layer.found is False
+        assert "BROKEN_EXECUTION_ADDON_PARTIAL" not in addons_layer.settings

@@ -41,6 +41,7 @@ import os
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 from split_settings.tools import include
 
 from . import record
@@ -85,6 +86,33 @@ def _snapshot_scope(scope: dict) -> dict:
                 )
         snapshot[key] = value
     return snapshot
+
+
+def _scratch_scope(scope: dict) -> dict:
+    """A private copy of ``scope`` an addon's setup module can execute
+    against without a change reaching ``scope`` unless deliberately merged
+    in afterwards.
+
+    ``include()`` execs a module directly against whatever dict it is
+    given, so a shallow copy would still share the object a ``+=`` mutates
+    in place — the same hazard ``_snapshot_scope`` guards against, but here
+    it matters even when the module never returns: a discarded scratch copy
+    that shared the baseline's own ``INSTALLED_APPS`` list would have
+    mutated it before raising, corrupting the real scope regardless (T101,
+    T102).
+    """
+    scratch = {}
+    for key, value in scope.items():
+        if isinstance(value, _MUTABLE_CONTAINERS):
+            try:
+                value = copy.deepcopy(value)
+            except Exception:  # pragma: no cover — defensive
+                logger.debug(
+                    f"Could not snapshot {key} for an addon's scratch scope; "
+                    "falling back to a shared reference"
+                )
+        scratch[key] = value
+    return scratch
 
 
 def _differs(before_value, after_value) -> bool:
@@ -266,18 +294,37 @@ def setup(
         _written_keys(before, after),
     )
 
-    # Layer 3 — settings contributed by addons.
-    addon_setup_modules: list[str] = []
+    # Layer 3 — settings contributed by addons. Each addon's setup module is
+    # applied to a private scratch scope first and merged into the caller's
+    # scope only on success, so a module that raises partway through does
+    # not leave the composed scope holding its own partial writes (edge
+    # case, FR-022) — an isolation include()'s shared-scope contract does
+    # not give an addon on its own. A failure is routed through the same
+    # unloadable-addon path as one that could not be found at all: fail
+    # fast in production, warn and skip elsewhere.
+    applied_addon_modules: list[str] = []
     before = _snapshot_scope(caller_globals)
     if addons:
-        addon_setup_modules = load_addons(addons, env_profile)
-        if addon_setup_modules:
-            include(*addon_setup_modules, scope=caller_globals)
+        for addon_name, module_path in load_addons(addons, env_profile):
+            scratch = _scratch_scope(caller_globals)
+            try:
+                include(module_path, scope=scratch)
+            except Exception as exc:
+                message = (
+                    f"Addon '{addon_name}' setup module raised while applying "
+                    f"its settings: {exc}"
+                )
+                if env_profile == "production":
+                    raise ImproperlyConfigured(message) from exc
+                logger.warning(message)
+                continue
+            caller_globals.update(scratch)
+            applied_addon_modules.append(module_path)
     after = _uppercase_scope(caller_globals)
     record.add_layer(
         "addons",
-        ", ".join(addon_setup_modules) if addon_setup_modules else None,
-        bool(addon_setup_modules),
+        ", ".join(applied_addon_modules) if applied_addon_modules else None,
+        bool(applied_addon_modules),
         _written_keys(before, after),
     )
 

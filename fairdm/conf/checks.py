@@ -499,7 +499,7 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
         if is_production_like:
             raise ImproperlyConfigured(error_msg) from e
         else:
-            logger.debug(f"⚠️  {error_msg} (skipping in development)")
+            logger.warning(f"⚠️  {error_msg} (skipping in development)")
             return False
     except Exception as e:
         error_msg = (
@@ -509,5 +509,5 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
         if is_production_like:
             raise ImproperlyConfigured(error_msg) from e
         else:
-            logger.debug(f"❌ {error_msg} (skipping in development)")
+            logger.warning(f"❌ {error_msg} (skipping in development)")
             return False
