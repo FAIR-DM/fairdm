@@ -10,6 +10,8 @@ Tests validate that:
 """
 
 import os
+import subprocess
+import sys
 from pathlib import Path
 from unittest import mock
 
@@ -247,6 +249,39 @@ class TestPortalOverride:
         warned_text = " ".join(str(call.args[0]) for call in mock_warning.call_args_list)
         assert "settings module" in warned_text.lower() or "__file__" in warned_text
         assert scope["DJANGO_ENV"] == "production"
+
+
+class TestBundledPortalBoots:
+    """The bundled example portal must start under every environment it ships a module for.
+
+    It is the only place in this repository where the portal-override layer is
+    exercised end to end against the real baseline, and a broken override there
+    is invisible to every test that imports ``tests.settings`` instead.
+    """
+
+    @pytest.mark.parametrize("environment", ["production", "development"])
+    def test_example_portal_passes_django_checks(self, environment):
+        repo_root = Path(__file__).resolve().parents[2]
+        env = {
+            **os.environ,
+            "DJANGO_ENV": environment,
+            "DJANGO_SETTINGS_MODULE": "config.settings",
+            "DJANGO_SECRET_KEY": "b" * 60,
+            "DJANGO_SITE_DOMAIN": "example.com",
+            "DJANGO_ALLOWED_HOSTS": "example.com",
+        }
+        result = subprocess.run(  # noqa: S603
+            [sys.executable, "-c", "import django; django.setup()"],
+            cwd=repo_root,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        assert result.returncode == 0, (
+            f"config.settings failed to start under DJANGO_ENV={environment}:\n"
+            f"{result.stderr[-3000:]}"
+        )
 
 
 class TestEntryPointSignature:

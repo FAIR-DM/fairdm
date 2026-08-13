@@ -3,7 +3,7 @@
   "feature": "001-fairdm-setup",
   "branch": "001-fairdm-setup",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -23,6 +23,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-08-13T17:30:00Z",
       "note": "one reviewer, four lenses incl. reconciliation"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-13T19:40:00Z",
+      "note": "US-2 implemented and independently verified; one regression found and fixed by the orchestrator"
     }
   ],
   "gates": {
@@ -276,6 +281,11 @@
           "id": "T105",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T108",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -283,129 +293,365 @@
       "id": "US2",
       "priority": "P1",
       "issue": 131,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/fairdm/fairdm-us2",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestResolvedEnvironment::test_missing_django_env_resolves_to_production"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:81"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:81"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestResolvedEnvironment::test_missing_django_env_resolves_to_production"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestResolvedEnvironment::test_empty_string_django_env_is_looked_up_literally",
+              "tests/test_conf/test_setup.py::TestResolvedEnvironment::test_environment_name_differing_only_in_case_is_not_normalised"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:81"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:81"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestResolvedEnvironment::test_environment_name_differing_only_in_case_is_not_normalised"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestLayerOrder::test_layers_apply_in_declared_order"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:169"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:169",
+              "fairdm/conf/setup.py:190"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestLayerOrder::test_layers_apply_in_declared_order"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestLayerOrder::test_override_module_selected_by_existence_not_allowlist"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:175"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:175"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestLayerOrder::test_override_module_selected_by_existence_not_allowlist"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestLayerOrder::test_environment_with_no_shipped_module_resolves_to_baseline_unchanged"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:176"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:176",
+              "fairdm/conf/setup.py:193"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestLayerOrder::test_environment_with_no_shipped_module_resolves_to_baseline_unchanged"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestShippedOverrides::test_only_development_is_shipped"
+            ],
+            "code": [
+              "fairdm/conf/development.py:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/development.py:1"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestShippedOverrides::test_only_development_is_shipped"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestProductionVsDevelopmentDiff::test_development_differs_only_in_keys_development_module_names"
+            ],
+            "code": [
+              "fairdm/conf/development.py:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestPortalOverride::test_override_found_beside_settings_module_regardless_of_directory_name"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:190"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:94"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestPortalOverride::test_override_found_beside_settings_module_regardless_of_directory_name"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestPortalOverride::test_no_usable_file_skips_portal_override_with_warning"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:101"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:97"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestPortalOverride::test_no_usable_file_skips_portal_override_with_warning"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestLayerOrder::test_fairdm_and_portal_overrides_for_the_same_environment_both_apply"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:190"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestEntryPointSignature::test_rejects_settings_keyword_arguments"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:50"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:50"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestEntryPointSignature::test_rejects_settings_keyword_arguments"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestEnvFiles::test_env_files_read_in_declared_order_and_precedence"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:115"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:115"
+            ],
+            "tests": [
+              "tests/test_conf/test_setup.py::TestEnvFiles::test_env_files_read_in_declared_order_and_precedence"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/setup.py:1"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf/ -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T103",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/configuration.md:1"
+            ],
+            "commands": [
+              "poetry run pre-commit run --files docs/portal-development/configuration.md"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T106",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestBundledPortalBoots::test_example_portal_passes_django_checks"
+            ],
+            "code": [
+              "config/production.py:1"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf/test_setup.py::TestBundledPortalBoots -q"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
@@ -677,6 +923,11 @@
         },
         {
           "id": "T093",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T107",
           "status": "todo",
           "attempts": 0
         }

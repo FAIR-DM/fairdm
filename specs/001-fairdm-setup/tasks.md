@@ -27,51 +27,51 @@ Package skeletons and shared test scaffolding that every story's tests import.
 
 Establishes the layering mechanism the rest of the feature composes over (plan.md: US-2 before US-1).
 
-- [ ] T008 [US-2] Write `tests/test_conf/test_setup.py::TestResolvedEnvironment` asserting `DJANGO_ENV` unset resolves to `production` (FR-007)  
+- [x] T008 [US-2] Write `tests/test_conf/test_setup.py::TestResolvedEnvironment` asserting `DJANGO_ENV` unset resolves to `production` (FR-007)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T009 [US-2] Implement environment resolution in `fairdm/conf/setup.py`: read `DJANGO_ENV`, default to `production` (FR-007)  
+- [x] T009 [US-2] Implement environment resolution in `fairdm/conf/setup.py`: read `DJANGO_ENV`, default to `production` (FR-007)  
   **Open (A3, no_test):** `fairdm/conf/setup.py:57` — Default-to-production is implemented, but every test sets DJANGO_ENV explicitly, so the unset path is never exercised.
-- [ ] T010 [US-2] Extend `TestResolvedEnvironment` with cases for `DJANGO_ENV` set to an empty string and to a name differing only in case from a shipped one, asserting each is looked up literally with no normalisation (edge case, FR-007, FR-010)  
+- [x] T010 [US-2] Extend `TestResolvedEnvironment` with cases for `DJANGO_ENV` set to an empty string and to a name differing only in case from a shipped one, asserting each is looked up literally with no normalisation (edge case, FR-007, FR-010)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T011 [US-2] Implement literal, non-normalising environment-name handling in `setup.py` (edge case, FR-007)  
+- [x] T011 [US-2] Implement literal, non-normalising environment-name handling in `setup.py` (edge case, FR-007)  
   **Open (A3, built_differently):** `fairdm/conf/setup.py:58` — DJANGO_ENV is validated against a fixed allowlist (production, staging, development); anything else is warned about and rewritten to production, so the name is normalised and staging is first-class.
-- [ ] T012 [US-2] Write `tests/test_conf/test_setup.py::TestLayerOrder` asserting the five layers apply in FR-008's order: baseline, FairDM's environment override, addon settings, the portal's environment override, then post-call assignment (FR-008)  
+- [x] T012 [US-2] Write `tests/test_conf/test_setup.py::TestLayerOrder` asserting the five layers apply in FR-008's order: baseline, FairDM's environment override, addon settings, the portal's environment override, then post-call assignment (FR-008)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T013 [US-2] Implement layer composition in `setup.py` using `django-split-settings` `include()` calls in FR-008's order (FR-008)  
+- [x] T013 [US-2] Implement layer composition in `setup.py` using `django-split-settings` `include()` calls in FR-008's order (FR-008)  
   **Open (A3, partial):** `fairdm/conf/setup.py:132` — Four layers compose (baseline :132, FairDM env override :145, addons :151, post-call assignment); the portal env override layer is absent and an extra **overrides layer (:156) that FR-012 forbids is applied.
-- [ ] T014 [US-2] Extend `TestLayerOrder` with a case asserting an override module is selected by existence, not from a fixed allowlist of permitted environment names (FR-010)  
+- [x] T014 [US-2] Extend `TestLayerOrder` with a case asserting an override module is selected by existence, not from a fixed allowlist of permitted environment names (FR-010)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T015 [US-2] Implement the existence probe for `fairdm/conf/<environment>.py`, replacing any fixed profile list (FR-010)  
+- [x] T015 [US-2] Implement the existence probe for `fairdm/conf/<environment>.py`, replacing any fixed profile list (FR-010)  
   **Open (A3, built_differently):** `fairdm/conf/setup.py:135` — Selection is a hard-coded dict {development, staging}; the .exists() call at :143 is a secondary guard on an already-allowlisted name, not an existence probe.
-- [ ] T016 [US-2] Extend `TestLayerOrder` with a case asserting an environment for which neither FairDM nor the portal ships a module resolves to the baseline unchanged and raises nothing (FR-010, scenario 3)  
+- [x] T016 [US-2] Extend `TestLayerOrder` with a case asserting an environment for which neither FairDM nor the portal ships a module resolves to the baseline unchanged and raises nothing (FR-010, scenario 3)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T017 [US-2] Implement the skip-without-error path when a layer's module does not exist (FR-010)  
+- [x] T017 [US-2] Implement the skip-without-error path when a layer's module does not exist (FR-010)  
   **Open (A3, partial):** `fairdm/conf/setup.py:143` — The exists guard protects only the two allowlisted FairDM modules; an unknown environment never reaches it because :58 has already coerced the name.
-- [ ] T018 [US-2] Write `tests/test_conf/test_setup.py::TestShippedOverrides` asserting FairDM ships exactly one override module, `development`, and none for any other environment name (FR-009)  
+- [x] T018 [US-2] Write `tests/test_conf/test_setup.py::TestShippedOverrides` asserting FairDM ships exactly one override module, `development`, and none for any other environment name (FR-009)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T019 [US-2] Create `fairdm/conf/development.py` as FairDM's sole shipped override module, empty pending the baseline-audit values added in T057 (FR-009)  
+- [x] T019 [US-2] Create `fairdm/conf/development.py` as FairDM's sole shipped override module, empty pending the baseline-audit values added in T057 (FR-009)  
   **Open (A3, built_differently):** `fairdm/conf/development.py:1` — development.py exists but is not the sole shipped override: fairdm/conf/staging.py is still shipped and wired in at setup.py:137.
-- [ ] T020 [US-2] Write `tests/test_conf/test_setup.py::TestProductionVsDevelopmentDiff` asserting settings resolved for production and for development differ only in the keys `development.py` names, by diffing the two resolutions (SC-002)  
+- [x] T020 [US-2] Write `tests/test_conf/test_setup.py::TestProductionVsDevelopmentDiff` asserting settings resolved for production and for development differ only in the keys `development.py` names, by diffing the two resolutions (SC-002)  
   **Open (A3, never_built):** SC-002 unverified.
-- [ ] T021 [US-2] Write `tests/test_conf/test_setup.py::TestPortalOverride` asserting the portal's override module is resolved beside its settings module regardless of directory name, using the `tmp_path` settings-module fixture (FR-011, scenario 5)  
+- [x] T021 [US-2] Write `tests/test_conf/test_setup.py::TestPortalOverride` asserting the portal's override module is resolved beside its settings module regardless of directory name, using the `tmp_path` settings-module fixture (FR-011, scenario 5)  
   **Open (A3, never_built):** No portal override mechanism exists to test.
-- [ ] T022 [US-2] Implement capture of the caller's settings-module directory in `setup.py`, taken before `__file__` is overwritten for `split_settings`'s relative-include resolution, and derive the portal override path from it (FR-011)  
+- [x] T022 [US-2] Implement capture of the caller's settings-module directory in `setup.py`, taken before `__file__` is overwritten for `split_settings`'s relative-include resolution, and derive the portal override path from it (FR-011)  
   **Open (A3, partial):** `fairdm/conf/setup.py:68` — caller_globals is captured before __file__ is overwritten, but only base_dir (.parent.parent) is derived and it is used solely to locate stack.env files; the settings-module directory is not retained.
-- [ ] T023 [US-2] Extend `TestPortalOverride` with a case where the portal's settings module has no usable `__file__` — the portal-override lookup is skipped with a warning, not an exception (edge case, FR-011)  
+- [x] T023 [US-2] Extend `TestPortalOverride` with a case where the portal's settings module has no usable `__file__` — the portal-override lookup is skipped with a warning, not an exception (edge case, FR-011)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T024 [US-2] Implement the no-`__file__` fallback: skip the portal-override lookup and emit a warning (edge case, FR-011)  
+- [x] T024 [US-2] Implement the no-`__file__` fallback: skip the portal-override lookup and emit a warning (edge case, FR-011)  
   **Open (A3, never_built):** With no base_dir argument, a missing __file__ raises KeyError at setup.py:72 rather than warning.
-- [ ] T025 [US-2] Extend `TestLayerOrder` with a case where FairDM and the portal both ship a module for the same resolved environment, asserting both apply in the declared order (edge case, FR-008, FR-010)  
+- [x] T025 [US-2] Extend `TestLayerOrder` with a case where FairDM and the portal both ship a module for the same resolved environment, asserting both apply in the declared order (edge case, FR-008, FR-010)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T026 [US-2] Write `tests/test_conf/test_setup.py::TestEntryPointSignature` asserting `setup()` accepts no settings keyword arguments and raises `TypeError` if any are passed (FR-012)  
+- [x] T026 [US-2] Write `tests/test_conf/test_setup.py::TestEntryPointSignature` asserting `setup()` accepts no settings keyword arguments and raises `TypeError` if any are passed (FR-012)  
   **Open (A3, never_built):** The existing TestSetupOverrides asserts the opposite — that keyword overrides are accepted.
-- [ ] T027 [US-2] Implement `setup()`'s public signature in `fairdm/conf/setup.py`, re-exported from `fairdm/conf/__init__.py`, with no `**overrides`-style parameter (FR-001, FR-012)  
+- [x] T027 [US-2] Implement `setup()`'s public signature in `fairdm/conf/setup.py`, re-exported from `fairdm/conf/__init__.py`, with no `**overrides`-style parameter (FR-001, FR-012)  
   **Open (A3, built_differently):** `fairdm/conf/setup.py:21` — setup() is re-exported but still carries **overrides (:26), applied at :156; five tests in TestSetupOverrides assert this forbidden behaviour and must be rewritten.
-- [ ] T028 [US-2] Write `tests/test_conf/test_setup.py::TestEnvFiles` asserting env files are read in order — `stack.env`, then `stack.<environment>.env`, then an explicit `env_file=` argument with `overwrite=True` — and that the first two respect variables already set in the process environment (FR-006)  
+- [x] T028 [US-2] Write `tests/test_conf/test_setup.py::TestEnvFiles` asserting env files are read in order — `stack.env`, then `stack.<environment>.env`, then an explicit `env_file=` argument with `overwrite=True` — and that the first two respect variables already set in the process environment (FR-006)  
   **Open (A3, partial):** `tests/test_conf/test_setup.py::TestEnvFileParameter::test_custom_env_file_is_loaded` — Covers only the explicit env_file leg; stack.env ordering and process-env precedence are unasserted, and test_env_file_takes_precedence is skipped.
-- [ ] T029 [US-2] Implement env-file loading in `setup.py` in that order and with that precedence (FR-006)  
+- [x] T029 [US-2] Implement env-file loading in `setup.py` in that order and with that precedence (FR-006)  
   **Open (A3, partial):** `fairdm/conf/setup.py:78` — Order and overwrite flag are implemented (:80-101) but the stack.env and stack.<env>.env legs have no test.
-- [ ] T030 [P] [US-2] Document the env-file precedence and the five-layer order in `setup.py`'s module docstring (FR-006)  
+- [x] T030 [P] [US-2] Document the env-file precedence and the five-layer order in `setup.py`'s module docstring (FR-006)  
   **Open (A3, never_built):** `fairdm/conf/setup.py:1` — The module docstring documents neither the env-file precedence nor the layer order.
 
 ## Phase 1: US-1 — obtain a complete settings baseline from one call (P1)
@@ -237,12 +237,21 @@ ordering and the baseline-wide audits.
 
 ## Documentation
 
-- [ ] T103 [P] [US-2] Write `docs/portal-development/configuration.md` covering the entry point, all five layers from FR-008, the environment variable, the environment files, the check behaviour and the interrogation command, using the recommended `config/<environment>.py` project structure in every example and stating that the portal override module is resolved beside the settings module (FR-023, FR-024, SC-007)  
-  **Open (A3, built_differently):** `docs/portal-development/configuration.md:1` — The page documents the superseded design: three fixed profiles, a 7-step order whose steps 6-7 are **overrides and in-setup() validation, and a section recommending **overrides; it never mentions the five-layer order, the portal override module, or an interrogation command.
+- [x] T103 [P] [US-2] Write `docs/portal-development/configuration.md` covering the entry point, all five layers from FR-008, the environment variable, the environment files, the check behaviour and the interrogation command, using the recommended `config/<environment>.py` project structure in every example and stating that the portal override module is resolved beside the settings module (FR-023, FR-024, SC-007)  
+  **Closed (US-2):** rewritten for the five-layer contract. Superseded finding — `docs/portal-development/configuration.md:1` — The page documents the superseded design: three fixed profiles, a 7-step order whose steps 6-7 are **overrides and in-setup() validation, and a section recommending **overrides; it never mentions the five-layer order, the portal override module, or an interrogation command.
 - [ ] T104 [P] [US-3] Write `docs/portal-administration/configuration-checks.md` covering the production-critical check subset, the production-boot failure behaviour, and how to run the full check set on demand (FR-015, FR-023)  
   **Open (A3, partial):** `docs/portal-administration/configuration-checks.md:1` — Covers the check subset and how to run the full set on demand, but says nothing about production-boot failure behaviour, and still carries a migration section referencing validate_services().
 - [ ] T105 [P] [US-1] Update the package README and CHANGELOG for the new `fairdm.setup()` public entry point and the removed `**overrides` argument (Article VI/XVII)  
   **Open (A3, never_built):** Neither README nor CHANGELOG mentions the entry point, and **overrides is still in the signature.
+
+## Found during implementation
+
+- [x] T106 [US-2] Add `tests/test_conf/test_setup.py::TestBundledPortalBoots` asserting the bundled example portal (`config/settings.py`) starts under both shipped environments, and fix `config/production.py` so it does  
+  **Why:** wiring `config/production.py` in as a real layer-4 override broke `DJANGO_ENV=production` startup — it narrows `LANGUAGES` to `en, de` while the baseline hardcodes `PARLER_LANGUAGES` with `fr`, and django-parler validates one against the other at import. Every existing test imports `tests/settings.py`, so nothing in the suite exercised the example portal. Test proven against the defect before it was fixed.
+- [ ] T107 [US-5] Give the `LANGUAGES` / `PARLER_LANGUAGES` coupling a named Django check, so a portal that narrows `LANGUAGES` gets a FairDM error naming both settings rather than an `ImproperlyConfigured` traceback from inside django-parler (FR-012)  
+  **Why:** a concrete instance of the FR-012 promise failing on a setting the baseline composes. Reproducer: delete the `PARLER_LANGUAGES` block from `config/production.py` and run `DJANGO_ENV=production DJANGO_SETTINGS_MODULE=config.settings python -c "import django; django.setup()"`.
+- [ ] T108 [US-1] Bring the surviving January spec artefacts into line with the settled design or delete them: `specs/001-fairdm-setup/data-model.md` (describes `staging.py` as shipped, and production/staging fail-fast), `specs/001-fairdm-setup/quickstart.md`, `specs/001-fairdm-setup/contracts/settings-sections.md`, and the R1 paragraph at `docs/ROADMAP.md:34`, which still promises three profiles  
+  **Why:** S1 rewrote `spec.md` in place and left its siblings describing the design this feature removed.
 
 ## Coverage
 
