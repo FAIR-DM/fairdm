@@ -139,22 +139,22 @@ ordering and the baseline-wide audits.
 
 ## Phase 2: US-3 — a misconfigured production portal refuses to start (P1)
 
-- [ ] T059 [US-3] Write `tests/test_apps.py::TestFairDMConfigReady` asserting `setup()` records the resolved environment somewhere `FairDMConfig.ready()` can read once `django.setup()` has populated the app registry (R1)  
-  **Open (A3, never_built):** tests/test_apps.py does not exist.
-- [ ] T060 [US-3] Implement the resolved-environment record in `setup.py`, read by `fairdm/apps.py::FairDMConfig.ready()`  
-  **Open (A3, partial):** `fairdm/conf/setup.py:109` — setup() injects DJANGO_ENV into the caller's settings globals, but fairdm/apps.py:8-25 never reads it.
+- [x] T059 [US-3] Write `tests/test_apps.py::TestFairDMConfigReady` asserting `setup()` records the resolved environment somewhere `FairDMConfig.ready()` can read once `django.setup()` has populated the app registry (R1)  
+  **Done (US-3):** `tests/test_apps.py:1` · `tests/test_apps.py::TestFairDMConfigReady`
+- [x] T060 [US-3] Implement the resolved-environment record in `setup.py`, read by `fairdm/apps.py::FairDMConfig.ready()`  
+  **Done (US-3):** `fairdm/apps.py:13` — `FairDMConfig.resolved_environment()` reads the `DJANGO_ENV` setting `setup()` injects at `fairdm/conf/setup.py:146`, defaulting to production · `tests/test_apps.py::TestFairDMConfigReady`
 - [x] T061 [US-3] Write `tests/test_conf/test_checks.py::TestDatabaseCheck` asserting a production-critical error when no production-grade database is configured (FR-017)  
   **Done (A3):** `fairdm/conf/checks.py:29` · `tests/test_conf/test_checks.py::TestDatabaseChecks::test_check_database_configured_missing` — Not-production-grade half covered by TestDatabaseChecks::test_check_database_production_ready_sqlite.
 - [x] T062 [US-3] Implement the database production-critical check in `fairdm/conf/checks.py`, tagged for the deployment check run (FR-016, FR-017)  
   **Done (A3):** `fairdm/conf/checks.py:28` · `tests/test_conf/test_checks.py::TestDatabaseChecks::test_check_database_production_ready_sqlite` — Registered @register(Tags.database, DeployTags.deploy, deploy=True); nothing yet marks it as a production-critical subset distinct from the rest.
-- [ ] T063 [US-3] Extend `TestCacheChecks` with the case the existing deny list misses: `CACHES` absent, `CACHES['default']` empty, and a backend that is neither locmem nor dummy but still not shared (e.g. `filebased.FileBasedCache`) each produce a production-critical error (FR-017)  
-  **Open (A3 + S3R DR-002, partial):** `fairdm/conf/checks.py:80` · `tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_locmem` — the existing check is a two-item deny list, so an absent `CACHES`, an empty `default` and any other non-shared backend all pass.
-- [ ] T064 [US-3] Extend the cache production-critical check to assert a shared backend rather than deny two development ones, covering the absent and unsuitable cases (FR-016, FR-017)  
-  **Open (A3 + S3R DR-002, partial):** `fairdm/conf/checks.py:79` — as above; the locmem and dummy branches stay, the absent-and-unsuitable branch is the remaining work.
-- [ ] T065 [US-3] Write `TestSecretKeyCheck` asserting a production-critical error both when the secret key is absent and when it carries an insecure or published value (FR-017, SC-006)  
-  **Open (A3, partial):** `tests/test_conf/test_checks.py::TestSecretKeyChecks::test_check_secret_key_exists_empty` — Only the absent/empty case is tested; the insecure-or-published-value case is covered only by TestValidationLogic, which exercises the deprecated validate_services().
-- [ ] T066 [US-3] Implement the secret-key production-critical check as FairDM's own error-severity check, not delegated to Django's warning-severity one (FR-017)  
-  **Open (A3, partial):** `fairdm/conf/checks.py:114` — FairDM's own Error-severity check exists but tests only for absence; the insecure-prefix branch research R5 requires does not exist.
+- [x] T063 [US-3] Extend `TestCacheChecks` with the case the existing deny list misses: `CACHES` absent, `CACHES['default']` empty, and a backend that is neither locmem nor dummy but still not shared (e.g. `filebased.FileBasedCache`) each produce a production-critical error (FR-017)  
+  **Done (US-3):** `tests/test_conf/test_checks.py::TestCacheChecks` — absent `CACHES`, empty `default` and `filebased.FileBasedCache` each produce fairdm.E200
+- [x] T064 [US-3] Extend the cache production-critical check to assert a shared backend rather than deny two development ones, covering the absent and unsuitable cases (FR-016, FR-017)  
+  **Done (US-3):** `fairdm/conf/checks.py:112` — `SHARED_CACHE_BACKENDS` allowlist replaces the two-item deny list · `tests/test_conf/test_checks.py::TestCacheChecks`
+- [x] T065 [US-3] Write `TestSecretKeyCheck` asserting a production-critical error both when the secret key is absent and when it carries an insecure or published value (FR-017, SC-006)  
+  **Done (US-3):** `tests/test_conf/test_checks.py::TestSecretKeyChecks` — absent, `django-insecure-` prefixed, and shorter than 50 characters
+- [x] T066 [US-3] Implement the secret-key production-critical check as FairDM's own error-severity check, not delegated to Django's warning-severity one (FR-017)  
+  **Done (US-3):** `fairdm/conf/checks.py:163` — FairDM's own Error-severity `check_secret_key_exists`, rejecting the published prefix at :159 and a short key at :160 · `tests/test_conf/test_checks.py::TestSecretKeyChecks`
 - [x] T067 [US-3] Write `TestAllowedHostsCheck` asserting a production-critical error when allowed hosts is empty or wildcarded (FR-017, SC-006)  
   **Done (A3):** `fairdm/conf/checks.py:145` · `tests/test_conf/test_checks.py::TestAllowedHostsChecks::test_check_allowed_hosts_configured_empty` — Wildcard half covered by TestAllowedHostsChecks::test_check_allowed_hosts_secure_wildcard.
 - [x] T068 [US-3] Implement the allowed-hosts production-critical check (FR-016, FR-017)  
@@ -163,26 +163,26 @@ ordering and the baseline-wide audits.
   **Done (A3):** `fairdm/conf/checks.py:194` · `tests/test_conf/test_checks.py::TestDebugChecks::test_check_debug_false_enabled`
 - [x] T070 [US-3] Implement the debug-off production-critical check (FR-016, FR-017)  
   **Done (A3):** `fairdm/conf/checks.py:193` · `tests/test_conf/test_checks.py::TestDebugChecks::test_check_debug_false_disabled`
-- [ ] T071 [US-3] Write `tests/test_apps.py::TestProductionBoot` asserting that with `DJANGO_ENV=production` and several production-critical values missing at once, `FairDMConfig.ready()` raises an error naming every failure, not the first (FR-013, SC-003)  
-  **Open (A3, never_built):** The 'production fails' tests all call the deprecated validate_services() with a hand-built settings dict; none boots an app registry or proves startup aborts.
-- [ ] T072 [US-3] Implement aggregation of every production-critical check failure into a single raised error in `FairDMConfig.ready()`, selecting the subset by a dedicated production-critical tag applied to the five checks research R5 names and withheld from the Celery checks — `deploy=True` alone would block a boot on a missing worker, which R5 rejects (FR-013, FR-016)  
-  **Open (A3, never_built):** FairDMConfig.ready() imports the checks module to register it and returns; it never runs or aggregates anything, so nothing in the boot path can stop a misconfigured production portal.
-- [ ] T073 [US-3] Write `TestNonProductionBoot` asserting the same missing values under `development` start successfully with no configuration-check output emitted, **and** that FairDM's check ids are still present in Django's check registry in that environment, so the FR-014 guard cannot suppress registration (FR-014, FR-015, SC-004)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T074 [US-3] Implement the environment guard in `FairDMConfig.ready()` so checks run only when the resolved environment is production (FR-014)  
-  **Open (A3, never_built):** No guard exists because no checks run at boot in any environment.
-- [ ] T075 [US-3] Write `tests/test_conf/test_checks.py::TestDeployCommand` asserting `manage.py check --deploy` reports the full check set against production standards regardless of the current resolved environment (FR-015)  
-  **Open (A3, partial):** `tests/test_conf/test_checks.py::TestCheckCommandIntegration::test_check_deploy_fails_with_errors` — Proves check --deploy surfaces one error id and passes on a valid config, but never varies DJANGO_ENV, so FR-015's 'regardless of environment' clause is unasserted.
-- [ ] T076 [US-3] Move check registration out of `FairDMConfig.ready()`'s body to module import, so the full set participates in the deployment check command independently of the FR-014 guard T074 adds (FR-015, FR-016)  
-  **Open (A3 + S3R DR-003, partial):** `fairdm/conf/checks.py:28` · registration is triggered from inside `fairdm/apps.py:20`, the body of the method T074 is about to guard, and no test can prove independence until the guard exists.
-- [ ] T077 [US-3] Write `TestSyntacticallyUnusableValue` asserting a production-critical value that is present but syntactically unusable (e.g. a malformed database URL) fails its check distinctly from an absent value (edge case, FR-017)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T078 [US-3] Implement the syntactic-validity branch of the affected production-critical check(s) (edge case, FR-017)  
-  **Open (A3, never_built):** No check parses or validates the syntax of any value; they test presence and known-bad literals only.
-- [ ] T079 [US-3] Write `tests/test_conf/test_conf_init.py::TestNoSecondValidationPath` asserting `fairdm.conf`'s public API exposes no second configuration-validation entry point beyond the check framework (FR-018)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T080 [US-3] Delete the second validation path: `validate_services()` at `fairdm/conf/checks.py:269`, the comment at `setup.py:172-174`, its documented migration note, and all 51 test references (research R7) — `TestStagingSetup` goes in full per D1, and `validate_addon_module` stays because FR-022 still needs it (FR-018)  
-  **Open (A3, built_differently):** `fairdm/conf/checks.py:269` — validate_services() (:269) and validate_addon_module() (:452) still raise ImproperlyConfigured on their own and are still the subject under test in four test classes; unreachable from setup(), but FR-018 forbids it existing.
+- [x] T071 [US-3] Write `tests/test_apps.py::TestProductionBoot` asserting that with `DJANGO_ENV=production` and several production-critical values missing at once, `FairDMConfig.ready()` raises an error naming every failure, not the first (FR-013, SC-003)  
+  **Done (US-3):** `tests/test_apps.py::TestProductionBoot::test_boot_fails_naming_every_missing_or_unsafe_value` — boots a subprocess and asserts every failure is named
+- [x] T072 [US-3] Implement aggregation of every production-critical check failure into a single raised error in `FairDMConfig.ready()`, selecting the subset by a dedicated production-critical tag applied to the five checks research R5 names and withheld from the Celery checks — `deploy=True` alone would block a boot on a missing worker, which R5 rejects (FR-013, FR-016)  
+  **Done (US-3):** `fairdm/apps.py:43` — `_check_production_configuration()` runs the `production_critical` tag and raises one `SystemCheckError` naming every serious issue; the tag is applied to 8 check functions and withheld from both Celery checks · `tests/test_apps.py::TestProductionBoot`
+- [x] T073 [US-3] Write `TestNonProductionBoot` asserting the same missing values under `development` start successfully with no configuration-check output emitted, **and** that FairDM's check ids are still present in Django's check registry in that environment, so the FR-014 guard cannot suppress registration (FR-014, FR-015, SC-004)  
+  **Done (US-3):** `tests/test_apps.py::TestNonProductionBoot` — silent boot, and the check ids stay registered
+- [x] T074 [US-3] Implement the environment guard in `FairDMConfig.ready()` so checks run only when the resolved environment is production (FR-014)  
+  **Done (US-3):** `fairdm/apps.py:50` — the environment guard, returning before any check runs outside production · `tests/test_apps.py::TestNonProductionBoot`
+- [x] T075 [US-3] Write `tests/test_conf/test_checks.py::TestDeployCommand` asserting `manage.py check --deploy` reports the full check set against production standards regardless of the current resolved environment (FR-015)  
+  **Done (US-3):** `tests/test_conf/test_checks.py::TestDeployCommand::test_deploy_check_reports_the_same_failure_regardless_of_django_env`
+- [x] T076 [US-3] Move check registration out of `FairDMConfig.ready()`'s body to module import, so the full set participates in the deployment check command independently of the FR-014 guard T074 adds (FR-015, FR-016)  
+  **Done (US-3):** `fairdm/apps.py:7` — registration moved to module import, outside the guarded method body · `tests/test_conf/test_checks.py::TestDeployCommand`
+- [x] T077 [US-3] Write `TestSyntacticallyUnusableValue` asserting a production-critical value that is present but syntactically unusable (e.g. a malformed database URL) fails its check distinctly from an absent value (edge case, FR-017)  
+  **Done (US-3):** `tests/test_conf/test_checks.py::TestSyntacticallyUnusableValue::test_malformed_database_url_fails_distinctly_from_absent`
+- [x] T078 [US-3] Implement the syntactic-validity branch of the affected production-critical check(s) (edge case, FR-017)  
+  **Done (US-3):** `fairdm/conf/checks.py:78` — `check_database_usable` (fairdm.E102), a distinct id from E100 (absent) · `tests/test_conf/test_checks.py::TestSyntacticallyUnusableValue`
+- [x] T079 [US-3] Write `tests/test_conf/test_conf_init.py::TestNoSecondValidationPath` asserting `fairdm.conf`'s public API exposes no second configuration-validation entry point beyond the check framework (FR-018)  
+  **Done (US-3):** `tests/test_conf/test_conf_init.py::TestNoSecondValidationPath`
+- [x] T080 [US-3] Delete the second validation path: `validate_services()` at `fairdm/conf/checks.py:269`, the comment at `setup.py:172-174`, its documented migration note, and all 51 test references (research R7) — `TestStagingSetup` goes in full per D1, and `validate_addon_module` stays because FR-022 still needs it (FR-018)  
+  **Done (US-3):** `validate_services()` and its 39 test references deleted; `grep -rn validate_services fairdm/ tests/` returns only the assertion that it is gone. `validate_addon_module` retained for FR-022 · `tests/test_conf/test_conf_init.py::TestNoSecondValidationPath`
 
 ## Phase 2: US-4 — see which layer produced a setting (P2)
 
@@ -239,8 +239,8 @@ ordering and the baseline-wide audits.
 
 - [x] T103 [P] [US-2] Write `docs/portal-development/configuration.md` covering the entry point, all five layers from FR-008, the environment variable, the environment files, the check behaviour and the interrogation command, using the recommended `config/<environment>.py` project structure in every example and stating that the portal override module is resolved beside the settings module (FR-023, FR-024, SC-007)  
   **Closed (US-2):** rewritten for the five-layer contract. Superseded finding — `docs/portal-development/configuration.md:1` — The page documents the superseded design: three fixed profiles, a 7-step order whose steps 6-7 are **overrides and in-setup() validation, and a section recommending **overrides; it never mentions the five-layer order, the portal override module, or an interrogation command.
-- [ ] T104 [P] [US-3] Write `docs/portal-administration/configuration-checks.md` covering the production-critical check subset, the production-boot failure behaviour, and how to run the full check set on demand (FR-015, FR-023)  
-  **Open (A3, partial):** `docs/portal-administration/configuration-checks.md:1` — Covers the check subset and how to run the full set on demand, but says nothing about production-boot failure behaviour, and still carries a migration section referencing validate_services().
+- [x] T104 [P] [US-3] Write `docs/portal-administration/configuration-checks.md` covering the production-critical check subset, the production-boot failure behaviour, and how to run the full check set on demand (FR-015, FR-023)  
+  **Done (US-3):** `docs/portal-administration/configuration-checks.md:1` — the production-critical subset and its ids, boot-failure behaviour, and the environment-agnostic on-demand run
 - [ ] T105 [P] [US-1] Update the package README and CHANGELOG for the new `fairdm.setup()` public entry point and the removed `**overrides` argument (Article VI/XVII)  
   **Open (A3, never_built):** Neither README nor CHANGELOG mentions the entry point, and **overrides is still in the signature.
 
@@ -305,4 +305,16 @@ Every task above was walked against the codebase. A task is ticked only where im
 Proven done: T001, T002, T003, T061, T062, T067, T068, T069, T070.
 
 Evidence baseline: `poetry run pytest tests/test_conf` — 60 passed, 3 skipped.
+
+## Progress since A3
+
+The A3 figures above are that stage's snapshot and are left as recorded. Current state:
+
+| | Tasks | Done | Notes |
+|---|---|---|---|
+| After A3 | 104 | 9 | T087 dropped as a step Django does not have |
+| After US-2 | 107 | 34 | T106 (the bundled portal's boot), T107 (the `LANGUAGES` / `PARLER_LANGUAGES` coupling) and T108 (the January spec artefacts) added at convergence |
+| After US-3 | 107 | 51 | T059–T080 and T104 closed |
+
+Evidence at US-3 convergence: `poetry run pytest` — 1326 passed, 70 skipped.
 

@@ -68,3 +68,46 @@ accepted: all seven cited tests were run and pass, and a `file.py:line` citation
 which the ledger schema had no field for. `evidence.code` added to
 `kit/schemas/feature-state.schema.json` — optional elsewhere, but the audit lane closes a task on
 code *and* test, and a rule with nowhere to record its evidence is not enforceable.
+
+**2026-08-13 — US-2 IMPLEMENTED (`c2de13b`..`5d04ca4`).** `setup()` composes five declared layers,
+`DJANGO_ENV` is read literally with no allowlist, both override layers are selected by file
+existence, `staging.py` is deleted and the `**overrides` kwarg is gone. Verified independently:
+1325 tests pass, and three mutations red the suite — restoring the allowlist (3 tests), disabling
+the portal-override layer (4), swapping the two override layers (1).
+
+One regression the implementer missed: wiring `config/production.py` in as a real portal override
+broke startup, because it narrows `LANGUAGES` while the baseline hardcodes `PARLER_LANGUAGES` with
+a language it removes, and django-parler validates one against the other at import. Nothing caught
+it because every test imports `tests/settings.py` — the bundled example portal was untested. T106
+now boots it under both environments, and T107 holds the underlying coupling as work for US-5.
+
+**2026-08-13 — US-3 IMPLEMENTED (`65262af`..`2673b0a`).** The seventeen assigned tasks closed:
+`FairDMConfig.ready()` refuses a production boot naming every production-critical failure at once,
+the guard silences everything outside production, check registration moved to module import so
+`check --deploy` is unaffected by it, the cache check became an allowlist, the secret-key check
+rejects a published or short key, a malformed database URL fails distinctly from an absent one, and
+`validate_services()` is gone with its 39 test references.
+
+Three defects found at convergence rather than accepted from the report:
+
+1. **The suite was passing on a leak.** `TestBundledPortalBoots[production]` was green only because
+   an addon test cleared and repopulated `os.environ` without restoring it, leaking a working
+   `DATABASE_URL` and `REDIS_URL` into every later test in the process. Run alone it failed on E101
+   and E200 — correctly, since it supplied neither. Both tests now own their environment, and the
+   bundled-portal test builds its subprocess environment from a sanitised copy rather than
+   inheriting whatever the shell or an earlier test left behind. Mutation-checked: breaking
+   `config/production.py` still reds it.
+2. **The mypy hook failure was not pre-existing.** The report recorded it as an environment issue
+   because it reproduced on untouched files. It was caused by this story: django-stubs imports
+   `tests/settings.py` with no `DJANGO_ENV` set, that resolves to production, and production now
+   refuses to boot on a development-shaped configuration. pytest hid it by supplying the value
+   through pytest-env. The module now declares its own environment and a test boots it with
+   `DJANGO_ENV` unset.
+3. **Coverage deleted with `validate_services()` was not replaced.** Its tests required a secret key
+   of 50+ characters; the new check tested only absence and the insecure prefix, so a three-character
+   key would have passed a production boot. Django reports the same condition as `security.W009`, a
+   warning, which cannot block. Restored at error severity. The cache check's hint also named
+   `CACHE_URL`, a variable nothing reads — the settings module reads `REDIS_URL`.
+
+Verified at convergence: 1326 tests pass, pre-commit clean including mypy, four mutations red the
+suite.
