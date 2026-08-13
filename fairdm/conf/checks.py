@@ -5,7 +5,6 @@ Provides fail-fast validation for production and graceful degradation for develo
 """
 
 import logging
-from typing import Any
 
 from django.conf import settings
 from django.core.checks import Error, Tags, register
@@ -18,6 +17,10 @@ class DeployTags(Tags):
     """Custom tags for deployment-related checks."""
 
     deploy = "deploy"
+    #: The subset FairDMConfig.ready() runs and aggregates in production
+    #: (research R5) — withheld from the Celery checks, since a portal may
+    #: legitimately run without a worker (FR-013, FR-016).
+    production_critical = "production_critical"
 
 
 # =============================================================================
@@ -25,7 +28,7 @@ class DeployTags(Tags):
 # =============================================================================
 
 
-@register(Tags.database, DeployTags.deploy, deploy=True)
+@register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_configured(app_configs, **kwargs):
     """
     Check that DATABASES['default'] is configured.
@@ -48,7 +51,7 @@ def check_database_configured(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.database, DeployTags.deploy, deploy=True)
+@register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_production_ready(app_configs, **kwargs):
     """
     Check that production uses PostgreSQL, not SQLite.
@@ -71,15 +74,56 @@ def check_database_production_ready(app_configs, **kwargs):
     return errors
 
 
+@register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_database_usable(app_configs, **kwargs):
+    """
+    Check that DATABASES['default'] carries a usable database name — distinct
+    from being absent outright (fairdm.E100), this catches a syntactically
+    malformed DATABASE_URL that parses to a present dict with no NAME (e.g.
+    ``postgresql://`` with nothing after the scheme) (edge case, FR-017).
+
+    Error ID: fairdm.E102
+    """
+    errors = []
+    databases = getattr(settings, "DATABASES", {})
+    default_db = databases.get("default", {})
+
+    if default_db and not default_db.get("NAME"):
+        errors.append(
+            Error(
+                "DATABASES['default'] is configured but has no NAME — "
+                "DATABASE_URL is likely malformed.",
+                hint="Set DATABASE_URL to a complete PostgreSQL connection string.",
+                id="fairdm.E102",
+            )
+        )
+
+    return errors
+
+
 # =============================================================================
 # CACHE CHECKS
 # =============================================================================
 
 
-@register(Tags.caches, DeployTags.deploy, deploy=True)
+#: Backends shared across processes, suitable for production (FR-016, FR-017).
+#: Anything else — absent, empty, locmem, dummy, filebased, or unrecognised —
+#: is per-process or per-filesystem and fails the check.
+SHARED_CACHE_BACKENDS = frozenset(
+    {
+        "django_redis.cache.RedisCache",
+        "django.core.cache.backends.memcached.PyMemcacheCache",
+        "django.core.cache.backends.memcached.PyLibMCCache",
+    }
+)
+
+
+@register(Tags.caches, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_cache_backend(app_configs, **kwargs):
     """
-    Check that production uses persistent cache, not locmem or dummy.
+    Check that production uses a shared cache backend (e.g. Redis or
+    Memcached), not an absent, empty, or per-process backend such as locmem,
+    dummy or filebased.
 
     Error ID: fairdm.E200
     """
@@ -88,16 +132,11 @@ def check_cache_backend(app_configs, **kwargs):
     default_cache = caches.get("default", {})
     backend = default_cache.get("BACKEND", "")
 
-    development_backends = [
-        "django.core.cache.backends.locmem.LocMemCache",
-        "django.core.cache.backends.dummy.DummyCache",
-    ]
-
-    if backend in development_backends:
+    if backend not in SHARED_CACHE_BACKENDS:
         errors.append(
             Error(
-                f"Cache backend '{backend}' is not suitable for production.",
-                hint="Set CACHE_URL to Redis or Memcached. Example: redis://localhost:6379/1",
+                f"Cache backend '{backend or '(none)'}' is not a shared cache suitable for production.",
+                hint="Set REDIS_URL to a Redis instance. Example: redis://localhost:6379/1",
                 id="fairdm.E200",
             )
         )
@@ -110,10 +149,23 @@ def check_cache_backend(app_configs, **kwargs):
 # =============================================================================
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+#: Django's own generated-development-key prefix. FairDM's shipped fallback
+#: (fairdm/conf/environment.py) carries it too, so this also catches a
+#: portal that boots on FairDM's own published default (SC-006).
+INSECURE_SECRET_KEY_PREFIX = "django-insecure-"  # noqa: S105 — a prefix, not a password
+
+#: The length below which Django's own security.W009 calls a key too easily
+#: brute-forced. Reproduced at error severity so it can block a boot.
+MINIMUM_SECRET_KEY_LENGTH = 50
+
+
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_secret_key_exists(app_configs, **kwargs):
     """
-    Check that SECRET_KEY is set and not empty.
+    Check that SECRET_KEY is set, non-empty, and not a published or
+    otherwise insecure value — FairDM's own error-severity check, kept
+    alongside Django's warning-severity security.W009 so this one can
+    actually block a boot (research R5).
 
     Error ID: fairdm.E001
     """
@@ -132,6 +184,25 @@ def check_secret_key_exists(app_configs, **kwargs):
                 id="fairdm.E001",
             )
         )
+    elif secret_key.startswith(INSECURE_SECRET_KEY_PREFIX):
+        errors.append(
+            Error(
+                "SECRET_KEY carries an insecure, published value.",
+                hint="Set DJANGO_SECRET_KEY to a private, randomly generated value of 50+ characters.",
+                id="fairdm.E001",
+            )
+        )
+    elif len(secret_key) < MINIMUM_SECRET_KEY_LENGTH:
+        errors.append(
+            Error(
+                f"SECRET_KEY is only {len(secret_key)} characters long.",
+                hint=(
+                    "Set DJANGO_SECRET_KEY to a random string of "
+                    f"{MINIMUM_SECRET_KEY_LENGTH}+ characters."
+                ),
+                id="fairdm.E001",
+            )
+        )
 
     return errors
 
@@ -141,7 +212,7 @@ def check_secret_key_exists(app_configs, **kwargs):
 # =============================================================================
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_allowed_hosts_configured(app_configs, **kwargs):
     """
     Check that ALLOWED_HOSTS is not empty.
@@ -163,7 +234,7 @@ def check_allowed_hosts_configured(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_allowed_hosts_secure(app_configs, **kwargs):
     """
     Check that ALLOWED_HOSTS doesn't contain wildcard '*'.
@@ -190,7 +261,7 @@ def check_allowed_hosts_secure(app_configs, **kwargs):
 # =============================================================================
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_debug_false(app_configs, **kwargs):
     """
     Check that DEBUG is False in production.
@@ -262,191 +333,8 @@ def check_celery_async(app_configs, **kwargs):
 
 
 # =============================================================================
-# LEGACY VALIDATION FUNCTIONS (TO BE DEPRECATED)
+# ADDON VALIDATION
 # =============================================================================
-
-
-def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
-    """
-    DEPRECATED: Use Django's check framework instead.
-
-    Validate that required services are configured correctly.
-
-    This function is deprecated and will be removed in a future version.
-    Use `python manage.py check --deploy` to validate production readiness.
-
-    Args:
-        env_profile: The resolved environment name (e.g. "production", "development")
-        settings_dict: The settings dictionary to validate
-
-    Raises:
-        ImproperlyConfigured: In production if required services are missing
-    """
-    import warnings
-
-    warnings.warn(
-        "validate_services() is deprecated. Use 'python manage.py check --deploy' instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    is_production_like = env_profile == "production"
-    errors = []
-    warnings_list = []
-
-    # =============================================================================
-    # DATABASE VALIDATION
-    # =============================================================================
-
-    databases = settings_dict.get("DATABASES", {})
-    default_db = databases.get("default", {})
-
-    if not default_db:
-        msg = "DATABASES['default'] is not configured. Set DATABASE_URL environment variable."
-        if is_production_like:
-            errors.append(msg)
-        else:
-            warnings_list.append(msg)
-    elif (
-        default_db.get("ENGINE") == "django.db.backends.sqlite3" and is_production_like
-    ):
-        errors.append(
-            "SQLite is not recommended for production. Set DATABASE_URL to a PostgreSQL connection string."
-        )
-
-    # =============================================================================
-    # CACHE VALIDATION
-    # =============================================================================
-
-    caches = settings_dict.get("CACHES", {})
-    default_cache = caches.get("default", {})
-    cache_backend = default_cache.get("BACKEND", "")
-
-    if "locmem" in cache_backend.lower() or "dummy" in cache_backend.lower():
-        msg = (
-            f"Cache backend '{cache_backend}' is not suitable for production. "
-            "Set REDIS_URL environment variable for Redis cache."
-        )
-        if is_production_like:
-            errors.append(msg)
-        else:
-            warnings_list.append(msg)
-
-    # =============================================================================
-    # SECRET KEY VALIDATION
-    # =============================================================================
-
-    secret_key = settings_dict.get("SECRET_KEY", "")
-
-    if not secret_key:
-        errors.append(
-            "SECRET_KEY is not set. Set DJANGO_SECRET_KEY environment variable."
-        )
-    elif "insecure" in secret_key.lower() and is_production_like:
-        errors.append(
-            "SECRET_KEY contains 'insecure' - this appears to be a development key. "
-            "Set a proper DJANGO_SECRET_KEY for production."
-        )
-    elif len(secret_key) < 50:
-        msg = f"SECRET_KEY is too short ({len(secret_key)} characters). Recommended: 50+ characters."
-        if is_production_like:
-            errors.append(msg)
-        else:
-            warnings_list.append(msg)
-
-    # =============================================================================
-    # ALLOWED_HOSTS VALIDATION
-    # =============================================================================
-
-    allowed_hosts = settings_dict.get("ALLOWED_HOSTS", [])
-
-    if is_production_like:
-        if not allowed_hosts:
-            errors.append(
-                "ALLOWED_HOSTS is empty. Set DJANGO_ALLOWED_HOSTS environment variable."
-            )
-        elif "*" in allowed_hosts:
-            errors.append(
-                "ALLOWED_HOSTS contains '*' (wildcard). This is insecure for production. "
-                "Set specific domains in DJANGO_ALLOWED_HOSTS."
-            )
-
-    # =============================================================================
-    # DEBUG MODE VALIDATION
-    # =============================================================================
-
-    debug = settings_dict.get("DEBUG", False)
-
-    if debug and is_production_like:
-        errors.append(
-            "DEBUG is True in production. This is a security risk. Ensure DJANGO_DEBUG is set to False."
-        )
-
-    # =============================================================================
-    # HTTPS/SSL VALIDATION
-    # =============================================================================
-
-    if is_production_like:
-        if not settings_dict.get("SECURE_SSL_REDIRECT", False):
-            warnings_list.append(
-                "SECURE_SSL_REDIRECT is False. Consider enabling HTTPS redirect in production."
-            )
-
-        if settings_dict.get("SESSION_COOKIE_SECURE", True) is False:
-            errors.append("SESSION_COOKIE_SECURE must be True in production.")
-
-        if settings_dict.get("CSRF_COOKIE_SECURE", True) is False:
-            errors.append("CSRF_COOKIE_SECURE must be True in production.")
-
-    # =============================================================================
-    # CELERY BROKER VALIDATION
-    # =============================================================================
-
-    celery_broker = settings_dict.get("CELERY_BROKER_URL", "")
-    celery_eager = settings_dict.get("CELERY_TASK_ALWAYS_EAGER", False)
-
-    if celery_eager and is_production_like:
-        errors.append(
-            "CELERY_TASK_ALWAYS_EAGER is True. Async tasks will run synchronously. "
-            "Set REDIS_URL to enable proper task queue."
-        )
-
-    if not celery_broker and is_production_like:
-        errors.append(
-            "CELERY_BROKER_URL is not set. Background tasks require Redis. Set REDIS_URL environment variable."
-        )
-
-    # =============================================================================
-    # REPORT FINDINGS
-    # =============================================================================
-
-    # Log warnings
-    for warning in warnings_list:
-        logger.warning(f"Configuration Warning: {warning}")
-
-    # Fail fast in production if errors exist
-    if errors:
-        error_message = "\n\n".join(
-            [
-                "❌ Configuration Validation Failed",
-                f"Environment: {env_profile}",
-                "",
-                "The following configuration errors were detected:",
-                "",
-                *[f"  • {error}" for error in errors],
-                "",
-                "Please fix these issues before starting the application.",
-            ]
-        )
-
-        if is_production_like:
-            raise ImproperlyConfigured(error_message)
-        else:
-            logger.error(error_message)
-            logger.warning(
-                "⚠️  Continuing in development mode despite configuration errors. "
-                "These would prevent startup in production."
-            )
 
 
 def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -> bool:

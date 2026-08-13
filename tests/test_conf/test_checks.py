@@ -1,12 +1,9 @@
 """
 Integration tests for fairdm.conf configuration checks.
 
-These tests verify that Django's check framework integration works correctly
-and that all configuration validation logic is properly tested, including the
-legacy per-profile ``validate_services()`` function.
+These tests verify that Django's check framework integration works
+correctly and that all configuration validation logic is properly tested.
 """
-
-import os
 
 import pytest
 from django.core.checks import Error
@@ -85,6 +82,37 @@ class TestDatabaseChecks:
         assert errors == []
 
 
+class TestSyntacticallyUnusableValue:
+    """A production-critical value that is present but syntactically
+    unusable fails distinctly from an absent value (edge case, FR-017)."""
+
+    @override_settings(
+        DATABASES={
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": "",
+                "USER": "",
+                "PASSWORD": "",
+                "HOST": "",
+                "PORT": "",
+            }
+        }
+    )
+    def test_malformed_database_url_fails_distinctly_from_absent(self):
+        """DATABASE_URL='postgresql://' parses to a dict with ENGINE but no NAME —
+        present and non-empty, so check_database_configured (fairdm.E100) does
+        not fire, but the database is still unusable."""
+        from fairdm.conf.checks import check_database_configured, check_database_usable
+
+        assert check_database_configured(app_configs=None) == []
+
+        errors = check_database_usable(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E102"
+
+
 class TestCacheChecks:
     """Tests for cache configuration checks."""
 
@@ -132,6 +160,46 @@ class TestCacheChecks:
 
         assert errors == []
 
+    @override_settings(CACHES={})
+    def test_check_cache_backend_caches_absent(self):
+        """Check returns ERROR when CACHES is not configured at all (FR-017)."""
+        from fairdm.conf.checks import check_cache_backend
+
+        errors = check_cache_backend(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E200"
+
+    @override_settings(CACHES={"default": {}})
+    def test_check_cache_backend_default_empty(self):
+        """Check returns ERROR when CACHES['default'] is an empty dict (FR-017)."""
+        from fairdm.conf.checks import check_cache_backend
+
+        errors = check_cache_backend(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E200"
+
+    @override_settings(
+        CACHES={
+            "default": {
+                "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+                "LOCATION": "/tmp/cache",
+            }
+        }
+    )
+    def test_check_cache_backend_filebased_is_not_shared(self):
+        """A backend that is neither locmem nor dummy still fails if not shared (FR-017)."""
+        from fairdm.conf.checks import check_cache_backend
+
+        errors = check_cache_backend(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E200"
+
 
 class TestSecretKeyChecks:
     """Tests for SECRET_KEY configuration checks."""
@@ -157,6 +225,34 @@ class TestSecretKeyChecks:
         errors = check_secret_key_exists(app_configs=None)
 
         assert errors == []
+
+    @override_settings(SECRET_KEY="django-insecure-" + "a" * 50)
+    def test_check_secret_key_exists_insecure_prefix(self):
+        """Check returns ERROR when SECRET_KEY carries the published insecure prefix (FR-017, SC-006)."""
+        from fairdm.conf.checks import check_secret_key_exists
+
+        errors = check_secret_key_exists(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E001"
+        assert "insecure" in errors[0].msg.lower()
+
+    @override_settings(SECRET_KEY="short-key")
+    def test_check_secret_key_exists_too_short(self):
+        """Check returns ERROR when SECRET_KEY is short enough to be brute-forced (FR-017).
+
+        Django reports the same condition as security.W009, a warning, which
+        cannot block a boot.
+        """
+        from fairdm.conf.checks import check_secret_key_exists
+
+        errors = check_secret_key_exists(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E001"
+        assert "50" in errors[0].hint
 
 
 class TestAllowedHostsChecks:
@@ -315,261 +411,20 @@ class TestCheckCommandIntegration:
         call_command("check", deploy=True)
 
 
-@pytest.fixture
-def minimal_dev_env():
-    """Provide minimal development environment (no backing services)."""
-    env_vars = {
-        "DJANGO_ENV": "development",
-        "DJANGO_SITE_DOMAIN": "localhost:8000",
-        "DJANGO_SITE_NAME": "Dev Portal",
-        # Intentionally omit DATABASE_URL, REDIS_URL, etc. to test degradation
-    }
+class TestDeployCommand:
+    """``manage.py check --deploy`` assesses against production standards
+    regardless of the current resolved environment (FR-015)."""
 
-    # Save original env
-    original_env = os.environ.copy()
+    @pytest.mark.parametrize(
+        "resolved_environment", ["production", "development", "qa", ""]
+    )
+    @override_settings(SECRET_KEY="")
+    def test_deploy_check_reports_the_same_failure_regardless_of_django_env(
+        self, resolved_environment, monkeypatch
+    ):
+        monkeypatch.setenv("DJANGO_ENV", resolved_environment)
 
-    # Clear Django-related env vars
-    for key in list(os.environ.keys()):
-        if key.startswith(
-            ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
-        ):
-            del os.environ[key]
+        with pytest.raises(SystemCheckError) as exc_info:
+            call_command("check", deploy=True)
 
-    # Set test environment
-    os.environ.update(env_vars)
-
-    yield env_vars
-
-    # Restore original environment
-    os.environ.clear()
-    os.environ.update(original_env)
-
-
-class TestDevelopmentSetup:
-    """Test development configuration loading and graceful degradation."""
-
-    def test_development_degrades_without_database_url(self, minimal_dev_env):
-        """Development should use SQLite if DATABASE_URL is not set."""
-        from fairdm.conf.checks import validate_services
-
-        # Development with SQLite should only warn, not fail
-        test_settings = {
-            "DATABASES": {
-                "default": {
-                    "ENGINE": "django.db.backends.sqlite3",
-                    "NAME": "/tmp/db.sqlite3",
-                }
-            },
-            "CACHES": {
-                "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
-            },
-            "SECRET_KEY": "dev-key-12345",  # Short but acceptable in dev
-            "ALLOWED_HOSTS": ["*"],
-            "DEBUG": True,
-            "SESSION_COOKIE_SECURE": False,
-            "CSRF_COOKIE_SECURE": False,
-        }
-
-        # Should not raise - development allows degraded config
-        validate_services("development", test_settings)
-
-    def test_development_allows_locmem_cache(self, minimal_dev_env):
-        """Development should allow LocMemCache without failing."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {
-                "default": {
-                    "ENGINE": "django.db.backends.postgresql",
-                }
-            },
-            "CACHES": {
-                "default": {
-                    "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-                }
-            },
-            "SECRET_KEY": "a" * 50,
-            "ALLOWED_HOSTS": ["*"],
-            "DEBUG": True,
-            "SESSION_COOKIE_SECURE": False,
-            "CSRF_COOKIE_SECURE": False,
-        }
-
-        # Should not raise - development allows LocMemCache
-        validate_services("development", test_settings)
-
-    def test_development_allows_short_secret_key(self, minimal_dev_env):
-        """Development should allow shorter SECRET_KEY with warning."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {
-                "default": {
-                    "ENGINE": "django.db.backends.postgresql",
-                }
-            },
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "short",  # Short but acceptable in development
-            "ALLOWED_HOSTS": ["*"],
-            "DEBUG": True,
-            "SESSION_COOKIE_SECURE": False,
-            "CSRF_COOKIE_SECURE": False,
-        }
-
-        # Should not raise - development allows short keys with warning
-        validate_services("development", test_settings)
-
-    def test_development_allows_debug_true(self, minimal_dev_env):
-        """Development should allow DEBUG=True."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {
-                "default": {
-                    "ENGINE": "django.db.backends.postgresql",
-                }
-            },
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "a" * 50,
-            "ALLOWED_HOSTS": ["*"],
-            "DEBUG": True,  # Allowed in development
-            "SESSION_COOKIE_SECURE": False,
-            "CSRF_COOKIE_SECURE": False,
-        }
-
-        # Should not raise - DEBUG=True is expected in development
-        validate_services("development", test_settings)
-
-    def test_development_allows_insecure_cookies(self, minimal_dev_env):
-        """Development should allow insecure cookies."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {
-                "default": {
-                    "ENGINE": "django.db.backends.postgresql",
-                }
-            },
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "a" * 50,
-            "ALLOWED_HOSTS": ["*"],
-            "DEBUG": True,
-            "SESSION_COOKIE_SECURE": False,  # Allowed in development
-            "CSRF_COOKIE_SECURE": False,  # Allowed in development
-        }
-
-        # Should not raise - insecure cookies OK in development
-        validate_services("development", test_settings)
-
-    def test_development_still_requires_secret_key(self, minimal_dev_env):
-        """Development should still require some SECRET_KEY."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {
-                "default": {
-                    "ENGINE": "django.db.backends.postgresql",
-                }
-            },
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "",  # Empty is still not allowed
-            "ALLOWED_HOSTS": ["*"],
-            "DEBUG": True,
-            "SESSION_COOKIE_SECURE": False,
-            "CSRF_COOKIE_SECURE": False,
-        }
-
-        # Should log error but not raise in development
-        validate_services("development", test_settings)
-
-
-class TestProductionSetup:
-    """Test production configuration loading."""
-
-    def test_production_requires_secret_key(self, production_env):
-        """Production should fail without SECRET_KEY."""
-        from fairdm.conf.checks import validate_services
-
-        del os.environ["DJANGO_SECRET_KEY"]
-
-        test_settings = {
-            "DATABASES": {"default": {"ENGINE": "django.db.backends.postgresql"}},
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "",  # Empty secret key
-            "ALLOWED_HOSTS": ["example.com"],
-            "DEBUG": False,
-            "SESSION_COOKIE_SECURE": True,
-            "CSRF_COOKIE_SECURE": True,
-        }
-
-        with pytest.raises(Exception, match="SECRET_KEY"):
-            validate_services("production", test_settings)
-
-    def test_production_requires_allowed_hosts(self, production_env):
-        """Production should fail without ALLOWED_HOSTS."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {"default": {"ENGINE": "django.db.backends.postgresql"}},
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "a" * 60,
-            "ALLOWED_HOSTS": [],  # Empty allowed hosts
-            "DEBUG": False,
-            "SESSION_COOKIE_SECURE": True,
-            "CSRF_COOKIE_SECURE": True,
-        }
-
-        with pytest.raises(Exception, match="ALLOWED_HOSTS"):
-            validate_services("production", test_settings)
-
-    def test_production_validates_database(self, production_env):
-        """Production should validate database configuration."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {},  # No database configured
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "a" * 60,
-            "ALLOWED_HOSTS": ["example.com"],
-            "DEBUG": False,
-            "SESSION_COOKIE_SECURE": True,
-            "CSRF_COOKIE_SECURE": True,
-        }
-
-        with pytest.raises(Exception, match="DATABASE"):
-            validate_services("production", test_settings)
-
-    def test_production_rejects_debug_true(self, production_env):
-        """Production should reject DEBUG=True."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {"default": {"ENGINE": "django.db.backends.postgresql"}},
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "a" * 60,
-            "ALLOWED_HOSTS": ["example.com"],
-            "DEBUG": True,  # DEBUG should be False in production
-            "SESSION_COOKIE_SECURE": True,
-            "CSRF_COOKIE_SECURE": True,
-        }
-
-        with pytest.raises(Exception, match="DEBUG"):
-            validate_services("production", test_settings)
-
-    def test_production_enforces_https_cookies(self, production_env):
-        """Production should require secure cookies."""
-        from fairdm.conf.checks import validate_services
-
-        test_settings = {
-            "DATABASES": {"default": {"ENGINE": "django.db.backends.postgresql"}},
-            "CACHES": {"default": {"BACKEND": "django_redis.cache.RedisCache"}},
-            "SECRET_KEY": "a" * 60,
-            "ALLOWED_HOSTS": ["example.com"],
-            "DEBUG": False,
-            "SESSION_COOKIE_SECURE": False,  # Should be True
-            "CSRF_COOKIE_SECURE": True,
-        }
-
-        with pytest.raises(Exception, match="SESSION_COOKIE_SECURE"):
-            validate_services("production", test_settings)
-
+        assert "fairdm.E001" in str(exc_info.value)
