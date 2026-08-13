@@ -85,6 +85,37 @@ class TestDatabaseChecks:
         assert errors == []
 
 
+class TestSyntacticallyUnusableValue:
+    """A production-critical value that is present but syntactically
+    unusable fails distinctly from an absent value (edge case, FR-017)."""
+
+    @override_settings(
+        DATABASES={
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": "",
+                "USER": "",
+                "PASSWORD": "",
+                "HOST": "",
+                "PORT": "",
+            }
+        }
+    )
+    def test_malformed_database_url_fails_distinctly_from_absent(self):
+        """DATABASE_URL='postgresql://' parses to a dict with ENGINE but no NAME —
+        present and non-empty, so check_database_configured (fairdm.E100) does
+        not fire, but the database is still unusable."""
+        from fairdm.conf.checks import check_database_configured, check_database_usable
+
+        assert check_database_configured(app_configs=None) == []
+
+        errors = check_database_usable(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E102"
+
+
 class TestCacheChecks:
     """Tests for cache configuration checks."""
 

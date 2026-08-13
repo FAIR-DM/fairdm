@@ -75,6 +75,33 @@ def check_database_production_ready(app_configs, **kwargs):
     return errors
 
 
+@register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_database_usable(app_configs, **kwargs):
+    """
+    Check that DATABASES['default'] carries a usable database name — distinct
+    from being absent outright (fairdm.E100), this catches a syntactically
+    malformed DATABASE_URL that parses to a present dict with no NAME (e.g.
+    ``postgresql://`` with nothing after the scheme) (edge case, FR-017).
+
+    Error ID: fairdm.E102
+    """
+    errors = []
+    databases = getattr(settings, "DATABASES", {})
+    default_db = databases.get("default", {})
+
+    if default_db and not default_db.get("NAME"):
+        errors.append(
+            Error(
+                "DATABASES['default'] is configured but has no NAME — "
+                "DATABASE_URL is likely malformed.",
+                hint="Set DATABASE_URL to a complete PostgreSQL connection string.",
+                id="fairdm.E102",
+            )
+        )
+
+    return errors
+
+
 # =============================================================================
 # CACHE CHECKS
 # =============================================================================
