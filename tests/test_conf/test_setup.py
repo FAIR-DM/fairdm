@@ -136,6 +136,142 @@ class TestLayerOrder:
         assert module.DEBUG == "portal-wins"
 
 
+class TestProvenance:
+    """Test the provenance record ``setup()`` builds while composing layers
+    (FR-019, FR-020, research R2)."""
+
+    def test_records_one_entry_per_layer_with_name_path_found_and_settings(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+        (tmp_path / "development.py").write_text("PORTAL_OVERRIDE_MARKER = 'portal'\n")
+
+        settings_module(
+            setup_call="fairdm.setup(addons=['tests.test_conf.dummy_addon'])",
+            directory=tmp_path,
+        )
+
+        from fairdm.conf import record
+
+        layers = record.layers()
+        assert [layer.name for layer in layers] == [
+            "baseline",
+            "fairdm override",
+            "addons",
+            "portal override",
+        ]
+
+        for layer in layers:
+            assert layer.found is True
+            assert layer.path is not None
+            assert layer.settings, f"{layer.name} recorded no settings"
+
+        baseline, fairdm_override, addons, portal_override = layers
+        # Layer 1 — a setting only the production baseline sets.
+        assert "SESSION_COOKIE_HTTPONLY" in baseline.settings
+        # Layer 2 — FairDM's development.py sets DEBUG = True.
+        assert "DEBUG" in fairdm_override.settings
+        # Layer 3 — the dummy addon's setup module.
+        assert "DUMMY_ADDON_INSTALLED" in addons.settings
+        # Layer 4 — the portal's own override module.
+        assert "PORTAL_OVERRIDE_MARKER" in portal_override.settings
+
+    def test_record_never_holds_secret_values_only_their_names(
+        self, production_env, tmp_path, settings_module
+    ):
+        secret_key = "s3cr3t-key-marker-" + "x" * 40
+        db_password = "db-password-marker-9f8a7b6c"
+        email_password = "email-password-marker-1a2b3c"
+        os.environ["DJANGO_ENV"] = "production"
+        os.environ["DJANGO_SECRET_KEY"] = secret_key
+        os.environ["DATABASE_URL"] = (
+            f"postgresql://user:{db_password}@localhost:5432/testdb"
+        )
+        os.environ["EMAIL_HOST_PASSWORD"] = email_password
+
+        settings_module(directory=tmp_path)
+
+        from fairdm.conf import record
+
+        record_text = repr(record.layers())
+
+        assert secret_key not in record_text
+        assert db_password not in record_text
+        assert email_password not in record_text
+
+        # The setting NAMES that carried those values are legitimately present.
+        all_settings = {
+            name for layer in record.layers() for name in layer.settings
+        }
+        assert "SECRET_KEY" in all_settings
+        assert "DATABASES" in all_settings
+        assert "EMAIL_HOST_PASSWORD" in all_settings
+
+    def test_absent_layers_are_recorded_as_absent_not_omitted(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"  # no FairDM or portal override for "qa"
+
+        settings_module(directory=tmp_path)
+
+        from fairdm.conf import record
+
+        by_name = {layer.name: layer for layer in record.layers()}
+
+        assert "fairdm override" in by_name
+        assert by_name["fairdm override"].found is False
+        assert by_name["fairdm override"].settings == ()
+
+        assert "portal override" in by_name
+        assert by_name["portal override"].found is False
+        assert by_name["portal override"].settings == ()
+
+    def test_producer_names_the_layer_that_wrote_the_final_value(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+        (tmp_path / "development.py").write_text("DEBUG = 'portal-wins'\n")
+
+        module = settings_module(directory=tmp_path)
+
+        from fairdm.conf import record
+
+        producer = record.producer("DEBUG")
+
+        assert producer is not None
+        assert producer.name == "portal override"
+        # Not merely last in the list — the resolved value really is what
+        # the named layer wrote.
+        assert module.DEBUG == "portal-wins"
+
+
+class TestProvenanceCoversEverySetting:
+    """Every setting a baseline module sets names a producing layer (SC-005)."""
+
+    #: Bookkeeping keys ``setup()`` injects itself, not settings any layer
+    #: names (see ``TestProductionVsDevelopmentDiff``).
+    BOOKKEEPING_KEYS = {"DJANGO_ENV", "BASE_DIR", "FAIRDM_APPS"}
+
+    def test_every_baseline_setting_names_a_producing_layer(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands alone
+
+        module = settings_module(directory=tmp_path)
+
+        from fairdm.conf import record
+
+        resolved_settings = {
+            key for key in vars(module) if key.isupper()
+        } - self.BOOKKEEPING_KEYS
+
+        unattributed = [
+            name for name in resolved_settings if record.producer(name) is None
+        ]
+
+        assert not unattributed, f"unattributed settings: {sorted(unattributed)}"
+
+
 class TestShippedOverrides:
     """Test which override modules FairDM itself ships (FR-009)."""
 

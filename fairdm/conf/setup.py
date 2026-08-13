@@ -42,9 +42,30 @@ from pathlib import Path
 import environ
 from split_settings.tools import include
 
+from . import record
 from .addons import load_addons
 
 logger = logging.getLogger(__name__)
+
+
+def _uppercase_scope(scope: dict) -> dict:
+    """Every uppercase key in ``scope`` and its current value — Django's
+    settings convention, also used for the bookkeeping keys ``setup()``
+    injects itself (research R2)."""
+    return {key: value for key, value in scope.items() if key.isupper()}
+
+
+def _written_keys(before: dict, after: dict) -> list[str]:
+    """The uppercase keys a layer wrote: new keys, or keys whose value the
+    layer reassigned to a different object. A layer that only mutates an
+    existing container in place, rather than reassigning it, is not
+    detected here — the same limit ``snapshot_scope`` in
+    ``tests/test_conf/conftest.py`` documents."""
+    return sorted(
+        key
+        for key, value in after.items()
+        if key not in before or before[key] is not value
+    )
 
 
 def setup(
@@ -148,6 +169,13 @@ def setup(
         }
     )
 
+    # The provenance record (FR-019, FR-020, research R2): setup() snapshots
+    # the scope's uppercase keys before and after each layer's include() call
+    # and records the delta as that layer's contribution. A settings module
+    # executes once per process, so a fresh setup() call replaces the record
+    # rather than appending to it.
+    record.reset()
+
     # Load all settings modules from settings/ directory (production baseline)
     logger.info("Loading production baseline settings...")
 
@@ -166,35 +194,72 @@ def setup(
         "settings/api.py",  # REST API (DRF, drf-spectacular, CORS) — Feature 011
     ]
 
+    before = _uppercase_scope(caller_globals)
     include(*settings_modules, scope=caller_globals)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "baseline",
+        str(Path(__file__).parent / "settings"),
+        True,
+        _written_keys(before, after),
+    )
 
     # Layer 2 — FairDM's own override module for the resolved environment.
     # Selected by existence, not from a fixed list of permitted names: FairDM
     # ships only development.py, but any name is looked up the same way
     # (FR-009, FR-010).
     fairdm_override = Path(__file__).parent / f"{env_profile}.py"
-    if fairdm_override.exists():
+    fairdm_override_found = fairdm_override.exists()
+    before = _uppercase_scope(caller_globals)
+    if fairdm_override_found:
         logger.info(
             f"Applying FairDM {env_profile} overrides from {fairdm_override.name}"
         )
         include(fairdm_override.name, scope=caller_globals)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "fairdm override",
+        str(fairdm_override),
+        fairdm_override_found,
+        _written_keys(before, after),
+    )
 
     # Layer 3 — settings contributed by addons.
+    addon_setup_modules: list[str] = []
+    before = _uppercase_scope(caller_globals)
     if addons:
         addon_setup_modules = load_addons(addons, env_profile)
         if addon_setup_modules:
             include(*addon_setup_modules, scope=caller_globals)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "addons",
+        ", ".join(addon_setup_modules) if addon_setup_modules else None,
+        bool(addon_setup_modules),
+        _written_keys(before, after),
+    )
 
     # Layer 4 — the portal's own override module for the resolved environment,
     # resolved beside its settings module rather than a hardcoded directory
     # (FR-011). Also selected by existence; skipped without error if absent.
+    portal_override: Path | None = None
+    portal_override_found = False
+    before = _uppercase_scope(caller_globals)
     if portal_settings_dir is not None:
         portal_override = portal_settings_dir / f"{env_profile}.py"
-        if portal_override.exists():
+        portal_override_found = portal_override.exists()
+        if portal_override_found:
             logger.info(
                 f"Applying portal {env_profile} overrides from {portal_override}"
             )
             include(str(portal_override), scope=caller_globals)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "portal override",
+        str(portal_override) if portal_override else None,
+        portal_override_found,
+        _written_keys(before, after),
+    )
 
     # Layer 5 — assignment after this call returns, in the portal's own
     # settings module. Nothing to do here; that is the portal's own code.
