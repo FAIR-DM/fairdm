@@ -38,6 +38,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-14T00:30:00Z",
       "note": "US-5 implemented and independently verified; two gaps in the implementer's T107 found and fixed at convergence (T110) \u2014 the check ran Django's whole translation tag, and its only call site was too late for a portal's own parler-model apps"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-14T02:10:00Z",
+      "note": "US-6 implemented and independently verified; one defect found and fixed at convergence (T111) \u2014 the addon scratch scope copied and merged back names Django never reads, rebinding containers the portal shares with its own modules. T113 makes the container copy load-bearing, T112 restores a second vacuous skipped test."
     }
   ],
   "gates": {
@@ -1993,54 +1998,242 @@
       "id": "US6",
       "priority": "P3",
       "issue": 134,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/fairdm/fairdm-us6",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T094",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonPosition::test_addon_setting_beats_fairdm_environment_override"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:305"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T095",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonPosition::test_addon_setting_beats_fairdm_environment_override"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:305"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T096",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonPosition::test_portal_environment_override_beats_addon_setting"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:337"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T097",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonValidation::test_broken_addon_fails_fast_in_production"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:499"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T098",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonValidation::test_broken_addon_fails_fast_in_production"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:499"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T099",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_invalid_module_fails_gracefully_in_development"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:502"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T100",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_invalid_module_fails_gracefully_in_development"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:502",
+              "fairdm/conf/checks.py:512"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T101",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonPartialFailure::test_partial_write_does_not_reach_settings_in_production",
+              "tests/test_conf/test_addons.py::TestAddonPartialFailure::test_partial_write_does_not_reach_settings_in_development"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:316"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T102",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonPartialFailure::test_partial_write_does_not_reach_settings_in_production",
+              "tests/test_conf/test_addons.py::TestAddonPartialFailure::test_partial_write_does_not_reach_settings_in_development"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:316",
+              "fairdm/conf/setup.py:326",
+              "fairdm/conf/addons.py:47"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T111",
+          "attempts": 1,
+          "status": "done",
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonScopeIsolation::test_portal_non_setting_objects_keep_their_identity"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:114"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T112",
+          "attempts": 1,
+          "status": "done",
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_without_setup_module_logs_warning"
+            ],
+            "code": [
+              "fairdm/conf/addons.py:75"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T113",
+          "attempts": 1,
+          "status": "done",
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonScopeIsolation::test_in_place_mutation_by_a_failing_addon_is_discarded"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:91"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1423 passed, 68 skipped",
+              "poetry run pre-commit run --files <5 touched files>  # all hooks pass, mypy and deptry included",
+              "forge verify --base 446f493  # conformance, lint, typecheck, test, build all green"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     }

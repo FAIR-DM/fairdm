@@ -375,3 +375,55 @@ holds the line.
 environment-dependent — parler raises identically under `development` — so gating the *message* to
 production would leave a developer with the bare traceback and nothing else. Replacing a crash with
 a named error changes no environment's outcome, only what it says. Recorded as T107 and T110.
+
+## D18 — an addon's settings are applied to a private copy of the scope, and that copy holds only settings
+
+**FR-021, FR-022. Recorded at the US-6 convergence, 2026-08-14.**
+
+`split_settings`' `include()` executes a settings module directly against whatever dictionary it is
+given, so an addon that raises partway through its own setup module leaves everything it wrote up to
+that point in the composed scope. FR-022 says such an addon is treated as unloadable — failing the
+boot in production, warned about and skipped elsewhere — and "skipped" is not true of a scope that
+kept half its writes. Layer 3 therefore applies each addon to a private scratch copy and merges it
+into the caller's scope only when the module returns.
+
+**The copy is a deep one, and only of settings.** Two separate corrections, both made at convergence:
+
+1. **Deep, because a shallow copy shares the object `INSTALLED_APPS += [...]` mutates.** The
+   implementer argued this in its report but shipped no test that distinguished the two: the fixture
+   addon rebinds a name before raising, which a shallow copy already isolates. `T113` adds a fixture
+   that appends to `INSTALLED_APPS` in place, and a shallow scratch scope reds it.
+2. **Only settings, because merging the copy back rebinds whatever it copied.** As delivered,
+   `_scratch_scope` copied every mutable container in the caller's scope — the portal's own imports
+   and helpers, and `__builtins__`, which is a dict rather than a module in an imported module — and
+   the success path merged all of them back over the originals. A portal that imports a list or dict
+   shared with one of its own modules and appends to it after the `setup()` call would have been
+   appending to a copy nothing else could see: precisely the surprise this feature exists to remove.
+   Django reads uppercase names and nothing else, so the copy is confined to those and everything
+   lowercase stays in the scratch scope by reference, which makes merging it back a no-op. `T111`.
+
+**An internal signature changed to keep the error message useful.** `discover_addon_setup_modules`
+and `load_addons` return `(addon_name, path)` pairs rather than bare paths, so a failure applying a
+module can still name the addon it came from. This is internal to `fairdm.conf` with one consumer
+and does not touch the `__fdm_setup_module__` protocol, which R27 owns.
+
+## D19 — the two vacuous skipped addon tests are replaced, not re-skipped
+
+**Recorded at the US-6 convergence, 2026-08-14. `forge tamper-check` flag on `tests/test_conf/test_addons.py`.**
+
+Three pre-existing tests in `test_addons.py` were changed, and all three are strengthenings:
+
+- `test_broken_addon_fails_fast_in_production` asserted `pytest.raises(Exception)` around executing a
+  generated settings module, which any unrelated failure satisfies. It now requires
+  `ImproperlyConfigured` and that the message names the addon (T097).
+- `test_addon_with_invalid_module_fails_gracefully_in_development` and
+  `test_addon_without_setup_module_logs_warning` were both `@pytest.mark.skip`, reason "Windows path
+  escaping issue in dynamically generated settings file", and both bodies began with a bare `pass`
+  before unreachable code — so each asserted nothing on any platform, including the one CI runs on.
+  Both are rewritten against the `settings_module` fixture, which builds the module for them and
+  removes the escaping the skip was about (T099, T112).
+
+The warnings are observed by patching the logger call rather than through `caplog`:
+`tests/settings.py` sets `disable_existing_loggers`, which silently defeats `caplog` for any logger
+created before Django's settings load. That convention was already established in
+`test_setup.py::TestPortalOverride`.

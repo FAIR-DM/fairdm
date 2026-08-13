@@ -221,24 +221,31 @@ ordering and the baseline-wide audits.
 
 ## Phase 3: US-6 — an addon contributes settings at a defined point (P3)
 
-- [ ] T094 [US-6] Write `tests/test_conf/test_addons.py::TestAddonPosition` asserting an addon named in `setup()` applies its settings after FairDM's environment override and before the portal's environment override (FR-008, FR-021, scenario 1)  
-  **Open (A3, never_built):** `fairdm/conf/setup.py:148` — test_addons.py asserts that addon settings land, never their position relative to another layer.
-- [ ] T095 [US-6] Implement addon settings application at that position in `fairdm/conf/addons.py`, wired into `setup.py`'s layer composition (FR-021)  
-  **Open (A3, built_differently):** `fairdm/conf/setup.py:148` — Addons apply after FairDM's env override, which is half of FR-008, but there is no portal env override layer; what follows addons is the **overrides update and the SPECTACULAR fixup.
-- [ ] T096 [US-6] Extend `TestAddonPosition` with a case asserting a portal's override of a setting the addon also set wins (FR-021, scenario 1 tail)  
-  **Open (A3, never_built):** Not testable until the portal override layer exists.
-- [ ] T097 [US-6] Write `TestAddonFailureProduction` asserting an addon that cannot be loaded prevents startup in production and names the addon in the error (FR-022, scenario 2)  
-  **Open (A3, partial):** `fairdm/conf/checks.py:487` · `tests/test_conf/test_addons.py::TestAddonValidation::test_broken_addon_fails_fast_in_production` — The test asserts only pytest.raises(Exception) around executing a generated settings module, so any unrelated failure satisfies it; it also calls os.environ.clear() with no restore fixture.
-- [ ] T098 [US-6] Implement the production failure path for an unloadable addon (FR-022)  
-  **Open (A3, no_test):** `fairdm/conf/checks.py:487` — validate_addon_module raises ImproperlyConfigured naming the addon, but the only covering test does not prove the raise came from the addon path.
-- [ ] T099 [US-6] Write `TestAddonFailureNonProduction` asserting the same failure in a non-production environment emits a warning, skips the addon, and lets the portal start (FR-022, scenario 3)  
-  **Open (A3, never_built):** test_addon_with_invalid_module_fails_gracefully_in_development is one of the 3 skips, and its body begins with a bare pass before dead code.
-- [ ] T100 [US-6] Implement the non-production warn-and-skip path for an unloadable addon (FR-022)  
-  **Open (A3, built_differently):** `fairdm/conf/checks.py:490` — The non-production path skips the addon but logs at DEBUG, not the warning FR-022 requires, so a skipped addon is invisible at default log level.
-- [ ] T101 [US-6] Write `TestAddonPartialFailure` asserting an addon whose settings module raises partway through is treated as unloadable rather than left half-applied (edge case, FR-022)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T102 [US-6] Implement partial-failure handling so a partway addon exception is caught and routed through the same unloadable-addon path (edge case, FR-022)  
-  **Open (A3, never_built):** validate_addon_module only calls find_spec and never imports; include(*addon_setup_modules) at setup.py:151 is unguarded, so a partway exception leaves the settings scope half-mutated.
+- [x] T094 [US-6] Write `tests/test_conf/test_addons.py::TestAddonPosition` asserting an addon named in `setup()` applies its settings after FairDM's environment override and before the portal's environment override (FR-008, FR-021, scenario 1)  
+  **Closed (US-6):** `tests/test_conf/test_addons.py::TestAddonPosition::test_addon_setting_beats_fairdm_environment_override` · `fairdm/conf/setup.py:305` — the fixture addon sets `DEBUG`, which FairDM's own `development.py` also sets, so the test proves the order rather than merely that the addon's settings land. Passed without a code change: layer 3 already applied after layer 2. Mutation: moving the addon block ahead of the FairDM override reds it.
+- [x] T095 [US-6] Implement addon settings application at that position in `fairdm/conf/addons.py`, wired into `setup.py`'s layer composition (FR-021)  
+  **Closed (US-6):** `fairdm/conf/setup.py:305` — the A3 note is stale. The portal override layer it says is missing was built at US-4, and addons already apply between the two overrides. Closed on that reading plus T094's test, with no code change.
+- [x] T096 [US-6] Extend `TestAddonPosition` with a case asserting a portal's override of a setting the addon also set wins (FR-021, scenario 1 tail)  
+  **Closed (US-6):** `tests/test_conf/test_addons.py::TestAddonPosition::test_portal_environment_override_beats_addon_setting` · `fairdm/conf/setup.py:337` — the portal ships a `development.py` setting the same `DEBUG` the addon sets. Mutation: moving the addon block after the portal override reds it.
+- [x] T097 [US-6] Write `TestAddonFailureProduction` asserting an addon that cannot be loaded prevents startup in production and names the addon in the error (FR-022, scenario 2)  
+  **Closed (US-6):** `tests/test_conf/test_addons.py::TestAddonValidation::test_broken_addon_fails_fast_in_production` — the pre-existing test was strengthened in place from `pytest.raises(Exception)` to `ImproperlyConfigured` plus an assertion the message names the addon, and moved onto a fixture that restores `os.environ`.
+- [x] T098 [US-6] Implement the production failure path for an unloadable addon (FR-022)  
+  **Closed (US-6):** `fairdm/conf/checks.py:499` — `validate_addon_module` already raised `ImproperlyConfigured` naming the addon. Closed on that reading plus T097's strengthened test, with no code change.
+- [x] T099 [US-6] Write `TestAddonFailureNonProduction` asserting the same failure in a non-production environment emits a warning, skips the addon, and lets the portal start (FR-022, scenario 3)  
+  **Closed (US-6):** `tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_invalid_module_fails_gracefully_in_development` — replaces the skip whose body was a bare `pass` before dead code, using the `settings_module` fixture and the `tests/test_conf/unloadable_addon` package. Red before T100 for the right reason: no warning at the old DEBUG level.
+- [x] T100 [US-6] Implement the non-production warn-and-skip path for an unloadable addon (FR-022)  
+  **Closed (US-6):** `fairdm/conf/checks.py:502` and `:512` — both non-production `except` clauses log at WARNING rather than DEBUG. Mutation: reverting either to `logger.debug` reds T099's test.
+- [x] T101 [US-6] Write `TestAddonPartialFailure` asserting an addon whose settings module raises partway through is treated as unloadable rather than left half-applied (edge case, FR-022)  
+  **Closed (US-6):** `tests/test_conf/test_addons.py::TestAddonPartialFailure` (both methods) · fixture package `tests/test_conf/broken_execution_addon/`, whose setup module writes a setting and then raises. Red before T102 for the right reason: the `RuntimeError` propagated raw.
+- [x] T102 [US-6] Implement partial-failure handling so a partway addon exception is caught and routed through the same unloadable-addon path (edge case, FR-022)  
+  **Closed (US-6):** `fairdm/conf/setup.py:316` and `:326` · `fairdm/conf/addons.py:47` — layer 3 applies each addon to a private scratch scope and merges only on success, routing a failure through the same production-raise / non-production-warn split as an addon that could not be found. `discover_addon_setup_modules` and `load_addons` now return `(addon_name, path)` pairs so a failure can still name the addon. Mutations: restoring the unguarded `include(*paths, scope=caller_globals)` reds both partial-failure tests; removing the production raise reds the production one.
+
+- [x] T111 [US-6] Scope the addon scratch copy to settings, so applying an addon does not rebind names Django never reads in the portal's own namespace (FR-021)  
+  **Closed (US-6, convergence):** `tests/test_conf/test_addons.py::TestAddonScopeIsolation::test_portal_non_setting_objects_keep_their_identity` · `fairdm/conf/setup.py:114` — `_scratch_scope` copied every mutable container in the caller's scope, including lowercase names and `__builtins__` (a dict in an imported module), and the success path merged all of them back. A portal that imports a list or dict shared with another module and appends to it after the `setup()` call was appending to a copy nothing else could see. Red before the fix for that reason.
+- [x] T112 [US-6] Restore the second vacuous skipped addon test — an addon defining no `__fdm_setup_module__` is warned about by name and skipped (FR-022)  
+  **Closed (US-6, convergence):** `tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_without_setup_module_logs_warning` · `fairdm/conf/addons.py:75` — skipped for a path-escaping problem in a hand-built settings file and beginning with a bare `pass` before dead code, so it asserted nothing on any platform. The `settings_module` fixture removes the escaping the skip was about. Mutation: dropping the addon name from the warning reds it.
+- [x] T113 [US-6] Cover what the scratch copy guards — an addon that mutates a settings container in place and then raises (edge case, FR-022)  
+  **Closed (US-6, convergence):** `tests/test_conf/test_addons.py::TestAddonScopeIsolation::test_in_place_mutation_by_a_failing_addon_is_discarded` · `fairdm/conf/setup.py:91` — no test distinguished the deep copy from a shallow one, because `broken_execution_addon` rebinds a name before raising and a shallow copy already isolates that. The new fixture appends to `INSTALLED_APPS` in place. Mutation: making the scratch a shallow `dict(caller_globals)` reds it.
 
 ## Documentation
 
@@ -283,8 +290,8 @@ ordering and the baseline-wide audits.
 | FR-018 | T079, T080 |
 | FR-019 | T081, T082, T083, T085, T086 |
 | FR-020 | T081, T084, T088, T089 |
-| FR-021 | T094, T095, T096 |
-| FR-022 | T097–T102 |
+| FR-021 | T094, T095, T096, T111 |
+| FR-022 | T097–T102, T112, T113 |
 | FR-023 | T103, T104 |
 | FR-024 | T103 |
 | SC-001 | T052 |
@@ -324,6 +331,7 @@ The A3 figures above are that stage's snapshot and are left as recorded. Current
 | After US-1 | 107 | 83 | T004–T007 and T031–T058 closed. T105 (README/CHANGELOG) and T108 (the January spec artefacts) stay with the orchestrator |
 | After US-4 | 108 | 93 | T081–T086 and T088–T090 closed. T109 added and closed at convergence — the identity diff missed a layer that appends |
 | After US-5 | 109 | 98 | T091–T093 and T107 closed. T110 added and closed at convergence — the check ran Django's whole `translation` tag, and its only call site was too late for a portal's own parler-model apps |
+| After US-6 | 112 | 110 | T094–T102 closed. T111–T113 added and closed at convergence — the addon scratch scope copied and merged back names Django never reads, nothing distinguished the deep copy from a shallow one, and a second vacuous skipped test was still in the file |
 
 Evidence at US-3 convergence: `poetry run pytest` — 1326 passed, 70 skipped.
 
@@ -331,3 +339,5 @@ Evidence at US-1 convergence: `poetry run pytest` — 1391 passed, 70 skipped; `
 
 Evidence at US-4 convergence: `poetry run pytest` — 1401 passed, 70 skipped; `poetry run pre-commit run --files <7 touched files>` — every hook passes, mypy included. Five mutations red the tests that should catch them: reverting the before-snapshot to an identity diff reds 2, making `producer()` return the first layer rather than the last reds 3, storing values beside names in the record reds 7, omitting absent layers reds 2, and dropping `cleanse_setting()` reds 1.
 
+
+Evidence at US-6 convergence: `poetry run pytest` — 1423 passed, 68 skipped; `poetry run pre-commit run --files <5 touched files>` — every hook passes, mypy and deptry included; `forge verify --base 446f493` — conformance, lint, typecheck, test and build all green. Six mutations red the tests that should catch them: restoring the unguarded `include(*paths, scope=caller_globals)` reds 2, reverting the non-production log to DEBUG reds 1, removing the production raise reds 1, moving the addon layer ahead of FairDM's override reds 2, moving it after the portal's reds 1, and making the scratch scope a shallow copy reds 1.

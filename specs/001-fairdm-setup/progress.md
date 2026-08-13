@@ -190,3 +190,44 @@ said so.** `tests/test_conf/test_conf_init.py` (added in US-3) and `tests/test_m
 `test_setup.py` as another `Test*` class, since `setup()` is its subject; the second moved to
 `tests/test_management/test_commands/`, mirroring `fairdm/management/commands/show_config.py`.
 US-3 and US-4 were reported verified on `pytest` and `pre-commit` alone, which do not include it.
+
+## US-6 — an addon contributes settings at a defined point (2026-08-14)
+
+Implemented in `fairdm-us6`, converged onto the feature branch at `4688cb5`. T094–T102 closed, plus
+T111–T113 added and closed at convergence. 110 of 112 tasks now closed; the two open are T105
+(README and CHANGELOG) and T108 (the surviving January spec artefacts), both held by the orchestrator.
+
+**Four of the nine tasks needed no production code**, and the reconciliation notes saying otherwise
+were stale rather than wrong at the time: A3 recorded that no portal environment override layer
+existed and that the production failure path was unimplemented, both of which US-2 and US-4 have since
+built. Closed on a reading of the current code plus tests that prove the position rather than assume
+it — the fixture addon sets a value FairDM's own `development.py` also sets, so the test fails if the
+order changes.
+
+**One defect found at convergence, and it is the one the isolation was for.** The scratch scope an
+addon executes against copied every mutable container in the caller's scope and merged all of them
+back on success — lowercase names and `__builtins__` included. A portal sharing a list or dict with
+one of its own modules would have found its post-`setup()` mutations landing on a copy. Fixed by
+confining the copy to uppercase names (T111). Full reasoning in D18.
+
+**One claim in the implementer's report was true but untested.** It argued a deep copy over a shallow
+one because an addon's in-place `+=` would otherwise reach the real scope even when discarded. That is
+correct, and no test in the delivered set could tell the two apart, because the fixture addon rebinds a
+name rather than mutating a container. T113 adds one that does; a shallow scratch scope reds it.
+
+**A second vacuous skipped test was still in the file.** The brief permitted replacing one, and the
+implementer replaced it. `test_addon_without_setup_module_logs_warning` had the same shape — skipped
+for a path-escaping problem, body beginning with a bare `pass` before dead code — and covers this
+story's own subject. Restored as T112. D19.
+
+**Verification run independently of the implementer's report:** `poetry run pytest` — 1423 passed,
+68 skipped; `poetry run pre-commit run --files <5 touched files>` — every hook green including mypy
+and deptry; `forge verify --base 446f493` — conformance, lint, typecheck, test and build all green.
+Six mutations red the tests that should catch them: restoring the unguarded
+`include(*paths, scope=caller_globals)` reds both partial-failure tests, reverting the non-production
+log to DEBUG reds T099's, removing the production raise reds the production partial-failure test,
+moving the addon layer ahead of FairDM's override reds two, moving it after the portal's reds one,
+and making the scratch scope a shallow copy reds T113's.
+
+`forge tamper-check` flagged `tests/test_conf/test_addons.py`; adjudicated in D19 — three
+pre-existing tests changed, all three strengthened.
