@@ -360,7 +360,11 @@ def _parler_languages_missing_from_languages(languages, parler_languages) -> set
             continue
         for choice in choices:
             code = choice.get("code")
-            if code and code not in language_codes and code.split("-")[0] not in language_codes:
+            if (
+                code
+                and code not in language_codes
+                and code.split("-")[0] not in language_codes
+            ):
                 missing.add(code)
     return missing
 
