@@ -74,6 +74,9 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "fairdm/conf/__init__.py:1"
             ]
           }
         },
@@ -87,6 +90,9 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "fairdm/conf/settings/__init__.py:1"
             ]
           }
         },
@@ -100,6 +106,9 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "tests/test_conf/__init__.py:1"
             ]
           }
         },
@@ -428,6 +437,9 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "tests/test_conf/test_checks.py:18"
             ]
           }
         },
@@ -441,6 +453,10 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:29",
+              "fairdm/conf/checks.py:52"
             ]
           }
         },
@@ -474,6 +490,9 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "tests/test_conf/test_checks.py:162"
             ]
           }
         },
@@ -487,6 +506,10 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:145",
+              "fairdm/conf/checks.py:167"
             ]
           }
         },
@@ -500,6 +523,9 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "tests/test_conf/test_checks.py:209"
             ]
           }
         },
@@ -513,6 +539,9 @@
             ],
             "commands": [
               "poetry run pytest tests/test_conf -q"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:194"
             ]
           }
         },

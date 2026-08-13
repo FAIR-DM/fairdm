@@ -46,3 +46,25 @@ no covering test. `feature-state.json` generated from this pass — the 12 satis
 `done` with their evidence, the rest `todo`. Confirms A1's assessment: the checks framework exists
 and passes, but the layering contract itself (environment resolution, portal overrides, the
 security-critical env defaults) is still the January design, not this spec's.
+
+**2026-08-13 — S3R DESIGN REVIEW.** One reviewer, four lenses, the fourth challenging every task the
+reconciliation had ticked. The counts above are superseded: the task list settled at **104**, and
+the reviewer reopened three of the twelve, leaving **9 proven done and 95 open**. Two of the three
+were genuinely over-ticked — the cache check is a two-item deny list rather than a test that a
+shared cache is configured, and check registration sits inside the method the environment guard is
+about to wrap, so it cannot be treated as already satisfying its task.
+
+One blocking finding, and it was in the plan rather than the code: removing the fallback secret key
+by letting the read raise would kill development startup and the whole test suite, because the
+baseline is layer 1 and the development override is layer 2. The variables take an unusable sentinel
+instead, and the production-critical checks stay the only thing that refuses a boot. Four further
+remedies applied to `plan.md`, `research.md` and `tasks.md`: the production-critical subset needs its
+own tag or a missing Celery worker blocks a boot, the interrogation command moves to the directory
+Django actually scans, the provenance record holds setting names rather than values, and one task
+said "confirm" where it meant "delete".
+
+**2026-08-13 — reconciliation evidence verified.** The nine closed tasks were re-checked rather than
+accepted: all seven cited tests were run and pass, and a `file.py:line` citation was added to each,
+which the ledger schema had no field for. `evidence.code` added to
+`kit/schemas/feature-state.schema.json` — optional elsewhere, but the audit lane closes a task on
+code *and* test, and a rule with nowhere to record its evidence is not enforceable.
