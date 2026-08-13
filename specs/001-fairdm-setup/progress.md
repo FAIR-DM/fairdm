@@ -111,3 +111,42 @@ Three defects found at convergence rather than accepted from the report:
 
 Verified at convergence: 1326 tests pass, pre-commit clean including mypy, four mutations red the
 suite.
+
+**2026-08-13 — US-1 IMPLEMENTED (`4a4bcf1`..`69cde46`, squashed to `02695c9`).** The thirty-two
+assigned tasks closed. Every module under `fairdm/conf/settings/` states what it owns and what it
+leaves to the portal, and none of them branch on the resolved environment: `database.py` always
+composes a PostgreSQL URL, `cache.py` always composes a Redis-shaped `CACHES`, and `security.py`
+applies its HTTPS, cookie and HSTS headers unconditionally. `DJANGO_SECRET_KEY`,
+`DJANGO_SITE_DOMAIN` and `DJANGO_SUPERUSER_PASSWORD` lose their working fallbacks — the secret-key
+default was a value published in this package's own source. `ALLOWED_HOSTS` composes from truthy
+entries only, which makes `fairdm.E003` reachable for the first time. Portal apps register ahead of
+FairDM's own and the third-party set, and `SPECTACULAR_SETTINGS` moves out of the entry point into
+`settings/api.py`.
+
+The Implementer's session died on an API error at the final verification step, after committing all
+thirty-two tasks. Both craft-skill receipts were read out of its transcript rather than a report it
+never sent: `craft-tdd/2026-08-05/eae3b6c7` and `craft-increments/2026-08-05/d3dce07f`, both
+matching the registry.
+
+Verified at convergence, none of it accepted from a report: 1391 tests pass (up from 1326), 70
+skipped, pre-commit clean across all 32 touched files including mypy, and five mutations red the
+right tests —
+
+1. restoring the published fallback secret key and the `localhost:8000` site domain reds 6;
+2. reverting `ALLOWED_HOSTS` to `[domain] + hosts` reds 2, including the E003 reachability test;
+3. moving portal apps back to the end of `INSTALLED_APPS` reds 3, one of which asserts that a portal
+   template at the same path as FairDM's is the one actually served;
+4. dropping the placeholder-`LOCATION` condition from `check_cache_backend` reds 1;
+5. turning off `SESSION_COOKIE_SECURE` in the baseline reds 2.
+
+`tamper-check` flagged four pre-existing test files. Three are purely additive (`test_checks.py`,
+`test_conf/conftest.py`, `test_setup.py`). The fourth changes one assertion: `test_apps.py`'s
+production-boot test expected `fairdm.E101` (the SQLite fallback), and the baseline no longer has
+one, so an unconfigured database now fails as `fairdm.E102` (malformed) instead. E101 keeps its own
+unit test for a portal that configures SQLite explicitly. Adjudicated as a consequence of FR-003,
+not a weakened test.
+
+**Bookkeeping defect found and fixed in the same pass.** The US-3 convergence updated `tasks.md`
+and `progress.md` but never `feature-state.json`, which still had US-3 at `in_progress` with 17
+tasks open — two sources of truth disagreeing, with the machine-readable one wrong. Closed here
+with the same derived evidence, so the ledger and the task list now agree at 83 of 107.

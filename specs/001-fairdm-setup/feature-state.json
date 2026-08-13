@@ -65,7 +65,7 @@
       "id": "US1",
       "priority": "P1",
       "issue": 130,
-      "worktree": null,
+      "worktree": "/home/sam/projects/fairdm/fairdm-us1",
       "status": "todo",
       "replans": 0,
       "tasks": [
@@ -119,163 +119,735 @@
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/__init__.py"
+            ],
+            "code": [
+              "tests/test_conf/test_settings/__init__.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/conftest.py"
+            ],
+            "code": [
+              "tests/test_conf/conftest.py:14"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_environment.py::TestEnv::test_secret_key_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_site_domain_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_superuser_password_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_allowed_hosts_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_database_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_redis_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_reading_unset_security_critical_variables_never_raises",
+              "tests/test_conf/test_environment.py::test_secret_key_resolves_to_nothing_published_or_insecure",
+              "tests/test_conf/test_environment.py::test_site_domain_resolves_to_nothing_localhost",
+              "tests/test_conf/test_environment.py::test_superuser_password_resolves_to_nothing_admin",
+              "tests/test_conf/test_environment.py::test_settings_import_still_succeeds_with_everything_unset"
+            ],
+            "code": [
+              "fairdm/conf/environment.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_environment.py::TestEnv::test_secret_key_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_site_domain_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_superuser_password_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_allowed_hosts_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_database_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_redis_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_reading_unset_security_critical_variables_never_raises",
+              "tests/test_conf/test_environment.py::test_secret_key_resolves_to_nothing_published_or_insecure",
+              "tests/test_conf/test_environment.py::test_site_domain_resolves_to_nothing_localhost",
+              "tests/test_conf/test_environment.py::test_superuser_password_resolves_to_nothing_admin",
+              "tests/test_conf/test_environment.py::test_settings_import_still_succeeds_with_everything_unset"
+            ],
+            "code": [
+              "fairdm/conf/environment.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_configures_postgres_from_database_url",
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_composes_postgres_from_discrete_vars_when_database_url_unset",
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_never_falls_back_to_sqlite_when_unconfigured",
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_reading_unconfigured_database_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/database.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_configures_postgres_from_database_url",
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_composes_postgres_from_discrete_vars_when_database_url_unset",
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_never_falls_back_to_sqlite_when_unconfigured",
+              "tests/test_conf/test_settings/test_database.py::TestDatabase::test_reading_unconfigured_database_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/database.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_cache.py::TestCache::test_configures_redis_from_redis_url",
+              "tests/test_conf/test_settings/test_cache.py::TestCache::test_never_falls_back_to_locmem_or_dummy_when_unconfigured",
+              "tests/test_conf/test_settings/test_cache.py::TestCache::test_reading_unconfigured_cache_never_raises",
+              "tests/test_apps.py",
+              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/settings/cache.py:3",
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_cache.py::TestCache::test_configures_redis_from_redis_url",
+              "tests/test_conf/test_settings/test_cache.py::TestCache::test_never_falls_back_to_locmem_or_dummy_when_unconfigured",
+              "tests/test_conf/test_settings/test_cache.py::TestCache::test_reading_unconfigured_cache_never_raises",
+              "tests/test_apps.py",
+              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/settings/cache.py:3",
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_broker_and_result_backend_come_from_redis_url",
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_timezone_comes_from_django_time_zone",
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_tasks_are_not_eager_by_default",
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_reading_unconfigured_celery_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/celery.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_broker_and_result_backend_come_from_redis_url",
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_timezone_comes_from_django_time_zone",
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_tasks_are_not_eager_by_default",
+              "tests/test_conf/test_settings/test_celery.py::TestCelery::test_reading_unconfigured_celery_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/celery.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_static_media.py::TestStaticMedia::test_local_filesystem_storage_when_s3_unconfigured",
+              "tests/test_conf/test_settings/test_static_media.py::TestStaticMedia::test_s3_storage_when_s3_vars_configured",
+              "tests/test_conf/test_settings/test_static_media.py::TestStaticMedia::test_reading_unconfigured_static_media_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/static_media.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_static_media.py::TestStaticMedia::test_local_filesystem_storage_when_s3_unconfigured",
+              "tests/test_conf/test_settings/test_static_media.py::TestStaticMedia::test_s3_storage_when_s3_vars_configured",
+              "tests/test_conf/test_settings/test_static_media.py::TestStaticMedia::test_reading_unconfigured_static_media_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/static_media.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_argon2_is_the_preferred_password_hasher",
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_authentication_backends_include_allauth_and_guardian",
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_email_verification_is_mandatory_in_the_baseline",
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_reading_unconfigured_auth_never_raises"
+            ],
+            "code": [
+              "tests/test_conf/test_settings/test_auth.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_argon2_is_the_preferred_password_hasher",
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_authentication_backends_include_allauth_and_guardian",
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_email_verification_is_mandatory_in_the_baseline",
+              "tests/test_conf/test_settings/test_auth.py::TestAuth::test_reading_unconfigured_auth_never_raises"
+            ],
+            "code": [
+              "tests/test_conf/test_settings/test_auth.py:1",
+              "fairdm/conf/settings/auth.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T041",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_email.py::TestEmail::test_email_host_and_backend_come_from_the_environment",
+              "tests/test_conf/test_settings/test_email.py::TestEmail::test_default_from_email_derives_from_site_domain",
+              "tests/test_conf/test_settings/test_email.py::TestEmail::test_reading_unconfigured_email_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/email.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_email.py::TestEmail::test_email_host_and_backend_come_from_the_environment",
+              "tests/test_conf/test_settings/test_email.py::TestEmail::test_default_from_email_derives_from_site_domain",
+              "tests/test_conf/test_settings/test_email.py::TestEmail::test_reading_unconfigured_email_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/email.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T043",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_uses_the_shared_env_instance_not_its_own",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_sentry_initializes_when_dsn_present",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_sentry_not_initialized_when_dsn_absent",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_sentry_initializes_regardless_of_debug",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_reading_unconfigured_logging_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/environment.py:1",
+              "fairdm/conf/settings/logging.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T044",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_uses_the_shared_env_instance_not_its_own",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_sentry_initializes_when_dsn_present",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_sentry_not_initialized_when_dsn_absent",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_sentry_initializes_regardless_of_debug",
+              "tests/test_conf/test_settings/test_logging.py::TestLogging::test_reading_unconfigured_logging_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/environment.py:1",
+              "fairdm/conf/settings/logging.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T045",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_ssl_and_cookie_security_apply_unconditionally",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_security_headers_are_not_gated_by_django_secure",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_reading_unconfigured_security_never_raises",
+              "tests/test_conf/test_settings/test_security.py::test_unset_site_domain_and_allowed_hosts_yields_empty_list",
+              "tests/test_conf/test_settings/test_security.py::test_check_allowed_hosts_configured_fires_when_everything_unset",
+              "tests/test_conf/test_settings/test_security.py::test_configured_domain_and_extra_hosts_both_included"
+            ],
+            "code": [
+              "fairdm/conf/settings/security.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T046",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_ssl_and_cookie_security_apply_unconditionally",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_security_headers_are_not_gated_by_django_secure",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_reading_unconfigured_security_never_raises",
+              "tests/test_conf/test_settings/test_security.py::test_unset_site_domain_and_allowed_hosts_yields_empty_list",
+              "tests/test_conf/test_settings/test_security.py::test_check_allowed_hosts_configured_fires_when_everything_unset",
+              "tests/test_conf/test_settings/test_security.py::test_configured_domain_and_extra_hosts_both_included"
+            ],
+            "code": [
+              "fairdm/conf/settings/security.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T047",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_entry_point_has_no_post_hoc_spectacular_reconciliation",
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_spectacular_title_and_description_are_finalised_within_the_module",
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_rest_framework_and_cors_are_present",
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_reading_unconfigured_api_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/api.py:3",
+              "fairdm/conf/setup.py:201"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T048",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_entry_point_has_no_post_hoc_spectacular_reconciliation",
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_spectacular_title_and_description_are_finalised_within_the_module",
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_rest_framework_and_cors_are_present",
+              "tests/test_conf/test_settings/test_api.py::TestApi::test_reading_unconfigured_api_never_raises"
+            ],
+            "code": [
+              "fairdm/conf/settings/api.py:3",
+              "fairdm/conf/setup.py:201"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T049",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_precede_fairdm_core",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_precede_third_party_apps",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_stay_behind_django_contrib_apps",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_no_apps_argument_still_boots",
+              "tests/test_conf/test_settings/test_apps.py::TestTemplateAndStaticPrecedence::test_portal_template_wins_over_fairdm_template_at_the_same_path"
+            ],
+            "code": [
+              "fairdm/conf/settings/apps.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T050",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_precede_fairdm_core",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_precede_third_party_apps",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_stay_behind_django_contrib_apps",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_no_apps_argument_still_boots",
+              "tests/test_conf/test_settings/test_apps.py::TestTemplateAndStaticPrecedence::test_portal_template_wins_over_fairdm_template_at_the_same_path"
+            ],
+            "code": [
+              "fairdm/conf/settings/apps.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T051",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_precede_fairdm_core",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_precede_third_party_apps",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_portal_apps_stay_behind_django_contrib_apps",
+              "tests/test_conf/test_settings/test_apps.py::TestInstalledApps::test_no_apps_argument_still_boots",
+              "tests/test_conf/test_settings/test_apps.py::TestTemplateAndStaticPrecedence::test_portal_template_wins_over_fairdm_template_at_the_same_path"
+            ],
+            "code": [
+              "fairdm/conf/settings/apps.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T052",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestDevelopmentLayerApplies::test_development_overrides_debug_and_security_settings",
+              "tests/test_conf/test_setup.py::TestDevelopmentLayerApplies::test_settings_neither_module_names_stay_unchanged",
+              "tests/test_conf/test_setup.py::TestBaselineCompleteness::test_minimal_settings_module_passes_manage_py_check",
+              "tests/test_conf/test_setup.py::TestBaselineCompleteness::test_minimal_settings_module_defines_every_fairdm_owned_setting",
+              "tests/test_conf/test_setup.py::test_all_eleven_concern_modules_exist",
+              "tests/test_conf/test_setup.py::test_every_module_has_a_docstring_naming_ownership",
+              "tests/test_conf/test_setup.py::test_no_module_branches_on_the_resolved_environment"
+            ],
+            "code": [
+              "tests/test_conf/test_setup.py:213"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T053",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestDevelopmentLayerApplies::test_development_overrides_debug_and_security_settings",
+              "tests/test_conf/test_setup.py::TestDevelopmentLayerApplies::test_settings_neither_module_names_stay_unchanged",
+              "tests/test_conf/test_setup.py::TestBaselineCompleteness::test_minimal_settings_module_passes_manage_py_check",
+              "tests/test_conf/test_setup.py::TestBaselineCompleteness::test_minimal_settings_module_defines_every_fairdm_owned_setting",
+              "tests/test_conf/test_setup.py::TestBaselineModuleAudit::test_all_eleven_concern_modules_exist",
+              "tests/test_conf/test_setup.py::TestBaselineModuleAudit::test_every_module_has_a_docstring_naming_ownership",
+              "tests/test_conf/test_setup.py::TestBaselineModuleAudit::test_no_module_branches_on_the_resolved_environment"
+            ],
+            "code": [
+              "fairdm/conf/settings/addons.py:1",
+              "fairdm/conf/settings/auth.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T054",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_environment.py::TestEnv::test_secret_key_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_site_domain_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_superuser_password_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_allowed_hosts_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_database_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_redis_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_reading_unset_security_critical_variables_never_raises",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_secret_key_resolves_to_nothing_published_or_insecure",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_site_domain_resolves_to_nothing_localhost",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_superuser_password_resolves_to_nothing_admin",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_settings_import_still_succeeds_with_everything_unset",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_ssl_and_cookie_security_apply_unconditionally",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_security_headers_are_not_gated_by_django_secure",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_reading_unconfigured_security_never_raises",
+              "tests/test_conf/test_settings/test_security.py::TestAllowedHostsComposition::test_unset_site_domain_and_allowed_hosts_yields_empty_list",
+              "tests/test_conf/test_settings/test_security.py::TestAllowedHostsComposition::test_check_allowed_hosts_configured_fires_when_everything_unset",
+              "tests/test_conf/test_settings/test_security.py::TestAllowedHostsComposition::test_configured_domain_and_extra_hosts_both_included"
+            ],
+            "code": [
+              "fairdm/conf/settings/security.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T055",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_environment.py::TestEnv::test_secret_key_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_site_domain_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_superuser_password_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_allowed_hosts_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_database_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_redis_url_has_no_working_default",
+              "tests/test_conf/test_environment.py::TestEnv::test_reading_unset_security_critical_variables_never_raises",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_secret_key_resolves_to_nothing_published_or_insecure",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_site_domain_resolves_to_nothing_localhost",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_superuser_password_resolves_to_nothing_admin",
+              "tests/test_conf/test_environment.py::TestNoSecurityDefaults::test_settings_import_still_succeeds_with_everything_unset",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_ssl_and_cookie_security_apply_unconditionally",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_security_headers_are_not_gated_by_django_secure",
+              "tests/test_conf/test_settings/test_security.py::TestSecurity::test_reading_unconfigured_security_never_raises",
+              "tests/test_conf/test_settings/test_security.py::TestAllowedHostsComposition::test_unset_site_domain_and_allowed_hosts_yields_empty_list",
+              "tests/test_conf/test_settings/test_security.py::TestAllowedHostsComposition::test_check_allowed_hosts_configured_fires_when_everything_unset",
+              "tests/test_conf/test_settings/test_security.py::TestAllowedHostsComposition::test_configured_domain_and_extra_hosts_both_included"
+            ],
+            "code": [
+              "fairdm/conf/settings/security.py:3"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T056",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_secret_key_is_clearly_marked_and_not_empty",
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_secret_key_not_in_production_baseline",
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_allowed_hosts_is_localhost",
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_allowed_hosts_not_in_production_baseline"
+            ],
+            "code": [
+              "fairdm/conf/development.py:35"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T057",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_secret_key_is_clearly_marked_and_not_empty",
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_secret_key_not_in_production_baseline",
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_allowed_hosts_is_localhost",
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_development_allowed_hosts_not_in_production_baseline"
+            ],
+            "code": [
+              "fairdm/conf/development.py:35"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T058",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestDevelopmentLayerApplies::test_development_overrides_debug_and_security_settings",
+              "tests/test_conf/test_setup.py::TestDevelopmentLayerApplies::test_settings_neither_module_names_stay_unchanged",
+              "tests/test_conf/test_setup.py::test_minimal_settings_module_passes_manage_py_check",
+              "tests/test_conf/test_setup.py::test_minimal_settings_module_defines_every_fairdm_owned_setting",
+              "tests/test_conf/test_setup.py::test_all_eleven_concern_modules_exist",
+              "tests/test_conf/test_setup.py::test_every_module_has_a_docstring_naming_ownership",
+              "tests/test_conf/test_setup.py::test_no_module_branches_on_the_resolved_environment"
+            ],
+            "code": [
+              "tests/test_conf/test_setup.py:213"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1391 passed, 70 skipped",
+              "poetry run pre-commit run --files <32 touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T105",
@@ -660,18 +1232,44 @@
       "priority": "P1",
       "issue": 132,
       "worktree": "/home/sam/projects/fairdm/fairdm-us3",
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T059",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py"
+            ],
+            "code": [
+              "fairdm/apps.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T060",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py"
+            ],
+            "code": [
+              "fairdm/apps.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T061",
@@ -708,23 +1306,79 @@
         },
         {
           "id": "T063",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T064",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T065",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T066",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T067",
@@ -793,58 +1447,228 @@
         },
         {
           "id": "T071",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py"
+            ],
+            "code": [
+              "fairdm/apps.py:1",
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T072",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py"
+            ],
+            "code": [
+              "fairdm/apps.py:1",
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T073",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py"
+            ],
+            "code": [
+              "tests/test_apps.py:75"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T074",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py::TestNonProductionBoot::test_boot_succeeds_with_no_check_output",
+              "tests/test_apps.py::TestNonProductionBoot::test_check_ids_remain_registered"
+            ],
+            "code": [
+              "fairdm/apps.py:50"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_apps.py -q"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T075",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/apps.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T076",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/apps.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T077",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T078",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:120"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T079",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes",
+              "tests/test_conf/test_conf_init.py",
+              "tests/test_conf/test_setup.py::test_development_overrides_debug_and_security_settings",
+              "tests/test_conf/test_setup.py::test_settings_neither_module_names_stay_unchanged",
+              "tests/test_conf/test_setup.py::test_minimal_settings_module_passes_manage_py_check",
+              "tests/test_conf/test_setup.py::test_minimal_settings_module_defines_every_fairdm_owned_setting",
+              "tests/test_conf/test_setup.py::test_all_eleven_concern_modules_exist",
+              "tests/test_conf/test_setup.py::test_every_module_has_a_docstring_naming_ownership",
+              "tests/test_conf/test_setup.py::test_no_module_branches_on_the_resolved_environment"
+            ],
+            "code": [
+              "docs/portal-administration/configuration-checks.md:1",
+              "fairdm/conf/checks.py:120",
+              "fairdm/conf/setup.py:201"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T080",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::test_check_cache_backend_unconfigured_placeholder_fails",
+              "tests/test_conf/test_checks.py::test_check_cache_backend_real_redis_location_passes",
+              "tests/test_conf/test_conf_init.py",
+              "tests/test_conf/test_setup.py::test_development_overrides_debug_and_security_settings",
+              "tests/test_conf/test_setup.py::test_settings_neither_module_names_stay_unchanged",
+              "tests/test_conf/test_setup.py::test_minimal_settings_module_passes_manage_py_check",
+              "tests/test_conf/test_setup.py::test_minimal_settings_module_defines_every_fairdm_owned_setting",
+              "tests/test_conf/test_setup.py::test_all_eleven_concern_modules_exist",
+              "tests/test_conf/test_setup.py::test_every_module_has_a_docstring_naming_ownership",
+              "tests/test_conf/test_setup.py::test_no_module_branches_on_the_resolved_environment"
+            ],
+            "code": [
+              "docs/portal-administration/configuration-checks.md:1",
+              "fairdm/conf/checks.py:120",
+              "fairdm/conf/setup.py:201"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1326 passed, 70 skipped",
+              "poetry run pre-commit run --files <touched files>  # all hooks pass"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T104",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "docs/portal-administration/configuration-checks.md:1"
+            ],
+            "code": [
+              "docs/portal-administration/configuration-checks.md:1"
+            ],
+            "commands": [
+              "poetry run pre-commit run --files docs/portal-administration/configuration-checks.md"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

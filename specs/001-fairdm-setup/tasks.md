@@ -14,13 +14,13 @@ Package skeletons and shared test scaffolding that every story's tests import.
   **Done (A3):** `fairdm/conf/settings/__init__.py:1` · `tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded` — Empty package holding eleven concern modules; the cited test resolves a full settings scope through them.
 - [x] T003 [P] [US-1] Create `tests/test_conf/__init__.py` mirroring `fairdm/conf/` (Article X)  
   **Done (A3):** `tests/test_conf/__init__.py:1` · `tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded` — Package exists and the 60 passing tests are collected from inside it.
-- [ ] T004 [P] [US-1] Create `tests/test_conf/test_settings/__init__.py` mirroring `fairdm/conf/settings/` (Article X)  
+- [x] T004 [P] [US-1] Create `tests/test_conf/test_settings/__init__.py` mirroring `fairdm/conf/settings/` (Article X)  
   **Open (A3, never_built):** tests/test_conf/test_settings/ does not exist.
-- [ ] T005 [US-1] Write `tests/test_conf/conftest.py`: an env-var isolation fixture (saves/restores `DJANGO_ENV` and related variables per test), a fixture that builds a throwaway portal settings module on `tmp_path` with a real `__file__`, and a scope-snapshot helper reused by the provenance tests in Phase 2 (Article X)  
+- [x] T005 [US-1] Write `tests/test_conf/conftest.py`: an env-var isolation fixture (saves/restores `DJANGO_ENV` and related variables per test), a fixture that builds a throwaway portal settings module on `tmp_path` with a real `__file__`, and a scope-snapshot helper reused by the provenance tests in Phase 2 (Article X)  
   **Open (A3, partial):** `tests/test_conf/conftest.py:14` — conftest holds only production_env; no tmp_path portal-settings fixture, no scope-snapshot helper, and the env fixtures that exist are duplicated inside individual test modules.
-- [ ] T006 [US-1] Write `tests/test_conf/test_environment.py::TestEnv` asserting the shared `Env` declares `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN`, the database, cache and admin-credential variables with no *working* default — each resolves to an explicitly unusable sentinel when the variable is unset, and the read itself never raises (FR-004, FR-006, research R6)  
+- [x] T006 [US-1] Write `tests/test_conf/test_environment.py::TestEnv` asserting the shared `Env` declares `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN`, the database, cache and admin-credential variables with no *working* default — each resolves to an explicitly unusable sentinel when the variable is unset, and the read itself never raises (FR-004, FR-006, research R6)  
   **Open (A3, never_built):** tests/test_conf/test_environment.py does not exist.
-- [ ] T007 [US-1] Implement `fairdm/conf/environment.py`: the shared `django-environ` `Env()` declaration for every deployment-varying value, every security-critical variable declared with an unusable sentinel default rather than a working one (FR-004, FR-006, research R6)  
+- [x] T007 [US-1] Implement `fairdm/conf/environment.py`: the shared `django-environ` `Env()` declaration for every deployment-varying value, every security-critical variable declared with an unusable sentinel default rather than a working one (FR-004, FR-006, research R6)  
   **Open (A3, built_differently):** `fairdm/conf/environment.py:3` — The shared Env supplies working defaults for the security-critical values FR-004 forbids: DJANGO_SECRET_KEY (:15), DJANGO_SITE_DOMAIN (:19), DJANGO_SUPERUSER_PASSWORD (:10), DJANGO_ALLOWED_HOSTS=[] (:11).
 
 ## Phase 1: US-2 — vary configuration by environment through layered overrides (P1)
@@ -80,61 +80,61 @@ One task pair per named concern (US-1's acceptance scenario names: database, cac
 tasks, static/media, authentication, email, logging, security headers, REST API), plus the app
 ordering and the baseline-wide audits.
 
-- [ ] T031 [P] [US-1] Write `tests/test_conf/test_settings/test_database.py::TestDatabase` asserting the baseline configures a production-grade database from the environment with no environment branching (FR-002, FR-003)  
+- [x] T031 [P] [US-1] Write `tests/test_conf/test_settings/test_database.py::TestDatabase` asserting the baseline configures a production-grade database from the environment with no environment branching (FR-002, FR-003)  
   **Open (A3, never_built):** Such a test would fail today: settings/database.py:45 branches to SQLite.
-- [ ] T032 [P] [US-1] Implement `fairdm/conf/settings/database.py`, with a docstring stating what it owns and what it leaves to a portal (FR-002, FR-003)  
+- [x] T032 [P] [US-1] Implement `fairdm/conf/settings/database.py`, with a docstring stating what it owns and what it leaves to a portal (FR-002, FR-003)  
   **Open (A3, built_differently):** `fairdm/conf/settings/database.py:26` — Branches three ways on env-var presence (DATABASE_URL, POSTGRES_*, SQLite fallback at :45-54), so the baseline is not unconditionally production-grade.
-- [ ] T033 [P] [US-1] Write `tests/test_conf/test_settings/test_cache.py::TestCache` asserting the baseline configures a shared cache from the environment (FR-002, FR-003)  
+- [x] T033 [P] [US-1] Write `tests/test_conf/test_settings/test_cache.py::TestCache` asserting the baseline configures a shared cache from the environment (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T034 [P] [US-1] Implement `fairdm/conf/settings/cache.py` with an ownership docstring (FR-002, FR-003)  
+- [x] T034 [P] [US-1] Implement `fairdm/conf/settings/cache.py` with an ownership docstring (FR-002, FR-003)  
   **Open (A3, built_differently):** `fairdm/conf/settings/cache.py:22` — Redis only when DJANGO_CACHE and REDIS_URL are both set; falls back to LocMem (:52) then Dummy (:71).
-- [ ] T035 [P] [US-1] Write `tests/test_conf/test_settings/test_celery.py::TestCelery` asserting the baseline configures background-task (Celery) settings from the environment (FR-002, FR-003)  
+- [x] T035 [P] [US-1] Write `tests/test_conf/test_settings/test_celery.py::TestCelery` asserting the baseline configures background-task (Celery) settings from the environment (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T036 [P] [US-1] Implement `fairdm/conf/settings/celery.py` with an ownership docstring (FR-002, FR-003)  
+- [x] T036 [P] [US-1] Implement `fairdm/conf/settings/celery.py` with an ownership docstring (FR-002, FR-003)  
   **Open (A3, no_test):** `fairdm/conf/settings/celery.py:58` — Implemented with an ownership docstring and no environment branching; untested.
-- [ ] T037 [P] [US-1] Write `tests/test_conf/test_settings/test_static_media.py::TestStaticMedia` asserting the baseline configures static and media handling from the environment (FR-002, FR-003)  
+- [x] T037 [P] [US-1] Write `tests/test_conf/test_settings/test_static_media.py::TestStaticMedia` asserting the baseline configures static and media handling from the environment (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T038 [P] [US-1] Implement `fairdm/conf/settings/static_media.py` with an ownership docstring — the module `setup.py` already includes under that name (FR-002, FR-003)  
+- [x] T038 [P] [US-1] Implement `fairdm/conf/settings/static_media.py` with an ownership docstring — the module `setup.py` already includes under that name (FR-002, FR-003)  
   **Open (A3, no_test):** `fairdm/conf/settings/static_media.py:71` — Implemented as static_media.py rather than storage.py (name difference only); switches to S3 when the S3_* vars are set.
-- [ ] T039 [P] [US-1] Write `tests/test_conf/test_settings/test_auth.py::TestAuth` asserting the baseline configures authentication (FR-002, FR-003)  
+- [x] T039 [P] [US-1] Write `tests/test_conf/test_settings/test_auth.py::TestAuth` asserting the baseline configures authentication (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T040 [P] [US-1] Implement `fairdm/conf/settings/auth.py` with an ownership docstring (FR-002, FR-003)  
+- [x] T040 [P] [US-1] Implement `fairdm/conf/settings/auth.py` with an ownership docstring (FR-002, FR-003)  
   **Open (A3, no_test):** `fairdm/conf/settings/auth.py:29` — Argon2, validators, allauth and guardian backends configured; untested.
-- [ ] T041 [P] [US-1] Write `tests/test_conf/test_settings/test_email.py::TestEmail` asserting the baseline configures email from the environment (FR-002, FR-003)  
+- [x] T041 [P] [US-1] Write `tests/test_conf/test_settings/test_email.py::TestEmail` asserting the baseline configures email from the environment (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T042 [P] [US-1] Implement `fairdm/conf/settings/email.py` with an ownership docstring (FR-002, FR-003)  
+- [x] T042 [P] [US-1] Implement `fairdm/conf/settings/email.py` with an ownership docstring (FR-002, FR-003)  
   **Open (A3, no_test):** `fairdm/conf/settings/email.py:37` — Reads EMAIL_* from the shared env; untested.
-- [ ] T043 [P] [US-1] Write `tests/test_conf/test_settings/test_logging.py::TestLogging` asserting the baseline configures logging using the shared `Env`, with no environment branching (FR-002, FR-003)  
+- [x] T043 [P] [US-1] Write `tests/test_conf/test_settings/test_logging.py::TestLogging` asserting the baseline configures logging using the shared `Env`, with no environment branching (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T044 [P] [US-1] Implement `fairdm/conf/settings/logging.py` using the shared `Env` declaration, with an ownership docstring (FR-002, FR-003)  
+- [x] T044 [P] [US-1] Implement `fairdm/conf/settings/logging.py` using the shared `Env` declaration, with an ownership docstring (FR-002, FR-003)  
   **Open (A3, built_differently):** `fairdm/conf/settings/logging.py:20` — Builds its own environ.Env('localenv') for SENTRY_* rather than using the shared Env, and gates Sentry on `if SENTRY_DSN and not DEBUG` (:30).
-- [ ] T045 [P] [US-1] Write `tests/test_conf/test_settings/test_security.py::TestSecurity` asserting the baseline sets production-grade security headers (FR-002, FR-003)  
+- [x] T045 [P] [US-1] Write `tests/test_conf/test_settings/test_security.py::TestSecurity` asserting the baseline sets production-grade security headers (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T046 [P] [US-1] Implement `fairdm/conf/settings/security.py` with an ownership docstring (FR-002, FR-003)  
+- [x] T046 [P] [US-1] Implement `fairdm/conf/settings/security.py` with an ownership docstring (FR-002, FR-003)  
   **Open (A3, no_test):** `fairdm/conf/settings/security.py:40` — SSL redirect, secure cookies, HSTS and nosniff sit behind `if env('DJANGO_SECURE')` (:49), so one flag strips the production headers.
-- [ ] T047 [P] [US-1] Write `tests/test_conf/test_settings/test_api.py::TestApi` asserting the baseline configures the REST API, including the API-schema finalisation, entirely within this module rather than in the entry point (FR-002, FR-003)  
+- [x] T047 [P] [US-1] Write `tests/test_conf/test_settings/test_api.py::TestApi` asserting the baseline configures the REST API, including the API-schema finalisation, entirely within this module rather than in the entry point (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T048 [P] [US-1] Implement `fairdm/conf/settings/api.py`, including the API-schema finalisation moved out of `setup.py`, with an ownership docstring (FR-002, FR-003)  
+- [x] T048 [P] [US-1] Implement `fairdm/conf/settings/api.py`, including the API-schema finalisation moved out of `setup.py`, with an ownership docstring (FR-002, FR-003)  
   **Open (A3, partial):** `fairdm/conf/settings/api.py:17` — api.py is a re-export shim over fairdm.api.settings; the API-schema finalisation is still performed in setup.py:162-170.
-- [ ] T049 [US-1] Write `tests/test_conf/test_settings/test_apps.py::TestInstalledApps` asserting portal apps are composed ahead of FairDM's own apps and the third-party set, while staying behind the Django contrib apps that must load first (FR-005)  
+- [x] T049 [US-1] Write `tests/test_conf/test_settings/test_apps.py::TestInstalledApps` asserting portal apps are composed ahead of FairDM's own apps and the third-party set, while staying behind the Django contrib apps that must load first (FR-005)  
   **Open (A3, never_built):** The only INSTALLED_APPS assertions in the suite are membership checks, never ordering.
-- [ ] T050 [US-1] Implement `fairdm/conf/settings/apps.py`: an explicit, commented `INSTALLED_APPS` composition in that order, accepting the portal's `apps=[...]` (FR-005)  
+- [x] T050 [US-1] Implement `fairdm/conf/settings/apps.py`: an explicit, commented `INSTALLED_APPS` composition in that order, accepting the portal's `apps=[...]` (FR-005)  
   **Open (A3, built_differently):** `fairdm/conf/settings/apps.py:122` — Portal apps are spliced LAST, after every FairDM and third-party app, so portal templates and static files lose — the inverse of FR-005.
-- [ ] T051 [US-1] Extend `test_apps.py` with `TestTemplateAndStaticPrecedence` asserting that when a portal and FairDM both define a template or static file at the same path, the portal's earlier app position makes its file win (FR-005, scenario 3)  
+- [x] T051 [US-1] Extend `test_apps.py` with `TestTemplateAndStaticPrecedence` asserting that when a portal and FairDM both define a template or static file at the same path, the portal's earlier app position makes its file win (FR-005, scenario 3)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T052 [US-1] Write `tests/test_conf/test_setup.py::TestBaselineCompleteness` asserting a settings module whose entire content is `fairdm.setup()` produces a configuration where every FairDM-owned setting is present and `manage.py check` raises nothing (FR-001, SC-001)  
+- [x] T052 [US-1] Write `tests/test_conf/test_setup.py::TestBaselineCompleteness` asserting a settings module whose entire content is `fairdm.setup()` produces a configuration where every FairDM-owned setting is present and `manage.py check` raises nothing (FR-001, SC-001)  
   **Open (A3, never_built):** SC-001 unverified.
-- [ ] T053 [US-1] Write `tests/test_conf/test_setup.py::TestBaselineModuleAudit`, a static audit over every module in `fairdm/conf/settings/` — all eleven, `settings/addons.py` included — asserting none contains a conditional on the resolved environment and each carries a module docstring naming what it owns and what it leaves to a portal (FR-002, FR-003, US-1 scenario 2)  
+- [x] T053 [US-1] Write `tests/test_conf/test_setup.py::TestBaselineModuleAudit`, a static audit over every module in `fairdm/conf/settings/` — all eleven, `settings/addons.py` included — asserting none contains a conditional on the resolved environment and each carries a module docstring naming what it owns and what it leaves to a portal (FR-002, FR-003, US-1 scenario 2)  
   **Open (A3, never_built):** No module branches on DJANGO_ENV by name, but several branch on environment-derived state (logging.py:30, security.py:49, database.py:26, cache.py:22).
-- [ ] T054 [US-1] Write `tests/test_conf/test_environment.py::TestNoSecurityDefaults` asserting that with `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN` and the administrative password unset, the baseline resolves to values nothing accepts — no published literal, no `localhost` domain, no `admin` password — and that settings import still succeeds so development and the test suite can run (FR-004, SC-006)  
+- [x] T054 [US-1] Write `tests/test_conf/test_environment.py::TestNoSecurityDefaults` asserting that with `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN` and the administrative password unset, the baseline resolves to values nothing accepts — no published literal, no `localhost` domain, no `admin` password — and that settings import still succeeds so development and the test suite can run (FR-004, SC-006)  
   **Open (A3, never_built):** environment.py ships defaults for every variable this would assert on, so unset values resolve silently instead of raising.
-- [ ] T055 [US-1] Implement the sentinel reads in `settings/security.py`, composing `ALLOWED_HOSTS` from truthy entries only so an unset domain yields `[]` rather than `[""]` — otherwise `check_allowed_hosts_configured`'s emptiness test can never fire (FR-004, SC-006)  
+- [x] T055 [US-1] Implement the sentinel reads in `settings/security.py`, composing `ALLOWED_HOSTS` from truthy entries only so an unset domain yields `[]` rather than `[""]` — otherwise `check_allowed_hosts_configured`'s emptiness test can never fire (FR-004, SC-006)  
   **Open (A3, never_built):** security.py:19 and :23 call env() bare; the defaults mean django-environ never raises for these variables.
-- [ ] T056 [US-1] Write `tests/test_conf/test_development.py::TestDevelopmentDefaults` asserting `development.py` supplies a clearly-marked development-only secret key and a `localhost` allowed-hosts list, and that neither value exists in the production baseline (FR-004, FR-009)  
+- [x] T056 [US-1] Write `tests/test_conf/test_development.py::TestDevelopmentDefaults` asserting `development.py` supplies a clearly-marked development-only secret key and a `localhost` allowed-hosts list, and that neither value exists in the production baseline (FR-004, FR-009)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T057 [US-1] Implement `development.py`'s development-only secret key and host list (FR-004, FR-009)  
+- [x] T057 [US-1] Implement `development.py`'s development-only secret key and host list (FR-004, FR-009)  
   **Open (A3, built_differently):** `fairdm/conf/development.py:30` — Supplies a marked dev key but sets ALLOWED_HOSTS = ['*'] (:36); the 'not in the production baseline' half fails because environment.py already ships an insecure default key.
-- [ ] T058 [US-1] Write `tests/test_conf/test_setup.py::TestDevelopmentLayerApplies` asserting `DJANGO_ENV=development` applies `development.py` on top of the baseline and leaves every setting neither module names unchanged (scenario 2, FR-009)  
+- [x] T058 [US-1] Write `tests/test_conf/test_setup.py::TestDevelopmentLayerApplies` asserting `DJANGO_ENV=development` applies `development.py` on top of the baseline and leaves every setting neither module names unchanged (scenario 2, FR-009)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
 
 ## Phase 2: US-3 — a misconfigured production portal refuses to start (P1)
@@ -315,6 +315,9 @@ The A3 figures above are that stage's snapshot and are left as recorded. Current
 | After A3 | 104 | 9 | T087 dropped as a step Django does not have |
 | After US-2 | 107 | 34 | T106 (the bundled portal's boot), T107 (the `LANGUAGES` / `PARLER_LANGUAGES` coupling) and T108 (the January spec artefacts) added at convergence |
 | After US-3 | 107 | 51 | T059–T080 and T104 closed |
+| After US-1 | 107 | 83 | T004–T007 and T031–T058 closed. T105 (README/CHANGELOG) and T108 (the January spec artefacts) stay with the orchestrator |
 
 Evidence at US-3 convergence: `poetry run pytest` — 1326 passed, 70 skipped.
+
+Evidence at US-1 convergence: `poetry run pytest` — 1391 passed, 70 skipped; `poetry run pre-commit run --files <32 touched files>` — every hook passes, mypy included.
 
