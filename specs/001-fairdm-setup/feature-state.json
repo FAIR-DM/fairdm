@@ -1,0 +1,742 @@
+{
+  "$schema": "aeo/feature-state.schema.json",
+  "feature": "001-fairdm-setup",
+  "branch": "001-fairdm-setup",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-13T14:00:00Z",
+      "note": "spec rewritten in place (audit)"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-13T15:00:00Z"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-13T15:20:00Z",
+      "note": "research, plan, greenfield tasks, A3 reconciliation"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-13T15:00:00Z"
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 130,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T044",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T045",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T046",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T047",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T049",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T055",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T056",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T057",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T058",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T105",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 131,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T103",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 132,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T060",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestDatabaseChecks::test_check_database_configured_missing"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestDatabaseChecks::test_check_database_production_ready_sqlite"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_locmem"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T064",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_dummy"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T065",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T066",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T067",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestAllowedHostsChecks::test_check_allowed_hosts_configured_empty"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T068",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestAllowedHostsChecks::test_check_allowed_hosts_secure_wildcard"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T069",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestDebugChecks::test_check_debug_false_enabled"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T070",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestDebugChecks::test_check_debug_false_disabled"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T071",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T072",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T073",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T074",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T075",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T076",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestCheckCommandIntegration::test_check_deploy_fails_with_errors"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_conf -q"
+            ]
+          }
+        },
+        {
+          "id": "T077",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T078",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T079",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T080",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T104",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 135,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T081",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T082",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T083",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T084",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T085",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T086",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T087",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T088",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T089",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T090",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 133,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T091",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T092",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T093",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P3",
+      "issue": 134,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T094",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T095",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T096",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T097",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T098",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T099",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T100",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T101",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T102",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 8000000
+    }
+  },
+  "pr": {
+    "number": 136,
+    "draft": true
+  }
+}

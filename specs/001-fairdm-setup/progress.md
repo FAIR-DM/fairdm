@@ -37,3 +37,12 @@ the `**overrides` keyword argument breaks any portal passing settings that way, 
 check framework does not exist at the moment `setup()` returns, so the production-critical subset
 executes from `FairDMConfig.ready()` instead. `plan.md` sets out three phases over the six stories.
 `tasks.md` written greenfield, without reference to the implementation, ahead of reconciliation.
+
+**2026-08-13 — A3 RECONCILE.** Each of the 105 greenfield tasks checked against the current
+codebase, blind to the task list until this pass. 12 satisfied outright with existing code and a
+passing test (all in US-1 and US-3, mostly the checks framework). Of the remaining 93: 56 never
+built, 15 built differently from the task's description, 15 partially covered, 7 implemented with
+no covering test. `feature-state.json` generated from this pass — the 12 satisfied tasks marked
+`done` with their evidence, the rest `todo`. Confirms A1's assessment: the checks framework exists
+and passes, but the layering contract itself (environment resolution, portal overrides, the
+security-critical env defaults) is still the January design, not this spec's.
