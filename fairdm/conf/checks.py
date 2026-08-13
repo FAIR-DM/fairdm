@@ -346,27 +346,92 @@ def check_celery_async(app_configs, **kwargs):
 # =============================================================================
 
 
-def _parler_languages_missing_from_languages(languages, parler_languages) -> set[str]:
+def _parler_languages_missing_from_languages(
+    languages, parler_languages, parler_default_language_code=None
+) -> set[str]:
     """PARLER_LANGUAGES codes django-parler's own
     ``parler.utils.i18n.is_supported_django_language`` would reject: present
     under some site's language tuple but neither exactly, nor by their base
     subtag (``fr-ca`` accepted when LANGUAGES has ``fr``), among LANGUAGES'
-    own codes. The ``"default"`` key is PARLER_LANGUAGES' fallback
-    configuration, not a site entry, and is skipped."""
+    own codes. The ``"default"`` key holds PARLER_LANGUAGES' fallback
+    configuration rather than a site's choices, but parler validates its
+    ``code`` too — falling back to PARLER_DEFAULT_LANGUAGE_CODE when it does
+    not set one — and rejects that first of all, so it is checked here as
+    well (``parler.utils.conf.add_default_language_settings``)."""
     language_codes = {code for code, _ in languages}
+
+    def rejected(code):
+        return (
+            bool(code)
+            and code not in language_codes
+            and code.split("-")[0] not in language_codes
+        )
+
     missing = set()
+    defaults = parler_languages.get("default") or {}
+    default_code = defaults.get("code", parler_default_language_code)
+    if rejected(default_code):
+        missing.add(default_code)
     for site_id, choices in parler_languages.items():
         if site_id == "default":
             continue
         for choice in choices:
-            code = choice.get("code")
-            if (
-                code
-                and code not in language_codes
-                and code.split("-")[0] not in language_codes
-            ):
-                missing.add(code)
+            if rejected(choice.get("code")):
+                missing.add(choice["code"])
     return missing
+
+
+def parler_languages_errors(
+    languages, parler_languages, parler_default_language_code=None
+) -> list[Error]:
+    """
+    ``fairdm.E400`` for the given setting *values*, so the same rule can be
+    applied before ``settings`` is loaded — see
+    ``raise_on_parler_languages_mismatch``.
+    """
+    missing = _parler_languages_missing_from_languages(
+        languages or [], parler_languages or {}, parler_default_language_code
+    )
+    if not missing:
+        return []
+    return [
+        Error(
+            "PARLER_LANGUAGES names language code(s) LANGUAGES does not "
+            f"include: {', '.join(sorted(missing))}.",
+            hint="Add the missing code(s) to LANGUAGES, or remove them from "
+            "PARLER_LANGUAGES and PARLER_DEFAULT_LANGUAGE_CODE, so the "
+            "settings agree.",
+            id="fairdm.E400",
+        )
+    ]
+
+
+def raise_on_parler_languages_mismatch(
+    languages, parler_languages, parler_default_language_code=None
+) -> None:
+    """
+    Refuse to continue when the two settings disagree, naming both of them.
+
+    Called from two places, because neither alone covers every portal.
+    ``fairdm.conf.setup()`` calls it on the composed settings scope, which is
+    the only point ahead of *every* app's models — a portal's own apps are
+    registered before FairDM's (D11), so one of them importing
+    ``parler.models`` would otherwise hit parler's own check first.
+    ``FairDMConfig.import_models()`` calls it again on the loaded settings,
+    which is the only point after a portal's post-``setup()`` assignments
+    (layer 5, FR-012). A portal that does both — assigns LANGUAGES after the
+    call *and* ships a parler-model app — still gets parler's own error.
+    """
+    from django.core.management.base import SystemCheckError
+
+    errors = parler_languages_errors(
+        languages, parler_languages, parler_default_language_code
+    )
+    if errors:
+        raise SystemCheckError(
+            "FairDM configuration is invalid:\n\n"
+            + "\n\n".join(str(error) for error in errors)
+        )
 
 
 @register(Tags.translation)
@@ -377,29 +442,18 @@ def check_parler_languages_subset_of_languages(app_configs, **kwargs):
     to match. django-parler enforces the identical rule itself, inside
     ``parler.appsettings``, the moment any app whose models import
     ``parler.models`` is imported — during ``apps.populate()``'s model-import
-    phase, before Django's own check framework ever gets a chance to run.
-    ``FairDMConfig.import_models()`` calls this function directly, early
-    enough to matter, so a portal sees this named error instead of parler's
-    bare ``ImproperlyConfigured`` (FR-012, US-5 T107).
+    phase, before Django's own check framework ever gets a chance to run. So
+    the rule is also enforced ahead of that, by
+    ``raise_on_parler_languages_mismatch``, and registered here so
+    ``manage.py check`` reports it like any other (FR-012, US-5 T107).
 
     Error ID: fairdm.E400
     """
-    errors = []
-    missing = _parler_languages_missing_from_languages(
-        getattr(settings, "LANGUAGES", []) or [],
-        getattr(settings, "PARLER_LANGUAGES", {}) or {},
+    return parler_languages_errors(
+        getattr(settings, "LANGUAGES", []),
+        getattr(settings, "PARLER_LANGUAGES", {}),
+        getattr(settings, "PARLER_DEFAULT_LANGUAGE_CODE", None),
     )
-    if missing:
-        errors.append(
-            Error(
-                "PARLER_LANGUAGES names language code(s) LANGUAGES does not "
-                f"include: {', '.join(sorted(missing))}.",
-                hint="Add the missing code(s) to LANGUAGES, or remove them "
-                "from PARLER_LANGUAGES, so the two settings agree.",
-                id="fairdm.E400",
-            )
-        )
-    return errors
 
 
 # =============================================================================

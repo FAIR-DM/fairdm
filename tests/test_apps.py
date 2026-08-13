@@ -18,6 +18,14 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+#: PARLER_LANGUAGES narrowed to agree with ``LANGUAGES = [en, de]``.
+CONSISTENT_PARLER_LANGUAGES = (
+    "PARLER_LANGUAGES = {\n"
+    '    1: ({"code": "en"}, {"code": "de"}),\n'
+    '    "default": {"fallback": "en", "hide_untranslated": False},\n'
+    "}\n"
+)
+
 
 def _boot_in_subprocess(env_overrides):
     """Run ``import django; django.setup()`` in a fresh process with the given env."""
@@ -100,20 +108,25 @@ class TestParlerLanguagesCheck:
     """django-parler validates PARLER_LANGUAGES against LANGUAGES inside its
     own ``parler.appsettings`` module, imported while ``apps.populate()`` is
     still importing models (Phase 2) — before ``ready()`` (Phase 3) starts,
-    so ``FairDMConfig.ready()`` can't reach this in time.
-    ``FairDMConfig.import_models()`` runs during Phase 2 itself, ahead of
-    every app listed after "fairdm" in INSTALLED_APPS (including
-    fairdm.contrib.identity, whose models import parler.models) — the
-    earliest point with a populated app registry this check can run at
-    (FR-012, US-5 T107). Run out-of-process for the same reason
-    ``TestProductionBoot`` is: ``apps.populate()`` isn't reentrant.
+    so ``FairDMConfig.ready()`` can't reach this in time. Two call sites cover
+    it between them (FR-012, US-5 T107): ``setup()`` applies the rule to the
+    settings scope it composed, which is ahead of *every* app's models
+    including a portal's own (registered before FairDM's, D11), and
+    ``FairDMConfig.import_models()`` applies it again to the loaded settings,
+    which is the only point after a portal's post-``setup()`` assignments
+    (layer 5). Run out-of-process for the same reason ``TestProductionBoot``
+    is: ``apps.populate()`` isn't reentrant.
     """
 
-    def _boot_with_portal_override(self, tmp_path, portal_override_body):
+    def _boot_with_portal_override(
+        self, tmp_path, portal_override_body, settings_tail="", apps=""
+    ):
         settings_dir = tmp_path / "config"
         settings_dir.mkdir()
         (settings_dir / "__init__.py").write_text("")
-        (settings_dir / "settings.py").write_text("import fairdm\n\nfairdm.setup()\n")
+        (settings_dir / "settings.py").write_text(
+            f"import fairdm\n\nfairdm.setup({apps})\n{settings_tail}"
+        )
         (settings_dir / "production.py").write_text(portal_override_body)
 
         env = {
@@ -165,13 +178,74 @@ class TestParlerLanguagesCheck:
         result = self._boot_with_portal_override(
             tmp_path,
             'LANGUAGES = [("en", "English"), ("de", "German")]\n'
-            "PARLER_LANGUAGES = {\n"
-            '    1: ({"code": "en"}, {"code": "de"}),\n'
-            '    "default": {"fallback": "en", "hide_untranslated": False},\n'
-            "}\n",
+            + CONSISTENT_PARLER_LANGUAGES,
         )
 
         assert result.returncode == 0, result.stdout + result.stderr
+
+    def test_portal_app_importing_parler_models_still_gets_the_named_error(
+        self, tmp_path
+    ):
+        """A portal's own apps are registered ahead of FairDM's (D11), so one
+        whose models import parler.models reaches parler's validation before
+        ``fairdm``'s AppConfig exists. Only the ``setup()`` call site is early
+        enough for this portal; without it the bare parler traceback returns."""
+        app_dir = tmp_path / "portalapp"
+        app_dir.mkdir()
+        (app_dir / "__init__.py").write_text("")
+        (app_dir / "models.py").write_text("import parler.models  # noqa: F401\n")
+
+        result = self._boot_with_portal_override(
+            tmp_path,
+            'LANGUAGES = [("en", "English"), ("de", "German")]\n',
+            apps='apps=["portalapp"]',
+        )
+
+        assert result.returncode != 0, result.stdout + result.stderr
+        assert "fairdm.E400" in result.stderr, result.stderr
+        assert "fr" in result.stderr
+        assert "does not exist in LANGUAGES" not in result.stderr
+
+    def test_narrowing_languages_after_setup_returns_still_gets_the_named_error(
+        self, tmp_path
+    ):
+        """Layer 5 — the assignment a portal makes after ``setup()`` returns
+        (FR-012). ``setup()`` has already run and seen a consistent pair, so
+        only the ``import_models()`` call site can catch this one."""
+        result = self._boot_with_portal_override(
+            tmp_path,
+            'LANGUAGES = [("en", "English"), ("de", "German")]\n'
+            + CONSISTENT_PARLER_LANGUAGES,
+            settings_tail=(
+                "PARLER_LANGUAGES = {\n"
+                '    1: ({"code": "en"}, {"code": "fr"}),\n'
+                '    "default": {"fallback": "en", "hide_untranslated": False},\n'
+                "}\n"
+            ),
+        )
+
+        assert result.returncode != 0, result.stdout + result.stderr
+        assert "fairdm.E400" in result.stderr, result.stderr
+        assert "fr" in result.stderr
+        assert "does not exist in LANGUAGES" not in result.stderr
+
+    def test_a_language_settings_disagreement_django_owns_does_not_block_boot(
+        self, tmp_path
+    ):
+        """LANGUAGE_CODE not being among LANGUAGES is ``translation.E004``,
+        Django's own check and a ``manage.py check`` finding — not something
+        FairDM refuses a boot over, in production or anywhere else. The portal
+        here narrows both parler settings consistently and leaves the
+        baseline's ``LANGUAGE_CODE = "en"`` in place."""
+        result = self._boot_with_portal_override(
+            tmp_path,
+            'LANGUAGES = [("en", "English"), ("de", "German")]\n'
+            + CONSISTENT_PARLER_LANGUAGES
+            + 'LANGUAGE_CODE = "fr"\n',
+        )
+
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "translation.E004" not in result.stderr
 
 
 class TestNonProductionBoot:

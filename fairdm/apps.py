@@ -22,34 +22,27 @@ class FairDMConfig(AppConfig):
         return getattr(settings, "DJANGO_ENV", "production")
 
     def import_models(self) -> None:
-        # django-parler validates PARLER_LANGUAGES against LANGUAGES itself,
-        # inside parler.appsettings, the moment any app whose models import
-        # parler.models is imported — during this same Phase 2 of
-        # apps.populate(), before ready() (Phase 3) ever starts, so
-        # ready()'s production-critical gate can't reach this in time.
-        # "fairdm" precedes fairdm.contrib.identity (and every other
-        # parler-model app) in INSTALLED_APPS, so running the check here,
-        # before super() imports this app's own models, surfaces FairDM's
-        # named error instead of parler's bare traceback (FR-012, T107).
+        # setup() already applied this rule to the settings it composed, but a
+        # portal may narrow LANGUAGES after setup() returns (layer 5, FR-012),
+        # which nothing has seen yet. Re-apply it here, on the loaded settings
+        # and ahead of fairdm.contrib.identity's models (which import
+        # parler.models), so that portal gets FairDM's named error rather than
+        # parler's bare traceback. ready() is too late: parler validates during
+        # this same model-import phase (T107).
         self._check_parler_languages()
 
         return super().import_models()
 
     def _check_parler_languages(self) -> None:
-        from django.core.checks import Tags
-        from django.core.checks.registry import registry
-        from django.core.management.base import SystemCheckError
+        from django.conf import settings
 
-        errors = [
-            issue
-            for issue in registry.run_checks(tags=[Tags.translation])
-            if issue.is_serious()
-        ]
-        if errors:
-            raise SystemCheckError(
-                "FairDM configuration is invalid:\n\n"
-                + "\n\n".join(str(error) for error in errors)
-            )
+        from fairdm.conf.checks import raise_on_parler_languages_mismatch
+
+        raise_on_parler_languages_mismatch(
+            getattr(settings, "LANGUAGES", []),
+            getattr(settings, "PARLER_LANGUAGES", {}),
+            getattr(settings, "PARLER_DEFAULT_LANGUAGE_CODE", None),
+        )
 
     def ready(self) -> None:
         # adds a default renderer to all forms to keep a consistent look across the site. This way we don't have to specify it every time

@@ -471,6 +471,7 @@ class TestParlerLanguagesChecks:
 
     @override_settings(
         LANGUAGES=[("fr", "French")],
+        PARLER_DEFAULT_LANGUAGE_CODE="fr",
         PARLER_LANGUAGES={
             1: ({"code": "fr-ca"},),
             "default": {"fallback": "fr", "hide_untranslated": False},
@@ -485,6 +486,42 @@ class TestParlerLanguagesChecks:
         errors = check_parler_languages_subset_of_languages(app_configs=None)
 
         assert errors == []
+
+    @override_settings(
+        LANGUAGES=[("de", "German")],
+        PARLER_DEFAULT_LANGUAGE_CODE="en",
+        PARLER_LANGUAGES={
+            1: ({"code": "de"},),
+            "default": {"fallback": "de", "hide_untranslated": False},
+        },
+    )
+    def test_check_names_a_default_language_code_missing_from_languages(self):
+        """The ``"default"`` entry names no ``code`` of its own, so parler
+        falls back to PARLER_DEFAULT_LANGUAGE_CODE and rejects the whole
+        setting on that before it looks at any site's choices — every site
+        code here is valid. Verified against
+        ``parler.utils.conf.add_default_language_settings``."""
+        from fairdm.conf.checks import check_parler_languages_subset_of_languages
+
+        errors = check_parler_languages_subset_of_languages(app_configs=None)
+
+        assert len(errors) == 1
+        assert errors[0].id == "fairdm.E400"
+        assert "en" in errors[0].msg
+        assert "PARLER_DEFAULT_LANGUAGE_CODE" in errors[0].hint
+
+    @override_settings(
+        LANGUAGES=[("de", "German")],
+        PARLER_DEFAULT_LANGUAGE_CODE="en",
+        PARLER_LANGUAGES={
+            1: ({"code": "de"},),
+            "default": {"code": "de", "fallback": "de", "hide_untranslated": False},
+        },
+    )
+    def test_an_explicit_default_code_wins_over_parler_default_language_code(self):
+        from fairdm.conf.checks import check_parler_languages_subset_of_languages
+
+        assert check_parler_languages_subset_of_languages(app_configs=None) == []
 
 
 class TestCheckCommandIntegration:

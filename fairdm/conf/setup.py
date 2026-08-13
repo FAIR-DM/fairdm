@@ -315,6 +315,20 @@ def setup(
     # Configuration validation is handled entirely by Django's check
     # framework (FR-018) — see fairdm/conf/checks.py and FairDMConfig.ready().
     # Run `python manage.py check --deploy` to validate production readiness.
+    #
+    # One exception, and only because the check framework cannot reach it:
+    # django-parler validates PARLER_LANGUAGES against LANGUAGES on import of
+    # any parler-model app, which happens before any check runs. This is the
+    # only point ahead of every such app, a portal's own included (D11).
+    from django.conf import global_settings
+
+    from fairdm.conf.checks import raise_on_parler_languages_mismatch
+
+    raise_on_parler_languages_mismatch(
+        caller_globals.get("LANGUAGES", global_settings.LANGUAGES),
+        caller_globals.get("PARLER_LANGUAGES", {}),
+        caller_globals.get("PARLER_DEFAULT_LANGUAGE_CODE"),
+    )
 
     logger.info("✅ Configuration complete")
 

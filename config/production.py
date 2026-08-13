@@ -15,9 +15,8 @@ LANGUAGES = [
 
 # django-parler validates every code in PARLER_LANGUAGES against LANGUAGES when
 # it is imported, so a portal that narrows LANGUAGES has to narrow this to match.
-# Leaving it at the FairDM baseline (en, fr, de) raises ImproperlyConfigured at
-# startup. FairDM should catch this with a named check rather than a parler
-# traceback — see the open task in specs/001-fairdm-setup/tasks.md.
+# Leaving it at the FairDM baseline (en, fr, de) is refused at startup as
+# fairdm.E400, which names both settings (T107).
 PARLER_LANGUAGES = {
     1: (
         {"code": "en"},
