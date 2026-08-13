@@ -45,18 +45,6 @@ def isolated_env():
     os.environ.update(original_env)
 
 
-def snapshot_scope(scope: dict) -> dict:
-    """Return a shallow copy of every uppercase key in ``scope``.
-
-    Uppercase is Django's settings convention; ``fairdm.setup()`` also injects
-    a few bookkeeping keys the same way (``DJANGO_ENV``, ``BASE_DIR``,
-    ``FAIRDM_APPS``). Diffing snapshots taken before and after a layer applies
-    is how both the provenance command (US-4) and the layer-order tests here
-    attribute a setting to the layer that wrote it.
-    """
-    return {key: value for key, value in scope.items() if key.isupper()}
-
-
 @pytest.fixture
 def settings_module(tmp_path):
     """Write and execute a portal settings module that calls ``fairdm.setup()``.

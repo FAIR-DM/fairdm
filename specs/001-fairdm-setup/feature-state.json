@@ -28,6 +28,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-13T19:40:00Z",
       "note": "US-2 implemented and independently verified; one regression found and fixed by the orchestrator"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-13T22:40:00Z",
+      "note": "US-4 implemented and independently verified; one defect found and fixed at convergence (T109) \u2014 the provenance diff missed a layer that appends in place"
     }
   ],
   "gates": {
@@ -1677,53 +1682,195 @@
       "priority": "P2",
       "issue": 135,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T081",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestProvenance::test_records_one_entry_per_layer_with_name_path_found_and_settings"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:237",
+              "fairdm/conf/__init__.py:25"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T082",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestProvenance::test_record_never_holds_secret_values_only_their_names"
+            ],
+            "code": [
+              "fairdm/conf/__init__.py:77",
+              "fairdm/conf/__init__.py:47"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T083",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestProvenance::test_absent_layers_are_recorded_as_absent_not_omitted"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:253",
+              "fairdm/conf/setup.py:287"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T084",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestProvenance::test_producer_names_the_layer_that_wrote_the_final_value"
+            ],
+            "code": [
+              "fairdm/conf/__init__.py:57"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T085",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_management/test_show_config.py::TestShowConfigCommand::test_lists_every_layer_in_order_marked_found_or_absent"
+            ],
+            "code": [
+              "tests/test_management/test_show_config.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T086",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_management/test_show_config.py::TestShowConfigCommand::test_lists_every_layer_in_order_marked_found_or_absent"
+            ],
+            "code": [
+              "fairdm/management/commands/show_config.py:18",
+              "fairdm/management/commands/show_config.py:39"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T088",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_management/test_show_config.py::TestShowConfigNamedSetting::test_reports_resolved_value_and_producing_layer"
+            ],
+            "code": [
+              "tests/test_management/test_show_config.py:1"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T089",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_management/test_show_config.py::TestShowConfigNamedSetting::test_cleanses_a_known_secret_so_it_never_reaches_stdout"
+            ],
+            "code": [
+              "fairdm/management/commands/show_config.py:44"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T090",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestProvenanceCoversEverySetting::test_every_baseline_setting_names_a_producing_layer"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:96",
+              "fairdm/conf/__init__.py:57"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T109",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestProvenance::test_producer_names_a_layer_that_appended_to_an_existing_list",
+              "tests/test_conf/test_setup.py::TestProvenance::test_shipped_development_override_is_the_producer_of_what_it_appends"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:64",
+              "fairdm/conf/setup.py:96"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1401 passed, 70 skipped",
+              "poetry run pre-commit run --files <7 touched files>  # all hooks pass, mypy included"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

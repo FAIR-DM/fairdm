@@ -186,24 +186,27 @@ ordering and the baseline-wide audits.
 
 ## Phase 2: US-4 — see which layer produced a setting (P2)
 
-- [ ] T081 [US-4] Write `tests/test_conf/test_setup.py::TestProvenance` asserting `setup()` records, per layer, an ordered `(layer name, path, found, settings written)` structure captured by diffing the scope's uppercase keys before and after each layer's `include()` call (FR-019, FR-020)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T082 [US-4] Implement the provenance record as a module-level structure in `fairdm.conf`, populated by a shallow-copy-and-diff around each layer, recording **setting names per layer and never their values** — the scope holds `SECRET_KEY`, the database password and the email password (FR-019, FR-020)  
-  **Open (A3, never_built):** setup() applies layers with plain include() calls and takes no before/after snapshot.
-- [ ] T083 [US-4] Extend `TestProvenance` with a case asserting a layer with no module for the resolved environment is recorded as absent, not omitted (FR-019, scenario 3)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T084 [US-4] Extend `TestProvenance` with a case asserting that for a setting written by more than one layer, the record names the layer that produced the final value (FR-020, scenario 2)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T085 [US-4] Write `tests/test_management/test_show_config.py::TestShowConfigCommand` asserting a management command lists every layer in application order, each marked found or absent (FR-019)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T086 [US-4] Implement `fairdm/management/commands/show_config.py` — the directory Django scans for the installed `fairdm` app, beside the three existing commands — reading the provenance record after `django.setup()` and reporting the layer list (FR-019)  
-  **Open (A3, never_built):** There is no fairdm/conf/management/ directory.
-- [ ] T088 [US-4] Extend `TestShowConfigCommand` with a case: given a setting-name argument, the command reports its resolved value and the layer that produced it (FR-020)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T089 [US-4] Implement the named-setting lookup mode of `show_config`, reading the value from `django.conf.settings` at report time and passing it through `SafeExceptionReporterFilter().cleanse_setting()` so a secret is never printed (FR-020)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T090 [US-4] Write `tests/test_conf/test_setup.py::TestProvenanceCoversEverySetting` asserting that for every setting any baseline module sets, the provenance record names a producing layer (SC-005)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
+- [x] T081 [US-4] Write `tests/test_conf/test_setup.py::TestProvenance` asserting `setup()` records, per layer, an ordered `(layer name, path, found, settings written)` structure captured by diffing the scope's uppercase keys before and after each layer's `include()` call (FR-019, FR-020)  
+  **Done (US-4):** `fairdm/conf/setup.py:237-305` — a `record.add_layer()` call per layer with name, path, found and the settings it wrote · `fairdm/conf/__init__.py:25` `Layer` · `tests/test_conf/test_setup.py::TestProvenance::test_records_one_entry_per_layer_with_name_path_found_and_settings`
+- [x] T082 [US-4] Implement the provenance record as a module-level structure in `fairdm.conf`, populated by a snapshot-and-diff around each layer (~~shallow-copy~~ — corrected to a deep copy of mutable containers at US-4 convergence, see T109), recording **setting names per layer and never their values** — the scope holds `SECRET_KEY`, the database password and the email password (FR-019, FR-020)  
+  **Done (US-4):** `fairdm/conf/__init__.py:77` — `record`, a module-level `Provenance` populated by a snapshot-and-diff around each layer, storing the setting-name tuple only. In `fairdm.conf` itself rather than a `provenance.py` submodule, per research R2 and because a submodule breaks the infrastructure-module allowlist `TestShippedOverrides` enforces · `tests/test_conf/test_setup.py::TestProvenance::test_record_never_holds_secret_values_only_their_names`
+- [x] T083 [US-4] Extend `TestProvenance` with a case asserting a layer with no module for the resolved environment is recorded as absent, not omitted (FR-019, scenario 3)  
+  **Done (US-4):** `fairdm/conf/setup.py:253-267` and `:287-305` — both override layers call `add_layer()` unconditionally, `found=False` when no module exists · `tests/test_conf/test_setup.py::TestProvenance::test_absent_layers_are_recorded_as_absent_not_omitted`
+- [x] T084 [US-4] Extend `TestProvenance` with a case asserting that for a setting written by more than one layer, the record names the layer that produced the final value (FR-020, scenario 2)  
+  **Done (US-4):** `fairdm/conf/__init__.py:57` — `producer()` returns the last layer in application order whose settings include the name · `tests/test_conf/test_setup.py::TestProvenance::test_producer_names_the_layer_that_wrote_the_final_value`
+- [x] T085 [US-4] Write `tests/test_management/test_show_config.py::TestShowConfigCommand` asserting a management command lists every layer in application order, each marked found or absent (FR-019)  
+  **Done (US-4):** `tests/test_management/test_show_config.py::TestShowConfigCommand::test_lists_every_layer_in_order_marked_found_or_absent`
+- [x] T086 [US-4] Implement `fairdm/management/commands/show_config.py` — the directory Django scans for the installed `fairdm` app, beside the three existing commands — reading the provenance record after `django.setup()` and reporting the layer list (FR-019)  
+  **Done (US-4):** `fairdm/management/commands/show_config.py:18` — beside the three existing commands in the directory Django's app scan actually reads; the A3 note's `fairdm/conf/management/` does not exist and was never the convention · `tests/test_management/test_show_config.py::TestShowConfigCommand`
+- [x] T088 [US-4] Extend `TestShowConfigCommand` with a case: given a setting-name argument, the command reports its resolved value and the layer that produced it (FR-020)  
+  **Done (US-4):** `tests/test_management/test_show_config.py::TestShowConfigNamedSetting::test_reports_resolved_value_and_producing_layer`
+- [x] T089 [US-4] Implement the named-setting lookup mode of `show_config`, reading the value from `django.conf.settings` at report time and passing it through `SafeExceptionReporterFilter().cleanse_setting()` so a secret is never printed (FR-020)  
+  **Done (US-4):** `fairdm/management/commands/show_config.py:44` — `_report_setting` reads `django.conf.settings` at report time and passes the value through `SafeExceptionReporterFilter().cleanse_setting()` · `tests/test_management/test_show_config.py::TestShowConfigNamedSetting::test_cleanses_a_known_secret_so_it_never_reaches_stdout`
+- [x] T090 [US-4] Write `tests/test_conf/test_setup.py::TestProvenanceCoversEverySetting` asserting that for every setting any baseline module sets, the provenance record names a producing layer (SC-005)  
+  **Done (US-4):** `tests/test_conf/test_setup.py::TestProvenanceCoversEverySetting::test_every_baseline_setting_names_a_producing_layer` — the per-layer diff is general, not hardcoded to the five entries
+- [x] T109 [US-4] Attribute a setting to a layer that mutates its container in place, not only to one that rebinds the name — `INSTALLED_APPS += [...]` calls `list.__iadd__`, and FairDM's own `development.py` extends both `INSTALLED_APPS` and `MIDDLEWARE` that way (FR-020)  
+  **Done (US-4, found at convergence):** `fairdm/conf/setup.py:64` — `_snapshot_scope` deep-copies mutable containers so the mutation is visible on one side of the diff only; `_written_keys` compares those by value and everything else by identity. Before the fix, `show_config INSTALLED_APPS` under `DJANGO_ENV=development` named `baseline` as the producer of a list holding `django_browser_reload`, which the baseline never put there · `tests/test_conf/test_setup.py::TestProvenance::test_producer_names_a_layer_that_appended_to_an_existing_list` and `::test_shipped_development_override_is_the_producer_of_what_it_appends`, both proven red against the identity diff first
+
 
 ## Phase 3: US-5 — override any FairDM default without editing FairDM (P2)
 
@@ -316,8 +319,11 @@ The A3 figures above are that stage's snapshot and are left as recorded. Current
 | After US-2 | 107 | 34 | T106 (the bundled portal's boot), T107 (the `LANGUAGES` / `PARLER_LANGUAGES` coupling) and T108 (the January spec artefacts) added at convergence |
 | After US-3 | 107 | 51 | T059–T080 and T104 closed |
 | After US-1 | 107 | 83 | T004–T007 and T031–T058 closed. T105 (README/CHANGELOG) and T108 (the January spec artefacts) stay with the orchestrator |
+| After US-4 | 108 | 93 | T081–T086 and T088–T090 closed. T109 added and closed at convergence — the identity diff missed a layer that appends |
 
 Evidence at US-3 convergence: `poetry run pytest` — 1326 passed, 70 skipped.
 
 Evidence at US-1 convergence: `poetry run pytest` — 1391 passed, 70 skipped; `poetry run pre-commit run --files <32 touched files>` — every hook passes, mypy included.
+
+Evidence at US-4 convergence: `poetry run pytest` — 1401 passed, 70 skipped; `poetry run pre-commit run --files <7 touched files>` — every hook passes, mypy included. Five mutations red the tests that should catch them: reverting the before-snapshot to an identity diff reds 2, making `producer()` return the first layer rather than the last reds 3, storing values beside names in the record reds 7, omitting absent layers reds 2, and dropping `cleanse_setting()` reds 1.
 
