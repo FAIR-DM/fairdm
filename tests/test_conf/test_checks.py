@@ -414,6 +414,79 @@ class TestCeleryChecks:
         assert errors == []
 
 
+class TestParlerLanguagesChecks:
+    """PARLER_LANGUAGES must name only codes LANGUAGES also names — django-parler
+    enforces the same rule itself, but at import time, before this check (or any
+    Django check) can run; see ``tests/test_apps.py::TestParlerLanguagesCheck``
+    for where ``FairDMConfig`` calls this early enough to matter (T107)."""
+
+    @override_settings(
+        LANGUAGES=[("en", "English"), ("de", "German")],
+        PARLER_LANGUAGES={
+            1: ({"code": "en"}, {"code": "fr"}, {"code": "de"}),
+            "default": {"fallback": "en", "hide_untranslated": False},
+        },
+    )
+    def test_check_names_the_code_missing_from_languages(self):
+        from fairdm.conf.checks import check_parler_languages_subset_of_languages
+
+        errors = check_parler_languages_subset_of_languages(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E400"
+        assert "PARLER_LANGUAGES" in errors[0].msg
+        assert "LANGUAGES" in errors[0].msg
+        assert "fr" in errors[0].msg
+
+    @override_settings(
+        LANGUAGES=[("en", "English")],
+        PARLER_LANGUAGES={
+            1: ({"code": "en"}, {"code": "fr"}, {"code": "de"}),
+            "default": {"fallback": "en", "hide_untranslated": False},
+        },
+    )
+    def test_check_names_every_missing_code_not_just_the_first(self):
+        from fairdm.conf.checks import check_parler_languages_subset_of_languages
+
+        errors = check_parler_languages_subset_of_languages(app_configs=None)
+
+        assert len(errors) == 1
+        assert "fr" in errors[0].msg
+        assert "de" in errors[0].msg
+
+    @override_settings(
+        LANGUAGES=[("en", "English"), ("de", "German")],
+        PARLER_LANGUAGES={
+            1: ({"code": "en"}, {"code": "de"}),
+            "default": {"fallback": "en", "hide_untranslated": False},
+        },
+    )
+    def test_check_passes_when_every_parler_code_is_in_languages(self):
+        from fairdm.conf.checks import check_parler_languages_subset_of_languages
+
+        errors = check_parler_languages_subset_of_languages(app_configs=None)
+
+        assert errors == []
+
+    @override_settings(
+        LANGUAGES=[("fr", "French")],
+        PARLER_LANGUAGES={
+            1: ({"code": "fr-ca"},),
+            "default": {"fallback": "fr", "hide_untranslated": False},
+        },
+    )
+    def test_base_subtag_match_is_accepted_like_django_parler_accepts_it(self):
+        """django-parler's own ``is_supported_django_language()`` accepts a
+        PARLER code whose base subtag (``fr`` from ``fr-ca``) is in
+        LANGUAGES — this check must not flag what parler itself would not."""
+        from fairdm.conf.checks import check_parler_languages_subset_of_languages
+
+        errors = check_parler_languages_subset_of_languages(app_configs=None)
+
+        assert errors == []
+
+
 class TestCheckCommandIntegration:
     """Integration tests for the check management command."""
 

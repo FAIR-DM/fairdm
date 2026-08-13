@@ -342,6 +342,63 @@ def check_celery_async(app_configs, **kwargs):
 
 
 # =============================================================================
+# TRANSLATION CHECKS
+# =============================================================================
+
+
+def _parler_languages_missing_from_languages(languages, parler_languages) -> set[str]:
+    """PARLER_LANGUAGES codes django-parler's own
+    ``parler.utils.i18n.is_supported_django_language`` would reject: present
+    under some site's language tuple but neither exactly, nor by their base
+    subtag (``fr-ca`` accepted when LANGUAGES has ``fr``), among LANGUAGES'
+    own codes. The ``"default"`` key is PARLER_LANGUAGES' fallback
+    configuration, not a site entry, and is skipped."""
+    language_codes = {code for code, _ in languages}
+    missing = set()
+    for site_id, choices in parler_languages.items():
+        if site_id == "default":
+            continue
+        for choice in choices:
+            code = choice.get("code")
+            if code and code not in language_codes and code.split("-")[0] not in language_codes:
+                missing.add(code)
+    return missing
+
+
+@register(Tags.translation)
+def check_parler_languages_subset_of_languages(app_configs, **kwargs):
+    """
+    Every language code PARLER_LANGUAGES names for a site must also be a
+    code in LANGUAGES — a portal that narrows LANGUAGES has to narrow this
+    to match. django-parler enforces the identical rule itself, inside
+    ``parler.appsettings``, the moment any app whose models import
+    ``parler.models`` is imported — during ``apps.populate()``'s model-import
+    phase, before Django's own check framework ever gets a chance to run.
+    ``FairDMConfig.import_models()`` calls this function directly, early
+    enough to matter, so a portal sees this named error instead of parler's
+    bare ``ImproperlyConfigured`` (FR-012, US-5 T107).
+
+    Error ID: fairdm.E400
+    """
+    errors = []
+    missing = _parler_languages_missing_from_languages(
+        getattr(settings, "LANGUAGES", []) or [],
+        getattr(settings, "PARLER_LANGUAGES", {}) or {},
+    )
+    if missing:
+        errors.append(
+            Error(
+                "PARLER_LANGUAGES names language code(s) LANGUAGES does not "
+                f"include: {', '.join(sorted(missing))}.",
+                hint="Add the missing code(s) to LANGUAGES, or remove them "
+                "from PARLER_LANGUAGES, so the two settings agree.",
+                id="fairdm.E400",
+            )
+        )
+    return errors
+
+
+# =============================================================================
 # ADDON VALIDATION
 # =============================================================================
 

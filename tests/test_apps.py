@@ -96,6 +96,84 @@ class TestProductionBoot:
             )
 
 
+class TestParlerLanguagesCheck:
+    """django-parler validates PARLER_LANGUAGES against LANGUAGES inside its
+    own ``parler.appsettings`` module, imported while ``apps.populate()`` is
+    still importing models (Phase 2) — before ``ready()`` (Phase 3) starts,
+    so ``FairDMConfig.ready()`` can't reach this in time.
+    ``FairDMConfig.import_models()`` runs during Phase 2 itself, ahead of
+    every app listed after "fairdm" in INSTALLED_APPS (including
+    fairdm.contrib.identity, whose models import parler.models) — the
+    earliest point with a populated app registry this check can run at
+    (FR-012, US-5 T107). Run out-of-process for the same reason
+    ``TestProductionBoot`` is: ``apps.populate()`` isn't reentrant.
+    """
+
+    def _boot_with_portal_override(self, tmp_path, portal_override_body):
+        settings_dir = tmp_path / "config"
+        settings_dir.mkdir()
+        (settings_dir / "__init__.py").write_text("")
+        (settings_dir / "settings.py").write_text("import fairdm\n\nfairdm.setup()\n")
+        (settings_dir / "production.py").write_text(portal_override_body)
+
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.startswith(
+                ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+            )
+        }
+        env |= {
+            "DJANGO_ENV": "production",
+            "DJANGO_SETTINGS_MODULE": "config.settings",
+            "DJANGO_ROOT_URLCONF": "fairdm.conf.urls",
+            "DJANGO_SECRET_KEY": "b" * 60,
+            "DJANGO_SITE_DOMAIN": "example.com",
+            "DJANGO_ALLOWED_HOSTS": "example.com",
+            "DATABASE_URL": "postgresql://portal:portal@localhost:5432/portal",
+            "REDIS_URL": "redis://localhost:6379/0",
+            "PYTHONPATH": f"{tmp_path}{os.pathsep}{REPO_ROOT}",
+        }
+        return subprocess.run(
+            [sys.executable, "-c", "import django; django.setup()"],
+            cwd=tmp_path,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+
+    def test_narrowed_languages_without_narrowed_parler_languages_names_both_settings(
+        self, tmp_path
+    ):
+        """The reproducer named in the brief: a portal narrows LANGUAGES to
+        (en, de) and leaves PARLER_LANGUAGES at the baseline (en, fr, de) —
+        fr is the code the error must name."""
+        result = self._boot_with_portal_override(
+            tmp_path, 'LANGUAGES = [("en", "English"), ("de", "German")]\n'
+        )
+
+        assert result.returncode != 0, result.stdout + result.stderr
+        assert "fairdm.E400" in result.stderr, result.stderr
+        assert "PARLER_LANGUAGES" in result.stderr
+        assert "LANGUAGES" in result.stderr
+        assert "fr" in result.stderr
+        # Not django-parler's own traceback, which names neither setting.
+        assert "does not exist in LANGUAGES" not in result.stderr
+
+    def test_narrowing_both_settings_together_boots_cleanly(self, tmp_path):
+        result = self._boot_with_portal_override(
+            tmp_path,
+            'LANGUAGES = [("en", "English"), ("de", "German")]\n'
+            "PARLER_LANGUAGES = {\n"
+            '    1: ({"code": "en"}, {"code": "de"}),\n'
+            '    "default": {"fallback": "en", "hide_untranslated": False},\n'
+            "}\n",
+        )
+
+        assert result.returncode == 0, result.stdout + result.stderr
+
+
 class TestNonProductionBoot:
     """The same missing values under development start silently (FR-014, FR-015, SC-004)."""
 

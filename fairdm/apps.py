@@ -21,6 +21,36 @@ class FairDMConfig(AppConfig):
 
         return getattr(settings, "DJANGO_ENV", "production")
 
+    def import_models(self) -> None:
+        # django-parler validates PARLER_LANGUAGES against LANGUAGES itself,
+        # inside parler.appsettings, the moment any app whose models import
+        # parler.models is imported — during this same Phase 2 of
+        # apps.populate(), before ready() (Phase 3) ever starts, so
+        # ready()'s production-critical gate can't reach this in time.
+        # "fairdm" precedes fairdm.contrib.identity (and every other
+        # parler-model app) in INSTALLED_APPS, so running the check here,
+        # before super() imports this app's own models, surfaces FairDM's
+        # named error instead of parler's bare traceback (FR-012, T107).
+        self._check_parler_languages()
+
+        return super().import_models()
+
+    def _check_parler_languages(self) -> None:
+        from django.core.checks import Tags
+        from django.core.checks.registry import registry
+        from django.core.management.base import SystemCheckError
+
+        errors = [
+            issue
+            for issue in registry.run_checks(tags=[Tags.translation])
+            if issue.is_serious()
+        ]
+        if errors:
+            raise SystemCheckError(
+                "FairDM configuration is invalid:\n\n"
+                + "\n\n".join(str(error) for error in errors)
+            )
+
     def ready(self) -> None:
         # adds a default renderer to all forms to keep a consistent look across the site. This way we don't have to specify it every time
         # patch django-filters to not use crispy forms. should be safe to remove on the
