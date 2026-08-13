@@ -53,16 +53,11 @@ def setup(
     apps = apps or []
     addons = addons or []
 
-    # Determine environment profile
+    # Determine the resolved environment: taken literally from DJANGO_ENV, with
+    # no normalisation and no allowlist (FR-007, FR-010).
     env_profile = os.environ.get("DJANGO_ENV", "production")
-    if env_profile not in ("production", "staging", "development"):
-        logger.warning(
-            f"Unknown DJANGO_ENV='{env_profile}'. Defaulting to 'production'. "
-            "Valid options: production, staging, development"
-        )
-        env_profile = "production"
 
-    logger.info(f"🚀 FairDM Configuration: {env_profile} profile")
+    logger.info(f"🚀 FairDM Configuration: {env_profile} environment")
 
     # Get caller's global namespace (where settings will be injected)
     caller_globals = inspect.stack()[1][0].f_globals

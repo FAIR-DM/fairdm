@@ -34,6 +34,42 @@ def clean_env():
     os.environ.update(original_env)
 
 
+class TestResolvedEnvironment:
+    """Test resolution of the ``DJANGO_ENV`` environment variable (FR-007)."""
+
+    def test_missing_django_env_resolves_to_production(
+        self, clean_env, settings_module
+    ):
+        """``DJANGO_ENV`` unset resolves to ``production``."""
+        module = settings_module()
+
+        assert module.DJANGO_ENV == "production"
+
+    def test_empty_string_django_env_is_looked_up_literally(
+        self, clean_env, settings_module
+    ):
+        """An empty ``DJANGO_ENV`` is not normalised to ``production`` (edge case)."""
+        os.environ["DJANGO_ENV"] = ""
+
+        module = settings_module()
+
+        assert module.DJANGO_ENV == ""
+        # No override module is named "" — the baseline stands, unchanged.
+        assert module.DEBUG is False
+
+    def test_environment_name_differing_only_in_case_is_not_normalised(
+        self, clean_env, settings_module
+    ):
+        """A name differing only in case from a shipped one is looked up literally (edge case)."""
+        os.environ["DJANGO_ENV"] = "Development"
+
+        module = settings_module()
+
+        assert module.DJANGO_ENV == "Development"
+        # "Development" != "development" — FairDM's override module is not found.
+        assert module.DEBUG is False
+
+
 # Validation Logic Tests (Unit tests that don't require full Django setup)
 
 
