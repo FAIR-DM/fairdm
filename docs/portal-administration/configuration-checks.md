@@ -195,31 +195,6 @@ SILENCED_SYSTEM_CHECKS = [
 
 **Warning:** Only silence checks if you understand the security implications.
 
-## Migration from Legacy System
-
-The old `validate_services()` function is deprecated and will be removed in a future version. Update your deployment processes:
-
-**Old (deprecated):**
-
-```python
-from fairdm.conf.checks import validate_services
-validate_services('production', settings_dict)
-```
-
-**New (recommended):**
-
-```bash
-python manage.py check --deploy
-```
-
-The new system provides:
-
-- ✅ Consistent Django integration
-- ✅ Better error reporting
-- ✅ Tag-based filtering
-- ✅ CI/CD friendly
-- ✅ Explicit validation (no runtime noise)
-
 ## Troubleshooting
 
 ### Check Command Exits with Error Code 1

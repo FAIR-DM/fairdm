@@ -213,9 +213,9 @@ def setup(
         spectacular["TITLE"] = title_override
         spectacular["DESCRIPTION"] = desc_override
 
-    # Note: Configuration validation is now handled by Django's check framework.
+    # Configuration validation is handled entirely by Django's check
+    # framework (FR-018) — see fairdm/conf/checks.py and FairDMConfig.ready().
     # Run `python manage.py check --deploy` to validate production readiness.
-    # The old validate_services() function is deprecated.
 
     logger.info("✅ Configuration complete")
 
