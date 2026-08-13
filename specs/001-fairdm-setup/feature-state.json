@@ -3,7 +3,7 @@
   "feature": "001-fairdm-setup",
   "branch": "001-fairdm-setup",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -18,6 +18,11 @@
       "state": "PLAN",
       "at": "2026-08-13T15:20:00Z",
       "note": "research, plan, greenfield tasks, A3 reconciliation"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-13T17:30:00Z",
+      "note": "one reviewer, four lenses incl. reconciliation"
     }
   ],
   "gates": {
@@ -32,6 +37,22 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-13T17:30:00Z",
+      "self_resolved": [
+        "DR-002 cache check is a deny list \u2014 T063/T064 reopened",
+        "DR-003 check registration sits inside ready() \u2014 T076 reopened, T073 extended",
+        "DR-004 no production-critical tag \u2014 folded into T072",
+        "DR-005 management command in a directory Django never scans \u2014 T086 retargeted, T087 dropped",
+        "DR-006 US-3/US-4/US-6 all edit setup.py \u2014 plan.md sequencing corrected",
+        "DR-007 provenance record would hold secrets \u2014 T082 records names, T089 cleanses",
+        "DR-008 T080 was a confirmation, not the deletion FR-018 requires",
+        "DR-009 settings/storage.py does not exist \u2014 T037/T038 renamed to static_media",
+        "DR-010 settings/addons.py had no task \u2014 folded into T053",
+        "DR-011 FR-013 says the entry point runs the checks; research R1 says it cannot \u2014 carried to the next gate as a wording delta"
+      ]
     }
   },
   "stories": [
@@ -425,29 +446,13 @@
         },
         {
           "id": "T063",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_locmem"
-            ],
-            "commands": [
-              "poetry run pytest tests/test_conf -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T064",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_dummy"
-            ],
-            "commands": [
-              "poetry run pytest tests/test_conf -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T065",
@@ -538,16 +543,8 @@
         },
         {
           "id": "T076",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_conf/test_checks.py::TestCheckCommandIntegration::test_check_deploy_fails_with_errors"
-            ],
-            "commands": [
-              "poetry run pytest tests/test_conf -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T077",
@@ -611,11 +608,6 @@
         },
         {
           "id": "T086",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T087",
           "status": "todo",
           "attempts": 0
         },
@@ -727,7 +719,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {

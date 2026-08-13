@@ -18,9 +18,9 @@ Package skeletons and shared test scaffolding that every story's tests import.
   **Open (A3, never_built):** tests/test_conf/test_settings/ does not exist.
 - [ ] T005 [US-1] Write `tests/test_conf/conftest.py`: an env-var isolation fixture (saves/restores `DJANGO_ENV` and related variables per test), a fixture that builds a throwaway portal settings module on `tmp_path` with a real `__file__`, and a scope-snapshot helper reused by the provenance tests in Phase 2 (Article X)  
   **Open (A3, partial):** `tests/test_conf/conftest.py:14` — conftest holds only production_env; no tmp_path portal-settings fixture, no scope-snapshot helper, and the env fixtures that exist are duplicated inside individual test modules.
-- [ ] T006 [US-1] Write `tests/test_conf/test_environment.py::TestEnv` asserting the shared `Env` declares `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN`, the database, cache and admin-credential variables with no default value (FR-004, FR-006)  
+- [ ] T006 [US-1] Write `tests/test_conf/test_environment.py::TestEnv` asserting the shared `Env` declares `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN`, the database, cache and admin-credential variables with no *working* default — each resolves to an explicitly unusable sentinel when the variable is unset, and the read itself never raises (FR-004, FR-006, research R6)  
   **Open (A3, never_built):** tests/test_conf/test_environment.py does not exist.
-- [ ] T007 [US-1] Implement `fairdm/conf/environment.py`: the shared `django-environ` `Env()` declaration for every deployment-varying value, with no default for any security-critical variable (FR-004, FR-006)  
+- [ ] T007 [US-1] Implement `fairdm/conf/environment.py`: the shared `django-environ` `Env()` declaration for every deployment-varying value, every security-critical variable declared with an unusable sentinel default rather than a working one (FR-004, FR-006, research R6)  
   **Open (A3, built_differently):** `fairdm/conf/environment.py:3` — The shared Env supplies working defaults for the security-critical values FR-004 forbids: DJANGO_SECRET_KEY (:15), DJANGO_SITE_DOMAIN (:19), DJANGO_SUPERUSER_PASSWORD (:10), DJANGO_ALLOWED_HOSTS=[] (:11).
 
 ## Phase 1: US-2 — vary configuration by environment through layered overrides (P1)
@@ -92,9 +92,9 @@ ordering and the baseline-wide audits.
   **Open (A3, never_built):** nothing implements it and no test covers it.
 - [ ] T036 [P] [US-1] Implement `fairdm/conf/settings/celery.py` with an ownership docstring (FR-002, FR-003)  
   **Open (A3, no_test):** `fairdm/conf/settings/celery.py:58` — Implemented with an ownership docstring and no environment branching; untested.
-- [ ] T037 [P] [US-1] Write `tests/test_conf/test_settings/test_storage.py::TestStorage` asserting the baseline configures static and media handling from the environment (FR-002, FR-003)  
+- [ ] T037 [P] [US-1] Write `tests/test_conf/test_settings/test_static_media.py::TestStaticMedia` asserting the baseline configures static and media handling from the environment (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T038 [P] [US-1] Implement `fairdm/conf/settings/storage.py` with an ownership docstring (FR-002, FR-003)  
+- [ ] T038 [P] [US-1] Implement `fairdm/conf/settings/static_media.py` with an ownership docstring — the module `setup.py` already includes under that name (FR-002, FR-003)  
   **Open (A3, no_test):** `fairdm/conf/settings/static_media.py:71` — Implemented as static_media.py rather than storage.py (name difference only); switches to S3 when the S3_* vars are set.
 - [ ] T039 [P] [US-1] Write `tests/test_conf/test_settings/test_auth.py::TestAuth` asserting the baseline configures authentication (FR-002, FR-003)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
@@ -124,11 +124,11 @@ ordering and the baseline-wide audits.
   **Open (A3, never_built):** nothing implements it and no test covers it.
 - [ ] T052 [US-1] Write `tests/test_conf/test_setup.py::TestBaselineCompleteness` asserting a settings module whose entire content is `fairdm.setup()` produces a configuration where every FairDM-owned setting is present and `manage.py check` raises nothing (FR-001, SC-001)  
   **Open (A3, never_built):** SC-001 unverified.
-- [ ] T053 [US-1] Write `tests/test_conf/test_setup.py::TestNoEnvironmentBranching`, a static audit test asserting no module under `fairdm/conf/settings/` contains a conditional on the resolved environment (FR-003)  
+- [ ] T053 [US-1] Write `tests/test_conf/test_setup.py::TestBaselineModuleAudit`, a static audit over every module in `fairdm/conf/settings/` — all eleven, `settings/addons.py` included — asserting none contains a conditional on the resolved environment and each carries a module docstring naming what it owns and what it leaves to a portal (FR-002, FR-003, US-1 scenario 2)  
   **Open (A3, never_built):** No module branches on DJANGO_ENV by name, but several branch on environment-derived state (logging.py:30, security.py:49, database.py:26, cache.py:22).
-- [ ] T054 [US-1] Write `tests/test_conf/test_environment.py::TestNoSecurityDefaults` asserting reading `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN`, `ALLOWED_HOSTS` or an administrative password with the variable unset raises FairDM's own error naming the variable and what to set it to, not a bare `ImproperlyConfigured` (FR-004, SC-006)  
+- [ ] T054 [US-1] Write `tests/test_conf/test_environment.py::TestNoSecurityDefaults` asserting that with `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN` and the administrative password unset, the baseline resolves to values nothing accepts — no published literal, no `localhost` domain, no `admin` password — and that settings import still succeeds so development and the test suite can run (FR-004, SC-006)  
   **Open (A3, never_built):** environment.py ships defaults for every variable this would assert on, so unset values resolve silently instead of raising.
-- [ ] T055 [US-1] Implement wrapped reads in `environment.py`/`settings/security.py` that catch `django-environ`'s `ImproperlyConfigured` and re-raise with FairDM's own message (FR-004, SC-006)  
+- [ ] T055 [US-1] Implement the sentinel reads in `settings/security.py`, composing `ALLOWED_HOSTS` from truthy entries only so an unset domain yields `[]` rather than `[""]` — otherwise `check_allowed_hosts_configured`'s emptiness test can never fire (FR-004, SC-006)  
   **Open (A3, never_built):** security.py:19 and :23 call env() bare; the defaults mean django-environ never raises for these variables.
 - [ ] T056 [US-1] Write `tests/test_conf/test_development.py::TestDevelopmentDefaults` asserting `development.py` supplies a clearly-marked development-only secret key and a `localhost` allowed-hosts list, and that neither value exists in the production baseline (FR-004, FR-009)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
@@ -147,10 +147,10 @@ ordering and the baseline-wide audits.
   **Done (A3):** `fairdm/conf/checks.py:29` · `tests/test_conf/test_checks.py::TestDatabaseChecks::test_check_database_configured_missing` — Not-production-grade half covered by TestDatabaseChecks::test_check_database_production_ready_sqlite.
 - [x] T062 [US-3] Implement the database production-critical check in `fairdm/conf/checks.py`, tagged for the deployment check run (FR-016, FR-017)  
   **Done (A3):** `fairdm/conf/checks.py:28` · `tests/test_conf/test_checks.py::TestDatabaseChecks::test_check_database_production_ready_sqlite` — Registered @register(Tags.database, DeployTags.deploy, deploy=True); nothing yet marks it as a production-critical subset distinct from the rest.
-- [x] T063 [US-3] Write `TestCacheCheck` asserting a production-critical error when no shared cache is configured (FR-017)  
-  **Done (A3):** `fairdm/conf/checks.py:80` · `tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_locmem` — An explicitly empty CACHES dict produces no error, but Django's own default is locmem, which is caught.
-- [x] T064 [US-3] Implement the cache production-critical check (FR-016, FR-017)  
-  **Done (A3):** `fairdm/conf/checks.py:79` · `tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_dummy`
+- [ ] T063 [US-3] Extend `TestCacheChecks` with the case the existing deny list misses: `CACHES` absent, `CACHES['default']` empty, and a backend that is neither locmem nor dummy but still not shared (e.g. `filebased.FileBasedCache`) each produce a production-critical error (FR-017)  
+  **Open (A3 + S3R DR-002, partial):** `fairdm/conf/checks.py:80` · `tests/test_conf/test_checks.py::TestCacheChecks::test_check_cache_backend_locmem` — the existing check is a two-item deny list, so an absent `CACHES`, an empty `default` and any other non-shared backend all pass.
+- [ ] T064 [US-3] Extend the cache production-critical check to assert a shared backend rather than deny two development ones, covering the absent and unsuitable cases (FR-016, FR-017)  
+  **Open (A3 + S3R DR-002, partial):** `fairdm/conf/checks.py:79` — as above; the locmem and dummy branches stay, the absent-and-unsuitable branch is the remaining work.
 - [ ] T065 [US-3] Write `TestSecretKeyCheck` asserting a production-critical error both when the secret key is absent and when it carries an insecure or published value (FR-017, SC-006)  
   **Open (A3, partial):** `tests/test_conf/test_checks.py::TestSecretKeyChecks::test_check_secret_key_exists_empty` — Only the absent/empty case is tested; the insecure-or-published-value case is covered only by TestValidationLogic, which exercises the deprecated validate_services().
 - [ ] T066 [US-3] Implement the secret-key production-critical check as FairDM's own error-severity check, not delegated to Django's warning-severity one (FR-017)  
@@ -165,44 +165,42 @@ ordering and the baseline-wide audits.
   **Done (A3):** `fairdm/conf/checks.py:193` · `tests/test_conf/test_checks.py::TestDebugChecks::test_check_debug_false_disabled`
 - [ ] T071 [US-3] Write `tests/test_apps.py::TestProductionBoot` asserting that with `DJANGO_ENV=production` and several production-critical values missing at once, `FairDMConfig.ready()` raises an error naming every failure, not the first (FR-013, SC-003)  
   **Open (A3, never_built):** The 'production fails' tests all call the deprecated validate_services() with a hand-built settings dict; none boots an app registry or proves startup aborts.
-- [ ] T072 [US-3] Implement aggregation of every production-critical check failure into a single raised error in `FairDMConfig.ready()` (FR-013)  
+- [ ] T072 [US-3] Implement aggregation of every production-critical check failure into a single raised error in `FairDMConfig.ready()`, selecting the subset by a dedicated production-critical tag applied to the five checks research R5 names and withheld from the Celery checks — `deploy=True` alone would block a boot on a missing worker, which R5 rejects (FR-013, FR-016)  
   **Open (A3, never_built):** FairDMConfig.ready() imports the checks module to register it and returns; it never runs or aggregates anything, so nothing in the boot path can stop a misconfigured production portal.
-- [ ] T073 [US-3] Write `TestNonProductionBoot` asserting the same missing values under `development` start successfully with no configuration-check output emitted (FR-014, SC-004)  
+- [ ] T073 [US-3] Write `TestNonProductionBoot` asserting the same missing values under `development` start successfully with no configuration-check output emitted, **and** that FairDM's check ids are still present in Django's check registry in that environment, so the FR-014 guard cannot suppress registration (FR-014, FR-015, SC-004)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
 - [ ] T074 [US-3] Implement the environment guard in `FairDMConfig.ready()` so checks run only when the resolved environment is production (FR-014)  
   **Open (A3, never_built):** No guard exists because no checks run at boot in any environment.
 - [ ] T075 [US-3] Write `tests/test_conf/test_checks.py::TestDeployCommand` asserting `manage.py check --deploy` reports the full check set against production standards regardless of the current resolved environment (FR-015)  
   **Open (A3, partial):** `tests/test_conf/test_checks.py::TestCheckCommandIntegration::test_check_deploy_fails_with_errors` — Proves check --deploy surfaces one error id and passes on a valid config, but never varies DJANGO_ENV, so FR-015's 'regardless of environment' clause is unasserted.
-- [x] T076 [US-3] Implement check registration so the full set participates in Django's deployment check command independent of `FairDMConfig.ready()`'s guard (FR-015, FR-016)  
-  **Done (A3):** `fairdm/conf/checks.py:28` · `tests/test_conf/test_checks.py::TestCheckCommandIntegration::test_check_deploy_fails_with_errors` — Registration happens at module import time via @register(deploy=True), triggered by fairdm/apps.py:20, so it is structurally independent of any ready() guard.
+- [ ] T076 [US-3] Move check registration out of `FairDMConfig.ready()`'s body to module import, so the full set participates in the deployment check command independently of the FR-014 guard T074 adds (FR-015, FR-016)  
+  **Open (A3 + S3R DR-003, partial):** `fairdm/conf/checks.py:28` · registration is triggered from inside `fairdm/apps.py:20`, the body of the method T074 is about to guard, and no test can prove independence until the guard exists.
 - [ ] T077 [US-3] Write `TestSyntacticallyUnusableValue` asserting a production-critical value that is present but syntactically unusable (e.g. a malformed database URL) fails its check distinctly from an absent value (edge case, FR-017)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
 - [ ] T078 [US-3] Implement the syntactic-validity branch of the affected production-critical check(s) (edge case, FR-017)  
   **Open (A3, never_built):** No check parses or validates the syntax of any value; they test presence and known-bad literals only.
 - [ ] T079 [US-3] Write `tests/test_conf/test_conf_init.py::TestNoSecondValidationPath` asserting `fairdm.conf`'s public API exposes no second configuration-validation entry point beyond the check framework (FR-018)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T080 [US-3] Confirm no second validation path is implemented anywhere in `fairdm/conf/` — a design constraint verified by T079 rather than new code (FR-018)  
+- [ ] T080 [US-3] Delete the second validation path: `validate_services()` at `fairdm/conf/checks.py:269`, the comment at `setup.py:172-174`, its documented migration note, and all 51 test references (research R7) — `TestStagingSetup` goes in full per D1, and `validate_addon_module` stays because FR-022 still needs it (FR-018)  
   **Open (A3, built_differently):** `fairdm/conf/checks.py:269` — validate_services() (:269) and validate_addon_module() (:452) still raise ImproperlyConfigured on their own and are still the subject under test in four test classes; unreachable from setup(), but FR-018 forbids it existing.
 
 ## Phase 2: US-4 — see which layer produced a setting (P2)
 
 - [ ] T081 [US-4] Write `tests/test_conf/test_setup.py::TestProvenance` asserting `setup()` records, per layer, an ordered `(layer name, path, found, settings written)` structure captured by diffing the scope's uppercase keys before and after each layer's `include()` call (FR-019, FR-020)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T082 [US-4] Implement the provenance record as a module-level structure in `fairdm.conf`, populated by a shallow-copy-and-diff around each layer (FR-019, FR-020)  
+- [ ] T082 [US-4] Implement the provenance record as a module-level structure in `fairdm.conf`, populated by a shallow-copy-and-diff around each layer, recording **setting names per layer and never their values** — the scope holds `SECRET_KEY`, the database password and the email password (FR-019, FR-020)  
   **Open (A3, never_built):** setup() applies layers with plain include() calls and takes no before/after snapshot.
 - [ ] T083 [US-4] Extend `TestProvenance` with a case asserting a layer with no module for the resolved environment is recorded as absent, not omitted (FR-019, scenario 3)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
 - [ ] T084 [US-4] Extend `TestProvenance` with a case asserting that for a setting written by more than one layer, the record names the layer that produced the final value (FR-020, scenario 2)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T085 [US-4] Write `tests/test_conf/test_management/test_show_config.py::TestShowConfigCommand` asserting a management command lists every layer in application order, each marked found or absent (FR-019)  
+- [ ] T085 [US-4] Write `tests/test_management/test_show_config.py::TestShowConfigCommand` asserting a management command lists every layer in application order, each marked found or absent (FR-019)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T086 [US-4] Implement `fairdm/conf/management/commands/show_config.py`, reading the provenance record after `django.setup()` and reporting the layer list (FR-019)  
+- [ ] T086 [US-4] Implement `fairdm/management/commands/show_config.py` — the directory Django scans for the installed `fairdm` app, beside the three existing commands — reading the provenance record after `django.setup()` and reporting the layer list (FR-019)  
   **Open (A3, never_built):** There is no fairdm/conf/management/ directory.
-- [ ] T087 [US-4] Register `show_config` under `fairdm`'s app config so `manage.py show_config` is discoverable (FR-019)  
-  **Open (A3, never_built):** nothing implements it and no test covers it.
 - [ ] T088 [US-4] Extend `TestShowConfigCommand` with a case: given a setting-name argument, the command reports its resolved value and the layer that produced it (FR-020)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
-- [ ] T089 [US-4] Implement the named-setting lookup mode of `show_config` (FR-020)  
+- [ ] T089 [US-4] Implement the named-setting lookup mode of `show_config`, reading the value from `django.conf.settings` at report time and passing it through `SafeExceptionReporterFilter().cleanse_setting()` so a secret is never printed (FR-020)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
 - [ ] T090 [US-4] Write `tests/test_conf/test_setup.py::TestProvenanceCoversEverySetting` asserting that for every setting any baseline module sets, the provenance record names a producing layer (SC-005)  
   **Open (A3, never_built):** nothing implements it and no test covers it.
@@ -268,8 +266,8 @@ ordering and the baseline-wide audits.
 | FR-016 | T062, T064, T066, T068, T070, T076 |
 | FR-017 | T061–T070, T077, T078 |
 | FR-018 | T079, T080 |
-| FR-019 | T081, T082, T083, T085, T086, T087 |
-| FR-020 | T081, T084, T087, T088, T089 |
+| FR-019 | T081, T082, T083, T085, T086 |
+| FR-020 | T081, T084, T088, T089 |
 | FR-021 | T094, T095, T096 |
 | FR-022 | T097–T102 |
 | FR-023 | T103, T104 |
@@ -286,16 +284,16 @@ ordering and the baseline-wide audits.
 
 Every task above was walked against the codebase. A task is ticked only where implementing code is cited **and** an existing passing test exercises it — code with no test stays open, and its remaining work is the test. The previous task list's checkboxes were not consulted.
 
-- **105 tasks total** — 12 proven done, 93 open.
+- **104 tasks total** — 9 proven done, 95 open. (A3 first ticked 12 of 105; the S3R reconciliation lens reopened T063, T064 and T076 as partial, and T087 was dropped as a step Django does not have.)
 
 | Why a task is open | Count | Tasks |
 |---|---|---|
 | never built | 56 | T004, T006, T008, T010, T012, T014, T016, T018, T020, T021, T023, T024, T025, T026, T030, T031, T033, T035, T037, T039, T041, T043, T045, T047, T049, T051, T052, T053, T054, T055, T056, T058, T059, T071, T072, T073, T074, T077, T078, T079, T081, T082, T083, T084, T085, T086, T087, T088, T089, T090, T094, T096, T099, T101, T102, T105 |
 | built differently — the code contradicts the spec and must change | 15 | T007, T011, T015, T019, T027, T032, T034, T044, T050, T057, T080, T093, T095, T100, T103 |
-| partly built | 15 | T005, T013, T017, T022, T028, T029, T048, T060, T065, T066, T075, T091, T092, T097, T104 |
+| partly built | 18 | T005, T013, T017, T022, T028, T029, T048, T060, T063, T064, T065, T066, T075, T076, T091, T092, T097, T104 |
 | built, no test covering it | 7 | T009, T036, T038, T040, T042, T046, T098 |
 
-Proven done: T001, T002, T003, T061, T062, T063, T064, T067, T068, T069, T070, T076.
+Proven done: T001, T002, T003, T061, T062, T067, T068, T069, T070.
 
 Evidence baseline: `poetry run pytest tests/test_conf` — 60 passed, 3 skipped.
 

@@ -75,7 +75,11 @@ exist.
 
 ### Phase 2 — refusing to start (US-3) and interrogation (US-4)
 
-Independent of each other and of Phase 3.
+**Not independent.** US-3, US-4 and US-6 all rewrite the same layer-composition block in
+`setup.py` — the resolved-environment record, the snapshot-and-diff around each `include()`, and the
+addon layer's position. They run sequentially in that order, or in one worktree, rather than in
+parallel branches that collide on the file the whole feature turns on. US-5 is verification-only and
+runs last, after item 4 has removed the `SPECTACULAR_SETTINGS` special case it asserts is gone.
 
 7. Record the resolved environment where `FairDMConfig.ready()` can read it; run the
    production-critical subset there and raise on any error, aggregating every failure into one

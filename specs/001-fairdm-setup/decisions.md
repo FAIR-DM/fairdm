@@ -253,3 +253,45 @@ Not this feature's work, recorded so they are not lost:
   FR-003.
 - **Stale docstrings** across `fairdm/conf/settings/*` referring to overrides in `local.py` and
   `staging.py`, neither of which exists. Inside this feature's scope under FR-002.
+
+---
+
+## D13 — FR-013 attributes the checks to the entry point; the entry point cannot run them
+
+**What the spec says.** FR-013: the entry point must run the production-critical configuration
+checks and must prevent startup if any fails.
+
+**What the research found.** Django's check framework needs a populated app registry, which does not
+exist at the moment `setup()` returns (research R1). `setup()` records the resolved environment and
+`FairDMConfig.ready()` runs the subset and aborts the boot.
+
+**Reading adopted.** "The entry point" means the boot path `setup()` initiates, not the function
+body. The observable behaviour — a misconfigured production portal refuses to start, a development
+portal starts silently — matches US-3 and SC-003 exactly, and running the checks anywhere else is
+impossible rather than merely inconvenient.
+
+**Not a licence to rewrite the spec.** FR-013 passed the spec gate, so its wording is carried to Sam
+as a one-line delta at the next gate rather than corrected here.
+
+---
+
+## D14 — the security-critical variables lose their working defaults, not their readability
+
+**What the audit found.** `fairdm/conf/environment.py` ships a working fallback secret key, a
+`localhost:8000` site domain and an `admin` superuser password, so a production portal that sets none
+of them boots on a key published in the package source.
+
+**First plan.** Remove the defaults outright, so the read raises and names the variable (research R6,
+first draft).
+
+**Why that was wrong.** `settings/security.py` is the second module of the baseline layer and
+FairDM's `development.py` is layer 2. A baseline read that raises kills the process before any
+override can supply the value — taking development startup and the whole test suite with it, and
+contradicting FR-014, SC-004 and US-3's third scenario. The design review caught this before it was
+built (DR-001).
+
+**Decision.** The declarations take an explicitly unusable sentinel instead of a working default.
+FR-004's "no working default" holds, the environment stays resolvable, and the refusal to boot comes
+from the production-critical checks under FR-013 — which is where the spec already puts it.
+`ALLOWED_HOSTS` composes from truthy entries only, so an unset domain yields `[]` and the existing
+emptiness check can fire.

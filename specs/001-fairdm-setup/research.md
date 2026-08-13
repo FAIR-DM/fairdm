@@ -129,12 +129,24 @@ therefore kept rather than delegated, and it must test for absence and for the i
 from a `django-environ` `Env` declaration makes the read raise `ImproperlyConfigured` when the
 variable is absent.
 
-**Decision.** The declarations lose their defaults. The failure this produces is a bare
-`ImproperlyConfigured` from `django-environ`, which names the variable but gives no guidance, so the
-reads are wrapped to produce FairDM's own message naming the variable and what to set it to. In
-development the same variables need values, so FairDM's `development.py` supplies a clearly-marked
-development-only key and a `localhost` host list — the value moves from the shipped baseline, where
-it silently applies to production, into the development layer, where it cannot.
+**Decision.** The declarations lose their *working* defaults and take an explicitly unusable
+sentinel instead — `env("DJANGO_SECRET_KEY", default="")`. The refusal to boot comes from the
+production-critical checks under FR-013, not from the read.
+
+The read cannot be the thing that raises. `settings/security.py` is the second module of the
+baseline layer and FairDM's `development.py` is layer 2, so a baseline read that raises has already
+killed the process before any override could supply the value — taking development startup and the
+whole test suite with it, and falsifying FR-014, SC-004 and US-3's third scenario. A sentinel
+satisfies FR-004's "no working default" while leaving the environment resolvable, and the check that
+already exists (`fairdm.E001`) is what stops production.
+
+One consequence for `ALLOWED_HOSTS`: with a sentinel, `[env("DJANGO_SITE_DOMAIN")] + …` composes
+`[""]`, which is a non-empty list, so `check_allowed_hosts_configured`'s `if not allowed_hosts` would
+never fire. The composition filters falsy entries.
+
+In development the same variables still need real values, so FairDM's `development.py` supplies a
+clearly-marked development-only key and a `localhost` host list — the value moves from the shipped
+baseline, where it silently applies to production, into the development layer, where it cannot.
 
 **Consequence.** A portal that runs in production without setting these stops working on upgrade.
 That is the point of the change and it belongs in the release notes, not in a compatibility shim.
