@@ -295,3 +295,42 @@ FR-004's "no working default" holds, the environment stays resolvable, and the r
 from the production-critical checks under FR-013 — which is where the spec already puts it.
 `ALLOWED_HOSTS` composes from truthy entries only, so an unset domain yields `[]` and the existing
 emptiness check can fire.
+
+---
+
+## D15 — a layer that appends is a producer, so the provenance diff compares by value
+
+**What US-4 built.** The provenance record diffed the settings scope by object identity: a layer
+"wrote" a setting if the name was new, or if it now pointed at a different object.
+
+**Why that is wrong.** A layer does not have to rebind a name to change a setting. `INSTALLED_APPS
++= [...]` calls `list.__iadd__`, which mutates the baseline's own list in place, so both sides of an
+identity diff see the same object and conclude nothing was written. FairDM's only shipped override
+layer does exactly that, for `INSTALLED_APPS` and for `MIDDLEWARE`. Verified live before the fix:
+`manage.py show_config INSTALLED_APPS` under `DJANGO_ENV=development` printed a list containing
+`django_browser_reload` and named `baseline` as its producer — the wrong answer, on the two settings
+a portal is most likely to ask about, from the command that exists to answer exactly that question.
+
+**Decision.** The before-snapshot deep-copies mutable containers (`list`, `dict`, `set`) and those
+are compared by value; everything else is kept by reference and compared by identity, which is
+correct for immutables and safe for objects whose equality is identity anyway. Copy and comparison
+each fall back to identity rather than raising, so an uncopyable setting degrades the record instead
+of breaking startup. Recorded as T109.
+
+**A narrowing this makes explicit.** The record now names the layer that last *changed* a value, not
+the last one to assign it: a layer that reassigns a setting to the value it already held leaves the
+earlier layer named. The resolved value is the same either way, which is the question FR-020 asks.
+`Provenance.producer` says so.
+
+---
+
+## D16 — the US-4 tamper flags, adjudicated
+
+`forge tamper-check --base 272ef40` raised two flags, both cleared:
+
+- **`tests/test_conf/test_setup.py`** — additive only. The range removes zero lines from the file;
+  the two T109 tests are new methods on an existing class.
+- **`tests/test_conf/conftest.py`** — removed `snapshot_scope`, an unused helper (zero references in
+  the tree) whose docstring asserted that a *shallow*-copy diff "is how the provenance command
+  attributes a setting to the layer that wrote it". D15 makes that false. It weakened no test
+  because it backed none.
