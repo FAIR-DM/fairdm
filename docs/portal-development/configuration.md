@@ -1,19 +1,19 @@
 # Configuration Guide
 
-FairDM provides a flexible, environment-aware configuration system built on top of Django's settings. This guide explains how to configure your portal for different deployment scenarios.
+FairDM provides a flexible, environment-aware configuration system built on top of Django's settings. This guide explains how to configure your portal for development and production.
 
 ## Overview
 
 The configuration system is designed around these principles:
 
-- **Production by default**: Settings start from a secure production baseline
-- **Environment-specific overrides**: Development and staging can override production settings
-- **Project customization**: Portals can safely override framework settings
-- **Addon integration**: Third-party addons inject their settings cleanly
+- **One entry point**: a portal's settings module obtains its entire Django configuration from a single `fairdm.setup()` call.
+- **Production by default**: `DJANGO_ENV` defaults to `production`, and the baseline it composes is FairDM's production-grade configuration — not a development-friendly one that happens to also work in production.
+- **Layered overrides**: everything that varies by environment is expressed as an override module layered on top of the baseline, in a declared order.
+- **No allowlist**: an override module is found by existence, not by name-matching a fixed list of permitted environments.
 
 ## Quick Start
 
-In your portal's main `settings.py`:
+In your portal's settings module — recommended at `config/settings.py`:
 
 ```python
 import fairdm
@@ -21,204 +21,112 @@ import fairdm
 fairdm.setup()
 ```
 
-That's it! FairDM will load the appropriate configuration based on your environment.
+That's it. FairDM loads its production-grade defaults, and layers in whatever override modules exist for the resolved environment.
 
-## Environment Profiles
+## The `DJANGO_ENV` Variable
 
-FairDM supports three environment profiles, selected via the `DJANGO_ENV` environment variable:
-
-### Production (default)
+The resolved environment is taken literally from `DJANGO_ENV`:
 
 ```bash
-export DJANGO_ENV=production
-```
-
-**Characteristics**:
-- Strict validation (fail-fast)
-- Requires PostgreSQL database
-- Requires Redis cache
-- Enforces HTTPS security
-- Requires strong SECRET_KEY
-- DEBUG disabled
-
-**Use for**: Production deployments, public-facing portals
-
-### Staging
-
-```bash
-export DJANGO_ENV=staging
-```
-
-**Characteristics**:
-- Production-like validation
-- Enhanced DEBUG-level logging
-- Optional Sentry error tracking
-- Same security requirements as production
-
-**Use for**: Pre-production testing, QA environments
-
-### Development
-
-```bash
+export DJANGO_ENV=production   # the default when unset
 export DJANGO_ENV=development
 ```
 
-**Characteristics**:
-- Graceful degradation (warns instead of failing)
-- SQLite fallback if no DATABASE_URL
-- LocMemCache fallback if no Redis
-- Eager Celery (no broker needed)
-- Console email backend
-- DEBUG enabled
-- Relaxed security settings
+There is no allowlist. Any value is valid — including a typo, or an environment name only your portal knows about. If nothing ships an override module for that name, `setup()` silently falls back to the production baseline: the safe direction, and one a developer notices immediately because the portal behaves as if in production.
 
-**Use for**: Local development, testing
+FairDM itself ships exactly one override module: `development`. There is no `staging` profile — a portal that wants one supplies its own override module, through the same mechanism as any other environment name.
 
-## Configuration Structure
+## The Five Layers
 
-FairDM's configuration is organized into focused modules:
+`fairdm.setup()` composes settings in five layers. Each layer applies over the one before it, so a later layer's value for the same setting wins:
 
-```
-fairdm/conf/
-├── __init__.py              # Package exports
-├── setup.py                 # Main setup() function
-├── environment.py           # Environment variable handling
-├── checks.py                # Configuration validation
-├── addons.py                # Addon discovery and loading
-├── development.py           # Development overrides
-├── staging.py               # Staging overrides
-└── settings/                # Production baseline (10 modules)
-    ├── apps.py              # INSTALLED_APPS, MIDDLEWARE, TEMPLATES
-    ├── auth.py              # Authentication backends
-    ├── cache.py             # Redis/LocMemCache/DummyCache
-    ├── celery.py            # Background task processing
-    ├── database.py          # PostgreSQL/SQLite configuration
-    ├── email.py             # Email backend
-    ├── logging.py           # Logging and Sentry
-    ├── security.py          # SECRET_KEY, ALLOWED_HOSTS, HTTPS
-    ├── static_media.py      # Static/media with WhiteNoise, S3
-    └── addons.py            # Third-party library configurations
+1. **The baseline** — FairDM's production-grade defaults, organised under `fairdm/conf/settings/`, one module per concern.
+2. **FairDM's own override module** for the resolved environment, if it ships one (only `development.py` today).
+3. **Addon settings** — settings contributed by any addon named in `fairdm.setup(addons=[...])`.
+4. **The portal's own override module** for the resolved environment, resolved beside the portal's settings module (see below).
+5. **Assignment after the `setup()` call**, in the portal's own settings module. This is the only way to override a setting FairDM owns — `setup()` does not accept settings as keyword arguments.
+
+```python
+# config/settings.py
+import fairdm
+
+fairdm.setup(
+    apps=["my_portal_app"],
+    addons=["fairdm_discussions"],
+)
+
+# Layer 5 — assignment after the call, always wins
+TIME_ZONE = "Europe/London"
+
+INSTALLED_APPS = INSTALLED_APPS + ["my_other_app"]
+LOGGING["loggers"]["my_app"] = {"handlers": ["console"], "level": "INFO"}
 ```
 
-## Loading Order
+### The portal's own override module
 
-When you call `fairdm.setup()`, settings are loaded in this order:
+A portal supplies its own layer-4 override by adding a module named after the environment, **beside its settings module** — for the recommended layout that's `config/<environment>.py`:
 
-1. **Environment detection**: Reads `DJANGO_ENV` (defaults to `production`)
-2. **Environment variables**: Loads `.env` files if present
-3. **Production baseline**: Loads all modules from `settings/` directory
-4. **Environment overrides**: Loads `development.py` or `staging.py` if applicable
-5. **Addon configurations**: Loads addon setup modules
-6. **Project overrides**: Applies `**overrides` passed to `setup()`
-7. **Validation**: Runs configuration checks
-
-Later settings override earlier ones.
-
-## Environment Variables
-
-### Required (Production/Staging)
-
-```bash
-# Security
-DJANGO_SECRET_KEY="your-secret-key-minimum-50-characters-long"
-DJANGO_ALLOWED_HOSTS="example.com,www.example.com"
-
-# Site identification
-DJANGO_SITE_DOMAIN="example.com"
-DJANGO_SITE_NAME="My Research Portal"
-
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
-
-# Cache
-REDIS_URL="redis://localhost:6379/0"
-
-# Email (if sending emails)
-EMAIL_HOST="smtp.example.com"
-EMAIL_PORT="587"
-EMAIL_HOST_USER="noreply@example.com"
-EMAIL_HOST_PASSWORD="your-email-password"
+```
+config/
+├── settings.py       # calls fairdm.setup()
+├── development.py    # applied when DJANGO_ENV=development
+└── production.py     # applied when DJANGO_ENV=production
 ```
 
-### Optional
+```python
+# config/production.py — applied as layer 4, before assignments in settings.py
+#
+# Do not call fairdm.setup() here — this module runs inside the caller's
+# already-in-progress setup() call, sharing its scope.
 
-```bash
-# Static files (S3/CloudFront)
-AWS_ACCESS_KEY_ID="your-access-key"
-AWS_SECRET_ACCESS_KEY="your-secret-key"
-AWS_STORAGE_BUCKET_NAME="your-bucket"
-AWS_S3_CUSTOM_DOMAIN="cdn.example.com"
-
-# Error tracking
-SENTRY_DSN="your-sentry-dsn"
-
-# Media storage (if using S3)
-AWS_MEDIA_BUCKET_NAME="your-media-bucket"
+LANGUAGES = [
+    ("en", "English"),
+    ("de", "German"),
+]
 ```
 
-### Environment File Loading
+The lookup is anchored to the settings module's own directory, not to a hardcoded `config/` path — a portal laid out differently (for instance, a settings module living in a package named after the project, as `django-admin startproject` produces) still gets its override module found. The documentation and the recommended project structure always use `config/`, because that's what new portals should use; the mechanism itself does not require it.
 
-FairDM loads environment files in this order (later files override earlier ones):
+If your settings module has no resolvable file on disk (for example, one generated at runtime or imported from an archive), this layer is skipped with a warning rather than failing.
 
-1. `stack.env` (base configuration)
-2. `stack.{profile}.env` (e.g., `stack.production.env`, `stack.development.env`)
-3. Custom file specified via `env_file` parameter
+If FairDM and the portal both ship an override module for the same resolved environment, both apply — FairDM's first, the portal's second, so the portal's values win on any setting both name.
 
-Example:
+## Environment Files
+
+`fairdm.setup()` reads environment files in this order, before composing any settings layer:
+
+1. `stack.env` — read first, respecting variables already set in the process environment.
+2. `stack.<environment>.env` — read next, also respecting variables already set.
+3. An explicit `env_file=` argument, if given — read last, and **does** overwrite variables already set, including by the two files above.
 
 ```python
 fairdm.setup(env_file="/path/to/custom.env")
 ```
 
-## Project Customization
+## Overriding a FairDM Default
 
-### Using **overrides
-
-Pass settings as keyword arguments to `setup()`:
-
-```python
-import fairdm
-
-fairdm.setup(
-    TIME_ZONE="Europe/London",
-    LANGUAGE_CODE="en-gb",
-    CUSTOM_SETTING="value",
-)
-```
-
-### Post-setup Assignments
-
-Modify settings after calling `setup()`:
+Assignment after the `setup()` call is the only supported way to override a setting FairDM owns:
 
 ```python
 import fairdm
 
 fairdm.setup()
 
-# Add portal-specific apps
-INSTALLED_APPS = INSTALLED_APPS + [
-    "my_portal_app",
-    "my_other_app",
-]
+# Scalars
+TIME_ZONE = "Europe/London"
 
-# Customize logging
-LOGGING["loggers"]["my_app"] = {
-    "handlers": ["console", "file"],
-    "level": "INFO",
-}
+# Lists — extend, don't replace, unless you mean to
+INSTALLED_APPS = INSTALLED_APPS + ["my_portal_app"]
 
-# Override specific settings
-TIME_ZONE = "America/New_York"
+# Dicts
+LOGGING["loggers"]["my_app"] = {"handlers": ["console"], "level": "DEBUG"}
 ```
 
-### Which Method to Use?
-
-- **`**overrides`**: For simple scalar values (strings, booleans, numbers)
-- **Post-setup assignments**: For complex modifications (extending lists, updating dicts)
+`fairdm.setup()` does not accept settings as keyword arguments — passing one raises `TypeError`.
 
 ## Addon Integration
 
-Addons are FairDM extensions that provide additional functionality. They inject settings, apps, and middleware automatically.
+Addons are FairDM extensions that provide additional functionality. They inject settings, apps, and middleware as layer 3, before the portal's own override module and before any post-call assignment — so a portal can always override what an addon set.
 
 ### Using Addons
 
@@ -227,8 +135,8 @@ import fairdm
 
 fairdm.setup(
     addons=[
-        "fairdm_discussions",    # Community discussions
-        "fairdm_publications",   # Research publications
+        "fairdm_discussions",
+        "fairdm_publications",
     ]
 )
 ```
@@ -237,18 +145,14 @@ fairdm.setup(
 
 To make your package a FairDM addon:
 
-1. Create a setup module (e.g., `my_addon/fdm_setup.py`):
+1. Create a setup module (e.g. `my_addon/fdm_setup.py`):
 
 ```python
 # my_addon/fdm_setup.py
 
-# Add your app to INSTALLED_APPS
 INSTALLED_APPS = INSTALLED_APPS + ["my_addon"]  # noqa: F821
-
-# Add middleware
 MIDDLEWARE = MIDDLEWARE + ["my_addon.middleware.MyMiddleware"]  # noqa: F821
 
-# Add custom settings
 MY_ADDON_SETTING = "value"
 ```
 
@@ -260,154 +164,81 @@ MY_ADDON_SETTING = "value"
 __fdm_setup_module__ = "my_addon.fdm_setup"
 ```
 
-3. Install and enable in portal:
+3. Enable it in the portal:
 
 ```python
 fairdm.setup(addons=["my_addon"])
 ```
 
-### Addon Validation
+An addon that cannot be loaded prevents startup in production, naming the addon; in any other environment it logs a warning and is skipped.
 
-- **Production/Staging**: Addons must load successfully (fail-fast)
-- **Development**: Failed addons log warnings but don't stop startup
+## Refusing to Start in Production
 
-## Configuration Validation
+When the resolved environment is `production`, FairDM runs its production-critical configuration checks and prevents startup if any fails — reporting every failure in one message, not just the first. In any other environment these checks do not run and nothing is emitted about them.
 
-FairDM validates your configuration on startup. Validation behavior depends on environment:
+The full check set stays available on demand, and always assesses configuration against production standards regardless of the current environment:
 
-### Production/Staging (Fail-Fast)
+```bash
+python manage.py check --deploy
+```
 
-Startup fails if:
-- `SECRET_KEY` missing or too short (< 50 characters)
-- `ALLOWED_HOSTS` empty or contains wildcards
-- `DEBUG = True` (security risk)
-- Database not configured or unreachable
-- Cache backend is not production-grade (not Redis/Memcached)
-- HTTPS security settings disabled
-- Required addons fail to load
+See {doc}`/portal-administration/configuration-checks` for the check catalogue and what each one requires.
 
-### Development (Graceful Degradation)
+## Interrogating the Resolved Configuration
 
-Logs warnings but continues if:
-- `SECRET_KEY` is short (>= 8 characters acceptable)
-- `DATABASE_URL` not set → falls back to SQLite
-- `REDIS_URL` not set → falls back to LocMemCache
-- Celery broker not configured → uses eager mode (synchronous)
-- Email backend not configured → uses console backend
-- Addons fail to load → skips and continues
+Because a layer that finds no override module is skipped silently, FairDM provides a way to ask what actually happened: which layers were considered, which were found, and — for a given setting — which layer produced its final value. Consult {doc}`/portal-administration/configuration-checks` for the current command and its output format.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### "SECRET_KEY is required"
-
-**Solution**: Set `DJANGO_SECRET_KEY` in your environment:
+### "SECRET_KEY is not set or is empty"
 
 ```bash
 export DJANGO_SECRET_KEY="$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')"
 ```
 
-#### "Database not configured"
-
-**Solution**: Set `DATABASE_URL`:
+### "DATABASES['default'] is not configured"
 
 ```bash
 export DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
 ```
 
-Or for development, rely on SQLite fallback:
+Or rely on the development fallback:
 
 ```bash
-export DJANGO_ENV=development  # Uses SQLite automatically
+export DJANGO_ENV=development  # falls back to SQLite
 ```
 
-#### "Cache backend not suitable for production"
-
-**Solution**: Set `REDIS_URL`:
-
-```bash
-export REDIS_URL="redis://localhost:6379/0"
-```
-
-#### "ALLOWED_HOSTS cannot be empty"
-
-**Solution**: Set `DJANGO_ALLOWED_HOSTS`:
+### "ALLOWED_HOSTS is empty"
 
 ```bash
 export DJANGO_ALLOWED_HOSTS="example.com,www.example.com"
 ```
 
-For development:
+### My override module isn't being applied
 
-```bash
-export DJANGO_ENV=development  # Allows "*" automatically
-```
-
-### Debugging Configuration
-
-#### View Loaded Settings
-
-```python
-# In Django shell or management command
-from django.conf import settings
-
-print(settings.DATABASES)
-print(settings.INSTALLED_APPS)
-```
-
-#### Enable Debug Logging
-
-```bash
-export DJANGO_LOG_LEVEL=DEBUG
-```
-
-#### Check Environment Profile
-
-```python
-import os
-print(os.environ.get("DJANGO_ENV", "production"))
-```
-
-## Best Practices
-
-### Security
-
-1. **Never commit secrets**: Use environment variables or `.env` files (gitignored)
-2. **Use strong SECRET_KEY**: Minimum 50 characters, cryptographically random
-3. **Enable HTTPS**: Always use `SESSION_COOKIE_SECURE=True` and `CSRF_COOKIE_SECURE=True` in production
-4. **Restrict ALLOWED_HOSTS**: Never use wildcards in production
-
-### Performance
-
-1. **Use Redis**: Always use Redis cache in production (not LocMemCache)
-2. **Use PostgreSQL**: SQLite is only for development
-3. **Enable WhiteNoise**: For efficient static file serving
-4. **Use CDN**: Configure S3/CloudFront for static/media files in production
-
-### Maintainability
-
-1. **Use environment files**: Keep `stack.env` and `stack.production.env` in version control (without secrets)
-2. **Document overrides**: Comment why you override framework defaults
-3. **Test environments**: Test staging configuration before production
-4. **Use addons wisely**: Only enable addons you need
+- Check the file is named exactly after the resolved environment: `DJANGO_ENV=development` looks for `development.py`, not `dev.py` or `Development.py` — the lookup is literal, not normalised.
+- Check the file sits directly beside your settings module, not in a subdirectory.
+- Check `DJANGO_ENV` is actually set to what you expect: `python -c "import os; print(os.environ.get('DJANGO_ENV', 'production'))"`.
 
 ## Examples
 
 ### Minimal Development Setup
 
 ```python
-# settings.py
+# config/settings.py
 import fairdm
 
-fairdm.setup()  # That's it! Uses SQLite, LocMemCache, etc.
+fairdm.setup()
+```
+
+```bash
+export DJANGO_ENV=development
 ```
 
 ### Production Setup
 
 ```bash
-# .env or stack.production.env
-DJANGO_ENV=production
+# stack.production.env
 DJANGO_SECRET_KEY="your-secret-key"
 DJANGO_ALLOWED_HOSTS="example.com"
 DJANGO_SITE_DOMAIN="example.com"
@@ -417,35 +248,38 @@ REDIS_URL="redis://localhost:6379/0"
 ```
 
 ```python
-# settings.py
+# config/settings.py
 import fairdm
 
 fairdm.setup()
 ```
 
-### Portal with Customization
+### Portal with Customisation
 
 ```python
-# settings.py
+# config/settings.py
 import fairdm
 
 fairdm.setup(
     addons=["fairdm_discussions"],
-    TIME_ZONE="Europe/London",
 )
 
-# Add portal apps
 INSTALLED_APPS = INSTALLED_APPS + [
     "my_samples",
     "my_measurements",
 ]
 
-# Customize templates
 TEMPLATES[0]["DIRS"].insert(0, BASE_DIR / "templates")
+```
+
+```python
+# config/production.py — layer 4, applied before the assignments above
+LANGUAGES = [("en", "English"), ("de", "German")]
 ```
 
 ## See Also
 
+- {doc}`/portal-administration/configuration-checks` - production-critical checks and the deployment check command
 - {doc}`/developer-guide/production` - Docker deployment guide
 - {doc}`/developer-guide/setting_up` - Initial portal setup
 - {doc}`/contributing/testing` - Testing your configuration
