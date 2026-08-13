@@ -39,6 +39,35 @@ def addon_env():
     os.environ.update(original_env)
 
 
+@pytest.fixture
+def production_addon_env():
+    """Provide a production-shaped environment for addon tests, and restore it.
+
+    Mutating ``os.environ`` in a test body without restoring it leaks the
+    values into every later test in the same process, silently supplying
+    configuration those tests are written to be missing.
+    """
+    original_env = os.environ.copy()
+
+    os.environ.clear()
+    os.environ.update(
+        {
+            "DJANGO_ENV": "production",
+            "DJANGO_SECRET_KEY": "a" * 60,
+            "DJANGO_SITE_DOMAIN": "example.com",
+            "DJANGO_SITE_NAME": "Prod Portal",
+            "DJANGO_ALLOWED_HOSTS": "example.com",
+            "DATABASE_URL": "postgresql://user:pass@localhost:5432/prod_db",
+            "REDIS_URL": "redis://localhost:6379/0",
+        }
+    )
+
+    yield
+
+    os.environ.clear()
+    os.environ.update(original_env)
+
+
 class TestAddonDiscovery:
     """Test addon discovery and loading."""
 
@@ -172,22 +201,8 @@ fairdm.setup(addons=["broken_addon"])
 class TestAddonValidation:
     """Test addon validation in different environments."""
 
-    def test_broken_addon_fails_fast_in_production(self, tmp_path):
+    def test_broken_addon_fails_fast_in_production(self, production_addon_env, tmp_path):
         """Test that broken addon causes failure in production."""
-        # Set production environment
-        os.environ.clear()
-        os.environ.update(
-            {
-                "DJANGO_ENV": "production",
-                "DJANGO_SECRET_KEY": "a" * 60,
-                "DJANGO_SITE_DOMAIN": "example.com",
-                "DJANGO_SITE_NAME": "Prod Portal",
-                "DJANGO_ALLOWED_HOSTS": "example.com",
-                "DATABASE_URL": "postgresql://user:pass@localhost:5432/prod_db",
-                "REDIS_URL": "redis://localhost:6379/0",
-            }
-        )
-
         # Create addon with broken setup module
         addon_dir = tmp_path / "broken_prod_addon"
         addon_dir.mkdir()

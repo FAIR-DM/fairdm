@@ -86,20 +86,21 @@ DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 
 **Error:** The default cache is absent, empty, or a per-process backend — locmem, dummy,
 filebased, or anything else outside the shared-backend allowlist (Redis, Memcached).
-**Fix:** Set `CACHE_URL` to Redis or Memcached.
+**Fix:** Set `REDIS_URL` to a Redis instance. This is the variable the cache settings module
+reads — `CACHE_URL` is not consulted.
 
 ```bash
-CACHE_URL=redis://localhost:6379/1
+REDIS_URL=redis://localhost:6379/1
 ```
 
 ### Security Checks (fairdm.E001, E003-E005)
 
 #### E001: SECRET_KEY Not Set or Insecure
 
-**Error:** SECRET_KEY is empty or missing, or it carries the `django-insecure-` prefix that
-marks a published development key — including FairDM's own shipped fallback.
-**Fix:** Set `DJANGO_SECRET_KEY` to a private, randomly generated value (50+ characters
-recommended).
+**Error:** SECRET_KEY is empty or missing, it carries the `django-insecure-` prefix that
+marks a published development key — including FairDM's own shipped fallback — or it is shorter
+than 50 characters.
+**Fix:** Set `DJANGO_SECRET_KEY` to a private, randomly generated value of 50 characters or more.
 
 ```bash
 DJANGO_SECRET_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')

@@ -265,13 +265,28 @@ class TestBundledPortalBoots:
     @pytest.mark.parametrize("environment", ["production", "development"])
     def test_example_portal_passes_django_checks(self, environment):
         repo_root = Path(__file__).resolve().parents[2]
+        # Built from a sanitised copy of the ambient environment: a stray
+        # DATABASE_URL or REDIS_URL inherited from the shell — or leaked by an
+        # earlier test in the same process — would otherwise decide whether
+        # the production case passes the boot-time checks.
         env = {
-            **os.environ,
+            key: value
+            for key, value in os.environ.items()
+            if not key.startswith(
+                ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+            )
+        }
+        env |= {
             "DJANGO_ENV": environment,
             "DJANGO_SETTINGS_MODULE": "config.settings",
             "DJANGO_SECRET_KEY": "b" * 60,
             "DJANGO_SITE_DOMAIN": "example.com",
             "DJANGO_ALLOWED_HOSTS": "example.com",
+            # Production refuses to boot on SQLite and a per-process cache, so
+            # the layering this test exercises needs both supplied. Neither is
+            # connected to — the checks read settings only.
+            "DATABASE_URL": "postgresql://portal:portal@localhost:5432/portal",
+            "REDIS_URL": "redis://localhost:6379/0",
         }
         result = subprocess.run(
             [sys.executable, "-c", "import django; django.setup()"],

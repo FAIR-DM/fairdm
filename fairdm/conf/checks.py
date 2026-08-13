@@ -136,7 +136,7 @@ def check_cache_backend(app_configs, **kwargs):
         errors.append(
             Error(
                 f"Cache backend '{backend or '(none)'}' is not a shared cache suitable for production.",
-                hint="Set CACHE_URL to Redis or Memcached. Example: redis://localhost:6379/1",
+                hint="Set REDIS_URL to a Redis instance. Example: redis://localhost:6379/1",
                 id="fairdm.E200",
             )
         )
@@ -153,6 +153,10 @@ def check_cache_backend(app_configs, **kwargs):
 #: (fairdm/conf/environment.py) carries it too, so this also catches a
 #: portal that boots on FairDM's own published default (SC-006).
 INSECURE_SECRET_KEY_PREFIX = "django-insecure-"  # noqa: S105 — a prefix, not a password
+
+#: The length below which Django's own security.W009 calls a key too easily
+#: brute-forced. Reproduced at error severity so it can block a boot.
+MINIMUM_SECRET_KEY_LENGTH = 50
 
 
 @register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
@@ -184,7 +188,18 @@ def check_secret_key_exists(app_configs, **kwargs):
         errors.append(
             Error(
                 "SECRET_KEY carries an insecure, published value.",
-                hint="Set DJANGO_SECRET_KEY to a private, randomly generated value.",
+                hint="Set DJANGO_SECRET_KEY to a private, randomly generated value of 50+ characters.",
+                id="fairdm.E001",
+            )
+        )
+    elif len(secret_key) < MINIMUM_SECRET_KEY_LENGTH:
+        errors.append(
+            Error(
+                f"SECRET_KEY is only {len(secret_key)} characters long.",
+                hint=(
+                    "Set DJANGO_SECRET_KEY to a random string of "
+                    f"{MINIMUM_SECRET_KEY_LENGTH}+ characters."
+                ),
                 id="fairdm.E001",
             )
         )

@@ -238,6 +238,22 @@ class TestSecretKeyChecks:
         assert errors[0].id == "fairdm.E001"
         assert "insecure" in errors[0].msg.lower()
 
+    @override_settings(SECRET_KEY="short-key")
+    def test_check_secret_key_exists_too_short(self):
+        """Check returns ERROR when SECRET_KEY is short enough to be brute-forced (FR-017).
+
+        Django reports the same condition as security.W009, a warning, which
+        cannot block a boot.
+        """
+        from fairdm.conf.checks import check_secret_key_exists
+
+        errors = check_secret_key_exists(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E001"
+        assert "50" in errors[0].hint
+
 
 class TestAllowedHostsChecks:
     """Tests for ALLOWED_HOSTS configuration checks."""
