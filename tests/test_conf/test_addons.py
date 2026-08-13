@@ -7,6 +7,7 @@ Tests verify that fairdm.setup() correctly discovers, loads, and validates addon
 import os
 
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 
 
 @pytest.fixture
@@ -198,11 +199,54 @@ fairdm.setup(addons=["broken_addon"])
         assert "tests.test_conf.dummy_addon.urls" in urls
 
 
+class TestAddonPosition:
+    """Layer 3 (addons) sits between FairDM's environment override and the
+    portal's own (T094, T096; FR-008, FR-021, scenario 1)."""
+
+    def test_addon_setting_beats_fairdm_environment_override(
+        self, production_env, tmp_path, settings_module
+    ):
+        """An addon's value for a setting FairDM's own environment override
+        also sets beats that override — not merely that the addon's own
+        settings land (FR-008, FR-021, scenario 1)."""
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module(
+            setup_call="fairdm.setup(addons=['tests.test_conf.conflicting_addon'])",
+            directory=tmp_path,
+        )
+
+        # fairdm/conf/development.py (layer 2) sets DEBUG = True; the addon
+        # (layer 3) applies after it and must win.
+        assert module.DEBUG == "addon-value"
+
+    def test_portal_environment_override_beats_addon_setting(
+        self, production_env, tmp_path, settings_module
+    ):
+        """The portal's own environment override beats an addon's value for
+        the same setting — the tail of scenario 1 (T096, FR-008, FR-021)."""
+        os.environ["DJANGO_ENV"] = "development"
+        (tmp_path / "development.py").write_text("DEBUG = 'portal-value'\n")
+
+        module = settings_module(
+            setup_call="fairdm.setup(addons=['tests.test_conf.conflicting_addon'])",
+            directory=tmp_path,
+        )
+
+        # The portal's own override (layer 4) applies after the addon
+        # (layer 3) and must win.
+        assert module.DEBUG == "portal-value"
+
+
 class TestAddonValidation:
     """Test addon validation in different environments."""
 
-    def test_broken_addon_fails_fast_in_production(self, production_addon_env, tmp_path):
-        """Test that broken addon causes failure in production."""
+    def test_broken_addon_fails_fast_in_production(
+        self, production_addon_env, tmp_path
+    ):
+        """A broken addon raises ImproperlyConfigured naming the addon in
+        production (T097, FR-022, scenario 2) — not merely some exception,
+        which any unrelated failure would also satisfy."""
         # Create addon with broken setup module
         addon_dir = tmp_path / "broken_prod_addon"
         addon_dir.mkdir()
@@ -232,9 +276,10 @@ fairdm.setup(addons=["broken_prod_addon"])
         if spec and spec.loader:
             test_settings = importlib.util.module_from_spec(spec)
 
-            # Should raise ImproperlyConfigured in production
-            with pytest.raises(Exception):  # Will be ImproperlyConfigured or similar
+            with pytest.raises(ImproperlyConfigured) as exc_info:
                 spec.loader.exec_module(test_settings)
+
+            assert "broken_prod_addon" in str(exc_info.value)
 
     def test_addon_can_modify_installed_apps(self, addon_env, tmp_path):
         """Test that addon can inject apps into INSTALLED_APPS."""
