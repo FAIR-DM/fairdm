@@ -1,6 +1,11 @@
 from django.apps import AppConfig
 from django.utils.module_loading import autodiscover_modules
 
+# Registered at module import, not inside ready()'s guarded body, so the
+# full check set still participates in `manage.py check --deploy`
+# independently of the FR-014 environment guard below (FR-015, FR-016).
+from fairdm.conf import checks as conf_checks  # noqa: F401
+
 
 class FairDMConfig(AppConfig):
     name = "fairdm"
@@ -27,8 +32,6 @@ class FairDMConfig(AppConfig):
         # Import registry checks to register them with Django check framework
         from django_filters import compat
 
-        # Import configuration checks to register them with Django check framework
-        from fairdm.conf import checks as conf_checks  # noqa: F401
         from fairdm.registry import checks  # noqa: F401
 
         compat.is_crispy = lambda: False

@@ -367,6 +367,25 @@ class TestCheckCommandIntegration:
         call_command("check", deploy=True)
 
 
+class TestDeployCommand:
+    """``manage.py check --deploy`` assesses against production standards
+    regardless of the current resolved environment (FR-015)."""
+
+    @pytest.mark.parametrize(
+        "resolved_environment", ["production", "development", "qa", ""]
+    )
+    @override_settings(SECRET_KEY="")
+    def test_deploy_check_reports_the_same_failure_regardless_of_django_env(
+        self, resolved_environment, monkeypatch
+    ):
+        monkeypatch.setenv("DJANGO_ENV", resolved_environment)
+
+        with pytest.raises(SystemCheckError) as exc_info:
+            call_command("check", deploy=True)
+
+        assert "fairdm.E001" in str(exc_info.value)
+
+
 @pytest.fixture
 def minimal_dev_env():
     """Provide minimal development environment (no backing services)."""
@@ -624,4 +643,3 @@ class TestProductionSetup:
 
         with pytest.raises(Exception, match="SESSION_COOKIE_SECURE"):
             validate_services("production", test_settings)
-
