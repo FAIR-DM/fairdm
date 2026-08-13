@@ -2,10 +2,10 @@
 
 Production-ready PostgreSQL configuration with graceful SQLite fallback for development.
 
-Production/Staging: Requires DATABASE_URL or POSTGRES_* env vars (fails fast if missing)
+Production: Requires DATABASE_URL or POSTGRES_* env vars (fails fast if missing)
 Local/Development: Falls back to SQLite with warning if no DATABASE_URL
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import logging

@@ -6,7 +6,7 @@ This module defines the complete Django application stack including:
 - TEMPLATES: Template engine configuration
 - Core Django settings: ROOT_URLCONF, SITE_ID, TIME_ZONE, etc.
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import socket

@@ -1,15 +1,16 @@
 """
-Tests for FairDM configuration setup and profile loading.
+Tests for FairDM configuration setup and environment loading.
 
 Tests validate that:
-- Profiles load correctly based on DJANGO_ENV
+- The resolved environment loads correctly based on DJANGO_ENV
 - Production fails fast on missing configuration
 - Development degrades gracefully
 - Configuration validation works as expected
-- ``**overrides`` and the ``env_file`` parameter behave correctly
+- Assignment after ``setup()`` and the ``env_file`` parameter behave correctly
 """
 
 import os
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -68,6 +69,231 @@ class TestResolvedEnvironment:
         assert module.DJANGO_ENV == "Development"
         # "Development" != "development" — FairDM's override module is not found.
         assert module.DEBUG is False
+
+
+class TestLayerOrder:
+    """Test the five-layer composition order (FR-008)."""
+
+    def test_layers_apply_in_declared_order(
+        self, production_env, tmp_path, settings_module
+    ):
+        """Baseline, FairDM override, addons, portal override, post-call assignment."""
+        os.environ["DJANGO_ENV"] = "development"
+        (tmp_path / "development.py").write_text("PORTAL_OVERRIDE_MARKER = 'portal'\n")
+
+        module = settings_module(
+            setup_call="fairdm.setup(addons=['tests.test_conf.dummy_addon'])",
+            after="POST_CALL_MARKER = 'post'",
+            directory=tmp_path,
+        )
+
+        # Layer 1 — baseline: a setting only the production baseline sets.
+        assert module.SESSION_COOKIE_HTTPONLY is True
+        # Layer 2 — FairDM's environment override wins over the baseline (DEBUG
+        # defaults to False in settings/security.py; development.py sets True).
+        assert module.DEBUG is True
+        # Layer 3 — addon settings are applied.
+        assert module.DUMMY_ADDON_INSTALLED is True
+        # Layer 4 — the portal's own override module is applied.
+        assert module.PORTAL_OVERRIDE_MARKER == "portal"
+        # Layer 5 — assignment after the setup() call is the final word.
+        assert module.POST_CALL_MARKER == "post"
+
+    def test_override_module_selected_by_existence_not_allowlist(
+        self, production_env, tmp_path, settings_module
+    ):
+        """An override module is found for any environment name, not just a fixed set (FR-010)."""
+        os.environ["DJANGO_ENV"] = "qa"
+        (tmp_path / "qa.py").write_text("QA_OVERRIDE_MARKER = True\n")
+
+        module = settings_module(directory=tmp_path)
+
+        assert module.QA_OVERRIDE_MARKER is True
+
+    def test_environment_with_no_shipped_module_resolves_to_baseline_unchanged(
+        self, production_env, tmp_path, settings_module
+    ):
+        """An environment neither FairDM nor the portal ships a module for is silent (FR-010, scenario 3)."""
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module(directory=tmp_path)
+
+        # The baseline stands: DEBUG keeps its production-baseline default.
+        assert module.DEBUG is False
+
+    def test_fairdm_and_portal_overrides_for_the_same_environment_both_apply(
+        self, production_env, tmp_path, settings_module
+    ):
+        """FairDM's and the portal's override modules for the same environment both apply, in order (edge case)."""
+        os.environ["DJANGO_ENV"] = "development"
+        # FairDM ships development.py (sets DEBUG = True). The portal's own
+        # development.py, applied after, must win.
+        (tmp_path / "development.py").write_text("DEBUG = 'portal-wins'\n")
+
+        module = settings_module(directory=tmp_path)
+
+        assert module.DEBUG == "portal-wins"
+
+
+class TestShippedOverrides:
+    """Test which override modules FairDM itself ships (FR-009)."""
+
+    #: Modules under fairdm/conf/ that are infrastructure, not environment overrides.
+    INFRASTRUCTURE_MODULES = {
+        "__init__",
+        "setup",
+        "environment",
+        "checks",
+        "addons",
+        "orbit",
+        "urls",
+        "celery",
+    }
+
+    def test_only_development_is_shipped(self):
+        import fairdm.conf
+
+        conf_dir = Path(fairdm.conf.__file__).parent
+        candidate_stems = {
+            path.stem
+            for path in conf_dir.glob("*.py")
+            if path.stem not in self.INFRASTRUCTURE_MODULES
+        }
+
+        assert candidate_stems == {"development"}
+
+
+class TestProductionVsDevelopmentDiff:
+    """Test that development differs from production only in what development.py names (SC-002)."""
+
+    def test_development_differs_only_in_keys_development_module_names(
+        self, production_env, tmp_path, settings_module
+    ):
+        import ast
+
+        import fairdm.conf
+
+        prod_dir = tmp_path / "prod"
+        dev_dir = tmp_path / "dev"
+
+        os.environ["DJANGO_ENV"] = "production"
+        prod_module = settings_module(directory=prod_dir)
+
+        os.environ["DJANGO_ENV"] = "development"
+        dev_module = settings_module(directory=dev_dir)
+
+        # Bookkeeping keys setup() injects itself, not settings any module names.
+        bookkeeping_keys = {"DJANGO_ENV", "BASE_DIR", "FAIRDM_APPS"}
+
+        prod_settings = {k: v for k, v in vars(prod_module).items() if k.isupper()}
+        dev_settings = {k: v for k, v in vars(dev_module).items() if k.isupper()}
+
+        diff_keys = {
+            key
+            for key in set(prod_settings) | set(dev_settings)
+            if prod_settings.get(key) != dev_settings.get(key)
+        } - bookkeeping_keys
+
+        development_py = Path(fairdm.conf.__file__).parent / "development.py"
+        tree = ast.parse(development_py.read_text())
+        named_keys = {
+            target.id
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.Assign, ast.AugAssign))
+            for target in (node.targets if isinstance(node, ast.Assign) else [node.target])
+            if isinstance(target, ast.Name)
+        }
+
+        assert diff_keys <= named_keys
+
+
+class TestPortalOverride:
+    """Test that the portal's override module is resolved beside its settings module (FR-011)."""
+
+    def test_override_found_beside_settings_module_regardless_of_directory_name(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+        odd_dir = tmp_path / "not_called_config"
+        (odd_dir).mkdir()
+        (odd_dir / "development.py").write_text("PORTAL_OVERRIDE_MARKER = 'found'\n")
+
+        module = settings_module(
+            directory=odd_dir,
+            filename="portal_settings.py",
+        )
+
+        assert module.PORTAL_OVERRIDE_MARKER == "found"
+
+    def test_no_usable_file_skips_portal_override_with_warning(
+        self, production_env, tmp_path
+    ):
+        """A settings module with no usable ``__file__`` is skipped, not raised (edge case)."""
+        # tests/settings.py disables logging for the whole suite, so the
+        # warning is observed by patching the call rather than via caplog.
+        code = compile(
+            "from pathlib import Path\n"
+            "import fairdm\n"
+            f"fairdm.setup(base_dir=Path({str(tmp_path)!r}))",
+            "<string>",
+            "exec",
+        )
+        scope = {}
+
+        with mock.patch("fairdm.conf.setup.logger.warning") as mock_warning:
+            exec(code, scope)
+
+        assert mock_warning.called
+        warned_text = " ".join(str(call.args[0]) for call in mock_warning.call_args_list)
+        assert "settings module" in warned_text.lower() or "__file__" in warned_text
+        assert scope["DJANGO_ENV"] == "production"
+
+
+class TestEntryPointSignature:
+    """Test the public signature of ``setup()`` (FR-012)."""
+
+    def test_rejects_settings_keyword_arguments(self):
+        with pytest.raises(TypeError):
+            import fairdm
+
+            fairdm.setup(SOME_RANDOM_SETTING="value")
+
+
+class TestEnvFiles:
+    """Test env-file loading order and precedence (FR-006)."""
+
+    def test_env_files_read_in_declared_order_and_precedence(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+        os.environ["MARKER_PROCESS"] = "already-set-in-process"
+
+        (tmp_path / "stack.env").write_text(
+            "MARKER_BASE=from-stack-env\nMARKER_PROCESS=from-stack-env\n"
+        )
+        (tmp_path / "stack.development.env").write_text(
+            "MARKER_ENV=from-stack-development-env\n"
+        )
+        explicit_env = tmp_path / "explicit.env"
+        explicit_env.write_text(
+            "MARKER_EXPLICIT=from-explicit-env\nMARKER_PROCESS=from-explicit-env\n"
+        )
+
+        settings_dir = tmp_path / "config"
+        settings_module(
+            setup_call=f"fairdm.setup(env_file={explicit_env.as_posix()!r})",
+            directory=settings_dir,
+        )
+
+        # stack.env is read first.
+        assert os.environ["MARKER_BASE"] == "from-stack-env"
+        # then stack.<environment>.env.
+        assert os.environ["MARKER_ENV"] == "from-stack-development-env"
+        # then the explicit env_file, with overwrite=True.
+        assert os.environ["MARKER_EXPLICIT"] == "from-explicit-env"
+        # stack.env / stack.<environment>.env respect a variable already set in
+        # the process, but the explicit env_file overwrites it regardless.
+        assert os.environ["MARKER_PROCESS"] == "from-explicit-env"
 
 
 # Validation Logic Tests (Unit tests that don't require full Django setup)
@@ -297,78 +523,8 @@ def clean_production_env():
     os.environ.update(original_env)
 
 
-class TestSetupOverrides:
-    """Test setup() **overrides functionality."""
-
-    def test_overrides_are_applied_to_settings(self, clean_production_env, tmp_path):
-        """Test that **overrides are applied to caller's globals."""
-        # Create a minimal settings file that calls setup()
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            """
-import os
-import sys
-from pathlib import Path
-
-# Add fairdm to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(
-    TEST_OVERRIDE="custom_value",
-    ANOTHER_SETTING=42,
-    DEBUG=True,  # Override DEBUG even in production
-)
-"""
-        )
-
-        # Import the settings module
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings", settings_file)
-        test_settings = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(test_settings)
-
-        # Verify overrides were applied
-        assert hasattr(test_settings, "TEST_OVERRIDE")
-        assert test_settings.TEST_OVERRIDE == "custom_value"
-        assert hasattr(test_settings, "ANOTHER_SETTING")
-        assert test_settings.ANOTHER_SETTING == 42
-        # Note: DEBUG validation might prevent this in production, but override should be attempted
-        assert hasattr(test_settings, "DEBUG")
-
-    def test_overrides_take_precedence_over_profile(
-        self, clean_production_env, tmp_path
-    ):
-        """Test that **overrides take precedence over environment profile settings."""
-        # Set development environment
-        os.environ["DJANGO_ENV"] = "development"
-
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            """
-import os
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-# development.py would set DEBUG=True, but we override it
-fairdm.setup(DEBUG=False)
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_2", settings_file)
-        test_settings = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(test_settings)
-
-        # Our override should take precedence
-        assert test_settings.DEBUG is False
+class TestPostSetupAssignments:
+    """Test assignment after ``setup()`` returns — the sole override mechanism (FR-012)."""
 
     def test_post_setup_assignments_work(self, clean_production_env, tmp_path):
         """Test that assignments after setup() call work correctly."""

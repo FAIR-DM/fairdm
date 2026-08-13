@@ -89,7 +89,7 @@ def discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[st
                 )
 
         except ImproperlyConfigured:
-            # Re-raise configuration errors (production/staging fail-fast)
+            # Re-raise configuration errors (production fail-fast)
             raise
         except ImportError as e:
             logger.error(f"❌ Could not import addon '{addon_name}': {e}")
@@ -136,7 +136,7 @@ def load_addons(addons: list[str], env_profile: str) -> list[str]:
 
     Args:
         addons: List of addon package names
-        env_profile: Environment profile (production, staging, development)
+        env_profile: The resolved environment name (e.g. "production", "development")
 
     Returns:
         list[str]: List of absolute paths to addon setup module files

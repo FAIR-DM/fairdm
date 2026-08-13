@@ -2,10 +2,10 @@
 
 Production-ready security hardening with HTTPS, secure cookies, and HSTS.
 
-Production/Staging: Requires SECRET_KEY, ALLOWED_HOSTS (fails fast if missing)
+Production: Requires SECRET_KEY, ALLOWED_HOSTS (fails fast if missing)
 Local/Development: Relaxes security requirements (DEBUG=True, no HTTPS)
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 # Access environment variables via shared env instance

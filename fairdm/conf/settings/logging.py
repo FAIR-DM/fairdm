@@ -2,10 +2,10 @@
 
 Production-ready logging with Sentry error tracking and structured logging.
 
-Production/Staging: Enables Sentry SDK for error tracking (if SENTRY_DSN set)
-Local/Development: Uses console logging (override in local.py)
+Production: Enables Sentry SDK for error tracking (if SENTRY_DSN set)
+Local/Development: Uses console logging (override in development.py)
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import logging

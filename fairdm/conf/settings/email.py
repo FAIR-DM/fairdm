@@ -2,10 +2,10 @@
 
 Production-ready email backend configuration with SMTP.
 
-Production/Staging: Requires EMAIL_* env vars for SMTP configuration
-Local/Development: Can use console backend (override in local.py)
+Production: Requires EMAIL_* env vars for SMTP configuration
+Local/Development: Can use console backend (override in development.py)
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 # Access environment variables via shared env instance

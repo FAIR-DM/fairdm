@@ -5,7 +5,7 @@ Production-ready static file serving with WhiteNoise and optional S3 media stora
 Production: Uses WhiteNoise for static files, S3/local for media files
 Development: Uses local filesystem for both static and media
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import logging

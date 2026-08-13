@@ -23,25 +23,25 @@ def setup(
     addons: list[str] | None = None,
     base_dir: Path | None = None,
     env_file: str | None = None,
-    **overrides,
 ) -> None:
     """
     Initialize FairDM configuration with environment-specific settings.
 
     This is the main entry point for portal configuration. It:
-    1. Determines the environment profile (production, staging, development)
+    1. Determines the resolved environment (FR-007)
     2. Loads environment variables
-    3. Injects base settings into the caller's global namespace
+    3. Composes settings into the caller's global namespace in five layers (FR-008)
     4. Loads addon configurations
-    5. Validates the configuration
-    6. Applies any user overrides
+    5. Runs configuration checks (see ``FairDMConfig.ready()``)
+
+    A portal overrides a setting FairDM owns by assigning to it after this
+    call returns — the only supported mechanism (FR-012).
 
     Args:
         apps: List of portal-specific Django apps to include in INSTALLED_APPS
         addons: List of FairDM addon packages to enable
         base_dir: Project base directory (auto-detected if not provided)
         env_file: Optional path to .env file to load
-        **overrides: Additional settings to override after profile loading
 
     Example:
         >>> import fairdm
@@ -61,6 +61,25 @@ def setup(
 
     # Get caller's global namespace (where settings will be injected)
     caller_globals = inspect.stack()[1][0].f_globals
+
+    # Capture the portal's settings-module directory now, before __file__ is
+    # overwritten below for split_settings' relative-include resolution
+    # (research R4). The portal's override module, if any, lives beside it —
+    # anchored to the settings module rather than a hardcoded directory name
+    # (FR-011). A settings module with no usable __file__ (generated, or
+    # imported from an archive) cannot be anchored; the lookup is skipped.
+    portal_settings_dir: Path | None = None
+    caller_file = caller_globals.get("__file__")
+    if caller_file:
+        try:
+            portal_settings_dir = Path(caller_file).resolve(strict=True).parent
+        except OSError:
+            portal_settings_dir = None
+    if portal_settings_dir is None:
+        logger.warning(
+            "Could not determine the portal's settings module directory; "
+            "its environment override module (if any) will not be looked up."
+        )
 
     # Determine base directory
     if not base_dir:
@@ -126,29 +145,32 @@ def setup(
 
     include(*settings_modules, scope=caller_globals)
 
-    # Load environment-specific overrides
-    env_override_files = {
-        "development": "development.py",
-        "staging": "staging.py",
-    }
+    # Layer 2 — FairDM's own override module for the resolved environment.
+    # Selected by existence, not from a fixed list of permitted names: FairDM
+    # ships only development.py, but any name is looked up the same way
+    # (FR-009, FR-010).
+    fairdm_override = Path(__file__).parent / f"{env_profile}.py"
+    if fairdm_override.exists():
+        logger.info(f"Applying FairDM {env_profile} overrides from {fairdm_override.name}")
+        include(fairdm_override.name, scope=caller_globals)
 
-    if env_profile in env_override_files:
-        override_file = env_override_files[env_profile]
-        override_path = Path(__file__).parent / override_file
-        if override_path.exists():
-            logger.info(f"Applying {env_profile} overrides from {override_file}")
-            include(override_file, scope=caller_globals)
-
-    # Load addon configurations
+    # Layer 3 — settings contributed by addons.
     if addons:
         addon_setup_modules = load_addons(addons, env_profile)
         if addon_setup_modules:
             include(*addon_setup_modules, scope=caller_globals)
 
-    # Apply user overrides
-    if overrides:
-        logger.info(f"Applying {len(overrides)} custom override(s)")
-        caller_globals.update(overrides)
+    # Layer 4 — the portal's own override module for the resolved environment,
+    # resolved beside its settings module rather than a hardcoded directory
+    # (FR-011). Also selected by existence; skipped without error if absent.
+    if portal_settings_dir is not None:
+        portal_override = portal_settings_dir / f"{env_profile}.py"
+        if portal_override.exists():
+            logger.info(f"Applying portal {env_profile} overrides from {portal_override}")
+            include(str(portal_override), scope=caller_globals)
+
+    # Layer 5 — assignment after this call returns, in the portal's own
+    # settings module. Nothing to do here; that is the portal's own code.
 
     # Finalize SPECTACULAR_SETTINGS: allow portal developers to override
     # FAIRDM_API_TITLE and FAIRDM_API_DESCRIPTION without touching the dict directly.

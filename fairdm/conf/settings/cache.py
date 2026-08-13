@@ -2,10 +2,10 @@
 
 Production-ready Redis cache configuration with graceful fallbacks for development.
 
-Production/Staging: Requires REDIS_URL (fails fast if missing)
+Production: Requires REDIS_URL (fails fast if missing)
 Local/Development: Falls back to LocMemCache with warning if no REDIS_URL
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import logging

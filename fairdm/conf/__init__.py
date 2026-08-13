@@ -1,8 +1,9 @@
 """
 FairDM Configuration Package.
 
-Provides production-ready Django configuration with profile-based settings
-(production, staging, development) and addon integration.
+Provides a production-ready Django configuration baseline, layered with
+environment overrides selected by the DJANGO_ENV variable, and addon
+integration.
 """
 
 from .setup import setup

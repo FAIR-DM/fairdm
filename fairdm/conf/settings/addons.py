@@ -2,7 +2,7 @@
 
 Consolidated settings for third-party Django packages and FairDM-specific features.
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 # =============================================================================

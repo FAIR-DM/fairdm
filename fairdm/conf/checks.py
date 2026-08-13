@@ -1,7 +1,7 @@
 """
 Configuration validation and service availability checks.
 
-Provides fail-fast validation for production/staging and graceful degradation for development.
+Provides fail-fast validation for production and graceful degradation for development.
 """
 
 import logging
@@ -276,11 +276,11 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
     Use `python manage.py check --deploy` to validate production readiness.
 
     Args:
-        env_profile: The environment profile (production, staging, development)
+        env_profile: The resolved environment name (e.g. "production", "development")
         settings_dict: The settings dictionary to validate
 
     Raises:
-        ImproperlyConfigured: In production/staging if required services are missing
+        ImproperlyConfigured: In production if required services are missing
     """
     import warnings
 
@@ -290,7 +290,7 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
         stacklevel=2,
     )
 
-    is_production_like = env_profile in ("production", "staging")
+    is_production_like = env_profile == "production"
     errors = []
     warnings_list = []
 
@@ -379,7 +379,7 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
 
     if debug and is_production_like:
         errors.append(
-            "DEBUG is True in production/staging. This is a security risk. Ensure DJANGO_DEBUG is set to False."
+            "DEBUG is True in production. This is a security risk. Ensure DJANGO_DEBUG is set to False."
         )
 
     # =============================================================================
@@ -424,7 +424,7 @@ def validate_services(env_profile: str, settings_dict: dict[str, Any]) -> None:
     for warning in warnings_list:
         logger.warning(f"Configuration Warning: {warning}")
 
-    # Fail fast in production/staging if errors exist
+    # Fail fast in production if errors exist
     if errors:
         error_message = "\n\n".join(
             [
@@ -460,15 +460,15 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
     Args:
         addon_name: The name of the addon package
         module_path: The path to the addon's setup module
-        env_profile: The environment profile (production, staging, development)
+        env_profile: The resolved environment name (e.g. "production", "development")
 
     Returns:
         bool: True if the module is valid, False otherwise
 
     Raises:
-        ImproperlyConfigured: In production/staging if addon module is invalid
+        ImproperlyConfigured: In production if addon module is invalid
     """
-    is_production_like = env_profile in ("production", "staging")
+    is_production_like = env_profile == "production"
 
     try:
         import importlib.util
