@@ -302,6 +302,38 @@ class TestBundledPortalBoots:
         )
 
 
+class TestTestSettingsDeclareTheirEnvironment:
+    """``tests.settings`` must start without pytest supplying ``DJANGO_ENV``.
+
+    pytest sets it through pytest-env, so the test suite never proves this.
+    Every other consumer of the module — the mypy hook's django-stubs plugin,
+    an IDE, a plain shell — gets the production default and, since FR-013, a
+    refused boot on the test suite's development-shaped configuration.
+    """
+
+    def test_boots_with_django_env_unset(self):
+        repo_root = Path(__file__).resolve().parents[2]
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.startswith(("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_"))
+        }
+        env["DJANGO_SETTINGS_MODULE"] = "tests.settings"
+
+        result = subprocess.run(
+            [sys.executable, "-c", "import django; django.setup()"],
+            cwd=repo_root,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+
+        assert result.returncode == 0, (
+            f"tests.settings failed to start with DJANGO_ENV unset:\n{result.stderr[-3000:]}"
+        )
+
+
 class TestEntryPointSignature:
     """Test the public signature of ``setup()`` (FR-012)."""
 

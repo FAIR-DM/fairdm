@@ -14,9 +14,17 @@ Used automatically by pytest-django via pyproject.toml configuration.
 """
 
 import logging
+import os
 import sys
 import tempfile
 from pathlib import Path
+
+# This module is development-shaped, so it has to say so: an unset DJANGO_ENV
+# resolves to production, which refuses to boot on a configuration like this
+# one. pytest supplies the same value through pytest-env, but the mypy hook's
+# django-stubs plugin, an IDE and a plain shell all import this module without
+# it.
+os.environ.setdefault("DJANGO_ENV", "development")
 
 # Silence noisy loggers during tests
 logging.disable(logging.CRITICAL)
