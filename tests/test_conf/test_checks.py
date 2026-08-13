@@ -198,6 +198,18 @@ class TestSecretKeyChecks:
 
         assert errors == []
 
+    @override_settings(SECRET_KEY="django-insecure-" + "a" * 50)
+    def test_check_secret_key_exists_insecure_prefix(self):
+        """Check returns ERROR when SECRET_KEY carries the published insecure prefix (FR-017, SC-006)."""
+        from fairdm.conf.checks import check_secret_key_exists
+
+        errors = check_secret_key_exists(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E001"
+        assert "insecure" in errors[0].msg.lower()
+
 
 class TestAllowedHostsChecks:
     """Tests for ALLOWED_HOSTS configuration checks."""

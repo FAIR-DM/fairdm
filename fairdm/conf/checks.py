@@ -123,10 +123,19 @@ def check_cache_backend(app_configs, **kwargs):
 # =============================================================================
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+#: Django's own generated-development-key prefix. FairDM's shipped fallback
+#: (fairdm/conf/environment.py) carries it too, so this also catches a
+#: portal that boots on FairDM's own published default (SC-006).
+INSECURE_SECRET_KEY_PREFIX = "django-insecure-"  # noqa: S105 — a prefix, not a password
+
+
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_secret_key_exists(app_configs, **kwargs):
     """
-    Check that SECRET_KEY is set and not empty.
+    Check that SECRET_KEY is set, non-empty, and not a published or
+    otherwise insecure value — FairDM's own error-severity check, kept
+    alongside Django's warning-severity security.W009 so this one can
+    actually block a boot (research R5).
 
     Error ID: fairdm.E001
     """
@@ -142,6 +151,14 @@ def check_secret_key_exists(app_configs, **kwargs):
             Error(
                 "SECRET_KEY is not set or is empty.",
                 hint="Set SECRET_KEY environment variable to a random string (50+ characters recommended).",
+                id="fairdm.E001",
+            )
+        )
+    elif secret_key.startswith(INSECURE_SECRET_KEY_PREFIX):
+        errors.append(
+            Error(
+                "SECRET_KEY carries an insecure, published value.",
+                hint="Set DJANGO_SECRET_KEY to a private, randomly generated value.",
                 id="fairdm.E001",
             )
         )
