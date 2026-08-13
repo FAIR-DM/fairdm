@@ -210,6 +210,46 @@ class TestProductionVsDevelopmentDiff:
         assert diff_keys <= named_keys
 
 
+class TestDevelopmentLayerApplies:
+    """``DJANGO_ENV=development`` applies FairDM's ``development.py`` on top
+    of the baseline, and every setting neither module names stays unchanged
+    (US-2 scenario 2, FR-009)."""
+
+    #: Settings neither the production baseline nor development.py branches
+    #: on — resolving these identically in both environments is what "layered
+    #: on top of" means, as distinct from "a different configuration".
+    UNCHANGED_BETWEEN_ENVIRONMENTS = ["AUTH_USER_MODEL", "TIME_ZONE", "SITE_ID"]
+
+    def test_development_overrides_debug_and_security_settings(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module(directory=tmp_path)
+
+        assert module.DEBUG is True
+        assert "localhost" in module.ALLOWED_HOSTS
+        assert module.CSRF_COOKIE_SECURE is False
+        assert module.SESSION_COOKIE_SECURE is False
+
+    def test_settings_neither_module_names_stay_unchanged(
+        self, production_env, tmp_path, settings_module
+    ):
+        prod_dir = tmp_path / "prod"
+        dev_dir = tmp_path / "dev"
+
+        os.environ["DJANGO_ENV"] = "production"
+        prod_module = settings_module(directory=prod_dir)
+
+        os.environ["DJANGO_ENV"] = "development"
+        dev_module = settings_module(directory=dev_dir)
+
+        for setting_name in self.UNCHANGED_BETWEEN_ENVIRONMENTS:
+            assert getattr(prod_module, setting_name) == getattr(
+                dev_module, setting_name
+            ), f"{setting_name} differs between production and development"
+
+
 class TestPortalOverride:
     """Test that the portal's override module is resolved beside its settings module (FR-011)."""
 
@@ -252,6 +292,84 @@ class TestPortalOverride:
         )
         assert "settings module" in warned_text.lower() or "__file__" in warned_text
         assert scope["DJANGO_ENV"] == "production"
+
+
+class TestBaselineCompleteness:
+    """A settings module whose entire content is ``fairdm.setup()`` produces
+    a configuration where every FairDM-owned setting is present and
+    ``manage.py check`` raises nothing (FR-001, SC-001).
+
+    Run out-of-process — ``manage.py check`` needs a populated app registry
+    (``django.setup()``), which this repository's own test session already
+    has, from a different settings module (``tests.settings``).
+    """
+
+    def test_minimal_settings_module_passes_manage_py_check(self, tmp_path):
+        repo_root = Path(__file__).resolve().parents[2]
+
+        settings_dir = tmp_path / "config"
+        settings_dir.mkdir()
+        (settings_dir / "__init__.py").write_text("")
+        (settings_dir / "settings.py").write_text("import fairdm\n\nfairdm.setup()\n")
+
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.startswith(
+                ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+            )
+        }
+        env |= {
+            "DJANGO_ENV": "development",
+            "DJANGO_SETTINGS_MODULE": "config.settings",
+            # No urls.py in this minimal portal — reuse FairDM's own, exactly
+            # as a portal that hasn't written one yet would.
+            "DJANGO_ROOT_URLCONF": "fairdm.conf.urls",
+            "PYTHONPATH": f"{tmp_path}{os.pathsep}{repo_root}",
+        }
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import django; django.setup()\n"
+                "from django.core.management import call_command\n"
+                "call_command('check')\n"
+                "print('CHECK_OK')",
+            ],
+            cwd=tmp_path,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "CHECK_OK" in result.stdout
+
+    def test_minimal_settings_module_defines_every_fairdm_owned_setting(
+        self, production_env, tmp_path, settings_module
+    ):
+        """A representative setting from every settings/*.py module is
+        present after a bare ``fairdm.setup()`` call (FR-001)."""
+        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+
+        module = settings_module(directory=tmp_path)
+
+        representative_settings = [
+            "INSTALLED_APPS",  # apps.py
+            "SECRET_KEY",  # security.py
+            "DATABASES",  # database.py
+            "CACHES",  # cache.py
+            "STATIC_URL",  # static_media.py
+            "CELERY_BROKER_URL",  # celery.py
+            "AUTH_USER_MODEL",  # auth.py
+            "LOGGING",  # logging.py
+            "EMAIL_BACKEND",  # email.py
+            "REST_FRAMEWORK",  # api.py
+            "FLEX_MENUS",  # addons.py
+        ]
+        for setting_name in representative_settings:
+            assert hasattr(module, setting_name), f"{setting_name} is missing"
 
 
 class TestBundledPortalBoots:
@@ -645,3 +763,101 @@ fairdm.setup(env_file="{custom_env}")
             test_settings.SECRET_KEY
             == "override_secret_key_from_file_1234567890123456789012345"
         )
+
+
+class TestBaselineModuleAudit:
+    """A static audit over every module in ``fairdm/conf/settings/`` — all
+    eleven, ``settings/addons.py`` included — asserting none contains a
+    conditional on the resolved environment and each carries a module
+    docstring naming what it owns and what it leaves to a portal (FR-002,
+    FR-003, US-1 scenario 2).
+
+    Read as source text and parsed with ``ast``, not imported — these
+    modules rely on ``env``/``BASE_DIR`` being injected into their scope by
+    ``split_settings.include()``, so a bare import raises ``KeyError``
+    outside that machinery (as ``test_logging.py`` discovered).
+    """
+
+    #: fairdm/conf/settings/*.py, minus __init__.py — the eleven concern
+    #: modules FR-002 requires (addons.py included, per the task brief).
+    EXPECTED_MODULE_STEMS = {
+        "addons",
+        "api",
+        "apps",
+        "auth",
+        "cache",
+        "celery",
+        "database",
+        "email",
+        "logging",
+        "security",
+        "static_media",
+    }
+
+    #: Variables whose presence previously drove environment-shaped
+    #: branching in the baseline (research audit, decisions.md D4) — a
+    #: baseline module reading one of these as an `if`/`elif` condition is
+    #: exactly the defect this feature removes. Named explicitly rather than
+    #: forbidding every `if` outright, since feature-detection on which of
+    #: two portal-supplied values is present (S3 credentials in
+    #: static_media.py, DJANGO_DEFAULT_FROM_EMAIL in email.py) is not
+    #: environment branching and stays legitimate.
+    FORBIDDEN_BRANCH_VARIABLES = {
+        "DJANGO_ENV",
+        "DJANGO_SECURE",
+        "DJANGO_CACHE",
+        "DATABASE_URL",
+        "POSTGRES_DB",
+    }
+
+    @staticmethod
+    def _settings_dir():
+        import fairdm.conf.settings
+
+        return Path(fairdm.conf.settings.__file__).parent
+
+    def _module_paths(self):
+        settings_dir = self._settings_dir()
+        return {stem: settings_dir / f"{stem}.py" for stem in self.EXPECTED_MODULE_STEMS}
+
+    def test_all_eleven_concern_modules_exist(self):
+        for stem, path in self._module_paths().items():
+            assert path.exists(), f"{stem}.py is missing from fairdm/conf/settings/"
+
+    def test_every_module_has_a_docstring_naming_ownership(self):
+        import ast
+
+        for stem, path in self._module_paths().items():
+            tree = ast.parse(path.read_text())
+            doc = ast.get_docstring(tree)
+
+            assert doc, f"{stem}.py has no module docstring"
+            assert "owns" in doc.lower(), (
+                f"{stem}.py's docstring doesn't say what it owns"
+            )
+            assert "leaves" in doc.lower() or "portal" in doc.lower(), (
+                f"{stem}.py's docstring doesn't say what it leaves to a portal"
+            )
+
+    def test_no_module_branches_on_the_resolved_environment(self):
+        import ast
+
+        def referenced_names(test_node):
+            return {
+                node.id for node in ast.walk(test_node) if isinstance(node, ast.Name)
+            } | {
+                node.value
+                for node in ast.walk(test_node)
+                if isinstance(node, ast.Constant) and isinstance(node.value, str)
+            }
+
+        for stem, path in self._module_paths().items():
+            tree = ast.parse(path.read_text())
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.If):
+                    continue
+                offending = referenced_names(node.test) & self.FORBIDDEN_BRANCH_VARIABLES
+                assert not offending, (
+                    f"{stem}.py:{node.lineno} branches on {offending} — "
+                    "environment-derived state, not feature detection (FR-003)"
+                )

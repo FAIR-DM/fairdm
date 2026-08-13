@@ -1,57 +1,43 @@
 """Database Configuration
 
-Production-ready PostgreSQL configuration with graceful SQLite fallback for development.
+Owns: DATABASES, always PostgreSQL-shaped, read from ``DATABASE_URL`` or
+composed from the discrete ``POSTGRES_*`` variables when that is unset — never
+SQLite, so the baseline stays production-grade unconditionally (FR-002,
+FR-003). Leaves to a portal: which of the two forms it supplies, and any
+per-portal connection tuning beyond ``CONN_MAX_AGE``.
 
-Production: Requires DATABASE_URL or POSTGRES_* env vars (fails fast if missing)
-Local/Development: Falls back to SQLite with warning if no DATABASE_URL
+A portal supplying neither resolves to a syntactically present but unusable
+configuration rather than raising on read (research R6's principle, applied
+here as much as to the security-critical variables) — the read is never what
+refuses a boot. ``fairdm.conf.checks.check_database_configured`` and
+``check_database_usable`` are what refuse it in production. Development
+degrades to SQLite in ``development.py``, not here.
 
 This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
-import logging
+from urllib.parse import quote
 
 # Access environment variables via shared env instance
 env = globals()["env"]
 BASE_DIR = globals()["BASE_DIR"]
 
-logger = logging.getLogger(__name__)
-
 # Default for all Django models
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # DATABASE CONFIGURATION
-# Priority: DATABASE_URL > POSTGRES_* vars > SQLite fallback
-# Production expects DATABASE_URL or POSTGRES_* (validation in checks.py)
+# django-environ reads DATABASE_URL when present; the composed POSTGRES_*
+# URL is its `default` value, used only when DATABASE_URL is entirely unset
+# — a single unconditional read, not a branch on which was supplied.
+_postgres_url_from_parts = (
+    f"postgresql://{quote(env('POSTGRES_USER'), safe='')}"
+    f":{quote(env('POSTGRES_PASSWORD'), safe='')}"
+    f"@{env('POSTGRES_HOST')}:{env('POSTGRES_PORT')}/{env('POSTGRES_DB')}"
+)
 
-if env("DATABASE_URL"):
-    logger.info("Database: PostgreSQL via DATABASE_URL")
-    DATABASES = {
-        "default": env.db(),
-    }
-
-elif env("POSTGRES_DB"):
-    logger.info("Database: PostgreSQL via POSTGRES_* vars")
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_DB"),
-            "PASSWORD": env("POSTGRES_PASSWORD"),
-            "USER": env("POSTGRES_USER"),
-            "HOST": env("POSTGRES_HOST"),
-            "PORT": env("POSTGRES_PORT"),
-        }
-    }
-
-else:
-    # SQLite fallback - only acceptable in development
-    # Production will fail validation if this path is taken
-    logger.debug("Database: SQLite fallback (not for production)")
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+DATABASES = {
+    "default": env.db(default=_postgres_url_from_parts),
+}
 
 # Database performance settings
 DATABASES["default"]["ATOMIC_REQUESTS"] = True  # Wrap each request in a transaction

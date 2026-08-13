@@ -117,13 +117,21 @@ SHARED_CACHE_BACKENDS = frozenset(
     }
 )
 
+#: settings/cache.py's baseline is unconditionally Redis-shaped (FR-003), so
+#: BACKEND alone can no longer distinguish a real deployment from an unset
+#: REDIS_URL — this placeholder LOCATION is what it substitutes, letting
+#: django_redis's client construct without raising at (eager) import time.
+#: A hostname no real deployment would use, so this check can still tell the
+#: two apart (FR-017).
+UNCONFIGURED_REDIS_LOCATION = "redis://unconfigured.invalid:6379/0"
+
 
 @register(Tags.caches, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_cache_backend(app_configs, **kwargs):
     """
     Check that production uses a shared cache backend (e.g. Redis or
     Memcached), not an absent, empty, or per-process backend such as locmem,
-    dummy or filebased.
+    dummy or filebased — and not the baseline's own unconfigured placeholder.
 
     Error ID: fairdm.E200
     """
@@ -131,8 +139,9 @@ def check_cache_backend(app_configs, **kwargs):
     caches = getattr(settings, "CACHES", {})
     default_cache = caches.get("default", {})
     backend = default_cache.get("BACKEND", "")
+    location = default_cache.get("LOCATION", "")
 
-    if backend not in SHARED_CACHE_BACKENDS:
+    if backend not in SHARED_CACHE_BACKENDS or location == UNCONFIGURED_REDIS_LOCATION:
         errors.append(
             Error(
                 f"Cache backend '{backend or '(none)'}' is not a shared cache suitable for production.",

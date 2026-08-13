@@ -72,15 +72,25 @@ class TestProductionBoot:
                 # Absent/unsafe together, exercising four distinct checks:
                 "DJANGO_SECRET_KEY": "",  # fairdm.E001 — empty
                 "DJANGO_ALLOWED_HOSTS": "*",  # fairdm.E004 — wildcard
+                # settings/database.py no longer falls back to SQLite when
+                # unconfigured (FS-001 US-1, FR-003, D4) — it always composes
+                # a postgres-shaped URL, so an empty NAME fails fairdm.E102
+                # ("malformed"), not fairdm.E101 ("SQLite"). E101 still fires
+                # if a portal explicitly configures SQLite; it just can't be
+                # reached from an unconfigured baseline any more.
                 "DATABASE_URL": "",
-                "POSTGRES_DB": "",  # fairdm.E101 — SQLite fallback
-                "REDIS_URL": "",  # fairdm.E200 — LocMem fallback
+                "POSTGRES_DB": "",  # fairdm.E102 — composes to an empty NAME
+                # settings/cache.py no longer falls back to LocMem either — it
+                # always composes a Redis-shaped CACHES, substituting
+                # checks.UNCONFIGURED_REDIS_LOCATION so check_cache_backend
+                # can still tell an unset REDIS_URL apart from a real one.
+                "REDIS_URL": "",  # fairdm.E200 — unconfigured placeholder
             }
         )
 
         assert result.returncode != 0, result.stdout + result.stderr
         # Every failure is named, not just the first.
-        for check_id in ("fairdm.E001", "fairdm.E004", "fairdm.E101", "fairdm.E200"):
+        for check_id in ("fairdm.E001", "fairdm.E004", "fairdm.E102", "fairdm.E200"):
             assert check_id in result.stderr, (
                 f"{check_id} missing from output:\n{result.stderr}"
             )

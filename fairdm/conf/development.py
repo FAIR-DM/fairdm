@@ -32,8 +32,10 @@ SECRET_KEY = env(
     default="django-insecure-dev-key-CHANGE-THIS-IN-PRODUCTION",
 )
 
-# Allow all hosts in development
-ALLOWED_HOSTS = ["*"]
+# Development-only allowed hosts — never "*" (FR-004, FR-009), and never
+# shipped in the production baseline (settings/security.py resolves to []
+# when DJANGO_SITE_DOMAIN is unset).
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # =============================================================================
 # DATABASE (Degrade to SQLite if not configured)

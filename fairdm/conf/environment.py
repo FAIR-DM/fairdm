@@ -1,3 +1,5 @@
+import logging
+
 from environ import Env
 
 env = Env(
@@ -7,16 +9,23 @@ env = Env(
     # DJANGO
     DJANGO_ADMIN_URL=(str, "admin/"),
     DJANGO_SUPERUSER_EMAIL=(str, "super.user@example.com"),
-    DJANGO_SUPERUSER_PASSWORD=(str, "admin"),
+    # No working default (FR-004, research R6) — an unset admin password
+    # resolves to an empty string, not a published or guessable one. The
+    # production-critical checks, not this read, are what refuse a boot.
+    DJANGO_SUPERUSER_PASSWORD=(str, ""),
     DJANGO_ALLOWED_HOSTS=(list, []),
     DJANGO_CACHE=(bool, True),
     DJANGO_DEBUG=(bool, False),
     DJANGO_READ_DOT_ENV_FILE=(bool, False),
-    DJANGO_SECRET_KEY=(
-        str,
-        "django-insecure-qQN1YqvsY7dQ1xtdhLavAeXn1mUEAI0Wu8vkDbodEqRKkJbHyMEQS5F",
-    ),
-    DJANGO_SITE_DOMAIN=(str, "localhost:8000"),
+    # No working default (FR-004, research R6) — an unset secret key resolves
+    # to an empty string rather than a value published in FairDM's own
+    # source. See fairdm.conf.checks.check_secret_key_exists (fairdm.E001).
+    DJANGO_SECRET_KEY=(str, ""),
+    # No working default (FR-004, research R6) — an unset site domain
+    # resolves to an empty string, not "localhost:8000". settings/security.py
+    # composes ALLOWED_HOSTS from truthy entries only, so this stays an empty
+    # list rather than [""] (research R6, T055).
+    DJANGO_SITE_DOMAIN=(str, ""),
     DJANGO_SITE_ID=(int, 1),
     DJANGO_SITE_NAME=(str, "FairDM Demo"),
     DJANGO_TIME_ZONE=(str, "UTC"),
@@ -47,4 +56,10 @@ env = Env(
     REDIS_URL=(str, ""),
     # REDIS_URL=(str, "redis://redis:6379/0"),
     USE_DOCKER=(bool, False),
+    # SENTRY — shared here so settings/logging.py doesn't declare its own Env
+    # (contracts/settings-sections.md).
+    SENTRY_DSN=(str, ""),
+    DJANGO_SENTRY_LOG_LEVEL=(int, logging.INFO),
+    SENTRY_ENVIRONMENT=(str, "production"),
+    SENTRY_TRACES_SAMPLE_RATE=(float, 0.0),
 )

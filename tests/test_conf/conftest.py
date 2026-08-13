@@ -11,6 +11,51 @@ import os
 
 import pytest
 
+#: Prefixes of every environment variable fairdm's settings baseline reads.
+#: Isolation fixtures clear and restore exactly this set, so a test's
+#: environment can never leak into, or inherit from, another test.
+ENV_VAR_PREFIXES = (
+    "DJANGO_",
+    "DATABASE_",
+    "POSTGRES_",
+    "REDIS_",
+    "EMAIL_",
+    "S3_",
+    "SENTRY_",
+)
+
+
+@pytest.fixture
+def isolated_env():
+    """Save and restore every fairdm-relevant environment variable around a test.
+
+    Clears variables under ``ENV_VAR_PREFIXES`` before the test body runs and
+    restores the original environment afterwards, so a test sets exactly the
+    variables it needs without leaking them into, or inheriting them from,
+    another test.
+    """
+    original_env = os.environ.copy()
+    for key in list(os.environ.keys()):
+        if key.startswith(ENV_VAR_PREFIXES):
+            del os.environ[key]
+
+    yield
+
+    os.environ.clear()
+    os.environ.update(original_env)
+
+
+def snapshot_scope(scope: dict) -> dict:
+    """Return a shallow copy of every uppercase key in ``scope``.
+
+    Uppercase is Django's settings convention; ``fairdm.setup()`` also injects
+    a few bookkeeping keys the same way (``DJANGO_ENV``, ``BASE_DIR``,
+    ``FAIRDM_APPS``). Diffing snapshots taken before and after a layer applies
+    is how both the provenance command (US-4) and the layer-order tests here
+    attribute a setting to the layer that wrote it.
+    """
+    return {key: value for key, value in scope.items() if key.isupper()}
+
 
 @pytest.fixture
 def settings_module(tmp_path):

@@ -1,87 +1,60 @@
 """Cache Configuration
 
-Production-ready Redis cache configuration with graceful fallbacks for development.
+Owns: CACHES, always Redis-shaped, read from ``REDIS_URL`` (FR-002, FR-003).
+Leaves to a portal: the Redis instance itself, and any per-cache options
+beyond ``IGNORE_EXCEPTIONS``.
 
-Production: Requires REDIS_URL (fails fast if missing)
-Local/Development: Falls back to LocMemCache with warning if no REDIS_URL
+A portal that omits ``REDIS_URL`` resolves to
+``fairdm.conf.checks.UNCONFIGURED_REDIS_LOCATION`` rather than raising on
+read (research R6's principle, applied here as much as to the
+security-critical variables) — the read is never what refuses a boot. Unlike
+``DATABASES``, this can't be an empty string: some installed apps touch the
+cache eagerly at import time (a vocabulary field building its graph), and
+django_redis's client raises ``ImproperlyConfigured`` at construction —
+before any network call, so ``IGNORE_EXCEPTIONS`` can't catch it — when its
+location is empty. A syntactically valid placeholder lets construction
+succeed; ``IGNORE_EXCEPTIONS`` then absorbs the connection failure at actual
+use, and ``fairdm.conf.checks.check_cache_backend`` recognises the
+placeholder itself to refuse it in production (BACKEND alone can no longer
+tell a real deployment from an unset one, now that it never varies).
+Development degrades to LocMemCache in ``development.py``, not here.
 
 This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
-import logging
+from fairdm.conf.checks import UNCONFIGURED_REDIS_LOCATION
 
 # Access environment variables via shared env instance
 env = globals()["env"]
 
-logger = logging.getLogger(__name__)
-
 # CACHE CONFIGURATION
-# Production expects Redis for performance and session management
-# Priority: REDIS_URL (Redis) > LocMemCache fallback > DummyCache (no caching)
+# Production expects Redis for performance and session management.
 
-if env("DJANGO_CACHE") and env("REDIS_URL"):
-    logger.info("Cache Configuration: Redis")
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": env("REDIS_URL"),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                # Mimic memcache behavior - ignore connection errors gracefully
-                # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
-                "IGNORE_EXCEPTIONS": True,
-            },
-        },
-        "select2": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": env("REDIS_URL"),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "IGNORE_EXCEPTIONS": True,
-            },
-        },
-        "vocabularies": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": env("REDIS_URL"),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "IGNORE_EXCEPTIONS": True,
-            },
-        },
-    }
-elif env("DJANGO_CACHE"):
-    # LocMemCache fallback - acceptable for development
-    # Production will fail validation if this path is taken
-    logger.debug("Cache Configuration: LocMemCache fallback (not for production)")
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "default-cache",
-        },
-        "select2": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "select2-cache",
-        },
-        "vocabularies": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "vocabularies-cache",
+
+def _redis_cache() -> dict:
+    """A fresh dict per alias, so a portal overriding one cache's OPTIONS
+    after ``setup()`` never mutates the others through a shared reference."""
+    return {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # `or` rather than env()'s own `default=` because a variable
+        # explicitly set to "" still reaches this line as "" (the shared
+        # Env's schema default only applies when the variable is absent from
+        # the process environment altogether).
+        "LOCATION": env("REDIS_URL") or UNCONFIGURED_REDIS_LOCATION,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # Mimic memcache behavior - ignore connection errors gracefully
+            # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
+            "IGNORE_EXCEPTIONS": True,
         },
     }
 
-else:
-    # DummyCache - no caching at all (for testing only)
-    logger.debug("Cache Configuration: DummyCache (no caching)")
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-            "LOCATION": "default-cache",
-        },
-        "select2": {
-            # select2 needs at least LocMemCache to function properly
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "select2-cache",
-        },
-    }
+
+CACHES = {
+    "default": _redis_cache(),
+    "select2": _redis_cache(),
+    "vocabularies": _redis_cache(),
+}
 
 # Tell select2 which cache configuration to use:
 SELECT2_CACHE_BACKEND = "select2"

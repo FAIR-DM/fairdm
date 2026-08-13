@@ -200,6 +200,44 @@ class TestCacheChecks:
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E200"
 
+    def test_check_cache_backend_unconfigured_placeholder_fails(self):
+        """settings/cache.py's baseline is always Redis-shaped (FS-001 US-1,
+        FR-003), so BACKEND alone can no longer distinguish a real deployment
+        from an unset REDIS_URL — the check must also recognise the
+        placeholder LOCATION cache.py substitutes (FR-017)."""
+        from fairdm.conf.checks import UNCONFIGURED_REDIS_LOCATION, check_cache_backend
+
+        with override_settings(
+            CACHES={
+                "default": {
+                    "BACKEND": "django_redis.cache.RedisCache",
+                    "LOCATION": UNCONFIGURED_REDIS_LOCATION,
+                }
+            }
+        ):
+            errors = check_cache_backend(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E200"
+
+    @override_settings(
+        CACHES={
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": "redis://real-redis-host:6379/1",
+            }
+        }
+    )
+    def test_check_cache_backend_real_redis_location_passes(self):
+        """A genuine REDIS_URL still passes — the placeholder check is exact,
+        not a broad Redis-shaped-with-any-empty-looking-value heuristic."""
+        from fairdm.conf.checks import check_cache_backend
+
+        errors = check_cache_backend(app_configs=None)
+
+        assert errors == []
+
 
 class TestSecretKeyChecks:
     """Tests for SECRET_KEY configuration checks."""

@@ -1,13 +1,11 @@
 """Authentication and Authorization Configuration
 
-Production-ready authentication with django-allauth, password validation, and object-level permissions.
-
-Includes configuration for:
-- Password hashing (Argon2)
-- Password validators
-- Authentication backends (ModelBackend, allauth, guardian)
-- django-allauth settings (email verification, social auth)
-- django-invitations
+Owns: password hashing (Argon2 first), password validators, authentication
+backends (ModelBackend, allauth, guardian, FairDM's own object-level
+backends), django-allauth account/social settings, and django-invitations —
+none of it environment-dependent (FR-002, FR-003). Leaves to a portal:
+``SOCIALACCOUNT_PROVIDERS`` beyond ORCID, and its own custom account/signup
+forms via ``ACCOUNT_FORMS``/``SOCIALACCOUNT_FORMS``.
 
 This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """

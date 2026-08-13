@@ -198,20 +198,12 @@ def setup(
 
     # Layer 5 — assignment after this call returns, in the portal's own
     # settings module. Nothing to do here; that is the portal's own code.
-
-    # Finalize SPECTACULAR_SETTINGS: allow portal developers to override
-    # FAIRDM_API_TITLE and FAIRDM_API_DESCRIPTION without touching the dict directly.
-    # This must run AFTER all settings files and overrides are applied so that
-    # portal-level values shadow the FairDM defaults.
-    if "SPECTACULAR_SETTINGS" in caller_globals:
-        from fairdm.api.settings import FAIRDM_API_DESCRIPTION as _default_desc
-        from fairdm.api.settings import FAIRDM_API_TITLE as _default_title
-
-        spectacular = caller_globals["SPECTACULAR_SETTINGS"]
-        title_override = caller_globals.get("FAIRDM_API_TITLE", _default_title)
-        desc_override = caller_globals.get("FAIRDM_API_DESCRIPTION", _default_desc)
-        spectacular["TITLE"] = title_override
-        spectacular["DESCRIPTION"] = desc_override
+    #
+    # No FairDM-owned setting requires special-case handling here (D10): the
+    # REST API schema's title and description are finalised entirely within
+    # settings/api.py, the module that owns them. A portal overrides that
+    # module's dict directly after this call, the same ordinary mechanism as
+    # any other FairDM-owned setting.
 
     # Configuration validation is handled entirely by Django's check
     # framework (FR-018) — see fairdm/conf/checks.py and FairDMConfig.ready().
