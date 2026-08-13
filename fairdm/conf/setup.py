@@ -34,6 +34,7 @@ permitted names: if no module named after the resolved environment exists,
 that layer is skipped without error (FR-010).
 """
 
+import copy
 import inspect
 import logging
 import os
@@ -48,6 +49,11 @@ from .addons import load_addons
 logger = logging.getLogger(__name__)
 
 
+#: Value types a layer can alter without rebinding the name. Deep-copied when
+#: a snapshot is taken, so the change is still visible afterwards.
+_MUTABLE_CONTAINERS = (list, dict, set)
+
+
 def _uppercase_scope(scope: dict) -> dict:
     """Every uppercase key in ``scope`` and its current value — Django's
     settings convention, also used for the bookkeeping keys ``setup()``
@@ -55,17 +61,53 @@ def _uppercase_scope(scope: dict) -> dict:
     return {key: value for key, value in scope.items() if key.isupper()}
 
 
+def _snapshot_scope(scope: dict) -> dict:
+    """``_uppercase_scope`` with mutable containers copied out of harm's way.
+
+    A layer does not have to rebind a name to change a setting: FairDM's own
+    ``development.py`` writes ``INSTALLED_APPS += [...]``, and ``+=`` on a
+    list calls ``__iadd__``, mutating the baseline's own object in place. A
+    snapshot that holds a reference to that object sees the mutation on both
+    sides of the diff and concludes nothing was written, which credits the
+    baseline with a value it did not produce.
+    """
+    snapshot = {}
+    for key, value in scope.items():
+        if not key.isupper():
+            continue
+        if isinstance(value, _MUTABLE_CONTAINERS):
+            try:
+                value = copy.deepcopy(value)
+            except Exception:  # pragma: no cover — defensive
+                logger.debug(
+                    f"Could not snapshot {key} for provenance; "
+                    "falling back to identity comparison"
+                )
+        snapshot[key] = value
+    return snapshot
+
+
+def _differs(before_value, after_value) -> bool:
+    """Whether a layer changed this container, comparing by value."""
+    try:
+        return bool(before_value != after_value)
+    except Exception:  # pragma: no cover — defensive
+        return before_value is not after_value
+
+
 def _written_keys(before: dict, after: dict) -> list[str]:
-    """The uppercase keys a layer wrote: new keys, or keys whose value the
-    layer reassigned to a different object. A layer that only mutates an
-    existing container in place, rather than reassigning it, is not
-    detected here — the same limit ``snapshot_scope`` in
-    ``tests/test_conf/conftest.py`` documents."""
-    return sorted(
-        key
-        for key, value in after.items()
-        if key not in before or before[key] is not value
-    )
+    """The uppercase keys a layer wrote: names it introduced, names it
+    rebound, and containers it mutated in place."""
+    written = []
+    for key, value in after.items():
+        if key not in before:
+            written.append(key)
+        elif isinstance(value, _MUTABLE_CONTAINERS):
+            if _differs(before[key], value):
+                written.append(key)
+        elif before[key] is not value:
+            written.append(key)
+    return sorted(written)
 
 
 def setup(
@@ -194,7 +236,7 @@ def setup(
         "settings/api.py",  # REST API (DRF, drf-spectacular, CORS) — Feature 011
     ]
 
-    before = _uppercase_scope(caller_globals)
+    before = _snapshot_scope(caller_globals)
     include(*settings_modules, scope=caller_globals)
     after = _uppercase_scope(caller_globals)
     record.add_layer(
@@ -210,7 +252,7 @@ def setup(
     # (FR-009, FR-010).
     fairdm_override = Path(__file__).parent / f"{env_profile}.py"
     fairdm_override_found = fairdm_override.exists()
-    before = _uppercase_scope(caller_globals)
+    before = _snapshot_scope(caller_globals)
     if fairdm_override_found:
         logger.info(
             f"Applying FairDM {env_profile} overrides from {fairdm_override.name}"
@@ -226,7 +268,7 @@ def setup(
 
     # Layer 3 — settings contributed by addons.
     addon_setup_modules: list[str] = []
-    before = _uppercase_scope(caller_globals)
+    before = _snapshot_scope(caller_globals)
     if addons:
         addon_setup_modules = load_addons(addons, env_profile)
         if addon_setup_modules:
@@ -244,7 +286,7 @@ def setup(
     # (FR-011). Also selected by existence; skipped without error if absent.
     portal_override: Path | None = None
     portal_override_found = False
-    before = _uppercase_scope(caller_globals)
+    before = _snapshot_scope(caller_globals)
     if portal_settings_dir is not None:
         portal_override = portal_settings_dir / f"{env_profile}.py"
         portal_override_found = portal_override.exists()

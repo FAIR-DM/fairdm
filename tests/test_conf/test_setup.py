@@ -244,6 +244,55 @@ class TestProvenance:
         # the named layer wrote.
         assert module.DEBUG == "portal-wins"
 
+    def test_producer_names_a_layer_that_appended_to_an_existing_list(
+        self, production_env, tmp_path, settings_module
+    ):
+        """A layer that extends a list the baseline already set is its producer.
+
+        ``INSTALLED_APPS += [...]`` calls ``list.__iadd__``, which mutates the
+        baseline's own list object in place. Attributing the layer by object
+        identity misses it entirely, and reports the baseline as the producer
+        of a value the baseline did not write.
+        """
+        os.environ["DJANGO_ENV"] = "development"
+        (tmp_path / "development.py").write_text(
+            "INSTALLED_APPS = globals()['INSTALLED_APPS']\n"
+            "INSTALLED_APPS += ['portal_appended_app']\n"
+        )
+
+        module = settings_module(directory=tmp_path)
+
+        from fairdm.conf import record
+
+        assert "portal_appended_app" in module.INSTALLED_APPS
+
+        producer = record.producer("INSTALLED_APPS")
+
+        assert producer is not None
+        assert producer.name == "portal override"
+
+    def test_shipped_development_override_is_the_producer_of_what_it_appends(
+        self, production_env, tmp_path, settings_module
+    ):
+        """The one override layer FairDM ships appends rather than reassigns.
+
+        ``fairdm/conf/development.py`` extends both ``INSTALLED_APPS`` and
+        ``MIDDLEWARE`` in place, so these are the settings a portal is most
+        likely to interrogate and the ones an identity diff gets wrong.
+        """
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module(directory=tmp_path)
+
+        from fairdm.conf import record
+
+        assert "django_browser_reload" in module.INSTALLED_APPS
+
+        for setting in ("INSTALLED_APPS", "MIDDLEWARE"):
+            producer = record.producer(setting)
+            assert producer is not None, setting
+            assert producer.name == "fairdm override", setting
+
 
 class TestProvenanceCoversEverySetting:
     """Every setting a baseline module sets names a producing layer (SC-005)."""

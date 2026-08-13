@@ -60,6 +60,11 @@ class Provenance:
         The layer list is in application order, later layers overriding
         earlier ones (FR-008), so the producer is the *last* layer whose
         settings include this name.
+
+        A layer is credited when it changed the value, not merely when it
+        assigned one: a later layer that reassigns a setting to the value it
+        already held leaves the earlier layer named. The resolved value is
+        the same either way, which is the question this answers.
         """
         for layer in reversed(self._layers):
             if setting in layer.settings:
