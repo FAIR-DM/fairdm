@@ -1,8 +1,37 @@
 """
 FairDM configuration setup entry point.
 
-This module provides the main `setup()` function that portals call to initialize
-their configuration. It handles profile selection, environment loading, and addon integration.
+This module provides ``setup()``, the single call a portal's settings module
+makes to obtain a complete Django configuration (FR-001).
+
+**Resolved environment.** Taken literally from the ``DJANGO_ENV`` environment
+variable, defaulting to ``production`` when unset. Not validated against an
+allowlist — any name is valid, including one nothing ships an override for
+(FR-007, FR-010).
+
+**Environment files**, read in this order, later files not overriding a
+variable already set in the process environment except where noted:
+
+1. ``stack.env``, beside the portal's ``base_dir``, if present.
+2. ``stack.<environment>.env``, beside ``base_dir``, if present.
+3. The explicit ``env_file=`` argument, if given — this one *does* overwrite
+   variables already set, including by the two files above (FR-006).
+
+**Layers**, applied in this order, each later layer overriding the same
+setting in an earlier one (FR-008):
+
+1. The production baseline — every module under ``fairdm/conf/settings/``.
+2. FairDM's own override module for the resolved environment, if it ships
+   one — only ``development.py`` today (FR-009).
+3. Settings contributed by addons named in the ``addons=`` argument.
+4. The portal's own override module for the resolved environment, resolved
+   beside its settings module regardless of directory name (FR-011).
+5. Assignments the portal's settings module makes after ``setup()`` returns —
+   the only supported way to override a FairDM-owned setting (FR-012).
+
+Layers 2 and 4 are both selected by existence, not from a fixed list of
+permitted names: if no module named after the resolved environment exists,
+that layer is skipped without error (FR-010).
 """
 
 import inspect
@@ -27,15 +56,9 @@ def setup(
     """
     Initialize FairDM configuration with environment-specific settings.
 
-    This is the main entry point for portal configuration. It:
-    1. Determines the resolved environment (FR-007)
-    2. Loads environment variables
-    3. Composes settings into the caller's global namespace in five layers (FR-008)
-    4. Loads addon configurations
-    5. Runs configuration checks (see ``FairDMConfig.ready()``)
-
-    A portal overrides a setting FairDM owns by assigning to it after this
-    call returns — the only supported mechanism (FR-012).
+    The main entry point for portal configuration — see the module docstring
+    for the resolved environment, the environment files, and the five layers
+    this composes into the caller's global namespace.
 
     Args:
         apps: List of portal-specific Django apps to include in INSTALLED_APPS
