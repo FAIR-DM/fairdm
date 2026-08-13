@@ -174,7 +174,9 @@ def setup(
     # (FR-009, FR-010).
     fairdm_override = Path(__file__).parent / f"{env_profile}.py"
     if fairdm_override.exists():
-        logger.info(f"Applying FairDM {env_profile} overrides from {fairdm_override.name}")
+        logger.info(
+            f"Applying FairDM {env_profile} overrides from {fairdm_override.name}"
+        )
         include(fairdm_override.name, scope=caller_globals)
 
     # Layer 3 — settings contributed by addons.
@@ -189,7 +191,9 @@ def setup(
     if portal_settings_dir is not None:
         portal_override = portal_settings_dir / f"{env_profile}.py"
         if portal_override.exists():
-            logger.info(f"Applying portal {env_profile} overrides from {portal_override}")
+            logger.info(
+                f"Applying portal {env_profile} overrides from {portal_override}"
+            )
             include(str(portal_override), scope=caller_globals)
 
     # Layer 5 — assignment after this call returns, in the portal's own

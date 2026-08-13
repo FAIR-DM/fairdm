@@ -241,7 +241,7 @@ class TestPortalOverride:
         scope = {}
 
         with mock.patch("fairdm.conf.setup.logger.warning") as mock_warning:
-            exec(code, scope)
+            exec(code, scope)  # noqa: S102 — simulates a settings module with no __file__
 
         assert mock_warning.called
         warned_text = " ".join(str(call.args[0]) for call in mock_warning.call_args_list)
