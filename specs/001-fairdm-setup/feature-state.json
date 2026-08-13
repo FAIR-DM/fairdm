@@ -659,8 +659,8 @@
       "id": "US3",
       "priority": "P1",
       "issue": 132,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/fairdm/fairdm-us3",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
