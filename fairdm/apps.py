@@ -33,4 +33,35 @@ class FairDMConfig(AppConfig):
 
         compat.is_crispy = lambda: False
 
+        self._check_production_configuration()
+
         return super().ready()
+
+    def _check_production_configuration(self) -> None:
+        """
+        Refuse to boot when the resolved environment is production and any
+        production-critical check fails, naming every failure in one error
+        rather than the first (FR-013, FR-014, SC-003). Every other
+        environment runs no checks here at all (FR-014, SC-004).
+        """
+        if self.resolved_environment() != "production":
+            return
+
+        from django.core.checks.registry import registry
+        from django.core.management.base import SystemCheckError
+
+        from fairdm.conf.checks import DeployTags
+
+        errors = [
+            issue
+            for issue in registry.run_checks(
+                tags=[DeployTags.production_critical],
+                include_deployment_checks=True,
+            )
+            if issue.is_serious()
+        ]
+        if errors:
+            raise SystemCheckError(
+                "FairDM production configuration is invalid:\n\n"
+                + "\n\n".join(str(error) for error in errors)
+            )

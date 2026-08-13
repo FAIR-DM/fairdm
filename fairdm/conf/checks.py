@@ -29,7 +29,7 @@ class DeployTags(Tags):
 # =============================================================================
 
 
-@register(Tags.database, DeployTags.deploy, deploy=True)
+@register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_configured(app_configs, **kwargs):
     """
     Check that DATABASES['default'] is configured.
@@ -52,7 +52,7 @@ def check_database_configured(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.database, DeployTags.deploy, deploy=True)
+@register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_production_ready(app_configs, **kwargs):
     """
     Check that production uses PostgreSQL, not SQLite.
@@ -171,7 +171,7 @@ def check_secret_key_exists(app_configs, **kwargs):
 # =============================================================================
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_allowed_hosts_configured(app_configs, **kwargs):
     """
     Check that ALLOWED_HOSTS is not empty.
@@ -193,7 +193,7 @@ def check_allowed_hosts_configured(app_configs, **kwargs):
     return errors
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_allowed_hosts_secure(app_configs, **kwargs):
     """
     Check that ALLOWED_HOSTS doesn't contain wildcard '*'.
@@ -220,7 +220,7 @@ def check_allowed_hosts_secure(app_configs, **kwargs):
 # =============================================================================
 
 
-@register(Tags.security, DeployTags.deploy, deploy=True)
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_debug_false(app_configs, **kwargs):
     """
     Check that DEBUG is False in production.

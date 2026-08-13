@@ -58,3 +58,28 @@ class TestFairDMConfigReady:
 
             del settings.DJANGO_ENV
             assert config.resolved_environment() == "production"
+
+
+class TestProductionBoot:
+    """Several production-critical values missing at once names every failure (FR-013, SC-003)."""
+
+    def test_boot_fails_naming_every_missing_or_unsafe_value(self):
+        result = _boot_in_subprocess(
+            {
+                "DJANGO_ENV": "production",
+                "DJANGO_SETTINGS_MODULE": "config.settings",
+                # Absent/unsafe together, exercising four distinct checks:
+                "DJANGO_SECRET_KEY": "",  # fairdm.E001 — empty
+                "DJANGO_ALLOWED_HOSTS": "*",  # fairdm.E004 — wildcard
+                "DATABASE_URL": "",
+                "POSTGRES_DB": "",  # fairdm.E101 — SQLite fallback
+                "REDIS_URL": "",  # fairdm.E200 — LocMem fallback
+            }
+        )
+
+        assert result.returncode != 0, result.stdout + result.stderr
+        # Every failure is named, not just the first.
+        for check_id in ("fairdm.E001", "fairdm.E004", "fairdm.E101", "fairdm.E200"):
+            assert check_id in result.stderr, (
+                f"{check_id} missing from output:\n{result.stderr}"
+            )
