@@ -858,6 +858,144 @@ LOGGING["loggers"]["my_app"] = {
         assert test_settings.LOGGING["loggers"]["my_app"]["level"] == "DEBUG"
 
 
+class TestPostSetupOverridesEveryBaselineModule:
+    """T091 (US-5 scenario 1) — a portal overrides one representative
+    setting from every one of the eleven baseline modules under
+    ``fairdm/conf/settings/`` after ``setup()``, and each of the portal's
+    values stands.
+
+    ``TestPostSetupAssignments.test_post_setup_assignments_work`` asserts
+    two invented names (``CUSTOM_APP_SETTING``, ``ANOTHER_OVERRIDE``) no
+    baseline module sets — that test would pass even against a ``setup()``
+    that silently skipped the baseline entirely, since an invented name's
+    post-call value never depended on the baseline having run. This test
+    instead names each baseline module's own setting, and resolves the
+    baseline's own value for it (via a second, override-free
+    ``settings_module()`` call) to prove the two differ — so the assertion
+    below is meaningless unless the baseline actually produced that setting
+    in the first place.
+    """
+
+    #: One representative, non-composed setting per baseline module — read
+    #: directly out of fairdm/conf/settings/*.py (api's own setting lives in
+    #: fairdm/api/settings.py; settings/api.py only re-exports it). A
+    #: setting composed from several layers (INSTALLED_APPS, LOGGING) is
+    #: T092's concern, not this one.
+    SETTING_BY_MODULE = {
+        "addons": "SOLO_CACHE",
+        "api": "FAIRDM_API_TITLE",
+        "apps": "WSGI_APPLICATION",
+        "auth": "AUTH_USER_MODEL",
+        "cache": "COLLECTFASTA_CACHE",
+        "celery": "CELERY_TASK_SERIALIZER",
+        "database": "DEFAULT_AUTO_FIELD",
+        "email": "EMAIL_TIMEOUT",
+        "logging": "SENTRY_LOG_LEVEL",
+        "security": "SESSION_COOKIE_HTTPONLY",
+        "static_media": "STATIC_URL",
+    }
+
+    #: The portal's override for each — deliberately a different value (and,
+    #: where practical, a different type) than whatever the baseline holds,
+    #: so an equal-by-coincidence pass is ruled out.
+    PORTAL_VALUE_BY_MODULE = {
+        "addons": "portal-solo-cache",
+        "api": "Portal Research API",
+        "apps": "portal.wsgi.application",
+        "auth": "portal.PortalUser",
+        "cache": "portal-collectfasta",
+        "celery": "pickle",
+        "database": "django.db.models.AutoField",
+        "email": 30,
+        "logging": 40,
+        "security": False,
+        "static_media": "/portal-static/",
+    }
+
+    def test_every_baseline_module_setting_survives_post_setup_override(
+        self, clean_production_env, settings_module
+    ):
+        assert set(self.SETTING_BY_MODULE) == {
+            "addons",
+            "api",
+            "apps",
+            "auth",
+            "cache",
+            "celery",
+            "database",
+            "email",
+            "logging",
+            "security",
+            "static_media",
+        }, "must cover all eleven baseline modules, not a subset"
+
+        baseline_module = settings_module(filename="baseline_settings.py")
+
+        after = "\n".join(
+            f"{setting} = {self.PORTAL_VALUE_BY_MODULE[stem]!r}"
+            for stem, setting in self.SETTING_BY_MODULE.items()
+        )
+        portal_module = settings_module(after=after, filename="portal_settings.py")
+
+        for stem, setting in self.SETTING_BY_MODULE.items():
+            baseline_value = getattr(baseline_module, setting)
+            portal_value = getattr(portal_module, setting)
+            expected = self.PORTAL_VALUE_BY_MODULE[stem]
+
+            assert baseline_value != expected, (
+                f"{stem}.{setting}: the baseline already holds the portal's "
+                "test value — pick a different override so the comparison "
+                "below is meaningful"
+            )
+            assert portal_value == expected, (
+                f"{stem}.{setting}: portal override did not survive "
+                f"resolution (baseline was {baseline_value!r}, resolved to "
+                f"{portal_value!r})"
+            )
+
+
+class TestComposedSettingsCanBeFullyRebound:
+    """T092 (US-5 scenario 2) — INSTALLED_APPS and LOGGING are each composed
+    from several settings/*.py modules inside ``setup()``; a portal that
+    rebinds either by name after ``setup()`` gets its own value with no
+    special-case handling in the entry point (D10).
+
+    ``TestPostSetupAssignments.test_overrides_can_modify_lists`` and
+    ``test_overrides_can_modify_dicts`` only ever mutate the composed
+    baseline value in place (``+=`` on the list; writing one nested dict
+    key) — that proves the containers are mutable, not that a full rebind by
+    name is unimpeded. This test replaces each with a brand-new object
+    instead.
+    """
+
+    def test_installed_apps_can_be_fully_rebound(
+        self, clean_production_env, settings_module
+    ):
+        baseline_module = settings_module(filename="baseline_settings.py")
+        assert "django.contrib.auth" in baseline_module.INSTALLED_APPS
+
+        portal_module = settings_module(
+            after='INSTALLED_APPS = ["only_this_app"]',
+            filename="portal_settings.py",
+        )
+
+        assert portal_module.INSTALLED_APPS == ["only_this_app"]
+
+    def test_logging_can_be_fully_rebound(self, clean_production_env, settings_module):
+        baseline_module = settings_module(filename="baseline_settings.py")
+        assert "loggers" in baseline_module.LOGGING
+
+        portal_module = settings_module(
+            after='LOGGING = {"version": 1, "disable_existing_loggers": True}',
+            filename="portal_settings.py",
+        )
+
+        assert portal_module.LOGGING == {
+            "version": 1,
+            "disable_existing_loggers": True,
+        }
+
+
 class TestEnvFileParameter:
     """Test custom env_file parameter functionality."""
 
