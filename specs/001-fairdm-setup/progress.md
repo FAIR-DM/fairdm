@@ -150,3 +150,43 @@ not a weakened test.
 and `progress.md` but never `feature-state.json`, which still had US-3 at `in_progress` with 17
 tasks open — two sources of truth disagreeing, with the machine-readable one wrong. Closed here
 with the same derived evidence, so the ledger and the task list now agree at 83 of 107.
+
+**2026-08-13 — US-4 IMPLEMENTED (`1bdb73e`..`3ac5e06`).** The provenance record and `show_config`.
+Written up in full in `decisions.md` D15 and D16 and in `tasks.md`; this entry was missed at the
+time and is added here with the US-5 pass, alongside the same omission it repeats.
+
+**2026-08-14 — US-5 IMPLEMENTED (`e0623d7`..`0ec4fb6`).** T091, T092 and T093 needed no production
+code — the layering they assert had already landed in US-1 and US-2, and both A3 citations against
+`setup.py` were stale. What they add is tests that can actually fail: the pre-existing override
+tests named two settings no baseline module sets, so they would have passed against a `setup()`
+that skipped the baseline entirely. The new ones resolve each baseline module's own value first and
+assert the portal's differs from it. T107 gave the `LANGUAGES` / `PARLER_LANGUAGES` coupling the
+named error FR-012 implies, reproduced red first.
+
+Verified at convergence, none of it accepted from the report: 1415 tests pass (up from 1401), 70
+skipped, `forge verify` green end to end, and four mutations red the right tests —
+
+1. removing the `setup()` call site reds the portal-parler-app test;
+2. removing the `import_models()` call site reds the post-`setup()`-assignment test;
+3. restoring the whole-`Tags.translation` run reds the translation.E004 test;
+4. dropping the `PARLER_LANGUAGES["default"]["code"]` branch reds its unit test.
+
+**Two gaps in T107 as delivered, found at convergence and closed as T110.** Both are in D17. The
+check ran Django's entire `translation` tag rather than its own, which turned `translation.E004`
+into a refusal to boot in every environment; and its single call site in `import_models()` is too
+late for a portal whose own apps import `parler.models`, because US-1 moved portal apps ahead of
+FairDM's. The second one is the more instructive: the implementer's code comment asserted `fairdm`
+precedes "every other parler-model app", which was true of FairDM's own apps and false of a
+portal's, three stories after this feature itself changed that ordering.
+
+**One test fixture corrected rather than its assertion.** `test_base_subtag_match_is_accepted_like_django_parler_accepts_it`
+configured `LANGUAGES = [("fr", …)]` while leaving `PARLER_DEFAULT_LANGUAGE_CODE = "en"` — a state
+parler itself rejects, confirmed by calling `add_default_language_settings` directly. The fixture
+was made consistent; the assertion it makes is unchanged.
+
+**`forge verify` was red before this pass, and neither of the two convergences that made it red
+said so.** `tests/test_conf/test_conf_init.py` (added in US-3) and `tests/test_management/test_show_config.py`
+(added in US-4) both failed the conformance gate's mirror rule. Fixed here: the first folded into
+`test_setup.py` as another `Test*` class, since `setup()` is its subject; the second moved to
+`tests/test_management/test_commands/`, mirroring `fairdm/management/commands/show_config.py`.
+US-3 and US-4 were reported verified on `pytest` and `pre-commit` alone, which do not include it.

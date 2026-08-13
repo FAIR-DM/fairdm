@@ -334,3 +334,44 @@ earlier layer named. The resolved value is the same either way, which is the que
   the tree) whose docstring asserted that a *shallow*-copy diff "is how the provenance command
   attributes a setting to the layer that wrote it". D15 makes that false. It weakened no test
   because it backed none.
+
+---
+
+## D17 — the `PARLER_LANGUAGES` check is applied twice, and to nothing but itself
+
+**The problem T107 set out to fix.** A portal that narrows `LANGUAGES` — the very thing FR-012
+invites it to do — is met with `ImproperlyConfigured: PARLER_LANGUAGES[1][1]['code'] does not exist
+in LANGUAGES`, raised from inside django-parler, naming no FairDM setting and no remedy. The bundled
+example portal hit exactly this at US-2 convergence.
+
+**Why the check framework cannot reach it.** django-parler validates the two settings against each
+other in `parler.utils.conf.add_default_language_settings`, which runs when `parler.appsettings` is
+imported — that is, when the first app whose models import `parler.models` is imported, during
+Phase 2 of `apps.populate()`. Django's check framework needs a populated app registry, so no
+registered check can run before that. `ready()` is Phase 3, later still.
+
+**Decision — two call sites, because neither alone covers every portal.**
+
+1. **`setup()`, on the composed settings scope.** This is the only point ahead of *every* app's
+   models. It has to be, because a portal's own apps are registered ahead of FairDM's (D11), so a
+   portal shipping a translated model of its own reaches parler before `fairdm`'s AppConfig exists.
+2. **`FairDMConfig.import_models()`, on the loaded settings.** This is the only point after a
+   portal's post-`setup()` assignments — layer 5, the override route FR-012 names — and it still
+   precedes `fairdm.contrib.identity`, whose models import parler's.
+
+A portal that does both at once (assigns `LANGUAGES` after the call *and* ships a parler-model app)
+still gets parler's own error. Closing that would mean patching parler, which is not this feature's
+business.
+
+**A narrowing worth stating.** The enforcement runs only FairDM's own `fairdm.E400`, not the whole
+`Tags.translation` set. Running the tag also ran Django's translation checks, which turned
+`translation.E004` — `LANGUAGE_CODE` not among `LANGUAGES` — into a refusal to boot in every
+environment. That is a `manage.py check` finding about which language a site defaults to, not a
+configuration FairDM refuses to start on, and FR-014 confines boot refusals to production.
+`tests/test_apps.py::TestParlerLanguagesCheck::test_a_language_settings_disagreement_django_owns_does_not_block_boot`
+holds the line.
+
+**Not gated to production**, unlike the FR-013 checks. The underlying crash is not
+environment-dependent — parler raises identically under `development` — so gating the *message* to
+production would leave a developer with the bare traceback and nothing else. Replacing a crash with
+a named error changes no environment's outcome, only what it says. Recorded as T107 and T110.

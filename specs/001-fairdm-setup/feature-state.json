@@ -33,6 +33,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-13T22:40:00Z",
       "note": "US-4 implemented and independently verified; one defect found and fixed at convergence (T109) \u2014 the provenance diff missed a layer that appends in place"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-14T00:30:00Z",
+      "note": "US-5 implemented and independently verified; two gaps in the implementer's T107 found and fixed at convergence (T110) \u2014 the check ran Django's whole translation tag, and its only call site was too late for a portal's own parler-model apps"
     }
   ],
   "gates": {
@@ -1879,28 +1884,108 @@
       "priority": "P2",
       "issue": 133,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T091",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestPostSetupOverridesEveryBaselineModule::test_every_baseline_module_setting_survives_post_setup_override"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:306"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1415 passed, 70 skipped",
+              "poetry run pre-commit run --files <6 touched files>  # all hooks pass, mypy and deptry included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T092",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestComposedSettingsCanBeFullyRebound::test_installed_apps_can_be_fully_rebound",
+              "tests/test_conf/test_setup.py::TestComposedSettingsCanBeFullyRebound::test_logging_can_be_fully_rebound"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:306"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1415 passed, 70 skipped",
+              "poetry run pre-commit run --files <6 touched files>  # all hooks pass, mypy and deptry included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T093",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_setup.py::TestComposedSettingsCanBeFullyRebound::test_installed_apps_can_be_fully_rebound"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:309"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1415 passed, 70 skipped",
+              "poetry run pre-commit run --files <6 touched files>  # all hooks pass, mypy and deptry included"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T107",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_checks.py::TestParlerLanguagesChecks",
+              "tests/test_apps.py::TestParlerLanguagesCheck::test_narrowed_languages_without_narrowed_parler_languages_names_both_settings",
+              "tests/test_apps.py::TestParlerLanguagesCheck::test_narrowing_both_settings_together_boots_cleanly"
+            ],
+            "code": [
+              "fairdm/conf/checks.py:372",
+              "fairdm/apps.py:24"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1415 passed, 70 skipped",
+              "poetry run pre-commit run --files <6 touched files>  # all hooks pass, mypy and deptry included"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T110",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py::TestParlerLanguagesCheck::test_portal_app_importing_parler_models_still_gets_the_named_error",
+              "tests/test_apps.py::TestParlerLanguagesCheck::test_narrowing_languages_after_setup_returns_still_gets_the_named_error",
+              "tests/test_apps.py::TestParlerLanguagesCheck::test_a_language_settings_disagreement_django_owns_does_not_block_boot",
+              "tests/test_conf/test_checks.py::TestParlerLanguagesChecks::test_check_names_a_default_language_code_missing_from_languages",
+              "tests/test_conf/test_checks.py::TestParlerLanguagesChecks::test_an_explicit_default_code_wins_over_parler_default_language_code"
+            ],
+            "code": [
+              "fairdm/conf/setup.py:315",
+              "fairdm/apps.py:32",
+              "fairdm/conf/checks.py:349"
+            ],
+            "commands": [
+              "poetry run pytest -q  # 1415 passed, 70 skipped",
+              "poetry run pre-commit run --files <6 touched files>  # all hooks pass, mypy and deptry included"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

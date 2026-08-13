@@ -204,18 +204,20 @@ ordering and the baseline-wide audits.
   **Done (US-4):** `fairdm/management/commands/show_config.py:44` — `_report_setting` reads `django.conf.settings` at report time and passes the value through `SafeExceptionReporterFilter().cleanse_setting()` · `tests/test_management/test_show_config.py::TestShowConfigNamedSetting::test_cleanses_a_known_secret_so_it_never_reaches_stdout`
 - [x] T090 [US-4] Write `tests/test_conf/test_setup.py::TestProvenanceCoversEverySetting` asserting that for every setting any baseline module sets, the provenance record names a producing layer (SC-005)  
   **Done (US-4):** `tests/test_conf/test_setup.py::TestProvenanceCoversEverySetting::test_every_baseline_setting_names_a_producing_layer` — the per-layer diff is general, not hardcoded to the five entries
+- [x] T110 [US-5] Apply the `fairdm.E400` rule at the end of `setup()` as well, on the composed settings scope, and narrow the `import_models()` call site to FairDM's own check (FR-012)  
+  **Why:** two gaps in T107 as delivered. Running the whole `Tags.translation` set also ran Django's own translation checks, so `translation.E004` (LANGUAGE_CODE not among LANGUAGES) became a hard boot failure in every environment — a `manage.py check` finding, not something FairDM refuses a boot over. And `import_models()` alone is too late for a portal whose *own* apps import `parler.models`, since portal apps are registered ahead of FairDM's (D11). `setup()` is ahead of every app; `import_models()` is the only point after a portal's post-`setup()` assignments; both are needed. Also covers `PARLER_LANGUAGES["default"]["code"]`, which falls back to `PARLER_DEFAULT_LANGUAGE_CODE` and is the first thing parler rejects.
 - [x] T109 [US-4] Attribute a setting to a layer that mutates its container in place, not only to one that rebinds the name — `INSTALLED_APPS += [...]` calls `list.__iadd__`, and FairDM's own `development.py` extends both `INSTALLED_APPS` and `MIDDLEWARE` that way (FR-020)  
   **Done (US-4, found at convergence):** `fairdm/conf/setup.py:64` — `_snapshot_scope` deep-copies mutable containers so the mutation is visible on one side of the diff only; `_written_keys` compares those by value and everything else by identity. Before the fix, `show_config INSTALLED_APPS` under `DJANGO_ENV=development` named `baseline` as the producer of a list holding `django_browser_reload`, which the baseline never put there · `tests/test_conf/test_setup.py::TestProvenance::test_producer_names_a_layer_that_appended_to_an_existing_list` and `::test_shipped_development_override_is_the_producer_of_what_it_appends`, both proven red against the identity diff first
 
 
 ## Phase 3: US-5 — override any FairDM default without editing FairDM (P2)
 
-- [ ] T091 [US-5] Write `tests/test_conf/test_setup.py::TestPortalOverridesSurvive` asserting a portal that assigns one representative setting from each of the nine baseline modules after the `setup()` call sees its own value, regardless of which module originally set it (FR-012, scenario 1)  
-  **Open (A3, partial):** `fairdm/conf/setup.py:68` · `tests/test_conf/test_setup.py::TestSetupOverrides::test_post_setup_assignments_work` — The only test asserts two invented names no baseline module sets; setup.py:162-170 re-derives SPECTACULAR_SETTINGS at call time, so that post-call assignment is ignored.
-- [ ] T092 [US-5] Write `TestComposedSettingOverride` asserting a setting FairDM composes from several inputs (e.g. `INSTALLED_APPS` or the logging dict) can be overridden by name after `setup()` with no special-case handling in the entry point (FR-012, scenario 2)  
-  **Open (A3, partial):** `fairdm/conf/setup.py:132` · `tests/test_conf/test_setup.py::TestSetupOverrides::test_overrides_can_modify_lists` — Shows INSTALLED_APPS and LOGGING can be rebound post-call, but nothing asserts the 'no special-case handling in the entry point' half, which is false.
-- [ ] T093 [US-5] Confirm `setup.py` contains no per-setting special-casing for post-call overrides — a design constraint verified by T092 rather than new code (FR-012)  
-  **Open (A3, built_differently):** `fairdm/conf/setup.py:162` — setup.py rewrites SPECTACULAR_SETTINGS TITLE/DESCRIPTION after all layers and still applies a **overrides layer (:26, :154-156).
+- [x] T091 [US-5] Write `tests/test_conf/test_setup.py::TestPostSetupOverridesEveryBaselineModule` asserting a portal that assigns one representative setting from each of the eleven baseline modules after the `setup()` call sees its own value, regardless of which module originally set it (FR-012, scenario 1)  
+  **Done:** ~~nine~~ eleven baseline modules — the task text undercounted; `fairdm/conf/settings/` was read directly. Each override is compared against that same setting's own baseline-resolved value, from a second override-free `settings_module()` call, so the assertion is meaningless unless the baseline actually produced it. The SPECTACULAR_SETTINGS special case named in the A3 citation is already gone (D10, US-1).
+- [x] T092 [US-5] Write `TestComposedSettingsCanBeFullyRebound` asserting a setting FairDM composes from several inputs (e.g. `INSTALLED_APPS` or the logging dict) can be overridden by name after `setup()` with no special-case handling in the entry point (FR-012, scenario 2)  
+  **Done:** the pre-existing tests only mutate the composed value in place (`+=`, one nested key), which proves the containers are mutable rather than that a rebind by name is unimpeded. The two new tests rebind `INSTALLED_APPS` and `LOGGING` to brand-new objects.
+- [x] T093 [US-5] Confirm `setup.py` contains no per-setting special-casing for post-call overrides — a design constraint verified by T092 rather than new code (FR-012)  
+  **Done:** the A3 citation is stale — `setup.py` was read end to end and carries no `**overrides` kwarg and no setting-name branch of any kind; every `if` in it is structural (file existence, key case, container mutation, `portal_settings_dir` presence). D9 and D10 both landed in earlier stories. Closed on that reading plus T092, with no code change.
 
 ## Phase 3: US-6 — an addon contributes settings at a defined point (P3)
 
@@ -251,8 +253,9 @@ ordering and the baseline-wide audits.
 
 - [x] T106 [US-2] Add `tests/test_conf/test_setup.py::TestBundledPortalBoots` asserting the bundled example portal (`config/settings.py`) starts under both shipped environments, and fix `config/production.py` so it does  
   **Why:** wiring `config/production.py` in as a real layer-4 override broke `DJANGO_ENV=production` startup — it narrows `LANGUAGES` to `en, de` while the baseline hardcodes `PARLER_LANGUAGES` with `fr`, and django-parler validates one against the other at import. Every existing test imports `tests/settings.py`, so nothing in the suite exercised the example portal. Test proven against the defect before it was fixed.
-- [ ] T107 [US-5] Give the `LANGUAGES` / `PARLER_LANGUAGES` coupling a named Django check, so a portal that narrows `LANGUAGES` gets a FairDM error naming both settings rather than an `ImproperlyConfigured` traceback from inside django-parler (FR-012)  
-  **Why:** a concrete instance of the FR-012 promise failing on a setting the baseline composes. Reproducer: delete the `PARLER_LANGUAGES` block from `config/production.py` and run `DJANGO_ENV=production DJANGO_SETTINGS_MODULE=config.settings python -c "import django; django.setup()"`.
+- [x] T107 [US-5] Give the `LANGUAGES` / `PARLER_LANGUAGES` coupling a named Django check, so a portal that narrows `LANGUAGES` gets a FairDM error naming both settings rather than an `ImproperlyConfigured` traceback from inside django-parler (FR-012)  
+  **Why:** a concrete instance of the FR-012 promise failing on a setting the baseline composes. Reproducer: delete the `PARLER_LANGUAGES` block from `config/production.py` and run `DJANGO_ENV=production DJANGO_SETTINGS_MODULE=config.settings python -c "import django; django.setup()"`. Reproduced red first, then fixed.  
+  **Done:** `fairdm.E400`, registered under `Tags.translation` so `manage.py check` reports it, and applied ahead of parler's own validation, which runs at model-import time before any Django check can. Not gated to production: the underlying crash is not environment-dependent, so gating the message to production would leave development with the bare traceback.
 - [ ] T108 [US-1] Bring the surviving January spec artefacts into line with the settled design or delete them: `specs/001-fairdm-setup/data-model.md` (describes `staging.py` as shipped, and production/staging fail-fast), `specs/001-fairdm-setup/quickstart.md`, `specs/001-fairdm-setup/contracts/settings-sections.md`, and the R1 paragraph at `docs/ROADMAP.md:34`, which still promises three profiles  
   **Why:** S1 rewrote `spec.md` in place and left its siblings describing the design this feature removed.
 
@@ -271,7 +274,7 @@ ordering and the baseline-wide audits.
 | FR-009 | T018, T019, T056, T057, T058 |
 | FR-010 | T010, T011, T014, T015, T016, T017, T025 |
 | FR-011 | T021, T022, T023, T024 |
-| FR-012 | T026, T027, T091, T092, T093 |
+| FR-012 | T026, T027, T091, T092, T093, T107, T110 |
 | FR-013 | T071, T072 |
 | FR-014 | T073, T074 |
 | FR-015 | T075, T076, T104 |
@@ -320,6 +323,7 @@ The A3 figures above are that stage's snapshot and are left as recorded. Current
 | After US-3 | 107 | 51 | T059–T080 and T104 closed |
 | After US-1 | 107 | 83 | T004–T007 and T031–T058 closed. T105 (README/CHANGELOG) and T108 (the January spec artefacts) stay with the orchestrator |
 | After US-4 | 108 | 93 | T081–T086 and T088–T090 closed. T109 added and closed at convergence — the identity diff missed a layer that appends |
+| After US-5 | 109 | 98 | T091–T093 and T107 closed. T110 added and closed at convergence — the check ran Django's whole `translation` tag, and its only call site was too late for a portal's own parler-model apps |
 
 Evidence at US-3 convergence: `poetry run pytest` — 1326 passed, 70 skipped.
 
