@@ -18,6 +18,10 @@ class DeployTags(Tags):
     """Custom tags for deployment-related checks."""
 
     deploy = "deploy"
+    #: The subset FairDMConfig.ready() runs and aggregates in production
+    #: (research R5) — withheld from the Celery checks, since a portal may
+    #: legitimately run without a worker (FR-013, FR-016).
+    production_critical = "production_critical"
 
 
 # =============================================================================
@@ -76,10 +80,24 @@ def check_database_production_ready(app_configs, **kwargs):
 # =============================================================================
 
 
-@register(Tags.caches, DeployTags.deploy, deploy=True)
+#: Backends shared across processes, suitable for production (FR-016, FR-017).
+#: Anything else — absent, empty, locmem, dummy, filebased, or unrecognised —
+#: is per-process or per-filesystem and fails the check.
+SHARED_CACHE_BACKENDS = frozenset(
+    {
+        "django_redis.cache.RedisCache",
+        "django.core.cache.backends.memcached.PyMemcacheCache",
+        "django.core.cache.backends.memcached.PyLibMCCache",
+    }
+)
+
+
+@register(Tags.caches, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_cache_backend(app_configs, **kwargs):
     """
-    Check that production uses persistent cache, not locmem or dummy.
+    Check that production uses a shared cache backend (e.g. Redis or
+    Memcached), not an absent, empty, or per-process backend such as locmem,
+    dummy or filebased.
 
     Error ID: fairdm.E200
     """
@@ -88,15 +106,10 @@ def check_cache_backend(app_configs, **kwargs):
     default_cache = caches.get("default", {})
     backend = default_cache.get("BACKEND", "")
 
-    development_backends = [
-        "django.core.cache.backends.locmem.LocMemCache",
-        "django.core.cache.backends.dummy.DummyCache",
-    ]
-
-    if backend in development_backends:
+    if backend not in SHARED_CACHE_BACKENDS:
         errors.append(
             Error(
-                f"Cache backend '{backend}' is not suitable for production.",
+                f"Cache backend '{backend or '(none)'}' is not a shared cache suitable for production.",
                 hint="Set CACHE_URL to Redis or Memcached. Example: redis://localhost:6379/1",
                 id="fairdm.E200",
             )

@@ -132,6 +132,46 @@ class TestCacheChecks:
 
         assert errors == []
 
+    @override_settings(CACHES={})
+    def test_check_cache_backend_caches_absent(self):
+        """Check returns ERROR when CACHES is not configured at all (FR-017)."""
+        from fairdm.conf.checks import check_cache_backend
+
+        errors = check_cache_backend(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E200"
+
+    @override_settings(CACHES={"default": {}})
+    def test_check_cache_backend_default_empty(self):
+        """Check returns ERROR when CACHES['default'] is an empty dict (FR-017)."""
+        from fairdm.conf.checks import check_cache_backend
+
+        errors = check_cache_backend(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E200"
+
+    @override_settings(
+        CACHES={
+            "default": {
+                "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+                "LOCATION": "/tmp/cache",
+            }
+        }
+    )
+    def test_check_cache_backend_filebased_is_not_shared(self):
+        """A backend that is neither locmem nor dummy still fails if not shared (FR-017)."""
+        from fairdm.conf.checks import check_cache_backend
+
+        errors = check_cache_backend(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E200"
+
 
 class TestSecretKeyChecks:
     """Tests for SECRET_KEY configuration checks."""
