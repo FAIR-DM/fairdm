@@ -186,8 +186,8 @@ behaviour belong here — the addon contract itself is R27.
 
 **Refusing to start**
 
-- **FR-013**: When the resolved environment is production, the entry point MUST run the production-critical configuration checks and MUST prevent startup if any fails, reporting every failure in a single error rather than stopping at the first.
-- **FR-014**: In any other environment the entry point MUST NOT run configuration checks and MUST emit nothing about them.
+- **FR-013**: When the settings in force are the production baseline — that is, whenever the resolved environment is not one the platform ships a non-production override module for — the entry point MUST run the production-critical configuration checks and MUST prevent startup if any fails, reporting every failure in a single error rather than stopping at the first. An unrecognised environment name, including a case variant of a recognised one and the empty string, MUST be treated as production, because that is the configuration it resolves to.
+- **FR-014**: In an environment the platform ships a non-production override module for, the entry point MUST NOT run configuration checks and MUST emit nothing about them.
 - **FR-015**: The full check set MUST remain available on demand through Django's deployment check command, and MUST assess configuration against production standards regardless of the current environment.
 - **FR-016**: Configuration checks MUST be implemented as Django system checks with appropriate severity, tagged so that production-critical checks participate in the deployment check run.
 - **FR-017**: The production-critical subset MUST cover, at minimum: a production-grade database is configured; a shared cache is configured; the secret key is not a published or otherwise insecure value; allowed hosts are set; debug is off.
@@ -221,7 +221,7 @@ behaviour belong here — the addon contract itself is R27.
 
 - **SC-001**: A portal whose settings module contains only the entry point call reaches a running development server with no other configuration written.
 - **SC-002**: Resolving settings for production and for development produces configurations that differ only in the settings named by the development override module, verified by a test that compares the two resolutions.
-- **SC-003**: Removing any single production-critical value and resolving settings in production fails to start, and the error names every missing or unsafe value in that resolution rather than the first one found.
+- **SC-003**: Removing any single production-critical value and resolving settings in production fails to start, and the error names every missing or unsafe value in that resolution rather than the first one found. The same resolution under an unrecognised environment name fails identically.
 - **SC-004**: Resolving settings in development with the same values absent starts successfully and emits no configuration-check output.
 - **SC-005**: For every setting FairDM sets, the interrogation command names the layer that produced its resolved value.
 - **SC-006**: No value shipped in FairDM's source allows a portal to start in production with a publicly-known secret, an unrestricted host list, or debug enabled.

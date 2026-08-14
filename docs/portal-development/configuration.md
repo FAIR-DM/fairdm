@@ -32,7 +32,7 @@ export DJANGO_ENV=production   # the default when unset
 export DJANGO_ENV=development
 ```
 
-There is no allowlist. Any value is valid — including a typo, or an environment name only your portal knows about. If nothing ships an override module for that name, `setup()` silently falls back to the production baseline: the safe direction, and one a developer notices immediately because the portal behaves as if in production.
+There is no allowlist. Any value is valid — including a typo, or an environment name only your portal knows about. If nothing ships an override module for that name, `setup()` falls back to the production baseline: the safe direction, and one a developer notices immediately because the portal is then held to production standards, including the startup checks described below.
 
 FairDM itself ships exactly one override module: `development`. There is no `staging` profile — a portal that wants one supplies its own override module, through the same mechanism as any other environment name.
 
@@ -174,7 +174,9 @@ An addon that cannot be loaded prevents startup in production, naming the addon;
 
 ## Refusing to Start in Production
 
-When the resolved environment is `production`, FairDM runs its production-critical configuration checks and prevents startup if any fails — reporting every failure in one message, not just the first. In any other environment these checks do not run and nothing is emitted about them.
+Whenever the settings in force are the production baseline, FairDM runs its production-critical configuration checks and prevents startup if any fails — reporting every failure in one message, not just the first.
+
+That is decided the same way the override layers are: by which module was found. `development` is the one environment FairDM ships a non-production module for, so it is the one environment where these checks do not run and nothing is emitted about them. Every other value of `DJANGO_ENV` — a typo, a case variant, an empty string, or a `staging` name your portal supplies its own module for — runs on the production baseline, so it is checked against production standards.
 
 The full check set stays available on demand, and always assesses configuration against production standards regardless of the current environment:
 

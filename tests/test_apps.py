@@ -16,6 +16,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 #: PARLER_LANGUAGES narrowed to agree with ``LANGUAGES = [en, de]``.
@@ -102,6 +104,44 @@ class TestProductionBoot:
             assert check_id in result.stderr, (
                 f"{check_id} missing from output:\n{result.stderr}"
             )
+
+
+class TestUnrecognisedEnvironmentBoot:
+    """
+    An environment name FairDM ships no override for composes the production
+    baseline (FR-009, D1), so the boot refusal has to apply to it. Keying the
+    refusal on the literal string ``production`` let every one of these boot
+    with an empty secret key, no database and a wildcard host (D21).
+    """
+
+    MISCONFIGURED = {
+        "DJANGO_SETTINGS_MODULE": "config.settings",
+        "DJANGO_SECRET_KEY": "",
+        "DJANGO_ALLOWED_HOSTS": "*",
+        "DATABASE_URL": "",
+        "POSTGRES_DB": "",
+        "REDIS_URL": "",
+    }
+
+    @pytest.mark.parametrize(
+        "django_env",
+        [
+            pytest.param("Production", id="case-variant"),
+            pytest.param("prod", id="abbreviation"),
+            pytest.param("", id="empty-string"),
+            pytest.param("staging", id="portal-supplied-name-fairdm-does-not-ship"),
+        ],
+    )
+    def test_boot_is_refused_for_an_environment_fairdm_ships_no_override_for(
+        self, django_env
+    ):
+        result = _boot_in_subprocess({**self.MISCONFIGURED, "DJANGO_ENV": django_env})
+
+        assert result.returncode != 0, (
+            f"DJANGO_ENV={django_env!r} booted on the production baseline with no "
+            f"secret key and no database:\n{result.stdout}{result.stderr}"
+        )
+        assert "fairdm.E001" in result.stderr, result.stdout + result.stderr
 
 
 class TestParlerLanguagesCheck:

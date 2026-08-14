@@ -100,6 +100,15 @@ class TestTemplateAndStaticPrecedence:
             "DJANGO_ENV": "qa",  # no override module — baseline stands
             "DJANGO_SETTINGS_MODULE": "config.settings",
             "PYTHONPATH": f"{tmp_path}{os.pathsep}{repo_root}",
+            # "qa" ships no override module, so this boots on the production
+            # baseline and the production-critical guard applies to it (D21).
+            # The guard reads configuration, never connects, so these only have
+            # to be well-formed.
+            "DJANGO_SECRET_KEY": "x" * 64,
+            "DJANGO_ALLOWED_HOSTS": "portal.example.org",
+            "DJANGO_DEBUG": "False",
+            "DATABASE_URL": "postgres://portal:portal@localhost:5432/portal",
+            "REDIS_URL": "redis://localhost:6379/1",
         }
         result = subprocess.run(
             [

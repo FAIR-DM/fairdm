@@ -6,6 +6,13 @@ from django.utils.module_loading import autodiscover_modules
 # independently of the FR-014 environment guard below (FR-015, FR-016).
 from fairdm.conf import checks as conf_checks  # noqa: F401
 
+#: The environments FairDM ships a non-production override module for, and so
+#: the only ones the boot refusal below stands down for. Every other resolved
+#: name composes the production baseline unchanged — a typo, a case variant and
+#: the empty string all do (FR-009, D1) — so every other name is a production
+#: deployment and is checked as one (D21).
+NON_PRODUCTION_ENVIRONMENTS = frozenset({"development"})
+
 
 class FairDMConfig(AppConfig):
     name = "fairdm"
@@ -65,12 +72,21 @@ class FairDMConfig(AppConfig):
 
     def _check_production_configuration(self) -> None:
         """
-        Refuse to boot when the resolved environment is production and any
-        production-critical check fails, naming every failure in one error
-        rather than the first (FR-013, FR-014, SC-003). Every other
-        environment runs no checks here at all (FR-014, SC-004).
+        Refuse to boot when the settings in force are the production baseline
+        and any production-critical check fails, naming every failure in one
+        error rather than the first (FR-013, SC-003).
+
+        The gate is the settings that were composed, not an exact match on the
+        name ``production``. Layer selection is by file existence, so an
+        unrecognised ``DJANGO_ENV`` — ``Production``, ``prod``, the empty
+        string — loads no override and runs on the production baseline. Keying
+        the refusal on the literal name let exactly those inputs boot with no
+        secret key and no database, which is the failure the layering exists to
+        prevent (D21). Only an environment FairDM ships a non-production
+        override for is exempt, and it runs no checks here at all
+        (FR-014, SC-004).
         """
-        if self.resolved_environment() != "production":
+        if self.resolved_environment() in NON_PRODUCTION_ENVIRONMENTS:
             return
 
         from django.core.checks.registry import registry

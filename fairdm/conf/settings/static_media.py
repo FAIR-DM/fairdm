@@ -115,7 +115,11 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB
 
 THUMBNAIL_CACHE_DIMENSIONS = True
 THUMBNAIL_SUBDIR = "thumbs"
-THUMBNAIL_DEBUG = True
+# easy-thumbnails re-raises rather than degrading to a blank image when this is
+# on, which is a development aid and a way to turn a missing source file into a
+# 500 in production. The baseline is production, so it is off here and turned
+# back on in conf/development.py (FR-003, D21).
+THUMBNAIL_DEBUG = False
 
 THUMBNAIL_ALIASES = {
     # Project-wide 3:2 aliases used by all four core model types (Project,

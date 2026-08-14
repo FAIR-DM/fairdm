@@ -275,15 +275,6 @@ DJANGO_SETUP_TOOLS = {
             "django_setup_tools.scripts.sync_site_id",
         ],
     },
-    "development": {
-        "merge": True,
-        "on_initial": [
-            ("loaddata", "myapp"),
-        ],
-        "always_run": [
-            "django_setup_tools.scripts.some_extra_func",
-        ],
-    },
     "production": {
         "merge": True,
         "always_run": [

@@ -26,6 +26,10 @@ MIDDLEWARE += [
 # Enable debug mode for development
 DEBUG = True
 
+# Surface thumbnail generation failures instead of degrading to a blank image,
+# so a broken source file is visible while it is still cheap to fix (D21).
+THUMBNAIL_DEBUG = True
+
 # Use a default insecure key for development (production will fail without proper key)
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",

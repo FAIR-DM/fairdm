@@ -517,3 +517,46 @@ per baseline concern. `test_production_requires_secret_key` is now four tests ac
 against `SystemCheckError` rather than through the deleted function.
 
 **ADR:** none — a tamper-flag adjudication, not a design decision.
+
+
+---
+
+## D21 — the boot refusal keys on the composed settings, not on the name "production"
+
+**Recorded at S6 review, 2026-08-14.** The review found that `FairDMConfig._check_production_configuration()`
+gated on `resolved_environment() != "production"` — an exact string match. Reproduced against the
+bundled portal: `DJANGO_ENV=Production`, `DJANGO_ENV=prod` and `DJANGO_ENV=""` each booted cleanly
+with an empty `SECRET_KEY`, `ALLOWED_HOSTS = ["*"]` and no database configured. `DJANGO_ENV=production`
+refused, naming four failures. The layering was right in every one of those runs — no override file
+exists for any of those names, so the strict baseline stood. Only the refusal was bypassed.
+
+**What went wrong is that two mechanisms disagreed about what production means.** Layer selection
+decides it by file existence (D1, ADR 0001); the boot refusal decided it by string equality. The
+combination is the worst available: a typo gets production's settings and development's leniency, and
+nothing says so. ADR 0001's own prose — "a developer notices within seconds because the portal
+behaves as if in production" — was false for exactly this path.
+
+**The refusal now stands down only for an environment FairDM ships a non-production override module
+for**, which today means `development` alone, expressed as `apps.NON_PRODUCTION_ENVIRONMENTS`. Every
+other name is a production deployment and is checked as one. A portal supplying its own `staging.py`
+is included: layer 1 is still the production baseline underneath it, and a staging box is a
+deployment.
+
+The spec's own wording caused this. FR-013 and FR-014 were written as "when the resolved environment
+is production" and "in any other environment", which assumes `DJANGO_ENV` holds one of two values —
+the assumption the existence-probe design explicitly abandoned. Both are amended to name the composed
+settings rather than the string, along with SC-003. The behaviour Sam gated is unchanged in the two
+environments the spec discussed, and now holds for the ones it did not.
+
+**Two in-scope residue items found in the same review, both under FR-003** (baseline modules state
+what they own and carry no environment branch or scaffold):
+
+- `settings/apps.py` — `DJANGO_SETUP_TOOLS` carried a `development` block running `loaddata myapp`
+  and `django_setup_tools.scripts.some_extra_func`, neither of which exists. Copied from the template
+  FairDM was scaffolded from. Removed.
+- `settings/static_media.py` — `THUMBNAIL_DEBUG = True` unconditionally in the baseline. easy-thumbnails
+  re-raises rather than degrading to a blank image when this is on, which turns a missing source file
+  into a 500 in production. Off in the baseline, on in `conf/development.py`.
+
+**ADR:** ADR 0002 amended — the exemption is now stated in terms of the shipped override modules, and
+the corrected mistake is recorded in its Why section so it is not reintroduced.

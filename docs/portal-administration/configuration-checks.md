@@ -5,7 +5,7 @@ FairDM-specific validation path (FR-018).
 
 ## Production-critical checks run automatically at boot
 
-When the resolved environment (`DJANGO_ENV`) is `production`, `FairDMConfig.ready()` — the first
+Whenever the settings in force are the production baseline, `FairDMConfig.ready()` — the first
 point in Django's boot sequence where the check framework has a populated app registry to run
 against — runs a fixed, production-critical subset of checks and refuses to start if any of them
 fails. Every failure is reported together, in one error, rather than stopping at the first
@@ -21,10 +21,16 @@ Celery is deliberately **not** in this subset — a portal may legitimately run 
 background worker, and blocking a boot on that would make the guard something operators route
 around.
 
-In every other environment (development, or anything else `DJANGO_ENV` names), nothing in this
-subset runs and nothing about it is logged (FR-014, SC-004). A portal missing the same
-configuration starts normally in development, using the development-only fallbacks in
+Which environments those are is decided the same way the override layers are: by which module was
+found. FairDM ships one non-production override module, `development`, and that is the one
+environment where nothing in this subset runs and nothing about it is logged (FR-014, SC-004). A
+portal missing the same configuration starts normally there, using the development-only fallbacks in
 `fairdm/conf/development.py`.
+
+Every other value of `DJANGO_ENV` runs on the production baseline — a typo, a case variant such as
+`Production`, an empty string, or a `staging` name your own portal supplies a module for — so every
+other value is checked against production standards. Set `DJANGO_ENV` to exactly `development` to opt
+out; nothing else does.
 
 ## Running the full check set on demand
 
@@ -243,8 +249,11 @@ silencing hides it from the report, not from `FairDMConfig.ready()`.
 ### The Portal Refuses to Start in Production
 
 This is the intended behaviour when a production-critical check fails (FR-013). The raised error
-lists every failing check by id — fix the configuration each one names and restart. This never
-happens outside production (FR-014).
+lists every failing check by id — fix the configuration each one names and restart.
+
+If this happens on a machine you consider a development box, check `DJANGO_ENV` first: only the exact
+value `development` stands the guard down, so `Development` or an unset-then-emptied variable is
+treated as a production deployment (FR-014).
 
 ### Check Command Exits with Error Code 1
 
