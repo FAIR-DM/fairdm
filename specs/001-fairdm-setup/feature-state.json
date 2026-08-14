@@ -3,7 +3,7 @@
   "feature": "001-fairdm-setup",
   "branch": "001-fairdm-setup",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -43,6 +43,10 @@
       "state": "IMPLEMENT",
       "at": "2026-08-14T02:10:00Z",
       "note": "US-6 implemented and independently verified; one defect found and fixed at convergence (T111) \u2014 the addon scratch scope copied and merged back names Django never reads, rebinding containers the portal shares with its own modules. T113 makes the container copy load-bearing, T112 restores a second vacuous skipped test."
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-08-14T09:00:00Z"
     }
   ],
   "gates": {
