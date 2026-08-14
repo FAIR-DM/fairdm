@@ -8,6 +8,7 @@ previous spec is in git history; this file is the reason it changed.
 
 ## D1 — Staging is not a supported environment
 
+
 **Spec said**: three profiles — production, staging, development — with staging named in FR-008,
 in the addon failure rule (FR-010), in the check clarifications and throughout the acceptance
 criteria.
@@ -25,9 +26,12 @@ deployment on the strength of being there. Under D2 the removal costs nothing in
 portal that wants staging supplies its own module and gets the same layering as any other
 environment.
 
+**ADR:** none — a scope call, recorded in the spec and the changelog. Under ADR 0001 it is a deletion rather than a standing rule, so there is nothing for a future engineer to abide by.
+
 ---
 
 ## D2 — Override modules are selected by existence, not from an allowlist
+
 
 **Spec said**: nothing about the selection mechanism, only that each environment has its own
 profile module.
@@ -43,9 +47,12 @@ rather than a special case. An unrecognised environment name falls through to th
 baseline, which is the safe direction — the strictest configuration — and a developer notices within
 seconds because the portal behaves as if in production.
 
+**ADR:** docs/adr/0001-environment-overrides-are-found-by-existence.md
+
 ---
 
 ## D3 — The portal's override module is anchored to its settings module
+
 
 **Spec said**: nothing. No portal-level environment override existed.
 
@@ -62,9 +69,12 @@ no overrides" is legitimate, the failure is silent. The anchored rule states a p
 in both layouts. The documentation still presents the recommended structure everywhere and says
 plainly that it is the structure to use.
 
+**ADR:** docs/adr/0001-environment-overrides-are-found-by-existence.md
+
 ---
 
 ## D4 — Configuration checks belong to this feature, and run in production only
+
 
 **Spec said**: FR-012 required validation on Django's check framework, non-environment-aware, tagged,
 aggregating all issues.
@@ -95,9 +105,12 @@ current state costs:
 
 Both become a refusal to boot. See D8 for the values themselves.
 
+**ADR:** docs/adr/0002-configuration-checks-run-in-production-only.md
+
 ---
 
 ## D5 — `validate_services()` is deleted
+
 
 **Spec said**: FR-012, from the 2026-01-20 clarification — *"The existing `validate_services()`
 function MUST be replaced entirely by individual check functions"*, and *"remove the function"*.
@@ -116,9 +129,12 @@ concern `validate_addon_module`, a different function that is genuinely still ne
 a second validation path, and a deprecated function nothing calls is a maintenance cost with no
 consumer to protect.
 
+**ADR:** none — a direct consequence of ADR 0002. One validation path follows from the checks being the validation path; it constrains nothing on its own.
+
 ---
 
 ## D6 — Container deployment leaves this feature
+
 
 **Spec said**: FR-009 — the documentation must include a reference container deployment driven
 entirely by environment variables.
@@ -133,9 +149,12 @@ a `stack.env` file, neither of which is in the repository, and
 feature says how configuration reaches a portal; how a portal is shipped is a different question with
 its own roadmap item.
 
+**ADR:** none — roadmap routing. R26 owns the deployment story and says so in its own text.
+
 ---
 
 ## D7 — Addons keep a thin slice
+
 
 **Spec said**: FR-010 and FR-011 covered addon configuration declaration, discovery and
 documentation.
@@ -151,9 +170,12 @@ R27.
 this feature's central claim — untestable. Everything beyond its position in that order is a separate
 contract that R27 is going to grow.
 
+**ADR:** none — roadmap routing. R27 owns the addon contract.
+
 ---
 
 ## D8 — The baseline supplies no working default for a security-critical value
+
 
 **Spec said**: FR-013 recommended environment variables as the canonical mechanism for secrets.
 Nothing forbade a fallback.
@@ -171,9 +193,12 @@ omits one fails.
 check runs, and D4 documents the period in which it did not. Removing the value makes the failure
 structural rather than conditional.
 
+**ADR:** docs/adr/0003-no-working-default-for-a-security-critical-value.md
+
 ---
 
 ## D9 — One tail to the precedence order
+
 
 **Spec said**: FR-007 named assignment after the `setup()` call as the primary supported override
 pattern.
@@ -187,9 +212,12 @@ arguments (`setup.py:26, 153-156`), applied at a different point in the sequence
 order, and they do not even apply at the same point — so the two paths differ in result for any
 setting a later stage touches.
 
+**ADR:** none — a public-interface simplification, recorded as breaking in the changelog. ADR 0001 already states that the precedence order has one tail; a second way to reach it was the defect, not a rule worth preserving.
+
 ---
 
 ## D10 — No setting needs special-case handling in the entry point
+
 
 **Spec said**: nothing.
 
@@ -204,9 +232,12 @@ moves into the settings module that owns it and uses the ordinary layering.
 thing it was written to replace. If the layering cannot express this case, that is a defect in the
 layering, not a reason for an exception.
 
+**ADR:** none — stated as a corollary inside ADR 0001, where it belongs. On its own it is a restatement of the layering contract rather than a separate decision.
+
 ---
 
 ## D11 — Portal apps take precedence over FairDM's
+
 
 **Spec said**: nothing about ordering.
 
@@ -220,9 +251,12 @@ path as a FairDM one is ignored.
 impossible without a separate mechanism. Whatever the answer, it is a contract this specification has
 to state and test rather than leave to list order.
 
+**ADR:** docs/adr/0004-portal-apps-precede-framework-apps.md
+
 ---
 
 ## D12 — The layering is interrogable
+
 
 **Spec said**: nothing.
 
@@ -254,9 +288,12 @@ Not this feature's work, recorded so they are not lost:
 - **Stale docstrings** across `fairdm/conf/settings/*` referring to overrides in `local.py` and
   `staging.py`, neither of which exists. Inside this feature's scope under FR-002.
 
+**ADR:** none — feature content, delivered as `manage.py show_config` and specified by FR-019 and FR-020. It constrains no future work beyond the command continuing to exist.
+
 ---
 
 ## D13 — FR-013 attributes the checks to the entry point; the entry point cannot run them
+
 
 **What the spec says.** FR-013: the entry point must run the production-critical configuration
 checks and must prevent startup if any fails.
@@ -273,9 +310,12 @@ impossible rather than merely inconvenient.
 **Not a licence to rewrite the spec.** FR-013 passed the spec gate, so its wording is carried to Sam
 as a one-line delta at the next gate rather than corrected here.
 
+**ADR:** docs/adr/0002-configuration-checks-run-in-production-only.md
+
 ---
 
 ## D14 — the security-critical variables lose their working defaults, not their readability
+
 
 **What the audit found.** `fairdm/conf/environment.py` ships a working fallback secret key, a
 `localhost:8000` site domain and an `admin` superuser password, so a production portal that sets none
@@ -296,9 +336,12 @@ from the production-critical checks under FR-013 — which is where the spec alr
 `ALLOWED_HOSTS` composes from truthy entries only, so an unset domain yields `[]` and the existing
 emptiness check can fire.
 
+**ADR:** docs/adr/0003-no-working-default-for-a-security-critical-value.md
+
 ---
 
 ## D15 — a layer that appends is a producer, so the provenance diff compares by value
+
 
 **What US-4 built.** The provenance record diffed the settings scope by object identity: a layer
 "wrote" a setting if the name was new, or if it now pointed at a different object.
@@ -322,9 +365,12 @@ the last one to assign it: a layer that reassigns a setting to the value it alre
 earlier layer named. The resolved value is the same either way, which is the question FR-020 asks.
 `Provenance.producer` says so.
 
+**ADR:** none — an implementation detail of the provenance diff, sealed inside `setup()`. Nothing downstream inherits it.
+
 ---
 
 ## D16 — the US-4 tamper flags, adjudicated
+
 
 `forge tamper-check --base 272ef40` raised two flags, both cleared:
 
@@ -335,9 +381,12 @@ earlier layer named. The resolved value is the same either way, which is the que
   attributes a setting to the layer that wrote it". D15 makes that false. It weakened no test
   because it backed none.
 
+**ADR:** none — a tamper-flag adjudication, not a design decision.
+
 ---
 
 ## D17 — the `PARLER_LANGUAGES` check is applied twice, and to nothing but itself
+
 
 **The problem T107 set out to fix.** A portal that narrows `LANGUAGES` — the very thing FR-012
 invites it to do — is met with `ImproperlyConfigured: PARLER_LANGUAGES[1][1]['code'] does not exist
@@ -376,7 +425,11 @@ environment-dependent — parler raises identically under `development` — so g
 production would leave a developer with the bare traceback and nothing else. Replacing a crash with
 a named error changes no environment's outcome, only what it says. Recorded as T107 and T110.
 
+**ADR:** none — a defect fix. The check was wrong and is now right.
+
+
 ## D18 — an addon's settings are applied to a private copy of the scope, and that copy holds only settings
+
 
 **FR-021, FR-022. Recorded at the US-6 convergence, 2026-08-14.**
 
@@ -407,7 +460,11 @@ and `load_addons` return `(addon_name, path)` pairs rather than bare paths, so a
 module can still name the addon it came from. This is internal to `fairdm.conf` with one consumer
 and does not touch the `__fdm_setup_module__` protocol, which R27 owns.
 
+**ADR:** none — the isolation an addon's settings get is part of the addon contract, which R27 owns. Recorded here so R27 inherits the reasoning rather than rediscovering it.
+
+
 ## D19 — the two vacuous skipped addon tests are replaced, not re-skipped
+
 
 **Recorded at the US-6 convergence, 2026-08-14. `forge tamper-check` flag on `tests/test_conf/test_addons.py`.**
 
@@ -427,3 +484,36 @@ The warnings are observed by patching the logger call rather than through `caplo
 `tests/settings.py` sets `disable_existing_loggers`, which silently defeats `caplog` for any logger
 created before Django's settings load. That convention was already established in
 `test_setup.py::TestPortalOverride`.
+
+**ADR:** none — a tamper-flag adjudication, not a design decision.
+
+
+
+---
+
+## D20 — the feature-level tamper flags, adjudicated
+
+**Recorded at convergence, 2026-08-14.** `forge tamper-check --base 4bae1d7` flags five
+pre-existing test files: `tests/settings.py`, `tests/test_conf/conftest.py`, and the `test_addons.py`,
+`test_checks.py` and `test_setup.py` modules. D16 and D19 cleared two of these per story; this entry
+covers the feature diff as a whole.
+
+**No test was weakened.** Across all five files the diff adds 139 assertions and removes 13, adds
+zero `@pytest.mark.skip` decorators, and removes two — the vacuous skipped addon tests restored under
+D19. `tests/settings.py` and `conftest.py` are pure additions with no assertion change.
+
+**The one deletion that needed checking** is `test_checks.py`, which loses 418 lines against 263
+added. Three whole classes go: `TestDevelopmentSetup`, `TestProductionSetup` and `TestStagingSetup`.
+`TestStagingSetup` goes with the staging profile under D1. The other two were the tests of
+`validate_services()`, deleted under D5 — but several of them asserted behaviour that outlives the
+function they were written against, and deleting those without replacement would have dropped real
+guarantees while the gate stayed green.
+
+They were not dropped. The coverage moved into modules that mirror the source tree per Article X, and
+grew doing so: `tests/test_conf/test_environment.py` for the security-critical variables,
+`test_development.py` for the development override, and `tests/test_conf/test_settings/` with a module
+per baseline concern. `test_production_requires_secret_key` is now four tests across
+`test_environment.py` and `test_checks.py`, and the production boot refusal itself is tested directly
+against `SystemCheckError` rather than through the deleted function.
+
+**ADR:** none — a tamper-flag adjudication, not a design decision.
