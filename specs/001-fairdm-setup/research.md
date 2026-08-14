@@ -1,462 +1,195 @@
-# Research: Django Check Framework Integration
-
-**Date**: 2026-01-20
-**Purpose**: Research Django's system check framework patterns for migrating FairDM configuration validation.
-
-## Django Check Framework Overview
-
-Django's system check framework allows applications to register validation checks that run when:
+# Research — 001 portal configuration
 
-- `python manage.py check` is explicitly called
-- `python manage.py check --deploy` is called for production-critical checks
-- Other management commands run (can be disabled per-command)
-
-### Key Benefits for FairDM
-
-1. **No runtime noise**: Checks don't run during normal development (`runserver`, `migrate`, etc.)
-2. **Explicit validation**: Portal maintainers run checks when they want to validate configuration
-3. **Standard Django pattern**: Uses Django's built-in infrastructure, not custom logic
-4. **Severity levels**: ERROR, WARNING, INFO for appropriate feedback
-5. **Tagging system**: Built-in tags (security, database, caching) + custom tags
-6. **Deploy mode**: Production-critical checks only run with `--deploy` flag
-
-## Check Function Structure
+Unknowns resolved before planning. Each entry states the question, what was checked, and the
+decision the plan is built on.
 
-### Basic Pattern
-
-```python
-from django.core.checks import Error, Warning, Info, register, Tags
+---
 
-@register(Tags.security, deploy=True)
-def check_secret_key(app_configs, **kwargs):
-    """Validate SECRET_KEY configuration."""
-    from django.conf import settings
-
-    errors = []
+## R1 — Where can production checks run and still stop a boot?
 
-    secret_key = getattr(settings, 'SECRET_KEY', '')
+**Question.** FR-013 requires a production portal to refuse to start when its configuration is
+unsafe. `fairdm.setup()` executes inside the settings module, which Django imports *before*
+`django.setup()` populates the app registry. `django.core.checks.run_checks()` needs that registry,
+so the check framework is not available at the moment `setup()` returns.
 
-    if not secret_key:
-        errors.append(
-            Error(
-                'SECRET_KEY is not set.',
-                hint='Set DJANGO_SECRET_KEY environment variable.',
-                id='fairdm.E001',
-            )
-        )
-    elif len(secret_key) < 50:
-        errors.append(
-            Warning(
-                f'SECRET_KEY is too short ({len(secret_key)} characters).',
-                hint='Recommended: 50+ characters for production.',
-                id='fairdm.W001',
-            )
-        )
+**Checked.** `django/core/checks/registry.py` resolves checks against `apps.get_app_configs()`;
+`django/apps/registry.py` populates them during `django.setup()`, which runs after settings are
+imported. Django's own deployment checks are all registered `deploy=True` and only execute under
+`manage.py check --deploy` or an explicit `run_checks` call. `AppConfig.ready()` runs inside
+`django.setup()`, after the registry is populated and before any request is served or any
+management command body executes.
 
-    return errors
-```
+**Decision.** The production-critical subset executes from `FairDMConfig.ready()`, guarded on the
+resolved environment, and raises `SystemCheckError` when any check in the subset reports an error.
+`setup()` records the resolved environment for `ready()` to read; it does not run the checks itself.
 
-### Key Components
+Observable behaviour is what FR-013 and SC-003 describe — a misconfigured production portal does not
+start, and the error names every problem. `ready()` is simply the first point in the boot at which
+the check framework exists. This also means the guard covers `runserver`, a WSGI or ASGI server and
+every management command alike, rather than only the paths that happen to call `setup()` directly.
 
-1. **Decorator**: `@register(tags, deploy=True/False)`
-   - `tags`: Django's built-in tags or custom tags
-   - `deploy=True`: Only runs with `--deploy` flag
-   - Can use multiple tags: `@register(Tags.security, Tags.database)`
+**Consequence to accept.** A production box with broken configuration cannot run *any* management
+command until the configuration is fixed, including `check --deploy` itself. That is the intended
+reading of fail-fast, and the remedy is always to set the missing variable. Documented on the
+configuration page.
 
-2. **Function Signature**: `def check_name(app_configs, **kwargs)`
-   - `app_configs`: List of app configs being checked (can be None)
-   - `**kwargs`: Additional arguments (future extensibility)
-   - Must return list of CheckMessage instances
+---
 
-3. **Check Messages**:
-   - `Error`: Critical issues that prevent proper operation
-   - `Warning`: Issues that should be addressed but aren't critical
-   - `Info`: Informational messages
-   - `Debug`: Debug-level information (rarely used)
+## R2 — How is per-setting provenance captured?
 
-4. **Message Attributes**:
-   - `msg`: The error message (required)
-   - `hint`: Suggested resolution (optional but recommended)
-   - `obj`: Object related to the error (optional)
-   - `id`: Unique identifier like `'fairdm.E001'` (required)
-
-## Built-in Tags
-
-Django provides several built-in tags in `django.core.checks.Tags`:
-
-- `Tags.admin`: Admin-related checks
-- `Tags.caches`: Cache configuration checks
-- `Tags.compatibility`: Compatibility checks
-- `Tags.database`: Database configuration checks
-- `Tags.models`: Model definition checks
-- `Tags.security`: Security-related checks
-- `Tags.signals`: Signal-related checks
-- `Tags.templates`: Template configuration checks
-- `Tags.urls`: URL configuration checks
-
-## Custom Tags
-
-For FairDM, we'll use a custom `deploy` tag for production-critical checks:
-
-```python
-# In fairdm/conf/checks.py
-class DeployTags:
-    deploy = 'deploy'
-```
-
-Usage:
+**Question.** FR-020 requires reporting which layer produced a setting's final value.
 
-```python
-@register(Tags.security, DeployTags.deploy)
-def check_something(app_configs, **kwargs):
-    # ...
-```
+**Checked.** `split_settings.tools.include()` executes each module against a scope dictionary — in
+FairDM's case the portal settings module's globals, passed by `setup()`. Every layer therefore
+mutates one observable dict, in order.
 
-## Registration in AppConfig
+**Decision.** `setup()` snapshots the scope's uppercase keys before and after each layer and records
+the deltas. The result is an ordered list of `(layer name, path, found, settings written)`. Because
+each layer is applied in a separate `include()` call, no extra instrumentation is needed — a shallow
+copy before and a diff after is sufficient and costs one pass per layer at startup.
 
-Checks should be registered in the app's `ready()` method:
+**Rejected.** Wrapping the scope in a tracking `dict` subclass. It changes the object every settings
+module sees, which is a large behavioural surface for a debugging feature, and `split_settings`
+copies out of the scope in places.
 
-```python
-# In fairdm/conf/apps.py
-from django.apps import AppConfig
+**Storage.** The record is written to a module-level structure in `fairdm.conf`, not into settings,
+so it never leaks into a settings dump or a serialisation. The reporting command reads it after
+`django.setup()`.
 
-class FairdmConfConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "fairdm.conf"
-    verbose_name = "FairDM Configuration"
+---
 
-    def ready(self):
-        # Import checks module to register checks
-        from . import checks  # noqa: F401
-```
+## R3 — What makes a portal's templates win?
 
-The import causes the `@register` decorators to execute, registering the checks.
+**Question.** FR-005 requires a portal's templates and static files to take precedence over
+FairDM's.
 
-## Mapping Current Validations to Checks
+**Checked.** `django/template/loaders/app_directories.py` builds its directory list from
+`apps.get_app_configs()` in `INSTALLED_APPS` order and returns the first match. `staticfiles`
+resolves the same way through `AppDirectoriesFinder`. FairDM currently appends portal apps last
+(`fairdm/conf/settings/apps.py:122`), so a portal template at the same path as a FairDM one is never
+reached.
 
-### Current validate_services() Logic
+**Decision.** Portal apps are inserted ahead of FairDM's own apps and ahead of the third-party set,
+while staying behind the Django contrib apps that must load first. The ordering becomes an explicit,
+commented composition rather than a single interpolation at the end of a literal list.
 
-The existing `validate_services()` function performs these validations:
+**Risk carried into the plan.** A portal that already ships a template shadowing a FairDM path has
+been silently inert and will start being served. This is the intended behaviour and a breaking
+change; it goes in the PR's risk section.
 
-1. **Database validation**
-   - Check if DATABASE['default'] is configured
-   - Warn if using SQLite in production-like environments
+---
 
-2. **Cache validation**
-   - Check if cache backend is locmem or dummy
-   - Warn about unsuitable cache backends
+## R4 — How does an override module get found without naming a directory?
 
-3. **SECRET_KEY validation**
-   - Check if SECRET_KEY is set
-   - Check if SECRET_KEY contains 'insecure'
-   - Check SECRET_KEY length
+**Question.** FR-011 anchors the portal's override module beside its settings module.
 
-4. **ALLOWED_HOSTS validation**
-   - Check if ALLOWED_HOSTS is empty in production
-   - Check if ALLOWED_HOSTS contains wildcard
+**Checked.** `setup()` reads the caller's frame globals (`setup.py:68`) and derives `BASE_DIR` from
+`__file__` two levels up. It then overwrites `caller_globals["__file__"]` with FairDM's own path
+(`setup.py:110`) before including any settings module, because `split_settings` resolves relative
+includes against it.
 
-5. **DEBUG mode validation**
-   - Check if DEBUG is True in production
+**Decision.** Capture the portal's settings directory at the same point `BASE_DIR` is derived, before
+the overwrite, and hold it in a local. The portal override is that directory joined with
+`<environment>.py`.
 
-6. **HTTPS/SSL validation**
-   - Check SECURE_SSL_REDIRECT
-   - Check SESSION_COOKIE_SECURE
-   - Check CSRF_COOKIE_SECURE
+**Edge case.** A settings module with no usable `__file__` — generated, or imported from an archive
+— cannot be anchored. The lookup is skipped with a warning rather than raising, since the portal
+override is optional by design.
 
-7. **Celery broker validation**
-   - Check if CELERY_BROKER_URL is set
-   - Check if CELERY_TASK_ALWAYS_EAGER is True
+---
 
-### Proposed Check Functions
+## R5 — Which checks belong to the production-critical subset?
 
-| Current Validation | New Check Function | Severity | Tags | Deploy? |
-|-------------------|-------------------|----------|------|---------|
-| Database configured | `check_database_configured` | ERROR | database | ✅ |
-| SQLite in production | `check_database_production_ready` | ERROR | database | ✅ |
-| Cache backend configured | `check_cache_backend` | ERROR | caches | ✅ |
-| SECRET_KEY set | `check_secret_key_exists` | ERROR | security | ✅ |
-| SECRET_KEY 'insecure' | `check_secret_key_production` | ERROR | security | ✅ |
-| SECRET_KEY length | `check_secret_key_strength` | WARNING | security | ✅ |
-| ALLOWED_HOSTS empty | `check_allowed_hosts_configured` | ERROR | security | ✅ |
-| ALLOWED_HOSTS wildcard | `check_allowed_hosts_secure` | ERROR | security | ✅ |
-| DEBUG True | `check_debug_false` | ERROR | security | ✅ |
-| SSL redirect | `check_ssl_redirect` | WARNING | security | ✅ |
-| Cookie secure flags | `check_cookie_security` | ERROR | security | ✅ |
-| Celery broker URL | `check_celery_broker` | ERROR | custom:celery | ✅ |
-| Celery always eager | `check_celery_async` | ERROR | custom:celery | ✅ |
-
-### Severity Level Decisions
-
-**ERROR** (production-critical):
-
-- Database not configured or SQLite
-- Cache backend unsuitable (locmem/dummy)
-- SECRET_KEY missing or insecure
-- ALLOWED_HOSTS empty or wildcard
-- DEBUG=True
-- Cookie security flags disabled
-- Celery broker missing or synchronous mode
-
-**WARNING** (recommendations):
-
-- SECRET_KEY too short
-- SSL redirect not enabled (suggestion, not requirement)
-
-**INFO** (informational):
-
-- None currently (could add best-practice hints)
-
-## Testing Strategy
-
-### Unit Tests for Check Functions
-
-```python
-# tests/integration/conf/test_checks.py
-import pytest
-from django.core.checks import Error, Warning
-from django.test import override_settings
-
-from fairdm.conf.checks import check_secret_key
-
-
-class TestSecretKeyCheck:
-    @override_settings(SECRET_KEY='')
-    def test_missing_secret_key_returns_error(self):
-        """Check returns ERROR when SECRET_KEY is not set."""
-        errors = check_secret_key(app_configs=None)
-
-        assert len(errors) == 1
-        assert isinstance(errors[0], Error)
-        assert errors[0].id == 'fairdm.E001'
-        assert 'SECRET_KEY is not set' in errors[0].msg
+**Question.** FR-017 names a minimum. The subset has to be small enough that it never blocks a boot
+for a stylistic reason.
 
-    @override_settings(SECRET_KEY='short')
-    def test_short_secret_key_returns_warning(self):
-        """Check returns WARNING when SECRET_KEY is too short."""
-        errors = check_secret_key(app_configs=None)
+**Checked.** The existing checks in `fairdm/conf/checks.py` cover database, cache, secret key,
+allowed hosts, debug and Celery, with ids `fairdm.E001`, `E003`–`E005`, `E100`–`E101`, `E200`,
+`E300`–`E301`. Django separately supplies `security.W009` (secret key, catching the
+`django-insecure-` prefix), `security.W008`, `W012`, `W016` and `W018`.
 
-        assert len(errors) == 1
-        assert isinstance(errors[0], Warning)
-        assert errors[0].id == 'fairdm.W001'
+**Decision.** The subset is exactly: a production-grade database is configured; a shared cache is
+configured; the secret key is neither absent nor insecure; allowed hosts is non-empty and not
+wildcarded; debug is off. Celery stays outside it — a portal may legitimately run without a worker,
+and blocking a boot on it would make the guard something operators route around.
 
-    @override_settings(SECRET_KEY='a' * 50)
-    def test_valid_secret_key_returns_empty(self):
-        """Check returns empty list when SECRET_KEY is valid."""
-        errors = check_secret_key(app_configs=None)
+**Note on severity.** Django reports the secret key as a *Warning*, so a subset built only from
+Django's own checks cannot block. FairDM's own error-severity check for the same condition is
+therefore kept rather than delegated, and it must test for absence and for the insecure prefix.
 
-        assert errors == []
-```
+---
 
-### Integration Tests
+## R6 — What does removing the fallback secret key break?
 
-```python
-from django.core.management import call_command
-from django.core.management.base import SystemCheckError
-from django.test import override_settings
-import pytest
+**Question.** FR-004 forbids a working default for a security-critical value.
 
+**Checked.** `fairdm/conf/environment.py:15-18` declares `DJANGO_SECRET_KEY` with a literal default,
+`:19` declares `DJANGO_SITE_DOMAIN` as `localhost:8000`, and `:9-10` declare superuser credentials.
+`security.py:19` reads the key and `:23` composes `ALLOWED_HOSTS` from the domain. Removing a default
+from a `django-environ` `Env` declaration makes the read raise `ImproperlyConfigured` when the
+variable is absent.
 
-class TestCheckCommandIntegration:
-    @override_settings(SECRET_KEY='')
-    def test_check_deploy_fails_with_missing_secret_key(self):
-        """Running check --deploy fails when SECRET_KEY is missing."""
-        with pytest.raises(SystemCheckError) as exc_info:
-            call_command('check', deploy=True)
+**Decision.** The declarations lose their *working* defaults and take an explicitly unusable
+sentinel instead — `env("DJANGO_SECRET_KEY", default="")`. The refusal to boot comes from the
+production-critical checks under FR-013, not from the read.
 
-        assert 'fairdm.E001' in str(exc_info.value)
+The read cannot be the thing that raises. `settings/security.py` is the second module of the
+baseline layer and FairDM's `development.py` is layer 2, so a baseline read that raises has already
+killed the process before any override could supply the value — taking development startup and the
+whole test suite with it, and falsifying FR-014, SC-004 and US-3's third scenario. A sentinel
+satisfies FR-004's "no working default" while leaving the environment resolvable, and the check that
+already exists (`fairdm.E001`) is what stops production.
 
-    @override_settings(SECRET_KEY='a' * 50)
-    def test_check_deploy_passes_with_valid_config(self, settings):
-        """Running check --deploy succeeds with valid configuration."""
-        # Set up valid production configuration
-        settings.DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': 'test_db'
-            }
-        }
-        settings.CACHES = {
-            'default': {
-                'BACKEND': 'django_redis.cache.RedisCache',
-                'LOCATION': 'redis://localhost:6379/1'
-            }
-        }
-        settings.ALLOWED_HOSTS = ['example.com']
-        settings.DEBUG = False
+One consequence for `ALLOWED_HOSTS`: with a sentinel, `[env("DJANGO_SITE_DOMAIN")] + …` composes
+`[""]`, which is a non-empty list, so `check_allowed_hosts_configured`'s `if not allowed_hosts` would
+never fire. The composition filters falsy entries.
 
-        # Should not raise
-        call_command('check', deploy=True)
-```
+In development the same variables still need real values, so FairDM's `development.py` supplies a
+clearly-marked development-only key and a `localhost` host list — the value moves from the shipped
+baseline, where it silently applies to production, into the development layer, where it cannot.
 
-### Test Coverage Requirements
+**Consequence.** A portal that runs in production without setting these stops working on upgrade.
+That is the point of the change and it belongs in the release notes, not in a compatibility shim.
 
-1. **Each check function** must have:
-   - Test for the error/warning condition
-   - Test for the passing condition
-   - Test for edge cases (if applicable)
+---
 
-2. **Integration tests** must verify:
-   - Checks are registered and callable
-   - `--deploy` flag correctly filters checks
-   - Multiple errors are reported together
-   - Error IDs are unique and consistent
+## R7 — Is a second validation path still needed anywhere?
 
-3. **Coverage targets**:
-   - 100% coverage of check logic (critical path)
-   - All error messages have associated tests
-   - All hints have associated tests
+**Question.** FR-018 forbids one, and D5 deletes `validate_services()`.
 
-## Backwards Compatibility Analysis
+**Checked.** `grep -rn validate_services` over `fairdm/` and `tests/` returns 54 hits: the definition
+and its own warning string in `checks.py`, one comment in `setup.py`, and 51 references across
+`tests/test_conf/test_checks.py` and `tests/test_conf/test_setup.py`. No production code calls it.
+`docs/portal-administration/configuration-checks.md:200-206` documents migrating off it.
 
-### Current Callers of validate_services()
+**Decision.** Delete the function, the comment, the documented migration path, and every test
+reference. The test classes involved (`TestDevelopmentSetup`, `TestProductionSetup`,
+`TestStagingSetup`) also exercise `setup()` itself, so removal is a surgical edit inside them rather
+than deleting the classes — except `TestStagingSetup`, which goes entirely with the staging profile.
 
-```bash
-# Search results show:
-fairdm/conf/setup.py:156:    validate_services(env_profile, caller_globals)
-```
+---
 
-Only one caller: `fairdm/conf/setup.py` in the `setup()` function.
+## R8 — What is in the way of removing staging?
 
-### Current Callers of validate_addon_module()
+**Checked.** `fairdm/conf/staging.py` (25 lines), the profile allowlist at `setup.py:58`, the
+override map at `setup.py:135-138`, nine references in `checks.py`, one apiece in eight
+`settings/*.py` modules (all in docstrings), two in `addons.py`, one in `conf/__init__.py`, and 28
+in `tests/test_conf/test_checks.py`. `docs/portal-development/configuration.md` describes it.
 
-```bash
-# Search results show:
-fairdm/conf/addons.py:75:    if not validate_addon_module(addon_name, setup_module_path, env_profile):
-```
+**Decision.** Remove all of them. The docstring references are part of the same sweep that fixes the
+stale `local.py` mentions, since both name modules that will not exist.
 
-Only one caller: `fairdm/conf/addons.py` in the `load_addon()` function.
+---
 
-### Migration Impact
+## R9 — Does the environment-file convention change?
 
-**Breaking changes**: None for external users
+**Question.** FR-006 requires the entry point to document which environment files it reads.
 
-- `validate_services()` and `validate_addon_module()` are internal functions
-- Not documented as public API
-- Only called from within fairdm.conf package
+**Checked.** `setup.py:78-101` reads `stack.env`, then `stack.<environment>.env`, then an explicit
+`env_file=` argument, the last with `overwrite=True` and the first two respecting variables already
+set. `stack.env` is also the file the absent container stack refers to.
 
-**Internal changes needed**:
-
-1. Remove `validate_services()` call from `fairdm/conf/setup.py`
-2. Remove `validate_addon_module()` call from `fairdm/conf/addons.py`
-3. Convert addon validation to check function
-4. Update tests that may be calling these functions directly
-
-### Test Impact
-
-Need to search for test usages:
-
-```python
-# Likely test files to update:
-# - tests/integration/conf/test_setup.py
-# - tests/integration/conf/test_addons.py
-# - Any tests that mock or call validate_services()
-```
-
-## Implementation Checklist
-
-### Phase 1: Create Check Functions
-
-- [ ] Create custom `DeployTags` class
-- [ ] Implement database check functions
-- [ ] Implement cache check functions
-- [ ] Implement security check functions (SECRET_KEY, ALLOWED_HOSTS, DEBUG)
-- [ ] Implement HTTPS/SSL check functions
-- [ ] Implement Celery check functions
-- [ ] Implement addon validation check function
-
-### Phase 2: Register Checks
-
-- [ ] Update `FairdmConfConfig.ready()` to import checks module
-- [ ] Verify checks are registered with correct tags
-- [ ] Test `python manage.py check` shows non-deploy checks
-- [ ] Test `python manage.py check --deploy` shows all checks
-
-### Phase 3: Remove Old Code
-
-- [ ] Remove `validate_services()` function from checks.py
-- [ ] Remove `validate_services()` call from setup.py
-- [ ] Remove `validate_addon_module()` function from checks.py
-- [ ] Remove `validate_addon_module()` call from addons.py
-- [ ] Update any imports
-
-### Phase 4: Update Tests
-
-- [ ] Write unit tests for each check function
-- [ ] Write integration tests for check command
-- [ ] Update existing tests that called old functions
-- [ ] Verify test coverage maintained or improved
-
-### Phase 5: Documentation
-
-- [ ] Create portal-administration/configuration-checks.md
-- [ ] Document how to run checks
-- [ ] Document what each check validates
-- [ ] Document how to resolve common issues
-- [ ] Add to deployment checklist
-
-## Decision: Check Registration Pattern
-
-**Decision**: Use `@register` decorator at function definition + import in `AppConfig.ready()`
-
-**Rationale**:
-
-- Standard Django pattern
-- Keeps check definitions close to their implementation
-- Avoids manual registration boilerplate
-- Easy to understand and maintain
-
-**Alternative considered and rejected**: Manual registration in `ready()` method
-
-- More verbose
-- Separation between definition and registration
-- Harder to maintain
-
-## Decision: Environment Awareness
-
-**Decision**: Checks are NOT environment-aware; they validate production readiness
-
-**Rationale**:
-
-- Checks assess "is this configuration production-ready?" not "does this match my environment?"
-- Using `--deploy` flag makes intent explicit
-- Simpler check logic (no environment branching)
-- Consistent validation rules regardless of where portal runs
-
-**What this means**:
-
-- Running `python manage.py check` in development with SQLite: no warnings
-- Running `python manage.py check --deploy` in development with SQLite: ERROR
-- Developer must explicitly opt into production validation
-
-## Error ID Naming Convention
-
-**Pattern**: `fairdm.<severity><number>`
-
-Where:
-
-- `severity`: E (Error), W (Warning), I (Info)
-- `number`: Sequential within severity (001, 002, 003, ...)
-
-**Examples**:
-
-- `fairdm.E001`: SECRET_KEY not set
-- `fairdm.E002`: Database not configured
-- `fairdm.W001`: SECRET_KEY too short
-- `fairdm.W002`: SSL redirect not enabled
-
-**Reservation**:
-
-- E001-E099: Reserved for security checks
-- E100-E199: Reserved for database checks
-- E200-E299: Reserved for cache checks
-- E300-E399: Reserved for Celery checks
-- W001-W099: Reserved for security warnings
-- W100-W199: Reserved for optimization hints
-
-## Next Steps
-
-1. Implement check functions in `fairdm/conf/checks.py`
-2. Update `fairdm/conf/apps.py` to register checks
-3. Remove old validation code
-4. Write tests
-5. Update documentation
+**Decision.** Keep the mechanism and the precedence exactly as they are, and document them. Renaming
+to `.env` is a portal-visible break that buys only convention, and R26 will decide the container
+story's filenames — settling the name here would pre-empt it. Recorded so the question is not
+reopened without cause.

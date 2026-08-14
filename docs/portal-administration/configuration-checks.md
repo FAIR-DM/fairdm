@@ -1,35 +1,57 @@
 # Configuration Checks
 
-FairDM uses Django's check framework to validate production-readiness of your portal configuration. This replaces the old runtime logging system with explicit, on-demand validation.
+FairDM validates portal configuration through Django's check framework — there is no second,
+FairDM-specific validation path (FR-018).
 
-## Running Checks
+## Production-critical checks run automatically at boot
 
-### Development Mode
+Whenever the settings in force are the production baseline, `FairDMConfig.ready()` — the first
+point in Django's boot sequence where the check framework has a populated app registry to run
+against — runs a fixed, production-critical subset of checks and refuses to start if any of them
+fails. Every failure is reported together, in one error, rather than stopping at the first
+(FR-013, SC-003):
 
-```bash
-python manage.py check
-```
+- a production-grade database is configured (`fairdm.E100`, `E101`, `E102`)
+- a shared cache backend is configured (`fairdm.E200`)
+- `SECRET_KEY` is set and not an insecure or published value (`fairdm.E001`)
+- `ALLOWED_HOSTS` is non-empty and not wildcarded (`fairdm.E003`, `E004`)
+- `DEBUG` is `False` (`fairdm.E005`)
 
-This runs all registered checks, including FairDM's configuration checks. Errors will prevent the application from starting, while warnings are informational.
+Celery is deliberately **not** in this subset — a portal may legitimately run without a
+background worker, and blocking a boot on that would make the guard something operators route
+around.
 
-### Production Deployment Checks
+Which environments those are is decided the same way the override layers are: by which module was
+found. FairDM ships one non-production override module, `development`, and that is the one
+environment where nothing in this subset runs and nothing about it is logged (FR-014, SC-004). A
+portal missing the same configuration starts normally there, using the development-only fallbacks in
+`fairdm/conf/development.py`.
+
+Every other value of `DJANGO_ENV` runs on the production baseline — a typo, a case variant such as
+`Production`, an empty string, or a `staging` name your own portal supplies a module for — so every
+other value is checked against production standards. Set `DJANGO_ENV` to exactly `development` to opt
+out; nothing else does.
+
+## Running the full check set on demand
+
+The subset above is only ever run automatically in production. The full check set — including
+Celery and everything Django itself contributes — is always available on demand and assesses
+against production standards regardless of the current resolved environment (FR-015):
 
 ```bash
 python manage.py check --deploy
 ```
 
-The `--deploy` flag runs additional checks specifically for production environments, including:
+```bash
+python manage.py check
+```
 
-- Database configuration (PostgreSQL required)
-- Cache backend (Redis/Memcached required)
-- SECRET_KEY security
-- ALLOWED_HOSTS configuration
-- DEBUG mode (must be False)
-- SSL/HTTPS settings
-- Cookie security
-- Celery configuration
+Plain `check` (no `--deploy`) runs every check *not* tagged as a deployment check — FairDM's
+configuration checks are all deployment checks, so use `--deploy` to see them.
 
-**Recommendation:** Run this command during deployment to catch configuration issues early.
+**Recommendation:** run `check --deploy` in CI and again during deployment, in addition to (not
+instead of) the automatic production boot guard — the guard only fires once a process has
+actually started, while a CI run catches a misconfiguration before anything ships.
 
 ## Check Categories
 
@@ -37,7 +59,7 @@ The `--deploy` flag runs additional checks specifically for production environme
 
 #### E100: DATABASES['default'] Not Configured
 
-**Error:** No default database configured.
+**Error:** No default database configured at all.
 **Fix:** Set the `DATABASE_URL` environment variable.
 
 ```bash
@@ -53,29 +75,45 @@ DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 ```
 
-### Cache Checks (fairdm.E200-E299)
+#### E102: DATABASES['default'] Configured but Unusable
 
-#### E200: Development Cache Backend in Production
-
-**Error:** Using LocMemCache or DummyCache in production.
-**Fix:** Set `CACHE_URL` to Redis or Memcached.
+**Error:** `DATABASE_URL` is present but syntactically malformed — it parses to a database
+configuration with an engine but no database name (for example `postgresql://` with nothing
+after the scheme). This is distinct from E100: the value is present, just unusable.
+**Fix:** Set `DATABASE_URL` to a complete PostgreSQL connection string.
 
 ```bash
-CACHE_URL=redis://localhost:6379/1
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+```
+
+### Cache Checks (fairdm.E200-E299)
+
+#### E200: Cache Backend Not Shared
+
+**Error:** The default cache is absent, empty, or a per-process backend — locmem, dummy,
+filebased, or anything else outside the shared-backend allowlist (Redis, Memcached).
+**Fix:** Set `REDIS_URL` to a Redis instance. This is the variable the cache settings module
+reads — `CACHE_URL` is not consulted.
+
+```bash
+REDIS_URL=redis://localhost:6379/1
 ```
 
 ### Security Checks (fairdm.E001, E003-E005)
 
-#### E001: SECRET_KEY Not Set
+#### E001: SECRET_KEY Not Set or Insecure
 
-**Error:** SECRET_KEY is empty or missing.
-**Fix:** Set `SECRET_KEY` environment variable (50+ characters recommended).
+**Error:** SECRET_KEY is empty or missing, it carries the `django-insecure-` prefix that
+marks a published development key — including FairDM's own shipped fallback — or it is shorter
+than 50 characters.
+**Fix:** Set `DJANGO_SECRET_KEY` to a private, randomly generated value of 50 characters or more.
 
 ```bash
-SECRET_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
+DJANGO_SECRET_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
 ```
 
-**Note:** Django also provides security.W009 for SECRET_KEY length and quality checks.
+**Note:** Django also provides security.W009 for the same condition, but only as a *Warning* —
+FairDM's own check exists specifically so this can block a boot.
 
 #### E003: ALLOWED_HOSTS Empty
 
@@ -104,9 +142,13 @@ DJANGO_ALLOWED_HOSTS=example.com,www.example.com
 DJANGO_DEBUG=False
 ```
 
-**Note:** Django also provides security.W018 for DEBUG checks. For cookie security (SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE), Django provides security.W012 and security.W016 respectively.
+**Note:** Django also provides security.W018 for DEBUG checks. For cookie security
+(SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE), Django provides security.W012 and security.W016
+respectively.
 
 ### Celery Checks (fairdm.E300-E399)
+
+Not part of the production-critical subset — see above. Only reported by `check --deploy`.
 
 #### E300: CELERY_BROKER_URL Not Configured
 
@@ -137,7 +179,8 @@ Add the check command to your deployment pipeline:
   run: |
     poetry run python manage.py check --deploy
   env:
-    DJANGO_SETTINGS_MODULE: config.production
+    DJANGO_SETTINGS_MODULE: config.settings
+    DJANGO_ENV: production
 ```
 
 ### GitLab CI Example
@@ -148,7 +191,8 @@ test:checks:
   script:
     - poetry run python manage.py check --deploy
   variables:
-    DJANGO_SETTINGS_MODULE: config.production
+    DJANGO_SETTINGS_MODULE: config.settings
+    DJANGO_ENV: production
 ```
 
 ### Docker Example
@@ -173,6 +217,9 @@ python manage.py check --tag caches
 
 # Only deploy checks
 python manage.py check --tag deploy
+
+# Only the production-critical subset FairDMConfig.ready() runs at boot
+python manage.py check --deploy --tag production_critical
 ```
 
 ### Combine Tags
@@ -193,34 +240,20 @@ SILENCED_SYSTEM_CHECKS = [
 ]
 ```
 
-**Warning:** Only silence checks if you understand the security implications.
-
-## Migration from Legacy System
-
-The old `validate_services()` function is deprecated and will be removed in a future version. Update your deployment processes:
-
-**Old (deprecated):**
-
-```python
-from fairdm.conf.checks import validate_services
-validate_services('production', settings_dict)
-```
-
-**New (recommended):**
-
-```bash
-python manage.py check --deploy
-```
-
-The new system provides:
-
-- ✅ Consistent Django integration
-- ✅ Better error reporting
-- ✅ Tag-based filtering
-- ✅ CI/CD friendly
-- ✅ Explicit validation (no runtime noise)
+**Warning:** Only silence checks if you understand the security implications. A check in the
+production-critical subset still runs at boot even if silenced from `check --deploy`'s output —
+silencing hides it from the report, not from `FairDMConfig.ready()`.
 
 ## Troubleshooting
+
+### The Portal Refuses to Start in Production
+
+This is the intended behaviour when a production-critical check fails (FR-013). The raised error
+lists every failing check by id — fix the configuration each one names and restart.
+
+If this happens on a machine you consider a development box, check `DJANGO_ENV` first: only the exact
+value `development` stands the guard down, so `Development` or an unset-then-emptied variable is
+treated as a production deployment (FR-014).
 
 ### Check Command Exits with Error Code 1
 
@@ -232,10 +265,9 @@ Warnings don't prevent deployment but should be addressed for production environ
 
 ### Cannot Import fairdm.conf.checks
 
-Ensure checks are imported in `fairdm/apps.py`:
+Ensure checks are imported in `fairdm/apps.py`, at module level rather than inside `ready()`, so
+the full set registers regardless of the resolved environment:
 
 ```python
 from fairdm.conf import checks as conf_checks  # noqa: F401
 ```
-
-This import is required in the `ready()` method to register checks with Django's check framework.

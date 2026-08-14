@@ -1,11 +1,14 @@
 """Static and Media Files Configuration
 
-Production-ready static file serving with WhiteNoise and optional S3 media storage.
+Owns: static file serving via WhiteNoise, and media storage — local
+filesystem by default, switching to S3 when ``S3_ACCESS_KEY_ID``,
+``S3_SECRET_ACCESS_KEY`` and ``S3_BUCKET_NAME`` are all present (FR-002,
+FR-003). That switch is feature detection on which credentials a portal
+supplied, not a branch on the resolved environment. Leaves to a portal:
+thumbnail alias sizes beyond the four core content types, and any
+STORAGES entry it wants to add.
 
-Production: Uses WhiteNoise for static files, S3/local for media files
-Development: Uses local filesystem for both static and media
-
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import logging
@@ -112,7 +115,11 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB
 
 THUMBNAIL_CACHE_DIMENSIONS = True
 THUMBNAIL_SUBDIR = "thumbs"
-THUMBNAIL_DEBUG = True
+# easy-thumbnails re-raises rather than degrading to a blank image when this is
+# on, which is a development aid and a way to turn a missing source file into a
+# 500 in production. The baseline is production, so it is off here and turned
+# back on in conf/development.py (FR-003, D21).
+THUMBNAIL_DEBUG = False
 
 THUMBNAIL_ALIASES = {
     # Project-wide 3:2 aliases used by all four core model types (Project,

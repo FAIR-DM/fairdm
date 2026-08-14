@@ -1,11 +1,18 @@
 """Security Configuration
 
-Production-ready security hardening with HTTPS, secure cookies, and HSTS.
+Owns: SECRET_KEY, ALLOWED_HOSTS, DEBUG, and HTTPS/cookie/HSTS security
+headers, applied unconditionally — this module does not branch on the
+resolved environment or on any environment-derived state (FR-002, FR-003).
+Relaxing these for local development is development.py's job, not a
+conditional here. Leaves to a portal: CSRF_TRUSTED_ORIGINS beyond what
+ALLOWED_HOSTS implies, and any additional security middleware.
 
-Production/Staging: Requires SECRET_KEY, ALLOWED_HOSTS (fails fast if missing)
-Local/Development: Relaxes security requirements (DEBUG=True, no HTTPS)
+Neither SECRET_KEY nor the site domain carries a working default (FR-004,
+research R6) — an unset value resolves to an unusable sentinel, and the read
+itself never raises. ``fairdm.conf.checks`` is what refuses a production boot
+on the result.
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 # Access environment variables via shared env instance
@@ -20,7 +27,12 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # Allowed hosts - domains that this Django site can serve
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = [env("DJANGO_SITE_DOMAIN")] + env("DJANGO_ALLOWED_HOSTS")
+# Composed from truthy entries only: an unset DJANGO_SITE_DOMAIN must yield
+# [] rather than [""], or check_allowed_hosts_configured's emptiness test
+# (fairdm.E003) can never fire (research R6, T055).
+ALLOWED_HOSTS = [
+    host for host in [env("DJANGO_SITE_DOMAIN"), *env("DJANGO_ALLOWED_HOSTS")] if host
+]
 
 # CSRF trusted origins - domains trusted for cross-site requests
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-trusted-origins
@@ -44,50 +56,45 @@ SECURE_BROWSER_XSS_FILTER = True  # Enable browser XSS filtering
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
 X_FRAME_OPTIONS = "DENY"  # Prevent clickjacking attacks
 
-# HTTPS/SSL SECURITY (Production Only)
-# These settings enforce HTTPS and secure cookies in production
-if env("DJANGO_SECURE"):
-    # https://docs.djangoproject.com/en/dev/ref/settings/#secure-ssl-redirect
-    SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
+# HTTPS/SSL SECURITY
+# Enforced unconditionally — the baseline does not branch on the resolved
+# environment or on any environment-derived state (FR-003). Development.py
+# relaxes these for local development; this module never does.
 
-    # https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
-    SECURE_CONTENT_TYPE_NOSNIFF = True
+# https://docs.djangoproject.com/en/dev/ref/settings/#secure-ssl-redirect
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
-    # SECURE_PROXY_SSL_HEADER = env("DJANGO_SECURE_PROXY_SSL_HEADER", default=None)
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-secure
-    SESSION_COOKIE_SECURE = True
+# https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-secure
+SESSION_COOKIE_SECURE = True
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-name
-    SESSION_COOKIE_NAME = "__Secure-sessionid"
+# https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-name
+SESSION_COOKIE_NAME = "__Secure-sessionid"
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-secure
-    CSRF_COOKIE_SECURE = True
+# https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-secure
+CSRF_COOKIE_SECURE = True
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-name
-    CSRF_COOKIE_NAME = "__Secure-csrftoken"
+# https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-name
+CSRF_COOKIE_NAME = "__Secure-csrftoken"
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
+SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
-    SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
+# https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
+# https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
+# TODO: set this to 60 seconds first and then to 518400 once you prove the former works
+SECURE_HSTS_SECONDS = 60
 
-    # https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
-    # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
-    # TODO: set this to 60 seconds first and then to 518400 once you prove the former works
-    SECURE_HSTS_SECONDS = 60
+# https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
+    default=True,
+)
 
-    # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
-        "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
-        default=True,
-    )
-
-    # https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
-    SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
-        "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF",
-        default=True,
-    )
+# https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
+SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
+    "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF",
+    default=True,
+)

@@ -1,128 +1,242 @@
-## Feature Specification: Production-Ready Configuration via fairdm.conf
+# Feature Specification: Portal configuration via `fairdm.setup()`
 
 **Feature Branch**: `001-fairdm-setup`
-**Created**: 2026-01-02 (renamed from 002-production-config-fairdm-conf on 2026-01-07)
+
+**Created**: 2026-01-02 (renamed from `002-production-config-fairdm-conf` on 2026-01-07; rewritten 2026-08-13)
+
 **Status**: Draft
-**Input**: User description: "Goal: Deliver a clear, opinionated production configuration story using the fairdm.conf package. Scope: Define responsibilities and boundaries of fairdm.conf, provide patterns for safe settings overrides, and support PostgreSQL, Redis, container-based deployment, and pluggable addons without brittle coupling. Why now: A stable, production-ready configuration baseline is critical for existing and future portals to rely on FairDM with confidence."
+
+**Serves**: G7 — *Development and production settings stay out of a portal's way while remaining configurable where it matters*. Roadmap item R1.
+
+**Input**: A FairDM portal should obtain its entire Django settings baseline from one call. FairDM
+owns a single set of production-grade defaults; every environment is expressed as an override
+layered on top of them in a declared order, selected by an environment variable. A portal that is
+misconfigured for production must refuse to start rather than degrade quietly, and a developer must
+be able to ask the system which layer produced any given setting.
 
 ## Clarifications
 
-### Session 2026-01-02
+### Session 2026-08-13 (retrospective audit)
 
-- Q: When a portal starts and backing services for cache/broker/background jobs (e.g., `REDIS_URL`) are missing/unreachable, what should the baseline do? → A: Fail fast in production and staging; degrade with a prominent warning in development.
-- Q: Where should the development and staging overrides live (as the primary, supported pattern)? → A: Separate environment profile modules for `development` and `staging` that import the production baseline and then override.
-- Q: For project-specific overrides (branding, feature flags, extra apps), where should portal teams put them? → A: In the portal’s settings module (e.g., `config/settings.py`) immediately after calling `fairdm.setup(...)`.
-- Q: When required configuration is missing/invalid at startup, should the error message include all detected problems or stop at the first one? → A: Report all missing/invalid items in a single startup error.
-- Q: If an addon listed in `fairdm.setup(addons=[...])` is misconfigured (e.g., missing `__fdm_setup_module__` or its setup module can’t be imported), what should happen? → A: Fail fast in `production`/`staging`, but warn and skip in `development`.
-
-### Session 2026-01-02 (Architecture Clarification)
-
-- Q: How should the configuration architecture work? → A: Keep `fairdm/conf/settings/*` as the production baseline; `setup()` orchestrates loading them based on profile. The existing settings directory contains production-ready modular settings. Individual modules target specific production requirements (caching, media/static, database, etc.). No separate base.py/production.py files are needed.
-- Q: What should the development environment override file be named? → A: `local.py` (follows common Django convention for "local development").
-- Q: How should the settings/* modules be organized? → A: Consolidate into ~8-12 focused modules aligned with production concerns (database, cache, security, static/media, email, logging, apps/middleware, celery, auth). Rearrange, edit, and consolidate current settings modules within this directory for long-term maintainability.
-- Q: How should addon configuration be loaded? → A: Addons provide a setup module (e.g., `addon/conf.py`); `setup()` imports and executes it after loading base settings.
-- Q: How should validation errors be reported? → A: Collect all errors during validation, then raise single `ImproperlyConfigured` exception with all issues listed.
-
-### Session 2026-01-20 (Configuration Checks Refactoring)
-
-- Q: How should configuration validation checks be integrated to avoid log noise during normal server operation? → A: Convert all checks to Django's check framework with severity levels.
-- Q: What tags should be used to categorize the configuration checks? → A: Use `django.core.checks.Tags.security` and `django.core.checks.Tags.database` plus custom `deploy` tag.
-- Q: Should checks adjust their behavior based on the environment profile (production/staging/development)? → A: No. Checks are deployment checks only and should validate production readiness regardless of current environment.
-- Q: What should happen to the existing `validate_services()` function? → A: Replace `validate_services()` entirely with check functions; remove the function.
-- Q: Where should the check functions be registered with Django? → A: Register checks in `fairdm.conf.apps.FairdmConfConfig.ready()` method.
+- Q: Which environment profiles does FairDM support? → A: Production and development only. Staging is removed as a shipped profile; `staging` survives only as an environment name a portal may supply its own override file for.
+- Q: How is an environment's override file selected? → A: By existence, not by an allowlist. `setup()` looks for a module named after the resolved environment; if there is none, nothing is applied and the baseline stands.
+- Q: What happens when `DJANGO_ENV` names an environment nothing ships a file for, including a typo? → A: The production baseline applies unchanged. Falling back to the strictest configuration is the safe direction, and the resulting behaviour is immediately visible to a developer.
+- Q: Where does a portal put its own environment overrides? → A: In a module named after the environment, beside the portal's settings module. The recommended project structure places that at `config/<environment>.py`, and the documentation always presents that structure, but the lookup is anchored to the settings module so a portal laid out differently still works.
+- Q: Do configuration checks belong to this feature? → A: Yes. The January 2026 decision to stop running them on every start was right about the symptom and wrong about the remedy: they were noise in development, where they have nothing useful to say. Production-critical checks run automatically in production and stop the boot; everything else stays on demand.
+- Q: What replaces `validate_services()`? → A: Nothing — it is deleted outright, with its tests and its documented migration path. Its role is covered by the check framework.
+- Q: Does the container deployment story belong to this feature? → A: No. It is roadmap R26, which already describes the same gap.
+- Q: How much of the addon system does this feature own? → A: Only where addon settings sit in the precedence order and what happens when an addon is broken. What an addon may rely on, how it is discovered and how it is packaged belong to R27.
+- Q: Should a portal be able to override a FairDM setting through a `setup()` keyword argument? → A: No. Assignment after the call is the single supported mechanism, so the precedence order has one tail rather than two.
+- Q: May the baseline supply a working default for a security-critical value? → A: No. A portal that omits one must fail, not inherit a value published in FairDM's own source.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Stand up a production-ready portal (Priority: P1)
+### User Story 1 - Obtain a complete settings baseline from one call (Priority: P1)
 
-A portal maintainer wants to bring a new FairDM-based portal into production using the recommended configuration layer so that they can rely on a clear, documented baseline for database, cache, background jobs, and static/media handling without writing their own configuration from scratch.
+A portal maintainer creates a settings module, calls `fairdm.setup()`, and has a complete, working
+Django configuration — database, cache, background tasks, static and media handling, authentication,
+email, logging, security headers and the REST API — without writing or copying any of it.
 
-**Why this priority**: This is the primary value of the configuration feature: enabling teams to deploy a reliable production portal quickly and consistently.
+**Why this priority**: Everything else in this feature is a qualification of this sentence. Without
+it there is no configuration layer, only a library of settings a portal has to assemble.
 
-**Independent Test**: A maintainer can follow the configuration documentation to stand up a fresh production environment for a reference portal using the provided configuration layer and environment variables only, without editing core configuration code.
+**Independent Test**: A settings module whose entire content is an import and a `setup()` call
+produces a Django configuration that passes `manage.py check` and starts a server.
 
 **Acceptance Scenarios**:
 
-1. **Given** a clean project using the configuration layer, **when** a maintainer provides production environment values for database, cache, static/media, and background processing, **then** the portal starts successfully in a production profile without additional configuration code changes.
-2. **Given** a misconfigured or missing required environment value, **when** the portal starts, **then** the maintainer sees a clear, actionable error message that identifies what needs to be fixed.
+1. **Given** a portal whose settings module calls `fairdm.setup()` and nothing else, **when** Django loads settings, **then** every setting FairDM owns is present and no `ImproperlyConfigured` is raised for a value FairDM is responsible for.
+2. **Given** the same portal, **when** a maintainer reads `fairdm/conf/settings/`, **then** each module covers one named concern and states in its own docstring what it owns.
+3. **Given** a portal that passes `apps=[...]`, **when** Django resolves a template or static file that exists in both the portal and FairDM, **then** the portal's file is served.
 
 ---
 
-### User Story 2 - Customise project-specific overrides safely (Priority: P1)
+### User Story 2 - Vary configuration by environment through layered overrides (Priority: P1)
 
-A portal developer wants to adjust settings for their specific project (for example, enabling an extra add-on, changing branding, or toggling a feature flag) without editing the core configuration baseline so that upgrades remain straightforward and conflicts are minimised.
+A portal runs the same code in development and in production, and the difference between them is
+expressed entirely as override modules layered over a single production baseline, selected by one
+environment variable.
 
-**Why this priority**: Without a safe override pattern, each portal risks diverging from the baseline in incompatible ways, making upgrades and support difficult.
+**Why this priority**: This is the mechanism the whole feature rests on, and the one most likely to
+be got subtly wrong. It has to be a declared order that can be tested, not an emergent one.
 
-**Independent Test**: A developer can introduce project-specific overrides following the documented pattern (for example, an override module and environment variables) and confirm that changes apply correctly while the baseline remains intact and upgradeable.
+**Independent Test**: Setting the environment variable and resolving settings twice, once per
+environment, yields two configurations that differ only where the corresponding override module says
+they differ.
 
 **Acceptance Scenarios**:
 
-1. **Given** a project using the baseline configuration, **when** a developer adds overrides in the documented location and format, **then** those overrides take effect without modifying the baseline configuration files.
-2. **Given** a future update to the baseline configuration, **when** the project upgrades to a new FairDM version, **then** the project-specific overrides still apply and no manual rework of the baseline configuration is required.
+1. **Given** `DJANGO_ENV` is unset, **when** settings resolve, **then** the production baseline applies.
+2. **Given** `DJANGO_ENV=development`, **when** settings resolve, **then** FairDM's development overrides apply on top of the baseline and every setting neither the baseline nor that module names is unchanged.
+3. **Given** `DJANGO_ENV` names an environment for which neither FairDM nor the portal ships a module, **when** settings resolve, **then** the production baseline applies unchanged and no error is raised.
+4. **Given** a portal supplying its own module for the resolved environment, **when** settings resolve, **then** its values win over FairDM's module for the same environment and lose to assignments made after the `setup()` call.
+5. **Given** a portal laid out with its settings module somewhere other than `config/`, **when** it places an override module beside that settings module, **then** the override is found.
 
 ---
 
-### User Story 3 - Integrate addons without fragile settings coupling (Priority: P2)
+### User Story 3 - A misconfigured production portal refuses to start (Priority: P1)
 
-An addon author wants to publish a reusable addon that integrates with the configuration layer so that portal teams can enable and configure it consistently without hand-editing multiple settings or risking configuration drift.
+A maintainer deploying to production learns about missing or unsafe configuration when the portal
+fails to start, in one message listing everything that is wrong — not from a runtime failure weeks
+later, and not from a quiet fallback to a development-grade service.
 
-**Why this priority**: Addons extend the platform; if their configuration is ad hoc, portal deployments become fragile and difficult to support.
+**Why this priority**: The baseline claims to be production-safe. Nothing else in this feature makes
+that claim true; this story does. It is also the story that closes the two silent degradations the
+audit found.
 
-**Independent Test**: An addon can declare its configuration needs in a way that fits into the baseline pattern, and a portal maintainer can enable or disable the addon following a documented set of steps.
+**Independent Test**: Resolving settings in production with a production-critical variable removed
+raises a startup error naming every missing item, while the same omission in development is silent.
 
 **Acceptance Scenarios**:
 
-1. **Given** an addon that follows the documented configuration pattern, **when** a maintainer enables it using the recommended configuration entry points, **then** the addon is active with sensible defaults and clearly documented environment options.
-2. **Given** the same addon, **when** a maintainer decides to disable it following the documented steps, **then** the portal remains stable and no orphaned or conflicting configuration remains.
+1. **Given** `DJANGO_ENV=production` and no database configuration, **when** the portal starts, **then** it fails with an error naming the missing configuration.
+2. **Given** `DJANGO_ENV=production` and several production-critical values missing at once, **when** the portal starts, **then** the error names all of them, not the first.
+3. **Given** `DJANGO_ENV=development` with the same values missing, **when** the portal starts, **then** it starts, no configuration check is emitted, and development-grade fallbacks apply.
+4. **Given** any environment, **when** a maintainer runs the deployment check on demand, **then** the full check set reports against production standards regardless of the current environment.
+
+---
+
+### User Story 4 - See which layer produced a setting (Priority: P2)
+
+A developer debugging unexpected behaviour asks the portal what its configuration resolved to and
+which layer set each value, instead of reading four files and reasoning about precedence.
+
+**Why this priority**: A layered system that silently skips absent files is only safe if it can be
+interrogated. This is what makes the layering supportable rather than mysterious, and the
+information already exists at the moment `setup()` runs.
+
+**Independent Test**: A command reports the layers considered, which were found, and for a given
+setting the layer that last wrote it.
+
+**Acceptance Scenarios**:
+
+1. **Given** any portal, **when** the developer asks for the resolved configuration, **then** every layer is listed in application order and marked found or absent.
+2. **Given** a setting written by more than one layer, **when** the developer asks about it, **then** the layer that produced the final value is named.
+3. **Given** an environment for which no override module exists, **when** the developer asks for the resolved configuration, **then** the absent layer is reported as absent rather than omitted.
+
+---
+
+### User Story 5 - Override any FairDM default without editing FairDM (Priority: P2)
+
+A portal changes any setting FairDM owns — branding, feature flags, a third-party package's
+configuration — through the documented mechanism, and an upgrade to a later FairDM version does not
+disturb it.
+
+**Why this priority**: Without this the baseline is a fork magnet. It is P2 rather than P1 only
+because the mechanism falls out of the ordering established in User Story 2.
+
+**Independent Test**: A portal overrides a representative setting from each FairDM settings module
+and the values survive settings resolution.
+
+**Acceptance Scenarios**:
+
+1. **Given** a portal that assigns a setting after the `setup()` call, **when** settings resolve, **then** the portal's value stands regardless of which FairDM module set it.
+2. **Given** a setting FairDM composes from several inputs, **when** a portal overrides it by name, **then** no special-case handling in the entry point is required for it to take effect.
+
+---
+
+### User Story 6 - An addon contributes settings at a defined point (Priority: P3)
+
+An addon named in the `setup()` call contributes its own settings, and a portal can always override
+what the addon set.
+
+**Why this priority**: An addon is one of the layers, so leaving it undefined would make the
+precedence order incomplete. It is P3 because only its position in the order and its failure
+behaviour belong here — the addon contract itself is R27.
+
+**Independent Test**: An addon's settings apply, and a portal override of the same setting wins.
+
+**Acceptance Scenarios**:
+
+1. **Given** a portal naming an addon, **when** settings resolve, **then** the addon's settings apply after FairDM's environment override and before the portal's.
+2. **Given** an addon that cannot be loaded, **when** the environment is production, **then** the portal fails to start and names the addon.
+3. **Given** the same addon, **when** the environment is not production, **then** a warning is emitted, the addon is skipped, and the portal starts.
 
 ---
 
 ### Edge Cases
 
-- Environments where only some backing services (for example, cache or background workers) are available initially; in development the configuration should degrade with prominent warnings, while production/staging should fail fast.
-- Mismatched or partial environment configuration across multiple environments (development, staging, production) that could otherwise lead to surprises when promoting a portal.
-- Addons that require additional services (for example, extra message queues or storage) and need a clear way to express those requirements within the configuration model.
-- Migration from an older, ad hoc configuration into the opinionated configuration layer while keeping existing portals online.
+- `DJANGO_ENV` set to an empty string, or to an environment name that differs only in case from a shipped one.
+- A portal shipping an override module for an environment FairDM also ships one for, so both layers apply in the same resolution.
+- A portal whose settings module is not on disk in the usual way — imported from a zip, or generated — so the anchor for the portal override cannot be resolved.
+- A production-critical value present but syntactically unusable, as distinct from absent.
+- An addon whose settings module loads but raises partway through, leaving settings half-applied.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The platform MUST provide a single, clearly documented configuration entry point that represents the recommended production baseline for FairDM portals.
-- **FR-002**: The configuration layer MUST define and document which responsibilities it owns (for example, core settings for database, cache, background jobs, static/media handling, and URLs) versus which remain project-specific.
-- **FR-003**: The configuration layer MUST support configuration for a production-grade relational database engine as a first-class, documented target, including connection parameters and recommended defaults.
-- **FR-004**: The configuration layer MUST support configuration for a production-grade network cache service as a first-class, documented target, including connection parameters and recommended defaults.
-- **FR-005**: The configuration layer MUST provide a concrete, opinionated pattern for background task processing (including queue, broker, and result backend) that is sufficient to run a full production stack out of the box, while allowing advanced teams to replace this stack via their own configuration at their own responsibility.
-- **FR-006**: The configuration layer MUST support environment-driven configuration for all production-critical values (such as database, cache, storage, secrets, and debug flags) so that portals can be deployed in containers or traditional environments without editing configuration code.
-- **FR-007**: The platform MUST provide a documented override pattern that allows project teams to extend or override baseline configuration safely without modifying the baseline configuration code. The primary supported pattern is: call `fairdm.setup(...)` first in the portal settings module (e.g., `config/settings.py`), then place project-owned overrides immediately after that call.
-- **FR-008**: The configuration layer MUST support multiple environments (for example, development, staging, production) using a primary pattern in which each environment has its own profile module that imports a shared production-ready baseline and then overrides specific values as needed, selected via a clear environment indicator (for example, a dedicated configuration environment variable).
-- **FR-009**: The configuration documentation MUST include a reference deployment story that demonstrates container-based deployment driven entirely by environment variables.
-- **FR-010**: The configuration layer MUST provide a structured way for addons to declare their configuration needs (for example, required settings and environment variables) so that portal teams can enable and configure addons without editing multiple unrelated files. Misconfigured addons MUST fail fast in `production`/`staging`, and MUST warn and be skipped in `development`.
-- **FR-011**: The configuration documentation MUST describe how addon configuration interacts with the baseline and override patterns to minimise brittle coupling.
-- **FR-012**: The configuration layer MUST surface clear, human-readable error messages when required configuration values are missing, invalid, or inconsistent across environments. Configuration validation MUST be integrated into Django's check framework with appropriate severity levels (ERROR, WARNING, INFO) to avoid log noise during normal server operation. Checks MUST be deployment checks that validate production readiness and MUST NOT be environment-aware; they should assess configuration against production standards regardless of the current environment. Checks MUST be tagged using Django's built-in tags (`django.core.checks.Tags.security`, `django.core.checks.Tags.database`, `django.core.checks.Tags.caching`) plus a custom `deploy` tag for production-critical checks. Production-critical checks (database, cache, secrets, security settings) MUST use ERROR severity and include the `deploy` tag to activate with `--deploy` mode. Development hints and recommendations SHOULD use WARNING or INFO severity without the `deploy` tag. The existing `validate_services()` function MUST be replaced entirely by individual check functions. Check registration MUST occur in the `fairdm.conf.apps.FairdmConfConfig.ready()` method following Django best practices. When reporting errors, the check framework SHOULD aggregate and present all detected issues together.
-- **FR-013**: The platform MUST recommend environment variables as the primary, canonical baseline mechanism for providing secrets (such as credentials and tokens) to the configuration layer, in a way that keeps these values out of source control and remains practical for common hosting environments.
+**The baseline**
 
-### Key Entities *(include if feature involves data)*
+- **FR-001**: The platform MUST provide a single public entry point that a portal calls once from its settings module to obtain a complete Django settings baseline.
+- **FR-002**: The baseline MUST be organised into modules under `fairdm/conf/settings/`, each covering one named concern and documenting in its own docstring what it owns and what it leaves to a portal. The order in which they are applied MUST be declared and deterministic.
+- **FR-003**: Every value in the baseline MUST be the recommended production value. The baseline MUST NOT branch on the resolved environment; environment-varying behaviour belongs in override modules.
+- **FR-004**: The baseline MUST NOT supply a working default for any security-critical value, including the secret key, the allowed hosts, the site domain and any administrative password. A portal that omits one MUST fail rather than inherit a value published in FairDM's source.
+- **FR-005**: Apps a portal declares in the entry point call MUST be registered so that the portal's templates and static files take precedence over FairDM's when both define the same path.
+- **FR-006**: All deployment-varying values MUST be settable from the environment. The entry point MUST document which environment files it reads and in what order, so that a portal can predict where a value came from.
 
-- **Configuration Baseline**: The set of recommended default configuration values and responsibilities that define what it means for a FairDM portal to be “production-ready”.
-- **Environment Profile**: A logical grouping of configuration values for a specific environment (for example, development, staging, production), derived from the baseline and environment-specific inputs.
-- **Override Layer**: The project-controlled configuration additions or adjustments that sit on top of the baseline (for example, project branding, feature flags, addon choices) and are explicitly separated from the baseline for upgrade safety.
-- **Addon Configuration Block**: The subset of configuration that an addon needs to declare (for example, additional settings and environment-driven values) so that it can be enabled, tuned, or disabled in a consistent way across portals.
+**The layering**
+
+- **FR-007**: The resolved environment MUST be taken from a single environment variable, defaulting to production when it is unset.
+- **FR-008**: Settings MUST be applied in this order, later layers overriding earlier ones: the baseline; FairDM's override module for the resolved environment; settings contributed by addons; the portal's override module for the resolved environment; assignments made in the portal's settings module after the entry point call.
+- **FR-009**: FairDM MUST ship an override module for development and MUST NOT ship one for any other environment.
+- **FR-010**: An override module MUST be selected by existence rather than from a fixed list of permitted environments. When no module exists for a layer, that layer MUST be skipped without error.
+- **FR-011**: The portal's override module MUST be resolved beside the portal's settings module, so that the mechanism does not depend on any directory name.
+- **FR-012**: Assignment after the entry point call MUST be the only supported mechanism for a portal to override a setting outside its environment module. The entry point MUST NOT accept settings as keyword arguments.
+
+**Refusing to start**
+
+- **FR-013**: When the settings in force are the production baseline — that is, whenever the resolved environment is not one the platform ships a non-production override module for — the entry point MUST run the production-critical configuration checks and MUST prevent startup if any fails, reporting every failure in a single error rather than stopping at the first. An unrecognised environment name, including a case variant of a recognised one and the empty string, MUST be treated as production, because that is the configuration it resolves to.
+- **FR-014**: In an environment the platform ships a non-production override module for, the entry point MUST NOT run configuration checks and MUST emit nothing about them.
+- **FR-015**: The full check set MUST remain available on demand through Django's deployment check command, and MUST assess configuration against production standards regardless of the current environment.
+- **FR-016**: Configuration checks MUST be implemented as Django system checks with appropriate severity, tagged so that production-critical checks participate in the deployment check run.
+- **FR-017**: The production-critical subset MUST cover, at minimum: a production-grade database is configured; a shared cache is configured; the secret key is not a published or otherwise insecure value; allowed hosts are set; debug is off.
+- **FR-018**: The platform MUST NOT retain a second configuration-validation path alongside the check framework.
+
+**Interrogating the result**
+
+- **FR-019**: The platform MUST provide a command that reports the layers considered for the current environment, in application order, each marked found or absent.
+- **FR-020**: That command MUST report, for a named setting, its resolved value and the layer that produced it.
+
+**Addons**
+
+- **FR-021**: Settings contributed by an addon named in the entry point call MUST be applied at the position given in FR-008, so that a portal can always override an addon.
+- **FR-022**: An addon that cannot be loaded MUST prevent startup in production, naming the addon; in any other environment it MUST emit a warning, be skipped, and allow startup to continue.
+
+**Documentation**
+
+- **FR-023**: The configuration contract MUST be documented on a single page covering the entry point, every layer in FR-008, the environment variable, the environment files, the check behaviour and the interrogation command.
+- **FR-024**: That documentation MUST present the recommended project structure and use it in every example, while stating that the portal override module is resolved beside the settings module.
+
+### Key Entities
+
+- **Baseline**: FairDM's complete set of production-grade settings, organised by concern, applied to every portal in every environment before anything else.
+- **Override module**: A module named after an environment, contributed by FairDM or by a portal, applied over the baseline when the resolved environment matches its name and it exists.
+- **Resolved environment**: The name taken from the environment variable, which selects which override modules are looked for. Not an allowlist — any name is valid, and one nothing ships a module for resolves to the baseline.
+- **Production-critical check**: A configuration check whose failure means a portal must not start in production, as distinct from a recommendation reported only on demand.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: A new portal team following the documentation can bring a reference portal from “no configuration” to a functional production environment within one working day using only the configuration layer and environment variables.
-- **SC-002**: At least 80% of new FairDM portals created after this feature is adopted use the opinionated configuration layer without custom ad hoc configuration structures.
-- **SC-003**: Portal maintainers report that they can adjust project-specific settings (including enabling or disabling addons) without editing the baseline configuration code in at least 90% of common scenarios.
-- **SC-004**: Configuration-related production incidents (for example, misconfigured backing services or missing secrets) are reduced by at least 50% for portals that adopt the new configuration baseline, compared to historical patterns.
-- **SC-005**: Addon authors can document their configuration needs using the shared pattern, and at least one reference addon successfully demonstrates enabling and disabling via the configuration layer without manual file edits beyond the documented entry points.
+- **SC-001**: A portal whose settings module contains only the entry point call reaches a running development server with no other configuration written.
+- **SC-002**: Resolving settings for production and for development produces configurations that differ only in the settings named by the development override module, verified by a test that compares the two resolutions.
+- **SC-003**: Removing any single production-critical value and resolving settings in production fails to start, and the error names every missing or unsafe value in that resolution rather than the first one found. The same resolution under an unrecognised environment name fails identically.
+- **SC-004**: Resolving settings in development with the same values absent starts successfully and emits no configuration-check output.
+- **SC-005**: For every setting FairDM sets, the interrogation command names the layer that produced its resolved value.
+- **SC-006**: No value shipped in FairDM's source allows a portal to start in production with a publicly-known secret, an unrestricted host list, or debug enabled.
+- **SC-007**: A maintainer configuring a new portal for both environments can do so from the single documentation page without reading FairDM's source.
+
+## Out of Scope
+
+- **Container deployment.** A working container stack, its build and its environment file are roadmap R26. This feature says how configuration reaches a portal, not how the portal is shipped.
+- **The addon contract.** What an addon may rely on, how it is discovered and how it is packaged are roadmap R27. This feature defines only where an addon's settings sit and what a broken addon does.
+- **A staging profile.** FairDM ships no staging override module. A portal that wants one supplies its own, through the same mechanism as any other environment.
+- **Adoption and incident-rate outcomes.** The previous version of this spec carried four success criteria measured in adoption percentages and production-incident reductions. Nothing in this repository can observe them.
 
 ## Assumptions
 
-- Portal teams are comfortable working with environment variables and simple environment-specific configuration files, even if they do not write application code regularly.
-- Most production deployments will use a relational database and a network cache service provided by well-established, production-grade technologies.
-- Some portals will deploy in containers and others on managed platforms or virtual machines; the configuration layer must not assume a single hosting model.
-- Future changes to the configuration layer will maintain backwards-compatible entry points so that early adopters remain on a stable upgrade path.
+- Portal teams are comfortable setting environment variables and editing a small Python module, without necessarily writing application code.
+- Production deployments use a relational database and a shared cache service; the development fallbacks exist so that a developer can start without either.
+- Portals are deployed by more than one means, so the configuration layer assumes no particular hosting model.
+- The entry point's signature stays backwards-compatible for portals already calling it, except where this specification removes an argument deliberately.

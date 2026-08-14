@@ -1,8 +1,17 @@
-"""Third-Party Add-on Configurations
+"""Third-Party Package and FairDM-Specific Configuration
 
-Consolidated settings for third-party Django packages and FairDM-specific features.
+Owns: consolidated settings for third-party Django packages (activity
+stream, solo, waffle, flex-menus, easy-icons, import/export, martor, meta
+tags) and FairDM's own framework configuration (identifiers, coordinate
+fields, dataset/project keywords, the MVP page shell) — none of it
+environment-dependent (FR-002, FR-003). Leaves to a portal: its own
+``FAIRDM_CONFIG``/``PAGE_CONFIG`` branding, and any additional identifier
+schemes under ``FAIRDM_ALLOWED_IDENTIFIERS``.
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+Not to be confused with ``fairdm/conf/addons.py``, the addon *discovery*
+mechanism (FR-021, FR-022) — this module's name predates that system.
+
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 # =============================================================================

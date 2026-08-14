@@ -1,33 +1,28 @@
 """Logging Configuration
 
-Production-ready logging with Sentry error tracking and structured logging.
+Owns: the LOGGING dict and Sentry error-tracking initialisation, read from the
+shared ``Env`` declaration with no branching on the resolved environment or on
+``DEBUG`` (FR-002, FR-003) — Sentry initialises whenever ``SENTRY_DSN`` is
+present, full stop. Leaves to a portal: its own logger entries, added by
+updating ``LOGGING["loggers"]`` after ``setup()``.
 
-Production/Staging: Enables Sentry SDK for error tracking (if SENTRY_DSN set)
-Local/Development: Uses console logging (override in local.py)
-
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import logging
 
-import environ
 import sentry_sdk
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
-localenv = environ.Env(
-    SENTRY_DSN=(str, ""),
-    DJANGO_SENTRY_LOG_LEVEL=(int, logging.INFO),
-    SENTRY_ENVIRONMENT=(str, "production"),
-    SENTRY_TRACES_SAMPLE_RATE=(float, 0.0),
-)
+# Access environment variables via shared env instance
+env = globals()["env"]
 
-DEBUG = globals().get("DEBUG", False)
-SENTRY_DSN = localenv("SENTRY_DSN")
-SENTRY_LOG_LEVEL = localenv.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
-if SENTRY_DSN and not DEBUG:
+SENTRY_DSN = env("SENTRY_DSN")
+SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", default=logging.INFO)
+if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[
@@ -39,8 +34,8 @@ if SENTRY_DSN and not DEBUG:
             CeleryIntegration(),
             RedisIntegration(),
         ],
-        environment=localenv("SENTRY_ENVIRONMENT", default="production"),
-        traces_sample_rate=localenv.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
+        environment=env("SENTRY_ENVIRONMENT", default="production"),
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
     )
 
 

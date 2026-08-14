@@ -1,12 +1,15 @@
 """Application Stack Configuration
 
-This module defines the complete Django application stack including:
-- INSTALLED_APPS: All Django apps, third-party packages, and FairDM modules
-- MIDDLEWARE: Request/response processing pipeline
-- TEMPLATES: Template engine configuration
-- Core Django settings: ROOT_URLCONF, SITE_ID, TIME_ZONE, etc.
+Owns: INSTALLED_APPS (Django apps, third-party packages and FairDM modules,
+in an explicit declared order — FR-005), MIDDLEWARE, TEMPLATES, and core
+Django settings such as ROOT_URLCONF, SITE_ID and TIME_ZONE (FR-002, FR-003).
+A portal's ``apps=[...]`` are registered ahead of FairDM's own apps and the
+third-party set, so its templates and static files win at the same path —
+still behind the Django contrib apps that must load first (FR-005, D11).
+Leaves to a portal: its own middleware and template context processors,
+added after ``setup()`` returns.
 
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 import socket
@@ -41,6 +44,11 @@ INSTALLED_APPS = [
     # "django.contrib.gis",
     "django.contrib.humanize",
     "django_cleanup.apps.CleanupConfig",
+    # PORTAL APPS — ahead of FairDM's own apps and the third-party set, so a
+    # portal's template or static file at the same path as FairDM's wins
+    # (FR-005, D11, research R3). Still behind the Django contrib apps above,
+    # which must load first.
+    *globals().get("FAIRDM_APPS", []),
     # FAIRDM CORE
     "fairdm",
     "fairdm.contrib.plugins",
@@ -119,7 +127,6 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "corsheaders",
     "dj_rest_auth",
-    *globals().get("FAIRDM_APPS", []),
 ]
 
 # MIDDLEWARE: Request/response processing pipeline
@@ -266,15 +273,6 @@ DJANGO_SETUP_TOOLS = {
             ("collectstatic", "--noinput"),
             ("preload",),  # django-research-vocabs
             "django_setup_tools.scripts.sync_site_id",
-        ],
-    },
-    "development": {
-        "merge": True,
-        "on_initial": [
-            ("loaddata", "myapp"),
-        ],
-        "always_run": [
-            "django_setup_tools.scripts.some_extra_func",
         ],
     },
     "production": {

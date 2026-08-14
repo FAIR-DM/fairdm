@@ -42,7 +42,9 @@ def get_module_path(module_name: str) -> str:
     return os.path.abspath(spec.origin)
 
 
-def discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[str]:
+def discover_addon_setup_modules(
+    addons: list[str], env_profile: str
+) -> list[tuple[str, str]]:
     """
     Discover setup modules for the given addon packages.
 
@@ -51,7 +53,10 @@ def discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[st
         env_profile: Environment profile (for validation)
 
     Returns:
-        list[str]: List of absolute paths to addon setup module files
+        list[tuple[str, str]]: ``(addon_name, absolute path to its setup
+        module file)`` pairs — one per addon whose setup module was found
+        and passed validation. The name travels with its path so a failure
+        applying that file later can still name the addon it came from.
     """
     from .checks import validate_addon_module
 
@@ -79,7 +84,7 @@ def discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[st
             # Get the absolute path to the setup module
             try:
                 module_file_path = get_module_path(setup_module_path)
-                setup_modules.append(module_file_path)
+                setup_modules.append((addon_name, module_file_path))
                 logger.info(
                     f"✓ Loaded addon setup module: {addon_name} → {setup_module_path}"
                 )
@@ -89,7 +94,7 @@ def discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[st
                 )
 
         except ImproperlyConfigured:
-            # Re-raise configuration errors (production/staging fail-fast)
+            # Re-raise configuration errors (production fail-fast)
             raise
         except ImportError as e:
             logger.error(f"❌ Could not import addon '{addon_name}': {e}")
@@ -126,7 +131,7 @@ def discover_addon_urls(addons: list[str]) -> list[str]:
     return addon_urls
 
 
-def load_addons(addons: list[str], env_profile: str) -> list[str]:
+def load_addons(addons: list[str], env_profile: str) -> list[tuple[str, str]]:
     """
     Load addon configurations and discover their URLs.
 
@@ -136,10 +141,11 @@ def load_addons(addons: list[str], env_profile: str) -> list[str]:
 
     Args:
         addons: List of addon package names
-        env_profile: Environment profile (production, staging, development)
+        env_profile: The resolved environment name (e.g. "production", "development")
 
     Returns:
-        list[str]: List of absolute paths to addon setup module files
+        list[tuple[str, str]]: ``(addon_name, absolute path to its setup
+        module file)`` pairs — see ``discover_addon_setup_modules``.
     """
     logger.info(
         f"Loading {len(addons)} addon(s): {', '.join(addons) if addons else '(none)'}"

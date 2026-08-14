@@ -1,11 +1,11 @@
 """Email Configuration
 
-Production-ready email backend configuration with SMTP.
+Owns: the SMTP email backend and the from/server addresses, composed from
+``EMAIL_*`` and ``DJANGO_SITE_DOMAIN``/``DJANGO_SITE_NAME`` (FR-002, FR-003).
+Leaves to a portal: the mail server itself, and ``DJANGO_DEFAULT_FROM_EMAIL``/
+``DJANGO_SERVER_EMAIL`` when the derived address isn't what it wants.
 
-Production/Staging: Requires EMAIL_* env vars for SMTP configuration
-Local/Development: Can use console backend (override in local.py)
-
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 # Access environment variables via shared env instance

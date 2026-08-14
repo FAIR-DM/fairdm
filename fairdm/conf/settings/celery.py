@@ -1,11 +1,11 @@
 """Celery Configuration
 
-Production-ready background task processing with Celery + Redis broker.
+Owns: background-task processing settings, using the shared Redis broker at
+``REDIS_URL`` for both broker and result backend (FR-002, FR-003). Leaves to
+a portal: task-specific time limits, the beat schedule, and whether a worker
+runs at all — a portal may legitimately have none (research R5).
 
-Production/Staging: Requires REDIS_URL for broker and result backend
-Local/Development: Can use eager mode or local Redis
-
-This is the production baseline. Environment-specific overrides in local.py/staging.py.
+This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
 """
 
 # Access environment variables via shared env instance

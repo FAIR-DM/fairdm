@@ -120,6 +120,21 @@ Project
 - **Sample**: Domain-specific sample types (e.g., RockSample, WaterSample)
 - **Measurement**: Domain-specific measurements on samples (e.g., XRFMeasurement)
 
+### Portal Configuration
+
+A portal gets its entire Django configuration from one call:
+
+```python
+# config/settings.py
+import fairdm
+
+fairdm.setup(apps=["myportal"], addons=["fairdm_discussions"])
+```
+
+FairDM's settings are production-grade in every environment. Each environment is an override layered on top, named by `DJANGO_ENV` and applied only if it exists — so `config/development.py` beside your settings module tunes development, and an environment nobody ships a module for simply gets the production baseline. In production, configuration that would leave the portal unsafe stops it starting.
+
+See [Configuration](docs/portal-development/configuration.md) for the layer order, the environment variables and `manage.py show_config`.
+
 ### Model Registration
 
 The heart of FairDM is its **registry system**. Define your models, register them, and get automatic:

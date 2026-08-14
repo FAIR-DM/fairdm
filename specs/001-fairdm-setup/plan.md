@@ -1,258 +1,127 @@
-# Implementation Plan: Configuration Checks Refactoring
+# Implementation plan — 001 portal configuration
 
-**Branch**: `001-fairdm-setup` | **Date**: 2026-01-20 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/001-fairdm-setup/spec.md`
+**Spec**: `spec.md` · **Research**: `research.md` · **Decisions**: `decisions.md`
+**Epic**: #80 · **Stories**: #130 #131 #132 #135 #133 #134 · **PR**: #136
 
-**Note**: This plan focuses on refactoring the configuration validation system to use Django's check framework instead of runtime logging.
+## Technical context
 
-## Summary
+Django 5.2/6.0 on Python 3.12/3.13, Poetry, pytest with `pytest-django`. The configuration layer is
+`fairdm/conf/`, composed with `django-split-settings` and `django-environ`. It is imported by a
+portal's settings module, which means every part of it runs before Django's app registry exists —
+the single constraint that shapes most of this plan (research R1).
 
-**Primary Requirement**: Migrate configuration validation from runtime logging (which creates noise during normal development) to Django's check framework, allowing explicit validation via `python manage.py check --deploy`.
+Surface this feature owns:
 
-**Technical Approach**:
-
-- Replace `validate_services()` function with individual Django system check functions
-- Use Django's built-in tags (security, database, caching) plus custom `deploy` tag
-- Checks assess production readiness regardless of environment (not environment-aware)
-- Register checks in `FairdmConfConfig.ready()` method
-- Production-critical checks use ERROR severity with `deploy` tag
-- Development hints use WARNING/INFO severity without `deploy` tag
-
-## Technical Context
-
-**Language/Version**: Python 3.13 (current), 3.11+ supported
-**Primary Dependencies**: Django 5.1, django-environ (for environment variable parsing)
-**Storage**: PostgreSQL (production), SQLite (development)
-**Testing**: pytest, pytest-django
-**Target Platform**: Linux server (production), Windows/macOS/Linux (development)
-**Project Type**: Django web application
-**Performance Goals**: Check execution < 1 second for typical configurations
-**Constraints**: Must not slow down normal development workflow (runserver, migrations)
-**Scale/Scope**: ~10 individual check functions covering database, cache, secrets, security, celery
-
-## Constitution Check
-
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
-
-### ✅ **Principle I: FAIR-First Research Portals**
-
-- **Status**: Not applicable - infrastructure change
-- **Rationale**: Configuration checks improve deployment reliability but don't directly affect FAIR compliance
-
-### ✅ **Principle II: Domain-Driven, Declarative Modeling**
-
-- **Status**: Compliant
-- **Rationale**: No data model changes; this is pure infrastructure refactoring
-
-### ✅ **Principle III: Configuration Over Custom Plumbing**
-
-- **Status**: Compliant
-- **Rationale**: Uses Django's built-in check framework (standard Django pattern) instead of custom validation logic
-
-### ✅ **Principle IV: Opinionated, Production-Grade Defaults**
-
-- **Status**: Compliant
-- **Rationale**: Aligns with Django best practices for production deployment validation
-
-### ✅ **Principle V: Test-First Quality & Sustainability (NON-NEGOTIABLE)**
-
-- **Status**: Requires tests
-- **Action**: Must write tests that verify:
-  - Check functions are registered
-  - Checks return appropriate severity and messages
-  - `--deploy` flag correctly filters checks
-  - All existing validation coverage is maintained
-
-### ✅ **Principle VI: Documentation Critical**
-
-- **Status**: Requires documentation update
-- **Action**: Update portal-administration documentation to explain:
-  - How to run configuration checks
-  - When to use `--deploy` flag
-  - What each check validates
-  - How to resolve common issues
-
-### ✅ **Principle VII: Living Demo & Reference Implementation**
-
-- **Status**: Not applicable - no demo app changes needed
-- **Rationale**: Demo app uses fairdm.setup() which will continue to work; checks are framework-level
-
-## Project Structure
-
-### Documentation (this feature)
-
-```text
-specs/001-fairdm-setup/
-├── plan.md              # This file
-├── spec.md              # Feature specification (already exists)
-├── research.md          # Django check framework patterns (to be created)
-└── tasks.md             # Task breakdown (created by /speckit.tasks)
+```
+fairdm/conf/
+├── __init__.py          public re-export of setup()
+├── setup.py             the entry point: environment, env files, layer composition
+├── environment.py       the shared Env declaration and its defaults
+├── settings/            the production baseline, one module per concern
+├── development.py       FairDM's only shipped override module
+├── checks.py            configuration checks
+├── addons.py            addon discovery and settings contribution
+├── orbit.py             observability dashboard access policy
+└── urls.py              the shipped URL baseline
+fairdm/apps.py           FairDMConfig.ready() — where checks execute
+tests/test_conf/         the test package mirroring the above
+docs/portal-development/configuration.md
+docs/portal-administration/configuration-checks.md
 ```
 
-### Source Code (repository root)
+## Constitution check
 
-```text
-fairdm/
-├── conf/
-│   ├── apps.py          # Register checks in FairdmConfConfig.ready()
-│   ├── checks.py        # Convert from validate_services() to check functions
-│   ├── setup.py         # Remove validate_services() call
-│   └── addons.py        # Convert validate_addon_module to check function
-└── ...
+- **Article I (test-first)** — every task pairs a test with its change; the reconciliation rule for
+  this feature is stricter still, so a behaviour with no test is unfinished by definition.
+- **Article X (test structure)** — `tests/test_conf/` mirrors `fairdm/conf/`, one module per source
+  module, `Test<Subject>` classes within. The existing package already follows this; new modules
+  extend it rather than introducing a parallel layout.
+- **Article II / III (simplicity, anti-abstraction)** — this plan removes two mechanisms (the
+  `**overrides` kwarg, the staging profile) and one special case (`SPECTACULAR_SETTINGS` in the
+  entry point). Nothing here adds an abstraction layer; the provenance record is a list of
+  dictionaries, not a settings-object wrapper (research R2).
+- **Article V (security)** — FR-004 and the production-critical subset are this feature's security
+  content. Removing shipped fallbacks for secret material is the substantive change.
+- **Article VI / XVII (documentation)** — a single configuration page is a first-class deliverable
+  (FR-023, FR-024), not a follow-up.
+- **Article XIV / XV (configuration over plumbing, production-grade defaults)** — the feature is
+  the direct expression of both. Article XV's "container-friendly, 12-factor-style configuration via
+  environment variables" is satisfied by the layering; the container stack itself is R26.
 
-tests/
-├── integration/
-│   └── conf/
-│       └── test_checks.py  # Test check registration and behavior
-└── ...
+No article requires an exemption.
 
-docs/
-└── portal-administration/
-    └── configuration-checks.md  # New: How to validate configuration
-```
+## Approach
 
-**Structure Decision**: This is a refactoring within the existing `fairdm.conf` package. No new modules or packages needed. Changes are localized to:
+Six stories, delivered in three phases. The first phase is foundational and sequential because
+everything else composes over it; the rest can proceed independently once it lands.
 
-1. `fairdm/conf/checks.py` - convert validation logic to check functions
-2. `fairdm/conf/apps.py` - register checks in ready() method
-3. `fairdm/conf/setup.py` - remove validate_services() call
-4. Tests and documentation
+### Phase 1 — the layering (US-2, then US-1)
 
-## Complexity Tracking
+US-2 establishes the mechanism and US-1 makes the baseline honest, in that order, because the
+baseline audit is expressed as "this value moves to the development layer", which needs the layer to
+exist.
 
-> **No violations** - this refactoring aligns with Django best practices and constitution principles.
+1. Replace the profile allowlist and the override map in `setup.py` with an existence probe for
+   `fairdm/conf/<environment>.py`, then the same probe for the portal's directory, captured before
+   `__file__` is overwritten (research R4).
+2. Delete `staging.py` and every reference to staging (research R8).
+3. Remove the `**overrides` keyword argument; assignment after the call is the only tail.
+4. Move the `SPECTACULAR_SETTINGS` finalisation out of `setup.py` into `settings/api.py`.
+5. Audit the baseline: no module branches on the environment, no security-critical value carries a
+   working default (research R6), `THUMBNAIL_DEBUG` and the `DJANGO_SETUP_TOOLS` template residue
+   go, docstrings stop naming `local.py` and `staging.py`, `settings/logging.py` uses the shared
+   `Env`.
+6. Recompose `INSTALLED_APPS` so portal apps precede FairDM's (research R3).
 
----
+### Phase 2 — refusing to start (US-3) and interrogation (US-4)
 
-## Phase 0: Research & Pattern Discovery
+**Not independent.** US-3, US-4 and US-6 all rewrite the same layer-composition block in
+`setup.py` — the resolved-environment record, the snapshot-and-diff around each `include()`, and the
+addon layer's position. They run sequentially in that order, or in one worktree, rather than in
+parallel branches that collide on the file the whole feature turns on. US-5 is verification-only and
+runs last, after item 4 has removed the `SPECTACULAR_SETTINGS` special case it asserts is gone.
 
-### Research Questions
+7. Record the resolved environment where `FairDMConfig.ready()` can read it; run the
+   production-critical subset there and raise on any error, aggregating every failure into one
+   message (research R1, R5).
+8. Delete `validate_services()`, its 51 test references and its documented migration path
+   (research R7).
+9. Capture the per-layer provenance record in `setup()` by diffing the scope around each
+   `include()`, and add the management command that reports it (research R2).
 
-1. **Django Check Framework Best Practices**
-   - How to structure check functions (signature, return values)
-   - How to use built-in vs custom tags
-   - How to make checks work with `--deploy` flag
-   - Error message formatting conventions
-   - Registration patterns in AppConfig.ready()
+### Phase 3 — the remaining contracts (US-5, US-6)
 
-2. **Migration Strategy**
-   - How to ensure all existing validation coverage is preserved
-   - How to map current validation logic to appropriate severity levels
-   - Testing strategy for check functions
+10. Prove the override contract across every settings module, and prove that no setting needs
+    special-case handling now that item 4 has landed.
+11. Fix the addon layer's position in the order and its production/non-production failure split, and
+    leave everything else about addons to R27.
 
-3. **Backwards Compatibility**
-   - Does removing validate_services() break any tests or external code?
-   - Are there other callers of validate_services() besides setup.py?
+### Documentation, throughout
 
-### Research Deliverable
+`docs/portal-development/configuration.md` is rewritten to cover the entry point, the five layers,
+the environment variable, the environment files, the check behaviour and the interrogation command,
+using the recommended project structure in every example.
+`docs/portal-administration/configuration-checks.md` loses the migration path and gains the
+production-boot behaviour.
 
-`research.md` containing:
+## Risks
 
-- Django check framework patterns and examples
-- Mapping of current validations to check functions
-- Decision on severity levels for each check
-- Testing approach for check functions
+| Risk | Handling |
+|---|---|
+| Removing the fallback secret key and site domain stops an existing portal starting | Intended. Release-note item; development values move into `development.py` so the development experience is unchanged |
+| Reordering `INSTALLED_APPS` may surface a portal template that was silently inert | Intended, and the point of FR-005. Called out in the PR's risk section |
+| Removing `**overrides` breaks any portal passing settings that way | Documented replacement exists and already works |
+| Raising from `ready()` blocks every management command on a misconfigured production box | Accepted, documented (research R1). The remedy is always to set the variable |
+| The staging removal touches 15 modules, mostly docstrings | Mechanical, and verified by a grep gate in the story's tests |
 
----
+## Out of scope
 
-## Phase 1: Design & Contracts
+The container stack (R26), the addon contract (R27), a staging profile, and the environment-file
+naming convention (research R9 — kept as-is deliberately).
 
-### Design Deliverables
+## Task generation
 
-**No data-model.md needed** - this is pure infrastructure refactoring with no data model changes.
-
-**No contracts/ needed** - no API changes, internal implementation only.
-
-**quickstart.md** - Brief guide for:
-
-- Running `python manage.py check --deploy` before deployment
-- Interpreting check messages
-- Common configuration fixes
-
-### Implementation Design
-
-#### Check Functions Structure
-
-```python
-# fairdm/conf/checks.py
-
-from django.core.checks import Error, Warning, Info, Tags, register
-
-# Custom tag for deploy checks
-class DeployTags:
-    deploy = 'deploy'
-
-@register(Tags.database, DeployTags.deploy)
-def check_database_config(app_configs, **kwargs):
-    """Validate database configuration for production readiness."""
-    errors = []
-    # Check logic here
-    return errors
-
-@register(Tags.security, DeployTags.deploy)
-def check_secret_key(app_configs, **kwargs):
-    """Validate SECRET_KEY configuration."""
-    errors = []
-    # Check logic here
-    return errors
-
-# ... more check functions
-```
-
-#### Check Categories
-
-1. **Database Checks** (Tags.database, deploy)
-   - Database configured (not empty)
-   - Not using SQLite in production contexts
-
-2. **Cache Checks** (Tags.caching, deploy)
-   - Cache backend configured
-   - Not using locmem/dummy cache
-
-3. **Security Checks** (Tags.security, deploy)
-   - SECRET_KEY present and strong
-   - ALLOWED_HOSTS configured (not empty, not wildcard)
-   - DEBUG is False (for production readiness)
-   - HTTPS settings (SECURE_SSL_REDIRECT, SESSION_COOKIE_SECURE, CSRF_COOKIE_SECURE)
-
-4. **Celery Checks** (custom 'celery' tag, deploy)
-   - CELERY_BROKER_URL configured
-   - CELERY_TASK_ALWAYS_EAGER is False (for production readiness)
-
-5. **Development Hints** (no deploy tag, WARNING/INFO level)
-   - Suggestions for SSL redirect
-   - Other optional improvements
-
----
-
-## Post-Phase 1: Agent Context Update
-
-After Phase 1 design is complete, run:
-
-```powershell
-.\.specify\scripts\powershell\update-agent-context.ps1 -AgentType copilot
-```
-
-This will update `.github/instructions/copilot.instructions.md` with any new patterns or technologies introduced by this feature (Django check framework patterns, check registration, etc.).
-
----
-
-## Next Steps
-
-1. **Phase 0 (Research)**: Agent will research Django check framework patterns and create `research.md`
-2. **Phase 1 (Design)**: Agent will create `quickstart.md` with usage guide
-3. **Update Agent Context**: Run update script to capture patterns
-4. **Phase 2 (Tasks)**: Run `/speckit.tasks` to generate task breakdown
-5. **Implementation**: Execute tasks, following test-first discipline
-
----
-
-## Success Criteria
-
-- ✅ No warnings/errors during normal `python manage.py runserver`
-- ✅ Running `python manage.py check --deploy` shows all production readiness issues
-- ✅ All existing validation logic is preserved
-- ✅ Test coverage maintained or improved
-- ✅ Documentation explains how to use configuration checks
-- ✅ `validate_services()` function removed from codebase
-- ✅ Checks registered in `FairdmConfConfig.ready()`
+`tasks.md` is written against this plan and `spec.md` **as though the repository were empty**, then
+reconciled against the code in a separate pass. A task closes only with both a code citation and a
+passing test that exercises it; anything satisfied by code alone stays open with the test as its
+remaining work.

@@ -1,21 +1,149 @@
 """
 FairDM configuration setup entry point.
 
-This module provides the main `setup()` function that portals call to initialize
-their configuration. It handles profile selection, environment loading, and addon integration.
+This module provides ``setup()``, the single call a portal's settings module
+makes to obtain a complete Django configuration (FR-001).
+
+**Resolved environment.** Taken literally from the ``DJANGO_ENV`` environment
+variable, defaulting to ``production`` when unset. Not validated against an
+allowlist — any name is valid, including one nothing ships an override for
+(FR-007, FR-010).
+
+**Environment files**, read in this order, later files not overriding a
+variable already set in the process environment except where noted:
+
+1. ``stack.env``, beside the portal's ``base_dir``, if present.
+2. ``stack.<environment>.env``, beside ``base_dir``, if present.
+3. The explicit ``env_file=`` argument, if given — this one *does* overwrite
+   variables already set, including by the two files above (FR-006).
+
+**Layers**, applied in this order, each later layer overriding the same
+setting in an earlier one (FR-008):
+
+1. The production baseline — every module under ``fairdm/conf/settings/``.
+2. FairDM's own override module for the resolved environment, if it ships
+   one — only ``development.py`` today (FR-009).
+3. Settings contributed by addons named in the ``addons=`` argument.
+4. The portal's own override module for the resolved environment, resolved
+   beside its settings module regardless of directory name (FR-011).
+5. Assignments the portal's settings module makes after ``setup()`` returns —
+   the only supported way to override a FairDM-owned setting (FR-012).
+
+Layers 2 and 4 are both selected by existence, not from a fixed list of
+permitted names: if no module named after the resolved environment exists,
+that layer is skipped without error (FR-010).
 """
 
+import copy
 import inspect
 import logging
 import os
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 from split_settings.tools import include
 
+from . import record
 from .addons import load_addons
 
 logger = logging.getLogger(__name__)
+
+
+#: Value types a layer can alter without rebinding the name. Deep-copied when
+#: a snapshot is taken, so the change is still visible afterwards.
+_MUTABLE_CONTAINERS = (list, dict, set)
+
+
+def _uppercase_scope(scope: dict) -> dict:
+    """Every uppercase key in ``scope`` and its current value — Django's
+    settings convention, also used for the bookkeeping keys ``setup()``
+    injects itself (research R2)."""
+    return {key: value for key, value in scope.items() if key.isupper()}
+
+
+def _snapshot_scope(scope: dict) -> dict:
+    """``_uppercase_scope`` with mutable containers copied out of harm's way.
+
+    A layer does not have to rebind a name to change a setting: FairDM's own
+    ``development.py`` writes ``INSTALLED_APPS += [...]``, and ``+=`` on a
+    list calls ``__iadd__``, mutating the baseline's own object in place. A
+    snapshot that holds a reference to that object sees the mutation on both
+    sides of the diff and concludes nothing was written, which credits the
+    baseline with a value it did not produce.
+    """
+    snapshot = {}
+    for key, value in scope.items():
+        if not key.isupper():
+            continue
+        if isinstance(value, _MUTABLE_CONTAINERS):
+            try:
+                value = copy.deepcopy(value)
+            except Exception:  # pragma: no cover — defensive
+                logger.debug(
+                    f"Could not snapshot {key} for provenance; "
+                    "falling back to identity comparison"
+                )
+        snapshot[key] = value
+    return snapshot
+
+
+def _scratch_scope(scope: dict) -> dict:
+    """A private copy of ``scope`` an addon's setup module can execute
+    against without a change reaching ``scope`` unless deliberately merged
+    in afterwards.
+
+    ``include()`` execs a module directly against whatever dict it is
+    given, so a shallow copy would still share the object a ``+=`` mutates
+    in place — the same hazard ``_snapshot_scope`` guards against, but here
+    it matters even when the module never returns: a discarded scratch copy
+    that shared the baseline's own ``INSTALLED_APPS`` list would have
+    mutated it before raising, corrupting the real scope regardless (T101,
+    T102).
+
+    Only settings are copied. Django reads uppercase names and nothing
+    else, so everything lowercase — the portal's own imports and helpers,
+    and ``__builtins__``, which is a dict in an imported module — stays in
+    the scratch scope by reference. Copying those too would mean merging
+    the copies back over the originals, silently rebinding a container the
+    portal shares with another module to something only its settings file
+    can see (T111).
+    """
+    scratch = {}
+    for key, value in scope.items():
+        if key.isupper() and isinstance(value, _MUTABLE_CONTAINERS):
+            try:
+                value = copy.deepcopy(value)
+            except Exception:  # pragma: no cover — defensive
+                logger.debug(
+                    f"Could not snapshot {key} for an addon's scratch scope; "
+                    "falling back to a shared reference"
+                )
+        scratch[key] = value
+    return scratch
+
+
+def _differs(before_value, after_value) -> bool:
+    """Whether a layer changed this container, comparing by value."""
+    try:
+        return bool(before_value != after_value)
+    except Exception:  # pragma: no cover — defensive
+        return before_value is not after_value
+
+
+def _written_keys(before: dict, after: dict) -> list[str]:
+    """The uppercase keys a layer wrote: names it introduced, names it
+    rebound, and containers it mutated in place."""
+    written = []
+    for key, value in after.items():
+        if key not in before:
+            written.append(key)
+        elif isinstance(value, _MUTABLE_CONTAINERS):
+            if _differs(before[key], value):
+                written.append(key)
+        elif before[key] is not value:
+            written.append(key)
+    return sorted(written)
 
 
 def setup(
@@ -23,25 +151,19 @@ def setup(
     addons: list[str] | None = None,
     base_dir: Path | None = None,
     env_file: str | None = None,
-    **overrides,
 ) -> None:
     """
     Initialize FairDM configuration with environment-specific settings.
 
-    This is the main entry point for portal configuration. It:
-    1. Determines the environment profile (production, staging, development)
-    2. Loads environment variables
-    3. Injects base settings into the caller's global namespace
-    4. Loads addon configurations
-    5. Validates the configuration
-    6. Applies any user overrides
+    The main entry point for portal configuration — see the module docstring
+    for the resolved environment, the environment files, and the five layers
+    this composes into the caller's global namespace.
 
     Args:
         apps: List of portal-specific Django apps to include in INSTALLED_APPS
         addons: List of FairDM addon packages to enable
         base_dir: Project base directory (auto-detected if not provided)
         env_file: Optional path to .env file to load
-        **overrides: Additional settings to override after profile loading
 
     Example:
         >>> import fairdm
@@ -53,19 +175,33 @@ def setup(
     apps = apps or []
     addons = addons or []
 
-    # Determine environment profile
+    # Determine the resolved environment: taken literally from DJANGO_ENV, with
+    # no normalisation and no allowlist (FR-007, FR-010).
     env_profile = os.environ.get("DJANGO_ENV", "production")
-    if env_profile not in ("production", "staging", "development"):
-        logger.warning(
-            f"Unknown DJANGO_ENV='{env_profile}'. Defaulting to 'production'. "
-            "Valid options: production, staging, development"
-        )
-        env_profile = "production"
 
-    logger.info(f"🚀 FairDM Configuration: {env_profile} profile")
+    logger.info(f"🚀 FairDM Configuration: {env_profile} environment")
 
     # Get caller's global namespace (where settings will be injected)
     caller_globals = inspect.stack()[1][0].f_globals
+
+    # Capture the portal's settings-module directory now, before __file__ is
+    # overwritten below for split_settings' relative-include resolution
+    # (research R4). The portal's override module, if any, lives beside it —
+    # anchored to the settings module rather than a hardcoded directory name
+    # (FR-011). A settings module with no usable __file__ (generated, or
+    # imported from an archive) cannot be anchored; the lookup is skipped.
+    portal_settings_dir: Path | None = None
+    caller_file = caller_globals.get("__file__")
+    if caller_file:
+        try:
+            portal_settings_dir = Path(caller_file).resolve(strict=True).parent
+        except OSError:
+            portal_settings_dir = None
+    if portal_settings_dir is None:
+        logger.warning(
+            "Could not determine the portal's settings module directory; "
+            "its environment override module (if any) will not be looked up."
+        )
 
     # Determine base directory
     if not base_dir:
@@ -111,6 +247,13 @@ def setup(
         }
     )
 
+    # The provenance record (FR-019, FR-020, research R2): setup() snapshots
+    # the scope's uppercase keys before and after each layer's include() call
+    # and records the delta as that layer's contribution. A settings module
+    # executes once per process, so a fresh setup() call replaces the record
+    # rather than appending to it.
+    record.reset()
+
     # Load all settings modules from settings/ directory (production baseline)
     logger.info("Loading production baseline settings...")
 
@@ -129,49 +272,118 @@ def setup(
         "settings/api.py",  # REST API (DRF, drf-spectacular, CORS) — Feature 011
     ]
 
+    before = _snapshot_scope(caller_globals)
     include(*settings_modules, scope=caller_globals)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "baseline",
+        str(Path(__file__).parent / "settings"),
+        True,
+        _written_keys(before, after),
+    )
 
-    # Load environment-specific overrides
-    env_override_files = {
-        "development": "development.py",
-        "staging": "staging.py",
-    }
+    # Layer 2 — FairDM's own override module for the resolved environment.
+    # Selected by existence, not from a fixed list of permitted names: FairDM
+    # ships only development.py, but any name is looked up the same way
+    # (FR-009, FR-010).
+    fairdm_override = Path(__file__).parent / f"{env_profile}.py"
+    fairdm_override_found = fairdm_override.exists()
+    before = _snapshot_scope(caller_globals)
+    if fairdm_override_found:
+        logger.info(
+            f"Applying FairDM {env_profile} overrides from {fairdm_override.name}"
+        )
+        include(fairdm_override.name, scope=caller_globals)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "fairdm override",
+        str(fairdm_override),
+        fairdm_override_found,
+        _written_keys(before, after),
+    )
 
-    if env_profile in env_override_files:
-        override_file = env_override_files[env_profile]
-        override_path = Path(__file__).parent / override_file
-        if override_path.exists():
-            logger.info(f"Applying {env_profile} overrides from {override_file}")
-            include(override_file, scope=caller_globals)
-
-    # Load addon configurations
+    # Layer 3 — settings contributed by addons. Each addon's setup module is
+    # applied to a private scratch scope first and merged into the caller's
+    # scope only on success, so a module that raises partway through does
+    # not leave the composed scope holding its own partial writes (edge
+    # case, FR-022) — an isolation include()'s shared-scope contract does
+    # not give an addon on its own. A failure is routed through the same
+    # unloadable-addon path as one that could not be found at all: fail
+    # fast in production, warn and skip elsewhere.
+    applied_addon_modules: list[str] = []
+    before = _snapshot_scope(caller_globals)
     if addons:
-        addon_setup_modules = load_addons(addons, env_profile)
-        if addon_setup_modules:
-            include(*addon_setup_modules, scope=caller_globals)
+        for addon_name, module_path in load_addons(addons, env_profile):
+            scratch = _scratch_scope(caller_globals)
+            try:
+                include(module_path, scope=scratch)
+            except Exception as exc:
+                message = (
+                    f"Addon '{addon_name}' setup module raised while applying "
+                    f"its settings: {exc}"
+                )
+                if env_profile == "production":
+                    raise ImproperlyConfigured(message) from exc
+                logger.warning(message)
+                continue
+            caller_globals.update(scratch)
+            applied_addon_modules.append(module_path)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "addons",
+        ", ".join(applied_addon_modules) if applied_addon_modules else None,
+        bool(applied_addon_modules),
+        _written_keys(before, after),
+    )
 
-    # Apply user overrides
-    if overrides:
-        logger.info(f"Applying {len(overrides)} custom override(s)")
-        caller_globals.update(overrides)
+    # Layer 4 — the portal's own override module for the resolved environment,
+    # resolved beside its settings module rather than a hardcoded directory
+    # (FR-011). Also selected by existence; skipped without error if absent.
+    portal_override: Path | None = None
+    portal_override_found = False
+    before = _snapshot_scope(caller_globals)
+    if portal_settings_dir is not None:
+        portal_override = portal_settings_dir / f"{env_profile}.py"
+        portal_override_found = portal_override.exists()
+        if portal_override_found:
+            logger.info(
+                f"Applying portal {env_profile} overrides from {portal_override}"
+            )
+            include(str(portal_override), scope=caller_globals)
+    after = _uppercase_scope(caller_globals)
+    record.add_layer(
+        "portal override",
+        str(portal_override) if portal_override else None,
+        portal_override_found,
+        _written_keys(before, after),
+    )
 
-    # Finalize SPECTACULAR_SETTINGS: allow portal developers to override
-    # FAIRDM_API_TITLE and FAIRDM_API_DESCRIPTION without touching the dict directly.
-    # This must run AFTER all settings files and overrides are applied so that
-    # portal-level values shadow the FairDM defaults.
-    if "SPECTACULAR_SETTINGS" in caller_globals:
-        from fairdm.api.settings import FAIRDM_API_DESCRIPTION as _default_desc
-        from fairdm.api.settings import FAIRDM_API_TITLE as _default_title
+    # Layer 5 — assignment after this call returns, in the portal's own
+    # settings module. Nothing to do here; that is the portal's own code.
+    #
+    # No FairDM-owned setting requires special-case handling here (D10): the
+    # REST API schema's title and description are finalised entirely within
+    # settings/api.py, the module that owns them. A portal overrides that
+    # module's dict directly after this call, the same ordinary mechanism as
+    # any other FairDM-owned setting.
 
-        spectacular = caller_globals["SPECTACULAR_SETTINGS"]
-        title_override = caller_globals.get("FAIRDM_API_TITLE", _default_title)
-        desc_override = caller_globals.get("FAIRDM_API_DESCRIPTION", _default_desc)
-        spectacular["TITLE"] = title_override
-        spectacular["DESCRIPTION"] = desc_override
-
-    # Note: Configuration validation is now handled by Django's check framework.
+    # Configuration validation is handled entirely by Django's check
+    # framework (FR-018) — see fairdm/conf/checks.py and FairDMConfig.ready().
     # Run `python manage.py check --deploy` to validate production readiness.
-    # The old validate_services() function is deprecated.
+    #
+    # One exception, and only because the check framework cannot reach it:
+    # django-parler validates PARLER_LANGUAGES against LANGUAGES on import of
+    # any parler-model app, which happens before any check runs. This is the
+    # only point ahead of every such app, a portal's own included (D11).
+    from django.conf import global_settings
+
+    from fairdm.conf.checks import raise_on_parler_languages_mismatch
+
+    raise_on_parler_languages_mismatch(
+        caller_globals.get("LANGUAGES", global_settings.LANGUAGES),
+        caller_globals.get("PARLER_LANGUAGES", {}),
+        caller_globals.get("PARLER_DEFAULT_LANGUAGE_CODE"),
+    )
 
     logger.info("✅ Configuration complete")
 
