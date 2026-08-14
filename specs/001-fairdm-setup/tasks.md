@@ -253,7 +253,7 @@ ordering and the baseline-wide audits.
   **Closed (US-2):** rewritten for the five-layer contract. Superseded finding — `docs/portal-development/configuration.md:1` — The page documents the superseded design: three fixed profiles, a 7-step order whose steps 6-7 are **overrides and in-setup() validation, and a section recommending **overrides; it never mentions the five-layer order, the portal override module, or an interrogation command.
 - [x] T104 [P] [US-3] Write `docs/portal-administration/configuration-checks.md` covering the production-critical check subset, the production-boot failure behaviour, and how to run the full check set on demand (FR-015, FR-023)  
   **Done (US-3):** `docs/portal-administration/configuration-checks.md:1` — the production-critical subset and its ids, boot-failure behaviour, and the environment-agnostic on-demand run
-- [ ] T105 [P] [US-1] Update the package README and CHANGELOG for the new `fairdm.setup()` public entry point and the removed `**overrides` argument (Article VI/XVII)  
+- [x] T105 [P] [US-1] Update the package README and CHANGELOG for the new `fairdm.setup()` public entry point and the removed `**overrides` argument (Article VI/XVII)  
   **Open (A3, never_built):** Neither README nor CHANGELOG mentions the entry point, and **overrides is still in the signature.
 
 ## Found during implementation
@@ -263,7 +263,7 @@ ordering and the baseline-wide audits.
 - [x] T107 [US-5] Give the `LANGUAGES` / `PARLER_LANGUAGES` coupling a named Django check, so a portal that narrows `LANGUAGES` gets a FairDM error naming both settings rather than an `ImproperlyConfigured` traceback from inside django-parler (FR-012)  
   **Why:** a concrete instance of the FR-012 promise failing on a setting the baseline composes. Reproducer: delete the `PARLER_LANGUAGES` block from `config/production.py` and run `DJANGO_ENV=production DJANGO_SETTINGS_MODULE=config.settings python -c "import django; django.setup()"`. Reproduced red first, then fixed.  
   **Done:** `fairdm.E400`, registered under `Tags.translation` so `manage.py check` reports it, and applied ahead of parler's own validation, which runs at model-import time before any Django check can. Not gated to production: the underlying crash is not environment-dependent, so gating the message to production would leave development with the bare traceback.
-- [ ] T108 [US-1] Bring the surviving January spec artefacts into line with the settled design or delete them: `specs/001-fairdm-setup/data-model.md` (describes `staging.py` as shipped, and production/staging fail-fast), `specs/001-fairdm-setup/quickstart.md`, `specs/001-fairdm-setup/contracts/settings-sections.md`, and the R1 paragraph at `docs/ROADMAP.md:34`, which still promises three profiles  
+- [x] T108 [US-1] Bring the surviving January spec artefacts into line with the settled design or delete them: `specs/001-fairdm-setup/data-model.md` (describes `staging.py` as shipped, and production/staging fail-fast), `specs/001-fairdm-setup/quickstart.md`, `specs/001-fairdm-setup/contracts/settings-sections.md`, and the R1 paragraph at `docs/ROADMAP.md:34`, which still promises three profiles  
   **Why:** S1 rewrote `spec.md` in place and left its siblings describing the design this feature removed.
 
 ## Coverage

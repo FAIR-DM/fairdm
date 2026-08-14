@@ -29,9 +29,9 @@ The framework these items describe is working code. Each one is carried at the v
 
 ### R1 — Portal configuration in a single call
 
-*Delivered · needs verification · advances G7*
+*Delivered · advances G7*
 
-A portal declares its apps and addons in one call and receives a complete settings baseline, with development, staging and production profiles selected by environment and layered environment files behind them. Deployment-time misconfiguration surfaces as a startup check rather than a runtime failure.
+A portal declares its apps and addons in one call and receives a complete settings baseline. The baseline is production-grade in every environment, and each environment is an override layered over it in a declared order, selected by name and found by whether it exists. FairDM ships an override for development only, and a portal supplies its own for anything else. In production, configuration that would leave the portal unsafe stops it starting rather than surfacing as a runtime failure.
 
 Serves G7.
 

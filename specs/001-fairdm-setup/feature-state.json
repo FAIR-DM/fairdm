@@ -81,7 +81,7 @@
       "priority": "P1",
       "issue": 130,
       "worktree": "/home/sam/projects/fairdm/fairdm-us1",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -866,13 +866,30 @@
         },
         {
           "id": "T105",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "README.md:123",
+              "CHANGELOG.md:12"
+            ],
+            "commands": [
+              "git show --stat HEAD"
+            ]
+          }
         },
         {
           "id": "T108",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/ROADMAP.md:32"
+            ],
+            "commands": [
+              "git rm -r specs/001-fairdm-setup/{CONSOLIDATION_PLAN.md,quickstart.md,data-model.md,checklists,contracts}"
+            ]
+          }
         }
       ]
     },
