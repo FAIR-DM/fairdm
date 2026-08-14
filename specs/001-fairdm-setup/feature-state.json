@@ -3,7 +3,7 @@
   "feature": "001-fairdm-setup",
   "branch": "001-fairdm-setup",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -52,6 +52,11 @@
       "state": "REVIEW",
       "at": "2026-08-14T11:30:00Z",
       "note": "one reviewer, correctness and spec compliance; one critical and three lesser findings, all remedied and mutation-checked by the orchestrator (T114-T116, D21)"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-14T08:17:47Z",
+      "note": "PR #136 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -64,8 +69,8 @@
       "at": null
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-14T08:17:15Z"
     },
     "design_review": {
       "approved_by": "design-panel",
@@ -2348,6 +2353,6 @@
   },
   "pr": {
     "number": 136,
-    "draft": true
+    "draft": false
   }
 }
