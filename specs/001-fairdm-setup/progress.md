@@ -231,3 +231,27 @@ and making the scratch scope a shallow copy reds T113's.
 
 `forge tamper-check` flagged `tests/test_conf/test_addons.py`; adjudicated in D19 — three
 pre-existing tests changed, all three strengthened.
+
+## S6 — review
+
+One reviewer over the 76-file diff, correctness and spec compliance, with vacuous tests as a named
+concern. Verdict `request_changes`: one critical finding, one that followed from it, and two lesser
+ones. Both craft receipts check out against the kit registry.
+
+**Critical.** The production boot refusal gated on `resolved_environment() != "production"` — an exact
+string match — while layer selection resolves an environment by file existence. Reproduced against the
+bundled portal: `DJANGO_ENV=Production`, `prod` and `""` each booted with an empty `SECRET_KEY`, a
+wildcard host list and no database configured, while `production` refused and named four failures. The
+layering was correct in every one of those runs; only the refusal was bypassed. Remedied as T114 and
+recorded as D21, with FR-013, FR-014 and SC-003 amended to name the composed settings rather than the
+string, and ADR 0002 amended so the two mechanisms cannot drift apart again.
+
+**In-scope residue**, both under FR-003 and both remedied: the `DJANGO_SETUP_TOOLS` development block
+ran `loaddata myapp` and a setup-tools function that does not exist (T115), and `THUMBNAIL_DEBUG` was
+on unconditionally in the baseline, which turns a missing source image into a 500 (T116).
+
+All three remedies are mutation-checked. One existing test needed a change as a consequence: the
+template-precedence test boots a subprocess under `DJANGO_ENV=qa` to get the pure baseline, which is
+now checked, so it supplies a production-shaped configuration.
+
+`forge verify` green end to end at 1429 passed, 68 skipped.

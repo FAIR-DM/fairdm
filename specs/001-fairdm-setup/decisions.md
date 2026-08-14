@@ -558,5 +558,6 @@ what they own and carry no environment branch or scaffold):
   re-raises rather than degrading to a blank image when this is on, which turns a missing source file
   into a 500 in production. Off in the baseline, on in `conf/development.py`.
 
-**ADR:** ADR 0002 amended — the exemption is now stated in terms of the shipped override modules, and
-the corrected mistake is recorded in its Why section so it is not reintroduced.
+**ADR:** docs/adr/0002-configuration-checks-run-in-production-only.md — amended rather than added to.
+The exemption is now stated in terms of the shipped override modules, and the corrected mistake is
+recorded in its Why section so it is not reintroduced.

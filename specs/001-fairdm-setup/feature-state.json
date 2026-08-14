@@ -3,7 +3,7 @@
   "feature": "001-fairdm-setup",
   "branch": "001-fairdm-setup",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -47,6 +47,11 @@
     {
       "state": "CONVERGE",
       "at": "2026-08-14T09:00:00Z"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-14T11:30:00Z",
+      "note": "one reviewer, correctness and spec compliance; one critical and three lesser findings, all remedied and mutation-checked by the orchestrator (T114-T116, D21)"
     }
   ],
   "gates": {
@@ -76,6 +81,17 @@
         "DR-009 settings/storage.py does not exist \u2014 T037/T038 renamed to static_media",
         "DR-010 settings/addons.py had no task \u2014 folded into T053",
         "DR-011 FR-013 says the entry point runs the checks; research R1 says it cannot \u2014 carried to the next gate as a wording delta"
+      ]
+    },
+    "review": {
+      "approved_by": "s6-reviewer",
+      "at": "2026-08-14T11:30:00Z",
+      "self_resolved": [
+        "verdict request_changes; receipts craft-review/2026-08-05/57b2f2f3, craft-simplify/2026-08-04/69038ce1 both check out against kit/craft-skills.json",
+        "R-001 CRITICAL the production boot refusal matched the literal string 'production', so Production/prod/'' composed the production baseline and skipped every check on it - reproduced, fixed as T114, spec FR-013/FR-014/SC-003 amended, D21",
+        "R-002 HIGH ADR 0001's guarantee was false for the boot-check path - follows from R-001, ADR 0002 amended with the corrected mistake",
+        "R-003 MEDIUM DJANGO_SETUP_TOOLS scaffold residue (loaddata myapp, some_extra_func) - removed as T115",
+        "R-004 MEDIUM THUMBNAIL_DEBUG unconditional in the baseline - moved to conf/development.py as T116"
       ]
     }
   },
@@ -894,6 +910,41 @@
               "git rm -r specs/001-fairdm-setup/{CONSOLIDATION_PLAN.md,quickstart.md,data-model.md,checklists,contracts}"
             ]
           }
+        },
+        {
+          "id": "T115",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_development.py::TestSetupToolsCommands::test_no_environment_declares_a_scaffold_placeholder"
+            ],
+            "commands": [
+              "poetry run pytest -q",
+              "forge verify"
+            ],
+            "code": [
+              "fairdm/conf/settings/apps.py:255"
+            ]
+          }
+        },
+        {
+          "id": "T116",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_conf/test_development.py::TestDevelopmentDefaults::test_thumbnail_debug_is_a_development_override_not_a_baseline_default"
+            ],
+            "commands": [
+              "poetry run pytest -q",
+              "forge verify"
+            ],
+            "code": [
+              "fairdm/conf/settings/static_media.py:115",
+              "fairdm/conf/development.py:28"
+            ]
+          }
         }
       ]
     },
@@ -1704,6 +1755,24 @@
               "poetry run pre-commit run --files docs/portal-administration/configuration-checks.md"
             ],
             "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T114",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_apps.py::TestUnrecognisedEnvironmentBoot::test_boot_is_refused_for_an_environment_fairdm_ships_no_override_for"
+            ],
+            "commands": [
+              "poetry run pytest -q",
+              "forge verify"
+            ],
+            "code": [
+              "fairdm/apps.py:9",
+              "fairdm/apps.py:89"
+            ]
           }
         }
       ]

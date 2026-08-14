@@ -341,3 +341,11 @@ Evidence at US-4 convergence: `poetry run pytest` — 1401 passed, 70 skipped; `
 
 
 Evidence at US-6 convergence: `poetry run pytest` — 1423 passed, 68 skipped; `poetry run pre-commit run --files <5 touched files>` — every hook passes, mypy and deptry included; `forge verify --base 446f493` — conformance, lint, typecheck, test and build all green. Six mutations red the tests that should catch them: restoring the unguarded `include(*paths, scope=caller_globals)` reds 2, reverting the non-production log to DEBUG reds 1, removing the production raise reds 1, moving the addon layer ahead of FairDM's override reds 2, moving it after the portal's reds 1, and making the scratch scope a shallow copy reds 1.
+
+## Review remedies (S6)
+
+| | Tasks | Done | Notes |
+|---|---|---|---|
+| After review | 115 | 115 | T114 (the boot refusal keys on the composed settings, not the string), T115 (`DJANGO_SETUP_TOOLS` scaffold residue), T116 (`THUMBNAIL_DEBUG` moves to the development override) added and closed at the review gate — see D21 |
+
+Evidence at the review gate: `poetry run pytest` — 1429 passed, 68 skipped; `poetry run pre-commit run --all-files` — every hook passes, mypy and deptry included; `forge verify` — conformance, lint, typecheck, test and build all green. Two mutations red the tests that should catch them: restoring `!= "production"` reds all four cases of the unrecognised-environment boot test, and restoring either piece of baseline residue reds its own test.
