@@ -56,7 +56,9 @@ def settings_module(tmp_path):
     """
     counter = itertools.count()
 
-    def _make(setup_call="fairdm.setup()", after="", directory=None, filename="settings.py"):
+    def _make(
+        setup_call="fairdm.setup()", after="", directory=None, filename="settings.py"
+    ):
         target_dir = directory or tmp_path
         target_dir.mkdir(parents=True, exist_ok=True)
         settings_file = target_dir / filename

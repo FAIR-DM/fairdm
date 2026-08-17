@@ -1,134 +1,361 @@
-# Feature Specification: FairDM Registry System
+# Feature Specification: Model registry and generated components
 
 **Feature Branch**: `002-fairdm-registry`
-**Created**: 2026-01-07
+
+**Created**: 2026-01-07 · **Rewritten**: 2026-08-17
+
 **Status**: Draft
-**Input**: User description: "Core Purpose: The registry system is the central mechanism that transforms FairDM's philosophy of 'configuration over code' into reality..."
+
+**Goals**: G2 — registering a model is enough to get a working portal surface, with configuration
+needed only where a default is wrong.
+
+**Roadmap**: R2 — Model registry and generated components.
+
+**Input**: A portal defines its own sample and measurement types. The framework ships the views,
+URLs, API, admin and import/export that serve them, and cannot know those model classes exist. The
+registry is how a portal declares what it has and how each type should appear, and it is the only
+place that declaration is made.
 
 ## Clarifications
 
-### Session 2026-01-08
+### Session 2026-08-17
 
-- Q: When and how deeply should the registry validate field names specified in configuration (fields, table_fields, form_fields, filterset_fields)? → A: Validate field existence and type compatibility at registration time, defer data validation to runtime
-- Q: When should the registry generate and cache auto-generated components (Forms, Tables, FilterSets, etc.)? → A: Generate and cache all components at registration time (balanced startup cost, zero runtime overhead)
-- Q: What fields should be included by default when users don't specify field lists? → A: Include all user-defined fields, exclude auto-generated fields (id, created_at, updated_at, polymorphic_ctype)
-- Q: How should form submission errors be displayed to users? → A: Use django-crispy-forms default behavior
-- Q: Should the registry limit or warn about the number of columns in table list_fields? → A: No limit or warnings, let developers manage
-
-### Session 2026-01-12
-
-- Q: Should this feature specification be limited to the registry API and component generation only, deferring all UI integration (views, templates, URL routing) to future feature specs? → A: Registry API + Component Generation Only - Registry provides register(), auto-generates classes (Form, Table, FilterSet, Resource, Serializer, ModelAdmin), stores in RegistryEntry, provides introspection API. NO views, templates, or URL patterns. Future specs handle UI integration.
-- Q: How should acceptance criteria be reformulated for this API-only scope? → A: API Introspection & Class Availability - Test that registry methods return correct objects, generated classes have expected attributes, configuration is accessible programmatically
-- Q: Which user stories should be retained, removed, or significantly refactored for the API-only scope? → A: Keep US1 (Registration) + US6 (Programmatic Access) - Core registration mechanics + introspection API. Remove US2-US5 entirely.
-- Q: Which component types should the registry still auto-generate for an API-only feature? → A: All 6 component types - Keep Form, Table, FilterSet, Resource, Serializer, ModelAdmin generation as originally specified
-- Q: What should fairdm_demo demonstrate for this API-only registry feature? → A: Registration Examples + API Tests - Update fairdm_demo with registration.py showing various registration patterns, test files demonstrating how to introspect registry and verify component generation, docstrings linking to docs
-- Q: Should the registry provide one-step component access (`registry.get_table(Model)`) or two-step (`config = registry.get_for_model(Model)` then `config.get_table_class()`)? → A: Two-step API - Better separation of concerns, config object is reusable, matches existing implementation. Registry returns config, config provides component access methods.
-- Q: What field configuration pattern should ModelConfiguration support (single fields list, component-specific lists, or nested config objects)? → A: Parent `fields` with optional custom class overrides - Simple configs use single `fields` list (all components inherit). Advanced users provide custom Form/Table/FilterSet classes directly. No intermediate nested config layer (FormConfig, TableConfig) needed.
-- Q: When should component classes be generated (eager at registration or lazy on first access)? → A: Lazy generation with caching - Components generated on first property access (`config.form`, `config.table`, etc.), cached via `@cached_property`. Balances startup time with runtime performance. Configuration still validated at registration time.
-- Q: What level of detail should the spec provide for nested config classes like FormConfig, TableConfig? → A: Not needed - Removed from spec. Simple configs use `fields` attribute, advanced users provide custom classes directly (form_class, table_class, etc.). No intermediate config layer.
-- Q: What should happen when the same model is registered twice? → A: Raise DuplicateRegistrationError - First registration attempt succeeds, second raises clear error with model name and original registration location. Prevents silent bugs from import ordering issues.
+- Q: Should component classes be cached once generated, or regenerated on each request? → A: No
+  caching. Generating the components a page needs costs 0.18–1.1 ms depending on field count, and
+  Django's own `ModelFormMixin.get_form_class()` regenerates uncached on every request. Caching
+  bought nothing measurable and cost the override hook, because a cached attribute is read without
+  consulting the method a portal may have overridden.
+- Q: Is the public accessor for each component a method or a property? → A: A method,
+  `get_<component>_class()`. This is the pattern Django uses throughout its view and mixin layer,
+  so it is already familiar, and it is overridable. No property alias is provided: two ways to
+  reach one thing is what allowed consumers to drift onto the path that ignores overrides.
+- Q: What happens when a configuration declares both a field list and a custom class for the same
+  component? → A: `ImproperlyConfigured` at registration, following Django's rule for `fields`
+  and `form_class` on `ModelFormMixin`. Silently preferring one and ignoring the other leaves a
+  portal developer with a field list that has no effect and nothing to explain why.
+- Q: Where does configuration validation live, registration or the Django check framework? → A:
+  Registration only. Django runs system checks from management commands, so a check never fires on
+  a production WSGI or ASGI boot, which makes it a weaker guarantee than it appears. Registration
+  happens at import, so it fails on every start.
+- Q: Should validation also check that a field's type suits the component it is listed for, for
+  example refusing a field that cannot be filtered? → A: No. Whether a field is usable by a given
+  component depends on the backend, the declared lookups and third-party field types, so any rule
+  the registry encodes will refuse fields that would have worked. The component libraries already
+  raise on their own terms and are correct more often. Validation covers existence and path
+  resolution only.
+- Q: What happens when code reaches for the configuration of a model that was never registered? →
+  A: Raise, naming the model. Returning `None` turns a missing registration into an
+  `AttributeError` at a call site far from the cause.
+- Q: Should the configuration class remain a dataclass? → A: No. A registration class declares
+  class attributes, which is how `Meta` and `ModelAdmin` are written and what portal developers
+  expect. A dataclass shadows those attributes with instance defaults and then needs bespoke code
+  to copy them back.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Register a Sample Model with Minimal Configuration (Priority: P1)
+### User Story 1 - Register a model and get every component (Priority: P1)
 
-A researcher with basic Python skills has created a custom `RockSample` model and wants to register it with the FairDM registry so that component classes (Form, Table, FilterSet, Resource) are automatically generated and accessible via the registry API.
+A researcher has defined a `RockSample` model and wants the portal to present it. They write a
+configuration class naming the model and the fields that matter, and the framework supplies the
+form, table, filter set, serializer, import and export resource, and admin entry.
 
-**Why this priority**: This is the most fundamental use case—if researchers can't easily register their models with minimal configuration and access generated components, the entire registry system fails its core purpose.
+**Why this priority**: This is the whole promise of the registry. If a field list is not enough to
+get working components, nothing else in the feature matters.
 
-**Independent Test**: Can be fully tested by creating a simple model class, registering it with field list configuration, and verifying via Python API that all component classes are generated, stored in the registry, and have the expected structure.
+**Independent Test**: Register a model with a field list, then ask the configuration for each of the
+six component classes and confirm each is the expected type and covers the declared fields.
 
 **Acceptance Scenarios**:
 
-1. **Given** a researcher has defined a custom Sample model with standard fields (name, description, location), **When** they register it using `@register` decorator with `fields` specified, **Then** the registry successfully registers the model without raising errors
-2. **Given** a Sample model registered with `fields = ['name', 'location']`, **When** a developer calls `config = registry.get_for_model(RockSample)` and then accesses `config.table`, **Then** the property returns a django-tables2.Table class with columns for 'name' and 'location'
-3. **Given** a registered Sample model, **When** a developer calls `config = registry.get_for_model(RockSample)` and then accesses `config.form`, **Then** the property returns a ModelForm class including all fields from `fields` with appropriate widgets
-4. **Given** a registered Sample model, **When** a developer calls `registry.get_for_model(RockSample)`, **Then** the method returns a ModelConfiguration instance with access to all component generation methods
+1. **Given** a `RockSample` model and a configuration declaring `fields = ["name", "location"]`,
+   **When** the configuration class is decorated with `@register`, **Then** registration completes
+   and the model appears in the registry.
+2. **Given** that registration, **When** `get_table_class()` is called, **Then** it returns a
+   `django_tables2.Table` subclass with columns for `name` and `location`.
+3. **Given** that registration, **When** `get_form_class()` is called, **Then** it returns a
+   `ModelForm` subclass whose fields are `name` and `location`.
+4. **Given** that registration, **When** `get_filterset_class()`, `get_serializer_class()`,
+   `get_resource_class()` and `get_admin_class()` are called, **Then** each returns a subclass of
+   its respective base built from the same field list.
+5. **Given** a configuration that declares no `fields` at all, **When** any component is requested,
+   **Then** it is built from the model's own editable fields, with the framework's internal
+   plumbing left out.
+6. **Given** a configuration declaring `table_fields` alongside `fields`, **When** the table and the
+   form are requested, **Then** the table uses `table_fields` and the form uses `fields`.
 
 ---
 
-### User Story 2 - Discover and Query Registered Models Programmatically (Priority: P1)
+### User Story 2 - Replace one component without touching the others (Priority: P1)
 
-A portal developer wants to programmatically access all registered Sample models and their generated components to build advanced portal features (e.g., unified search interfaces, dynamic navigation menus).
+A portal needs a table with a computed column that cannot be described by a field list. The
+developer writes that one `Table` class, attaches it to the configuration, and every other component
+carries on being generated.
 
-**Why this priority**: This enables the registry to be a true central API for portal development. Developers need to introspect registered models, access their configurations, and retrieve generated components without hardcoding model names.
+**Why this priority**: Progressive enhancement is the reason the registry is worth using. Needing
+one custom component must not cost a developer the other five.
 
-**Independent Test**: Can be tested by registering multiple Sample models with different configurations, then calling registry introspection methods and verifying all models are returned with correct metadata and component references.
+**Independent Test**: Register a model with a custom table class and a field list for the rest, then
+confirm the table is the supplied class and the remaining five are still generated.
 
 **Acceptance Scenarios**:
 
-1. **Given** three different Sample models (RockSample, WaterSample, SoilSample) registered with the registry, **When** a developer accesses `registry.samples` property, **Then** it returns a list of all three registered Sample model classes
-2. **Given** a registered Sample model, **When** a developer calls `registry.get_for_model(RockSample)`, **Then** the method returns the ModelConfiguration instance with accessible `fields` attribute and component generation methods
-3. **Given** multiple registered Sample models, **When** a developer iterates over `registry.samples`, **Then** each iteration yields a model class that can be passed to `registry.get_for_model()` to access its configuration
-4. **Given** a registered Sample model with custom `table_class` override, **When** a developer accesses `config.table`, **Then** the property returns the user-provided custom Table class, not an auto-generated one
-5. **Given** registry contains both Sample and Measurement models, **When** a developer accesses `registry.measurements` property, **Then** only Measurement subclasses are returned, not Sample models
+1. **Given** a configuration declaring `table_class = RockSampleTable`, **When**
+   `get_table_class()` is called, **Then** it returns `RockSampleTable` unchanged.
+2. **Given** that same configuration, **When** `get_form_class()` is called, **Then** a generated
+   form is returned, unaffected by the custom table.
+3. **Given** a configuration declaring `admin_class` as the dotted path
+   `"myapp.admin.RockSampleAdmin"`, **When** `get_admin_class()` is called, **Then** the class is
+   imported and returned.
+4. **Given** a configuration whose `table_class` does not subclass `django_tables2.Table`, **When**
+   the model is registered, **Then** registration fails with a message naming the model, the
+   attribute and the expected base class.
+
+---
+
+### User Story 3 - Configuration mistakes stop the process at registration (Priority: P1)
+
+A developer mistypes a field name, or leaves a stale field in a list after renaming a model field.
+The portal refuses to start and says exactly what is wrong, rather than serving a broken page later.
+
+**Why this priority**: The framework's reliability rests on this. A misconfiguration that survives
+startup surfaces as a failed request, in a different file, possibly only for one user role.
+
+**Independent Test**: Attempt registrations with each class of mistake and confirm each raises at
+registration with a message identifying the model, the attribute and the offending value.
+
+**Acceptance Scenarios**:
+
+1. **Given** a configuration declaring `fields = ["nam"]` on a model with a `name` field, **When**
+   the model is registered, **Then** registration fails, and the message names the model, the
+   attribute, the unknown field and `name` as a suggestion.
+2. **Given** a configuration declaring `filterset_fields = ["dataset__nonexistent"]`, **When** the
+   model is registered, **Then** registration fails, because every segment of a related path is
+   resolved and not only the first.
+3. **Given** a configuration declaring both `form_fields` and `form_class`, **When** the model is
+   registered, **Then** registration fails with `ImproperlyConfigured`, because the field list
+   could never take effect.
+4. **Given** a model that is not a concrete subclass of `Sample` or `Measurement`, **When** it is
+   registered, **Then** registration fails naming the two permitted base classes.
+5. **Given** a model that is already registered, **When** it is registered a second time, **Then**
+   registration fails with a message carrying the module and qualified name of the first
+   registration.
+6. **Given** a model that was never registered, **When** its configuration is requested, **Then**
+   the call raises with a message naming the model, rather than returning nothing.
+
+---
+
+### User Story 4 - Build a component in code when a field list cannot say it (Priority: P2)
+
+A portal needs a filter set chosen at startup according to which optional dependency is installed.
+The developer overrides `get_filterset_class()` on the configuration class and returns whatever they
+like. Every part of the framework that needs a filter set for that model gets theirs.
+
+**Why this priority**: Below the first three because a field list or a custom class covers almost
+every case. It earns its place because it is the escape hatch that stops a portal from being blocked
+on a framework change, and because a consistent override point costs nothing to provide.
+
+**Independent Test**: Subclass a configuration, override one accessor, register it, and confirm every
+framework path that needs that component receives the overridden class.
+
+**Acceptance Scenarios**:
+
+1. **Given** a configuration overriding `get_form_class()` to return a hand-written class, **When**
+   the framework asks that configuration for a form class, **Then** the overridden class is
+   returned.
+2. **Given** that same configuration, **When** any other component is requested, **Then** it is
+   generated as normal.
+3. **Given** an overridden accessor, **When** the same accessor is called twice, **Then** the
+   override runs both times, because no result is cached anywhere.
+4. **Given** an overridden accessor, **When** any part of the framework needs that component,
+   **Then** it reaches it through the accessor, so no consumer can receive the generated class in
+   place of the override.
+
+---
+
+### User Story 5 - Find out what a portal has registered (Priority: P2)
+
+A developer building a search page across every sample type asks the registry which types exist and
+gets each one's configuration, without naming any model in their own code.
+
+**Why this priority**: The framework's own API, browse pages and admin all depend on this, and so
+does any addon. It sits below the first three because it is a smaller surface with less to get
+wrong.
+
+**Independent Test**: Register several sample and measurement types, then confirm each introspection
+call returns exactly the expected models and configurations.
+
+**Acceptance Scenarios**:
+
+1. **Given** three registered sample types and two measurement types, **When** `registry.samples`
+   is read, **Then** it returns the three sample models and no measurement models.
+2. **Given** the same, **When** `registry.measurements` is read, **Then** it returns the two
+   measurement models.
+3. **Given** the same, **When** `registry.models` is read, **Then** it returns all five.
+4. **Given** a registered model, **When** `registry.get_for_model()` is called with either the model
+   class or the string `"app_label.model_name"`, **Then** the same configuration is returned for
+   both.
+5. **Given** a model that is not registered, **When** `registry.is_registered()` is called for it,
+   **Then** it returns `False` without raising.
 
 ---
 
 ### Edge Cases
 
-- **What happens when a user registers a model without specifying any field lists?** The system uses sensible defaults: all user-defined fields are included, while auto-generated fields (`id`, `created_at`, `updated_at`, `polymorphic_ctype`) are excluded. This ensures discoverability of user-created fields without cluttering interfaces with technical metadata.
-- **How does the system handle registration conflicts?** If the same model is registered twice, the system MUST raise a `DuplicateRegistrationError` with the model name and location of the original registration. This prevents silent bugs from import ordering issues.
-- **What happens if a user specifies a field in `list_fields` that doesn't exist on the model?** The system should validate field names at registration time and raise a clear `InvalidFieldError` with suggestions for valid field names.
-- **What happens if a custom Form class conflicts with auto-generated field lists?** The custom Form takes precedence, and the registry should not attempt to override user-provided classes. However, it should validate that the custom Form inherits from ModelForm and is compatible with the model.
-- **How does filtering work across relationships?** If `filter_fields` includes a foreign key field like `project__name`, the auto-generated FilterSet should create appropriate nested filters using Django's double-underscore syntax.
-- **How does the registry handle polymorphic relationships?** Since FairDM uses django-polymorphic for Sample/Measurement inheritance, the registry should automatically detect polymorphic models using `Model.__subclasses__()` and the introspection API should correctly categorize models as Sample or Measurement subclasses.
-- **What happens when a model uses translatable fields (django-parler)?** The registry should detect translatable fields and include them in generated components, with the understanding that language switching will be handled by future UI integration specs.
-- **How are component generation errors reported?** All component generation should happen at registration time (during `AppConfig.ready()`), so configuration errors surface immediately during application startup with clear error messages including model name, field name, and suggested fixes.
-- **What happens if a user provides invalid custom component classes?** The registry should validate that custom classes inherit from the expected base classes (e.g., custom Table must inherit from `django_tables2.Table`) and raise clear errors at registration time.
+- **A configuration names no model.** Registration fails, naming the configuration class, because
+  the decorator has nothing to register against.
+- **A field list contains tuples used to group fields for layout.** The grouping is preserved for
+  consumers that want it and flattened before a component is generated, so a grouped list and a
+  plain one produce the same fields.
+- **A field list names a related path such as `dataset__title`.** Every segment is resolved at
+  registration. The component libraries decide whether they can use it.
+- **A model has a many-to-many field with an explicit through model.** It is left out of the default
+  field list, because Django's admin rejects it and a generated admin would fail to load.
+- **A custom admin class does not subclass the polymorphic child admin base.** Registration fails,
+  because Django's admin for a polymorphic child registered against the wrong base misbehaves in
+  ways that are hard to trace back.
+- **Admin site registration fails for a registered model.** The error propagates. A model whose
+  admin silently failed to register looks identical to one nobody asked for.
+- **Two configurations are declared for the same model in different modules.** The second fails, and
+  the message carries where the first one was declared, because import order decides which arrives
+  first and that is not obvious from either file.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The registry MUST provide a `register(model, config_class)` method that accepts a Sample or Measurement model class and an optional configuration class
-- **FR-002**: The registry MUST validate that registered models inherit from `fairdm.core.Sample` or `fairdm.core.Measurement` polymorphic base classes
-- **FR-003**: When `fields` is not specified in the configuration, the registry MUST use a default field list that includes all user-defined model fields while excluding: `id`, `polymorphic_ctype`, `polymorphic_ctype_id`, fields ending with `_ptr` or `_ptr_id` (multi-table inheritance), fields with `auto_now=True`, `auto_now_add=True`, or `editable=False`
-- **FR-004**: The registry MUST auto-generate a `ModelForm` (on first access to `config.form` property) for any registered model that does not provide a custom `form_class`, including only fields specified in `fields` attribute
-- **FR-005**: The registry MUST auto-generate a `django_tables2.Table` (on first access to `config.table` property) for any registered model that does not provide a custom `table_class`, with columns for all fields in `fields` attribute
-- **FR-006**: The registry MUST auto-generate a `django_filters.FilterSet` (on first access to `config.filterset` property) for any registered model that does not provide a custom `filterset_class`, with filters for all fields in `fields` attribute using appropriate filter types based on field types (CharField → CharFilter, DateField → DateFromToRangeFilter, ForeignKey → ModelChoiceFilter)
-- **FR-007**: The registry MUST auto-generate a REST API `ModelSerializer` (on first access to `config.serializer` property) for any registered model that does not provide a custom `serializer_class`, including fields from `fields` attribute and using nested serializers for ForeignKey relationships
-- **FR-008**: The registry MUST auto-generate an `import_export.Resource` (on first access to `config.resource` property) for any registered model that does not provide a custom `resource_class`, supporting CSV import/export for fields in `fields` attribute
-- **FR-009**: The registry MUST auto-generate a Django Admin `ModelAdmin` class (on first access to `config.admin` property) for any registered model that does not provide a custom `admin_class`
-- **FR-010**: The registry MUST provide a `samples` property that returns a list of all registered Sample model classes
-- **FR-011**: The registry MUST provide a `measurements` property that returns a list of all registered Measurement model classes
-- **FR-012**: The registry MUST validate field names at registration time by checking (1) field existence on the model, (2) relationship path validity for double-underscore notation (e.g., `project__title`), and (3) type compatibility with the usage context (e.g., filterable/sortable field types). The registry must raise clear validation errors indicating the invalid field name and suggesting valid alternatives.
-- **FR-013**: The registry MUST raise a `DuplicateRegistrationError` with model name and original registration location if the same model is registered more than once
-- **FR-014**: The registry MUST allow users to override any auto-generated component (Form, Table, FilterSet, Serializer, Resource, ModelAdmin) by providing their own class in the configuration
-- **FR-015**: Auto-generated import/export Resource classes MUST support natural keys for ForeignKey relationships via `use_natural_foreign_keys=True`
-- **FR-016**: The registry MUST handle polymorphic querysets correctly by detecting polymorphic models using `Model.__subclasses__()` and providing introspection methods that correctly categorize Sample vs Measurement subclasses
-- **FR-017**: Auto-generated Forms MUST use appropriate widgets for common field types (DateInput for dates, FileInput for files, Select for ForeignKey/Choice fields)
-- **FR-018**: Auto-generated Forms MUST integrate with django-crispy-forms for Bootstrap 5 styling and layout via `FormHelper`
-- **FR-019**: Auto-generated Tables MUST use django-tables2 Bootstrap 5 templates via `template_name = 'django_tables2/bootstrap5.html'`
-- **FR-020**: Auto-generated FilterSets MUST integrate with django-crispy-forms for consistent filter panel styling
-- **FR-021**: The registry MUST validate configuration at registration time but generate components lazily on first access (e.g., first call to `config.get_form_class()`), caching generated classes for subsequent access to ensure zero runtime overhead after first use
-- **FR-022**: The registry MUST provide a `get_for_model(model)` method that accepts either a model class or string "app_label.model_name" and returns the ModelConfiguration instance for that model
-- **FR-023**: ModelConfiguration instances MUST provide component access properties: `form`, `table`, `filterset`, `resource`, `serializer`, `admin` (implemented as `@cached_property`) that return the appropriate component class (custom or auto-generated)
+Registration and lookup (US1, US3, US5)
+
+- **FR-001**: A `@register` decorator MUST register a configuration class, which MUST declare the
+  model it configures.
+- **FR-002**: Registration MUST reject any model that is not a concrete subclass of `Sample` or
+  `Measurement`.
+- **FR-003**: Registering a model twice MUST raise `DuplicateRegistrationError`, carrying the model
+  and the module and qualified name of the first registration.
+- **FR-004**: The registry MUST provide `get_for_model()`, accepting a model class or the string
+  `"app_label.model_name"` and returning that model's configuration.
+- **FR-005**: The registry MUST provide `samples`, `measurements` and `models` listing registered
+  models, `get_all_configs()` listing their configurations, and `is_registered()` answering without
+  raising.
+- **FR-006**: Requesting the configuration of an unregistered model MUST raise, naming the model.
+  No accessor may return `None` in its place.
+- **FR-007**: Registering a model MUST register its admin class with the Django admin site, and any
+  failure to do so MUST propagate.
+
+Component generation (US1)
+
+- **FR-008**: A configuration MUST expose exactly six accessors, each returning a class:
+  `get_form_class()`, `get_table_class()`, `get_filterset_class()`, `get_serializer_class()`,
+  `get_resource_class()` and `get_admin_class()`.
+- **FR-009**: When no custom class is declared for a component, its accessor MUST return a class
+  generated from that component's resolved field list.
+- **FR-010**: Field resolution MUST take the component-specific list if declared, otherwise the
+  shared `fields` list, otherwise the default field list.
+- **FR-011**: The default field list MUST include the model's own editable fields and exclude `id`,
+  polymorphic type columns, multi-table inheritance pointers, fields with `auto_now` or
+  `auto_now_add`, fields with `editable=False`, reverse relations, and many-to-many fields with an
+  explicit through model.
+- **FR-012**: A field list MAY contain tuples grouping field names for layout, and MUST be flattened
+  before a component is generated.
+- **FR-013**: A field list MAY name related fields using Django's double-underscore paths.
+- **FR-014**: No component class may be cached. Each call to an accessor MUST return the result of
+  generating or resolving it again.
+- **FR-015**: Generating any component MUST NOT require database access.
+
+Customisation (US2, US4)
+
+- **FR-016**: A configuration MAY declare a custom class for any component, as either a class or a
+  dotted import path, and its accessor MUST return that class unchanged.
+- **FR-017**: A declared custom class MUST be validated at registration as a subclass of the base
+  its component requires.
+- **FR-018**: A custom admin class for a `Sample` or `Measurement` subclass MUST subclass the
+  framework's polymorphic child admin base for that hierarchy.
+- **FR-019**: Every accessor MUST be overridable on a configuration subclass.
+- **FR-020**: Every consumer inside the framework MUST obtain a component class by calling its
+  accessor. No attribute or property may expose a component class in a way that bypasses an
+  override.
+
+Validation (US3)
+
+- **FR-021**: All configuration validation MUST happen while the model is being registered, and MUST
+  raise rather than collect.
+- **FR-022**: Every name in every field list MUST be validated for existence, and every segment of a
+  related path MUST be resolved.
+- **FR-023**: Declaring both a component's field list and its custom class MUST raise
+  `ImproperlyConfigured`, naming both attributes.
+- **FR-024**: A validation error MUST name the model, the attribute, the offending value, and a
+  suggestion where a close match exists.
+- **FR-025**: The registry MUST NOT contribute Django system checks. Validation exists in one place.
+
+Metadata (US1, US5)
+
+- **FR-026**: A configuration MAY carry structured metadata about the model: description, authority,
+  keywords, repository URL, citation and maintainer.
+- **FR-027**: A configuration MUST supply a display name and description, defaulting to the model's
+  own verbose name where none is declared.
 
 ### Non-Functional Requirements
 
-- **NFR-001**: Configuration validation at registration time MUST complete within 10ms per registered model on typical development hardware (to ensure application startup remains fast even with 20+ registered models). Component generation on first access MUST complete within 50ms per component type.
-- **NFR-002**: All auto-generated components MUST have zero additional overhead during component class instantiation (no lazy generation, metaclass inspection, or dynamic class creation at runtime)
+- **NFR-001**: Validating every registered model's configuration MUST take under 5 ms in total for
+  100 registered models, so that startup cost stays invisible during development.
+- **NFR-002**: Requesting all six components for one model MUST take under 5 ms, so that a view
+  that builds components per request is never the reason a page is slow.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities
 
-- **Registry**: The central singleton object that stores all registered models and their configurations. Accessed via `@register` decorator for registration. Provides `get_for_model(model)` method to retrieve ModelConfiguration instances and `samples`/`measurements` properties to list registered models.
-- **ModelConfiguration**: A user-defined class (decorated with `@register`) that specifies how a model should be configured for component generation. Contains `model` attribute (required), `fields` attribute (list of field names for all components), and optional custom class overrides (`form_class`, `table_class`, `filterset_class`, `resource_class`, `serializer_class`, `admin_class`).
-- **Registered Model**: A Sample or Measurement model class that has been explicitly registered with the registry, along with its associated Configuration Class. The registry stores the model class, configuration object, and references to all auto-generated or custom components.
-- **Auto-Generated Component**: A Form, Table, FilterSet, Serializer, Resource, or ModelAdmin class that the registry creates dynamically based on a model's configuration when the user does not provide a custom class. All auto-generated components are created eagerly at registration time (not lazily on first use) and cached in the registry for zero-overhead reuse. This ensures all configuration errors surface during application startup rather than at runtime.
-
-- **Field List**: A list of model field names specified in the `fields` attribute of ModelConfiguration (e.g., `fields = ['name', 'date_collected', 'location']`) that determines which fields are used by all auto-generated components (tables, forms, filters, serializers, import/export resources). Field names can use Django's double-underscore syntax for related fields (e.g., `project__title`).
+- **Registry**: The single object holding every registration for a running portal. Maps a model to
+  its configuration and answers which models are registered.
+- **ModelConfiguration**: A class a portal writes, declaring the model, the fields each component
+  should use, and any custom component classes. It is where a portal states how its model appears,
+  and the class a portal subclasses to override an accessor.
+- **Component**: One of the six classes the framework needs per model. Either generated from a field
+  list or supplied by the portal.
+- **Field list**: The names a component is built from. Declared once as `fields` for every
+  component, or per component where they differ, or left out entirely for the framework to decide.
+- **Model metadata**: Description, authority, keywords, repository URL, citation and maintainer for a
+  registered model, so a model can describe and credit itself.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: A developer can register a new Sample model with FairDM and access its auto-generated Form, Table, FilterSet, Serializer, Resource, and ModelAdmin classes via registry accessor methods in under 10 minutes
-- **SC-002**: The registry supports at least 90% of common component generation use cases through configuration alone, without requiring custom Form/Table/FilterSet classes
-- **SC-003**: All auto-generated components use consistent configuration patterns and Bootstrap 5 styling classes
-- **SC-004**: Developers can query the registry API to discover registered models via `registry.samples`/`registry.measurements` properties and access their configurations via `registry.get_for_model(Model)`
-- **SC-005**: Users registering models with only `model` and `fields` specified get sensible, functional defaults for all components (forms, tables, filters all use the same field list)
-- **SC-006**: Advanced users can progressively override individual auto-generated components (e.g., just the Table) without needing to reimplement other components (FilterSet, Form, etc.)
-- **SC-007**: The registry correctly handles polymorphic model hierarchies, distinguishing between Sample and Measurement subclasses via `samples` and `measurements` properties
-- **SC-008**: Generated components are cached at startup, ensuring zero runtime generation overhead and immediate error detection
-- **SC-009**: The demo app demonstrates registration of at least 3 custom Sample types and 2 Measurement types with working component generation and introspection tests
+- **SC-001**: A model registered with nothing but a model reference and a field list yields all six
+  component classes, each covering exactly the declared fields.
+- **SC-002**: A model registered with no field list at all yields all six component classes, and
+  none of them exposes an internal column such as `id` or a polymorphic type pointer.
+- **SC-003**: Replacing one component with a custom class leaves the other five generated and
+  unchanged.
+- **SC-004**: Overriding any accessor on a configuration subclass changes what every part of the
+  framework receives for that component, with no consumer able to reach the generated class instead.
+- **SC-005**: Every class of configuration mistake in User Story 3 is refused while the model is
+  being registered, and each message names the model, the attribute and the offending value.
+- **SC-006**: A portal developer can list every registered sample and measurement type, and reach
+  each one's configuration, without naming a model class.
+- **SC-007**: Validation for 100 registered models completes in under 5 ms, and requesting all six
+  components for one model completes in under 5 ms.
+- **SC-008**: Field resolution, field validation and field flattening each exist once in the
+  codebase.
+- **SC-009**: The demo portal registers at least three sample types and two measurement types,
+  covering a bare field list, per-component field lists, a custom component class, and an overridden
+  accessor.
+
+## Assumptions
+
+- Django REST Framework, django-tables2, django-filter, django-import-export and django-crispy-forms
+  are hard dependencies of the framework. No component generation path needs to handle one of them
+  being absent.
+- Registration happens while Django populates the app registry, so a configuration can rely on model
+  classes being importable and must not rely on the database being reachable.
+- `Sample` and `Measurement` remain polymorphic base classes that portals subclass, and the base
+  classes themselves are never registered.
+- Only concrete model classes are registered. Abstract models have no components.
+
+## Out of scope
+
+- Views, URL patterns and templates. The registry supplies component classes and nothing else
+  assembles them into pages.
+- The plugin registry, which attaches behaviour to detail views and is a separate mechanism with a
+  separate specification.
+- Rewiring existing framework consumers that currently reach around the registry. Those are recorded
+  against their own features and handled separately, so this specification is not blocked on them.
+- Caching or memoising component classes. Should profiling ever justify it, it is a change with its
+  own measurement behind it.

@@ -91,9 +91,9 @@ class TestDemoRegistryIntrospection:
             config = registry.get_for_model(model_class)
 
             # Access auto-generated components
-            form_class = config.form
-            table_class = config.table
-            filterset_class = config.filterset
+            form_class = config.get_form_class()
+            table_class = config.get_table_class()
+            filterset_class = config.get_filterset_class()
 
             # Verify components were generated
             assert form_class is not None
@@ -183,35 +183,33 @@ class TestDemoRegistryIntrospection:
         """Demonstrate different patterns for accessing auto-generated components."""
         # Pattern 1: Direct model access
         rock_config = registry.get_for_model(RockSample)
-        rock_form = rock_config.form
-        rock_table = rock_config.table
+        rock_form = rock_config.get_form_class()
+        rock_table = rock_config.get_table_class()
 
         # Pattern 2: Iteration with component caching
-        component_cache = {}
+        components_by_model = {}
         for model_class in registry.models:
             config = registry.get_for_model(model_class)
-            component_cache[model_class] = {
-                "form": config.form,
-                "table": config.table,
-                "filterset": config.filterset,
-                "serializer": config.serializer,
+            components_by_model[model_class] = {
+                "form": config.get_form_class(),
+                "table": config.get_table_class(),
+                "filterset": config.get_filterset_class(),
+                "serializer": config.get_serializer_class(),
             }
 
-        # Verify cache was built
-        assert len(component_cache) == len(DEMO_REGISTERED_MODELS)
-        assert RockSample in component_cache
-        assert component_cache[RockSample]["form"] is not None
+        # Every registered model produced a full set of components
+        assert len(components_by_model) == len(DEMO_REGISTERED_MODELS)
+        assert RockSample in components_by_model
+        assert components_by_model[RockSample]["form"] is not None
 
         # Pattern 3: Conditional component access
         for model_class in registry.samples:
             config = registry.get_for_model(model_class)
 
             # Only access components we need
-            form = (
-                config.form_class
-                if hasattr(config, "form_class") and config.form_class
-                else config.form
-            )
+            # The accessor already resolves a supplied class, so a caller never
+            # needs to check for one.
+            form = config.get_form_class()
 
             assert form is not None
             print(f"{model_class.__name__} uses form: {form.__name__}")
@@ -252,7 +250,7 @@ class TestDemoRegistryAPIPatterns:
             config = registry.get_for_model(model_class)
 
             # Access the auto-generated admin class
-            admin_class = config.admin
+            admin_class = config.get_admin_class()
 
             # Verify admin class was generated
             assert admin_class is not None
@@ -269,7 +267,7 @@ class TestDemoRegistryAPIPatterns:
             config = registry.get_for_model(model_class)
 
             # Access serializer for API
-            serializer = config.serializer
+            serializer = config.get_serializer_class()
 
             # Build API metadata
             api_metadata[model_class.__name__.lower()] = {

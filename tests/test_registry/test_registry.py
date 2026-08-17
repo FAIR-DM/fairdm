@@ -22,6 +22,7 @@ from fairdm.core.models import Measurement, Sample
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
 from fairdm_demo.models import CustomParentSample, CustomSample, ExampleMeasurement
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 User = get_user_model()
 
@@ -74,28 +75,33 @@ class TestModelConfigurationProtocolCompliance:
         """Test that ModelConfiguration has all required property methods."""
         config = ModelConfiguration(model=TestSample, fields=["test_field"])
 
-        # Property methods from Protocol
-        assert hasattr(config, "form")
-        assert hasattr(config, "table")
-        assert hasattr(config, "filterset")
-        assert hasattr(config, "serializer")
-        assert hasattr(config, "resource")
-        assert hasattr(config, "admin")
+        # The accessors are the whole public surface for components. No attribute
+        # returns a component class, because one that did would bypass an override.
+        for component in (
+            "form",
+            "table",
+            "filterset",
+            "serializer",
+            "resource",
+            "admin",
+        ):
+            assert hasattr(config, f"get_{component}_class")
+            assert not hasattr(config, component)
 
-        # Verify properties return correct types
-        assert config.form is not None
-        assert config.table is not None
-        assert config.filterset is not None
-        assert config.serializer is not None
-        assert config.resource is not None
-        assert config.admin is not None
+        # Verify the accessors return classes
+        assert config.get_form_class() is not None
+        assert config.get_table_class() is not None
+        assert config.get_filterset_class() is not None
+        assert config.get_serializer_class() is not None
+        assert config.get_resource_class() is not None
+        assert config.get_admin_class() is not None
 
     def test_model_configuration_utility_methods(self):
         """Test that ModelConfiguration has utility methods from Protocol."""
         config = ModelConfiguration(model=TestSample, fields=["test_field"])
 
-        # Utility methods
-        assert hasattr(config, "clear_cache")
+        # Utility methods. There is no clear_cache, because nothing is cached.
+        assert not hasattr(config, "clear_cache")
         assert hasattr(config, "get_display_name")
         assert hasattr(config, "get_description")
         assert hasattr(config, "get_slug")
@@ -105,8 +111,7 @@ class TestModelConfigurationProtocolCompliance:
         assert isinstance(config.get_description(), str)
         assert isinstance(config.get_slug(), str)
 
-        # Test clear_cache doesn't raise
-        config.clear_cache()  # Should not raise
+        # There is no cache to clear.
 
     def test_model_configuration_class_methods(self):
         """Test that ModelConfiguration has class methods from Protocol."""
@@ -204,6 +209,8 @@ class TestFairDMRegistryProtocolCompliance:
             class Meta:
                 app_label = "test_app"
 
+        # Model eligibility is the registry's decision, per FR-002, so building the
+        # configuration is legal and registering it is what fails.
         invalid_config = ModelConfiguration(model=InvalidModel, fields=["name"])
         with pytest.raises(ConfigurationError):
             clean_registry.register(InvalidModel, invalid_config)
@@ -256,11 +263,11 @@ class TestProtocolTypeCompatibility:
         from import_export.resources import ModelResource
 
         # These should not raise type errors
-        form = config.form
-        table = config.table
-        filterset = config.filterset
-        admin_class = config.admin
-        resource = config.resource
+        form = config.get_form_class()
+        table = config.get_table_class()
+        filterset = config.get_filterset_class()
+        admin_class = config.get_admin_class()
+        resource = config.get_resource_class()
 
         # Verify base class compatibility
         assert issubclass(form, ModelForm)
@@ -577,12 +584,12 @@ class TestRegistryIteration:
             assert config.model is model
 
             # Verify component properties are accessible
-            assert config.form is not None
-            assert config.table is not None
-            assert config.filterset is not None
-            assert config.serializer is not None
-            assert config.resource is not None
-            assert config.admin is not None
+            assert config.get_form_class() is not None
+            assert config.get_table_class() is not None
+            assert config.get_filterset_class() is not None
+            assert config.get_serializer_class() is not None
+            assert config.get_resource_class() is not None
+            assert config.get_admin_class() is not None
 
     def test_iterate_over_measurements_and_access_components(self, clean_registry):
         """Verify iteration over registry.measurements and component access works."""
@@ -622,8 +629,8 @@ class TestRegistryIteration:
             assert config.model is model
 
             # Verify component properties are accessible
-            assert config.form is not None
-            assert config.table is not None
+            assert config.get_form_class() is not None
+            assert config.get_table_class() is not None
 
     def test_iterate_over_all_models_using_models_property(self, clean_registry):
         """Verify iteration over registry.models returns all registered models."""
@@ -813,40 +820,40 @@ class TestBasicRegistration:
         registered_config = clean_registry.get_for_model(BasaltRockSample)
 
         # Access form property (should not raise)
-        form_class = registered_config.form
+        form_class = registered_config.get_form_class()
         assert form_class is not None
         assert hasattr(form_class, "base_fields")
 
         # Access table property (should not raise)
-        table_class = registered_config.table
+        table_class = registered_config.get_table_class()
         assert table_class is not None
         assert hasattr(table_class, "base_columns")
 
         # Access filterset property (should not raise)
-        filterset_class = registered_config.filterset
+        filterset_class = registered_config.get_filterset_class()
         assert filterset_class is not None
         assert hasattr(filterset_class, "base_filters")
 
         # Access serializer property (should not raise)
-        serializer_class = registered_config.serializer
+        serializer_class = registered_config.get_serializer_class()
         assert serializer_class is not None
         # DRF serializers have fields attribute
         instance = serializer_class()
         assert hasattr(instance, "fields")
 
         # Access resource property (should not raise)
-        resource_class = registered_config.resource
+        resource_class = registered_config.get_resource_class()
         assert resource_class is not None
         # import-export resources have fields attribute
         assert hasattr(resource_class, "fields")
 
         # Access admin property (should not raise)
-        admin_class = registered_config.admin
+        admin_class = registered_config.get_admin_class()
         assert admin_class is not None
         assert hasattr(admin_class, "model")
         assert admin_class.model is BasaltRockSample
 
-    def test_cached_property_behavior(self, clean_registry):
+    def test_components_are_rebuilt_on_every_call(self, clean_registry):
         """Test that component properties are cached after first access."""
 
         class LimestoneRockSample(Sample):
@@ -860,13 +867,13 @@ class TestBasicRegistration:
         clean_registry.register(LimestoneRockSample)
         config = clean_registry.get_for_model(LimestoneRockSample)
 
-        # First access - generates the class
-        form_class1 = config.form
+        # Each call generates the class again: nothing is cached, so an override of
+        # the accessor is honoured on every call rather than only the first.
+        form_class1 = config.get_form_class()
+        form_class2 = config.get_form_class()
 
-        # Second access - should return same cached instance
-        form_class2 = config.form
-
-        assert form_class1 is form_class2
+        assert form_class1 is not form_class2
+        assert form_class1.base_fields.keys() == form_class2.base_fields.keys()
 
     def test_register_multiple_models(self, clean_registry):
         """Test registering multiple models simultaneously."""
@@ -931,34 +938,34 @@ class TestRegistrationBasics:
     def test_register_sample_with_minimal_config(self, clean_registry, db):
         """Test registering a Sample with minimal configuration."""
         config = fairdm.config.ModelConfiguration(
-            model=Sample,
+            model=ConcreteSample,
             display_name="Test Sample",
         )
-        registry.register(Sample, config=config)
+        registry.register(ConcreteSample, config=config)
 
         # Check that model was registered
-        assert Sample in registry._registry
+        assert ConcreteSample in registry._registry
 
         # Check configuration
-        stored_config = registry.get_for_model(Sample)
-        assert stored_config.model == Sample
+        stored_config = registry.get_for_model(ConcreteSample)
+        assert stored_config.model == ConcreteSample
         assert stored_config.display_name == "Test Sample"
 
     def test_register_measurement_with_config(self, clean_registry, db):
         """Test registering a Measurement with configuration."""
         config = fairdm.config.ModelConfiguration(
-            model=Measurement,
+            model=ConcreteMeasurement,
             display_name="Test Measurement",
             table_fields=["name", "sample", "tags"],
             filterset_fields=["sample", "tags"],
         )
-        registry.register(Measurement, config=config)
+        registry.register(ConcreteMeasurement, config=config)
 
         # Check registration
-        assert Measurement in registry._registry
+        assert ConcreteMeasurement in registry._registry
 
         # Check config fields
-        stored_config = registry.get_for_model(Measurement)
+        stored_config = registry.get_for_model(ConcreteMeasurement)
         assert stored_config.display_name == "Test Measurement"
         assert stored_config.table_fields == ["name", "sample", "tags"]
         assert stored_config.filterset_fields == ["sample", "tags"]
@@ -968,23 +975,23 @@ class TestRegistrationBasics:
         from fairdm.registry.exceptions import DuplicateRegistrationError
 
         config1 = fairdm.config.ModelConfiguration(
-            model=Sample,
+            model=ConcreteSample,
             display_name="First Config",
         )
-        registry.register(Sample, config=config1)
+        registry.register(ConcreteSample, config=config1)
 
         # Should be registered
-        assert Sample in registry._registry
-        first_config = registry.get_for_model(Sample)
+        assert ConcreteSample in registry._registry
+        first_config = registry.get_for_model(ConcreteSample)
         assert first_config.display_name == "First Config"
 
         # Attempt duplicate registration
         config2 = fairdm.config.ModelConfiguration(
-            model=Sample,
+            model=ConcreteSample,
             display_name="Second Config",
         )
         with pytest.raises(DuplicateRegistrationError):
-            registry.register(Sample, config=config2)
+            registry.register(ConcreteSample, config=config2)
 
 
 class TestRegistrationValidation:
@@ -1006,7 +1013,7 @@ class TestRegistrationValidation:
         with pytest.raises(ConfigurationError) as exc_info:
             registry.register(NotSampleModel, config=config)
 
-        assert "must inherit from Sample or Measurement" in str(exc_info.value)
+        assert "must be a concrete subclass of" in str(exc_info.value)
 
 
 class TestFieldConfiguration:
@@ -1015,15 +1022,15 @@ class TestFieldConfiguration:
     def test_field_configuration(self, clean_registry, db):
         """Test field configuration options with component-specific fields."""
         config = fairdm.config.ModelConfiguration(
-            model=Sample,
+            model=ConcreteSample,
             display_name="Field Test Sample",
             table_fields=["name", "tags"],
             form_fields=["name", "tags"],
             filterset_fields=["tags"],
         )
-        registry.register(Sample, config=config)
+        registry.register(ConcreteSample, config=config)
 
-        stored_config = registry.get_for_model(Sample)
+        stored_config = registry.get_for_model(ConcreteSample)
         assert stored_config.table_fields == ["name", "tags"]
         assert stored_config.form_fields == ["name", "tags"]
         assert stored_config.filterset_fields == ["tags"]
@@ -1031,18 +1038,18 @@ class TestFieldConfiguration:
     def test_default_fields_with_no_specification(self, clean_registry, db):
         """Test that sensible defaults are used when no fields specified."""
         config = fairdm.config.ModelConfiguration(
-            model=Sample,
+            model=ConcreteSample,
             display_name="Minimal Sample",
         )
-        registry.register(Sample, config=config)
+        registry.register(ConcreteSample, config=config)
 
-        stored_config = registry.get_for_model(Sample)
+        stored_config = registry.get_for_model(ConcreteSample)
 
         # Component properties should use get_default_fields() when no fields specified
         # Access the properties to trigger auto-generation
-        form_class = stored_config.form
-        table_class = stored_config.table
-        filterset_class = stored_config.filterset
+        form_class = stored_config.get_form_class()
+        table_class = stored_config.get_table_class()
+        filterset_class = stored_config.get_filterset_class()
 
         assert form_class is not None
         assert table_class is not None
@@ -1055,22 +1062,22 @@ class TestRegistryAccess:
     def test_get_for_model_by_class(self, clean_registry, db):
         """Test retrieving registered models by class."""
         config = fairdm.config.ModelConfiguration(
-            model=Sample,
+            model=ConcreteSample,
             display_name="Retrieval Test",
         )
-        registry.register(Sample, config=config)
+        registry.register(ConcreteSample, config=config)
 
         # Test get_for_model method with model class
-        retrieved_config = registry.get_for_model(Sample)
+        retrieved_config = registry.get_for_model(ConcreteSample)
         assert retrieved_config is not None
-        assert retrieved_config.model == Sample
+        assert retrieved_config.model == ConcreteSample
         assert retrieved_config.display_name == "Retrieval Test"
 
     def test_get_for_model_nonexistent_raises_keyerror(self, clean_registry):
         """Test that getting a non-registered model raises KeyError."""
         # Test with model class - raises KeyError when not registered
         with pytest.raises(KeyError):
-            registry.get_for_model(Sample)
+            registry.get_for_model(ConcreteSample)
 
 
 @pytest.mark.django_db
@@ -1158,8 +1165,8 @@ class TestDemoModelIntegration:
 
         # CustomSample specifies custom filterset and table classes, so the
         # resolved components are those classes rather than generated ones.
-        assert config.filterset is CustomSampleFilter
-        assert config.table is CustomSampleTable
+        assert config.get_filterset_class() is CustomSampleFilter
+        assert config.get_table_class() is CustomSampleTable
 
 
 # ============================================================================
@@ -1238,13 +1245,12 @@ class TestSampleRegistration:
 
     def test_unregistered_sample_type_raises_error(self):
         """Test that accessing unregistered model raises appropriate error."""
-        from fairdm.core.sample.models import Sample
 
         # We can't create a test model on the fly because Django requires app_label
         # So we'll just test that a model that's not registered raises KeyError
         # We'll use the base Sample class which is not registered
         with pytest.raises(KeyError, match="not registered with the FairDM registry"):
-            registry.get_for_model(Sample)
+            registry.get_for_model(ConcreteSample)
 
 
 @pytest.mark.django_db

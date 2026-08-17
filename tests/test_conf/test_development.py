@@ -31,7 +31,9 @@ class TestDevelopmentDefaults:
 
         assert module.SECRET_KEY == ""
 
-    def test_development_allowed_hosts_is_localhost(self, isolated_env, settings_module):
+    def test_development_allowed_hosts_is_localhost(
+        self, isolated_env, settings_module
+    ):
         os.environ["DJANGO_ENV"] = "development"
 
         module = settings_module()

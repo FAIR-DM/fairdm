@@ -6,10 +6,12 @@ to automatically detect field types, suggest appropriate widgets, filters,
 and provide smart defaults for configuration.
 """
 
+import difflib
 from typing import Any
 
 from django.db import models
 from django.db.models import Field
+from django.db.models.constants import LOOKUP_SEP
 
 
 class FieldInspector:
@@ -32,12 +34,17 @@ class FieldInspector:
         "polymorphic_ctype_id",
     ]
 
-    # Field name patterns to exclude
-    EXCLUDE_PATTERNS = [
-        "_ptr",  # Polymorphic pointer fields
+    # Name suffixes to exclude. Matched as suffixes, not substrings: a field named
+    # `sample_ptr_note` is a real field and a substring match would drop it.
+    EXCLUDE_SUFFIXES = (
+        "_ptr",  # Multi-table inheritance pointers
         "_ptr_id",
-        "password",  # Security sensitive
-    ]
+    )
+
+    # Names never included by default, whatever their type. `password` is here
+    # rather than inferred from a substring so the rule is discoverable: a portal
+    # developer can read it, and `password_hint` is not caught by accident.
+    NEVER_DEFAULT = ("password",)
 
     # Common field name patterns for smart grouping
     DATE_PATTERNS = ["_at", "_date", "date_", "created", "modified", "updated"]
@@ -99,76 +106,47 @@ class FieldInspector:
         return field_name in self._get_field_map()
 
     def should_exclude_field(self, field_name: str) -> bool:
-        """Determine if a field should be excluded from auto-detection.
+        """Whether a field stays out of the framework's own choice of fields.
 
-        Fields are excluded if they:
-        - Are in ALWAYS_EXCLUDE list
-        - Match EXCLUDE_PATTERNS
-        - Are auto-generated (auto_now, auto_now_add)
-        - Are not editable
+        This is the one implementation of that rule, and it is FR-011: the primary
+        key, polymorphic type columns, inheritance pointers, automatic timestamps,
+        anything non-editable, reverse relations, many-to-many fields with an
+        explicit through model, and the names in NEVER_DEFAULT.
 
-        Args:
-            field_name: Name of the field to check
-
-        Returns:
-            True if field should be excluded
+        A portal that wants an excluded field says so in its own field list. This
+        decides only what happens when it says nothing.
         """
-        # Check always exclude list
-        if field_name in self.ALWAYS_EXCLUDE:
+        if field_name in self.ALWAYS_EXCLUDE or field_name in self.NEVER_DEFAULT:
             return True
 
-        # Check patterns
-        if any(pattern in field_name for pattern in self.EXCLUDE_PATTERNS):
+        if field_name.endswith(self.EXCLUDE_SUFFIXES):
             return True
 
-        # Check field properties
         field = self.get_field(field_name)
         if field is None:
             return True
 
-        # Exclude auto-generated fields
-        if hasattr(field, "auto_now") and field.auto_now:
-            return True
-        if hasattr(field, "auto_now_add") and field.auto_now_add:
+        if getattr(field, "auto_now", False) or getattr(field, "auto_now_add", False):
             return True
 
-        # Exclude ManyToManyFields with custom through models
-        # (can't be in forms/fieldsets - Django admin error E013)
+        # Django's admin rejects a many-to-many field with an explicit through model
+        # (admin.E013), so a generated admin carrying one fails to load.
         if isinstance(field, models.ManyToManyField):
-            try:
-                # Check if through model exists and is not auto-created
-                if hasattr(field, "remote_field") and hasattr(
-                    field.remote_field, "through"
-                ):
-                    through = field.remote_field.through
-                    if through is not None:
-                        # String reference means it's explicitly set (not auto-created)
-                        if isinstance(through, str):
-                            return True
-                        # Model class - check if auto_created
-                        if hasattr(through, "_meta") and not through._meta.auto_created:
-                            return True
-            except (AttributeError, TypeError):
-                # If we can't determine, be safe and exclude it
-                pass
+            through = getattr(field.remote_field, "through", None)
+            if isinstance(through, str):
+                return True
+            if through is not None and not through._meta.auto_created:
+                return True
 
-        # Exclude non-editable fields (except ForeignKey which might be editable=False for admin)
-        return not field.editable and not isinstance(field, self.RELATION_TYPES)
+        return not field.editable
 
-    def get_safe_fields(self, exclude: list[str] | None = None) -> list[str]:
-        """Get list of safe fields suitable for forms, tables, etc.
+    def get_default_fields(self, exclude: list[str] | None = None) -> list[str]:
+        """The framework's own choice of fields for this model, per FR-011.
 
-        Safe fields exclude:
-        - Auto-generated fields (id, created, modified)
-        - Internal Django fields (polymorphic_ctype, *_ptr)
-        - Security-sensitive fields (password)
-        - Non-editable fields
-
-        Args:
-            exclude: Additional field names to exclude
-
-        Returns:
-            List of safe field names
+        This is what a component is built from when a portal declares no field list
+        of its own. There is one implementation of it, here, because two copies
+        disagreeing meant the API and the admin could show different default fields
+        for the same model.
         """
         exclude = exclude or []
         safe_fields = []
@@ -180,6 +158,42 @@ class FieldInspector:
                 safe_fields.append(field.name)
 
         return safe_fields
+
+    def get_safe_fields(self, exclude: list[str] | None = None) -> list[str]:
+        """Deprecated name for :meth:`get_default_fields`."""
+        return self.get_default_fields(exclude=exclude)
+
+    def resolve_path(self, path: str) -> tuple[bool, str | None]:
+        """Walk a field path, one segment at a time.
+
+        Returns whether the whole path resolves and, when it does not, the reason:
+        either the segment that does not exist or the prefix that is not a relation.
+        Used by registration to refuse a path before it becomes a broken page.
+        """
+        model: Any = self.model
+        segments = path.split(LOOKUP_SEP)
+
+        for index, segment in enumerate(segments):
+            if model is None:
+                prefix = LOOKUP_SEP.join(segments[:index])
+                return False, (
+                    f"{prefix!r} is not a relation, so the rest of the path cannot "
+                    f"resolve"
+                )
+
+            if segment not in {f.name for f in model._meta.get_fields()}:
+                return False, None
+
+            if index < len(segments) - 1:
+                model = model._meta.get_field(segment).related_model
+
+        return True, None
+
+    def close_matches(self, name: str, limit: int = 3) -> list[str]:
+        """Field names close enough to `name` to be worth suggesting."""
+        return difflib.get_close_matches(
+            name, [f.name for f in self._get_all_fields()], n=limit, cutoff=0.6
+        )
 
     def get_all_field_names(self) -> list[str]:
         """Get all field names on the model.

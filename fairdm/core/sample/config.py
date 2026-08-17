@@ -31,8 +31,8 @@ class BaseSampleConfiguration(ModelConfiguration):
     WARNING: Do NOT register the base Sample model. Only register polymorphic subclasses.
     """
 
-    # model should be set by subclass (e.g., RockSample, WaterSample)
-    model = None
+    # A subclass supplies `model`. The base class already defaults it to None, so
+    # restating that here would only add a line to keep in step.
 
     # Fields for all auto-generated components
     fields = [

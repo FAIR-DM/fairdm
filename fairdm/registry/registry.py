@@ -5,6 +5,7 @@ This module provides the FairDMRegistry class and registration decorators for
 managing Sample and Measurement models in the FairDM framework.
 """
 
+import inspect
 from typing import TYPE_CHECKING
 
 from django.apps import apps
@@ -17,6 +18,27 @@ if TYPE_CHECKING:
 
 # Import configuration classes from fairdm.registry.config
 from fairdm.registry.config import ModelConfiguration
+
+
+def _caller_location() -> str:
+    """The module and qualified name that called into the registry.
+
+    Import order decides which registration of a model arrives first, and that
+    order is not visible from either file, so a duplicate-registration error has to
+    say where the first one was.
+    """
+    frame = inspect.currentframe()
+    try:
+        # Walk out of this helper and out of the registry module itself.
+        while frame is not None:
+            module = frame.f_globals.get("__name__", "")
+            if not module.startswith("fairdm.registry"):
+                name = frame.f_code.co_qualname
+                return f"{module}.{name}" if name != "<module>" else module
+            frame = frame.f_back
+        return "an unknown module"
+    finally:
+        del frame
 
 
 class FairDMRegistry:
@@ -38,9 +60,40 @@ class FairDMRegistry:
     """
 
     def __init__(self) -> None:
-        self._registry: dict[
-            type[Model], ModelConfiguration
-        ] = {}  # Stores model -> config_instance mapping
+        self._registry: dict[type[Model], ModelConfiguration] = {}
+        # Where each model was registered from, so a duplicate can name the first.
+        self._locations: dict[type[Model], str] = {}
+
+    def _validate_model_is_registrable(self, model_class: type[Model]) -> None:
+        """Only a concrete subclass of one of the two hierarchies may register.
+
+        Registering a polymorphic base would generate six components for a class no
+        portal stores rows in, and register a second admin against it.
+        """
+        from fairdm.registry.exceptions import ConfigurationError
+
+        if model_class._meta.abstract:
+            raise ConfigurationError(
+                f"{model_class.__name__} is abstract. Only a concrete model can be "
+                f"registered."
+            )
+
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
+
+        if model_class in (Sample, Measurement):
+            raise ConfigurationError(
+                f"{model_class.__name__} is a polymorphic base class. Register a "
+                f"concrete subclass of it instead."
+            )
+
+        if not issubclass(model_class, (Sample, Measurement)):
+            raise ConfigurationError(
+                f"{model_class.__name__} must be a concrete subclass of "
+                f"fairdm.core.sample.models.Sample or "
+                f"fairdm.core.measurement.models.Measurement",
+                model=model_class,
+            )
 
     def get_for_model(self, model_reference: type[Model] | str) -> ModelConfiguration:
         """
@@ -91,10 +144,9 @@ class FairDMRegistry:
 
         # Check if model is registered
         if model_cls not in self._registry:
-            model_name = getattr(model_cls._meta, "label", str(model_cls))
-            raise KeyError(
-                f"Model '{model_name}' is not registered with the FairDM registry"
-            )
+            from fairdm.registry.exceptions import NotRegisteredError
+
+            raise NotRegisteredError(model_cls)
 
         return self._registry[model_cls]
 
@@ -188,34 +240,15 @@ class FairDMRegistry:
             ConfigurationError: If model_class is not a Sample or Measurement subclass.
             DuplicateRegistrationError: If model_class is already registered.
         """
-        from fairdm.registry.exceptions import (
-            ConfigurationError,
-            DuplicateRegistrationError,
-        )
+        from fairdm.registry.exceptions import DuplicateRegistrationError
 
-        # Validate that this is a Sample or Measurement subclass
-        try:
-            from fairdm.core.measurement.models import Measurement
-            from fairdm.core.sample.models import Sample
+        self._validate_model_is_registrable(model_class)
 
-            if not (
-                issubclass(model_class, Sample) or issubclass(model_class, Measurement)
-            ):
-                raise ConfigurationError(
-                    f"{model_class.__name__} must inherit from Sample or Measurement",
-                    model=model_class,
-                )
-        except ImportError as e:
-            raise ImportError(
-                f"Could not import Sample or Measurement models to validate {model_class.__name__}: {e}"
-            ) from e
-
-        # Check if already registered (T030)
         if model_class in self._registry:
             raise DuplicateRegistrationError(
                 model=model_class,
-                original_location="Unknown",  # TODO: Track registration location
-                new_location="Unknown",
+                original_location=self._locations.get(model_class, "an unknown module"),
+                new_location=_caller_location(),
             )
 
         # Get or create configuration instance
@@ -224,21 +257,28 @@ class FairDMRegistry:
         # Register admin using the config
         self.register_admin(model_class, config_instance)
 
-        # Store just the config instance
         self._registry[model_class] = config_instance
+        self._locations[model_class] = _caller_location()
 
     def register_admin(
         self, model_class: type[Model], config_instance: ModelConfiguration
     ) -> None:
-        """Register model with Django admin using auto-generated admin class from config."""
-        try:
-            # Get admin class from config
-            admin_class = config_instance.get_admin_class()
-            admin.site.register(model_class, admin_class)
-        except Exception:  # noqa: S110
-            # Model already registered or admin not available - this is expected
-            # Silently ignore admin registration failures as they are non-critical
-            pass
+        """Register the model's admin class with the Django admin site.
+
+        A model already present in the admin site is left alone. A portal that wrote
+        `@admin.register(RockSample)` has said which admin class it wants, and the
+        registry does not overrule that. Autodiscovery runs before registration, so
+        this is the normal path for any portal with a hand-written admin.
+
+        Every other failure propagates. The previous implementation wrapped the whole
+        method in `except Exception: pass`, which did express the rule above, but
+        expressed it as a swallowed exception -- so a genuinely broken admin class
+        registered as nothing, and looked identical to a model nobody registered.
+        """
+        if model_class in admin.site._registry:
+            return
+
+        admin.site.register(model_class, config_instance.get_admin_class())
 
     def get_config(
         self,

@@ -207,12 +207,9 @@ class TableFactory(ComponentFactory):
             fields=filtered_fields,
         )
 
-        # Apply Bootstrap 5 styling
-        if not hasattr(table_class.Meta, "template_name"):
-            table_class.Meta.template_name = "django_tables2/bootstrap5.html"
-        if not hasattr(table_class.Meta, "attrs"):
-            table_class.Meta.attrs = {"class": "table table-striped table-hover"}
-
+        # No template or CSS classes are set here. Which stylesheet a generated
+        # table renders under belongs to the theme, and the project's
+        # DJANGO_TABLES2_TEMPLATE setting decides it (decision D7).
         return cast(type[Table], table_class)
 
     def _filter_table_fields(self, fields: list[str]) -> list[str]:
@@ -780,11 +777,7 @@ class SerializerFactory(ComponentFactory):
         Returns:
             ModelSerializer subclass with nested relationships
         """
-        try:
-            from rest_framework import serializers
-        except ImportError:
-            # DRF not installed, return placeholder
-            return type
+        from rest_framework import serializers
 
         fields = self.get_fields()
 
@@ -794,7 +787,7 @@ class SerializerFactory(ComponentFactory):
         # Create Meta class
         meta_attrs = {
             "model": self.model,
-            "fields": ["id", *fields],  # Include ID by default
+            "fields": list(fields),
         }
         Meta = type("Meta", (), meta_attrs)
 
@@ -818,10 +811,7 @@ class SerializerFactory(ComponentFactory):
         Returns:
             Dictionary mapping field names to nested serializer fields
         """
-        try:
-            from rest_framework import serializers
-        except ImportError:
-            return {}
+        from rest_framework import serializers
 
         nested: dict[str, serializers.Field] = {}
         fields = self.get_fields()
@@ -857,19 +847,15 @@ class ResourceFactory(ComponentFactory):
         Returns:
             ModelResource subclass with natural key support
         """
-        try:
-            from import_export import resources
-        except ImportError:
-            # django-import-export not installed, return placeholder
-            return type
+        from import_export import resources
 
         fields = self.get_fields()
 
         # Create Meta class
         meta_attrs = {
             "model": self.model,
-            "fields": ["id", *fields],  # Include ID by default
-            "export_order": ["id", *fields],
+            "fields": list(fields),
+            "export_order": list(fields),
         }
         Meta = type("Meta", (), meta_attrs)
 
@@ -896,10 +882,7 @@ class ResourceFactory(ComponentFactory):
         Returns:
             Dictionary mapping field names to widget instances
         """
-        try:
-            from import_export import widgets
-        except ImportError:
-            return {}
+        from import_export import widgets
 
         fk_widgets = {}
         fields = self.get_fields()

@@ -47,8 +47,10 @@ def build_metadata(dataset, request):
 
 def build_export_for_datatype(dataset, queryset, fmt="csv"):
     """Create an export for a given dataset and datatype that can be included in a ZIP file."""
+    from fairdm.registry import registry
+
     model = queryset.model
-    resource = model.config.get_resource_class()(dataset=dataset)
+    resource = registry.get_for_model(model).get_resource_class()(dataset=dataset)
     # fmt = get_export_formats()[1]()
     tablib_dataset = resource.export(queryset=queryset)
     return tablib_dataset.export(fmt)

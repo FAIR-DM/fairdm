@@ -200,9 +200,7 @@ class TestProvenance:
         assert email_password not in record_text
 
         # The setting NAMES that carried those values are legitimately present.
-        all_settings = {
-            name for layer in record.layers() for name in layer.settings
-        }
+        all_settings = {name for layer in record.layers() for name in layer.settings}
         assert "SECRET_KEY" in all_settings
         assert "DATABASES" in all_settings
         assert "EMAIL_HOST_PASSWORD" in all_settings
@@ -501,7 +499,15 @@ class TestBaselineCompleteness:
             key: value
             for key, value in os.environ.items()
             if not key.startswith(
-                ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+                (
+                    "DJANGO_",
+                    "DATABASE_",
+                    "REDIS_",
+                    "POSTGRES_",
+                    "EMAIL_",
+                    "S3_",
+                    "SENTRY_",
+                )
             )
         }
         env |= {
@@ -576,7 +582,15 @@ class TestBundledPortalBoots:
             key: value
             for key, value in os.environ.items()
             if not key.startswith(
-                ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+                (
+                    "DJANGO_",
+                    "DATABASE_",
+                    "REDIS_",
+                    "POSTGRES_",
+                    "EMAIL_",
+                    "S3_",
+                    "SENTRY_",
+                )
             )
         }
         env |= {
@@ -1141,7 +1155,9 @@ class TestBaselineModuleAudit:
 
     def _module_paths(self):
         settings_dir = self._settings_dir()
-        return {stem: settings_dir / f"{stem}.py" for stem in self.EXPECTED_MODULE_STEMS}
+        return {
+            stem: settings_dir / f"{stem}.py" for stem in self.EXPECTED_MODULE_STEMS
+        }
 
     def test_all_eleven_concern_modules_exist(self):
         for stem, path in self._module_paths().items():
@@ -1179,7 +1195,9 @@ class TestBaselineModuleAudit:
             for node in ast.walk(tree):
                 if not isinstance(node, ast.If):
                     continue
-                offending = referenced_names(node.test) & self.FORBIDDEN_BRANCH_VARIABLES
+                offending = (
+                    referenced_names(node.test) & self.FORBIDDEN_BRANCH_VARIABLES
+                )
                 assert not offending, (
                     f"{stem}.py:{node.lineno} branches on {offending} — "
                     "environment-derived state, not feature detection (FR-003)"

@@ -47,7 +47,9 @@ class TestAuth:
 
         assert module.ACCOUNT_EMAIL_VERIFICATION == "mandatory"
 
-    def test_reading_unconfigured_auth_never_raises(self, isolated_env, settings_module):
+    def test_reading_unconfigured_auth_never_raises(
+        self, isolated_env, settings_module
+    ):
         os.environ["DJANGO_ENV"] = "qa"
 
         settings_module()  # must not raise

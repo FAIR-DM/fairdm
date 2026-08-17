@@ -37,7 +37,7 @@ Serves G7.
 
 ### R2 — Model registry and generated components
 
-*Delivered · needs verification · advances G2*
+*Delivered · advances G2*
 
 Registering a model with a configuration class produces its form, table, filter set, serializer, import and export resource, and admin entry without any of those being written by hand. A portal author describes fields and grouping, and the components follow.
 

@@ -72,61 +72,73 @@ class ConfigurationError(RegistryError):
 
 
 class FieldValidationError(RegistryError):
-    """Invalid field name or field configuration.
+    """A field name in a configuration does not resolve on the model.
 
-    Raised when:
-    - Field name doesn't exist on model
-    - Field path (with __) cannot be resolved
-    - Field type incompatible with component
+    The message names the four things a portal developer needs in order to fix it:
+    the model, the attribute that declared the name, the name itself, and either a
+    close match or the reason the path stopped resolving.
 
     Attributes:
-        field_name: The invalid field name
-        model: The Django model class
-        suggestion: Suggested correct field name (fuzzy match)
-        valid_fields: List of all valid field names
+        field_name: the name or path that failed
+        model: the Django model it was declared against
+        attribute: the configuration attribute that declared it
+        suggestion: a comma-separated list of close matches, if any
+        reason: why the path stopped resolving, where that is not a missing name
     """
 
     def __init__(
         self,
         field_name: str,
         model: type["models.Model"],
+        attribute: str | None = None,
         suggestion: str | None = None,
-        valid_fields: list[str] | None = None,
+        reason: str | None = None,
     ):
-        """Initialize FieldValidationError.
-
-        Args:
-            field_name: Invalid field name
-            model: Django model class
-            suggestion: Suggested correction (optional)
-            valid_fields: All valid field names (optional)
+        """Build the error.
 
         Example:
             raise FieldValidationError(
-                'loction',  # Typo
-                RockSample,
-                suggestion='location'
+                "loction", RockSample, attribute="fields", suggestion="location"
             )
-            # Error message: "Field 'loction' does not exist on RockSample.
-            #                 Did you mean 'location'?"
+            # "Invalid field 'loction' in RockSample.fields: no such field on
+            #  RockSample. Did you mean: location?"
         """
         self.field_name = field_name
         self.model = model
+        self.attribute = attribute
         self.suggestion = suggestion
-        self.valid_fields = valid_fields
+        self.reason = reason
 
-        message = f"Field '{field_name}' does not exist on {model.__name__}"
+        where = f"{model.__name__}.{attribute}" if attribute else model.__name__
+        why = reason or f"no such field on {model.__name__}"
+        message = f"Invalid field {field_name!r} in {where}: {why}"
 
         if suggestion:
-            message += f". Did you mean '{suggestion}'?"
-        elif valid_fields:
-            # Show first 5 valid fields
-            field_list = ", ".join(valid_fields[:5])
-            if len(valid_fields) > 5:
-                field_list += f" (and {len(valid_fields) - 5} more)"
-            message += f". Available fields: {field_list}"
+            message += f". Did you mean: {suggestion}?"
 
         super().__init__(message)
+
+
+class NotRegisteredError(RegistryError, KeyError):
+    """The configuration of a model that was never registered was requested.
+
+    Subclasses ``KeyError`` so that callers written against the registry's earlier
+    behaviour keep working, while the message names the model rather than repeating
+    its label as a bare key.
+    """
+
+    def __init__(self, model: "type[models.Model] | str"):
+        self.model = model
+        name = model if isinstance(model, str) else model._meta.label
+        super().__init__(
+            f"{name} is not registered with the FairDM registry. Register it with "
+            f"@fairdm.register, or use registry.is_registered() to ask without "
+            f"raising."
+        )
+
+    def __str__(self) -> str:
+        # KeyError repr()s its argument, which would quote the whole sentence.
+        return str(self.args[0])
 
 
 class DuplicateRegistrationError(RegistryError):

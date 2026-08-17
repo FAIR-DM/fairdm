@@ -16,7 +16,7 @@ class TestEmail:
         os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
         os.environ["EMAIL_HOST"] = "smtp.example.com"
         os.environ["EMAIL_HOST_USER"] = "portal@example.com"
-        os.environ["EMAIL_HOST_PASSWORD"] = "s3cret"  # noqa: S105 — test fixture value
+        os.environ["EMAIL_HOST_PASSWORD"] = "s3cret"
 
         module = settings_module()
 

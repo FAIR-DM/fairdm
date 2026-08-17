@@ -32,9 +32,7 @@ class TestEnv:
     def test_redis_url_has_no_working_default(self, isolated_env):
         assert env("REDIS_URL") == ""
 
-    def test_reading_unset_security_critical_variables_never_raises(
-        self, isolated_env
-    ):
+    def test_reading_unset_security_critical_variables_never_raises(self, isolated_env):
         """The read is never what refuses a boot — the production-critical
         checks are (research R6). All six resolve without an exception even
         though none of them carries a usable value."""
