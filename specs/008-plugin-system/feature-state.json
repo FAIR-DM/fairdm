@@ -1,0 +1,659 @@
+{
+  "$schema": "aeo/feature-state.schema.json",
+  "feature": "008-plugin-system",
+  "branch": "008-plugin-system",
+  "repo": "FAIR-DM/fairdm",
+  "state": "RECONCILED",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-08-17T12:40:00Z",
+      "note": "old spec read against the code; retrospective grilling"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-17T13:50:00Z",
+      "note": "spec.md rewritten in place; decisions.md records 13 adjudications"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-17T14:05:00Z",
+      "note": "epic #148, stories #149-154, draft PR #155"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-17T14:50:00Z",
+      "note": "research answered the three open questions; D13 amended"
+    },
+    {
+      "state": "RECONCILED",
+      "at": "2026-08-17T15:20:00Z",
+      "note": "78 greenfield tasks, 4 satisfied with code and a passing test, 74 open"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-17T14:00:00Z"
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "reconciliation": {
+    "tasks_total": 78,
+    "satisfied": 4,
+    "open": 74,
+    "open_by_reason": {
+      "not built": 39,
+      "built differently": 13,
+      "built, untested": 10,
+      "broken": 10,
+      "vacuous test": 2
+    },
+    "rule": "satisfied requires BOTH a code citation and a currently passing test that exercises the behaviour"
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 149,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registry.py:52",
+              "fairdm/contrib/plugins/registry.py:87"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registry.py:17::test_register_plugin_for_single_model",
+              "tests/test_contrib/test_plugins/test_registry.py:33::test_register_plugin_for_multiple_models"
+            ],
+            "commands": [
+              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registry.py:91"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registry.py:80::test_get_plugins_for_unregistered_model",
+              "tests/test_contrib/test_plugins/test_registry.py:17::test_register_plugin_for_single_model"
+            ],
+            "commands": [
+              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T061",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T062",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 150,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "vacuous test"
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "vacuous test"
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 151,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T068",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P1",
+      "issue": 152,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T044",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T045",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T046",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T047",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T049",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 153,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T055",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T056",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T057",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T058",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T060",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P2",
+      "issue": 154,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T063",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T064",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T065",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T066",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
+        },
+        {
+          "id": "T067",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "broken"
+        }
+      ]
+    },
+    {
+      "id": "FOUNDATION",
+      "priority": "P1",
+      "issue": 148,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/apps.py:7",
+              "fairdm/conf/settings/apps.py:54"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_templatetags.py:14::test_plugin_url_with_non_polymorphic_object"
+            ],
+            "commands": [
+              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_plugins/__init__.py:1"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/conftest.py:1"
+            ],
+            "commands": [
+              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        }
+      ]
+    },
+    {
+      "id": "DELIVERY",
+      "priority": "P1",
+      "issue": 148,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T069",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T070",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T071",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T072",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T073",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T074",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        },
+        {
+          "id": "T075",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T076",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T077",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built"
+        },
+        {
+          "id": "T078",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built differently"
+        }
+      ]
+    }
+  ]
+}
