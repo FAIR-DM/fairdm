@@ -1,5 +1,7 @@
 """Integration tests for Project admin interface workflows."""
 
+import json
+
 import pytest
 from django.urls import reverse
 
@@ -347,3 +349,37 @@ class TestAdminBulkStatusChange:
         for project in projects:
             project.refresh_from_db()
             assert project.status == expected_status
+
+
+@pytest.mark.django_db
+class TestAdminExportActions:
+    """FR-026: export is available over a selection of several projects."""
+
+    @pytest.mark.parametrize(
+        ("action", "name_of"),
+        [
+            ("export_json", lambda record: record["name"]),
+            ("export_datacite", lambda record: record["titles"][0]["title"]),
+        ],
+    )
+    def test_export_over_a_selection_carries_every_selected_project(
+        self, admin_client, action, name_of
+    ):
+        """T046: exporting several projects together produces output carrying
+        all of them."""
+        projects = ProjectFactory.create_batch(3, funding=None)
+
+        url = reverse("admin:project_project_changelist")
+        form_data = {
+            "action": action,
+            "_selected_action": [str(p.pk) for p in projects],
+            "index": "0",
+        }
+
+        response = admin_client.post(url, data=form_data)
+
+        assert response.status_code == 200
+        records = json.loads(response.content)
+        assert len(records) == len(projects)
+        exported_names = {name_of(record) for record in records}
+        assert exported_names == {p.name for p in projects}

@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
 from ..choices import ProjectStatus
+from .export import to_datacite, to_json_ld
 from .models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
 
 
@@ -150,22 +151,8 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.action(description=_("Export selected projects as JSON"))
     def export_json(self, request, queryset):
-        """Bulk action to export projects as JSON."""
-        projects_data = []
-        for project in queryset:
-            data = {
-                "uuid": str(project.uuid),
-                "name": project.name,
-                "status": project.status,
-                "visibility": (
-                    project.visibility.value
-                    if hasattr(project.visibility, "value")
-                    else project.visibility
-                ),
-                "added": project.added.isoformat() if project.added else None,
-                "modified": project.modified.isoformat() if project.modified else None,
-            }
-            projects_data.append(data)
+        """Bulk action to export projects as schema.org JSON-LD (FR-024)."""
+        projects_data = [to_json_ld(project) for project in queryset]
 
         response = HttpResponse(
             json.dumps(projects_data, indent=2), content_type="application/json"
@@ -175,20 +162,8 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.action(description=_("Export selected projects as DataCite JSON"))
     def export_datacite(self, request, queryset):
-        """Bulk action to export projects in DataCite JSON format."""
-        datacite_records = []
-        for project in queryset:
-            # Basic DataCite structure
-            record = {
-                "id": str(project.uuid),
-                "type": "dois",
-                "attributes": {
-                    "titles": [{"title": project.name}],
-                    "publicationYear": project.added.year if project.added else None,
-                    "types": {"resourceTypeGeneral": "Project"},
-                },
-            }
-            datacite_records.append(record)
+        """Bulk action to export projects in DataCite JSON format (FR-023)."""
+        datacite_records = [to_datacite(project) for project in queryset]
 
         response = HttpResponse(
             json.dumps(datacite_records, indent=2), content_type="application/json"
