@@ -30,7 +30,7 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
 
             def get_context_data(self, **kwargs):
                 context = super().get_context_data(**kwargs)
-                context["measurements"] = self.object.measurements.all()
+                context["measurements"] = self.base_object.measurements.all()
                 return context
         ```
     """
@@ -41,7 +41,7 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
 
     def get_page_title(self):
         """Default page title is the object's string representation."""
-        return str(self.object)
+        return str(self.base_object)
 
 
 class UpdatePlugin(Plugin, FairDMUpdateView):
@@ -74,7 +74,7 @@ class UpdatePlugin(Plugin, FairDMUpdateView):
 
     def get_success_url(self):
         """Return to the base object's detail page after successful save."""
-        return self.object.get_absolute_url()
+        return self.base_object.get_absolute_url()
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         return super().get_context_data(**kwargs)
@@ -106,7 +106,7 @@ class DeletePlugin(Plugin, FairDMDeleteView):
 
             def get_success_url(self):
                 # Redirect to the project after deleting a sample
-                return self.object.project.get_absolute_url()
+                return self.base_object.project.get_absolute_url()
         ```
     """
 
@@ -115,14 +115,14 @@ class DeletePlugin(Plugin, FairDMDeleteView):
     def get_success_url(self):
         """Redirect to model's list view after successful deletion."""
         # Try to get parent object's URL first
-        if hasattr(self.object, "project"):
-            return self.object.project.get_absolute_url()
-        if hasattr(self.object, "dataset"):
-            return self.object.dataset.get_absolute_url()
+        if hasattr(self.base_object, "project"):
+            return self.base_object.project.get_absolute_url()
+        if hasattr(self.base_object, "dataset"):
+            return self.base_object.dataset.get_absolute_url()
 
         # Fall back to model's list view
-        app_label = self.object._meta.app_label
-        model_name = self.object._meta.model_name
+        app_label = self.base_object._meta.app_label
+        model_name = self.base_object._meta.model_name
         try:
             return reverse(f"{app_label}:{model_name}-list")
         except Exception:

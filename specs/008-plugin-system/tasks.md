@@ -1,370 +1,231 @@
-# Tasks: Plugin System for Model Extensibility
+# Tasks — 008 The plugin system
 
-**Input**: Design documents from `/specs/008-plugin-system/`
-**Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅
+**Written greenfield.** This list describes building the plugin system from nothing, to the current
+standard, without reference to what the repository contains. It is reconciled against the codebase
+afterwards; tasks the code already satisfies are marked with a citation and a passing test, and
+everything else is work.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+Nothing from the previous `tasks.md` is carried over.
 
-## Format: `[ID] [P?] [Story] Description`
-
-- **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
-- **File paths**: All paths are relative to repository root `c:\Users\jennings\Documents\repos\fairdm\`
-
----
-
-## Phase 1: Setup (Shared Infrastructure)
-
-**Purpose**: Project initialization and plugin system package structure
-
-- [X] T001 Create plugin system package directory structure at `fairdm/contrib/plugins/`
-- [X] T002 Create plugin system test directory structure at `tests/test_contrib/test_plugins/`
-- [X] T003 [P] Create Cotton component directory at `fairdm/contrib/plugins/templates/cotton/plugin/`
-- [X] T004 [P] Create plugin template directory at `fairdm/contrib/plugins/templates/plugins/`
-- [X] T005 [P] Create contracts test fixtures directory at `tests/test_contrib/test_plugins/fixtures/`
+Convention: every task states the requirement it serves and the test that proves it. A task is not
+complete without both.
 
 ---
 
-## Phase 2: Foundational (Blocking Prerequisites)
-
-**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
-
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
-
-- [X] T006 Implement Tab dataclass in `fairdm/contrib/plugins/menu.py`
-- [X] T007 Implement visibility helper `is_instance_of()` in `fairdm/contrib/plugins/visibility.py`
-- [X] T008 Implement PluginRegistry singleton class in `fairdm/contrib/plugins/registry.py`
-- [X] T009 Implement `register()` method on PluginRegistry in `fairdm/contrib/plugins/registry.py`
-- [X] T010 Implement Plugin mixin base class in `fairdm/contrib/plugins/base.py`
-- [X] T011 Implement PluginGroup composition class in `fairdm/contrib/plugins/group.py`
-- [X] T012 Implement utility functions (slugify, URL reversal) in `fairdm/contrib/plugins/utils.py`
-- [X] T013 Create public API exports in `fairdm/contrib/plugins/__init__.py`
-- [X] T014 Create re-export module at `fairdm/plugins.py` for `from fairdm import plugins` usage
-
-**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
-
----
-
-## Phase 3: User Story 1 - Basic Plugin Registration and Display (Priority: P1) 🎯 MVP
-
-**Goal**: Enable developers to create and register plugins that appear on model detail pages
-
-**Independent Test**: Create a minimal plugin class, register it for Sample model, navigate to a Sample detail page, verify plugin content appears
-
-### Implementation for User Story 1
-
-- [X] T015 [P] [US1] Implement `Plugin.get_name()` classmethod in `fairdm/contrib/plugins/base.py`
-- [X] T016 [P] [US1] Implement `Plugin.get_url_path()` classmethod in `fairdm/contrib/plugins/base.py`
-- [X] T017 [US1] Implement `Plugin.get_urls()` classmethod in `fairdm/contrib/plugins/base.py`
-- [X] T018 [US1] Implement `Plugin.get_object()` instance method in `fairdm/contrib/plugins/base.py`
-- [X] T019 [US1] Implement `Plugin.get_context_data()` override in `fairdm/contrib/plugins/base.py`
-- [X] T020 [US1] Implement `PluginRegistry.register()` method in `fairdm/contrib/plugins/registry.py`
-- [X] T021 [US1] Implement `PluginRegistry.get_plugins_for_model()` method in `fairdm/contrib/plugins/registry.py`
-- [X] T022 [US1] Implement `PluginRegistry.is_registered()` method in `fairdm/contrib/plugins/registry.py`
-- [X] T023 [US1] Implement `PluginRegistry.get_urls_for_model()` method in `fairdm/contrib/plugins/registry.py`
-- [X] T024 [US1] Create base plugin template at `fairdm/contrib/plugins/templates/plugins/base.html`
-- [X] T025 [US1] Update model detail view URL patterns to include plugin URLs for Project model in `fairdm/core/project/urls.py`
-- [X] T026 [US1] Update model detail view URL patterns to include plugin URLs for Dataset model in `fairdm/core/dataset/urls.py`
-- [X] T027 [US1] Update model detail view URL patterns to include plugin URLs for Sample model in `fairdm/core/sample/urls.py`
-- [X] T028 [US1] Update model detail view URL patterns to include plugin URLs for Measurement model in `fairdm/core/measurement/urls.py`
-- [X] T029 [US1] Update model detail view URL patterns to include plugin URLs for Contributor model in `fairdm/contrib/contributors/urls.py`
-- [X] T030 [US1] Implement Django system check E001 (missing required attributes) in `fairdm/contrib/plugins/checks.py`
-- [X] T031 [US1] Implement Django system check E002 (duplicate plugin names) in `fairdm/contrib/plugins/checks.py`
-- [X] T032 [US1] Implement Django system check E003 (URL path conflicts) in `fairdm/contrib/plugins/checks.py`
-- [X] T033 [US1] Register system checks in `fairdm/contrib/plugins/apps.py`
-
-**Checkpoint**: At this point, User Story 1 should be fully functional - developers can register plugins that render on detail pages
-
-**Validation**: Run `poetry run python manage.py check` to verify system checks E001-E003 are implemented correctly
-
----
-
-## Phase 4: User Story 7 - Automatic Context and Object Access (Priority: P1)
-
-**Goal**: Plugins automatically receive model instance in context and generate breadcrumbs
-
-**Independent Test**: Create a plugin that displays instance data via `{{ object }}`, verify breadcrumbs appear showing model hierarchy
-
-**Note**: This is P1 priority alongside User Story 1 because context access is fundamental to useful plugins
-
-### Implementation for User Story 7
-
-- [X] T034 [P] [US7] Implement `Plugin.get_breadcrumbs()` method in `fairdm/contrib/plugins/base.py`
-- [X] T035 [US7] Update `Plugin.get_context_data()` to include breadcrumbs in `fairdm/contrib/plugins/base.py`
-- [X] T036 [US7] Update `Plugin.get_context_data()` to include `object` in template context in `fairdm/contrib/plugins/base.py`
-- [X] T037 [US7] Update base template to render breadcrumbs in `fairdm/contrib/plugins/templates/plugins/base.html`
-- [X] T038 [US7] Implement Django system check W001 (permission string validity) in `fairdm/contrib/plugins/checks.py`
-
-**Checkpoint**: Plugins now have automatic access to model instances and breadcrumb navigation works
-
----
-
-## Phase 5: User Story 2 - Tab-Based Navigation (Priority: P2)
-
-**Goal**: Plugins with menu configuration appear as tabs on detail pages with proper ordering
-
-**Independent Test**: Register multiple plugins with menu dicts for a model, verify tabs appear in correct order and navigate properly
-
-### Implementation for User Story 2
-
-- [X] T039 [P] [US2] Implement `PluginRegistry.get_tabs_for_model()` method in `fairdm/contrib/plugins/registry.py`
-- [X] T040 [US2] Implement `{% get_plugin_tabs %}` template tag in `fairdm/contrib/plugins/templatetags/plugin_tags.py`
-- [X] T041 [US2] Create `<c-plugin-tabs />` Cotton component at `fairdm/contrib/plugins/templates/cotton/plugin/tabs.html`
-- [X] T042 [US2] Create `<c-plugin-base />` Cotton component wrapper at `fairdm/contrib/plugins/templates/cotton/plugin/base.html`
-- [X] T043 [US2] Update Project detail template to include plugin tabs in `fairdm/core/project/templates/project/project_detail.html`
-- [X] T044 [US2] Update Dataset detail template to include plugin tabs in `fairdm/core/dataset/templates/dataset/dataset_detail.html`
-- [X] T045 [US2] Update Sample detail template to include plugin tabs in `fairdm/core/sample/templates/sample/sample_detail.html`
-- [X] T046 [US2] Update Measurement detail template to include plugin tabs in `fairdm/core/measurement/templates/measurement/measurement_detail.html`
-- [X] T047 [US2] Update Contributor detail template to include plugin tabs in `fairdm/contrib/contributors/templates/contributor/contributor_detail.html`
-- [X] T048 [US2] Update `Plugin.get_context_data()` to include tabs list and active tab detection in `fairdm/contrib/plugins/base.py`
-
-**Checkpoint**: Plugins with menu configuration now appear as tabs with proper ordering and icons
-
-**Note**: Template infrastructure (tags, components, includes) is complete. Portal developers can add tabs to detail templates using `{% include "plugins/_detail_tabs.html" with object=model_instance %}`
-
----
-
-## Phase 6: User Story 3 - Smart Template Resolution (Priority: P2)
-
-**Goal**: Hierarchical template resolution allows model-specific customization
-
-**Independent Test**: Create a plugin with default template, create model-specific override, verify correct template is used per model
-
-### Implementation for User Story 3
-
-- [X] T049 [US3] Implement `Plugin.get_template_names()` method with hierarchical resolution in `fairdm/contrib/plugins/base.py`
-- [X] T050 [US3] Implement Django system check E004 (invalid template_name) in `fairdm/contrib/plugins/checks.py`
-- [X] T051 [US3] Document template resolution hierarchy in `fairdm/contrib/plugins/base.py` docstring
-
-**Checkpoint**: Template resolution now supports model-specific, parent-model, and fallback templates
-
----
-
-## Phase 7: User Story 4 - Plugin Groups for Complex Workflows (Priority: P2) ✅
-
-**Goal**: PluginGroup wraps multiple plugins under common URL namespace and single tab
-
-**Independent Test**: Create multiple simple plugins, wrap in PluginGroup, verify shared URL prefix and single tab entry
-
-### Implementation for User Story 4
-
-- [X] T052 [P] [US4] Implement `PluginGroup.get_name()` classmethod in `fairdm/contrib/plugins/group.py`
-- [X] T053 [P] [US4] Implement `PluginGroup.get_url_prefix()` classmethod in `fairdm/contrib/plugins/group.py`
-- [X] T054 [US4] Implement `PluginGroup.get_urls()` classmethod in `fairdm/contrib/plugins/group.py`
-- [X] T055 [US4] Implement `PluginGroup.get_default_plugin()` classmethod in `fairdm/contrib/plugins/group.py`
-- [X] T056 [US4] Update `PluginRegistry.register()` to handle PluginGroup registration in `fairdm/contrib/plugins/registry.py`
-- [X] T057 [US4] Update `PluginRegistry.get_tabs_for_model()` to render groups as single tab in `fairdm/contrib/plugins/registry.py`
-- [X] T058 [US4] Implement Django system check E005 (empty plugins list in group) in `fairdm/contrib/plugins/checks.py`
-- [X] T059 [US4] Implement Django system check E006 (invalid plugin class in group) in `fairdm/contrib/plugins/checks.py`
-- [X] T060 [US4] Implement Django system check E007 (group URL prefix conflicts) in `fairdm/contrib/plugins/checks.py`
-
-**Checkpoint**: PluginGroups can now wrap multiple plugins into cohesive features with shared namespacing
-
-**Validation**: Run `poetry run python manage.py check` to verify all system checks E001-E007 pass ✓
-
----
-
-## Phase 8: User Story 5 - Permission-Based Visibility (Priority: P3) ✅
-
-**Goal**: Plugins respect permission requirements for both menu visibility and direct access
-
-**Independent Test**: Create permission-gated plugin, verify unauthorized users don't see tab and get 403 on direct URL
-
-### Implementation for User Story 5
-
-- [X] T061 [P] [US5] Implement `Plugin.has_permission()` method with two-tier checking in `fairdm/contrib/plugins/base.py`
-- [X] T062 [US5] Implement `Plugin.dispatch()` override with permission gating in `fairdm/contrib/plugins/base.py`
-- [X] T063 [US5] Update `PluginRegistry.get_tabs_for_model()` to filter by permissions in `fairdm/contrib/plugins/registry.py`
-- [X] T064 [US5] Implement `PluginGroup.has_permission()` method for group-level checking in `fairdm/contrib/plugins/group.py`
-- [X] T065 [US5] Update system check W001 to validate permission strings exist in `fairdm/contrib/plugins/checks.py`
-
-**Checkpoint**: Permission system now controls both tab visibility and direct URL access ✓
-
----
-
-## Phase 9: User Story 6 - Custom URL Patterns (Priority: P3) ✅
-
-**Goal**: Plugins can override default URL paths with custom values
-
-**Independent Test**: Register plugin with custom url_path, verify URL matches custom path
-
-### Implementation for User Story 6
-
-- [X] T066 [US6] Update `Plugin.get_url_path()` to respect custom url_path attribute in `fairdm/contrib/plugins/base.py`
-- [X] T067 [US6] Update system check E003 to detect custom URL path conflicts in `fairdm/contrib/plugins/checks.py`
-- [X] T068 [US6] Implement Django system check W003 (invalid URL path characters) in `fairdm/contrib/plugins/checks.py`
-
-**Checkpoint**: Plugins can now use custom URL paths instead of auto-generated defaults ✓
-
----
-
-## Phase 10: User Story 8 - Reusable Plugin Components (Priority: P3) ✅
-
-**Goal**: Plugin classes can be distributed in packages and inherited by portal developers
-
-**Independent Test**: Create base plugin class in one package, inherit and register in another package, verify functionality
-
-### Implementation for User Story 8
-
-- [X] T069 [P] [US8] Create reusable base plugin classes in `fairdm/core/plugins.py` (Overview, Edit, Delete)
-- [X] T070 [P] [US8] Document plugin inheritance patterns in `fairdm/contrib/plugins/base.py` docstring
-- [X] T071 [US8] Create example reusable plugin in demo app at `fairdm_demo/plugins.py`
-
-**Checkpoint**: Plugin inheritance and reusability patterns are documented and demonstrated ✓
-
----
-
-## Phase 11: Migration from Old API
-
-**Purpose**: Migrate existing plugins to new API
-
-**⚠️ NOTE**: This phase updates all existing plugin registrations to use the new API
-
-- [X] T072 [P] Migrate Project plugins to new API in `fairdm/core/project/plugins.py`
-- [X] T073 [P] Migrate Dataset plugins to new API in `fairdm/core/dataset/plugins.py`
-- [X] T074 [P] Migrate Sample plugins to new API in `fairdm/core/sample/plugins.py`
-- [X] T075 [P] Migrate Measurement plugins to new API in `fairdm/core/measurement/plugins.py`
-- [X] T076 [P] Migrate Contributor plugins to new API in `fairdm/contrib/contributors/plugins.py`
-- [X] T077 [P] Migrate Activity Stream plugin to new API in `fairdm/contrib/activity_stream/plugins.py`
-- [X] T078 [P] Migrate Generic plugins (Keywords, Descriptions, KeyDates) to new API in `fairdm/contrib/generic/plugins.py`
-- [X] T079 [P] Migrate Collections plugin (DataTable) to new API in `fairdm/contrib/collections/plugins.py`
-- [X] T080 [P] Update demo app plugins to new API in `fairdm_demo/plugins.py`
-- [X] T081 Remove old plugin system files: `fairdm/contrib/plugins/config.py`
-- [X] T082 Remove old plugin system files: `fairdm/contrib/plugins/views.py`
-- [X] T083 Remove old plugin system files: `fairdm/contrib/plugins/plugin.py`
-
-**Checkpoint**: All existing plugins migrated to new API, old code removed
-
-**Validation**: Run `poetry run python manage.py check` to verify all migrations work correctly with new API
-
----
-
-## Phase 12: Polish & Cross-Cutting Concerns
-
-**Purpose**: Documentation, error messages, and quality improvements
-
-- [X] T084 [P] Add comprehensive docstrings to all public APIs in `fairdm/contrib/plugins/`
-- [X] T085 [P] Document Django Media class usage for plugin static assets in `fairdm/contrib/plugins/base.py` docstring with example
-- [X] T086 [P] Create developer quickstart examples in `specs/008-plugin-system/quickstart.md` (already complete)
-- [X] T087 [P] Update framework documentation for plugin system in `docs/portal-development/plugins.md`
-- [X] T088 [P] Add plugin system section to demo app documentation in `fairdm_demo/README.md`
-- [X] T089 Run Django system checks: `poetry run python manage.py check` and verify exit code 0 with zero errors reported
-- [X] T090 Verify all migrations are up to date: `poetry run python manage.py makemigrations --check`
-- [X] T091 Manual testing: Create sample plugin in demo app and verify all user stories work
-- [X] T092 Validate critical edge cases: duplicate plugin registration, URL conflicts, missing models, circular template dependencies, invalid permissions
-- [X] T093 Update CHANGELOG.md with breaking changes and migration guide
-
-**Checkpoint**: Plugin system is production-ready with complete documentation
-
----
-
-## Dependencies Between User Stories
-
-```mermaid
-graph TD
-    US1[US1: Basic Registration P1] --> US2[US2: Tab Navigation P2]
-    US1 --> US3[US3: Template Resolution P2]
-    US1 --> US4[US4: Plugin Groups P2]
-    US1 --> US5[US5: Permissions P3]
-    US1 --> US6[US6: Custom URLs P3]
-    US7[US7: Context & Object P1] --> US2
-    US7 --> US3
-    US1 --> US8[US8: Reusable Plugins P3]
-    US3 --> US8
-    
-    style US1 fill:#90EE90
-    style US7 fill:#90EE90
-    style US2 fill:#FFD700
-    style US3 fill:#FFD700
-    style US4 fill:#FFD700
-    style US5 fill:#FFA07A
-    style US6 fill:#FFA07A
-    style US8 fill:#FFA07A
-```
-
-**Key Dependencies**:
-- US1 (Basic Registration) and US7 (Context/Object) are foundational (P1) and must complete first
-- US2-US4 (P2 features) depend on US1+US7 being complete
-- US5, US6, US8 (P3 features) can be built after US1
-
-**Parallel Execution Opportunities**:
-- After Foundation phase: US1 and US7 can be developed in parallel (different methods)
-- After US1+US7: US2, US3, US4 can be developed in parallel (different features)
-- After US1: US5, US6, US8 can be developed in parallel (different concerns)
-- Within Migration phase: All plugin file migrations can run in parallel
-
----
-
-## Implementation Strategy
-
-### MVP Scope (Recommended First Iteration)
-Focus on **User Story 1 (Basic Registration)** + **User Story 7 (Context/Object)** only:
-- Tasks: T001-T038 (Foundation + US1 + US7)
-- Delivers: Working plugin system with registration, rendering, context, breadcrumbs
-- Value: Developers can extend models declaratively without framework modification
-- Time estimate: 1-2 days
-- Validation: Create minimal plugin in demo app, verify it appears on detail page with breadcrumbs
-
-### Incremental Delivery Plan
-1. **MVP** (T001-T038): Basic registration + context → Deploy and gather feedback
-2. **Enhanced UX** (T039-T051): Add tabs + template resolution → Deploy
-3. **Complex Features** (T052-T060): Add PluginGroups → Deploy
-4. **Enterprise Features** (T061-T068): Add permissions + custom URLs → Deploy
-5. **Ecosystem** (T069-T071): Add reusable components → Deploy
-6. **Migration** (T072-T083): Migrate existing plugins → Deploy
-7. **Polish** (T084-T093): Documentation and final QA → Release
-
-### Task Count Summary
-- **Total Tasks**: 93
-- **Setup**: 5 tasks (T001-T005)
-- **Foundation**: 9 tasks (T006-T014)
-- **User Story 1 (P1)**: 19 tasks (T015-T033)
-- **User Story 7 (P1)**: 5 tasks (T034-T038)
-- **User Story 2 (P2)**: 10 tasks (T039-T048)
-- **User Story 3 (P2)**: 3 tasks (T049-T051)
-- **User Story 4 (P2)**: 9 tasks (T052-T060)
-- **User Story 5 (P3)**: 5 tasks (T061-T065)
-- **User Story 6 (P3)**: 3 tasks (T066-T068)
-- **User Story 8 (P3)**: 3 tasks (T069-T071)
-- **Migration**: 12 tasks (T072-T083)
-- **Polish**: 10 tasks (T084-T093)
-
-### Parallel Execution Examples
-
-**Foundation Phase**: Most tasks are sequential due to dependencies, but T003 and T004 (template directories) can run in parallel.
-
-**User Story 1 Phase**: 
-- Parallel batch 1: T015, T016 (different classmethods)
-- Parallel batch 2: T025-T029 (different model URL files)
-- Parallel batch 3: T030-T032 (different system checks)
-
-**User Story 2 Phase**:
-- Parallel batch: T043-T047 (different model template files)
-
-**Migration Phase**:
-- Parallel batch: T072-T080 (all plugin migrations - different files)
-
----
-
-## Validation Checklist
-
-After completing all phases, verify:
-
-- [X] All Django system checks pass (E001-E007, W001-W002)
-- [X] Plugins can be registered for all base models (Project, Dataset, Sample, Measurement, Contributor)
-- [X] Plugins with `menu` dict appear as tabs
-- [X] Plugins with `menu = None` are accessible via direct URL only
-- [X] Tab ordering respects `menu["order"]` values
-- [X] Template resolution follows documented hierarchy
-- [X] Breadcrumbs appear correctly on all plugin pages
-- [X] Model instance is available in plugin context as `object`
-- [X] PluginGroups create single tab with shared URL namespace
-- [X] Permission-gated plugins respect authorization
-- [X] Unauthorized users get 403 on protected plugin URLs
-- [X] Custom `url_path` attributes work correctly
-- [X] Visibility `check` filters work (e.g., `is_instance_of(RockSample)`)
-- [X] Edge cases validated: duplicate registration, URL conflicts, missing models, circular template dependencies, invalid permission strings
-- [X] All existing plugins migrated to new API
-- [X] Old plugin system code removed
-- [X] Demo app demonstrates plugin patterns
-- [X] Documentation is complete and accurate
+## Phase 1 — Foundation
+
+- **T001** Create the `fairdm.contrib.plugins` app: `apps.py` with an `AppConfig`, `__init__.py`
+  exporting the public surface, registered in the settings app list.
+- **T002** Create the test package mirroring the source tree —
+  `tests/test_contrib/test_plugins/{__init__,conftest}.py` — per Article X.
+- **T003** Write factories for every core record a plugin can attach to (project, dataset, sample,
+  contributor, location), one factory per model, in the project's factory module.
+- **T004** Write `conftest.py` fixtures: a request factory, an anonymous user, an authenticated user
+  with no permissions, a user with a model-level permission, a user with an object-level permission
+  only, and one record of each core type.
+- **T005** Write a fixture that registers throwaway plugins against a throwaway model and tears the
+  registry down afterwards, so tests never depend on the plugins the framework ships.
+
+## Phase 2 — US1: Register a view and get a working page
+
+- **T006** `Plugin` base class: a `View` subclass carrying `name`, `url_path`, `permission`,
+  `check`, `extra_views`, `registered_model` and `plugin_class`, all with defaults. *(FR-001)*
+- **T007** `get_name()` — returns `name`, else the slugified class name. Test both. *(FR-002)*
+- **T008** Delete the hand-rolled `slugify` and derive the name with
+  `django.utils.text.camel_case_to_spaces` composed with `django.utils.text.slugify`. The bespoke
+  version mangles acronyms — `URLTestPlugin` becomes `u-r-l-test-plugin` — and a current test
+  asserts that as correct; correct the assertion with the code. *(FR-002)*
+- **T009** `get_url_path()` — returns `url_path`, else the slugified class name; `None` means no
+  segment of its own. Test all three. *(FR-002, FR-003)*
+- **T010** `PluginRegistry` with a `register(*models, **options)` decorator returning the class
+  unchanged, storing per model. Test that the decorated class is unchanged and is retrievable.
+  *(FR-001)*
+- **T011** `get_plugins_for_model()` returning registrations for a model, empty for an unregistered
+  one. *(FR-001)*
+- **T012** `get_urls_for_model()` returning one flat pattern per view, named `<plugin>`. *(FR-002)*
+- **T013** Mount plugin URLs beneath each record's detail address in that record's URL
+  configuration, under the record's namespace. *(FR-002, FR-005)*
+- **T014** Test that a registered plugin is reversible by name through the record's namespace.
+  *(FR-005)*
+- **T015** **End-to-end**: request a registered plugin's address for a real record through the test
+  client and assert 200. *(US1 sc.1)*
+- **T016** Test that a plugin declaring `url_path` is served at that segment, not the derived one.
+  *(FR-003, US1 sc.3)*
+- **T017** Bind the model per mount via `as_view(registered_model=model)`; declare both initkwargs
+  as class attributes so `as_view` accepts them. *(FR-004)*
+- **T018** Test that one plugin registered against two models serves each independently — assert
+  each mount resolves its own record type, and that the class attribute is untouched. *(FR-004,
+  US1 sc.4)*
+
+## Phase 3 — US2: Reach the record without disturbing the view
+
+- **T019** Compose the existing related-object mixin rather than reimplementing record access; it
+  already supplies a `base_object` `cached_property` over `get_object_or_404`, a configurable lookup
+  kwarg, and `non_polymorphic_object`, which the template tags read first and which the polymorphic
+  records need. Generalise its lookup to the declared map. *(FR-006)*
+- **T020** Test `base_object` resolves for a polymorphic record accessed as its base type, and that
+  `non_polymorphic_object` is present. *(FR-006)*
+- **T021** Test `base_object` is in the template context and is the core record. *(FR-007)*
+- **T022** Do **not** assign `self.object`. Test that a plugin over a `CreateView` still sees
+  `self.object is None` in its own `get()`, and that a plugin over a `DetailView` keeps its own
+  resolution. *(FR-008, US2 sc.1)*
+- **T023** Test that a plugin over a stock `UpdateView` keeps its own `form_class`, `get_object`
+  and `form_valid`. *(FR-008, SC-006)*
+- **T024** Test a request naming a record that does not exist returns 404 through the URLconf, not
+  an exception — the composed mixin's `get_object_or_404` supplies this. *(FR-009, US2 sc.3)*
+- **T025** Model-level addressing: a model declares its URL route and an explicit kwarg-to-field map,
+  defaulting to the `uuid` form. Not per-registration — two plugins on one model cannot disagree
+  about how their shared record is found. *(FR-006)*
+- **T025a** Reverse uses the declared map. The current helper hardcodes a `uuid` kwarg, and the
+  navigation package filters kwargs and then swallows the failure, so a record without one renders
+  an **empty menu rather than an error**. Test that a location plugin's entry renders a working
+  href. *(FR-005, FR-006)*
+- **T026** `get_breadcrumbs()` resolving the record's list address and the record's own address by
+  reverse, not by literal. Test both hrefs resolve. *(FR-010, US2 sc.4)*
+- **T027** Give `Plugin` a `page_title` default so a plugin that sets none does not raise while
+  building its trail. *(FR-010)*
+- **T028** Custom context: test a plugin adding its own keys keeps both its own and the system's.
+  *(FR-036, US2 sc.5)*
+- **T029** Declared assets: collect a plugin's stylesheets and scripts into the context and render
+  them. Test the rendered response contains them. *(FR-035, US2 sc.6)*
+
+## Phase 4 — US3: Visibility and reachability are one set
+
+- **T030** `access.py` with `can_open(view_class, request, obj)`. *(FR-019, FR-020)*
+- **T031** Read the predicate with `inspect.getattr_static`. Test that a plain function, a lambda,
+  a `staticmethod` and an inherited attribute all receive `(request, obj)` identically. *(FR-017)*
+- **T031a** Refuse a `check` that is neither callable nor a bool. `getattr_static` returns a
+  `classmethod` object unchanged; it is **not callable but is truthy**, so a `callable()` guard falls
+  through and publishes the page. Test that a `classmethod` predicate is refused at registration
+  rather than silently permitting everyone. *(FR-017, FR-033)*
+- **T032** Permission resolution as `has_perm(p) or has_perm(p, obj)`. Test a user with only a
+  model-level permission and a user with only an object-level one — **both must pass**. *(FR-018,
+  FR-021)*
+- **T033** Memoise permission results on the request by `(permission, model label, pk)` — not
+  `id(obj)`, which CPython reuses after collection, and the decision is reachable from template loops
+  over temporary objects. **Export the helper**, because the real per-page cost is author predicates
+  calling the permission check themselves, which an internal memo never sees. *(FR-021)*
+- **T034** Subclass `PermissionRequiredMixin` and override `has_permission()` only. It already
+  defines the permission normaliser, the predicate and the `dispatch` that delegates to
+  `handle_no_permission`; the only difference this feature needs is the second, object-level call.
+  *(FR-018)*
+- **T035** Test an anonymous visitor is redirected to login and an authenticated one gets 403.
+  *(FR-018)*
+- **T036** The registry passes the navigation package an adapter closure calling `can_open`, never
+  the author's function. *(FR-020)*
+- **T037** Test that both the navigation path and the dispatch path reach the same function object,
+  so they cannot diverge. *(FR-020)*
+- **T038** The adapter catches predicate exceptions and hides the entry. Test that a predicate which
+  raises does not break the page. *(FR-019)*
+- **T039** **End-to-end**: a plugin whose predicate excludes the user shows no entry *and* refuses a
+  direct request. Assert both in one test. *(FR-019, US3 sc.1–2)*
+- **T040** **End-to-end**: a plugin whose permission the user lacks shows no entry. *(US3 sc.3)*
+- **T041** Test a plugin narrowed to one subtype of a polymorphic record is neither listed nor
+  reachable for another subtype. *(US3 sc.4)*
+- **T042** Test a plugin with neither predicate nor permission is listed and reachable for any user.
+  *(US3 sc.5)*
+- **T043** Pin query counts with `django_assert_num_queries` on a record page carrying several
+  plugins, for an anonymous user, a denied user and a granted user. *(SC-008)*
+
+## Phase 5 — US4: A registration that cannot work is refused
+
+- **T044** `checks.py` with a validation entry point called from the decorator. *(FR-034)*
+- **T045** Refuse a registration naming no model, or naming a non-model. *(FR-027, US4 sc.3–4)*
+- **T046** Refuse a duplicate plugin name on one model, naming both plugins and the model.
+  *(FR-028, US4 sc.1)*
+- **T047** Allow the same name on different models. *(FR-032, US4 sc.7)*
+- **T048** Refuse a duplicate path segment on one model. *(FR-029, US4 sc.2)*
+- **T049** Refuse a segment that cannot appear in a route by constructing it with `path()` inside a
+  `try` and re-raising with the plugin named, rather than parsing converters by hand — `path()`
+  already raises on an unknown converter. *(FR-030, FR-033, US4 sc.5)*
+- **T049a** Refuse a duplicate **generated URL name** on one model. Segments and plugin names are not
+  enough: a plugin `a` with a child `b` and a separate plugin `a-b` produce the same reverse name
+  from different paths, and Django keeps the last one silently. *(FR-029, FR-031)*
+- **T050** Test every refusal names the plugin, the model and the problem. *(FR-033)*
+- **T051** Test refusal happens at registration, not at first request — assert the import itself
+  raises. *(FR-034)*
+
+## Phase 6 — US5: One plugin, several related views
+
+- **T052** `extra_views` class attribute and `get_extra_views()` classmethod; nothing else reads the
+  attribute. *(FR-022)*
+- **T053** Mount each additional view beneath the parent's path, flat, named
+  `<plugin>-<child>`. *(FR-023)*
+- **T054** Test each additional view resolves and is served. *(US5 sc.1)*
+- **T055** Bind `registered_model` and `plugin_class` on additional views exactly as on the parent.
+  Test an additional view reaches the record. *(FR-025, US5 sc.4)*
+- **T056** Test exactly one navigation entry appears for a plugin with additional views, and none
+  for the children. *(FR-024, US5 sc.2)*
+- **T057** An additional view declares its own permission, enforced at its own dispatch. Test a user
+  refused the child while the parent stays reachable. *(FR-026, US5 sc.3)*
+- **T058** Support a route converter in an additional view's segment, so it can address its own
+  target. Test `<int:pk>/edit`. *(FR-023)*
+- **T059** Refuse colliding segments among additional views, and between a child and the parent's
+  own root. *(FR-031, US4 sc.6)*
+- **T060** Refuse an additional view that is not a `Plugin`, and refuse recursion. *(FR-031)*
+
+## Phase 7 — US6: Control the navigation entry, or decline it
+
+- **T061** Build a navigation entry per registration from the decorator's `label`, `icon` and
+  `order`. *(FR-011, FR-013)*
+- **T062** Test the entry appears by default for a registered plugin. *(FR-011, US1 sc.2)*
+- **T063** `menu=False` declines the entry; the plugin stays reachable. Test both halves. *(FR-012,
+  US6 sc.1)*
+- **T064** Honour `order`: entries render in position order, not registration order. Test with
+  positions deliberately out of registration sequence. *(FR-014, US6 sc.2)*
+- **T065** Test a declared label and icon are used. *(FR-013, US6 sc.3)*
+- **T066** Default the label to a name derived from the view class and the icon to the framework
+  default. *(FR-015, US6 sc.4)*
+- **T067** A plugin must not be able to configure its entry through a class attribute. Test that
+  such an attribute has no effect. *(FR-016)*
+- **T068** Pass the record to predicates from the template that renders the navigation. *(FR-017)*
+
+## Phase 8 — Wiring, removals, documentation
+
+- **T069** Mount plugin URLs for every core record that serves a detail page. *(SC-007)*
+- **T070** Wire the location record, declaring its coordinate lookup. *(SC-007)*
+- **T071** Remove registrations against records that have no detail page of their own. *(SC-007)*
+- **T072** Remove plugin templates that nothing selects, and any template extending a base that does
+  not exist.
+- **T073** Remove registrations that are syntactically broken at import.
+- **T074** Write the plugin author's guide: registration, the URL a plugin gets, reaching the
+  record, the predicate and permission contract with the guarantee stated plainly, additional views,
+  declining an entry, and what a refused registration looks like. *(SC-001, SC-002)*
+- **T075** Remove documentation describing the container, its error codes, and the interface that
+  predates the current one.
+- **T076** Correct the roadmap item whose motivating example this work falsifies.
+- **T077** **End-to-end**: an addon-style package registers a plugin against a core model it does not
+  own, and it is served. *(SC-002)*
+- **T078** Full suite, lint, type checks and build green.
+
+## Phase 9 — Added after design review
+
+- **T079** `can_open` consults the **owning plugin's** predicate, not only the view's own. An
+  additional view inherits the permissive default, so reading the predicate off the view class alone
+  leaves a child of a restricted plugin reachable while its parent is refused and unlisted. The mount
+  already binds the owning plugin; nothing read it. Test the child case directly. *(FR-019, SC-003)*
+- **T080** The registry owns the per-model navigation object and creates it on first registration.
+  They are currently five hand-written objects found by a string convention, one of which registers
+  under a different name than its variable, and a record with none makes the registry append to
+  `None`. *(FR-011)*
+- **T081** State and test the context contract: `base_object` is the core record, `object` stays the
+  view's own object, and the plugin system never assigns `self.object`. *(FR-007, FR-008)*
+- **T082** Migrate the four consumers that read `object` as the core record today — the base
+  template, the template tags, the contributor overview template, and the contributor plugin module,
+  which also calls a method defined nowhere in the tree. *(FR-008)*
+- **T083** Navigation tests assert entry **contents**, not merely a 200 response. A missing context
+  key renders empty, the reverse fails, and the entry is hidden — so a page with no navigation at all
+  still returns 200. *(FR-011, FR-013)*
+- **T084** Give every surviving shipped registration explicit `label`, `icon` and `order` kwargs.
+  Removing the class-attribute fallback otherwise leaves around ten of them rendering a slugified
+  class name and the default icon. *(FR-013, FR-015)*
+- **T085** Remove the `menu` class attribute from the shipped plugins that declare one. *(FR-016)*
+- **T086** Replace, do not merely delete, the templates that live plugins serve. Four extend a base
+  template that does not exist; deleting them leaves those plugins with no template at all. *(SC-001)*
+- **T087** Remove the template lookup chain in the generic plugin module. It is the chain the
+  decisions record orders removed, and it reads an attribute no class defines. *(FR-008)*
+- **T088** Fold the predicate helpers into the access module and delete the separate module.
+- **T089** A system check reports a registration against a model with no mounted attachment point.
+  This cannot be caught in the decorator, because no URL configuration exists when it runs — so it is
+  a weaker guarantee than the rest, and recorded as such. It is also the failure that let five
+  registrations sit inert. *(FR-027)*

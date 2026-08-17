@@ -1,0 +1,10 @@
+{% extends "page_view.html" %}
+
+{# The base every plugin page extends.
+
+   Eleven templates in this repository extended this file while it did not exist, so none of them
+   could render if anything had selected them. #}
+
+{% block content %}
+  {{ block.super }}
+{% endblock content %}

@@ -22,11 +22,11 @@ class Overview(OverviewPlugin):
         """Add contribution counts and ORCID identifier to the context."""
         context = super().get_context_data(**kwargs)
         context["contributions_by_type"] = self.get_contribution_counts()
-        context["object"] = self.object
+        context["object"] = self.base_object
 
         # Add ORCID identifier if available (for Person objects)
-        if isinstance(self.object, Person):
-            orcid = self.object.identifiers.filter(type="ORCID").first()
+        if isinstance(self.base_object, Person):
+            orcid = self.base_object.identifiers.filter(type="ORCID").first()
             context["orcid_identifier"] = orcid
 
         return context
@@ -39,7 +39,7 @@ class Overview(OverviewPlugin):
             dict: Mapping of model verbose names to contribution counts
                   (e.g., {"Projects": 5, "Datasets": 3})
         """
-        contributions_by_type = self.object.contributions.values(
+        contributions_by_type = self.base_object.contributions.values(
             "content_type"
         ).annotate(count=Count("id"))
         result = {}
@@ -62,10 +62,10 @@ class ContributorProjects(Plugin, ProjectListView):
 
     def get_queryset(self, *args, **kwargs):
         """Filter projects to only those associated with this contributor."""
-        return self.object.projects.all()
+        return self.base_object.projects.all()
 
     def get_page_title(self):
-        if self.request.user == self.object:
+        if self.request.user == self.base_object:
             return _("My Projects")
         return super().get_page_title()
 
@@ -76,10 +76,10 @@ class ContributorDatasets(Plugin, DatasetListView):
 
     def get_queryset(self, *args, **kwargs):
         """Filter datasets to only those associated with this contributor."""
-        return self.object.datasets.all()
+        return self.base_object.datasets.all()
 
     def get_page_title(self):
-        if self.request.user == self.object:
+        if self.request.user == self.base_object:
             return _("My Datasets")
         return super().get_page_title()
 
@@ -95,7 +95,7 @@ class Statistics(Plugin, FairDMTemplateView):
 
         # Get contribution counts by type
         contributions_by_type = {}
-        for entry in self.object.contributions.values("content_type").annotate(
+        for entry in self.base_object.contributions.values("content_type").annotate(
             count=Count("id")
         ):
             content_type = ContentType.objects.get(pk=entry["content_type"])
@@ -107,7 +107,7 @@ class Statistics(Plugin, FairDMTemplateView):
 
         context.update(
             {
-                "total_contributions": self.object.contributions.count(),
+                "total_contributions": self.base_object.contributions.count(),
                 "contributions_by_type": contributions_by_type,
             }
         )

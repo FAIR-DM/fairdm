@@ -65,8 +65,8 @@ class TestBasicRegistration:
             if hasattr(pattern, "name") and pattern.name:
                 url_names.append(pattern.name)
 
-        # URL name should be slugified class name: "URLTestPlugin" → "u-r-l-test-plugin"
-        assert any("u-r-l-test-plugin" in name for name in url_names)
+        # URL name should be slugified class name: "URLTestPlugin" → "url-test-plugin"
+        assert any("url-test-plugin" in name for name in url_names)
 
 
 class TestPluginDeregistration:

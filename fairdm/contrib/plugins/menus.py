@@ -1,49 +1,19 @@
-"""Menu and tab data structures for plugin system."""
+"""Rendering for a record's local navigation.
+
+The per-record navigation objects used to be declared here and found by the string
+``f"{model.__name__}Menu"``. The registry owns them now and creates one on first registration, so
+a record type gains navigation by having a plugin registered against it rather than by someone
+remembering to add a menu here. A record with no hand-written entry — the location record — used to
+make the lookup return ``None`` and the caller append to it.
+"""
 
 from typing import Any
 
-from django.utils.translation import gettext_lazy as _
-from flex_menu import Menu, MenuItem
 from flex_menu.renderers import BaseRenderer
-
-overview_context = {"label": _("Overview"), "icon": "overview"}
-
-ProjectMenu = Menu(
-    "ProjectMenu",
-    children=[
-        MenuItem("Overview", view_name="project-detail", extra_context=overview_context)
-    ],
-)
-DatasetMenu = Menu(
-    "DatasetMenu",
-    children=[
-        MenuItem("Overview", view_name="dataset-detail", extra_context=overview_context)
-    ],
-)
-SampleMenu = Menu(
-    "SampleMenu",
-    children=[
-        MenuItem("Overview", view_name="sample-detail", extra_context=overview_context)
-    ],
-)
-PersonMenu = Menu(
-    "ContributorMenu",
-    children=[
-        MenuItem("Overview", view_name="person-detail", extra_context=overview_context)
-    ],
-)
-OrganizationMenu = Menu(
-    "OrganizationMenu",
-    children=[
-        MenuItem(
-            "Overview", view_name="organization-detail", extra_context=overview_context
-        )
-    ],
-)
 
 
 class PluginMenuRenderer(BaseRenderer):
-    """Renderer for BS5 nav tabs."""
+    """Renderer for the horizontal tab navigation on a record's pages."""
 
     templates: dict[Any, Any] = {
         # Depth 0: Container (root menu)

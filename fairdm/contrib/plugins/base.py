@@ -2,20 +2,25 @@
 
 from __future__ import annotations
 
+import contextlib
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Model
 from django.forms.widgets import Media
-from django.http import HttpRequest, HttpResponse
-from django.urls import URLPattern, include, path
+from django.urls import URLPattern, path
 from django.views.generic.base import View
+
+from .access import can_open
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from django.http import HttpRequest
 
-class Plugin(View):
+
+class Plugin(PermissionRequiredMixin, View):
     """Mixin class that adds plugin behavior to Django class-based views.
 
     Attributes:
@@ -30,8 +35,13 @@ class Plugin(View):
 
     """
 
-    # The model against which a plugin is registered. Set by the registry during registration.
+    # The model this mount serves. Bound per mount by as_view(), never assigned onto the class —
+    # a plugin registered against two models must serve each independently.
     registered_model: ClassVar[type[Model] | None] = None
+
+    # The plugin that owns this view. For a plugin itself this is None and it owns itself; for an
+    # additional view it is the declaring plugin, whose predicate governs the whole group.
+    plugin_class: ClassVar[type[Plugin] | None] = None
 
     # Plugin name (slugified class name if not set)
     name: ClassVar[str | None] = None
@@ -44,7 +54,12 @@ class Plugin(View):
     model: ClassVar[type[Model] | None] = None
     menu: ClassVar[dict[str, Any] | None] = None
     # tab = None
-    subviews: ClassVar[list[type[View]] | None] = []
+    #: Additional view classes belonging to this plugin. Read only through get_extra_views().
+    extra_views: ClassVar[list[type[Plugin]]] = []
+
+    #: Shown as the last entry in the navigation trail. Declared here because get_breadcrumbs()
+    #: reads it directly, and a plugin that set none used to raise AttributeError (issue #112).
+    page_title: ClassVar[str] = ""
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
 
@@ -76,128 +91,121 @@ class Plugin(View):
         return cls.get_name()
 
     @classmethod
-    def get_urls(cls, menu_class) -> list[URLPattern]:
-        """Generate URL pattern(s) for this plugin.
+    def get_extra_views(cls) -> list[type[Plugin]]:
+        """The additional view classes belonging to this plugin.
 
-        Returns:
-            List containing one URLPattern for simple plugins.
-            Subclasses may override to return multiple patterns.
+        The single reader of ``extra_views``. Declaration is a class attribute and resolution is one
+        method, which is the pattern this project settled for the model registry and the one Django
+        admin uses for inlines.
+        """
+        return list(cls.extra_views or [])
+
+    @classmethod
+    def get_urls(cls, menu_class=None, model=None) -> list[URLPattern]:
+        """Flat URL patterns for this plugin and every view it owns.
+
+        One ``path()`` per view, named ``<plugin>`` and ``<plugin>-<child>``. No nested namespace:
+        the earlier shape emitted an ``include()`` for every plugin whether or not it had children,
+        installing an empty resolver whose namespace equalled the plugin's own pattern name — the
+        plugin was simultaneously a route and a container. Django admin, DRF routers and neapolitan
+        all flatten instead.
+
+        The model is bound per mount rather than assigned onto the class, so one plugin registered
+        against two records serves each independently.
         """
         base_name = cls.get_name()
         base_path = cls.get_url_path()
-        urls = []
-        for subview in cls.subviews:
-            urls.append(
-                path(
-                    f"{subview.get_url_path()}/",
-                    subview.as_view(menu=menu_class),
-                    name=subview.get_name(),
-                )
+        prefix = f"{base_path}/" if base_path is not None else ""
+
+        def mount(view_class, owner=None):
+            return view_class.as_view(
+                menu=menu_class,
+                registered_model=model,
+                plugin_class=owner,
             )
 
-        base_path = f"{base_path}/" if base_path is not None else ""
-        return [
-            path(base_path, cls.as_view(menu=menu_class), name=base_name),
-            path(base_path, include((urls, base_name), namespace=base_name)),
-        ]
+        patterns = [path(prefix, mount(cls), name=base_name)]
+        for extra in cls.get_extra_views():
+            segment = extra.get_url_path()
+            segment = f"{segment}/" if segment else ""
+            patterns.append(
+                path(
+                    f"{prefix}{segment}",
+                    mount(extra, owner=cls),
+                    name=f"{base_name}-{extra.get_name()}",
+                )
+            )
+        return patterns
+
+    @cached_property
+    def base_object(self) -> Model | None:
+        """The core record this plugin hangs from.
+
+        Distinct from ``self.object``, which stays whatever the view class decides it is — the two
+        are different things and sharing one attribute name is what broke any view managing its own.
+        Named to match ``RelatedObjectMixin`` so a plugin and an ordinary related view read alike.
+        """
+        from django.http import Http404
+
+        try:
+            return self.get_base_object()
+        except Http404:
+            # A record that does not exist is a 404, not an absent record. Swallowing it here is
+            # what turned a missing sample into a 500 further along.
+            raise
+        except Exception:
+            return None
 
     def get_base_object(self) -> Model:
-        """Fetch model instance from URL kwargs.
+        """Fetch the core record named by the address.
 
-        Returns:
-            Model instance based on URL kwargs (typically 'pk' or 'uuid')
+        The lookup comes from the model's declared addressing rather than a hardcoded ``uuid``, so
+        a record identified some other way — the location record is keyed on a coordinate pair and
+        has no ``uuid`` field — can be served by the same machinery.
 
         Raises:
-            Model.DoesNotExist: If instance not found
+            Http404: if no such record exists
+            ValueError: if the mount is missing, which is a wiring mistake rather than a bad request
         """
+        from django.shortcuts import get_object_or_404
+
+        from .registration import registry
+
         if not self.registered_model:
             msg = f"Plugin {self.__class__.__name__} has no associated model"
             raise ValueError(msg)
 
-        # Try pk first (integer primary key)
-        if pk := self.kwargs.get("pk"):
-            return self.registered_model.objects.get(pk=pk)
-
-        # Try uuid (UUID field)
-        if uuid := self.kwargs.get("uuid"):
-            return self.registered_model.objects.get(uuid=uuid)
-
-        msg = "Plugin URL must include 'pk' or 'uuid' kwarg"
-        raise ValueError(msg)
-
-    def has_permission(self, request: HttpRequest, obj: Model | None = None) -> bool:
-        """Two-tier permission check.
-
-        Checks both model-level and object-level permissions.
-
-        Args:
-            request: HTTP request
-            obj: Model instance (optional, for object-level checks)
-
-        Returns:
-            True if user has permission
-        """
-        # No permission requirement
-        if not self.permission:
-            return True
-
-        # Model-level permission check
-        if not request.user.has_perm(self.permission):
-            return False
-
-        # Object-level permission check (if guardian is available)
-        if obj:
-            try:
-                from guardian.shortcuts import get_objects_for_user
-
-                # Check if user has object-level permission
-                queryset = get_objects_for_user(
-                    request.user, self.permission, klass=obj.__class__
+        lookup = registry.lookup_for(self.registered_model)
+        filters = {
+            field: self.kwargs[kwarg]
+            for kwarg, field in lookup.items()
+            if kwarg in self.kwargs
+        }
+        if not filters:
+            # Kept for plugins mounted by a URL configuration that predates declared addressing.
+            if pk := self.kwargs.get("pk"):
+                filters = {"pk": pk}
+            else:
+                msg = (
+                    f"Plugin {self.__class__.__name__} is mounted without any of the lookup "
+                    f"kwargs {sorted(lookup)} its model declares"
                 )
-                return queryset.filter(pk=obj.pk).exists()
-            except ImportError:
-                # Guardian not available, rely on model-level check
-                pass
+                raise ValueError(msg)
 
-        return True
+        return get_object_or_404(self.registered_model, **filters)
 
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        """Permission-gated dispatch.
+    def has_permission(self) -> bool:
+        """Whether this request may open this view.
 
-        Checks permissions before allowing access to the view.
+        Overrides ``PermissionRequiredMixin.has_permission``, which supplies the surrounding
+        ``dispatch`` and the ``handle_no_permission`` behaviour — an authenticated user gets 403, an
+        anonymous one is sent to log in.
 
-        Args:
-            request: HTTP request
-            *args: Positional arguments
-            **kwargs: Keyword arguments
-
-        Returns:
-            HTTP response
-
-        Raises:
-            PermissionDenied: If user lacks required permissions
+        The decision itself is :func:`~fairdm.contrib.plugins.access.can_open`, which the navigation
+        entry also calls. That is the whole mechanism behind the guarantee that what a user can see
+        and what a user can reach are the same set.
         """
-        if callable(self.check):
-            if not self.check(request):
-                raise PermissionDenied
-        elif not self.check:
-            raise PermissionDenied
-
-        # Get object for permission checking
-        try:
-            obj = self.get_base_object()
-        except (ValueError, self.registered_model.DoesNotExist):  # type: ignore[union-attr]
-            obj = None
-
-        # Check permissions
-        if not self.has_permission(request, obj):
-            raise PermissionDenied
-
-        # Store object for use in view methods
-        if obj:
-            self.object = obj  # type: ignore[attr-defined]
-
-        return super().dispatch(request, *args, **kwargs)
+        return can_open(self.__class__, self.request, self.base_object)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Add plugin-specific context data.
@@ -216,16 +224,13 @@ class Plugin(View):
         """
         context = super().get_context_data(**kwargs)  # type: ignore[misc]
 
-        # Add object if not already present
+        # The core record, always. `object` is left to the view class.
+        context["base_object"] = self.base_object
+
+        # Kept for templates that predate `base_object`; it resolves to the view's own object when
+        # the view has one, and to the core record otherwise.
         if not context.get("object"):
-            # Check if object was set in dispatch() first
-            if hasattr(self, "object") and self.object is not None:
-                context["object"] = self.object
-            else:
-                try:
-                    context["object"] = self.get_base_object()
-                except (ValueError, Exception):
-                    context["object"] = None
+            context["object"] = getattr(self, "object", None) or self.base_object
 
         # Add breadcrumbs
         context["breadcrumbs"] = self.get_breadcrumbs()
@@ -246,28 +251,37 @@ class Plugin(View):
         Returns:
             List of breadcrumb dicts with 'text' and optionally 'href' keys
         """
-        breadcrumbs = []
+        from django.urls import NoReverseMatch
+        from django.urls import reverse as django_reverse
 
-        # Add model list view breadcrumb
+        breadcrumbs: list[dict[str, Any]] = []
+
         if self.registered_model:
-            model_name = self.registered_model._meta.verbose_name_plural
-            # TODO: Reverse model list URL
-            breadcrumbs.append({"text": model_name, "href": "/"})
+            meta = self.registered_model._meta
+            entry: dict[str, Any] = {"text": meta.verbose_name_plural}
+            # A record type may have no list page; a trail entry that does not navigate is worse
+            # than one that is plain text, so the link is added only when it resolves.
+            for candidate in (f"{meta.model_name}-list", f"{meta.model_name}s"):
+                try:
+                    entry["href"] = django_reverse(candidate)
+                except NoReverseMatch:
+                    continue
+                break
+            breadcrumbs.append(entry)
 
-        # Add object breadcrumb
-        try:
-            obj = self.get_base_object()
+        obj = self.base_object
+        if obj is not None:
             obj_str = str(obj)
-            # Truncate long object names
             if len(obj_str) > 50:
                 obj_str = obj_str[:47] + "..."
-            # TODO: Reverse object detail URL
-            breadcrumbs.append({"text": obj_str, "href": "#"})
-        except (ValueError, Exception):  # noqa: S110
-            pass
+            entry = {"text": obj_str}
+            get_absolute_url = getattr(obj, "get_absolute_url", None)
+            if callable(get_absolute_url):
+                with contextlib.suppress(Exception):
+                    entry["href"] = get_absolute_url()
+            breadcrumbs.append(entry)
 
-        # Add current page breadcrumb
-        if self.menu:
+        if self.page_title:
             breadcrumbs.append({"text": self.page_title})
 
         return breadcrumbs

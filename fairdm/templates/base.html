@@ -28,7 +28,7 @@
 
 {% block app.header.tray %}
   {% if plugin_menu %}
-    {% render_menu plugin_menu renderer="plugin-menu-renderer" uuid=object.uuid %}
+    {% render_menu plugin_menu renderer="plugin-menu-renderer" object=object uuid=object.uuid %}
   {% endif %}
 {% endblock app.header.tray %}
 

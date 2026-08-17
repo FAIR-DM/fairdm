@@ -25,7 +25,7 @@ class DatasetList(Plugin, DatasetListView):
 
     def get_queryset(self, *args, **kwargs):
         """Filter datasets to only those belonging to this project."""
-        return self.object.datasets.all()
+        return self.base_object.datasets.all()
 
     def get_lookup_kwargs(self) -> dict:
         return {}

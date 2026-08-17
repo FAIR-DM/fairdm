@@ -53,6 +53,80 @@ def admin_user(db):
 
 
 @pytest.fixture
+def anonymous_user():
+    """A visitor who has not signed in."""
+    from django.contrib.auth.models import AnonymousUser
+
+    return AnonymousUser()
+
+
+@pytest.fixture
+def plain_user(db):
+    """Signed in, holding no permissions at all."""
+    from fairdm.factories.contributors import UserFactory
+
+    return UserFactory(email="plain@example.com")
+
+
+@pytest.fixture
+def model_perm_user(db):
+    """Holds a permission globally, with no object-level grant."""
+    from guardian.shortcuts import assign_perm
+
+    from fairdm.factories.contributors import UserFactory
+
+    user = UserFactory(email="model-perm@example.com")
+    assign_perm("sample.change_sample", user)
+    return user
+
+
+@pytest.fixture
+def object_perm_user(db, sample):
+    """Holds a permission on one record only.
+
+    The inverse case matters as much as the ordinary one: ``ModelBackend`` contributes nothing once
+    an object is passed, so a decision written as a single object-level call refuses this user.
+    """
+    from guardian.shortcuts import assign_perm
+
+    from fairdm.factories.contributors import UserFactory
+
+    user = UserFactory(email="object-perm@example.com")
+    assign_perm("change_sample", user, sample)
+    return user
+
+
+@pytest.fixture
+def as_user(rf):
+    """Build a request carrying a given user."""
+
+    def build(user, path="/"):
+        request = rf.get(path)
+        request.user = user
+        return request
+
+    return build
+
+
+@pytest.fixture(autouse=True)
+def isolate_registry():
+    """Snapshot the registry and restore it after every test in this package.
+
+    Tests here register throwaway plugins against the real records, and many of them use the same
+    class name. Registration now refuses a duplicate name on one record type, which is the point —
+    but it means a test that leaks its registration breaks the next one. Snapshot and restore is
+    cheaper and more faithful than clearing and re-importing every plugin module, which is what the
+    older fixture did.
+    """
+    from fairdm import plugins
+
+    saved = {model: list(entries) for model, entries in plugins.registry._registry.items()}
+    yield
+    plugins.registry._registry.clear()
+    plugins.registry._registry.update(saved)
+
+
+@pytest.fixture
 def clear_registry():
     """Clear plugin registry between tests to prevent pollution.
 

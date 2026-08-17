@@ -85,7 +85,7 @@ Serves G5.
 
 ### R8 — The plugin system
 
-*Delivered · needs verification · advances G3*
+*Delivered · advances G3*
 
 Views attach to core records as tabs and panels through a registry, so an addon adds pages to an existing record type without the framework being edited. Addon packages announce their own settings and URLs and are picked up at startup.
 
@@ -204,15 +204,14 @@ Serves G9. Out of scope: searching across portals, which is R29.
 
 *feature · advances G3*
 
-Extension points are fixed in advance rather than derived from what is registered, so a model the framework did not anticipate has nowhere to attach. Measurements are the live example: plugins are written and registered against them, and none of them are reachable. The same registration call also fails silently when used slightly wrong, which is how a whole shipped feature came to be inert without anyone noticing.
+Extension points are fixed in advance rather than derived from what is registered, so a model a portal or an addon defines has nowhere to attach. A record type gains plugin pages only when someone edits a URL configuration by hand, which an addon cannot do.
+
+Measurements were previously named here as the live example. That was wrong: a measurement is a component of the sample page rather than a record with a page of its own, so it has no attachment point by design. The five plugins registered against it have been removed, and registering a plugin incorrectly now fails at registration rather than doing nothing.
 
 **Deliverables:**
 
 - Attachment points follow from a model being registered, including models defined by a portal or an addon.
-- Measurement plugins are reachable, and the plugins already written for measurements are served.
-- Registering a plugin incorrectly fails at startup with a message naming the plugin, instead of silently doing nothing.
-- A startup check reports every registered plugin and where it attached, so an addon author can see the result.
-- The addon documentation describes the attachment points and what a plugin can add.
+- A startup report lists every registered plugin and where it attached, so an addon author can see the result. A registration against a record with no mounted attachment point is reported as such — this cannot be caught at registration, because no URL configuration exists when the decorator runs.
 
 Serves G3. Out of scope: removing the code that this defect left stranded, which is R20.
 

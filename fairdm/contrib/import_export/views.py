@@ -10,7 +10,6 @@ from django.views.generic import FormView
 from django.views.generic.detail import SingleObjectMixin
 from django_downloadview import VirtualDownloadView
 
-from fairdm import plugins
 from fairdm.contrib.import_export.utils import build_metadata
 from fairdm.core.models import Dataset
 from fairdm.forms import Form
@@ -123,7 +122,6 @@ class BaseImportExportView(MessageMixin, FormView):
         return self.import_kwargs.copy()
 
 
-@plugins.register
 class DataImportView(BaseImportExportView):
     name = "import"
     title = _("Import Data")
@@ -140,9 +138,6 @@ class DataImportView(BaseImportExportView):
             }
         ],
     }
-    menu_item = plugins.PluginMenuItem(
-        name=_("Import Data"), category=plugins.ACTIONS, icon="import"
-    )
     sections = {
         "components.form.default",
     }
@@ -194,7 +189,6 @@ class DataImportView(BaseImportExportView):
         return self.get_object().get_absolute_url()
 
 
-@plugins.register
 class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
     name = "get-published"
     title = _("Get Published")
@@ -211,9 +205,6 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
             }
         ],
     }
-    menu_item = plugins.PluginMenuItem(
-        name=_("Publish Dataset"), category=plugins.ACTIONS, icon="export"
-    )
     sections = {
         "components.form.default",
     }
@@ -239,11 +230,7 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
 
 
 @method_decorator(require_POST, name="dispatch")
-@plugins.register
 class DataExportView(VirtualDownloadView, BaseImportExportView):
-    menu_item = plugins.PluginMenuItem(
-        name=_("Export Data"), category=plugins.ACTIONS, icon="export"
-    )
     form_class = ExportForm
 
     def get_file(self):
@@ -293,7 +280,6 @@ class DatasetPackageDownloadView(SingleObjectMixin, VirtualDownloadView):
         return "application/zip"
 
 
-@plugins.register
 class MetadataDownloadView(VirtualDownloadView):
     template_name = "publishing/datacite44.xml"
 

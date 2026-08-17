@@ -1,175 +1,208 @@
-# Implementation Plan: Plugin System for Model Extensibility
+# Plan — 008 The plugin system
 
-**Branch**: `008-plugin-system` | **Date**: 2026-02-17 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/008-plugin-system/spec.md`
+Derived from `spec.md` and `research.md`, and revised after design review. The findings that changed
+it are noted inline as **[review]**.
 
-## Summary
+## Shape
 
-Redesign the FairDM plugin system (`fairdm.contrib.plugins`) to provide a clean, declarative API for extending model detail views. The new system replaces the current `PluggableView` orchestrator pattern with a simpler architecture where each `Plugin` is a Django view mixin that owns its own URL generation (`get_urls()` classmethod), template resolution, and permission checking. A `PluginGroup` composition class enables multi-view features (e.g., CRUD interfaces) under a single tab. Categories are removed; tabs appear for any plugin with an inner `Menu` class. The registry aggregates URL patterns and tab data per model. Backward compatibility is explicitly not a requirement.
+`fairdm/contrib/plugins/` becomes six modules:
 
-**Key design decisions** (see [research.md](research.md)):
-1. Plugin as mixin paired with Django CBVs (not a standalone base view)
-2. `get_urls()` classmethod on Plugin and PluginGroup (user-suggested, mirrors Django admin pattern)
-3. Eliminate `PluggableView` orchestrator; registry replaces its responsibilities
-4. Flat tab list via `Tab` dataclass replaces three-category `flex_menu` menus
-5. Django system checks for startup validation
-6. Natural error isolation (each plugin is a separate HTTP request)
+| Module | Holds |
+|---|---|
+| `base.py` | `Plugin` — declaration surface, URL generation, record access, context |
+| `access.py` | `can_open()`, the permission helper and its request memo, and the predicate helpers moved from `visibility.py` |
+| `checks.py` | registration-time validation. **New** — rebuilt, not restored. |
+| `registry.py` | model → plugin map, addressing, URL aggregation, navigation construction |
+| `menus.py` | the renderer only; the per-model navigation objects move into the registry |
+| `utils.py` | reverse |
 
-## Technical Context
+`visibility.py` folds into `access.py`. `slugify` is deleted — see below.
 
-**Language/Version**: Python 3.13, Django 5.x  
-**Primary Dependencies**: Django CBVs, django-guardian (object-level perms), django-polymorphic (model inheritance), django-extra-views (InlineFormSetView)  
-**Storage**: N/A (no database tables — runtime registration system)  
-**Testing**: pytest + pytest-django  
-**Target Platform**: Linux/Windows server (Django WSGI/ASGI)  
-**Project Type**: Django app within FairDM framework  
-**Performance Goals**: ≤20 plugins per model page load under 2 seconds; tab list generation under 10ms  
-**Constraints**: Server-side rendering only; no SPA/client-side rendering  
-**Scale/Scope**: 4 core models + N user-defined polymorphic models, ~30-50 plugins across a typical portal
+## The declaration surface
 
-## Constitution Check
-
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
-
-### Pre-Design Check
-
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| **I. FAIR-First** | ✅ PASS | Plugin system enables extensible metadata views; does not weaken FAIR characteristics. Plugins can expose FAIR metadata panels. |
-| **II. Domain-Driven Modeling** | ✅ PASS | Plugin system extends model views declaratively via registration, not ad-hoc runtime structures. |
-| **III. Configuration Over Code** | ✅ PASS | Core design philosophy: decorator-based registration, inner `Menu` class, auto-generated URLs and templates. Developers configure, not plumb. |
-| **IV. Opinionated Defaults** | ✅ PASS | Sensible defaults for URL paths, template resolution, tab ordering. Django-based stack (CBVs, guardian, templates). Bootstrap 5 tab rendering. |
-| **V. Test-First Quality** | ✅ PASS | Implementation will follow Red→Green→Refactor. System checks provide startup validation. |
-| **VI. Documentation Critical** | ✅ PASS | quickstart.md, contracts/, and data-model.md created as part of plan. Public API will be documented with examples. |
-| **VII. Living Demo** | ✅ PASS | Demo app will be updated to demonstrate plugin registration, PluginGroups, and template customization. |
-
-### Post-Design Re-Check
-
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| **I. FAIR-First** | ✅ PASS | No changes to FAIR characteristics. Plugin system is a view extension mechanism. |
-| **II. Domain-Driven** | ✅ PASS | Plugin registration uses explicit `@plugins.register(Model)` decorator — declarative, discoverable. |
-| **III. Configuration Over Code** | ✅ PASS | Inner `Menu` class, auto URL generation, hierarchical template resolution. Minimal boilerplate. |
-| **IV. Opinionated Defaults** | ✅ PASS | Framework fallback template ensures plugins work without custom templates. Auto-derived names/paths. |
-| **V. Test-First** | ✅ PASS | Contracts define testable behavior. System checks provide E001-E007, W001-W002 validation. |
-| **VI. Documentation** | ✅ PASS | quickstart.md serves as developer guide. Contracts define API surface. |
-| **VII. Living Demo** | ✅ PASS | Existing demo plugins will be migrated to new API in the same PR. |
-
-**No constitution violations.** No entries needed in Complexity Tracking.
-
-## Project Structure
-
-### Documentation (this feature)
-
-```text
-specs/008-plugin-system/
-├── plan.md              # This file
-├── spec.md              # Feature specification
-├── research.md          # Phase 0: Design decisions and rationale
-├── data-model.md        # Phase 1: Entity definitions and relationships
-├── quickstart.md        # Phase 1: Developer getting-started guide
-├── contracts/           # Phase 1: API contracts
-│   ├── README.md
-│   ├── registration.md
-│   ├── url-generation.md
-│   ├── template-resolution.md
-│   ├── tab-rendering.md
-│   └── permission-checking.md
-├── checklists/
-│   └── requirements.md  # Quality validation checklist
-└── tasks.md             # Phase 2 output (created by /speckit.tasks)
-```
-
-### Source Code (repository root)
-
-```text
-fairdm/contrib/plugins/           # Main plugin system package
-├── __init__.py                   # Public API: Plugin, PluginGroup, registry, is_instance_of
-├── base.py                       # Plugin mixin class
-├── group.py                      # PluginGroup composition class
-├── registry.py                   # PluginRegistry singleton + register() method
-├── menu.py                       # Tab dataclass + Menu utilities
-├── visibility.py                 # Visibility helpers: is_instance_of()
-├── checks.py                     # Django system checks (E001-E007, W001-W002)
-├── utils.py                      # Helpers: slugify, URL reversal
-├── templatetags/
-│   ├── __init__.py
-│   └── plugin_tags.py            # {% get_plugin_tabs %} template tag
-└── templates/
-    ├── cotton/
-    │   └── plugin/
-    │       ├── tabs.html         # <c-plugin-tabs /> component
-    │       └── base.html         # <c-plugin-base /> component (optional wrapper)
-    └── plugins/
-        └── base.html             # Framework fallback template for plugin views
-
-fairdm/core/plugins.py            # Reusable base plugin classes (Overview, Edit, Delete, etc.)
-fairdm/core/project/plugins.py    # Project-specific plugin registrations (migrated)
-fairdm/core/dataset/plugins.py    # Dataset-specific plugin registrations (migrated)
-fairdm/core/sample/plugins.py     # Sample-specific plugin registrations (migrated)
-fairdm/core/measurement/plugins.py # Measurement-specific plugin registrations (migrated)
-fairdm/contrib/contributors/plugins.py  # Contributor plugin registrations (migrated)
-fairdm/contrib/activity_stream/plugins.py  # Activity plugin registrations (migrated)
-fairdm/contrib/generic/plugins.py # Reusable plugins: Keywords, Descriptions, KeyDates (migrated)
-fairdm/contrib/collections/plugins.py  # DataTable plugin (migrated)
-
-fairdm/plugins.py                 # Re-export: from fairdm.contrib.plugins import *
-
-tests/test_contrib/test_plugins/  # Test suite
-├── __init__.py
-├── test_base.py                  # Plugin mixin tests
-├── test_group.py                 # PluginGroup tests
-├── test_registry.py              # Registration + validation tests
-├── test_urls.py                  # URL generation tests
-├── test_templates.py             # Template resolution tests
-├── test_tabs.py                  # Tab rendering tests
-├── test_permissions.py           # Permission checking tests
-├── test_checks.py                # Django system check tests
-└── conftest.py                   # Fixtures: fake models, plugins, groups
-
-fairdm_demo/plugins.py            # Demo app plugin examples (migrated/updated)
-```
-
-**Structure Decision**: Follows the existing FairDM pattern of `fairdm/contrib/{app}/` for contrib apps. Test structure mirrors source at `tests/test_contrib/test_plugins/`. Files being modified (migrations from current API) are the per-model `plugins.py` files across core and contrib packages.
-
-### Files Removed
-
-```text
-fairdm/contrib/plugins/config.py    # PluginConfig/PluginMenuItem → replaced by inner Menu class
-fairdm/contrib/plugins/views.py     # PluggableView → eliminated
-fairdm/contrib/plugins/plugin.py    # FairDMPlugin → replaced by base.py Plugin
-```
-
-### Files Modified (Migration from Old API)
-
-All existing `plugins.py` files across the codebase will be migrated from:
 ```python
-# Old API
-# OLD API - DO NOT USE
-# @plugins.register(RockSample)  # Polymorphic subclass
-class MyPlugin(FairDMPlugin, TemplateView):
-    config = PluginConfig(title="My Plugin", category=EXPLORE, ...)
-    # or
-    menu_item = PluginMenuItem(name="My Plugin", category=EXPLORE, icon="eye")
+@plugins.register(Sample, label=_("Analysis"), icon="chart", order=50)
+class Analysis(Plugin, FairDMTemplateView):
+    url_path = "analysis"
+    permission = "sample.view_sample"
+    check = staticmethod(is_instance_of(RockSample))
+    extra_views = [AnalysisEdit]
 ```
 
-To:
+- `menu` as a class attribute is deleted (FR-016). Label, icon and position come from the decorator.
+  Declining an entry is `menu=False` (FR-012).
+- `extra_views` is the declaration; `get_extra_views()` is the only thing that reads it.
+- An additional view is an ordinary `Plugin` subclass.
+- `url_path` may carry a route converter, `"<int:pk>/edit"`.
+
+**[review] Use Django's own slugify.** `django.utils.text.camel_case_to_spaces` composed with
+`django.utils.text.slugify` replaces the four hand-rolled regexes in `utils.py`. The bespoke version
+mangles acronyms — `URLTestPlugin` becomes `u-r-l-test-plugin`, and a current test asserts that as
+correct. Django's pair gives `url-test-plugin`. The assertion is corrected with the code.
+
+## Record addressing
+
+**[review] This is a model-level declaration, not a per-registration one, and the example in the
+previous draft was a no-op** — `registry.register` is the plugin decorator, so calling it with a
+model and no class returns a decorator and registers nothing.
+
+Addressing belongs to the model because two plugins on one model cannot disagree about how their
+shared record is found:
+
 ```python
-# New API
-@plugins.register(Sample)  # Base model only
-class MyPlugin(Plugin, TemplateView):
-    check = is_instance_of(RockSample)  # Visibility filter
-    menu = {
-        "label": "My Plugin",
-        "icon": "eye",
-        "order": 10,
-    }
+registry.declare_addressing(
+    Point,
+    route="<str:lon>/<str:lat>",
+    lookup={"lon": "x", "lat": "y"},      # url kwarg -> model field, explicit both ways
+)
 ```
 
-## Complexity Tracking
+The default, applied to every core record that does not declare otherwise, is
+`route="<str:uuid>"`, `lookup={"uuid": "uuid"}`.
 
-> No constitution violations. Table intentionally left empty.
+The map is explicit in both directions because **reverse is the harder half and the previous draft
+ignored it.** `utils.reverse` hardcodes `kwargs.update({"uuid": model.uuid})` and `base.html` passes
+`uuid=object.uuid`. Both give `NoReverseMatch` for a record with no `uuid`, and the navigation
+package filters kwargs and then swallows the failure, so a location menu would render **empty rather
+than erroring** — the silent mode this feature exists to end. So:
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| (none) | — | — |
+- `utils.reverse` builds its kwargs from the model's declared map.
+- The navigation entry resolves its kwargs from the record, not from a hardcoded `uuid=`.
+- A test asserts a location plugin's entry renders with a working href, not merely that the page is
+  200.
+
+## Reaching the record
+
+**[review] Compose `RelatedObjectMixin`, do not reimplement it.** `fairdm/views/mixins.py:30-68`
+already supplies a `base_object` `cached_property` built on `get_object_or_404` — which is FR-009
+for free — a configurable lookup kwarg, and a context carrying `base_object`, `base_model`,
+`non_polymorphic_object` and the record under its model name. `non_polymorphic_object` is
+load-bearing: `plugin_tags.py:31` reads it first, and `Sample` and `Contributor` are both
+polymorphic. Generalise its lookup to the declared map and use it.
+
+**The context contract, stated explicitly [review]:**
+
+- `base_object` is the core record the plugin hangs from. Always present.
+- `object` remains the *view's own* object, whatever the view class decides that is. For a plugin
+  over a `DetailView` of the record, they are the same. For a `CreateView` child, `object` is `None`
+  and `base_object` is the record.
+- `self.object` is never assigned by the plugin system (FR-008).
+
+Four live consumers read `object` as the core record today and are migrated with the change:
+`base.html`, `plugin_tags.py`, the contributor overview template, and
+`contributors/plugins/shared.py` — which also calls `get_plugin_url`, a method defined nowhere in
+the tree. A test asserts the navigation entries' **contents**, not merely a 200, because a missing
+context key renders as empty, the reverse fails, and the entry is hidden — so a page with no
+navigation at all still returns 200.
+
+## Visibility and access
+
+One function, two callers:
+
+```python
+def can_open(view_class, request, obj) -> bool
+```
+
+- **[review] It consults the owning plugin's predicate, not just the view's own.** An additional
+  view inherits `Plugin.check = True`, so reading the predicate off the view class would leave a
+  child of a restricted plugin reachable while its parent is refused. The previous draft called that
+  acceptable; it is not — the predicate belongs to the plugin and the child belongs to the plugin,
+  so FR-019 and SC-003 both fail. `plugin_class` is already bound per mount and is what `can_open`
+  reads.
+- The predicate is read with `inspect.getattr_static`, so a plain function, a lambda, a
+  `staticmethod` and an inherited attribute all behave identically.
+- **[review] A `classmethod` predicate is refused at registration.** `getattr_static` returns the
+  `classmethod` object, which is not callable but *is* truthy, so a `callable()` guard falls through
+  to `bool(check)` and publishes the page. A `check` that is neither callable nor a bool is a
+  registration error.
+- Permission is `has_perm(p) or has_perm(p, obj)` — two calls, per the amended D13.
+- **[review] Subclass `PermissionRequiredMixin`**, which already defines
+  `get_permission_required`, `has_permission` and the `dispatch` that delegates to
+  `handle_no_permission`. Only `has_permission` is overridden.
+- **[review] The memo is keyed `(permission, obj._meta.label, obj.pk)`**, not `id(obj)`, which
+  CPython reuses after collection — and `can_open` is reachable from template loops over temporary
+  objects. The memoised helper is **exported**, because the real per-page cost is author predicates
+  calling `has_perm` themselves, which the internal memo would never see.
+
+The registry hands the navigation package an adapter closure that calls `can_open`, catching author
+exceptions and hiding the entry. `base.html` passes the record so predicates receive it.
+
+The entry's condition is the parent view's own condition, following admin: a link renders if and
+only if its destination is openable.
+
+## Navigation objects
+
+**[review] The registry owns the per-model `Menu` and creates it on first registration.** Today they
+are five hand-written objects looked up by the string `f"{model.__name__}Menu"` — and one of them
+registers under a different name than its Python variable. `Point` has none, so wiring location would
+raise `AttributeError` on an unguarded `append`. `menus.py` keeps only the renderer.
+
+## Validation
+
+In the decorator, raising, so a portal cannot start carrying a bad registration (FR-034). Each
+failure names the plugin, the model and the problem (FR-033).
+
+- No model, or an argument that is not a model (FR-027).
+- Duplicate plugin name on one model; the same name on different models is fine (FR-028, FR-032).
+- Duplicate path segment on one model (FR-029).
+- **[review] Duplicate generated URL name on one model.** Segments and plugin names are not enough:
+  plugin `a` with child `b` and a separate plugin `a-b` produce the same reverse name from different
+  paths, and Django keeps the last one silently.
+- **[review] A segment is validated by constructing it with `path()` inside a `try`** and re-raising
+  with the plugin named, rather than parsing converters by hand — `path()` already raises on an
+  unknown converter (FR-030).
+- A `check` that is neither callable nor a bool.
+- Among additional views: not a `Plugin`, duplicate segments, a segment equal to the parent's own
+  root, or recursion (FR-031).
+
+**[review] Registration against a model with no attachment point cannot be caught in the decorator**,
+because no URL configuration has been built when it runs. It is a Django system check instead, which
+fires on `manage.py check` and in CI. That is a weaker guarantee than the rest and is recorded as
+such — but it is the failure that let five measurement plugins sit inert, so it is worth having.
+
+## Order of work
+
+1. **Access and permissions** — `access.py`, the mixin, the adapter closure, the exported memo. The
+   live 500 on sample pages is fixed here, so it goes first.
+2. **Record access and addressing** — compose `RelatedObjectMixin`, model-level addressing, reverse,
+   the context contract and its four consumers.
+3. **URL generation** — flat patterns, additional views, converters in segments.
+4. **Validation** — `checks.py`, including the generated-name check and the system check.
+5. **Navigation** — registry-owned menus, decorator-driven label/icon/order, `menu=False`, delete the
+   `menu` attribute from the shipped plugins and give each one explicit decorator kwargs.
+6. **Wiring and removals** — wire location, delete the measurement registrations, replace the plugin
+   templates that extend a base which does not exist, remove the broken import/export registrations,
+   correct R18, rewrite the documentation.
+
+## What gets deleted
+
+`visibility.py` (folded), the bespoke `slugify`, the `menu` class attribute on ten plugins, the
+guardian branch in `has_permission`, the `subviews` include-and-namespace, the class mutation in
+`registry.py`, the five measurement registrations, the template lookup chain in
+`contrib/generic/plugins.py` (which is the chain D9 orders removed and reads an attribute no class
+defines), the four broken registrations in `contrib/import_export/views.py`, and the container
+sections of the plugin documentation.
+
+## Testing
+
+Mirrors the source tree per Article X, factories per model, fixtures in `conftest.py`.
+
+Three rules the current suite breaks and this one must not:
+
+- **At least one test per story requests a real record page through the URLconf.** The live 500
+  survived 70 passing tests because every one of them tests a unit.
+- **Navigation tests assert entry contents**, never just a 200. A page with no navigation returns
+  200.
+- **Query counts are pinned** with `django_assert_num_queries` for anonymous, denied and granted
+  users. The figures in the research are derived from source and must not be trusted until asserted.
+
+## Risks
+
+- **Reverse names change**, `<plugin>:<child>` to `<plugin>-<child>`. One plugin in the tree uses
+  additional views and its reverse call is already broken, so the real cost is a documentation note.
+- **Ten shipped registrations lose their label and icon** when the `page_title`/`page_icon` fallback
+  goes, unless each is given explicit decorator kwargs. Mechanical, but visible on every record page.
+- **Addressing touches every wired model's URL configuration.** A mistake takes out a record type;
+  covered by the per-story end-to-end tests.
+- **Deleting the orphaned templates is not delete-only.** Four templates that live plugins actually
+  serve extend `fairdm/plugin.html`, which does not exist; they need replacements, not removal.

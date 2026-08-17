@@ -12,8 +12,8 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.test import RequestFactory
-from django.urls import path
 from django.views.generic import TemplateView
 
 from fairdm import plugins
@@ -43,35 +43,32 @@ class TestCustomURLs:
         # Verify custom URL path is set
         assert CustomURLPlugin.get_url_path() == "custom/analysis"
 
-    def test_plugin_with_get_urls_override(self):
-        """Given a plugin with overridden get_urls classmethod,
-        When generating URL patterns,
-        Then custom URL patterns are used (User Story 6, Scenario 2)."""
+    def test_plugin_with_extra_views(self):
+        """A plugin owning further views serves each beneath its own path, flat.
+
+        This replaces a test that overrode ``get_urls`` to return arbitrary patterns. That was the
+        most flexible extension point and the least checkable — the registry cannot see a plugin's
+        children until they are already URL patterns, which makes collisions undetectable at
+        registration. ``extra_views`` is the declared surface instead.
+        """
+
+        class Export(Plugin, TemplateView):
+            template_name = "export.html"
 
         @plugins.register(Sample)
         class MultiURLPlugin(Plugin, TemplateView):
-            menu = {"label": "Multi", "icon": "multi", "order": 20}
             template_name = "multi.html"
+            extra_views = [Export]
 
-            @classmethod
-            def get_urls(cls, menu_class=None):
-                # The registry always calls get_urls(menu_class=...); an override
-                # must accept it even if it doesn't use it.
-                return [
-                    path("main/", cls.as_view(), name=f"{cls.get_name()}-main"),
-                    path("export/", cls.as_view(), name=f"{cls.get_name()}-export"),
-                ]
+        url_patterns = MultiURLPlugin.get_urls(model=Sample)
 
-        # Get URLs
-        url_patterns = MultiURLPlugin.get_urls()
-
-        # Should have two URL patterns
         assert len(url_patterns) == 2
-
-        # Check URL names
-        url_names = [p.name for p in url_patterns]
-        assert f"{MultiURLPlugin.get_name()}-main" in url_names
-        assert f"{MultiURLPlugin.get_name()}-export" in url_names
+        assert [p.name for p in url_patterns] == [
+            "multi-url-plugin",
+            "multi-url-plugin-export",
+        ]
+        # Flat, not a nested namespace: the child hangs off the parent's path.
+        assert str(url_patterns[1].pattern) == "multi-url-plugin/export/"
 
 
 class TestDefaultURLGeneration:
@@ -86,8 +83,8 @@ class TestDefaultURLGeneration:
             template_name = "default.html"
 
         # Default slug should be kebab-case of class name
-        # Note: "DefaultURLPlugin" → "default-u-r-l-plugin" (each capital gets hyphen)
-        expected_path = "default-u-r-l-plugin"
+        # Note: "DefaultURLPlugin" → "default-url-plugin" (each capital gets hyphen)
+        expected_path = "default-url-plugin"
         assert DefaultURLPlugin.get_url_path() == expected_path
 
     def test_default_url_name_from_class_name(self):
@@ -268,11 +265,15 @@ class TestPluginGetObject:
         plugin.kwargs = {}
         plugin.registered_model = Sample
 
-        with pytest.raises(ValueError, match="must include 'pk' or 'uuid' kwarg"):
+        with pytest.raises(ValueError, match="mounted without any of the lookup kwargs"):
             plugin.get_base_object()
 
-    def test_get_object_with_nonexistent_pk_raises_error(self):
-        """Plugin with non-existent pk should raise DoesNotExist."""
+    def test_get_object_with_nonexistent_record_is_404(self):
+        """A record that does not exist is a 404, not a 500.
+
+        The old behaviour swallowed the miss into ``obj = None`` and then failed further along with
+        an AttributeError, which reached the user as a server error.
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
@@ -282,7 +283,7 @@ class TestPluginGetObject:
         plugin.kwargs = {"pk": 999999}
         plugin.registered_model = Sample
 
-        with pytest.raises(Sample.DoesNotExist):
+        with pytest.raises(Http404):
             plugin.get_base_object()
 
 
@@ -297,12 +298,15 @@ class TestPluginHasPermission:
             permission = None
             template_name = "test.html"
 
-        plugin = PublicPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
         request.user = UserFactory()
 
-        assert plugin.has_permission(request, sample) is True
+        plugin = PublicPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is True
 
     def test_has_permission_with_model_level_permission(self, sample):
         """Plugin should check model-level permissions."""
@@ -312,9 +316,7 @@ class TestPluginHasPermission:
             permission = "sample.change_sample"
             template_name = "test.html"
 
-        plugin = PermissionPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
 
         # User with permission
         user_with_perm = UserFactory()
@@ -325,7 +327,12 @@ class TestPluginHasPermission:
         user_with_perm.user_permissions.add(perm)
         request.user = user_with_perm
 
-        assert plugin.has_permission(request, sample) is True
+        plugin = PermissionPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is True
 
     def test_has_permission_denies_user_without_permission(self, sample):
         """Plugin should deny access to users without permission."""
@@ -335,12 +342,15 @@ class TestPluginHasPermission:
             permission = "sample.delete_sample"
             template_name = "test.html"
 
-        plugin = PermissionPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
         request.user = UserFactory()  # User without delete permission
 
-        assert plugin.has_permission(request, sample) is False
+        plugin = PermissionPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is False
 
     def test_has_permission_with_anonymous_user(self, sample):
         """Plugin should handle anonymous users."""
@@ -350,42 +360,42 @@ class TestPluginHasPermission:
             permission = "sample.view_sample"
             template_name = "test.html"
 
-        plugin = PermissionPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
         request.user = AnonymousUser()
 
-        assert plugin.has_permission(request, sample) is False
+        plugin = PermissionPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is False
 
 
 class TestPluginDispatch:
     """Test Plugin.dispatch() method."""
 
-    def test_dispatch_stores_object(self, sample):
-        """Dispatch should store object as self.object."""
+    def test_dispatch_leaves_the_view_s_own_object_alone(self, sample):
+        """The plugin system must not assign self.object.
+
+        This replaces a test that asserted the opposite. The core record and the view's own object
+        are two different things, and sharing one attribute name broke any view that manages its
+        own — a CreateView sets self.object to None in its own get(), and the old dispatch had
+        already overwritten it with the record.
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
-            # dispatch() -> get_base_object() reads self.registered_model, which
-            # is normally set by the registry during URL generation. Since we
-            # call as_view() directly here (bypassing the registry), it must be
-            # set explicitly.
             registered_model = Sample
 
             def get(self, request, *args, **kwargs):
-                # Check that self.object was set
-                assert hasattr(self, "object")
-                assert self.object == sample
+                assert not hasattr(self, "object")
                 return super().get(request, *args, **kwargs)
 
-        plugin = TestPlugin.as_view()
-        factory = RequestFactory()
-        request = factory.get(f"/sample/{sample.uuid}/test/")
+        request = RequestFactory().get(f"/sample/{sample.uuid}/test/")
         request.user = UserFactory()
 
-        # This will call dispatch, which should set self.object
-        response = plugin(request, uuid=sample.uuid)
+        response = TestPlugin.as_view()(request, uuid=sample.uuid)
         assert response.status_code == 200
 
     def test_dispatch_raises_permission_denied_without_permission(self, sample):
@@ -405,23 +415,23 @@ class TestPluginDispatch:
         with pytest.raises(PermissionDenied):
             plugin(request, uuid=sample.uuid)
 
-    def test_dispatch_handles_missing_object(self):
-        """Dispatch should handle non-existent object gracefully."""
+    def test_dispatch_raises_404_for_a_missing_record(self):
+        """A record that does not exist is a 404.
+
+        This replaces a test that asserted 200 with the record silently absent, which is how a
+        missing sample used to surface as a server error further along the request.
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
             registered_model = Sample
 
-        plugin = TestPlugin.as_view()
-        factory = RequestFactory()
-        request = factory.get("/sample/nonexistent-uuid/test/")
+        request = RequestFactory().get("/sample/nonexistent-uuid/test/")
         request.user = UserFactory()
 
-        # Should not crash, just set obj=None and continue
-        response = plugin(request, uuid="nonexistent-uuid")
-        # Should get 200 since no permission check with None object
-        assert response.status_code == 200
+        with pytest.raises(Http404):
+            TestPlugin.as_view()(request, uuid="nonexistent-uuid")
 
 
 class TestPluginGetContextData:
@@ -475,7 +485,7 @@ class TestPluginGetContextData:
 
         plugin = TestPlugin()
         plugin.registered_model = Sample
-        plugin.kwargs = {"pk": 999999}  # Non-existent
+        plugin.kwargs = {}  # Non-existent
 
         factory = RequestFactory()
         plugin.request = factory.get("/")
@@ -682,7 +692,7 @@ class TestPluginGetBreadcrumbs:
 
         plugin = TestPlugin()
         plugin.registered_model = Sample
-        plugin.kwargs = {"pk": 999999}  # Non-existent
+        plugin.kwargs = {}  # Non-existent
         plugin.menu = {"label": "Page"}
 
         breadcrumbs = plugin.get_breadcrumbs()
