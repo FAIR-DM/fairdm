@@ -39,6 +39,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-17T13:30:00Z",
       "note": "first increment: the structural core, validation and the override tier. 38 of 53 tasks done. Full suite 1511 passed; the 12 remaining failures are pre-existing (unnamespaced reverse() in the demo API smoke tests). ruff clean, mypy at per-file parity with the baseline."
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-17T15:00:00Z",
+      "note": "second increment: fail-loudly items, the duplicate validation path deleted, generated-class assertions, the demo override example and the deterministic guards. 46 of 53 done. Full suite 1534 passed, 12 pre-existing failures unchanged. D16 and D17 recorded."
     }
   ],
   "gates": {
@@ -274,13 +279,35 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/factories.py:210"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestGeneratedTableClass"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/factories.py:314"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestGeneratedFilterSetClass"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         },
         {
           "id": "T021",
@@ -417,8 +444,19 @@
         },
         {
           "id": "T050",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:470"
+            ],
+            "tests": [
+              "tests/test_registry/test_components.py::TestNonFunctionalGuards"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         },
         {
           "id": "T051",
@@ -529,8 +567,19 @@
       "tasks": [
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_registry/test_exceptions.py:1"
+            ],
+            "tests": [
+              "tests/test_registry/test_exceptions.py"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         },
         {
           "id": "T006",
@@ -648,18 +697,51 @@
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:228"
+            ],
+            "tests": [
+              "tests/test_registry/test_exceptions.py::TestAdminRegistration"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/apps.py:62"
+            ],
+            "tests": [
+              "tests/test_registry/test_exceptions.py::TestRefusedRegistrationLeavesNothingBehind"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:246"
+            ],
+            "tests": [
+              "tests/test_registry/test_exceptions.py::TestRefusedRegistrationLeavesNothingBehind::test_the_mapping_is_untouched"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         }
       ]
     },
@@ -737,8 +819,19 @@
         },
         {
           "id": "T048",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_demo/config.py:392"
+            ],
+            "tests": [
+              "fairdm_demo/tests/test_registry_api.py"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q"
+            ]
+          }
         }
       ]
     },

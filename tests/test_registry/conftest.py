@@ -10,6 +10,7 @@ import uuid
 import factory
 import pytest
 from django.apps import apps
+from django.contrib import admin
 from factory.django import DjangoModelFactory
 
 from fairdm.registry import registry
@@ -60,28 +61,32 @@ def measurement_instance(db):
 
 @pytest.fixture
 def clean_registry():
-    """
-    Clean the FairDM registry before and after each test.
+    """An empty registry for the test, with global state put back afterwards.
 
-    This fixture:
-    - Clears any previously registered models
-    - Yields the clean registry for the test
-    - Restores the original registrations after the test completes
+    Restoring rather than clearing matters: the registry is global state populated
+    once at app load, so a test that empties it and walks away breaks every later
+    test that expects the demo models to be registered.
 
-    Use this fixture when tests register models to avoid conflicts.
-
-    Restoring rather than clearing matters: the registry is global state
-    populated once at app load, so a test that empties it and walks away
-    breaks every later test that expects the demo models to be registered.
+    The Django admin site is restored too. Registering a model registers its admin
+    class, and admin registration failures now propagate rather than being
+    swallowed, so a model left in `admin.site` by one test surfaces in the next as
+    an admin page that cannot resolve an app label for a test-only model.
     """
     saved = dict(registry._registry)
+    saved_locations = dict(registry._locations)
+    saved_admin = dict(admin.site._registry)
 
     registry._registry.clear()
+    registry._locations.clear()
 
     yield registry
 
     registry._registry.clear()
     registry._registry.update(saved)
+    registry._locations.clear()
+    registry._locations.update(saved_locations)
+    admin.site._registry.clear()
+    admin.site._registry.update(saved_admin)
 
 
 @pytest.fixture

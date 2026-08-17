@@ -328,3 +328,28 @@ class TestUnregisteredModel:
 
     def test_is_registered_answers_without_raising(self, clean_registry, rock_sample):
         assert clean_registry.is_registered(rock_sample) is False
+
+
+class TestNonFunctionalGuards:
+    """NFR-001 and NFR-002, as deterministic guards rather than timings.
+
+    The constitution forbids wall-clock assertions in tests, so the property pinned
+    here is that neither registration nor component generation touches the database.
+    The millisecond measurements behind both requirements live in `research.md`.
+    """
+
+    def test_registration_issues_no_queries(
+        self, db, clean_registry, rock_sample, django_assert_num_queries
+    ):
+        with django_assert_num_queries(0):
+            clean_registry.register(rock_sample)
+
+    def test_all_six_accessors_issue_no_queries(
+        self, db, clean_registry, rock_sample, django_assert_num_queries
+    ):
+        clean_registry.register(rock_sample)
+        config = clean_registry.get_for_model(rock_sample)
+
+        with django_assert_num_queries(0):
+            for accessor in ACCESSORS:
+                getattr(config, accessor)()

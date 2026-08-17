@@ -263,15 +263,22 @@ class FairDMRegistry:
     def register_admin(
         self, model_class: type[Model], config_instance: ModelConfiguration
     ) -> None:
-        """Register model with Django admin using auto-generated admin class from config."""
-        try:
-            # Get admin class from config
-            admin_class = config_instance.get_admin_class()
-            admin.site.register(model_class, admin_class)
-        except Exception:  # noqa: S110
-            # Model already registered or admin not available - this is expected
-            # Silently ignore admin registration failures as they are non-critical
-            pass
+        """Register the model's admin class with the Django admin site.
+
+        A model already present in the admin site is left alone. A portal that wrote
+        `@admin.register(RockSample)` has said which admin class it wants, and the
+        registry does not overrule that. Autodiscovery runs before registration, so
+        this is the normal path for any portal with a hand-written admin.
+
+        Every other failure propagates. The previous implementation wrapped the whole
+        method in `except Exception: pass`, which did express the rule above, but
+        expressed it as a swallowed exception -- so a genuinely broken admin class
+        registered as nothing, and looked identical to a model nobody registered.
+        """
+        if model_class in admin.site._registry:
+            return
+
+        admin.site.register(model_class, config_instance.get_admin_class())
 
     def get_config(
         self,

@@ -341,24 +341,22 @@ class SoilSampleConfig(ModelConfiguration):
 
 @fairdm.register
 class WaterSampleConfig(ModelConfiguration):
-    """Demonstrates custom component override (future enhancement).
+    """Demonstrates the third tier of customisation: overriding an accessor.
 
-    Currently using basic configuration. In production, you would provide:
-    - form_class: Custom form with range validation, unit conversion widgets
-    - table_class: Custom table with color-coded pH levels, trend indicators
-    - filterset_class: Custom filters with range selectors, source filtering
+    The first two tiers are declarations. A field list configures every component,
+    and a class attribute such as ``table_class`` replaces one of them outright.
+    Both are enough for almost every portal.
 
-    Example (when implemented):
-        from .forms import WaterSampleForm
-        from .tables import WaterSampleTable
+    The third tier exists for the case a declaration cannot express, because the
+    answer has to be worked out in code. Override the component's accessor and
+    return whatever you like. Every part of the framework that needs that component
+    calls the accessor, so your class is what all of it receives.
 
-        @fairdm.register
-        class WaterSampleConfig(ModelConfiguration):
-            form_class = WaterSampleForm  # Custom widgets
-            # table_class = WaterSampleTable  # Color-coded pH (not implemented in demo)
-            ...
+    Below, the filter set is narrowed to the fields that make sense to filter on,
+    chosen from the shared field list rather than restated, so adding a field to
+    ``fields`` does not silently add a filter for it.
 
-    See: Developer Guide > Registry > Custom Component Classes
+    See: Developer Guide > Registry > Overriding a component accessor
     """
 
     model = WaterSample
@@ -384,6 +382,24 @@ class WaterSampleConfig(ModelConfiguration):
         "dissolved_oxygen_mg_l",
         "conductivity_us_cm",
     ]
+
+    #: Fields worth filtering on, as opposed to merely displaying.
+    FILTERABLE = {"water_source", "ph_level", "temperature_celsius"}
+
+    def get_filterset_class(self):
+        """Build the filter set from the filterable subset of `fields`.
+
+        A field list could not say this: the rule is "whichever of my declared
+        fields are in FILTERABLE", which has to be evaluated rather than written
+        out. Deriving it means a new entry in `fields` gets a table column and a
+        form input without also getting a filter nobody asked for.
+        """
+        from fairdm.registry.factories import FilterFactory
+
+        filterable = [
+            f for f in self.resolve_fields("filterset") if f in self.FILTERABLE
+        ]
+        return FilterFactory(model=self.model, fields=filterable).generate()
 
 
 # ========================================================================

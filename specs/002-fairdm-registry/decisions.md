@@ -275,6 +275,49 @@ asks for it to go — it is not rendered and django-tables2 uses it for row iden
 
 ---
 
+## D16 — A portal's own admin registration wins
+
+**Previous specification**: silent on the question.
+
+**Code**: `register_admin` wrapped the whole method in `except Exception: pass`. That
+did express a real rule — Django's admin autodiscovery runs before registration, so a portal that
+wrote `@admin.register(RockSample)` got `AlreadyRegistered`, the exception was dropped, and the
+hand-written class survived. The rule was never written down anywhere, and D10 nearly deleted it.
+
+**Settled**: a model already present in the admin site is left alone, and every other failure
+propagates.
+
+**Why**: the rule itself is right. A portal that registered an admin class has said which one it
+wants, and the registry does not overrule that. What was wrong was expressing it as a swallowed
+exception, because the same swallow hid a genuinely broken admin class, which then registered as
+nothing and looked identical to a model nobody had registered. Both halves now have tests: an
+explicit registration survives, and an admin class that cannot be built raises.
+
+**How it was found**: making the failure propagate, per D10, replaced five hand-written demo admin
+classes with generated ones and dropped their fieldsets. The tests caught it.
+
+---
+
+## D17 — `Model.config` keeps returning None for now
+
+**Previous specification**: FR-006 says requesting the configuration of an unregistered model must
+raise, and that no accessor may return `None` in its place.
+
+**Code**: `registry.get_for_model()` now raises `NotRegisteredError`, which satisfies FR-006 at the
+registry. The `Model.config` shortcut still returns `None`.
+
+**Settled**: the shortcut is migrated separately, under T037, and the reason is recorded at the
+call site.
+
+**Why**: templates reach for it on models that may not be registered.
+`sample/sample_detail.html:13` reads `object.config.description`, and the polymorphic admin resolves
+it on the base class, which is never registered. Making it raise takes those pages down, and a
+template is exactly the place where asking rather than raising is the idiom. Closing this needs a
+survey of every template and admin path that touches `.config`, which is more than a one-line
+change, so it is left open rather than half-migrated.
+
+---
+
 ## Not settled here
 
 Existing framework consumers that reach around the registry, most visibly the API building its own

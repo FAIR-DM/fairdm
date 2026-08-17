@@ -166,9 +166,15 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
 
     @classproperty
     def config(cls):
-        """Gets the FairDM configuration object for a class or instance from the registry.
+        """This model's registry configuration, or None if it is not registered.
 
-        Returns None if the model is not registered.
+        `registry.get_for_model()` raises for an unregistered model, per FR-006, and
+        this shortcut deliberately does not yet. Templates reach for it on models
+        that may not be registered — `sample/sample_detail.html:13` reads
+        `object.config.description`, and the polymorphic admin resolves it on the
+        base class — so making it raise takes those callers down. Migrating them to
+        `registry.is_registered()` is its own task, T037, and until then this returns
+        None rather than shipping half the change.
         """
         try:
             return registry.get_for_model(cls)

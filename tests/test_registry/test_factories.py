@@ -11,6 +11,7 @@ from django.forms import ModelForm
 from django_filters import FilterSet
 from django_tables2 import Table
 
+from fairdm.core.sample.models import Sample
 from fairdm.registry.factories import (
     AdminFactory,
     FilterFactory,
@@ -560,3 +561,67 @@ class TestFilterFactory:
         # Should successfully generate a filterset
         assert filterset_class is not None
         assert issubclass(filterset_class, FilterSet)
+
+
+class TestGeneratedTableClass:
+    """T019: assert on the class the factory produces, not on its inputs.
+
+    The older tests here call `factory.get_fields()` and assert on the names that
+    come back, which echoes the input and stays green if generation itself breaks.
+    """
+
+    @pytest.fixture
+    def rock_sample(self):
+        class RockSample(Sample):
+            rock_type = models.CharField(max_length=100)
+            depth = models.FloatField(null=True, blank=True)
+
+            class Meta:
+                app_label = "test_app"
+
+        return RockSample
+
+    def test_columns_exist_for_the_resolved_fields(self, rock_sample):
+        table_class = TableFactory(
+            model=rock_sample, fields=["rock_type", "depth"]
+        ).generate()
+
+        assert "rock_type" in table_class.base_columns
+        assert "depth" in table_class.base_columns
+
+    def test_no_theme_is_pinned_on_the_generated_table(self, rock_sample):
+        """Decision D7: the project's DJANGO_TABLES2_TEMPLATE setting decides."""
+        table_class = TableFactory(model=rock_sample, fields=["rock_type"]).generate()
+
+        template = getattr(table_class.Meta, "template_name", None)
+        assert template != "django_tables2/bootstrap5.html"
+
+
+class TestGeneratedFilterSetClass:
+    """T020: assert on the filters the factory produces."""
+
+    @pytest.fixture
+    def rock_sample(self):
+        class RockSample(Sample):
+            rock_type = models.CharField(max_length=100)
+            depth = models.FloatField(null=True, blank=True)
+
+            class Meta:
+                app_label = "test_app"
+
+        return RockSample
+
+    def test_filters_exist_for_the_resolved_fields(self, rock_sample):
+        filterset_class = FilterFactory(
+            model=rock_sample, fields=["rock_type", "depth"]
+        ).generate()
+
+        assert "rock_type" in filterset_class.base_filters
+        assert "depth" in filterset_class.base_filters
+
+    def test_a_field_left_out_gets_no_filter(self, rock_sample):
+        filterset_class = FilterFactory(
+            model=rock_sample, fields=["rock_type"]
+        ).generate()
+
+        assert "depth" not in filterset_class.base_filters
