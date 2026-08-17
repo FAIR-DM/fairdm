@@ -78,6 +78,21 @@ requires such a change to be recorded rather than made quietly. No assertion is 
 testing that funding round-trips through the factory, against the schema the specification now
 defines.
 
+#### Every pre-existing test this branch changed
+
+| File | What changed | Why it is authorised |
+|---|---|---|
+| `tests/test_factories/test_core.py` | funding assertions moved to the list shape; the date factory's default type assertion moved from `Created` to `Start` | the old assertions pinned a shape FR-015 replaces, and a date type the project vocabulary does not contain |
+| `tests/test_factories/test_contributors.py` | one funding override moved to the list shape | same |
+| `tests/test_core/test_project/test_forms.py` | the skipped date-range test un-skipped and rewritten; the identifier form's fixture moved from an ISNI to a DOI | the skip named a field that never existed; FR-011 forbids a person identifier on a project, and the test's own note anticipated the change |
+| `tests/test_core/test_project/test_models.py` | the skipped end-before-start test un-skipped and rewritten; the duplicate-description assertion extended to check the type is named; a methods description moved to objectives | the skip named a field that never existed; FR-008 requires the message to name the type; methods belongs to a dataset (D-015) |
+| `tests/test_core/test_project/test_admin.py` | the bulk-status test replaced | it asserted only a 200 response and never checked a status, which is why two actions setting the wrong status survived it. The replacement asserts the persisted status |
+| `tests/test_core/test_project/test_views.py` | additions only | — |
+| `tests/test_api/test_viewsets.py` | additions only | — |
+
+No assertion was weakened. Two tests moved from skipped to passing, and one moved from vacuous to
+real.
+
 ### Where the creator is written
 
 Nothing in the model layer can see the request user, so `created_by` is set at the two places a
