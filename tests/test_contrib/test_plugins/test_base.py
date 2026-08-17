@@ -9,12 +9,11 @@ top of Plugin (User Story 8).
 """
 
 import pytest
-from django.http import Http404
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.test import RequestFactory
-from django.urls import path
 from django.views.generic import TemplateView
 
 from fairdm import plugins
@@ -65,11 +64,11 @@ class TestCustomURLs:
 
         assert len(url_patterns) == 2
         assert [p.name for p in url_patterns] == [
-            "multi-u-r-l-plugin",
-            "multi-u-r-l-plugin-export",
+            "multi-url-plugin",
+            "multi-url-plugin-export",
         ]
         # Flat, not a nested namespace: the child hangs off the parent's path.
-        assert str(url_patterns[1].pattern) == "multi-u-r-l-plugin/export/"
+        assert str(url_patterns[1].pattern) == "multi-url-plugin/export/"
 
 
 class TestDefaultURLGeneration:
@@ -84,8 +83,8 @@ class TestDefaultURLGeneration:
             template_name = "default.html"
 
         # Default slug should be kebab-case of class name
-        # Note: "DefaultURLPlugin" → "default-u-r-l-plugin" (each capital gets hyphen)
-        expected_path = "default-u-r-l-plugin"
+        # Note: "DefaultURLPlugin" → "default-url-plugin" (each capital gets hyphen)
+        expected_path = "default-url-plugin"
         assert DefaultURLPlugin.get_url_path() == expected_path
 
     def test_default_url_name_from_class_name(self):
@@ -416,23 +415,23 @@ class TestPluginDispatch:
         with pytest.raises(PermissionDenied):
             plugin(request, uuid=sample.uuid)
 
-    def test_dispatch_handles_missing_object(self):
-        """Dispatch should handle non-existent object gracefully."""
+    def test_dispatch_raises_404_for_a_missing_record(self):
+        """A record that does not exist is a 404.
+
+        This replaces a test that asserted 200 with the record silently absent, which is how a
+        missing sample used to surface as a server error further along the request.
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
             registered_model = Sample
 
-        plugin = TestPlugin.as_view()
-        factory = RequestFactory()
-        request = factory.get("/sample/nonexistent-uuid/test/")
+        request = RequestFactory().get("/sample/nonexistent-uuid/test/")
         request.user = UserFactory()
 
-        # Should not crash, just set obj=None and continue
-        response = plugin(request, uuid="nonexistent-uuid")
-        # Should get 200 since no permission check with None object
-        assert response.status_code == 200
+        with pytest.raises(Http404):
+            TestPlugin.as_view()(request, uuid="nonexistent-uuid")
 
 
 class TestPluginGetContextData:
@@ -486,7 +485,7 @@ class TestPluginGetContextData:
 
         plugin = TestPlugin()
         plugin.registered_model = Sample
-        plugin.kwargs = {"pk": 999999}  # Non-existent
+        plugin.kwargs = {}  # Non-existent
 
         factory = RequestFactory()
         plugin.request = factory.get("/")
@@ -693,7 +692,7 @@ class TestPluginGetBreadcrumbs:
 
         plugin = TestPlugin()
         plugin.registered_model = Sample
-        plugin.kwargs = {"pk": 999999}  # Non-existent
+        plugin.kwargs = {}  # Non-existent
         plugin.menu = {"label": "Page"}
 
         breadcrumbs = plugin.get_breadcrumbs()

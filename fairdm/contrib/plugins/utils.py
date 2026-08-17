@@ -1,37 +1,25 @@
 from __future__ import annotations
 
-import re
-
 from django import urls
 from django.db.models.base import Model as Model
+from django.utils.text import camel_case_to_spaces
+from django.utils.text import slugify as django_slugify
 
 
 def slugify(text: str) -> str:
-    """Convert text to URL-safe slug format.
+    """Convert a class name or phrase to a URL-safe slug.
 
-    Converts CamelCase class names and regular text to lowercase hyphenated slugs.
-
-    Args:
-        text: Text to slugify (e.g., "MyPluginName" or "My Plugin Name")
-
-    Returns:
-        Lowercase slug with hyphens (e.g., "my-plugin-name")
+    Django's own two helpers, rather than hand-rolled rules. The bespoke version inserted a hyphen
+    before every capital, so ``URLTestPlugin`` became ``u-r-l-test-plugin`` — and a test asserted
+    that as correct.
 
     Example:
-        >>> slugify("MyPluginName")
+        >>> slugify("URLTestPlugin")
+        'url-test-plugin'
+        >>> slugify("My Plugin_Name")
         'my-plugin-name'
-        >>> slugify("Analysis Plugin")
-        'analysis-plugin'
     """
-    # Convert CamelCase to hyphenated (e.g., "MyPlugin" → "my-plugin")
-    text = re.sub(r"(?<!^)(?=[A-Z])", "-", text).lower()
-    # Replace spaces and underscores with hyphens
-    text = re.sub(r"[\s_]+", "-", text)
-    # Remove non-alphanumeric characters except hyphens
-    text = re.sub(r"[^a-z0-9-]+", "", text)
-    # Remove duplicate hyphens and strip leading/trailing hyphens
-    text = re.sub(r"-+", "-", text).strip("-")
-    return text
+    return django_slugify(camel_case_to_spaces(text).replace("_", " "))
 
 
 def class_to_slug(name: str | object | type) -> str:

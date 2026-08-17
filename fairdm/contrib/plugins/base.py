@@ -140,8 +140,14 @@ class Plugin(PermissionRequiredMixin, View):
         are different things and sharing one attribute name is what broke any view managing its own.
         Named to match ``RelatedObjectMixin`` so a plugin and an ordinary related view read alike.
         """
+        from django.http import Http404
+
         try:
             return self.get_base_object()
+        except Http404:
+            # A record that does not exist is a 404, not an absent record. Swallowing it here is
+            # what turned a missing sample into a 500 further along.
+            raise
         except Exception:
             return None
 

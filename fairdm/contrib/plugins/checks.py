@@ -76,7 +76,7 @@ def validate_segment(plugin_class: type[Plugin], model: Any, segment: str) -> No
     """
     try:
         path(f"{segment}/", lambda request: None)
-    except Exception as exc:  # noqa: BLE001 - re-raised with the plugin named
+    except Exception as exc:
         _fail(plugin_class, model, f"url_path {segment!r} is not a valid route ({exc})")
 
 

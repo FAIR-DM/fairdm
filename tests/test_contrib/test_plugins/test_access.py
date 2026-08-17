@@ -2,6 +2,7 @@
 
 import pytest
 from django.views.generic import TemplateView
+
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import (
     can_open,
@@ -37,7 +38,7 @@ class TestResolveCheck:
 
     def test_lambda(self):
         class P(Plugin, TemplateView):
-            check = lambda request, obj: False  # noqa: E731
+            check = lambda request, obj: False
 
         assert resolve_check(P)("request", "obj") is False
 

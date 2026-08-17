@@ -2,7 +2,7 @@
 {% load i18n fairdm flex_menu %}
 
 {% block app.header.tray %}
-  {% render_menu "DatasetMenu" renderer="plugin-menu-renderer" uuid=object.uuid %}
+  {% render_menu "DatasetMenu" renderer="plugin-menu-renderer" object=object uuid=object.uuid %}
 {% endblock app.header.tray %}
 
 {% block page.content %}

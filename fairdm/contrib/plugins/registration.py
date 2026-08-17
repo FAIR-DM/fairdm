@@ -169,6 +169,9 @@ class PluginRegistry:
             List of URL patterns suitable for include() in Django URL configuration
         """
         plugin_menu = self.get_plugin_menu_for_model(model)
+        # Rebuild rather than append. Calling this twice for one record — which a test does, and
+        # which any re-import would — otherwise duplicates every entry in the record's navigation.
+        plugin_menu.children = type(plugin_menu.children)()
         url_patterns: list[URLPattern] = []
 
         for plugin_class, kwargs in itertools.chain(self.get_plugins_for_model(model)):
