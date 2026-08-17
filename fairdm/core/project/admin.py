@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
+from ..choices import ProjectStatus
 from .models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
 
 
@@ -47,15 +48,33 @@ class ProjectAdmin(admin.ModelAdmin):
     """
 
     # Search configuration
-    search_fields = ("uuid", "name", "owner__name")
+    search_fields = ("uuid", "name", "owner__name", "identifiers__value")
 
     # Inline editors
     inlines = (DescriptionInline, DateInline, IdentifierInline)
 
     # List view configuration
-    list_display = ("name", "status", "visibility", "owner", "added")
+    list_display = (
+        "name",
+        "status",
+        "visibility",
+        "owner",
+        "has_abstract",
+        "has_start_date",
+        "added",
+    )
     list_filter = ("status", "visibility", "added")
     list_per_page = 50
+
+    @admin.display(boolean=True, description=_("Abstract"))
+    def has_abstract(self, obj):
+        """Whether the project carries an abstract description (FR-021)."""
+        return obj.descriptions.filter(type="Abstract").exists()
+
+    @admin.display(boolean=True, description=_("Start date"))
+    def has_start_date(self, obj):
+        """Whether the project carries a start date (FR-021)."""
+        return obj.dates.filter(type=ProjectDate.START_TYPE).exists()
 
     # Fieldsets for organized form display
     fieldsets = (
@@ -104,15 +123,19 @@ class ProjectAdmin(admin.ModelAdmin):
     @admin.action(description=_("Mark selected projects as Concept"))
     def make_concept(self, request, queryset):
         """Bulk action to set projects to Concept status."""
-        updated = queryset.update(status=0)
+        updated = queryset.update(status=ProjectStatus.CONCEPT)
         self.message_user(
             request, _("%(count)d project(s) marked as Concept.") % {"count": updated}
         )
 
     @admin.action(description=_("Mark selected projects as Active"))
     def make_active(self, request, queryset):
-        """Bulk action to set projects to Active status."""
-        updated = queryset.update(status=1)
+        """Bulk action to set projects to Active status.
+
+        "Active" maps to `ProjectStatus.IN_PROGRESS`: work is under way,
+        as distinct from `PLANNING`, which precedes it.
+        """
+        updated = queryset.update(status=ProjectStatus.IN_PROGRESS)
         self.message_user(
             request, _("%(count)d project(s) marked as Active.") % {"count": updated}
         )
@@ -120,7 +143,7 @@ class ProjectAdmin(admin.ModelAdmin):
     @admin.action(description=_("Mark selected projects as Completed"))
     def make_completed(self, request, queryset):
         """Bulk action to set projects to Completed status."""
-        updated = queryset.update(status=2)
+        updated = queryset.update(status=ProjectStatus.COMPLETE)
         self.message_user(
             request, _("%(count)d project(s) marked as Completed.") % {"count": updated}
         )
