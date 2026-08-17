@@ -3,7 +3,7 @@
   "feature": "008-plugin-system",
   "branch": "008-plugin-system",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -44,6 +44,11 @@
       "state": "PR_READY",
       "at": "2026-08-17T18:30:00Z",
       "note": "91/92 tasks done; suite 1582 passing, gates green"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-17T17:24:11Z",
+      "note": "PR #155 merged as 46b9123; issues #148, #149-154 and #112 closed"
     }
   ],
   "gates": {
@@ -60,8 +65,8 @@
       "at": "2026-08-17T16:10:00Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-17T17:24:11Z"
     }
   },
   "reconciliation": {
