@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.contrib.plugins import Plugin
+from fairdm.contrib.plugins import Plugin, reverse
 from fairdm.core.project.models import Project
 from fairdm.views import (
     FairDMCreateView,
@@ -25,18 +25,18 @@ class ContributionCreate(Plugin, FairDMCreateView):
     def get_form_kwargs(self):
         """Pass base_object to form for autocomplete filtering."""
         kwargs = super().get_form_kwargs()
-        kwargs["base_object"] = self.object
+        kwargs["base_object"] = self.base_object
         return kwargs
 
     def get_context_data(self, **kwargs):
         """Add base object verbose name to context."""
         context = super().get_context_data(**kwargs)
-        context["base_object_verbose_name"] = self.object._meta.verbose_name
+        context["base_object_verbose_name"] = self.base_object._meta.verbose_name
         return context
 
     def get_success_url(self):
         """Return to the contributors page after successful add."""
-        return self.object.get_plugin_url("contributors")
+        return reverse(self.base_object, "contribution-list")
 
     def form_valid(self, form):
         """Add selected contributors to the base object."""
@@ -45,7 +45,7 @@ class ContributionCreate(Plugin, FairDMCreateView):
             # Use the Contribution.add_to classmethod for consistency
             Contribution.add_to(
                 contributor=contributor,
-                obj=self.object,
+                obj=self.base_object,
                 roles=None,  # Default roles can be set later via edit
                 affiliation=None,
             )
@@ -69,7 +69,7 @@ class ContributionUpdate(Plugin, FairDMUpdateView):
     def get_form_kwargs(self):
         """Pass the base object to the form."""
         kwargs = super().get_form_kwargs()
-        kwargs["base_object"] = self.object
+        kwargs["base_object"] = self.base_object
         return kwargs
 
 
@@ -103,7 +103,7 @@ class ContributionList(Plugin, FairDMListView):
 
     def get_queryset(self, *args, **kwargs):
         """Return contributors of type Person for the base object."""
-        return self.object.contributors.all()
+        return self.base_object.contributors.all()
 
     def get_context_data(self, **kwargs):
         """Add available roles to the context for filtering."""

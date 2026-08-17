@@ -17,11 +17,11 @@ class DataTablePlugin(Plugin, DataTableView):
     menu = {"label": _("Data"), "icon": "table", "order": 50}
 
     def get_queryset(self, *args, **kwargs):
-        # return self.object.samples.instance_of(self.model)
+        # return self.base_object.samples.instance_of(self.model)
         if hasattr(self.model, "sample_ptr"):
-            return self.model.objects.filter(dataset=self.object)
+            return self.model.objects.filter(dataset=self.base_object)
         elif hasattr(self.model, "measurement_ptr"):
-            return self.model.objects.filter(sample__dataset=self.object)
+            return self.model.objects.filter(sample__dataset=self.base_object)
 
         return super().get_queryset(*args, **kwargs)
 

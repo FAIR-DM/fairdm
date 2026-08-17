@@ -2,20 +2,24 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Model
 from django.forms.widgets import Media
-from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, include, path
 from django.views.generic.base import View
+
+from .access import can_open
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from django.http import HttpRequest
 
-class Plugin(View):
+
+class Plugin(PermissionRequiredMixin, View):
     """Mixin class that adds plugin behavior to Django class-based views.
 
     Attributes:
@@ -30,8 +34,13 @@ class Plugin(View):
 
     """
 
-    # The model against which a plugin is registered. Set by the registry during registration.
+    # The model this mount serves. Bound per mount by as_view(), never assigned onto the class —
+    # a plugin registered against two models must serve each independently.
     registered_model: ClassVar[type[Model] | None] = None
+
+    # The plugin that owns this view. For a plugin itself this is None and it owns itself; for an
+    # additional view it is the declaring plugin, whose predicate governs the whole group.
+    plugin_class: ClassVar[type[Plugin] | None] = None
 
     # Plugin name (slugified class name if not set)
     name: ClassVar[str | None] = None
@@ -101,6 +110,19 @@ class Plugin(View):
             path(base_path, include((urls, base_name), namespace=base_name)),
         ]
 
+    @cached_property
+    def base_object(self) -> Model | None:
+        """The core record this plugin hangs from.
+
+        Distinct from ``self.object``, which stays whatever the view class decides it is — the two
+        are different things and sharing one attribute name is what broke any view managing its own.
+        Named to match ``RelatedObjectMixin`` so a plugin and an ordinary related view read alike.
+        """
+        try:
+            return self.get_base_object()
+        except Exception:
+            return None
+
     def get_base_object(self) -> Model:
         """Fetch model instance from URL kwargs.
 
@@ -125,79 +147,18 @@ class Plugin(View):
         msg = "Plugin URL must include 'pk' or 'uuid' kwarg"
         raise ValueError(msg)
 
-    def has_permission(self, request: HttpRequest, obj: Model | None = None) -> bool:
-        """Two-tier permission check.
+    def has_permission(self) -> bool:
+        """Whether this request may open this view.
 
-        Checks both model-level and object-level permissions.
+        Overrides ``PermissionRequiredMixin.has_permission``, which supplies the surrounding
+        ``dispatch`` and the ``handle_no_permission`` behaviour — an authenticated user gets 403, an
+        anonymous one is sent to log in.
 
-        Args:
-            request: HTTP request
-            obj: Model instance (optional, for object-level checks)
-
-        Returns:
-            True if user has permission
+        The decision itself is :func:`~fairdm.contrib.plugins.access.can_open`, which the navigation
+        entry also calls. That is the whole mechanism behind the guarantee that what a user can see
+        and what a user can reach are the same set.
         """
-        # No permission requirement
-        if not self.permission:
-            return True
-
-        # Model-level permission check
-        if not request.user.has_perm(self.permission):
-            return False
-
-        # Object-level permission check (if guardian is available)
-        if obj:
-            try:
-                from guardian.shortcuts import get_objects_for_user
-
-                # Check if user has object-level permission
-                queryset = get_objects_for_user(
-                    request.user, self.permission, klass=obj.__class__
-                )
-                return queryset.filter(pk=obj.pk).exists()
-            except ImportError:
-                # Guardian not available, rely on model-level check
-                pass
-
-        return True
-
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        """Permission-gated dispatch.
-
-        Checks permissions before allowing access to the view.
-
-        Args:
-            request: HTTP request
-            *args: Positional arguments
-            **kwargs: Keyword arguments
-
-        Returns:
-            HTTP response
-
-        Raises:
-            PermissionDenied: If user lacks required permissions
-        """
-        if callable(self.check):
-            if not self.check(request):
-                raise PermissionDenied
-        elif not self.check:
-            raise PermissionDenied
-
-        # Get object for permission checking
-        try:
-            obj = self.get_base_object()
-        except (ValueError, self.registered_model.DoesNotExist):  # type: ignore[union-attr]
-            obj = None
-
-        # Check permissions
-        if not self.has_permission(request, obj):
-            raise PermissionDenied
-
-        # Store object for use in view methods
-        if obj:
-            self.object = obj  # type: ignore[attr-defined]
-
-        return super().dispatch(request, *args, **kwargs)
+        return can_open(self.__class__, self.request, self.base_object)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Add plugin-specific context data.
@@ -216,16 +177,13 @@ class Plugin(View):
         """
         context = super().get_context_data(**kwargs)  # type: ignore[misc]
 
-        # Add object if not already present
+        # The core record, always. `object` is left to the view class.
+        context["base_object"] = self.base_object
+
+        # Kept for templates that predate `base_object`; it resolves to the view's own object when
+        # the view has one, and to the core record otherwise.
         if not context.get("object"):
-            # Check if object was set in dispatch() first
-            if hasattr(self, "object") and self.object is not None:
-                context["object"] = self.object
-            else:
-                try:
-                    context["object"] = self.get_base_object()
-                except (ValueError, Exception):
-                    context["object"] = None
+            context["object"] = getattr(self, "object", None) or self.base_object
 
         # Add breadcrumbs
         context["breadcrumbs"] = self.get_breadcrumbs()
@@ -255,16 +213,14 @@ class Plugin(View):
             breadcrumbs.append({"text": model_name, "href": "/"})
 
         # Add object breadcrumb
-        try:
-            obj = self.get_base_object()
+        obj = self.base_object
+        if obj is not None:
             obj_str = str(obj)
             # Truncate long object names
             if len(obj_str) > 50:
                 obj_str = obj_str[:47] + "..."
             # TODO: Reverse object detail URL
             breadcrumbs.append({"text": obj_str, "href": "#"})
-        except (ValueError, Exception):  # noqa: S110
-            pass
 
         # Add current page breadcrumb
         if self.menu:

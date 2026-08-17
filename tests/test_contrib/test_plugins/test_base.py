@@ -297,12 +297,15 @@ class TestPluginHasPermission:
             permission = None
             template_name = "test.html"
 
-        plugin = PublicPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
         request.user = UserFactory()
 
-        assert plugin.has_permission(request, sample) is True
+        plugin = PublicPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is True
 
     def test_has_permission_with_model_level_permission(self, sample):
         """Plugin should check model-level permissions."""
@@ -312,9 +315,7 @@ class TestPluginHasPermission:
             permission = "sample.change_sample"
             template_name = "test.html"
 
-        plugin = PermissionPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
 
         # User with permission
         user_with_perm = UserFactory()
@@ -325,7 +326,12 @@ class TestPluginHasPermission:
         user_with_perm.user_permissions.add(perm)
         request.user = user_with_perm
 
-        assert plugin.has_permission(request, sample) is True
+        plugin = PermissionPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is True
 
     def test_has_permission_denies_user_without_permission(self, sample):
         """Plugin should deny access to users without permission."""
@@ -335,12 +341,15 @@ class TestPluginHasPermission:
             permission = "sample.delete_sample"
             template_name = "test.html"
 
-        plugin = PermissionPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
         request.user = UserFactory()  # User without delete permission
 
-        assert plugin.has_permission(request, sample) is False
+        plugin = PermissionPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is False
 
     def test_has_permission_with_anonymous_user(self, sample):
         """Plugin should handle anonymous users."""
@@ -350,42 +359,42 @@ class TestPluginHasPermission:
             permission = "sample.view_sample"
             template_name = "test.html"
 
-        plugin = PermissionPlugin()
-        factory = RequestFactory()
-        request = factory.get("/")
+        request = RequestFactory().get("/")
         request.user = AnonymousUser()
 
-        assert plugin.has_permission(request, sample) is False
+        plugin = PermissionPlugin()
+        plugin.request = request
+        plugin.kwargs = {"uuid": sample.uuid}
+        plugin.registered_model = Sample
+
+        assert plugin.has_permission() is False
 
 
 class TestPluginDispatch:
     """Test Plugin.dispatch() method."""
 
-    def test_dispatch_stores_object(self, sample):
-        """Dispatch should store object as self.object."""
+    def test_dispatch_leaves_the_view_s_own_object_alone(self, sample):
+        """The plugin system must not assign self.object.
+
+        This replaces a test that asserted the opposite. The core record and the view's own object
+        are two different things, and sharing one attribute name broke any view that manages its
+        own — a CreateView sets self.object to None in its own get(), and the old dispatch had
+        already overwritten it with the record.
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
             template_name = "test.html"
-            # dispatch() -> get_base_object() reads self.registered_model, which
-            # is normally set by the registry during URL generation. Since we
-            # call as_view() directly here (bypassing the registry), it must be
-            # set explicitly.
             registered_model = Sample
 
             def get(self, request, *args, **kwargs):
-                # Check that self.object was set
-                assert hasattr(self, "object")
-                assert self.object == sample
+                assert not hasattr(self, "object")
                 return super().get(request, *args, **kwargs)
 
-        plugin = TestPlugin.as_view()
-        factory = RequestFactory()
-        request = factory.get(f"/sample/{sample.uuid}/test/")
+        request = RequestFactory().get(f"/sample/{sample.uuid}/test/")
         request.user = UserFactory()
 
-        # This will call dispatch, which should set self.object
-        response = plugin(request, uuid=sample.uuid)
+        response = TestPlugin.as_view()(request, uuid=sample.uuid)
         assert response.status_code == 200
 
     def test_dispatch_raises_permission_denied_without_permission(self, sample):

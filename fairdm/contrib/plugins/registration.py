@@ -9,6 +9,8 @@ from django.db.models import Model
 from django.urls import URLPattern
 from flex_menu import Menu, MenuItem, root
 
+from .access import menu_check
+
 if TYPE_CHECKING:
     from .base import Plugin
 
@@ -154,7 +156,11 @@ class PluginRegistry:
         return MenuItem(
             label,
             view_name=view_name,
-            check=plugin_class.check,
+            # Never the author's own predicate. The navigation package calls
+            # check(request, **kwargs) and catches nothing, so a predicate written to any other
+            # signature takes the page down during template rendering. The adapter also routes the
+            # decision through can_open(), so an entry is shown only when its destination opens.
+            check=menu_check(plugin_class),
             extra_context={
                 "label": label,
                 "icon": kwargs.get("icon")
