@@ -268,8 +268,15 @@ backends resolve object-level permissions, which is what the object-level librar
 do.
 
 **Why**: the requirement is right and the implementation reimplemented the backend it was already
-running. One call is shorter, correct for the object-only case the current code refuses, and stops
-the plugin system from having an opinion about which permission backends a portal runs.
+running. Delegating stops the plugin system from having an opinion about which permission backends a
+portal runs.
+
+**Amended 2026-08-17, during planning**: "one call" is wrong. `ModelBackend._get_permissions`
+returns an empty set as soon as an object is passed, so `has_perm(perm, obj)` consults only the
+object-level backends and would refuse a user holding the permission globally with no object row —
+a regression against the code this replaces. The correct expression is two calls,
+`has_perm(p) or has_perm(p, obj)`, which is what guardian's own view mixin does. The delegation
+principle stands; the single call does not. See `research.md` §2.
 
 ---
 
