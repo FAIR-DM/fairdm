@@ -9,6 +9,7 @@ top of Plugin (User Story 8).
 """
 
 import pytest
+from django.http import Http404
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
@@ -43,35 +44,32 @@ class TestCustomURLs:
         # Verify custom URL path is set
         assert CustomURLPlugin.get_url_path() == "custom/analysis"
 
-    def test_plugin_with_get_urls_override(self):
-        """Given a plugin with overridden get_urls classmethod,
-        When generating URL patterns,
-        Then custom URL patterns are used (User Story 6, Scenario 2)."""
+    def test_plugin_with_extra_views(self):
+        """A plugin owning further views serves each beneath its own path, flat.
+
+        This replaces a test that overrode ``get_urls`` to return arbitrary patterns. That was the
+        most flexible extension point and the least checkable — the registry cannot see a plugin's
+        children until they are already URL patterns, which makes collisions undetectable at
+        registration. ``extra_views`` is the declared surface instead.
+        """
+
+        class Export(Plugin, TemplateView):
+            template_name = "export.html"
 
         @plugins.register(Sample)
         class MultiURLPlugin(Plugin, TemplateView):
-            menu = {"label": "Multi", "icon": "multi", "order": 20}
             template_name = "multi.html"
+            extra_views = [Export]
 
-            @classmethod
-            def get_urls(cls, menu_class=None):
-                # The registry always calls get_urls(menu_class=...); an override
-                # must accept it even if it doesn't use it.
-                return [
-                    path("main/", cls.as_view(), name=f"{cls.get_name()}-main"),
-                    path("export/", cls.as_view(), name=f"{cls.get_name()}-export"),
-                ]
+        url_patterns = MultiURLPlugin.get_urls(model=Sample)
 
-        # Get URLs
-        url_patterns = MultiURLPlugin.get_urls()
-
-        # Should have two URL patterns
         assert len(url_patterns) == 2
-
-        # Check URL names
-        url_names = [p.name for p in url_patterns]
-        assert f"{MultiURLPlugin.get_name()}-main" in url_names
-        assert f"{MultiURLPlugin.get_name()}-export" in url_names
+        assert [p.name for p in url_patterns] == [
+            "multi-u-r-l-plugin",
+            "multi-u-r-l-plugin-export",
+        ]
+        # Flat, not a nested namespace: the child hangs off the parent's path.
+        assert str(url_patterns[1].pattern) == "multi-u-r-l-plugin/export/"
 
 
 class TestDefaultURLGeneration:
@@ -268,11 +266,15 @@ class TestPluginGetObject:
         plugin.kwargs = {}
         plugin.registered_model = Sample
 
-        with pytest.raises(ValueError, match="must include 'pk' or 'uuid' kwarg"):
+        with pytest.raises(ValueError, match="mounted without any of the lookup kwargs"):
             plugin.get_base_object()
 
-    def test_get_object_with_nonexistent_pk_raises_error(self):
-        """Plugin with non-existent pk should raise DoesNotExist."""
+    def test_get_object_with_nonexistent_record_is_404(self):
+        """A record that does not exist is a 404, not a 500.
+
+        The old behaviour swallowed the miss into ``obj = None`` and then failed further along with
+        an AttributeError, which reached the user as a server error.
+        """
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):
@@ -282,7 +284,7 @@ class TestPluginGetObject:
         plugin.kwargs = {"pk": 999999}
         plugin.registered_model = Sample
 
-        with pytest.raises(Sample.DoesNotExist):
+        with pytest.raises(Http404):
             plugin.get_base_object()
 
 

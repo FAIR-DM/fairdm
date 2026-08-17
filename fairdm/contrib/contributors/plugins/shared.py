@@ -62,7 +62,7 @@ class ContributionCreate(Plugin, FairDMCreateView):
 class ContributionUpdate(Plugin, FairDMUpdateView):
     """Edit plugin for updating contribution roles and affiliation."""
 
-    url_path = "edit"
+    url_path = "<int:pk>/edit"
     form_class = UpdateContributionForm
     model = Contribution
 
@@ -76,7 +76,7 @@ class ContributionUpdate(Plugin, FairDMUpdateView):
 class ContributionRemove(Plugin, FairDMDeleteView):
     """Delete plugin for removing a contribution."""
 
-    url_path = "remove"
+    url_path = "<int:pk>/remove"
     template_name = "contributors/plugins/contribution_confirm_delete.html"
     model = Contribution
 
@@ -90,7 +90,7 @@ class ContributionList(Plugin, FairDMListView):
     url_path = "contributors"
     model = Contribution
     list_item_template = "contributors/contributor_card.html"
-    subviews = [
+    extra_views = [
         ContributionCreate,
         ContributionUpdate,
         ContributionRemove,

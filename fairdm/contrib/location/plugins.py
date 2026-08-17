@@ -8,10 +8,9 @@ from .models import Point
 
 
 # LOCATION PLUGINS
-@plugins.register(Point)
+@plugins.register(Point, label=_("Overview"), icon="location", order=0)
 class PointOverview(Plugin, UpdateView):
     model = Point
-    menu = {"label": _("Overview"), "icon": "location", "order": 0}
     sections = {
         "sidebar_primary": False,
         "sidebar_secondary": False,

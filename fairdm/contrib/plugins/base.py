@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Model
 from django.forms.widgets import Media
-from django.urls import URLPattern, include, path
+from django.urls import URLPattern, path
 from django.views.generic.base import View
 
 from .access import can_open
@@ -53,7 +53,8 @@ class Plugin(PermissionRequiredMixin, View):
     model: ClassVar[type[Model] | None] = None
     menu: ClassVar[dict[str, Any] | None] = None
     # tab = None
-    subviews: ClassVar[list[type[View]] | None] = []
+    #: Additional view classes belonging to this plugin. Read only through get_extra_views().
+    extra_views: ClassVar[list[type[Plugin]]] = []
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
 
@@ -85,30 +86,51 @@ class Plugin(PermissionRequiredMixin, View):
         return cls.get_name()
 
     @classmethod
-    def get_urls(cls, menu_class) -> list[URLPattern]:
-        """Generate URL pattern(s) for this plugin.
+    def get_extra_views(cls) -> list[type[Plugin]]:
+        """The additional view classes belonging to this plugin.
 
-        Returns:
-            List containing one URLPattern for simple plugins.
-            Subclasses may override to return multiple patterns.
+        The single reader of ``extra_views``. Declaration is a class attribute and resolution is one
+        method, which is the pattern this project settled for the model registry and the one Django
+        admin uses for inlines.
+        """
+        return list(cls.extra_views or [])
+
+    @classmethod
+    def get_urls(cls, menu_class=None, model=None) -> list[URLPattern]:
+        """Flat URL patterns for this plugin and every view it owns.
+
+        One ``path()`` per view, named ``<plugin>`` and ``<plugin>-<child>``. No nested namespace:
+        the earlier shape emitted an ``include()`` for every plugin whether or not it had children,
+        installing an empty resolver whose namespace equalled the plugin's own pattern name — the
+        plugin was simultaneously a route and a container. Django admin, DRF routers and neapolitan
+        all flatten instead.
+
+        The model is bound per mount rather than assigned onto the class, so one plugin registered
+        against two records serves each independently.
         """
         base_name = cls.get_name()
         base_path = cls.get_url_path()
-        urls = []
-        for subview in cls.subviews:
-            urls.append(
-                path(
-                    f"{subview.get_url_path()}/",
-                    subview.as_view(menu=menu_class),
-                    name=subview.get_name(),
-                )
+        prefix = f"{base_path}/" if base_path is not None else ""
+
+        def mount(view_class, owner=None):
+            return view_class.as_view(
+                menu=menu_class,
+                registered_model=model,
+                plugin_class=owner,
             )
 
-        base_path = f"{base_path}/" if base_path is not None else ""
-        return [
-            path(base_path, cls.as_view(menu=menu_class), name=base_name),
-            path(base_path, include((urls, base_name), namespace=base_name)),
-        ]
+        patterns = [path(prefix, mount(cls), name=base_name)]
+        for extra in cls.get_extra_views():
+            segment = extra.get_url_path()
+            segment = f"{segment}/" if segment else ""
+            patterns.append(
+                path(
+                    f"{prefix}{segment}",
+                    mount(extra, owner=cls),
+                    name=f"{base_name}-{extra.get_name()}",
+                )
+            )
+        return patterns
 
     @cached_property
     def base_object(self) -> Model | None:
@@ -124,28 +146,42 @@ class Plugin(PermissionRequiredMixin, View):
             return None
 
     def get_base_object(self) -> Model:
-        """Fetch model instance from URL kwargs.
+        """Fetch the core record named by the address.
 
-        Returns:
-            Model instance based on URL kwargs (typically 'pk' or 'uuid')
+        The lookup comes from the model's declared addressing rather than a hardcoded ``uuid``, so
+        a record identified some other way — the location record is keyed on a coordinate pair and
+        has no ``uuid`` field — can be served by the same machinery.
 
         Raises:
-            Model.DoesNotExist: If instance not found
+            Http404: if no such record exists
+            ValueError: if the mount is missing, which is a wiring mistake rather than a bad request
         """
+        from django.shortcuts import get_object_or_404
+
+        from .registration import registry
+
         if not self.registered_model:
             msg = f"Plugin {self.__class__.__name__} has no associated model"
             raise ValueError(msg)
 
-        # Try pk first (integer primary key)
-        if pk := self.kwargs.get("pk"):
-            return self.registered_model.objects.get(pk=pk)
+        lookup = registry.lookup_for(self.registered_model)
+        filters = {
+            field: self.kwargs[kwarg]
+            for kwarg, field in lookup.items()
+            if kwarg in self.kwargs
+        }
+        if not filters:
+            # Kept for plugins mounted by a URL configuration that predates declared addressing.
+            if pk := self.kwargs.get("pk"):
+                filters = {"pk": pk}
+            else:
+                msg = (
+                    f"Plugin {self.__class__.__name__} is mounted without any of the lookup "
+                    f"kwargs {sorted(lookup)} its model declares"
+                )
+                raise ValueError(msg)
 
-        # Try uuid (UUID field)
-        if uuid := self.kwargs.get("uuid"):
-            return self.registered_model.objects.get(uuid=uuid)
-
-        msg = "Plugin URL must include 'pk' or 'uuid' kwarg"
-        raise ValueError(msg)
+        return get_object_or_404(self.registered_model, **filters)
 
     def has_permission(self) -> bool:
         """Whether this request may open this view.

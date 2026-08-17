@@ -108,6 +108,24 @@ def as_user(rf):
     return build
 
 
+@pytest.fixture(autouse=True)
+def isolate_registry():
+    """Snapshot the registry and restore it after every test in this package.
+
+    Tests here register throwaway plugins against the real records, and many of them use the same
+    class name. Registration now refuses a duplicate name on one record type, which is the point —
+    but it means a test that leaks its registration breaks the next one. Snapshot and restore is
+    cheaper and more faithful than clearing and re-importing every plugin module, which is what the
+    older fixture did.
+    """
+    from fairdm import plugins
+
+    saved = {model: list(entries) for model, entries in plugins.registry._registry.items()}
+    yield
+    plugins.registry._registry.clear()
+    plugins.registry._registry.update(saved)
+
+
 @pytest.fixture
 def clear_registry():
     """Clear plugin registry between tests to prevent pollution.

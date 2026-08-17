@@ -69,7 +69,16 @@ def sample_check_has_edit_permission(request, instance, **kwargs):
     return True
 
 
-def reverse(model, view_name, *args, **kwargs):
-    namespace = model._meta.model_name.lower()
-    kwargs.update({"uuid": model.uuid})
+def reverse(instance, view_name, *args, **kwargs):
+    """Resolve a plugin address for a record.
+
+    The kwargs come from the record's declared addressing. Hardcoding ``uuid`` here is what made a
+    record without one unreachable — and invisibly so, because the navigation package filters
+    kwargs and then swallows the failure, rendering an empty menu rather than raising.
+    """
+    from .registration import registry
+
+    namespace = instance._meta.model_name.lower()
+    for kwarg, field in registry.lookup_for(type(instance)).items():
+        kwargs.setdefault(kwarg, getattr(instance, field))
     return urls.reverse(f"{namespace}:{view_name}", args=args, kwargs=kwargs)

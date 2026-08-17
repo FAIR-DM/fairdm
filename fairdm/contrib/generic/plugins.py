@@ -23,39 +23,6 @@ class KeywordsPlugin(Plugin, FairDMUpdateView):
     slug_url_kwarg = "uuid"
     slug_field = "uuid"
 
-    def get_template_names(self):
-        """
-        Return a list of template names for form-based plugin views.
-
-        Template resolution order:
-        1. {model_name}/plugins/keywords.html
-        2. fairdm/plugins/keywords.html
-        3. fairdm/plugins/form.html (generic form template)
-        4. fairdm/plugin.html (fallback)
-        """
-        if self.template_name is not None:
-            return [self.template_name]
-
-        templates = []
-
-        # Check if we have a base_model
-        if self.base_model:
-            # Model-specific plugin template (e.g., project/plugins/keywords.html)
-            templates.append(
-                f"{self.base_model._meta.model_name}/plugins/keywords.html"
-            )
-
-        # Framework-specific plugin template
-        templates.append("fairdm/plugins/keywords.html")
-
-        # Generic form template - covers 90% of form-based plugin use cases
-        templates.append("fairdm/plugins/form.html")
-
-        # Fallback: default plugin template
-        templates.append("fairdm/plugin.html")
-
-        return templates
-
 
 class DescriptionsPlugin(Plugin, PageMixin, InlineFormSetView):
     """Base plugin class for managing descriptions on FairDM objects using inline formsets."""

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from django.db.models import Model
 from django.urls import URLPattern
@@ -33,8 +33,15 @@ class PluginRegistry:
             menu = {"label": "My Plugin", "icon": "star", "order": 10}
     """
 
+    #: How a record is found in an address, when a model declares nothing else. Every core record
+    #: but one uses this; the exception is the location record, which has no ``uuid`` field at all.
+    DEFAULT_ROUTE = "<str:uuid>"
+    DEFAULT_LOOKUP: ClassVar[dict[str, str]] = {"uuid": "uuid"}
+
     def __init__(self) -> None:
         """Initialize empty registry."""
+        # model -> (route fragment, {url kwarg: model field})
+        self._addressing: dict[type[Model], tuple[str, dict[str, str]]] = {}
         # Maps base models to lists of Plugin classes
         # Registry format looks like:
         # {
@@ -71,24 +78,57 @@ class PluginRegistry:
         """
 
         def decorator(plugin_class: type[Plugin]) -> type[Plugin]:
-            if not models:
-                msg = "register_plugin requires at least one model"
-                raise ValueError(msg)
+            from .checks import validate_models, validate_registration
 
+            validate_models(plugin_class, models)
             for model in models:
-                if not (isinstance(model, type) and issubclass(model, Model)):
-                    msg = f"register_plugin expects Django Model subclasses, got {type(model)}"
-                    raise TypeError(msg)
-
-            # Register the plugin with each model
-            for model in models:
-                if model not in self._registry:
-                    self._registry[model] = []
-                self._registry[model].append((plugin_class, kwargs))
+                existing = self._registry.setdefault(model, [])
+                validate_registration(plugin_class, model, existing)
+                existing.append((plugin_class, kwargs))
 
             return plugin_class
 
         return decorator
+
+    def declare_addressing(
+        self,
+        model: type[Model],
+        route: str,
+        lookup: dict[str, str],
+    ) -> None:
+        """Declare how a record of ``model`` appears in an address.
+
+        Addressing belongs to the model, not to a registration: two plugins on one record cannot
+        disagree about how their shared record is found.
+
+        Args:
+            model: the record type
+            route: the route fragment, e.g. ``"<str:lon>/<str:lat>"``
+            lookup: url kwarg to model field, e.g. ``{"lon": "x", "lat": "y"}``. Explicit in both
+                directions, because reverse has to go back the other way.
+        """
+        missing = [kwarg for kwarg in lookup if f":{kwarg}>" not in route]
+        if missing:
+            msg = (
+                f"declare_addressing({model.__name__}): lookup names {missing} which the route "
+                f"{route!r} does not capture"
+            )
+            raise ValueError(msg)
+        self._addressing[model] = (route, dict(lookup))
+
+    def get_addressing(self, model: type[Model]) -> tuple[str, dict[str, str]]:
+        """The route fragment and lookup map for a record type."""
+        return self._addressing.get(
+            model, (self.DEFAULT_ROUTE, dict(self.DEFAULT_LOOKUP))
+        )
+
+    def route_for(self, model: type[Model]) -> str:
+        """The route fragment a URL configuration mounts this record's plugins beneath."""
+        return self.get_addressing(model)[0]
+
+    def lookup_for(self, model: type[Model]) -> dict[str, str]:
+        """Url kwarg to model field, for resolving a record and for reversing to it."""
+        return self.get_addressing(model)[1]
 
     def get_plugins_for_model(self, model: type[Model]) -> list[type[Plugin]]:
         """Get all plugins/groups registered for a model.
@@ -102,16 +142,20 @@ class PluginRegistry:
         """
         return self._registry.get(model, [])
 
-    def get_plugin_menu_for_model(self, model: type[Model]) -> Menu | None:
-        """Get the menu configuration for a plugin, if it exists.
+    def get_plugin_menu_for_model(self, model: type[Model]) -> Menu:
+        """The navigation object for a record type, created on first use.
 
-        Args:
-            model: Django Model class
-        Returns:
-            Menu object with menu configuration, or None if no menu defined
+        Five of these used to be hand-written in ``menus.py`` and found by the string
+        ``f"{model.__name__}Menu"``. A record with none — the location record — made this return
+        ``None``, and the caller appended to it unguarded. Owning them here means registering a
+        plugin against any record type is enough.
         """
         menu_name = f"{model.__name__}Menu"
-        return root.get(menu_name)
+        menu = root.get(menu_name)
+        if menu is None:
+            menu = Menu(menu_name)
+            root.append(menu)
+        return menu
 
     def get_urls_for_model(self, model: type[Model]) -> list[URLPattern]:
         """Get aggregated URL patterns from all plugins/groups for a model.
@@ -128,32 +172,31 @@ class PluginRegistry:
         url_patterns: list[URLPattern] = []
 
         for plugin_class, kwargs in itertools.chain(self.get_plugins_for_model(model)):
-            plugin_class.registered_model = model  # type: ignore[attr-defined]
-            url_patterns.extend(plugin_class.get_urls(menu_class=plugin_menu))
-            if tab := self.configure_tab(plugin_class, model, **kwargs):
-                plugin_menu.append(tab)
+            # The model is passed into get_urls() and bound per mount by as_view(). Assigning it
+            # onto the class made the last URL configuration imported win for every mount, so a
+            # plugin registered against two records served the wrong one on all but the last.
+            url_patterns.extend(
+                plugin_class.get_urls(menu_class=plugin_menu, model=model)
+            )
+            if kwargs.get("menu") is not False:
+                plugin_menu.append(self.configure_tab(plugin_class, model, **kwargs))
+        self.sort_menu(plugin_menu)
         return url_patterns
 
     def configure_tab(
         self, plugin_class: type[Plugin], model: type[Model], **kwargs
-    ) -> None:
-        """Configure the tab for a plugin based on its menu definition.
+    ) -> MenuItem:
+        """Build the navigation entry for a registration.
 
-        This method resolves the URL for the plugin's tab using the registered
-        base model's namespace and updates the tab's view_name accordingly.
-
-        Args:
-            plugin_class: The Plugin class to configure
-            model: The Django Model class associated with the plugin
-        Returns:
-            None
+        Label, icon and position come from the decorator and nowhere else. The ``menu`` class
+        attribute they used to compete with belonged to a navigation system that no longer exists;
+        ten plugins declared one that nothing read, and eight registrations passed a position that
+        was silently discarded.
         """
-        label = kwargs.get("label") or getattr(
-            plugin_class, "page_title", plugin_class.__name__
-        )
+        label = kwargs.get("label") or plugin_class.get_name().replace("-", " ").title()
         name = plugin_class.get_name()
         view_name = f"{model._meta.model_name.lower()}:{name}"
-        return MenuItem(
+        item = MenuItem(
             label,
             view_name=view_name,
             # Never the author's own predicate. The navigation package calls
@@ -163,10 +206,20 @@ class PluginRegistry:
             check=menu_check(plugin_class),
             extra_context={
                 "label": label,
-                "icon": kwargs.get("icon")
-                or getattr(plugin_class, "page_icon", "circle"),
+                "icon": kwargs.get("icon", "circle"),
             },
         )
+        # flex_menu appends in call order and has no ordering of its own, so position is carried
+        # here and applied once every entry for the record is known.
+        item.plugin_order = kwargs.get("order", 0)
+        return item
+
+    def sort_menu(self, menu: Menu) -> None:
+        """Order a record's entries by declared position rather than registration order."""
+        ordered = sorted(
+            menu.children, key=lambda child: getattr(child, "plugin_order", 0)
+        )
+        menu.children = type(menu.children)(ordered)
 
 
 registry = PluginRegistry()

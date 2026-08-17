@@ -20,12 +20,10 @@ def check_has_edit_permission(request, instance, **kwargs):
     return True
 
 
-@plugins.register(Sample)
+@plugins.register(Sample, label=_("Overview"), icon="view", order=0)
 class Overview(OverviewPlugin):
-    menu = {"label": _("Overview"), "icon": "view", "order": 0}
-
-
-fieldsets: list[tuple[str | None, dict[str, Any]]] = []
+    # Was declared at module scope, outside the class it belongs to, so it configured nothing.
+    fieldsets: list[tuple[str | None, dict[str, Any]]] = []
 
 
 class SampleManagementMixin:
@@ -38,7 +36,7 @@ class SampleManagementMixin:
 
 
 # ======== Management Plugins ======== #
-@plugins.register(Sample)
+@plugins.register(Sample, label=_("Edit"), icon="pencil", order=10)
 class Edit(SampleManagementMixin, UpdatePlugin):
     """Plugin for editing basic sample information."""
 
@@ -52,9 +50,8 @@ class Edit(SampleManagementMixin, UpdatePlugin):
     learn_more = user_guide("sample/edit")
 
 
-@plugins.register(Sample)
+@plugins.register(Sample, label=_("Descriptions"), icon="description", order=510)
 class Descriptions(SampleManagementMixin, DescriptionsPlugin):
-    menu = {"label": _("Descriptions"), "icon": "description", "order": 510}
     name = "basic-information"
     title = _("Basic Information")
     heading_config = {
@@ -67,9 +64,8 @@ class Descriptions(SampleManagementMixin, DescriptionsPlugin):
     inline_model = SampleDescription
 
 
-@plugins.register(Sample)
+@plugins.register(Sample, label=_("Keywords"), icon="keywords", order=520)
 class Keywords(SampleManagementMixin, KeywordsPlugin):
-    menu = {"label": _("Keywords"), "icon": "keywords", "order": 520}
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
@@ -78,9 +74,8 @@ class Keywords(SampleManagementMixin, KeywordsPlugin):
     }
 
 
-@plugins.register(Sample)
+@plugins.register(Sample, label=_("Key Dates"), icon="date", order=530)
 class KeyDates(SampleManagementMixin, KeyDatesPlugin):
-    menu = {"label": _("Key Dates"), "icon": "date", "order": 530}
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."

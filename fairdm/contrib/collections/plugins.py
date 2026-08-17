@@ -14,7 +14,6 @@ class DataTablePlugin(Plugin, DataTableView):
     """
 
     title = _("Data")
-    menu = {"label": _("Data"), "icon": "table", "order": 50}
 
     def get_queryset(self, *args, **kwargs):
         # return self.base_object.samples.instance_of(self.model)
