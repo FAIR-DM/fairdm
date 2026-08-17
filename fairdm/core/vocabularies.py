@@ -61,8 +61,30 @@ class FairDMIdentifiers(VocabularyBuilder):
         "dcterms:source": "https://www.crossref.org/fundingdata/",
     }
 
+    DOI = {
+        "skos:prefLabel": _("DOI"),
+        "skos:definition": _(
+            "A Digital Object Identifier providing a persistent, resolvable link to a project record."
+        ),
+        "dcterms:source": "https://www.doi.org/doi_handbook/",
+    }
+
+    GRANT_NUMBER = {
+        "skos:prefLabel": _("Grant Number"),
+        "skos:definition": _(
+            "The identifier assigned by a funder to a grant that supports the project, used to reconcile the project against the funder's own records."
+        ),
+    }
+
+    PROPOSAL_ID = {
+        "skos:prefLabel": _("Proposal Identifier"),
+        "skos:definition": _(
+            "The identifier assigned to the proposal from which the project originated."
+        ),
+    }
+
     class Meta:
-        name = "fairdm-descriptions"
+        name = "fairdm-identifiers"
         prefix = "FAIRDM"
         namespace = "https://www.fairdm.org/vocabularies/"
         scheme_attrs = {
@@ -72,6 +94,16 @@ class FairDMIdentifiers(VocabularyBuilder):
             ),
         }
         collections = {
+            "Project": Collection(
+                prefLabel=_("Project Identifiers"),
+                definition=_("Persistent identifiers for research projects."),
+                ordered=True,
+                members=[
+                    "DOI",
+                    "GRANT_NUMBER",
+                    "PROPOSAL_ID",
+                ],
+            ),
             "Person": Collection(
                 prefLabel=_("Person Identifiers"),
                 definition=_(

@@ -14,13 +14,24 @@ Test-First Approach (Red-Green-Refactor):
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.urls import reverse
 from guardian.shortcuts import get_perms
 
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.project.forms import ProjectCreateForm, ProjectForm
-from fairdm.core.project.models import Project, ProjectDate, ProjectDescription
-from fairdm.factories import PersonFactory, ProjectFactory, UserFactory
+from fairdm.core.project.models import (
+    Project,
+    ProjectDate,
+    ProjectDescription,
+    ProjectIdentifier,
+)
+from fairdm.factories import (
+    PersonFactory,
+    ProjectFactory,
+    ProjectIdentifierFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -688,6 +699,68 @@ class TestProjectIdentifiers:
 
         funder_identifier = project.identifiers.get(type="CROSSREF_FUNDER_ID")
         assert funder_identifier.value == "https://doi.org/10.13039/100000001"
+
+    def test_doi_attached_to_project_stored_under_doi_type(self):
+        """A DOI attached to a project is stored under the DOI type.
+
+        Requirement: FR-011 - The project identifier vocabulary includes a DOI.
+        """
+        project = ProjectFactory()
+
+        ProjectIdentifierFactory(related=project, type="DOI", value="10.1234/example")
+
+        doi = project.identifiers.get(type="DOI")
+        assert doi.value == "10.1234/example"
+
+    def test_grant_number_stored_alongside_doi(self):
+        """A grant number is stored alongside the DOI.
+
+        Requirement: FR-011 - The project identifier vocabulary includes a grant number.
+        """
+        project = ProjectFactory()
+        ProjectIdentifierFactory(related=project, type="DOI", value="10.1234/example")
+
+        ProjectIdentifierFactory(
+            related=project, type="GRANT_NUMBER", value="GRANT-2024-001"
+        )
+
+        types = set(project.identifiers.values_list("type", flat=True))
+        assert types == {"DOI", "GRANT_NUMBER"}
+
+    def test_duplicate_identifier_value_across_projects_is_refused(self):
+        """Attaching the same identifier value to a second project is refused.
+
+        Requirement: FR-012 - An identifier value is unique across every record
+        that carries identifiers, so the same identifier cannot name two things.
+        """
+        project_a = ProjectFactory()
+        project_b = ProjectFactory()
+        ProjectIdentifierFactory(related=project_a, type="DOI", value="10.1234/shared")
+
+        with pytest.raises(IntegrityError):
+            ProjectIdentifierFactory(
+                related=project_b, type="DOI", value="10.1234/shared"
+            )
+
+    def test_identifier_type_choices_are_scoped_to_project(self):
+        """The identifier types offered for a project contain a DOI and a grant
+        number, and contain none of ORCID, ResearcherID, ROR, Wikidata or ISNI.
+
+        Requirement: FR-011 - The project identifier vocabulary is scoped to
+        types that apply to a project, not the vocabulary used for people and
+        organisations.
+        """
+        codes = {code for code, _label in ProjectIdentifier.type.field.choices}
+
+        assert "DOI" in codes
+        assert "GRANT_NUMBER" in codes
+        assert not codes & {
+            "ORCID",
+            "RESEARCHER_ID",
+            "ROR",
+            "WIKIDATA",
+            "ISNI",
+        }
 
 
 @pytest.mark.django_db

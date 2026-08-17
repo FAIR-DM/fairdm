@@ -88,7 +88,7 @@ from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import DatasetDate, DatasetDescription
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Dataset, Measurement, Project, Sample
-from fairdm.core.project.models import ProjectDate, ProjectDescription
+from fairdm.core.project.models import ProjectDate, ProjectDescription, ProjectIdentifier
 from fairdm.core.sample.models import (
     SampleDate,
     SampleDescription,
@@ -120,6 +120,17 @@ class ProjectDateFactory(DjangoModelFactory):
 
     type = "Created"  # Default date type
     value = Faker("partial_date")
+
+
+class ProjectIdentifierFactory(DjangoModelFactory):
+    """Factory for creating ProjectIdentifier instances."""
+
+    class Meta:
+        model = ProjectIdentifier
+
+    type = "DOI"  # Default identifier type
+    value = Faker("bothify", text="10.####/project-?????")
+    # related field will be set by the caller
 
 
 class ProjectFactory(DjangoModelFactory):

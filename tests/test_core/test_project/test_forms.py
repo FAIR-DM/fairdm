@@ -256,13 +256,10 @@ class TestProjectIdentifierForm:
     def test_identifier_form_accepts_valid_data(self):
         """Test that identifier form accepts valid identifier types.
 
-        Requirement: FR-005 - Projects support external identifiers.
-        User Story: US2 - Add identifiers to projects for FAIR compliance.
-        Implementation: T045 - Form validation for identifier data.
-
-        Note: Current ProjectIdentifier vocabulary uses FairDMIdentifiers
-        which includes ORCID, ISNI, ROR, etc. For DOI support, vocabulary
-        would need to be extended or changed.
+        Requirement: FR-011 - Projects carry identifiers drawn from a set that
+        applies to projects.
+        User Story: US-3 - Give a project an identifier the outside world
+        recognises.
         """
         from fairdm.contrib.contributors.models import Organization
         from fairdm.core.project.forms import ProjectIdentifierForm
@@ -276,10 +273,10 @@ class TestProjectIdentifierForm:
             owner=owner,
         )
 
-        # Test with valid ISNI identifier
+        # Test with a valid project identifier
         form_data = {
-            "type": "ISNI",
-            "value": "0000 0001 2283 4400",
+            "type": "DOI",
+            "value": "10.5281/zenodo.1234567",
         }
 
         form = ProjectIdentifierForm(data=form_data)
@@ -291,5 +288,5 @@ class TestProjectIdentifierForm:
         # Save and verify
         identifier = form.save()
         assert identifier.pk is not None
-        assert identifier.type == "ISNI"
-        assert identifier.value == "0000 0001 2283 4400"
+        assert identifier.type == "DOI"
+        assert identifier.value == "10.5281/zenodo.1234567"

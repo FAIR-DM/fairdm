@@ -174,7 +174,7 @@ class ProjectDate(AbstractDate):
 
 
 class ProjectIdentifier(AbstractIdentifier):
-    VOCABULARY = FairDMIdentifiers()
+    VOCABULARY = FairDMIdentifiers.from_collection("Project")
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
     class Meta(AbstractIdentifier.Meta):

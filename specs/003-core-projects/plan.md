@@ -57,6 +57,12 @@ Three tests assert the flat funding shape: `tests/test_factories/test_core.py:23
 `tests/test_factories/test_contributors.py:289`. They are correct about today's factory and wrong
 about the specified shape, so they are rewritten against the new one.
 
+A fourth is `TestProjectIdentifierForm::test_identifier_form_accepts_valid_data`, which submits an
+ISNI to the project identifier form and asserts it is accepted. FR-011 now forbids exactly that, and
+the test's own docstring anticipated the change: "For DOI support, vocabulary would need to be
+extended or changed." Its fixture data moves from an ISNI to a DOI. The assertion is unchanged in
+kind — a valid identifier type is accepted and round-trips.
+
 This is a deliberate change to tests that already existed, recorded here because the constitution
 requires such a change to be recorded rather than made quietly. No assertion is weakened: each keeps
 testing that funding round-trips through the factory, against the schema the specification now
