@@ -3,7 +3,7 @@
   "feature": "008-plugin-system",
   "branch": "008-plugin-system",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEWED",
+  "state": "IMPLEMENTING",
   "state_history": [
     {
       "state": "INTAKE",
@@ -34,6 +34,11 @@
       "state": "DESIGN_REVIEWED",
       "at": "2026-08-17T16:10:00Z",
       "note": "18 findings, 5 blocking; plan and task list revised, ledger corrected on 5 tasks"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-08-17T17:30:00Z",
+      "note": "access decision landed; sample pages serve again; 19/92 tasks done"
     }
   ],
   "gates": {
@@ -56,8 +61,8 @@
   },
   "reconciliation": {
     "tasks_total": 92,
-    "satisfied": 5,
-    "open": 87,
+    "satisfied": 19,
+    "open": 73,
     "open_by_reason": {
       "not built": 51,
       "built differently": 13,
@@ -168,9 +173,20 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_plugins/test_pages.py:16"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py:16::test_sample_overview"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T016",
@@ -232,9 +248,20 @@
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py:150"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_base.py::TestPluginDispatch::test_dispatch_leaves_the_view_s_own_object_alone"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T023",
@@ -292,38 +319,94 @@
       "priority": "P1",
       "issue": 151,
       "worktree": null,
-      "status": "todo",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:98"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestCanOpen"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:75"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestResolveCheck"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:41"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestPermissionResolution::test_object_level_permission_alone_passes"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:55"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestPermissionResolution::test_memo_key_survives_a_new_instance_of_the_same_record"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py:22",
+              "fairdm/contrib/plugins/base.py:150"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_base.py::TestPluginHasPermission"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T035",
@@ -333,21 +416,55 @@
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py:163"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestMenuCheck::test_matches_the_navigation_package_signature"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:98"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestMenuCheck::test_navigation_and_dispatch_reach_the_same_decision"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:132"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestMenuCheck::test_a_raising_predicate_hides_rather_than_500s",
+              "tests/test_contrib/test_plugins/test_pages.py::TestPredicateFailureDoesNotBreakThePage"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T039",
@@ -369,9 +486,20 @@
         },
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:98"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestCanOpen::test_no_predicate_and_no_permission_opens"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T043",
@@ -394,10 +522,21 @@
         },
         {
           "id": "T079",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:112"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestCanOpen::test_extra_view_inherits_the_owning_plugin_predicate"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         }
       ]
     },
@@ -648,9 +787,20 @@
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_plugins/conftest.py:56"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py:91"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T005",
@@ -758,10 +908,21 @@
         },
         {
           "id": "T088",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:24"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestCanOpen::test_is_instance_of_narrows_by_subtype"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files"
+            ]
+          }
         }
       ]
     }
