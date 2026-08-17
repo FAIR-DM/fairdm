@@ -88,7 +88,11 @@ from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import DatasetDate, DatasetDescription
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Dataset, Measurement, Project, Sample
-from fairdm.core.project.models import ProjectDate, ProjectDescription, ProjectIdentifier
+from fairdm.core.project.models import (
+    ProjectDate,
+    ProjectDescription,
+    ProjectIdentifier,
+)
 from fairdm.core.sample.models import (
     SampleDate,
     SampleDescription,
@@ -118,7 +122,7 @@ class ProjectDateFactory(DjangoModelFactory):
     class Meta:
         model = ProjectDate
 
-    type = "Created"  # Default date type
+    type = "Start"  # Default date type - a member of the project date collection
     value = Faker("partial_date")
 
 

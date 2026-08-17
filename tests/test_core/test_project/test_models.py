@@ -274,29 +274,108 @@ class TestProjectDescriptionModel:
 class TestProjectDateModel:
     """Unit tests for ProjectDate model."""
 
-    def test_end_date_before_start_date_raises_error(self):
-        """Test that end_date cannot be before start date.
+    def test_date_type_choices_are_scoped_to_project(self):
+        """The type field's choices are exactly the project date collection's members.
 
-        Requirement: FR-012 - Date ranges must be logically valid.
-        Implementation: T008 - clean() validation for date ranges.
+        Requirement: FR-009 - A project's dates are drawn from a controlled
+        set containing a start and an end.
 
-        Note: AbstractDate uses 'value' field for the primary date.
-        ProjectDate should add an optional end_date field for ranges.
-        This test will fail until end_date field is added to the model.
+        `type` is a plain CharField, so creating a row cannot prove the
+        vocabulary binding - Django does not validate choices on save. This
+        asserts the choices `GenericModel.__init_subclass__` pushed onto the
+        field directly.
         """
+        assert ProjectDate.type.field.choices == ProjectDate.VOCABULARY.choices
 
-        from fairdm.contrib.contributors.models import Organization
+    def test_second_start_date_on_project_is_refused(self):
+        """A second start date on the same project is refused by validation.
 
-        owner = Organization.objects.create(name="Test Organization")
-        Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner,
+        Requirement: FR-009 - At most one date per type.
+        """
+        from fairdm.factories.core import ProjectDateFactory
+
+        project = ProjectFactory()
+        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+
+        duplicate = ProjectDate(related=project, type="Start", value="2021-01-01")
+        with pytest.raises(ValidationError):
+            duplicate.full_clean()
+
+    def test_duplicate_date_type_refused_at_database(self):
+        """The unique constraint on (related, type) refuses a duplicate date
+        type even when validation is bypassed, so a concurrent write cannot
+        slip past it.
+
+        Requirement: FR-009 - At most one date per type, enforced by a
+        database constraint as well as by validation.
+        """
+        from fairdm.factories.core import ProjectDateFactory
+
+        project = ProjectFactory()
+        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+
+        with pytest.raises(IntegrityError):
+            ProjectDateFactory(related=project, type="Start", value="2021-01-01")
+
+    def test_end_date_before_start_date_raises_error(self):
+        """An end date earlier than the project's start is refused, with a
+        message naming both dates.
+
+        Requirement: FR-010 - The system refuses to save a project date that
+        would place the project's end before its start, and the message
+        states which two dates conflict.
+        """
+        project = ProjectFactory()
+        ProjectDate.objects.create(related=project, type="Start", value="2020-06-01")
+
+        end = ProjectDate(related=project, type="End", value="2019-05-01")
+        with pytest.raises(ValidationError) as exc_info:
+            end.full_clean()
+
+        message = str(exc_info.value)
+        assert "2020-06-01" in message
+        assert "2019-05-01" in message
+
+    def test_changing_start_to_after_end_is_refused(self):
+        """Changing the start to a date after the existing end is refused for
+        the same reason, whichever of the two dates is being edited.
+
+        Requirement: FR-010.
+        """
+        project = ProjectFactory()
+        start = ProjectDate.objects.create(
+            related=project, type="Start", value="2020-01-01"
         )
+        ProjectDate.objects.create(related=project, type="End", value="2020-12-31")
 
-        # Skip this test until end_date field is added to ProjectDate model
-        pytest.skip("ProjectDate.end_date field not yet implemented")
+        start.value = "2021-01-01"
+        with pytest.raises(ValidationError):
+            start.full_clean()
+
+    def test_end_date_with_no_start_date_is_accepted(self):
+        """An end date on a project with no start date is accepted - there is
+        nothing to contradict.
+
+        Requirement: FR-010.
+        """
+        project = ProjectFactory()
+        end = ProjectDate(related=project, type="End", value="2024-06-15")
+
+        end.full_clean()  # must not raise
+
+    def test_year_only_end_in_same_year_as_month_precision_start_is_accepted(self):
+        """A year-only end date in the same year as a month-precision start is
+        accepted - the comparison happens at the coarser of the two
+        precisions, so a project that started in June 2020 and ended some
+        time in 2020 is not an error.
+
+        Requirement: FR-010.
+        """
+        project = ProjectFactory()
+        ProjectDate.objects.create(related=project, type="Start", value="2020-06")
+
+        end = ProjectDate(related=project, type="End", value="2020")
+        end.full_clean()  # must not raise
 
 
 @pytest.mark.django_db

@@ -229,21 +229,35 @@ class TestProjectDateForm:
     """
 
     def test_date_form_validates_range(self):
-        """Test that date form validates end_date is not before start date.
+        """The date form refuses an end date earlier than the project's start.
 
-        Requirement: FR-012 - Date ranges must be logically valid.
-        User Story: US2 - Project dates with start/end validation.
-        Implementation: T044 - Form validation for date ranges.
+        Requirement: FR-010 - The system refuses to save a project date that
+        would place the project's end before its start.
 
-        Note: This test is currently skipped because:
-        1. AbstractDate only has 'value' field, not 'date' and 'end_date'
-        2. ProjectDate.clean() references non-existent 'self.date' and 'self.end_date'
-        3. Date range functionality requires model updates before form validation
-
-        Once ProjectDate model is updated to support date ranges (either by adding
-        end_date field or using a different approach), this test can be updated.
+        A project's start and end are two separate `ProjectDate` rows, so the
+        range check runs as cross-record validation inside
+        `ProjectDate.clean()`, fired from the form's `full_clean()` in the
+        same way `ProjectDescriptionForm` fires its own duplicate-type check.
         """
-        pytest.skip("ProjectDate does not yet support end_date field for ranges")
+        from fairdm.contrib.contributors.models import Organization
+        from fairdm.core.project.forms import ProjectDateForm
+        from fairdm.core.project.models import Project, ProjectDate
+
+        owner = Organization.objects.create(name="Test Organization")
+        project = Project.objects.create(
+            name="Test Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
+        )
+        ProjectDate.objects.create(related=project, type="Start", value="2020-01-01")
+
+        form_data = {"type": "End", "value": "2019-01-01"}
+        form = ProjectDateForm(data=form_data)
+        form.instance.related = project
+
+        assert not form.is_valid()
+        assert "value" in form.errors or "__all__" in form.errors
 
 
 @pytest.mark.django_db

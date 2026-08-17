@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from partial_date import PartialDate
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -158,19 +159,74 @@ class ProjectDate(AbstractDate):
     VOCABULARY = FairDMDates.from_collection("Project")
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
+    START_TYPE = "Start"
+    END_TYPE = "End"
+
     class Meta(AbstractDate.Meta):
         verbose_name = _("project date")
         verbose_name_plural = _("project dates")
 
     def clean(self):
-        """Validate that end_date is not before start date."""
+        """Validate that the project's end date does not precede its start.
+
+        A project's start and end are stored as two separate `ProjectDate`
+        rows, one per type, so the comparison is made against the sibling
+        record rather than within a single instance. `PartialDate` mixes
+        precision into its ordering (`self.date >= other.date and
+        self.precision >= other.precision`), so comparing two values of
+        different precision directly is unsafe - the check instead compares
+        at the coarser of the two precisions.
+        """
         super().clean()
-        if self.date and self.end_date and self.end_date < self.date:
+
+        if not self.related_id or not self.value:
+            return
+
+        if self.type == self.START_TYPE:
+            start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
+        elif self.type == self.END_TYPE:
+            start_value, end_value = self._sibling_value(self.START_TYPE), self.value
+        else:
+            return
+
+        if start_value is None or end_value is None:
+            return
+
+        if self._precedes(end_value, start_value):
             from django.core.exceptions import ValidationError
 
             raise ValidationError(
-                {"end_date": _("End date cannot be before start date.")}
+                {
+                    "value": _(
+                        "The project's end date (%(end)s) cannot be before "
+                        "its start date (%(start)s)."
+                    )
+                    % {"start": start_value, "end": end_value}
+                }
             )
+
+    def _sibling_value(self, type_):
+        """Return the value of this project's other date of `type_`, if any."""
+        queryset = ProjectDate.objects.filter(related_id=self.related_id, type=type_)
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        sibling = queryset.first()
+        return sibling.value if sibling else None
+
+    @staticmethod
+    def _precedes(a: PartialDate, b: PartialDate) -> bool:
+        """Whether PartialDate `a` is earlier than PartialDate `b`.
+
+        Compares at the coarser of the two precisions: years only if either
+        is year-precision, year and month if either is month-precision, and
+        the full date only when both carry day precision.
+        """
+        precision = min(a.precision, b.precision)
+        if precision == PartialDate.YEAR:
+            return bool(a.date.year < b.date.year)
+        if precision == PartialDate.MONTH:
+            return bool((a.date.year, a.date.month) < (b.date.year, b.date.month))
+        return bool(a.date < b.date)
 
 
 class ProjectIdentifier(AbstractIdentifier):

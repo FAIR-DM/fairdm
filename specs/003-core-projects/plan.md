@@ -57,7 +57,17 @@ Three tests assert the flat funding shape: `tests/test_factories/test_core.py:23
 `tests/test_factories/test_contributors.py:289`. They are correct about today's factory and wrong
 about the specified shape, so they are rewritten against the new one.
 
-A fourth is `TestProjectIdentifierForm::test_identifier_form_accepts_valid_data`, which submits an
+A fourth is `test_date_factories_with_related_objects`
+(`tests/test_factories/test_core.py`), which asserts the project date factory's default type is
+`Created` — a value the project date collection does not contain. T011 corrects the factory, so the
+assertion moves with it.
+
+Two more are the skipped date tests, `test_end_date_before_start_date_raises_error` and
+`test_date_form_validates_range`. Both were skipped on the grounds that the field they tested did not
+exist. They are un-skipped and rewritten against the cross-record check, which is what the behaviour
+they were reaching for actually needs.
+
+A fifth is `TestProjectIdentifierForm::test_identifier_form_accepts_valid_data`, which submits an
 ISNI to the project identifier form and asserts it is accepted. FR-011 now forbids exactly that, and
 the test's own docstring anticipated the change: "For DOI support, vocabulary would need to be
 extended or changed." Its fixture data moves from an ISNI to a DOI. The assertion is unchanged in

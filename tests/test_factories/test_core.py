@@ -144,7 +144,7 @@ class TestCoreFactoriesBasic(TestCase):
         self.assertEqual(measurement_date.related, measurement)
 
         # Check default types
-        self.assertEqual(project_date.type, "Created")
+        self.assertEqual(project_date.type, "Start")
         self.assertEqual(dataset_date.type, "Created")
         self.assertEqual(sample_date.type, "Created")
         self.assertEqual(measurement_date.type, "Created")
