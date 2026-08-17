@@ -1151,11 +1151,15 @@ class TestDemoModelIntegration:
 
     def test_custom_classes_preserved(self):
         """Test that custom classes (table, filterset) are preserved."""
+        from fairdm_demo.filters import CustomSampleFilter
+        from fairdm_demo.tables import CustomSampleTable
+
         config = registry.get_for_model(CustomSample)
 
-        # CustomSample specifies custom filterset and table classes
-        assert config.has_custom_filterset()
-        assert config.has_custom_table()
+        # CustomSample specifies custom filterset and table classes, so the
+        # resolved components are those classes rather than generated ones.
+        assert config.filterset is CustomSampleFilter
+        assert config.table is CustomSampleTable
 
 
 # ============================================================================

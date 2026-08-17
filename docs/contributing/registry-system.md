@@ -45,16 +45,12 @@ The FairDM registry system provides:
                                 │              │ • Filters       │
                                 ▼              │ • Serializers   │
 ┌─────────────────┐    ┌──────────────────┐    │ • Resources     │
-│   Registry      │◀───│  FieldResolver   │    │ • Admin         │
+│   Registry      │    │    Factories     │    │ • Admin         │
 │                 │    │                  │    └─────────────────┘
-│ • Model Storage │    └──────────────────┘
-│ • Introspection │
-│ • Validation    │    ┌──────────────────┐
-└─────────────────┘    │    Factories     │
-                       │                  │
-                       │ Component        │
-                       │ Generation       │
-                       └──────────────────┘
+│ • Model Storage │    │ Component        │
+│ • Introspection │    │ Generation       │
+│ • Validation    │    └──────────────────┘
+└─────────────────┘
 ```
 
 ### Registration Flow
@@ -64,7 +60,7 @@ The FairDM registry system provides:
 3. **Registration**: `@register` decorator stores configuration in registry
 4. **Validation**: Registry validates model inheritance and field existence
 5. **Component Access**: Properties generate components on-demand using cached_property
-6. **Field Resolution**: FieldResolver determines appropriate fields for each component
+6. **Field Resolution**: each component property picks its own field list before handing it to a factory
 
 ### Component Generation
 
@@ -153,20 +149,18 @@ This provides O(1) lookup performance and simple introspection.
 
 ### Field Resolution Algorithm
 
-The FieldResolver implements a 3-tier fallback system:
+Each component property on `ModelConfiguration` resolves its own field list through the same
+three-tier fallback, then passes the result to its factory:
 
 ```python
-def resolve_fields_for_component(self, component_type: str) -> list[str]:
-    # Tier 1: Component-specific fields (e.g., form_fields)
-    if hasattr(config, f"{component_type}_fields"):
-        return getattr(config, f"{component_type}_fields")
-
-    # Tier 2: General fields list
-    if config.fields:
-        return config.fields
-
-    # Tier 3: Smart defaults (exclude auto-generated, non-editable)
-    return config.get_default_fields()
+@cached_property
+def form(self) -> type[ModelForm]:
+    ...
+    # Tier 1: component-specific fields, then Tier 2: the general list,
+    # then Tier 3: smart defaults (excluding auto-generated, non-editable fields)
+    resolved_fields = (
+        self.form_fields or self.fields or self.get_default_fields(self.model)
+    )
 ```
 
 ### Component Factories

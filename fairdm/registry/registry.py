@@ -5,15 +5,13 @@ This module provides the FairDMRegistry class and registration decorators for
 managing Sample and Measurement models in the FairDM framework.
 """
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from django.apps import apps
 from django.contrib import admin
 from django.db.models import Model
 
 if TYPE_CHECKING:
-    pass
-
     from fairdm.core.measurement.models import Measurement
     from fairdm.core.sample.models import Sample
 
@@ -43,41 +41,6 @@ class FairDMRegistry:
         self._registry: dict[
             type[Model], ModelConfiguration
         ] = {}  # Stores model -> config_instance mapping
-        self._auto_factories = None  # Lazy loaded factories
-
-    def _validate_model_class(self, model_class: type[Model]) -> None:
-        """
-        Validate that the model class is a subclass of Sample or Measurement.
-
-        Args:
-            model_class: The Django model class to validate
-
-        Raises:
-            ValueError: If model is not a Sample or Measurement subclass
-        """
-        try:
-            from fairdm.core.measurement.models import Measurement
-            from fairdm.core.sample.models import Sample
-
-            if not (
-                issubclass(model_class, Sample) or issubclass(model_class, Measurement)
-            ):
-                raise TypeError(
-                    f"Model {model_class.__name__} must be a subclass of "
-                    f"fairdm.core.sample.models.Sample or fairdm.core.measurement.models.Measurement"
-                )
-        except ImportError as e:
-            raise ImportError(
-                f"Could not import Sample or Measurement models to validate {model_class.__name__}: {e}"
-            ) from e
-
-    def _get_auto_factories(self):
-        """Lazy load auto-generation factories."""
-        if self._auto_factories is None:
-            from fairdm.utils.factories import AutoGenerationFactories
-
-            self._auto_factories = AutoGenerationFactories()
-        return self._auto_factories
 
     def get_for_model(self, model_reference: type[Model] | str) -> ModelConfiguration:
         """
@@ -277,83 +240,6 @@ class FairDMRegistry:
             # Silently ignore admin registration failures as they are non-critical
             pass
 
-    def summarise(self, print_output: bool = True) -> dict[str, Any]:
-        """
-        Generate a summary of all registered models in the registry.
-
-        Args:
-            print_output (bool): Whether to print the summary to stdout. Default True.
-
-        Returns:
-            dict: A dictionary containing summary information about registered models.
-        """
-        samples = self.samples
-        measurements = self.measurements
-
-        summary: dict[str, Any] = {
-            "total_registered": len(self._registry),
-            "samples": {
-                "count": len(samples),
-                "models": [
-                    {
-                        "name": model.__name__,
-                        "app": model._meta.app_label,
-                        "verbose_name": model._meta.verbose_name,
-                        "display_name": self._registry[model].get_display_name(),
-                    }
-                    for model in samples
-                ],
-            },
-            "measurements": {
-                "count": len(measurements),
-                "models": [
-                    {
-                        "name": model.__name__,
-                        "app": model._meta.app_label,
-                        "verbose_name": model._meta.verbose_name,
-                        "display_name": self._registry[model].get_display_name(),
-                    }
-                    for model in measurements
-                ],
-            },
-        }
-
-        if print_output:
-            print("\n" + "=" * 60)
-            print("FairDM Registry Summary")
-            print("=" * 60)
-            print(f"Total Registered Models: {summary['total_registered']}")
-
-            print(f"\n📊 SAMPLES ({summary['samples']['count']})")
-            print("-" * 40)
-            samples_info = summary["samples"]
-            if isinstance(samples_info, dict) and samples_info.get("models"):
-                for model_info in samples_info["models"]:
-                    if isinstance(model_info, dict):
-                        print(f"  • {model_info['name']} ({model_info['app']})")
-                        print(f"    Display: {model_info['display_name']}")
-                        print(f"    Verbose: {model_info['verbose_name']}")
-                        print()
-            else:
-                print("  No samples registered")
-
-            print(f"📊 MEASUREMENTS ({summary['measurements']['count']})")
-            print("-" * 40)
-            measurements_info = summary["measurements"]
-            if isinstance(measurements_info, dict) and measurements_info.get("models"):
-                for model_info in measurements_info["models"]:
-                    if isinstance(model_info, dict):
-                        print(f"  • {model_info['name']} ({model_info['app']})")
-                        print(f"    Display: {model_info['display_name']}")
-                        print(f"    Verbose: {model_info['verbose_name']}")
-                        print()
-            else:
-                print("  No measurements registered")
-
-            print("=" * 60)
-
-        return summary
-
     def get_config(
         self,
         model_class: type[Model],
@@ -384,27 +270,6 @@ class FairDMRegistry:
 
         # Assume it's already an instance
         return config
-
-    def register_model(self, model_class: type[Model], **kwargs):
-        """
-        Decorator method to register a model with an auto-generated configuration.
-
-        This is the preferred API from the instructions that supports:
-        - Auto-generation of forms, serializers, filters, tables
-        - Simple field-based configuration
-
-        Usage:
-            @registry.register_model(MySample)
-            class MySampleConfig:
-                display_name = "Water Sample"
-                fields = ["name", "location", "collected_at"]
-        """
-
-        def _register(config_cls):
-            self.register(model_class, config_cls, **kwargs)
-            return config_cls
-
-        return _register
 
 
 # Global registry instance

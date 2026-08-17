@@ -3,11 +3,10 @@ Component Factories for FairDM ModelConfiguration.
 
 This module provides factory classes that generate Django components (Forms, Tables,
 Filters, Admin, Serializers, Resources) from ModelConfiguration settings using intelligent
-field introspection and the FieldResolver.
+field introspection.
 
 Features:
 - Smart field type detection and widget/column/filter mapping
-- FieldResolver integration for consistent field resolution
 - Crispy-forms integration for better form layouts
 - Bootstrap 5 styling for tables
 - Nested serializers for ForeignKey relationships
@@ -78,7 +77,6 @@ class FormFactory(ComponentFactory):
     """Factory for generating ModelForm classes with smart widgets and crispy-forms layout.
 
     Features (T024):
-    - Uses FieldResolver for consistent field selection
     - Field type to widget mapping (DateInput for dates, Textarea for large text)
     - Crispy-forms FormHelper for Bootstrap 5 styling
     - Smart widget choices based on field characteristics
@@ -174,7 +172,6 @@ class TableFactory(ComponentFactory):
     """Factory for generating Table classes with smart column types and Bootstrap 5 styling.
 
     Features (T025):
-    - Uses FieldResolver for consistent field selection
     - Field type to column mapping (DateColumn for dates, EmailColumn for emails)
     - Bootstrap 5 template
     - Filters large text fields to prevent display issues
@@ -315,7 +312,6 @@ class FilterFactory(ComponentFactory):
     """Factory for generating FilterSet classes with smart filter types and crispy-forms styling.
 
     Features (T026):
-    - Uses FieldResolver for consistent field selection
     - Field type to filter mapping (DateFromToRangeFilter for dates, ChoiceFilter for choices)
     - Crispy-forms styling integration
     - Smart filter selection based on field characteristics
@@ -456,7 +452,6 @@ class AdminFactory(ComponentFactory):
     """Factory for generating Django Admin ModelAdmin classes.
 
     Features (T029):
-    - Uses FieldResolver for consistent field selection
     - Auto-generated list_display, search_fields, list_filter
     - Smart field grouping for fieldsets
     - Readonly fields for timestamps and IDs
@@ -774,7 +769,6 @@ class SerializerFactory(ComponentFactory):
     """Factory for generating DRF ModelSerializer classes with nested serializers.
 
     Features (T027):
-    - Uses FieldResolver for consistent field selection
     - Nested serializers for ForeignKey relationships
     - Smart field configuration for DRF
     - Depth control for nested relationships
@@ -852,7 +846,6 @@ class ResourceFactory(ComponentFactory):
     """Factory for generating import/export Resource classes with natural key support.
 
     Features (T028):
-    - Uses FieldResolver for consistent field selection
     - Natural key support for related models
     - Smart import/export configuration
     - CSV/Excel format support

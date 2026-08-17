@@ -737,32 +737,6 @@ class ModelConfiguration:
         # DRF support is future work
         return None
 
-    # Convenience Methods
-
-    def has_custom_form(self) -> bool:
-        """Check if a custom form class is provided."""
-        return self.form_class is not None
-
-    def has_custom_filterset(self) -> bool:
-        """Check if a custom filterset class is provided."""
-        return self.filterset_class is not None
-
-    def has_custom_table(self) -> bool:
-        """Check if a custom table class is provided."""
-        return self.table_class is not None
-
-    def has_custom_admin(self) -> bool:
-        """Check if a custom admin class is provided."""
-        return self.admin_class is not None
-
-    def has_custom_resource(self) -> bool:
-        """Check if a custom resource class is provided."""
-        return self.resource_class is not None
-
-    def has_custom_serializer(self) -> bool:
-        """Check if a custom serializer class is provided."""
-        return self.serializer_class is not None
-
 
 class SampleConfig(ModelConfiguration):
     """Base configuration class for Sample subclasses.
