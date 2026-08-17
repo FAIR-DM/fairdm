@@ -204,8 +204,9 @@ description through the inline editor, and run a bulk status change over a selec
 
 **Acceptance Scenarios**:
 
-1. **Given** the project list, **When** a search term matching a project's name or identifier is
-   entered, **Then** that project appears in the results.
+1. **Given** the project list, **When** a search term matching a project's name, its generated
+   identifier, an external identifier attached to it, or its owning organisation is entered, **Then**
+   that project appears in the results.
 2. **Given** the project list, **When** the status filter is applied, **Then** only projects with
    that status remain.
 3. **Given** a project open for editing, **When** a description, a date and an identifier are added
@@ -332,9 +333,9 @@ its related records.
 
 ### Funding
 
-- **FR-015**: Funding MUST be stored in the shape DataCite defines for a funding reference: funder
-  name, funder identifier, funder identifier scheme, award number and award title. A project MAY
-  carry several.
+- **FR-015**: Funding MUST be stored in the shape DataCite defines for a funding reference. The
+  accepted keys are exactly `funderName`, `funderIdentifier`, `funderIdentifierType`, `awardNumber`,
+  `awardTitle` and `awardURI`, and no others. A project MAY carry several funding records.
 - **FR-016**: Funder name MUST be required within a funding record; every other part MUST be
   optional. A funder identifier scheme outside the set DataCite defines MUST be refused.
 
@@ -346,8 +347,9 @@ its related records.
 
 ### Administration
 
-- **FR-019**: The administrative interface MUST allow projects to be found by name, by identifier and
-  by owning organisation, and MUST allow the list to be narrowed by status.
+- **FR-019**: The administrative interface MUST allow projects to be found by name, by the project's
+  own generated identifier, by any external identifier attached to it, and by owning organisation,
+  and MUST allow the list to be narrowed by status.
 - **FR-020**: The administrative interface MUST allow a project's descriptions, dates and identifiers
   to be edited from the project's own page.
 - **FR-021**: The administrative list MUST show, for each project, whether it carries an abstract and
@@ -398,8 +400,9 @@ its related records.
   editing, with a message naming both dates.
 - **SC-004**: The project identifier vocabulary contains a DOI and a grant number and contains no
   identifier type that names a person or an organisation.
-- **SC-005**: A funding record naming a funder and nothing else is accepted; one naming an
-  identifier scheme outside DataCite's set is refused.
+- **SC-005**: A funding record naming a funder and nothing else is accepted. One naming an identifier
+  scheme outside DataCite's set, one carrying a key outside FR-015's list, and a funding value whose
+  members are not objects are each refused.
 - **SC-006**: A DataCite export of a fully populated project contains every related record attached
   to it, and the same export of a minimally populated project contains no empty structures.
 - **SC-007**: The JSON-LD export parses as JSON-LD and carries a context.
@@ -414,7 +417,8 @@ its related records.
 - The controlled vocabulary machinery, the contribution model and the tagging library are already in
   place and are not changed by this work.
 - DataCite's schema is the reference for funding and contributor shapes. Where this specification and
-  that schema disagree, the schema wins.
+  that schema disagree on the *meaning* of a field, the schema wins. It does not extend the accepted
+  key set in FR-015, which is closed.
 - The portal pages through which a researcher edits a project are specified by
   `013-project-crud-views`. Where a field specified here needs a form control, that document decides
   whether it gets one.

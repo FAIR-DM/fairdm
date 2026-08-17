@@ -3,7 +3,7 @@
   "feature": "003-core-projects",
   "branch": "003-core-projects",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -24,6 +24,16 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-08-18T01:40:00Z",
       "note": "reconciled: 12 of 79 tasks proven done"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-18T02:20:00Z",
+      "note": "one reviewer, four lenses; 1 high, 10 medium, 6 low; all applied"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-18T02:30:00Z",
+      "note": "71 open tasks after the reconciliation lens untick four"
     }
   ],
   "gates": {
@@ -48,6 +58,19 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-review",
+      "at": "2026-08-18T02:20:00Z",
+      "self_resolved": [
+        "high: four January artefacts contradicted the approved spec \u2014 contracts/, checklists/, data-model.md and quickstart.md deleted",
+        "reconciliation: T003, T012, T064 and T074 unticked; their cited tests could not observe the behaviour claimed",
+        "reconciliation: T002 and T050 evidence trimmed of citations that pass vacuously",
+        "reconciliation: T007 and T015 annotated as already satisfied in code; remaining work is the test only",
+        "spec: FR-015 key set closed, FR-019 identifier meaning resolved, SC-005 widened",
+        "plan: migration squash per Article IX; created_by seam moved off BaseViewSet; T022 blast radius named",
+        "security: JSON-LD export drops contributor email; created_by never client-writable; funding members must be objects"
+      ]
     }
   },
   "stories": [
@@ -73,24 +96,14 @@
               "fairdm/core/project/models.py:127"
             ],
             "tests": [
-              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_project_descriptions_relationship",
               "tests/test_core/test_project/test_models.py::TestProjectDescriptions::test_add_multiple_descriptions_to_project"
             ]
           }
         },
         {
           "id": "T003",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/project/models.py:127",
-              "fairdm/core/abstract.py:278"
-            ],
-            "tests": [
-              "tests/test_core/test_project/test_models.py::TestProjectDescriptions::test_add_multiple_descriptions_to_project"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T004",
@@ -144,18 +157,8 @@
         },
         {
           "id": "T012",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/project/models.py:157",
-              "fairdm/core/vocabularies.py:388"
-            ],
-            "tests": [
-              "tests/test_core/test_project/test_models.py::TestProjectDates::test_add_date_range_to_project",
-              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_project_dates_relationship"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T013",
@@ -407,8 +410,7 @@
               "fairdm/core/project/admin.py:57"
             ],
             "tests": [
-              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_concept_status",
-              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_visibility"
+              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_concept_status"
             ]
           }
         },
@@ -508,16 +510,8 @@
         },
         {
           "id": "T064",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/project/models.py:73"
-            ],
-            "tests": [
-              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_uuid_is_unique"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T065",
@@ -593,16 +587,8 @@
         },
         {
           "id": "T074",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/abstract.py:80"
-            ],
-            "tests": [
-              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_add_contributor"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T075",
@@ -642,7 +628,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
