@@ -28,7 +28,7 @@
     {
       "state": "PLAN",
       "at": "2026-08-17T11:10:00Z",
-      "note": "research.md and plan.md written; tasks.md written greenfield then reconciled against 6fa863a: 20 of 53 satisfied with code and test evidence, 33 open (15 never built, 6 built without tests, 12 where the code contradicts the spec). Baseline 222 tests pass. tests/test_registry/test_config.py:1123 pins the base-field-only path validation that T033 reverses; see decision D4."
+      "note": "research.md and plan.md written; tasks.md written greenfield then reconciled against 6fa863a. Revised after S3R design review: 16 of 53 satisfied with code and test evidence, 37 open (15 never built, 2 built without tests, 2 tested but on the wrong class, 18 where the code contradicts the spec). All registry.py citations renumbered against HEAD; T019, T020, T032 and T035 unticked; T021 and T022 reclassified. Baseline 222 tests pass. Decisions D14 and D15 added."
     }
   ],
   "gates": {
@@ -121,7 +121,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/registry/registry.py:414"
+              "fairdm/registry/registry.py:279"
             ],
             "tests": [
               "tests/test_registry/test_registry.py::TestBasicRegistration"
@@ -142,8 +142,8 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/registry/registry.py:24",
-              "fairdm/registry/registry.py:414"
+              "fairdm/registry/registry.py:22",
+              "fairdm/registry/registry.py:279"
             ],
             "tests": [
               "tests/test_registry/test_registry.py::TestRegistrationBasics"
@@ -197,35 +197,13 @@
         },
         {
           "id": "T019",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "code": [
-              "fairdm/registry/factories.py:173"
-            ],
-            "tests": [
-              "tests/test_registry/test_factories.py::TestTableFactory"
-            ],
-            "commands": [
-              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T020",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "code": [
-              "fairdm/registry/factories.py:314"
-            ],
-            "tests": [
-              "tests/test_registry/test_factories.py::TestFilterFactory"
-            ],
-            "commands": [
-              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T021",
@@ -428,19 +406,8 @@
         },
         {
           "id": "T032",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "code": [
-              "fairdm/registry/config.py:331"
-            ],
-            "tests": [
-              "tests/test_registry/test_config.py::TestFieldValidationWithFuzzyMatching"
-            ],
-            "commands": [
-              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T033",
@@ -454,19 +421,8 @@
         },
         {
           "id": "T035",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "code": [
-              "fairdm/registry/registry.py:238"
-            ],
-            "tests": [
-              "tests/test_registry/test_config.py::TestRegistrationValidation::test_model_must_inherit_from_sample_or_measurement"
-            ],
-            "commands": [
-              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T036",
@@ -544,9 +500,9 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/registry/registry.py:163",
-              "fairdm/registry/registry.py:175",
-              "fairdm/registry/registry.py:187"
+              "fairdm/registry/registry.py:126",
+              "fairdm/registry/registry.py:138",
+              "fairdm/registry/registry.py:150"
             ],
             "tests": [
               "tests/test_registry/test_registry.py::TestRegistrySamplesProperty",
@@ -563,8 +519,8 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/registry/registry.py:138",
-              "fairdm/registry/registry.py:197"
+              "fairdm/registry/registry.py:160",
+              "fairdm/registry/registry.py:101"
             ],
             "tests": [
               "tests/test_registry/test_registry.py::TestRegistryEnhancedMethods"
@@ -580,7 +536,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/registry/registry.py:82"
+              "fairdm/registry/registry.py:45"
             ],
             "tests": [
               "tests/test_registry/test_registry.py::TestRegistryGetForModel"

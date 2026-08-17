@@ -108,7 +108,8 @@ tests/test_registry/
 ├── conftest.py      test models, factories, fixtures
 ├── test_registry.py registration, lookup, introspection
 ├── test_config.py   field resolution, the accessors, validation, overrides
-└── test_factories.py each generator
+├── test_factories.py each generator
+└── test_exceptions.py each error carries the model and the offending attribute
 
 tests/test_utils/test_inspection.py
 
@@ -132,15 +133,13 @@ only with a code citation and a passing test that covers it.
 
 ## Dependency on other work
 
-The removal of the superseded inner-class configuration system and the unreachable registry code is
-tracked separately as issue #140, on its own branch. Two tasks in this feature depend on it:
+The removal of the superseded inner-class configuration system and the unreachable registry code was
+tracked separately as issue #140. **It closed on 2026-08-17 and its branch is merged, so this feature
+carries no outstanding dependency.**
 
-- The task asserting that `manage.py check` reports nothing from the registry needs the check module
-  gone, which #140 removes.
-- The task asserting no attribute bypasses an accessor needs the cached properties gone, which is
-  this feature's work, but the dead accessors #140 removes would otherwise appear in the same audit.
-
-Neither task duplicates a deletion #140 already owns.
+What #140 did not remove, and this feature therefore owns: `fairdm/registry/checks.py` and its import
+at `fairdm/apps.py:65` are still present, with three registered system checks including the 50-field
+warning D5 settled as removed. Deleting them is T039's own work, not a wait.
 
 ## Risks
 

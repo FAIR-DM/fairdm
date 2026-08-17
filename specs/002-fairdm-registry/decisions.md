@@ -242,6 +242,39 @@ caught what went wrong.
 
 ---
 
+## D14 — Test registrations move to concrete subclasses
+
+**Previous specification**: silent. The registry accepts `Sample` and `Measurement` themselves and
+any abstract subclass (`registry.py:201-207`), so 23 test constructions across
+`tests/test_registry/test_config.py` and `test_registry.py` build configurations against the base
+classes directly.
+
+**Settled**: FR-002 stands — only a concrete subclass registers — and those 23 constructions are
+rewritten against the concrete test models from `conftest.py`.
+
+**Why**: registering a polymorphic base generates six components for a class no portal stores rows
+in, and registers a second admin against it. Article I forbids modifying a pre-existing test without
+a recorded decision, and this is that decision. The tests are asserting on a shortcut the suite took
+before concrete test models existed, not on behaviour the framework promises.
+
+---
+
+## D15 — Generated components carry exactly the declared fields
+
+**Previous specification**: SC-001 and SC-002 say so, and the code disagrees.
+`SerializerFactory.generate` and `ResourceFactory.generate` prepend `id` unconditionally
+(`factories.py:797`, `:871-872`), and the generated table carries a hidden `id` column.
+
+**Settled**: the serializer and the resource carry the resolved field list and nothing else. A
+portal that wants an identifier in its API or its export declares one.
+
+**Why**: `id` is the internal primary key, and SC-002 names it as the example of what must not leak.
+A framework that silently adds a field to a declared list makes the declaration untrustworthy for
+every other field too. The table's hidden `id` column is out of scope here and stays until a portal
+asks for it to go — it is not rendered and django-tables2 uses it for row identity.
+
+---
+
 ## Not settled here
 
 Existing framework consumers that reach around the registry, most visibly the API building its own
