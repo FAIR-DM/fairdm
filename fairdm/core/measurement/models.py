@@ -94,13 +94,6 @@ class Measurement(BasePolymorphicModel):
             *CORE_PERMISSIONS,
         ]
 
-    class FairDM:
-        """FairDM registry configuration for Measurement model."""
-
-        description = "A measurement is a record of a specific observation or calculation made on a sample."
-        filterset_class = "fairdm.core.filters.MeasurementFilter"
-        table_class = "fairdm.contrib.collections.tables.MeasurementTable"
-
     def __str__(self):
         """Return string representation using the measurement value."""
         return f"{self.get_value()}"

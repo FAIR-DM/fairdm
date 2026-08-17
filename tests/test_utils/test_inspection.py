@@ -1,11 +1,8 @@
-"""Tests for fairdm/registry/field_resolver.py.
+"""Tests for fairdm/utils/inspection.py.
 
-FieldResolver's domain is field-level introspection and resolution for
-component generation. The FieldInspector helper it is documented to work
-alongside (fairdm.utils.inspection.FieldInspector) is exercised here, since
-that is the only drifted test module in this package covering that field
-detection/suggestion behaviour and it has no better-fitting home among the
-registry source modules.
+FieldInspector introspects a model's fields and supplies the defaults every
+component factory builds on: which fields are safe to expose, which widget or
+filter type suits each one, and how to group them for the admin.
 """
 
 import pytest

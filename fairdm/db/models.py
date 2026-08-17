@@ -171,6 +171,5 @@ __all__ = [
     "PositiveIntegerQuantityField",
     "QuantityField",
     "QuerySet",
-    "FairDMBase",
     "PartialDateField",
 ]

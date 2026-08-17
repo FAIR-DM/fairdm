@@ -24,10 +24,6 @@ def __getattr__(name: str):
         from .choices import Visibility
 
         return Visibility
-    elif name == "AutoGenerationFactories":
-        from .factories import AutoGenerationFactories
-
-        return AutoGenerationFactories
     elif name == "OBJECT_PERMS":
         from .permissions import OBJECT_PERMS
 
