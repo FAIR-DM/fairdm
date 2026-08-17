@@ -10,7 +10,8 @@ Covers:
 import pytest
 from django.urls import reverse
 
-from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.core.project.models import Project
+from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
 # ---------------------------------------------------------------------------
@@ -313,6 +314,29 @@ class TestProjectCRUD:
         )
         assert response.status_code == 400
         assert "name" in response.json()
+
+    def test_created_by_is_set_server_side_and_cannot_be_spoofed(
+        self, authenticated_client, user
+    ):
+        """The creator is taken from the request user, and a client-supplied
+        `created_by` value is never honoured.
+
+        Requirement: FR-017 - The creator is recorded server-side only.
+        """
+        other_user = UserFactory()
+
+        response = authenticated_client.post(
+            reverse("api:project-list"),
+            {"name": "Spoofed Creator Project", "created_by": other_user.pk},
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert "created_by" not in response.json()
+
+        project = Project.objects.get(uuid=response.json()["uuid"])
+        assert project.created_by == user
+        assert project.created_by != other_user
 
 
 # ---------------------------------------------------------------------------

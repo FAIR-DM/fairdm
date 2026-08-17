@@ -94,6 +94,21 @@ class ProjectViewSet(BaseViewSet):
         )
         return self._serializer_class
 
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
+        """Save a new project, recording the request user as its creator.
+
+        Overridden here rather than on `BaseViewSet` because `created_by` is
+        a field only `Project` carries — the dataset, sample and measurement
+        viewsets inherit `BaseViewSet.perform_create` unchanged, and passing
+        the keyword there would break their creates. The permission check
+        mirrors `BaseViewSet.perform_create` so the creator can be set in the
+        same save rather than a second write that would re-fire post-save
+        signals.
+        """
+        if not self.request.user or not self.request.user.is_authenticated:
+            raise PermissionDenied("Authentication is required to create objects.")
+        serializer.save(created_by=self.request.user)
+
 
 class DatasetViewSet(BaseViewSet):
     """Datasets within research projects.

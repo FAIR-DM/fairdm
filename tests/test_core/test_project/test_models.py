@@ -12,6 +12,8 @@ Test-First Approach (Red-Green-Refactor):
 3. Refactor for quality (Refactor)
 """
 
+import time
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -959,3 +961,42 @@ class TestProjectObjectPermissions:
         # Verify successful access
         assert response.status_code == 200
         assert "form" in response.context
+
+
+@pytest.mark.django_db
+class TestProjectCreator:
+    """Unit tests for the `Project.created_by` creation record (US7)."""
+
+    def test_project_survives_creators_account_removal(self):
+        """A project outlives its creator's account, with its creator reading
+        as unknown rather than raising or being deleted itself.
+
+        Requirement: FR-017 - Survive the creating user's removal.
+        """
+        creator = UserFactory(email="creator@example.com")
+        project = ProjectFactory(created_by=creator)
+
+        creator.delete()
+        project.refresh_from_db()
+
+        assert project.pk is not None
+        assert project.created_by is None
+
+    def test_modifying_project_advances_modified_and_keeps_creator(self):
+        """Changing a project advances its modification timestamp and leaves
+        its creator unchanged.
+
+        Requirement: FR-018 - Record when a project was created and last
+        changed, without disturbing the creator.
+        """
+        creator = UserFactory(email="unchanged-creator@example.com")
+        project = ProjectFactory(created_by=creator)
+        original_modified = project.modified
+
+        time.sleep(0.01)
+        project.name = "Renamed Project"
+        project.save()
+        project.refresh_from_db()
+
+        assert project.modified > original_modified
+        assert project.created_by == creator

@@ -96,6 +96,24 @@ class Project(BaseModel):
     contributors = GenericRelation("contributors.Contribution")
 
     # RELATIONS
+    # `created_by` is a ForeignKey rather than a plain nullable char field, so it
+    # carries a database index by default - no additional indexing decision is
+    # needed here. Not editable: the creator is written server-side only (see
+    # the portal create view and ProjectViewSet.perform_create), never through a
+    # form, the admin or a serializer field.
+    created_by = models.ForeignKey(
+        "contributors.Person",
+        on_delete=models.SET_NULL,
+        related_name="created_projects",
+        verbose_name=_("created by"),
+        help_text=_(
+            "The user who created this project. Left unset if that user's "
+            "account has since been removed."
+        ),
+        null=True,
+        blank=True,
+        editable=False,
+    )
     owner = models.ForeignKey(
         "contributors.Organization",
         help_text=_("The organization that owns the project."),
