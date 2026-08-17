@@ -21,8 +21,8 @@ passing test that covers it.
 
 - [x] T001 [US1] Create `fairdm/registry/` with `__init__.py` exporting `register`, `registry` and `ModelConfiguration` as the package's public surface.
 - [x] T002 [US1] Create `tests/test_registry/` with `__init__.py`, mirroring the source path per Article X.
-- [ ] T003 [P] [US1] Define the suite's test models in `tests/test_registry/conftest.py`: a concrete `Sample` subclass, a concrete `Measurement` subclass, a related model reachable by a path, and a model carrying a many-to-many field with an explicit through model.
-- [ ] T004 [P] [US1] Add one `DjangoModelFactory` per test model in `tests/test_registry/conftest.py`, using `factory.Sequence` for uniqueness-guarded fields and `factory.SubFactory` for relations. Expose thin fixtures over them.
+- [x] T003 [P] [US1] Define the suite's test models in `tests/test_registry/conftest.py`: a concrete `Sample` subclass, a concrete `Measurement` subclass, a related model reachable by a path, and a model carrying a many-to-many field with an explicit through model.
+- [x] T004 [P] [US1] Add one `DjangoModelFactory` per test model in `tests/test_registry/conftest.py`, using `factory.Sequence` for uniqueness-guarded fields and `factory.SubFactory` for relations. Expose thin fixtures over them.
 
 ---
 
@@ -31,12 +31,12 @@ passing test that covers it.
 Nothing in Phase 3 onward can be written until these exist.
 
 - [ ] T005 [US3] Write failing tests in `tests/test_registry/test_exceptions.py` asserting each error this feature raises carries the model and the offending attribute in its message.
-- [ ] T006 [US3] Implement `fairdm/registry/exceptions.py` with a base registry error and the errors the specification names: a configuration error, a field validation error, a duplicate registration error, and a not-registered error. No error type without a raise site.
+- [x] T006 [US3] Implement `fairdm/registry/exceptions.py` with a base registry error and the errors the specification names: a configuration error, a field validation error, a duplicate registration error, and a not-registered error. No error type without a raise site.
 - [ ] T007 [US1] Write failing tests in `tests/test_utils/test_inspection.py` for the default field list: that it includes the model's own editable fields, and excludes `id`, polymorphic type columns, multi-table inheritance pointers, `auto_now` and `auto_now_add` fields, anything with `editable=False`, reverse relations, and a many-to-many field with an explicit through model.
 - [ ] T008 [US1] Consolidate default field list derivation onto `FieldInspector` in `fairdm/utils/inspection.py`. Two divergent copies are live in the same request path today: `FieldInspector.get_safe_fields()` (`inspection.py:101-182`), which `api/viewsets.py:192` uses, and `ModelConfiguration.get_default_fields()` (`config.py:390-457`), which every generated component uses. They disagree on three rules — `FieldInspector` excludes any name containing `password`, matches `_ptr` as a substring rather than a suffix, and keeps non-editable relations that FR-011 excludes. Fold the two into one against FR-011, decide each of those three deliberately, and repoint `api/viewsets.py:192`.
 - [ ] T009 [US3] Write failing tests in `tests/test_utils/test_inspection.py` for related-path resolution: a single-segment name, a valid two-segment path, a path whose final segment does not exist, and a path that continues past a non-relational field.
 - [ ] T010 [US3] Implement related-path resolution on `FieldInspector`, using `django.db.models.constants.LOOKUP_SEP` rather than a literal separator.
-- [ ] T011 [US1] Write failing tests, then implement, flattening of field lists that contain tuples used for layout grouping. One implementation, used everywhere a field list reaches a factory.
+- [x] T011 [US1] Write failing tests, then implement, flattening of field lists that contain tuples used for layout grouping. One implementation, used everywhere a field list reaches a factory.
 
 ---
 
@@ -47,20 +47,20 @@ Nothing in Phase 3 onward can be written until these exist.
 **Independently testable**: register a model with a field list, ask for each of the six classes, check each type and its fields.
 
 - [x] T012 [US1] Write a failing test that a configuration declaring a model and `fields` registers, and its model appears in the registry.
-- [ ] T013 [US1] Implement `ModelConfiguration` in `fairdm/registry/config.py` as a plain class whose configuration is read from class attributes. The model attribute is required and its absence is an error. Removing `@dataclass` also removes the generated `__init__`, which `registry.register` calls at `registry.py:265` and `:269` and which 23 test constructions rely on, so write an explicit `__init__(self, model=None, **overrides)` preserving the keyword and single-positional forms.
+- [x] T013 [US1] Implement `ModelConfiguration` in `fairdm/registry/config.py` as a plain class whose configuration is read from class attributes. The model attribute is required and its absence is an error. Removing `@dataclass` also removes the generated `__init__`, which `registry.register` calls at `registry.py:265` and `:269` and which 23 test constructions rely on, so write an explicit `__init__(self, model=None, **overrides)` preserving the keyword and single-positional forms.
 - [x] T014 [US1] Implement `FairDMRegistry` in `fairdm/registry/registry.py` holding a model-to-configuration mapping, and the `register` decorator that instantiates a configuration class and stores it.
 - [x] T015 [US1] Write failing tests for field resolution order: a component-specific list wins, otherwise the shared `fields`, otherwise the default list. Cover a configuration declaring only `fields`, one declaring `table_fields` alongside it, and one declaring neither.
-- [ ] T016 [US1] Implement field resolution on `ModelConfiguration`, in one place, used by every component.
-- [ ] T017 [US1] Implement the component table in `fairdm/registry/config.py` mapping each of the six components to its factory, its component-specific field attribute, its custom-class attribute and its expected base class.
+- [x] T016 [US1] Implement field resolution on `ModelConfiguration`, in one place, used by every component.
+- [x] T017 [US1] Implement the component table in `fairdm/registry/config.py` mapping each of the six components to its factory, its component-specific field attribute, its custom-class attribute and its expected base class.
 - [x] T018 [P] [US1] Write failing tests then implement the form generator in `fairdm/registry/factories.py`: a `ModelForm` subclass over the resolved fields, with the widget appropriate to each field type.
 - [ ] T019 [P] [US1] Write failing tests then implement the table generator: a `django_tables2.Table` subclass with a column per resolved field. Assert on `table_class.base_columns` rather than on the field list handed to the factory. Delete the hard-coded `Meta.template_name` and `Meta.attrs` at `factories.py:211-214`, so the project's `DJANGO_TABLES2_TEMPLATE` setting applies, per D7.
 - [ ] T020 [P] [US1] Write failing tests then implement the filter set generator: a `django_filters.FilterSet` over the resolved fields, leaving filter type per field to the library unless configured. Assert on `filterset_class.base_filters` rather than on the field list handed to the factory.
-- [ ] T021 [P] [US1] Write failing tests then implement the serializer generator: a DRF `ModelSerializer` subclass over the resolved fields. It must carry exactly the resolved fields: `factories.py:797` prepends `id` unconditionally, which SC-001 and SC-002 forbid. Remove the `except ImportError: return type` sentinel with it, per D11. Cover `get_serializer_class()` as well as the factory.
-- [ ] T022 [P] [US1] Write failing tests then implement the import and export resource generator, supporting natural keys for foreign keys. It must carry exactly the resolved fields: `factories.py:871-872` prepends `id` to both `fields` and `export_order`. Remove the `except ImportError: return type` sentinel with it, per D11. Cover `get_resource_class()` as well as the factory.
+- [x] T021 [P] [US1] Write failing tests then implement the serializer generator: a DRF `ModelSerializer` subclass over the resolved fields. It must carry exactly the resolved fields: `factories.py:797` prepends `id` unconditionally, which SC-001 and SC-002 forbid. Remove the `except ImportError: return type` sentinel with it, per D11. Cover `get_serializer_class()` as well as the factory.
+- [x] T022 [P] [US1] Write failing tests then implement the import and export resource generator, supporting natural keys for foreign keys. It must carry exactly the resolved fields: `factories.py:871-872` prepends `id` to both `fields` and `export_order`. Remove the `except ImportError: return type` sentinel with it, per D11. Cover `get_resource_class()` as well as the factory.
 - [x] T023 [P] [US1] Write failing tests then implement the admin generator, choosing the polymorphic child admin base appropriate to the model's hierarchy.
 - [x] T024 [US1] Write failing tests then implement the six accessors `get_form_class()`, `get_table_class()`, `get_filterset_class()`, `get_serializer_class()`, `get_resource_class()` and `get_admin_class()`, each returning a generated class when no custom class is declared.
-- [ ] T025 [US1] Write a failing test that calling an accessor twice returns a class built afresh both times, so that nothing caches. Then delete the six `@cached_property` accessors (`config.py:540, 563, 585, 608, 632, 656`) and `clear_cache()`, moving their bodies into the `get_*_class()` methods, and migrate the reads in `test_config.py` (`TestAutoGeneratedComponents`, `TestComponentOverrides`) and `fairdm_demo/tests/test_registry_api.py` onto the accessors.
-- [ ] T026 [US1] Write a failing test that every component can be produced with no database available, then confirm no generation path touches it.
+- [x] T025 [US1] Write a failing test that calling an accessor twice returns a class built afresh both times, so that nothing caches. Then delete the six `@cached_property` accessors (`config.py:540, 563, 585, 608, 632, 656`) and `clear_cache()`, moving their bodies into the `get_*_class()` methods, and migrate the reads in `test_config.py` (`TestAutoGeneratedComponents`, `TestComponentOverrides`) and `fairdm_demo/tests/test_registry_api.py` onto the accessors.
+- [x] T026 [US1] Write a failing test that every component can be produced with no database available, then confirm no generation path touches it.
 - [x] T027 [US1] Write failing tests then implement the metadata classes and the display name and description defaults derived from the model's verbose name.
 
 **Checkpoint**: a model registered with a field list yields all six components, and User Story 1 stands alone.
@@ -74,8 +74,8 @@ Nothing in Phase 3 onward can be written until these exist.
 **Independently testable**: register with a custom table class and confirm the table is it and the rest are generated.
 
 - [x] T028 [US2] Write failing tests then implement returning a declared custom class unchanged from its accessor, accepting either a class or a dotted import path.
-- [ ] T029 [US2] Write a failing test that a configuration with a custom table class still yields a generated form, filter set, serializer, resource and admin.
-- [ ] T030 [US2] Write failing tests then implement validation at registration that a declared custom class subclasses the base its component requires, with a message naming the model, the attribute and the expected base.
+- [x] T029 [US2] Write a failing test that a configuration with a custom table class still yields a generated form, filter set, serializer, resource and admin.
+- [x] T030 [US2] Write failing tests then implement validation at registration that a declared custom class subclasses the base its component requires, with a message naming the model, the attribute and the expected base.
 - [x] T031 [US2] Write failing tests then implement the requirement that a custom admin class for a sample or measurement subclass subclasses the framework's polymorphic child admin base for that hierarchy.
 
 **Checkpoint**: every component is independently replaceable.
@@ -88,11 +88,11 @@ Nothing in Phase 3 onward can be written until these exist.
 
 **Independently testable**: attempt each bad registration and assert it raises with a message naming the model, the attribute and the offending value.
 
-- [ ] T032 [US3] Write failing tests then implement validation that every name in every field list exists on the model, with a close-match suggestion in the message where one exists. The message is malformed today: `config.py:339-343` builds a whole sentence and passes it as the exception's `field_name`, which `exceptions.py:118` then nests inside a second sentence, and the `suggestion` and `valid_fields` parameters that exist to format it have no caller. Pass the field name, the suggestion and the attribute name as separate arguments, and assert on the whole message rather than on substrings.
-- [ ] T033 [US3] Write failing tests then implement validation that every segment of a related path resolves, not only the first.
-- [ ] T034 [US3] Write failing tests then implement refusal, as `ImproperlyConfigured`, of a configuration declaring both a component's field list and its custom class, naming both attributes. Correct `fairdm_demo/config.py::CustomSampleConfig` in the same task, which declares `filterset_class` (`:121`) with `filterset_fields` (`:145`) and `table_class` (`:122`) with `table_fields` (`:125`) and would otherwise raise during app loading, taking the demo portal and every test that imports a demo model down with it.
-- [ ] T035 [US3] Write failing tests then implement rejection of any model that is not a concrete subclass of `Sample` or `Measurement`, naming both permitted bases. Only the subclass half exists (`registry.py:201-207`): the bases themselves and any abstract subclass register today. Adding the `_meta.abstract` and `is not Sample` / `is not Measurement` checks breaks 23 pre-existing tests that construct configurations against the bases directly, replaced with concrete subclasses under D14.
-- [ ] T036 [US3] Write failing tests then implement the duplicate registration error carrying the module and qualified name of the first registration.
+- [x] T032 [US3] Write failing tests then implement validation that every name in every field list exists on the model, with a close-match suggestion in the message where one exists. The message is malformed today: `config.py:339-343` builds a whole sentence and passes it as the exception's `field_name`, which `exceptions.py:118` then nests inside a second sentence, and the `suggestion` and `valid_fields` parameters that exist to format it have no caller. Pass the field name, the suggestion and the attribute name as separate arguments, and assert on the whole message rather than on substrings.
+- [x] T033 [US3] Write failing tests then implement validation that every segment of a related path resolves, not only the first.
+- [x] T034 [US3] Write failing tests then implement refusal, as `ImproperlyConfigured`, of a configuration declaring both a component's field list and its custom class, naming both attributes. Correct `fairdm_demo/config.py::CustomSampleConfig` in the same task, which declares `filterset_class` (`:121`) with `filterset_fields` (`:145`) and `table_class` (`:122`) with `table_fields` (`:125`) and would otherwise raise during app loading, taking the demo portal and every test that imports a demo model down with it.
+- [x] T035 [US3] Write failing tests then implement rejection of any model that is not a concrete subclass of `Sample` or `Measurement`, naming both permitted bases. Only the subclass half exists (`registry.py:201-207`): the bases themselves and any abstract subclass register today. Adding the `_meta.abstract` and `is not Sample` / `is not Measurement` checks breaks 23 pre-existing tests that construct configurations against the bases directly, replaced with concrete subclasses under D14.
+- [x] T036 [US3] Write failing tests then implement the duplicate registration error carrying the module and qualified name of the first registration.
 - [ ] T037 [US3] Write failing tests then implement raising, rather than returning nothing, when the configuration of an unregistered model is requested. Provide the non-raising membership test alongside it, and migrate `templatetags/fairdm.py:70-72`, which reads `Model.config` and relies on the current `None` return.
 - [ ] T038 [US3] Write a failing test that a failure to register a model's admin class with the admin site propagates, then remove the suppression that would swallow it.
 - [ ] T039 [US3] Delete `fairdm/registry/checks.py` and its import at `fairdm/apps.py:65`, having moved the custom-class base validation it holds into registration under T030. Its 50-field warning goes with it, per D5. Then write a test asserting `manage.py check` reports nothing from the registry, so that validation exists in exactly one place.
@@ -108,10 +108,10 @@ Nothing in Phase 3 onward can be written until these exist.
 
 **Independently testable**: subclass a configuration, override one accessor, confirm every framework path gets the override.
 
-- [ ] T041 [US4] Write a failing test that a configuration overriding `get_form_class()` returns the overridden class, and that its other five components are still generated.
-- [ ] T042 [US4] Write a failing test that an overridden accessor runs on every call rather than once.
-- [ ] T043 [US4] Write a test that no public attribute or property on a configuration returns a component class, so nothing can bypass an override. This is the audit that T025's removal held, not the removal itself.
-- [ ] T044 [US4] Migrate every consumer inside the framework onto the accessors, so no consumer can receive a generated class in place of an override. `api/viewsets.py:223` is the only bypass — `contrib/collections/views.py` and `contrib/import_export` already call accessors — and the `config.filterset is not type` guard at `viewsets.py:223-226` goes with the sentinel it was written for. Add a test per migrated consumer.
+- [x] T041 [US4] Write a failing test that a configuration overriding `get_form_class()` returns the overridden class, and that its other five components are still generated.
+- [x] T042 [US4] Write a failing test that an overridden accessor runs on every call rather than once.
+- [x] T043 [US4] Write a test that no public attribute or property on a configuration returns a component class, so nothing can bypass an override. This is the audit that T025's removal held, not the removal itself.
+- [x] T044 [US4] Migrate every consumer inside the framework onto the accessors, so no consumer can receive a generated class in place of an override. `api/viewsets.py:223` is the only bypass — `contrib/collections/views.py` and `contrib/import_export` already call accessors — and the `config.filterset is not type` guard at `viewsets.py:223-226` goes with the sentinel it was written for. Add a test per migrated consumer.
 
 **Checkpoint**: the third tier of customisation is real rather than nominal.
 

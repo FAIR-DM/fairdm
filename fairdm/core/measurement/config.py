@@ -50,8 +50,8 @@ class BaseMeasurementConfiguration(ModelConfiguration):
     WARNING: Do NOT register the base Measurement model. Only register polymorphic subclasses.
     """
 
-    # model should be set by subclass (e.g., XRFMeasurement, ICP_MS_Measurement)
-    model = None
+    # A subclass supplies `model`. The base class already defaults it to None, so
+    # restating that here would only add a line to keep in step.
 
     # Fields for all auto-generated components
     fields = [

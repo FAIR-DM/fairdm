@@ -1,19 +1,26 @@
-"""
-ModelConfiguration class using property-based API with @cached_property.
+"""Model configuration: how a portal declares the way its model appears.
 
-This implements the FairDM Registry System specification with:
-- Parent `fields` attribute + optional component-specific field overrides
-- Custom class overrides for full control
-- Lazy component generation via @cached_property
-- Three-tier field resolution algorithm
+A portal writes a ``ModelConfiguration`` subclass, names the model and the fields
+that matter, and the framework supplies six component classes from it. There are
+three tiers of customisation, in increasing order of effort:
+
+1. declare a field list, shared or per component;
+2. declare a custom class for one component;
+3. override that component's ``get_<component>_class()`` method.
+
+Every caller inside the framework reaches a component through its accessor, so an
+override at tier 3 is what the whole framework receives. Nothing is cached: an
+accessor builds or resolves its class on every call, which is what Django's own
+``ModelFormMixin.get_form_class()`` does.
 """
 
-import contextlib
+import difflib
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from functools import cached_property
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
+from django.core.exceptions import ImproperlyConfigured
+from django.db.models.constants import LOOKUP_SEP
 from django.forms import ModelForm
 from django.utils.functional import Promise
 from django.utils.module_loading import import_string
@@ -21,7 +28,7 @@ from django_filters import FilterSet
 from django_tables2 import Table
 from import_export.resources import ModelResource
 
-from fairdm.registry.exceptions import ConfigurationError
+from fairdm.registry.exceptions import ConfigurationError, FieldValidationError
 
 if TYPE_CHECKING:
     from django.contrib.admin import ModelAdmin
@@ -31,7 +38,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, kw_only=True)
 class Authority:
-    """Represents the authority that created or maintains a data model.
+    """The authority that created or maintains a data model.
 
     Attributes:
         name: The full name of the authority (required)
@@ -55,7 +62,7 @@ class Authority:
 
 @dataclass(frozen=True, kw_only=True)
 class Citation:
-    """Represents a citation for a data model.
+    """A citation for a data model.
 
     Attributes:
         text: The full citation text
@@ -73,17 +80,8 @@ class Citation:
 class ModelMetadata:
     """Structured metadata describing a registered model.
 
-    This class contains FAIR-compliant metadata about a Sample or Measurement model,
-    including its description, authority, keywords, and citation information.
-
-    Attributes:
-        description: A detailed description of the model
-        authority: The organization or person responsible for the model
-        keywords: List of keywords for discoverability
-        repository_url: URL to the source code repository
-        citation: How to cite this model
-        maintainer: Name of the current maintainer
-        maintainer_email: Contact email for the maintainer
+    Holds FAIR-compliant metadata about a Sample or Measurement model, so that a
+    registered model can describe and credit itself.
     """
 
     description: str = ""
@@ -95,675 +93,473 @@ class ModelMetadata:
     maintainer_email: str = ""
 
 
-@dataclass
+class Component(NamedTuple):
+    """One row of the component table.
+
+    Attributes:
+        fields_attr: the configuration attribute holding this component's own field list
+        class_attr: the configuration attribute holding a supplied class
+        base: the class a supplied class must subclass
+        factory: the name of the generator in ``fairdm.registry.factories``
+    """
+
+    fields_attr: str
+    class_attr: str
+    base: type | None
+    factory: str
+
+
+COMPONENTS: dict[str, Component] = {
+    "form": Component("form_fields", "form_class", ModelForm, "FormFactory"),
+    "table": Component("table_fields", "table_class", Table, "TableFactory"),
+    "filterset": Component(
+        "filterset_fields", "filterset_class", FilterSet, "FilterFactory"
+    ),
+    "serializer": Component(
+        "serializer_fields", "serializer_class", None, "SerializerFactory"
+    ),
+    "resource": Component(
+        "resource_fields", "resource_class", ModelResource, "ResourceFactory"
+    ),
+    "admin": Component("admin_list_display", "admin_class", None, "AdminFactory"),
+}
+"""Every component the registry produces, and where its configuration lives.
+
+``base`` is ``None`` for the two components whose base class cannot be imported at
+module scope: the serializer's base comes from Django REST Framework and the
+admin's from ``django.contrib.admin``, both of which import app code.
+"""
+
+
+def flatten_fields(fields: Sequence[Any] | None) -> list[str]:
+    """Flatten a field list that groups names in tuples for layout.
+
+    A grouped list and a plain one produce the same fields, so grouping is free
+    for a portal to use and invisible to every generator.
+    """
+    if not fields:
+        return []
+
+    flat: list[str] = []
+    for item in fields:
+        if isinstance(item, (tuple, list)):
+            flat.extend(item)
+        else:
+            flat.append(item)
+    return flat
+
+
+def _component_base(name: str) -> type | None:
+    """Resolve a component's base class, importing app code only when asked."""
+    declared = COMPONENTS[name].base
+    if declared is not None:
+        return declared
+    if name == "serializer":
+        from rest_framework.serializers import BaseSerializer
+
+        return BaseSerializer
+    if name == "admin":
+        from django.contrib.admin import ModelAdmin as DjangoModelAdmin
+
+        return DjangoModelAdmin
+    return None
+
+
 class ModelConfiguration:
-    """Configuration for auto-generating components from Sample/Measurement models.
+    """How one model appears across every framework surface.
 
-    This class follows a three-tier configuration pattern:
-    1. Parent fields (simplest): `fields = ['name', 'location']`
-    2. Component-specific fields: `table_fields = ['name', 'location']`
-    3. Custom classes (full control): `table_class = MyCustomTable`
+    Written as a subclass declaring class attributes, the way ``Meta`` and
+    ``ModelAdmin`` are written::
 
-    Examples:
-        Basic registration with shared fields::
+        @fairdm.register
+        class RockSampleConfig(ModelConfiguration):
+            model = RockSample
+            fields = ["name", "location", "date_collected"]
 
-            @register
-            class RockSampleConfig(ModelConfiguration):
-                model = RockSample
-                fields = ["name", "location", "date_collected"]
-                # All components auto-generate from these fields
+    Declare a component's own field list where it differs from the rest::
 
-        Component-specific field lists::
+            table_fields = ["name", "location", "contributor"]
 
-            @register
-            class RockSampleConfig(ModelConfiguration):
-                model = RockSample
-                fields = ["name", "location"]  # Default for all
-                table_fields = ["name", "location", "contributor"]  # Table extra column
-                form_fields = ["name", "description", "location"]  # Form includes description
+    Supply a class to replace one component outright::
 
-        Custom class overrides::
+            table_class = RockSampleTable
 
-            @register
-            class RockSampleConfig(ModelConfiguration):
-                model = RockSample
-                table_class = RockSampleTable  # Custom table with special columns
-                form_class = RockSampleForm  # Custom form with validation logic
+    Or override its accessor when a field list cannot say what you need::
+
+            def get_table_class(self):
+                return build_table(self.model)
+
+    Declaring both a component's field list and its class is refused at
+    registration, following Django's rule for ``fields`` and ``form_class``.
     """
 
-    # Required Attributes
-    model: type["models.Model"] | None = None
-    """Django model class (Sample or Measurement subclass). Required."""
+    model: "type[models.Model]" = None  # type: ignore[assignment]
+    """The Django model this configures. A concrete Sample or Measurement subclass.
 
-    metadata: "ModelMetadata | None" = None
-    """Structured FAIR-compliant metadata about the model."""
-
-    # Parent Field Configuration (Level 1)
-    fields: list[str] = field(default_factory=list)
-    """Parent field list inherited by all components when component-specific fields not specified.
-
-    Supports:
-    - Simple field names: ['name', 'location']
-    - Related field paths: ['project__title', 'contributor__name']
-    - Empty list = use smart defaults (all user-defined fields, excluding auto-generated)
+    Declared non-optional because every method may rely on it: the default of None
+    exists only so that a subclass can supply it, and ``_validate_model`` refuses a
+    configuration that reaches the end of construction without one.
     """
 
-    exclude: list[str] = field(default_factory=list)
-    """Fields to exclude from all components.
+    metadata: ModelMetadata | None = None
+    """Structured metadata about the model."""
 
-    Always excluded by default:
-    - 'id', 'polymorphic_ctype', 'polymorphic_ctype_id'
-    - Fields ending with '_ptr' or '_ptr_id' (multi-table inheritance)
-    - Fields with auto_now=True or auto_now_add=True
-    - Fields with editable=False
+    fields: list[Any] = []
+    """Field list inherited by every component that declares none of its own.
+
+    Names may use Django's double-underscore paths, and may be grouped in tuples
+    for layout. An empty list means the framework decides.
     """
 
-    # Component-Specific Field Lists (Level 2)
-    table_fields: list[str] | None = None
-    """Fields for django-tables2 Table columns. Overrides parent `fields` for tables only."""
+    exclude: list[str] = []
+    """Names to leave out of every component."""
 
-    form_fields: list[str] | None = None
-    """Fields for Django ModelForm inputs. Overrides parent `fields` for forms only."""
+    form_fields: list[Any] | None = None
+    table_fields: list[Any] | None = None
+    filterset_fields: list[Any] | None = None
+    serializer_fields: list[Any] | None = None
+    resource_fields: list[Any] | None = None
+    admin_list_display: list[Any] | None = None
 
-    filterset_fields: list[str] | None = None
-    """Fields for django-filter FilterSet filters. Overrides parent `fields` for filters only."""
+    form_class: type[ModelForm] | str | None = None
+    table_class: type[Table] | str | None = None
+    filterset_class: type[FilterSet] | str | None = None
+    serializer_class: "type[ModelSerializer] | str | None" = None
+    resource_class: type[ModelResource] | str | None = None
+    admin_class: "type[ModelAdmin] | str | None" = None
 
-    serializer_fields: list[str] | None = None
-    """Fields for DRF ModelSerializer. Overrides parent `fields` for serializers only."""
-
-    resource_fields: list[str] | None = None
-    """Fields for import_export Resource. Overrides parent `fields` for import/export only."""
-
-    admin_list_display: list[str] | None = None
-    """Fields for Django Admin list_display. Overrides parent `fields` for admin list only."""
-
-    # Custom Class Overrides (Level 3)
-    form_class: type[ModelForm] | None = None
-    """Custom ModelForm class. Completely replaces auto-generation (ignores all field lists)."""
-
-    table_class: type[Table] | None = None
-    """Custom django-tables2 Table class. Completely replaces auto-generation."""
-
-    filterset_class: type[FilterSet] | None = None
-    """Custom django-filter FilterSet class. Completely replaces auto-generation."""
-
-    serializer_class: type["ModelSerializer"] | None = None
-    """Custom DRF ModelSerializer class. Completely replaces auto-generation."""
-
-    resource_class: type[ModelResource] | None = None
-    """Custom import_export Resource class. Completely replaces auto-generation."""
-
-    admin_class: type["ModelAdmin"] | str | None = None
-    """Custom Django Admin ModelAdmin class or dotted import path. Completely replaces auto-generation."""
-
-    # Metadata
     display_name: str = ""
-    """Human-readable name for this model (e.g., 'Rock Sample'). Used in UI labels."""
+    """Human-readable name, defaulting to the model's verbose name."""
 
     description: str = ""
-    """Detailed description of this model type. Used in documentation and help text."""
+    """Description of this model type."""
 
-    def __post_init__(self):
-        """Validate configuration after initialization (T009, T030)."""
-        # Copy class attributes to instance if not provided as arguments
-        # This allows subclass definitions like:
-        #   class MyConfig(ModelConfiguration):
-        #       model = MyModel
-        #       table_class = MyTable
+    #: Attributes a caller may set per instance.
+    _OVERRIDABLE = (
+        "metadata",
+        "fields",
+        "exclude",
+        *(c.fields_attr for c in COMPONENTS.values()),
+        *(c.class_attr for c in COMPONENTS.values()),
+        "display_name",
+        "description",
+    )
 
-        # List of attributes that should be copied from class to instance
-        class_attrs = [
-            "model",
-            "metadata",
-            "fields",
-            "exclude",
-            "table_fields",
-            "form_fields",
-            "filterset_fields",
-            "serializer_fields",
-            "resource_fields",
-            "admin_list_display",
-            "form_class",
-            "table_class",
-            "filterset_class",
-            "serializer_class",
-            "resource_class",
-            "admin_class",
-            "display_name",
-            "description",
-        ]
+    def __init__(self, model: "type[models.Model] | None" = None, **overrides: Any):
+        """Build a configuration, validating it before it can be registered.
 
-        for attr_name in class_attrs:
-            # Get instance value
-            instance_value = getattr(self, attr_name)
+        ``model`` may be passed positionally, as ``registry.register`` does, or by
+        keyword alongside any other configuration attribute.
+        """
+        if model is not None:
+            self.model = model
 
-            # Check if there's a class-level value that differs from the default
-            if hasattr(self.__class__, attr_name):
-                class_value = getattr(self.__class__, attr_name)
+        for name, value in overrides.items():
+            if name not in self._OVERRIDABLE:
+                raise TypeError(
+                    f"{type(self).__name__}() got an unexpected keyword argument "
+                    f"{name!r}"
+                )
+            setattr(self, name, value)
 
-                # Determine if we should use the class value:
-                # - For model: if instance is None
-                # - For strings: if instance is empty string
-                # - For lists: if instance is empty list (default_factory creates new empty list)
-                # - For None-defaulting attrs: if instance is None
-                should_use_class_value = False
+        # Give each instance its own copy of the mutable declarative defaults, so
+        # that a caller appending to one configuration's list cannot reach another.
+        for name in ("fields", "exclude"):
+            if name not in overrides:
+                setattr(self, name, list(getattr(self, name)))
 
-                if attr_name == "model":
-                    should_use_class_value = (
-                        instance_value is None and class_value is not None
-                    )
-                elif attr_name in ("display_name", "description"):
-                    should_use_class_value = not instance_value and class_value
-                elif attr_name in ("fields", "exclude"):
-                    # These have default_factory, so instance is always a new list
-                    # Use class value if it's not the default (empty list) and instance hasn't been modified
-                    should_use_class_value = class_value and instance_value == []
-                elif attr_name == "metadata":
-                    should_use_class_value = (
-                        instance_value is None and class_value is not None
-                    )
-                else:
-                    # For component-specific fields and custom classes (all default to None)
-                    should_use_class_value = (
-                        instance_value is None and class_value is not None
-                    )
+        self._validate_model()
 
-                if should_use_class_value:
-                    object.__setattr__(self, attr_name, class_value)
-
-        if self.model is None:
-            raise ConfigurationError("ModelConfiguration.model is required")
-
-        # Set display_name from model if not provided
         if not self.display_name:
             self.display_name = str(self.model._meta.verbose_name).title()
-
-        # Initialize metadata if not provided
         if self.metadata is None:
             self.metadata = ModelMetadata()
 
-        # Validate field names (T030)
+        self._validate_component_conflicts()
         self._validate_fields()
-
-        # Validate admin class inheritance for polymorphic models
+        self._validate_custom_classes()
         self._validate_admin_inheritance()
 
-    def _validate_fields(self):
-        """Validate that all field names exist on the model (T030).
+    # Validation, all of it at construction time so that a misconfigured portal
+    # stops at import rather than serving a broken page.
 
-        Raises:
-            FieldValidationError: If any field name doesn't exist on the model
+    def _validate_model(self) -> None:
+        """A configuration needs a model. Whether that model may be *registered* is
+        the registry's decision, made in FairDMRegistry.register per FR-002."""
+        if self.model is None:
+            raise ConfigurationError("ModelConfiguration.model is required")
+
+    def _validate_component_conflicts(self) -> None:
+        """Refuse a component configured two ways at once.
+
+        Django refuses the same pair on ``ModelFormMixin``. Silently preferring one
+        leaves a portal holding a field list that has no effect.
         """
-        from fairdm.registry.exceptions import FieldValidationError
+        for name, spec in COMPONENTS.items():
+            if (
+                getattr(self, spec.fields_attr) is not None
+                and getattr(self, spec.class_attr) is not None
+            ):
+                raise ImproperlyConfigured(
+                    f"{type(self).__name__} for {self.model.__name__} declares both "
+                    f"{spec.fields_attr} and {spec.class_attr}. Specifying both a "
+                    f"field list and a class for the {name} component is not "
+                    f"permitted, because the field list would have no effect. "
+                    f"Remove one of them."
+                )
 
-        # Collect all field lists to validate
-        field_lists = [
-            ("fields", self.fields),
-            ("table_fields", self.table_fields),
-            ("form_fields", self.form_fields),
-            ("filterset_fields", self.filterset_fields),
-            ("serializer_fields", self.serializer_fields),
-            ("resource_fields", self.resource_fields),
-            ("admin_list_display", self.admin_list_display),
+    def _field_lists(self) -> list[tuple[str, list[Any]]]:
+        """Every declared field list, by the attribute that declared it."""
+        lists: list[tuple[str, list[Any]]] = [("fields", self.fields)]
+        lists += [
+            (spec.fields_attr, getattr(self, spec.fields_attr))
+            for spec in COMPONENTS.values()
         ]
+        return [(name, value) for name, value in lists if value]
 
-        # Get valid field names from model
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-        valid_fields = {f.name for f in self.model._meta.get_fields()}
+    def _validate_fields(self) -> None:
+        """Every name in every field list must resolve, path segments included."""
+        for attr, field_list in self._field_lists():
+            for name in flatten_fields(field_list):
+                self._validate_field_path(name, attr)
 
-        # Validate each field list
-        for field_list_name, field_list in field_lists:
-            if field_list is None:
+    def _validate_field_path(self, path: str, attr: str) -> None:
+        """Walk a field path, raising on the first segment that does not resolve."""
+        model: Any = self.model
+        segments = path.split(LOOKUP_SEP)
+
+        for index, segment in enumerate(segments):
+            if model is None:
+                raise FieldValidationError(
+                    field_name=path,
+                    model=self.model,
+                    attribute=attr,
+                    reason=(
+                        f"{LOOKUP_SEP.join(segments[:index])!r} is not a relation, so "
+                        f"the rest of the path cannot resolve"
+                    ),
+                )
+
+            names = {f.name for f in model._meta.get_fields()}
+            if segment not in names:
+                raise FieldValidationError(
+                    field_name=path,
+                    model=self.model,
+                    attribute=attr,
+                    suggestion=", ".join(
+                        difflib.get_close_matches(segment, names, n=3, cutoff=0.6)
+                    ),
+                )
+
+            if index < len(segments) - 1:
+                model = model._meta.get_field(segment).related_model
+
+    def _validate_custom_classes(self) -> None:
+        """A supplied class must subclass the base its component requires."""
+        for name, spec in COMPONENTS.items():
+            declared = getattr(self, spec.class_attr)
+            if declared is None:
                 continue
 
-            # Flatten field list (handles tuples for grouping)
-            flat_field_list = []
-            for item in field_list:
-                if isinstance(item, (tuple, list)):
-                    flat_field_list.extend(item)
-                else:
-                    flat_field_list.append(item)
+            # Resolve a dotted path before the check, so a string cannot skip it.
+            supplied = self._get_class(declared)
+            base = _component_base(name)
+            if base is not None and not issubclass(supplied, base):
+                raise ConfigurationError(
+                    f"{spec.class_attr} for {self.model.__name__} must be a subclass "
+                    f"of {base.__module__}.{base.__qualname__}. Got "
+                    f"{supplied.__name__} instead.",
+                    model=self.model,
+                )
 
-            for field_name in flat_field_list:
-                # Handle related field paths (e.g., 'project__title')
-                base_field = field_name.split("__")[0]
+    def _validate_admin_inheritance(self) -> None:
+        """A supplied admin must use the child admin base for its hierarchy.
 
-                if base_field not in valid_fields:
-                    # Try to find similar field names for helpful error message
-                    import difflib
-
-                    suggestions = difflib.get_close_matches(
-                        base_field, valid_fields, n=3, cutoff=0.6
-                    )
-
-                    error_msg = f"Invalid field: {field_name} in {field_list_name}"
-                    if suggestions:
-                        error_msg += f". Did you mean: {', '.join(suggestions)}?"
-
-                    raise FieldValidationError(error_msg, model=self.model)
-
-    def _validate_admin_inheritance(self):
-        """Validate that polymorphic models use correct admin base classes.
-
-        For Sample subclasses, admin_class must inherit from SampleChildAdmin.
-        For Measurement subclasses, admin_class must inherit from MeasurementAdmin (child).
-
-        Raises:
-            ConfigurationError: If admin_class doesn't inherit from required base
+        django-polymorphic's parent and child admins are not interchangeable, and a
+        child registered against the parent base misbehaves in ways that are hard to
+        trace back to the registration.
         """
-        # Only validate if admin_class is explicitly provided
         if self.admin_class is None:
             return
 
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-
-        # Get the admin class (may be string reference)
         admin_cls = self._get_class(self.admin_class)
 
-        # Import base model classes to check inheritance
         try:
             from fairdm.core.admin import MeasurementAdmin as MeasurementChildAdmin
             from fairdm.core.models import Measurement, Sample
             from fairdm.core.sample.admin import SampleChildAdmin
-        except ImportError:
-            # Core models not available (testing scenario), skip validation
+        except ImportError:  # pragma: no cover - core app always present in practice
             return
 
-        # Check Sample subclass
-        if issubclass(self.model, Sample) and self.model is not Sample:  # noqa: SIM102
-            if not issubclass(admin_cls, SampleChildAdmin):
-                raise ConfigurationError(
-                    f"Admin class for Sample subclass {self.model.__name__} must inherit from "
-                    f"SampleChildAdmin. Got {admin_cls.__name__} instead. "
-                    f"Change your admin class to: class {admin_cls.__name__}(SampleChildAdmin): ..."
-                )
+        if issubclass(self.model, Sample) and not issubclass(
+            admin_cls, SampleChildAdmin
+        ):
+            raise ConfigurationError(
+                f"Admin class for Sample subclass {self.model.__name__} must inherit "
+                f"from SampleChildAdmin. Got {admin_cls.__name__} instead. "
+                f"Change your admin class to: "
+                f"class {admin_cls.__name__}(SampleChildAdmin): ..."
+            )
 
-        # Check Measurement subclass
-        if issubclass(self.model, Measurement) and self.model is not Measurement:  # noqa: SIM102
-            if not issubclass(admin_cls, MeasurementChildAdmin):
-                raise ConfigurationError(
-                    f"Admin class for Measurement subclass {self.model.__name__} must inherit from "
-                    f"MeasurementAdmin (the child admin base class). Got {admin_cls.__name__} instead. "
-                    f"Change your admin class to: class {admin_cls.__name__}(MeasurementAdmin): ..."
-                )
+        if issubclass(self.model, Measurement) and not issubclass(
+            admin_cls, MeasurementChildAdmin
+        ):
+            raise ConfigurationError(
+                f"Admin class for Measurement subclass {self.model.__name__} must "
+                f"inherit from MeasurementAdmin (the child admin base class). Got "
+                f"{admin_cls.__name__} instead. Change your admin class to: "
+                f"class {admin_cls.__name__}(MeasurementAdmin): ..."
+            )
+
+    # Field resolution and component production.
 
     @classmethod
-    def get_default_fields(cls, model: type["models.Model"]) -> list[str]:
-        """Get smart default field list for a model (T010).
+    def get_default_fields(cls, model: "type[models.Model]") -> list[str]:
+        """The framework's own choice of fields for a model.
 
-        Excludes:
-        - 'id', 'polymorphic_ctype', 'polymorphic_ctype_id'
-        - Fields ending with '_ptr' or '_ptr_id' (multi-table inheritance)
-        - Fields with auto_now=True or auto_now_add=True
-        - Fields with editable=False
-
-        Args:
-            model: Django model class
-
-        Returns:
-            List of field names suitable for auto-generation
+        Includes the model's editable fields and leaves out the framework's
+        plumbing: the primary key, polymorphic type columns, inheritance pointers,
+        automatic timestamps, non-editable fields, reverse relations, and
+        many-to-many fields with an explicit through model, which Django's admin
+        rejects (``admin.E013``).
         """
         from django.db import models
 
-        excluded_names = {"id", "polymorphic_ctype", "polymorphic_ctype_id"}
-        fields = []
+        excluded = {"id", "polymorphic_ctype", "polymorphic_ctype_id"}
+        fields: list[str] = []
 
         for field_obj in model._meta.get_fields():
-            # Skip excluded field names
-            if field_obj.name in excluded_names:
+            if field_obj.name in excluded:
                 continue
-
-            # Skip multi-table inheritance pointer fields
-            if field_obj.name.endswith("_ptr") or field_obj.name.endswith("_ptr_id"):
+            if field_obj.name.endswith(("_ptr", "_ptr_id")):
                 continue
-
-            # Skip auto-generated timestamp fields
-            if hasattr(field_obj, "auto_now") and field_obj.auto_now:
+            if getattr(field_obj, "auto_now", False):
                 continue
-            if hasattr(field_obj, "auto_now_add") and field_obj.auto_now_add:
+            if getattr(field_obj, "auto_now_add", False):
                 continue
-
-            # Skip non-editable fields
             if hasattr(field_obj, "editable") and not field_obj.editable:
                 continue
-
-            # Skip reverse relations (ManyToOneRel, ManyToManyRel)
+            # Reverse relations carry a related_name but no column.
             if hasattr(field_obj, "related_name") and not hasattr(field_obj, "column"):
                 continue
-
-            # Skip ManyToMany fields with custom through models (admin.E013)
             if isinstance(field_obj, models.ManyToManyField):
-                try:
-                    if hasattr(field_obj, "remote_field") and hasattr(
-                        field_obj.remote_field, "through"
-                    ):
-                        through = field_obj.remote_field.through
-                        if through is not None:
-                            # String reference means explicitly set (not auto-created)
-                            if isinstance(through, str):
-                                continue
-                            # Model class - check if auto_created
-                            if (
-                                hasattr(through, "_meta")
-                                and not through._meta.auto_created
-                            ):
-                                continue
-                except (AttributeError, TypeError):
-                    # If we can't determine, be safe and exclude it
+                through = getattr(field_obj.remote_field, "through", None)
+                if isinstance(through, str):
+                    continue
+                if through is not None and not through._meta.auto_created:
                     continue
 
             fields.append(field_obj.name)
 
         return fields
 
+    def resolve_fields(self, component: str) -> list[str]:
+        """The field list one component is built from.
+
+        A component's own list wins, then the shared list, then the framework's
+        defaults. Grouping tuples are flattened, and anything in ``exclude`` is
+        dropped.
+        """
+        spec = COMPONENTS[component]
+        declared = getattr(self, spec.fields_attr)
+        chosen = (
+            declared
+            if declared is not None
+            else (self.fields or self.get_default_fields(self.model))
+        )
+        excluded = set(self.exclude)
+        return [name for name in flatten_fields(chosen) if name not in excluded]
+
+    def _component_class(self, component: str) -> type:
+        """Resolve or build one component's class. Never cached."""
+        spec = COMPONENTS[component]
+        declared = getattr(self, spec.class_attr)
+        if declared is not None:
+            return self._get_class(declared)
+
+        from fairdm.registry import factories
+
+        factory = getattr(factories, spec.factory)
+        generated = factory(
+            model=self.model, fields=self.resolve_fields(component)
+        ).generate()
+        return cast(type, generated)
+
+    def get_form_class(self) -> type[ModelForm]:
+        """The ModelForm for this model. Override to build your own."""
+        return self._component_class("form")
+
+    def get_table_class(self) -> type[Table]:
+        """The django-tables2 Table for this model. Override to build your own."""
+        return self._component_class("table")
+
+    def get_filterset_class(self) -> type[FilterSet]:
+        """The django-filter FilterSet for this model. Override to build your own."""
+        return self._component_class("filterset")
+
+    def get_serializer_class(self) -> "type[ModelSerializer]":
+        """The REST serializer for this model. Override to build your own."""
+        return cast("type[ModelSerializer]", self._component_class("serializer"))
+
+    def get_resource_class(self) -> type[ModelResource]:
+        """The import and export resource. Override to build your own."""
+        return cast(type[ModelResource], self._component_class("resource"))
+
+    def get_admin_class(self) -> "type[ModelAdmin]":
+        """The Django admin class for this model. Override to build your own."""
+        return cast("type[ModelAdmin]", self._component_class("admin"))
+
+    # Naming.
+
     def _get_class(self, class_or_path: str | type) -> type:
-        """Import a class from a string path or return the class directly."""
+        """Import a class from a dotted path, or return the class unchanged."""
         if isinstance(class_or_path, str):
             return cast(type, import_string(class_or_path))
         return cast(type, class_or_path)
 
-    # Display & Metadata Methods
-
     def get_display_name(self) -> str:
-        """Get the display name for this model."""
-        if self.display_name:
-            return self.display_name
-        if not self.model:
-            return "Unknown Model"
-        return str(self.model._meta.verbose_name).title()
+        """The human-readable name for this model."""
+        return self.display_name or str(self.model._meta.verbose_name).title()
 
     def get_description(self) -> str:
-        """Get the description for this model."""
+        """The description for this model."""
         if self.metadata and self.metadata.description:
             return self.metadata.description
-        if not self.model:
-            return "No model specified"
-        return f"Configuration for {self.model.__name__}"
+        return self.description or f"Configuration for {self.model.__name__}"
 
     def get_slug(self) -> str:
-        """Get the URL-safe slug for this model.
-
-        Returns the model's lowercase model name, used in URLs and view names.
-
-        Returns:
-            str: The model's slug (e.g., 'customsample', 'watermeasurement')
-        """
-        if not self.model:
-            return "unknown"
-        assert self.model is not None  # noqa: S101 # This should not happen after __post_init__
+        """The URL-safe name for this model, used in routes and view names."""
         return self.model._meta.model_name or ""
 
     def get_verbose_name(self) -> str:
-        """Get the singular verbose name for this model.
-
-        Returns:
-            str: The model's verbose name (e.g., 'custom sample', 'water measurement')
-        """
-        if not self.model:
-            return "Unknown Model"
+        """The model's singular verbose name."""
         return str(self.model._meta.verbose_name)
 
     def get_verbose_name_plural(self) -> str:
-        """Get the plural verbose name for this model.
-
-        Returns:
-            str: The model's plural verbose name (e.g., 'custom samples')
-        """
-        if not self.model:
-            return "Unknown Models"
+        """The model's plural verbose name."""
         return str(self.model._meta.verbose_name_plural)
 
-    def _flatten_fields(
-        self, field_list: Sequence[str | tuple[str, ...]] | None
-    ) -> list[str]:
-        """Flatten a field list that may contain tuples for grouping.
-
-        Args:
-            field_list: List that may contain strings or tuples of strings
-
-        Returns:
-            Flattened list containing only strings
-        """
-        if not field_list:
-            return []
-
-        flat_list: list[str] = []
-        for item in field_list:
-            if isinstance(item, (tuple, list)):
-                flat_list.extend(item)
-            else:
-                flat_list.append(item)
-        return flat_list
-
-    # Component Generation Properties (using @cached_property for lazy evaluation)
-
-    @cached_property
-    def form(self) -> type[ModelForm]:
-        """Get or auto-generate the ModelForm class using FormFactory (T016)."""
-        if self.form_class is not None:
-            return self._get_class(self.form_class)
-
-        from fairdm.registry.factories import FormFactory
-
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-
-        # Determine which fields to use (component-specific > parent > defaults)
-        resolved_fields = (
-            self.form_fields or self.fields or self.get_default_fields(self.model)
-        )
-        # Flatten any tuples in field list (used for UI grouping)
-        resolved_fields = self._flatten_fields(resolved_fields)
-
-        factory = FormFactory(
-            model=self.model,
-            fields=resolved_fields,
-        )
-        return factory.generate()
-
-    @cached_property
-    def table(self) -> type[Table]:
-        """Get or auto-generate the Table class using TableFactory (T017)."""
-        if self.table_class is not None:
-            return self._get_class(self.table_class)
-
-        from fairdm.registry.factories import TableFactory
-
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-        # Determine which fields to use
-        resolved_fields = (
-            self.table_fields or self.fields or self.get_default_fields(self.model)
-        )
-        # Flatten any tuples in field list
-        resolved_fields = self._flatten_fields(resolved_fields)
-
-        factory = TableFactory(
-            model=self.model,
-            fields=resolved_fields,
-        )
-        return factory.generate()
-
-    @cached_property
-    def filterset(self) -> type[FilterSet]:
-        """Get or auto-generate the FilterSet class using FilterFactory (T018)."""
-        if self.filterset_class is not None:
-            return self._get_class(self.filterset_class)
-
-        from fairdm.registry.factories import FilterFactory
-
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-
-        # Determine which fields to use
-        resolved_fields = (
-            self.filterset_fields or self.fields or self.get_default_fields(self.model)
-        )
-        # Flatten any tuples in field list
-        resolved_fields = self._flatten_fields(resolved_fields)
-
-        factory = FilterFactory(
-            model=self.model,
-            fields=resolved_fields,
-        )
-        return factory.generate()
-
-    @cached_property
-    def serializer(self) -> type["ModelSerializer"]:
-        """Get or auto-generate the DRF ModelSerializer class (T019, T027)."""
-        if self.serializer_class is not None:
-            return self._get_class(self.serializer_class)
-
-        # Use SerializerFactory for auto-generation
-        from fairdm.registry.factories import SerializerFactory
-
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-
-        # Determine which fields to use
-        resolved_fields = (
-            self.serializer_fields or self.fields or self.get_default_fields(self.model)
-        )
-        # Flatten any tuples in field list
-        resolved_fields = self._flatten_fields(resolved_fields)
-
-        factory = SerializerFactory(
-            model=self.model,
-            fields=resolved_fields,
-        )
-        return factory.generate()
-
-    @cached_property
-    def resource(self) -> type[ModelResource]:
-        """Get or auto-generate the import/export Resource class (T020, T028)."""
-        if self.resource_class is not None:
-            return self._get_class(self.resource_class)
-
-        # Use ResourceFactory for auto-generation
-        from fairdm.registry.factories import ResourceFactory
-
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-
-        # Determine which fields to use
-        resolved_fields = (
-            self.resource_fields or self.fields or self.get_default_fields(self.model)
-        )
-        # Flatten any tuples in field list
-        resolved_fields = self._flatten_fields(resolved_fields)
-
-        factory = ResourceFactory(
-            model=self.model,
-            fields=resolved_fields,
-        )
-        return factory.generate()
-
-    @cached_property
-    def admin(self) -> type["ModelAdmin"]:
-        """Get or auto-generate the ModelAdmin class using AdminFactory (T021)."""
-        if self.admin_class is not None:
-            return self._get_class(self.admin_class)
-
-        from fairdm.registry.factories import AdminFactory
-
-        assert self.model is not None  # noqa: S101 # Validated in __post_init__
-
-        # Determine which fields to use
-        resolved_fields = (
-            self.admin_list_display
-            or self.fields
-            or self.get_default_fields(self.model)
-        )
-        # Flatten any tuples in field list
-        resolved_fields = self._flatten_fields(resolved_fields)
-
-        factory = AdminFactory(
-            model=self.model,
-            fields=resolved_fields,
-        )
-        return factory.generate()
-
-    def clear_cache(self) -> None:
-        """Clear all cached component properties (T022).
-
-        Call this method to invalidate cached components and force regeneration
-        on next access. Useful for testing or when model schema changes dynamically.
-        """
-        cached_props = ["form", "table", "filterset", "serializer", "resource", "admin"]
-
-        for prop_name in cached_props:
-            with contextlib.suppress(AttributeError):
-                delattr(self, prop_name)
-
-    # Backward compatibility methods (deprecated - use properties instead)
-
-    def get_form_class(self) -> type[ModelForm]:
-        """Get or auto-generate the ModelForm class.
-
-        .. deprecated:: Use the ``form`` property instead.
-        """
-        return self.form
-
-    def get_table_class(self) -> type[Table]:
-        """Get or auto-generate the Table class.
-
-        .. deprecated:: Use the ``table`` property instead.
-        """
-        return self.table
-
-    def get_filterset_class(self) -> type[FilterSet]:
-        """Get or auto-generate the FilterSet class.
-
-        .. deprecated:: Use the ``filterset`` property instead.
-        """
-        return self.filterset
-
-    def get_admin_class(self) -> type["ModelAdmin"]:
-        """Get or auto-generate the ModelAdmin class.
-
-        .. deprecated:: Use the ``admin`` property instead.
-        """
-        return self.admin
-
-    def get_resource_class(self) -> type[ModelResource]:
-        """Get or auto-generate the import/export Resource class.
-
-        .. deprecated:: Use the ``resource`` property instead.
-        """
-        return self.resource
-
-    def get_serializer_class(self) -> type["ModelSerializer"] | None:
-        """Get the serializer class for the model, if DRF is available.
-
-        .. deprecated:: Use the ``serializer`` property instead.
-        """
-        return self.serializer
-
-        # DRF support is future work
-        return None
+    def __repr__(self) -> str:
+        model = self.model._meta.label if self.model else None
+        return f"<{type(self).__name__}: {model}>"
 
 
 class SampleConfig(ModelConfiguration):
-    """Base configuration class for Sample subclasses.
-
-    Inherits all functionality from ModelConfiguration. Use this when registering
-    Sample models for semantic clarity.
-    """
-
-    pass
+    """Configuration for a Sample subclass. Named for clarity at the call site."""
 
 
 class MeasurementConfig(ModelConfiguration):
-    """Base configuration class for Measurement subclasses.
-
-    Inherits all functionality from ModelConfiguration. Use this when registering
-    Measurement models for semantic clarity.
-    """
-
-    pass
+    """Configuration for a Measurement subclass. Named for clarity at the call site."""
 
 
-# Export the main classes
 __all__ = [
+    "COMPONENTS",
     "Authority",
     "Citation",
+    "Component",
     "MeasurementConfig",
     "ModelConfiguration",
     "ModelMetadata",
     "SampleConfig",
+    "flatten_fields",
 ]

@@ -117,18 +117,13 @@ class CustomSampleConfig(ModelConfiguration):
         keywords=[],
     )
 
-    # Use custom classes for specific components (using string references to avoid import issues)
+    # The table and the filter set are supplied outright, so neither declares a
+    # field list: a component configured both ways is refused at registration,
+    # because the field list could never take effect.
     filterset_class = "fairdm_demo.filters.CustomSampleFilter"
     table_class = CustomSampleTable
 
-    # Field configuration for different components
-    table_fields = [
-        "name",
-        "char_field",
-        "boolean_field",
-        "date_field",
-    ]
-
+    # The remaining components are generated, each from its own field list.
     form_fields = [
         "name",
         "char_field",
@@ -140,12 +135,6 @@ class CustomSampleConfig(ModelConfiguration):
         "time_field",
         "decimal_field",
         "float_field",
-    ]
-
-    filterset_fields = [
-        "char_field",
-        "boolean_field",
-        "date_field",
     ]
 
     resource_fields = [
@@ -412,10 +401,10 @@ class WaterSampleConfig(ModelConfiguration):
 # print(f"RockSample fields: {config.fields}")
 #
 # # Access auto-generated components
-# form_class = config.form  # Auto-generated ModelForm
-# table_class = config.table  # Auto-generated Table
-# filterset_class = config.filterset  # Auto-generated FilterSet
-# admin_class = config.admin  # Auto-generated ModelAdmin
+# form_class = config.get_form_class()  # Auto-generated ModelForm
+# table_class = config.get_table_class()  # Auto-generated Table
+# filterset_class = config.get_filterset_class()  # Auto-generated FilterSet
+# admin_class = config.get_admin_class()  # Auto-generated ModelAdmin
 
 
 # List of all models registered in this demo app

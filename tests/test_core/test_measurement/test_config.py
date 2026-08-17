@@ -24,9 +24,9 @@ class TestRegistryAutoGenerateForms:
         config = registry.get_for_model(XRFMeasurement)
 
         # Should have auto-generated form
-        assert config.form is not None
-        assert hasattr(config.form, "Meta")
-        assert config.form.Meta.model == XRFMeasurement
+        assert config.get_form_class() is not None
+        assert hasattr(config.get_form_class(), "Meta")
+        assert config.get_form_class().Meta.model == XRFMeasurement
 
     def test_auto_generated_form_includes_configured_fields(self, clean_registry):
         """Test that auto-generated form includes fields from configuration."""
@@ -35,7 +35,7 @@ class TestRegistryAutoGenerateForms:
         config = registry.get_for_model(XRFMeasurement)
 
         # Form should include configured base fields
-        form_class = config.form
+        form_class = config.get_form_class()
         form = form_class()
 
         # Check that configured base fields are present (from BaseMeasurementConfiguration)
@@ -56,9 +56,9 @@ class TestRegistryAutoGenerateFilters:
         config = registry.get_for_model(XRFMeasurement)
 
         # Should have auto-generated filter
-        assert config.filterset is not None
-        assert hasattr(config.filterset, "Meta")
-        assert config.filterset.Meta.model == XRFMeasurement
+        assert config.get_filterset_class() is not None
+        assert hasattr(config.get_filterset_class(), "Meta")
+        assert config.get_filterset_class().Meta.model == XRFMeasurement
 
     def test_auto_generated_filter_includes_configured_fields(self, clean_registry):
         """Test that auto-generated filter includes fields from configuration."""
@@ -67,7 +67,7 @@ class TestRegistryAutoGenerateFilters:
         config = registry.get_for_model(XRFMeasurement)
 
         # FilterSet should include configured filter fields
-        filterset_class = config.filterset
+        filterset_class = config.get_filterset_class()
 
         # Check that filterset has expected attributes
         assert hasattr(filterset_class, "Meta")
@@ -85,9 +85,9 @@ class TestRegistryAutoGenerateTables:
         config = registry.get_for_model(XRFMeasurement)
 
         # Should have auto-generated table
-        assert config.table is not None
-        assert hasattr(config.table, "Meta")
-        assert config.table.Meta.model == XRFMeasurement
+        assert config.get_table_class() is not None
+        assert hasattr(config.get_table_class(), "Meta")
+        assert config.get_table_class().Meta.model == XRFMeasurement
 
     def test_auto_generated_table_includes_configured_columns(self, clean_registry):
         """Test that auto-generated table includes columns from configuration."""
@@ -96,7 +96,7 @@ class TestRegistryAutoGenerateTables:
         config = registry.get_for_model(XRFMeasurement)
 
         # Table should have columns
-        table_class = config.table
+        table_class = config.get_table_class()
         # Pass a queryset instead of empty list (table expects queryset for prefetch_related)
         table = table_class(XRFMeasurement.objects.none())
 
@@ -115,7 +115,7 @@ class TestRegistryAutoGenerateAdmin:
         config = registry.get_for_model(XRFMeasurement)
 
         # Should have auto-generated admin
-        assert config.admin is not None
+        assert config.get_admin_class() is not None
 
         # Admin should be registered with admin site
         # (Note: This might require additional setup depending on registry implementation)
@@ -126,7 +126,7 @@ class TestRegistryAutoGenerateAdmin:
 
         config = registry.get_for_model(XRFMeasurement)
 
-        admin_class = config.admin
+        admin_class = config.get_admin_class()
 
         # Admin should have some basic attributes
         # (Actual attributes depend on registry implementation)

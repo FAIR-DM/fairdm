@@ -41,6 +41,11 @@ fairdm.setup(
 # Import all settings from base configuration
 from config.settings import *
 
+# A test-only app hosting concrete Sample and Measurement subclasses. The registry
+# refuses the polymorphic bases, so the suite needs concrete types to register, and
+# a model under an uninstalled label breaks admin and URL resolution.
+INSTALLED_APPS = [*INSTALLED_APPS, "tests.registry_models"]
+
 # ==============================================================================
 # DATABASE
 # ==============================================================================

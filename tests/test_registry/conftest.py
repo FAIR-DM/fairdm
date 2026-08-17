@@ -7,10 +7,55 @@ when working with Django models and the FairDM registry.
 
 import uuid
 
+import factory
 import pytest
 from django.apps import apps
+from factory.django import DjangoModelFactory
 
 from fairdm.registry import registry
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
+
+
+class ConcreteSampleFactory(DjangoModelFactory):
+    """The one factory for ConcreteSample. Vary it by overriding at the call site."""
+
+    class Meta:
+        model = ConcreteSample
+
+    name = factory.Sequence(lambda n: f"concrete-sample-{n}")
+
+
+class ConcreteMeasurementFactory(DjangoModelFactory):
+    """The one factory for ConcreteMeasurement."""
+
+    class Meta:
+        model = ConcreteMeasurement
+
+    reading = factory.Sequence(lambda n: float(n))
+
+
+@pytest.fixture
+def concrete_sample():
+    """The concrete Sample subclass tests register."""
+    return ConcreteSample
+
+
+@pytest.fixture
+def concrete_measurement():
+    """The concrete Measurement subclass tests register."""
+    return ConcreteMeasurement
+
+
+@pytest.fixture
+def sample_instance(db):
+    """One saved ConcreteSample. A variation needs no fixture, call the factory."""
+    return ConcreteSampleFactory()
+
+
+@pytest.fixture
+def measurement_instance(db):
+    """One saved ConcreteMeasurement."""
+    return ConcreteMeasurementFactory()
 
 
 @pytest.fixture

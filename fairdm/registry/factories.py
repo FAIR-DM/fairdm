@@ -780,11 +780,7 @@ class SerializerFactory(ComponentFactory):
         Returns:
             ModelSerializer subclass with nested relationships
         """
-        try:
-            from rest_framework import serializers
-        except ImportError:
-            # DRF not installed, return placeholder
-            return type
+        from rest_framework import serializers
 
         fields = self.get_fields()
 
@@ -794,7 +790,7 @@ class SerializerFactory(ComponentFactory):
         # Create Meta class
         meta_attrs = {
             "model": self.model,
-            "fields": ["id", *fields],  # Include ID by default
+            "fields": list(fields),
         }
         Meta = type("Meta", (), meta_attrs)
 
@@ -818,10 +814,7 @@ class SerializerFactory(ComponentFactory):
         Returns:
             Dictionary mapping field names to nested serializer fields
         """
-        try:
-            from rest_framework import serializers
-        except ImportError:
-            return {}
+        from rest_framework import serializers
 
         nested: dict[str, serializers.Field] = {}
         fields = self.get_fields()
@@ -857,19 +850,15 @@ class ResourceFactory(ComponentFactory):
         Returns:
             ModelResource subclass with natural key support
         """
-        try:
-            from import_export import resources
-        except ImportError:
-            # django-import-export not installed, return placeholder
-            return type
+        from import_export import resources
 
         fields = self.get_fields()
 
         # Create Meta class
         meta_attrs = {
             "model": self.model,
-            "fields": ["id", *fields],  # Include ID by default
-            "export_order": ["id", *fields],
+            "fields": list(fields),
+            "export_order": list(fields),
         }
         Meta = type("Meta", (), meta_attrs)
 
@@ -896,10 +885,7 @@ class ResourceFactory(ComponentFactory):
         Returns:
             Dictionary mapping field names to widget instances
         """
-        try:
-            from import_export import widgets
-        except ImportError:
-            return {}
+        from import_export import widgets
 
         fk_widgets = {}
         fields = self.get_fields()

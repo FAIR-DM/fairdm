@@ -218,13 +218,12 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
             model, fields, view_name=view_name, base_class=ser_base_class
         )
 
-    # Determine filterset
+    # Determine filterset. Reached through the accessor, never through an
+    # attribute, so a configuration that overrides get_filterset_class() is
+    # honoured here as it is everywhere else.
     filterset_class = None
-    if (config.filterset is not None and not isinstance(config.filterset, type)) or (
-        isinstance(config.filterset, type) and config.filterset is not type
-    ):
-        with contextlib.suppress(Exception):
-            filterset_class = config.filterset
+    with contextlib.suppress(Exception):
+        filterset_class = config.get_filterset_class()
 
     # Build queryset attribute (evaluated lazily via lambda to avoid import order issues)
     _model = model
