@@ -298,23 +298,50 @@ classes with generated ones and dropped their fieldsets. The tests caught it.
 
 ---
 
-## D17 — `Model.config` keeps returning None for now
+## D17 — `Model.config` is removed entirely
 
 **Previous specification**: FR-006 says requesting the configuration of an unregistered model must
 raise, and that no accessor may return `None` in its place.
 
-**Code**: `registry.get_for_model()` now raises `NotRegisteredError`, which satisfies FR-006 at the
-registry. The `Model.config` shortcut still returns `None`.
+**Code**: a `config` classproperty on every core model returned the configuration, or `None` when the
+model was not registered.
 
-**Settled**: the shortcut is migrated separately, under T037, and the reason is recorded at the
-call site.
+**Settled**: the shortcut is deleted. `registry.get_for_model()` is the one way to reach a
+configuration from Python, and it raises. Templates use the `get_registry_info` tag, which returns
+nothing rather than raising.
 
-**Why**: templates reach for it on models that may not be registered.
-`sample/sample_detail.html:13` reads `object.config.description`, and the polymorphic admin resolves
-it on the base class, which is never registered. Making it raise takes those pages down, and a
-template is exactly the place where asking rather than raising is the idiom. Closing this needs a
-survey of every template and admin path that touches `.config`, which is more than a one-line
-change, so it is left open rather than half-migrated.
+**Why**: there is no need for a second path to one thing, and this one had both of the costs a second
+path brings. It invited exactly the drift this audit exists to remove, and by returning `None` it
+turned a missing registration into an error at a call site some distance from the cause. A first pass
+tried keeping it non-raising, because four callers relied on that, but keeping a shortcut in order to
+keep its own workaround working is not a reason. The four callers are migrated: the two import and
+export call sites go through the registry, and the template tag holds the one place where returning
+nothing is right, because a template asking what the registry knows is asking rather than asserting.
+
+---
+
+## D18 — One implementation of the default field list, and three rules settled
+
+**Previous specification**: FR-011 lists the exclusions.
+
+**Code**: two implementations, both live in the same request path.
+`FieldInspector.get_safe_fields()` decided the API's fallback fields;
+`ModelConfiguration.get_default_fields()` decided every generated component's. They disagreed on
+three points, so the API and the admin could show different default fields for one model.
+
+**Settled**: `FieldInspector.get_default_fields()` is the only implementation, and the configuration
+delegates to it. The three disagreements are settled as:
+
+- **`password`** stays excluded, but by exact name rather than by substring, so `password_hint` is not
+  caught by accident. It is a named constant a portal developer can read rather than a hidden
+  heuristic.
+- **Inheritance pointers** are matched as a suffix, not a substring. A field named
+  `sample_ptr_note` is a real field and the substring rule dropped it.
+- **Non-editable relations** are excluded like every other non-editable field. The carve-out that
+  kept them contradicted FR-011 and had no stated reason.
+
+**Why**: the value of a default is that it is predictable. Two of these rules were unpredictable and
+the third was a silent disagreement between two copies.
 
 ---
 

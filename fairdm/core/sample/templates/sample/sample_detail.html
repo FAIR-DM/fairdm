@@ -1,3 +1,4 @@
+{% load fairdm %}
 <c-layouts.plugin content_class="pb-5">
   {% if object.image %}
     <c-components.image class="ratio ratio-21x9 {{ image_class }}"
@@ -10,7 +11,8 @@
                             class="mt-4"
                             title="{{ object }} - {{ object.verbose_name }}"
                             level="1">
-    <p>{{ object.config.description }}</p>
+    {% get_registry_info object as model_config %}
+    {% if model_config %}<p>{{ model_config.get_description }}</p>{% endif %}
   </c-pst.components.section>
   <hr style="--pst-color-border: var(--bs-gray-500);" />
   <c-pst.components.section title="{% trans "Measurements" %}"

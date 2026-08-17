@@ -10,9 +10,7 @@ class TestDatabase:
     """The baseline configures a production-grade database from the
     environment with no environment branching (FR-002, FR-003)."""
 
-    def test_configures_postgres_from_database_url(
-        self, isolated_env, settings_module
-    ):
+    def test_configures_postgres_from_database_url(self, isolated_env, settings_module):
         os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
         os.environ["DATABASE_URL"] = "postgresql://scott:tiger@dbhost:5433/mydatabase"
 

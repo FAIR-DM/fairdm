@@ -76,8 +76,8 @@ def process_all_samples():
 
         # Access auto-generated components
         config = registry.get_for_model(sample_model)
-        form_class = config.form
-        table_class = config.table
+        form_class = config.get_form_class()
+        table_class = config.get_table_class()
 
         # Dynamic processing based on model type
         # ... your processing logic here
@@ -89,7 +89,7 @@ def create_measurement_reports():
 
         # Generate report using model's table configuration
         report_data = measurement_model.objects.all()
-        table = config.table(report_data)
+        table = config.get_table_class()(report_data)
 
         print(f"Generated report for {measurement_model.__name__}: {len(report_data)} records")
 ```
@@ -131,7 +131,7 @@ from django.contrib import admin
 # Dynamically register all Sample models with custom admin
 for sample_model in registry.samples:
     config = registry.get_for_model(sample_model)
-    admin_class = config.admin  # Auto-generated ModelAdmin
+    admin_class = config.get_admin_class()  # Auto-generated ModelAdmin
 
     # Customize admin registration
     if not admin.site.is_registered(sample_model):
@@ -738,7 +738,7 @@ from fairdm.registry import registry
 
 # Access auto-generated serializer
 config = registry.get_for_model(MyMeasurement)
-serializer_class = config.serializer
+serializer_class = config.get_serializer_class()
 
 # Use in your own views
 from rest_framework.views import APIView
@@ -802,7 +802,7 @@ class MyMeasurementViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         # Use registry-generated serializer
         config = registry.get_for_model(MyMeasurement)
-        return config.serializer
+        return config.get_serializer_class()
 ```
 
 Then add to your URLs:

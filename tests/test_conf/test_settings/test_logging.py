@@ -35,7 +35,9 @@ class TestLogging:
         assert mock_init.called
         assert mock_init.call_args.kwargs["dsn"] == "https://fake@sentry.io/123456"
 
-    def test_sentry_not_initialized_when_dsn_absent(self, isolated_env, settings_module):
+    def test_sentry_not_initialized_when_dsn_absent(
+        self, isolated_env, settings_module
+    ):
         os.environ["DJANGO_ENV"] = "qa"
 
         with mock.patch("sentry_sdk.init") as mock_init:
@@ -43,7 +45,9 @@ class TestLogging:
 
         assert not mock_init.called
 
-    def test_sentry_initializes_regardless_of_debug(self, isolated_env, settings_module):
+    def test_sentry_initializes_regardless_of_debug(
+        self, isolated_env, settings_module
+    ):
         """The baseline never branches on DEBUG (FR-003) — Sentry
         initialization no longer depends on it."""
         os.environ["DJANGO_ENV"] = "qa"

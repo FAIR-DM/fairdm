@@ -11,9 +11,7 @@ class TestShowConfigCommand:
     """``manage.py show_config`` lists every layer in application order,
     marked found or absent (FR-019)."""
 
-    def test_lists_every_layer_in_order_marked_found_or_absent(
-        self, provenance_record
-    ):
+    def test_lists_every_layer_in_order_marked_found_or_absent(self, provenance_record):
         provenance_record.reset()
         provenance_record.add_layer(
             "baseline", "/fake/settings", True, ["INSTALLED_APPS"]

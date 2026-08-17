@@ -369,3 +369,132 @@ class TestFieldInspector:
 
         info = inspector.get_field_info("nonexistent")
         assert info["exists"] is False
+
+
+class TestDefaultFields:
+    """FR-011: the framework's own choice of fields, in one implementation.
+
+    Two divergent copies of this rule used to be live in the same request path, so
+    the API and the admin could show different default fields for one model.
+    """
+
+    @pytest.fixture
+    def wide_model(self):
+        from django.db import models as dj
+
+        class Tag(dj.Model):
+            name = dj.CharField(max_length=50)
+
+            class Meta:
+                app_label = "test_app"
+
+        class Membership(dj.Model):
+            note = dj.CharField(max_length=50)
+
+            class Meta:
+                app_label = "test_app"
+
+        class Specimen(dj.Model):
+            name = dj.CharField(max_length=100)
+            created = dj.DateTimeField(auto_now_add=True)
+            updated = dj.DateTimeField(auto_now=True)
+            internal = dj.CharField(max_length=10, editable=False)
+            password = dj.CharField(max_length=10)
+            password_hint = dj.CharField(max_length=10)
+            plain_tags = dj.ManyToManyField(Tag, related_name="plain")
+            through_tags = dj.ManyToManyField(
+                Tag, through=Membership, related_name="via"
+            )
+
+            class Meta:
+                app_label = "test_app"
+
+        return Specimen
+
+    def test_it_includes_the_model_s_own_editable_fields(self, wide_model):
+        fields = FieldInspector(wide_model).get_default_fields()
+        assert "name" in fields
+        assert "plain_tags" in fields
+
+    def test_it_excludes_the_primary_key(self, wide_model):
+        assert "id" not in FieldInspector(wide_model).get_default_fields()
+
+    def test_it_excludes_automatic_timestamps(self, wide_model):
+        fields = FieldInspector(wide_model).get_default_fields()
+        assert "created" not in fields
+        assert "updated" not in fields
+
+    def test_it_excludes_non_editable_fields(self, wide_model):
+        assert "internal" not in FieldInspector(wide_model).get_default_fields()
+
+    def test_it_excludes_a_many_to_many_with_an_explicit_through(self, wide_model):
+        """Django's admin rejects one (admin.E013), so a generated admin fails."""
+        assert "through_tags" not in FieldInspector(wide_model).get_default_fields()
+
+    def test_it_excludes_password_by_exact_name_not_substring(self, wide_model):
+        """The rule is a named list, so `password_hint` is not caught by accident."""
+        fields = FieldInspector(wide_model).get_default_fields()
+        assert "password" not in fields
+        assert "password_hint" in fields
+
+    def test_a_pointer_suffix_is_matched_as_a_suffix(self):
+        """A substring match would drop a real field whose name contains `_ptr`."""
+        from django.db import models as dj
+
+        class Odd(dj.Model):
+            sample_ptr_note = dj.CharField(max_length=10)
+
+            class Meta:
+                app_label = "test_app"
+
+        assert "sample_ptr_note" in FieldInspector(Odd).get_default_fields()
+
+    def test_the_configuration_uses_the_same_implementation(self, wide_model):
+        from fairdm.registry.config import ModelConfiguration
+
+        assert (
+            ModelConfiguration.get_default_fields(wide_model)
+            == FieldInspector(wide_model).get_default_fields()
+        )
+
+
+class TestResolvePath:
+    """FR-022: every segment of a related path resolves, not only the first."""
+
+    @pytest.fixture
+    def linked(self):
+        from django.db import models as dj
+
+        class Owner(dj.Model):
+            title = dj.CharField(max_length=50)
+
+            class Meta:
+                app_label = "test_app"
+
+        class Item(dj.Model):
+            name = dj.CharField(max_length=50)
+            owner = dj.ForeignKey(Owner, on_delete=dj.CASCADE)
+
+            class Meta:
+                app_label = "test_app"
+
+        return Item
+
+    def test_a_single_segment_resolves(self, linked):
+        assert FieldInspector(linked).resolve_path("name") == (True, None)
+
+    def test_a_two_segment_path_resolves(self, linked):
+        assert FieldInspector(linked).resolve_path("owner__title") == (True, None)
+
+    def test_a_bad_final_segment_does_not_resolve(self, linked):
+        resolves, reason = FieldInspector(linked).resolve_path("owner__nope")
+        assert resolves is False
+        assert reason is None
+
+    def test_a_path_through_a_non_relation_says_so(self, linked):
+        resolves, reason = FieldInspector(linked).resolve_path("name__nope")
+        assert resolves is False
+        assert "not a relation" in reason
+
+    def test_close_matches_suggest_a_correction(self, linked):
+        assert "name" in FieldInspector(linked).close_matches("nam")

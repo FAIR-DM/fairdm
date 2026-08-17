@@ -58,9 +58,10 @@ class BaseImportExportView(MessageMixin, FormView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_resource(self):
-        return self.resource_model.config.get_resource_class()(
-            dataset=self.get_object()
-        )
+        from fairdm.registry import registry
+
+        config = registry.get_for_model(self.resource_model)
+        return config.get_resource_class()(dataset=self.get_object())
 
     def get_resource_model(self):
         """

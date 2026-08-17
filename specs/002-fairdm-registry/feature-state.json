@@ -3,7 +3,7 @@
   "feature": "002-fairdm-registry",
   "branch": "002-fairdm-registry",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "INTAKE",
@@ -44,6 +44,16 @@
       "state": "IMPLEMENT",
       "at": "2026-08-17T15:00:00Z",
       "note": "second increment: fail-loudly items, the duplicate validation path deleted, generated-class assertions, the demo override example and the deterministic guards. 46 of 53 done. Full suite 1534 passed, 12 pre-existing failures unchanged. D16 and D17 recorded."
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-17T16:30:00Z",
+      "note": "third increment: Model.config removed outright on Sam's ruling, the two default-field-list implementations consolidated onto FieldInspector with its three disagreements settled, path resolution moved there, flattening reduced to one implementation, docs rewritten."
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-17T16:45:00Z",
+      "note": "53 of 53 tasks done. Verify gate green: 1547 passed, ruff clean, mypy at per-file parity, wheel builds. The 12 remaining suite failures are pre-existing and routed out separately."
     }
   ],
   "gates": {
@@ -70,7 +80,7 @@
       "priority": "P1",
       "issue": 82,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -139,13 +149,38 @@
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/utils/inspection.py:101"
+            ],
+            "tests": [
+              "tests/test_utils/test_inspection.py::TestDefaultFields"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q; ruff check; mypy; poetry build"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/utils/inspection.py:158",
+              "fairdm/registry/config.py:432"
+            ],
+            "tests": [
+              "tests/test_utils/test_inspection.py::TestDefaultFields::test_the_configuration_uses_the_same_implementation"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q; ruff check; mypy; poetry build"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T011",
@@ -460,8 +495,20 @@
         },
         {
           "id": "T051",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/contributing/registry-system.md:1"
+            ],
+            "tests": [
+              "tests/test_registry/test_components.py"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q; ruff check; mypy; poetry build"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T052",
@@ -475,8 +522,20 @@
         },
         {
           "id": "T053",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "pyproject.toml:1"
+            ],
+            "tests": [
+              "tests/test_registry/test_components.py"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q; ruff check; mypy; poetry build"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
@@ -485,7 +544,7 @@
       "priority": "P1",
       "issue": 142,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -562,7 +621,7 @@
       "priority": "P1",
       "issue": 143,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -601,13 +660,37 @@
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/utils/inspection.py:190"
+            ],
+            "tests": [
+              "tests/test_utils/test_inspection.py::TestResolvePath"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q; ruff check; mypy; poetry build"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/utils/inspection.py:190"
+            ],
+            "tests": [
+              "tests/test_utils/test_inspection.py::TestResolvePath"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q; ruff check; mypy; poetry build"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T032",
@@ -692,8 +775,21 @@
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:145",
+              "fairdm/templatetags/fairdm.py:68"
+            ],
+            "tests": [
+              "tests/test_registry/test_exceptions.py::TestNotRegisteredError"
+            ],
+            "commands": [
+              "pytest tests/ fairdm_demo/ -q; ruff check; mypy; poetry build"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T038",
@@ -750,7 +846,7 @@
       "priority": "P2",
       "issue": 144,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {

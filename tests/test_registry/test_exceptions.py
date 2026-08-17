@@ -114,23 +114,22 @@ class TestNotRegisteredError:
 
     def test_the_message_is_not_a_quoted_key(self, clean_registry, rock_sample):
         """KeyError reprs its argument, which would quote the whole sentence."""
-        message = str(
-            pytest.raises(
-                NotRegisteredError, clean_registry.get_for_model, rock_sample
-            ).value
-        )
+        with pytest.raises(NotRegisteredError) as caught:
+            clean_registry.get_for_model(rock_sample)
+
+        message = str(caught.value)
         assert not message.startswith("'")
         assert not message.endswith("'")
 
-    def test_model_config_shortcut_still_returns_none(
-        self, clean_registry, rock_sample
-    ):
-        """`Model.config` has not been migrated yet; see T037 and abstract.py.
+    def test_there_is_no_shortcut_on_the_model(self, rock_sample):
+        """`Model.config` is gone. There is one way to reach a configuration.
 
-        Templates read it on models that may not be registered, so the raise lands
-        with those callers rather than before them.
+        A second path invited exactly the drift this feature exists to remove, and a
+        shortcut that quietly returned None turned a missing registration into an
+        AttributeError somewhere else. Python callers use `registry.get_for_model()`,
+        which raises; templates use the `get_registry_info` tag, which does not.
         """
-        assert rock_sample.config is None
+        assert not hasattr(rock_sample, "config")
 
 
 class TestConfigurationError:

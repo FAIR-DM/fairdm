@@ -66,10 +66,26 @@ def unit(unit):
 
 @register.simple_tag
 def get_registry_info(model_or_qs):
-    if isinstance(model_or_qs, models.QuerySet):  # QuerySet
-        return model_or_qs.model.config
+    """The registry configuration for a model, an instance, or a queryset.
 
-    return model_or_qs.config
+    Returns None when the model is not registered, because a template asking what
+    the registry knows about something is asking, not asserting. Python callers use
+    `registry.get_for_model()`, which raises.
+    """
+    from fairdm.registry import registry
+    from fairdm.registry.exceptions import NotRegisteredError
+
+    if isinstance(model_or_qs, models.QuerySet):
+        model = model_or_qs.model
+    elif isinstance(model_or_qs, type):
+        model = model_or_qs
+    else:
+        model = type(model_or_qs)
+
+    try:
+        return registry.get_for_model(model)
+    except NotRegisteredError:
+        return None
 
 
 @register.simple_tag

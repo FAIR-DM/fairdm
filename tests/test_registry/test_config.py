@@ -14,7 +14,6 @@ from django.db import models
 from fairdm.core.models import Measurement, Sample
 from fairdm.core.sample.admin import SampleChildAdmin
 from fairdm.registry import registry
-from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 from fairdm.registry.config import (
     Authority,
     Citation,
@@ -27,6 +26,7 @@ from fairdm.registry.exceptions import (
     FieldValidationError,
 )
 from fairdm_demo.models import RockSample
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 
 class TestGetDefaultFields:
@@ -610,8 +610,6 @@ class TestAdminInheritanceValidation:
         """Measurement subclass with wrong admin should raise error."""
         from django.db import models
 
-        from fairdm.core.models import Measurement
-
         # Create a simple Measurement subclass for testing
         class TestMeasurement(Measurement):
             """Test measurement model."""
@@ -641,7 +639,6 @@ class TestAdminInheritanceValidation:
         from django.db import models
 
         from fairdm.core.admin import MeasurementAdmin as MeasurementChildAdmin
-        from fairdm.core.models import Measurement
 
         # Create a simple Measurement subclass for testing
         class TestMeasurement2(Measurement):
@@ -671,7 +668,6 @@ class TestAdminInheritanceValidation:
         from django.db import models
 
         from fairdm.core.admin import MeasurementAdmin as MeasurementChildAdmin
-        from fairdm.core.models import Measurement
 
         # Create a simple Measurement subclass for testing
         class TestMeasurement3(Measurement):

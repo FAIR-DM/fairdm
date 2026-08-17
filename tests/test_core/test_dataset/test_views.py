@@ -357,7 +357,9 @@ class TestDatasetViews:
     def test_dataset_detail_view_accessible(self, client):
         """Test that dataset detail view serves the requested dataset and
         renders its name in the page body (FAIR-DM/fairdm#113)."""
-        dataset = DatasetFactory(name="Reef Survey Dataset", visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            name="Reef Survey Dataset", visibility=Visibility.PUBLIC
+        )
         response = client.get(reverse("dataset-detail", kwargs={"uuid": dataset.uuid}))
 
         assert response.status_code == 200

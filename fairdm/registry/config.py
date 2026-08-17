@@ -14,7 +14,6 @@ accessor builds or resolves its class on every call, which is what Django's own
 ``ModelFormMixin.get_form_class()`` does.
 """
 
-import difflib
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
@@ -324,35 +323,25 @@ class ModelConfiguration:
                 self._validate_field_path(name, attr)
 
     def _validate_field_path(self, path: str, attr: str) -> None:
-        """Walk a field path, raising on the first segment that does not resolve."""
-        model: Any = self.model
-        segments = path.split(LOOKUP_SEP)
+        """Refuse a path that does not resolve, naming why."""
+        from fairdm.utils.inspection import FieldInspector
 
-        for index, segment in enumerate(segments):
-            if model is None:
-                raise FieldValidationError(
-                    field_name=path,
-                    model=self.model,
-                    attribute=attr,
-                    reason=(
-                        f"{LOOKUP_SEP.join(segments[:index])!r} is not a relation, so "
-                        f"the rest of the path cannot resolve"
-                    ),
-                )
+        inspector = FieldInspector(self.model)
+        resolves, reason = inspector.resolve_path(path)
+        if resolves:
+            return
 
-            names = {f.name for f in model._meta.get_fields()}
-            if segment not in names:
-                raise FieldValidationError(
-                    field_name=path,
-                    model=self.model,
-                    attribute=attr,
-                    suggestion=", ".join(
-                        difflib.get_close_matches(segment, names, n=3, cutoff=0.6)
-                    ),
-                )
-
-            if index < len(segments) - 1:
-                model = model._meta.get_field(segment).related_model
+        raise FieldValidationError(
+            field_name=path,
+            model=self.model,
+            attribute=attr,
+            reason=reason,
+            suggestion=(
+                ", ".join(inspector.close_matches(path.split(LOOKUP_SEP)[0]))
+                if reason is None
+                else None
+            ),
+        )
 
     def _validate_custom_classes(self) -> None:
         """A supplied class must subclass the base its component requires."""
@@ -415,43 +404,16 @@ class ModelConfiguration:
 
     @classmethod
     def get_default_fields(cls, model: "type[models.Model]") -> list[str]:
-        """The framework's own choice of fields for a model.
+        """The framework's own choice of fields for a model, per FR-011.
 
-        Includes the model's editable fields and leaves out the framework's
-        plumbing: the primary key, polymorphic type columns, inheritance pointers,
-        automatic timestamps, non-editable fields, reverse relations, and
-        many-to-many fields with an explicit through model, which Django's admin
-        rejects (``admin.E013``).
+        Delegates to ``FieldInspector``, which is the single implementation. Two
+        copies of this rule used to be live in the same request path and disagreed
+        on three points, so the API and the admin could show different default
+        fields for one model.
         """
-        from django.db import models
+        from fairdm.utils.inspection import FieldInspector
 
-        excluded = {"id", "polymorphic_ctype", "polymorphic_ctype_id"}
-        fields: list[str] = []
-
-        for field_obj in model._meta.get_fields():
-            if field_obj.name in excluded:
-                continue
-            if field_obj.name.endswith(("_ptr", "_ptr_id")):
-                continue
-            if getattr(field_obj, "auto_now", False):
-                continue
-            if getattr(field_obj, "auto_now_add", False):
-                continue
-            if hasattr(field_obj, "editable") and not field_obj.editable:
-                continue
-            # Reverse relations carry a related_name but no column.
-            if hasattr(field_obj, "related_name") and not hasattr(field_obj, "column"):
-                continue
-            if isinstance(field_obj, models.ManyToManyField):
-                through = getattr(field_obj.remote_field, "through", None)
-                if isinstance(through, str):
-                    continue
-                if through is not None and not through._meta.auto_created:
-                    continue
-
-            fields.append(field_obj.name)
-
-        return fields
+        return FieldInspector(model).get_default_fields()
 
     def resolve_fields(self, component: str) -> list[str]:
         """The field list one component is built from.

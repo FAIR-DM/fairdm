@@ -49,7 +49,7 @@ class TestComponentTable:
             assert _component_base(name) is not None
 
     def test_component_names_match_their_configuration_attributes(self):
-        for name, spec in COMPONENTS.items():
+        for spec in COMPONENTS.values():
             assert hasattr(ModelConfiguration, spec.fields_attr), spec.fields_attr
             assert hasattr(ModelConfiguration, spec.class_attr), spec.class_attr
 

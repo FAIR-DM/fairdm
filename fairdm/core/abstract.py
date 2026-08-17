@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.decorators import classonlymethod
 
 # from rest_framework.authtoken.models import Token
-from django.utils.functional import cached_property, classproperty
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
@@ -16,7 +16,6 @@ from fairdm.contrib.generic.models import TaggedItem
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
-from fairdm.registry import registry
 from fairdm.utils import default_image_path, get_inheritance_chain
 
 
@@ -163,23 +162,6 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
         """Returns the URL to the collection of this model."""
         slug = self._meta.model_name.lower()
         return reverse(f"{slug}-collection")
-
-    @classproperty
-    def config(cls):
-        """This model's registry configuration, or None if it is not registered.
-
-        `registry.get_for_model()` raises for an unregistered model, per FR-006, and
-        this shortcut deliberately does not yet. Templates reach for it on models
-        that may not be registered — `sample/sample_detail.html:13` reads
-        `object.config.description`, and the polymorphic admin resolves it on the
-        base class — so making it raise takes those callers down. Migrating them to
-        `registry.is_registered()` is its own task, T037, and until then this returns
-        None rather than shipping half the change.
-        """
-        try:
-            return registry.get_for_model(cls)
-        except KeyError:
-            return None
 
     class Meta:
         abstract = True

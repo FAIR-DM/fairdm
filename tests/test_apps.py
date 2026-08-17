@@ -173,7 +173,15 @@ class TestParlerLanguagesCheck:
             key: value
             for key, value in os.environ.items()
             if not key.startswith(
-                ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
+                (
+                    "DJANGO_",
+                    "DATABASE_",
+                    "REDIS_",
+                    "POSTGRES_",
+                    "EMAIL_",
+                    "S3_",
+                    "SENTRY_",
+                )
             )
         }
         env |= {

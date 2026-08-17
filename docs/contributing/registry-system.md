@@ -55,12 +55,14 @@ The FairDM registry system provides:
 
 ### Registration Flow
 
-1. **Model Definition**: User creates Sample/Measurement subclass
-2. **Configuration**: User defines ModelConfiguration with fields and options
-3. **Registration**: `@register` decorator stores configuration in registry
-4. **Validation**: Registry validates model inheritance and field existence
-5. **Component Access**: Properties generate components on-demand using cached_property
-6. **Field Resolution**: each component property picks its own field list before handing it to a factory
+1. **Model definition**: a portal writes a concrete `Sample` or `Measurement` subclass.
+2. **Configuration**: a `ModelConfiguration` subclass declares the model and the fields that matter.
+3. **Validation**: the whole configuration is checked while it is built, and the registry checks that
+   the model may be registered at all. A mistake stops the process here.
+4. **Registration**: `@register` stores the configuration, and registers the model's admin class
+   unless the portal already registered one of its own.
+5. **Component access**: `get_<component>_class()` resolves the field list and builds the class, on
+   every call.
 
 ### Component Generation
 
@@ -71,13 +73,16 @@ class MySampleConfig(ModelConfiguration):
     model = MySample
     fields = ["name", "location", "temperature"]
 
-# Framework auto-generates components
+# Framework builds components from the configuration
 config = registry.get_for_model(MySample)
-form_class = config.form        # Auto-generated ModelForm
-table_class = config.table      # Auto-generated django-tables2 Table
-filter_class = config.filterset # Auto-generated django-filter FilterSet
-# ... etc
+form_class = config.get_form_class()        # ModelForm
+table_class = config.get_table_class()      # django-tables2 Table
+filter_class = config.get_filterset_class() # django-filter FilterSet
+# ... and get_serializer_class(), get_resource_class(), get_admin_class()
 ```
+
+Always call the accessor. It is the only public way to reach a component, so a configuration that
+overrides one is honoured everywhere.
 
 ## Design Principles
 
@@ -94,20 +99,27 @@ class MinimalSampleConfig(ModelConfiguration):
 
 ### 2. Progressive Enhancement
 
-Start simple, add complexity as needed:
+Start simple, add complexity as needed. There are three tiers, in increasing order of effort:
 
 ```python
-# Level 1: Basic field list
+# Tier 1: a field list, shared or per component
 fields = ["name", "location", "temperature"]
-
-# Level 2: Component-specific fields
 table_fields = ["name", "location"]
-form_fields = ["name", "location", "temperature", "notes"]
 
-# Level 3: Custom component classes
-form_class = MyCustomForm
+# Tier 2: your own class for one component; the other five stay generated
 table_class = MyCustomTable
+
+# Tier 3: build one in code, when a declaration cannot say what you need
+def get_table_class(self):
+    return build_table(self.model, self.pick_columns())
 ```
+
+Every part of the framework reaches a component through its accessor, so an override at tier 3 is
+what all of it receives.
+
+Declaring a component's own field list *and* its class is refused when the model is registered,
+because the field list could never take effect. Django applies the same rule to `fields` beside
+`form_class`.
 
 ### 3. Type Safety
 
@@ -115,23 +127,25 @@ Full type hints enable IDE support and catch errors early:
 
 ```python
 def get_for_model(self, model: type[Model]) -> ModelConfiguration:
-    """Get configuration for model with full type safety."""
+    """The configuration for a model. Raises if it is not registered."""
 
-@cached_property
-def form(self) -> type[ModelForm]:
-    """Return form class with correct typing."""
+def get_form_class(self) -> type[ModelForm]:
+    """The form class for this model. Override to build your own."""
 ```
 
-### 4. Performance Optimization
+### 4. Nothing is cached
 
-Components are generated lazily and cached:
+An accessor builds or resolves its class on every call. This is what Django's own
+`ModelFormMixin.get_form_class()` does, and it is what makes tier 3 work: a cached attribute is read
+without consulting the method a portal may have overridden.
 
-```python
-@cached_property
-def form(self) -> type[ModelForm]:
-    """Generated once, cached forever per configuration instance."""
-    return FormFactory(self.model, self.form_fields).create()
-```
+The cost was measured before the cache was removed. Generating the components a page needs takes
+0.18 ms for a table and filter set on a six-field model, and 1.08 ms for a table, form and filter set
+on a ten-field model, at roughly 0.1 ms per field per component. Rendering a twenty-cell table
+fragment in the same process takes 0.12 ms, and a real page renders far more than that.
+
+If profiling ever justifies caching, it returns inside the accessor behind an explicit, clearable
+store, not a descriptor that also swallows overrides.
 
 ## Implementation Details
 
@@ -147,54 +161,74 @@ class FairDMRegistry:
 
 This provides O(1) lookup performance and simple introspection.
 
-### Field Resolution Algorithm
+### Field Resolution
 
-Each component property on `ModelConfiguration` resolves its own field list through the same
-three-tier fallback, then passes the result to its factory:
+`resolve_fields()` is the one place a field list is worked out, and every component uses it. A
+component's own list wins, then the shared `fields`, then the framework's own choice:
 
 ```python
-@cached_property
-def form(self) -> type[ModelForm]:
-    ...
-    # Tier 1: component-specific fields, then Tier 2: the general list,
-    # then Tier 3: smart defaults (excluding auto-generated, non-editable fields)
-    resolved_fields = (
-        self.form_fields or self.fields or self.get_default_fields(self.model)
+def resolve_fields(self, component: str) -> list[str]:
+    spec = COMPONENTS[component]
+    declared = getattr(self, spec.fields_attr)
+    chosen = (
+        declared
+        if declared is not None
+        else (self.fields or self.get_default_fields(self.model))
     )
+    return [n for n in flatten_fields(chosen) if n not in set(self.exclude)]
 ```
+
+`COMPONENTS` is the table that describes all six: which attribute holds each one's field list, which
+holds a supplied class, which base class that must subclass, and which factory builds it. Adding a
+component is a row, not six near-identical methods.
+
+The framework's own choice of fields lives on `FieldInspector` in `fairdm/utils/inspection.py`, and
+only there. It includes the model's editable fields and leaves out the primary key, polymorphic type
+columns, inheritance pointers, automatic timestamps, non-editable fields, reverse relations, and
+many-to-many fields with an explicit through model, which Django's admin rejects.
 
 ### Component Factories
 
 Each component type has a dedicated factory:
 
 ```python
-class FormFactory:
-    def create(self) -> type[ModelForm]:
-        fields = self.resolver.resolve_fields_for_component("form")
+class FormFactory(ComponentFactory):
+    def generate(self) -> type[ModelForm]:
         return modelform_factory(
             model=self.model,
-            fields=fields,
-            widgets=self.get_widgets()
+            fields=self.get_fields(),
+            widgets=self._get_smart_widgets(),
         )
 ```
+
+A factory receives a resolved field list and builds one class from it. It does no resolution of its
+own, so there is one answer to "which fields does this model use" per component.
 
 ### Validation System
 
 Registration-time validation prevents common errors:
 
-```python
-def _validate_model_inheritance(self, model: type[Model]) -> None:
-    """Ensure model inherits from Sample or Measurement."""
-    if not issubclass(model, (Sample, Measurement)):
-        raise ConfigurationError(...)
+Validation happens once, while the model is being registered, and nowhere else. Registration runs at
+import, so a mistake stops the process on every start, including under a WSGI or ASGI server. There
+are no Django system checks for the registry: a check only runs from a management command, which
+makes it a weaker guarantee wearing the same clothes.
 
-def _validate_field_existence(self, fields: list[str]) -> None:
-    """Ensure all field names exist on model."""
-    valid_fields = {f.name for f in self.model._meta.get_fields()}
-    for field_name in fields:
-        if field_name not in valid_fields:
-            suggestions = difflib.get_close_matches(field_name, valid_fields)
-            raise FieldValidationError(f"Invalid field: {field_name}. Did you mean: {suggestions}?")
+What is refused:
+
+- a field name that does not exist, with a close match suggested where there is one
+- a related path whose later segments do not resolve, not just its first
+- a component's own field list declared beside its own class
+- a supplied class that does not subclass the base its component requires
+- a custom admin class that is not the polymorphic child admin for its hierarchy
+- a model that is abstract, or is one of the polymorphic base classes, or is outside both hierarchies
+- a model registered twice, with the module and qualified name of the first registration
+
+An error names the model, the attribute that declared the offending value, the value itself, and
+either a suggestion or the reason a path stopped resolving:
+
+```text
+Invalid field 'rock_typ' in RockSample.table_fields: no such field on RockSample.
+Did you mean: rock_type?
 ```
 
 ## Introspection API
@@ -219,6 +253,10 @@ for model in registry.models:
 
 ### Configuration Access
 
+`registry.get_for_model()` is the way to reach a configuration. There is no shortcut on the model
+itself: a second path is how consumers drifted onto one that ignored overrides, and one that quietly
+returned nothing turned a missing registration into an error somewhere else entirely.
+
 ```python
 # Check if model is registered
 if registry.is_registered(MySample):
@@ -233,25 +271,30 @@ for config in all_configs:
     print(f"{config.model.__name__}: {len(config.fields)} fields")
 ```
 
+`get_for_model()` raises `NotRegisteredError` for a model that was never registered. In a template,
+use the `get_registry_info` tag instead, which returns nothing rather than raising, because a
+template asking what the registry knows is asking rather than asserting.
+
 ## Performance Characteristics
 
-### Registration Performance
+### Registration
 
-- **Target**: <10ms per model registration
-- **Actual**: ~4 microseconds (well under target)
-- **Scalability**: Linear with number of models
+Validating a configuration costs about 0.007 ms, so 100 registered models add 0.69 ms to startup and
+250 add 1.7 ms. Validation is `_meta` lookup only and never touches the database, which matters
+because registration runs while Django is still populating the app registry.
 
-### Component Generation Performance
+### Component generation
 
-- **Target**: <50ms per component on first access
-- **Actual**: ~100 microseconds (well under target)
-- **Caching**: Subsequent access ~1 microsecond
+Producing all six components for one model takes under 1 ms, scaling at roughly 0.1 ms per field per
+component. Nothing is cached, so a view pays that cost per request rather than once.
 
-### Memory Usage
+The tests pin the deterministic property rather than the timings: registration and all six accessors
+run with a query count of zero. Wall-clock assertions are not used, because they are flaky on shared
+CI in the direction that blocks merges.
 
-- **Registry**: O(n) where n = number of registered models
-- **Components**: Generated lazily, cached per configuration
-- **Footprint**: Minimal until components are accessed
+### Memory
+
+The registry holds one configuration per model and nothing else.
 
 ## Extension Points
 
@@ -329,7 +372,7 @@ class AnalysisPlugin:
 - **Component types**: Add support for charts, dashboards, reports
 - **Field types**: Enhanced support for geospatial, scientific data types
 - **Validation**: Runtime schema validation and data quality checks
-- **Caching**: Distributed caching for multi-instance deployments
+- **Caching**: only if profiling shows a hot spot, and behind an explicit store
 
 ## Contributing Guidelines
 

@@ -159,20 +159,15 @@ class BaseSerializerMixin:
 
 
 def _flatten_fields(fields: list) -> list[str]:
-    """Flatten a fields list that may contain grouped tuples.
+    """Deprecated alias for :func:`fairdm.registry.config.flatten_fields`.
 
-    Registry configurations may group fields in tuples for form layout purposes
-    (e.g. ``[("name", "status"), "description"]``).  API serializers only
-    understand flat string lists, so this helper expands all nested
-    sequences to individual field names.
+    Kept only so existing imports keep working. There is one implementation of
+    flattening, in the registry, because three of them disagreeing is how a grouped
+    field list ended up meaning different things to different components.
     """
-    result: list[str] = []
-    for item in fields:
-        if isinstance(item, (tuple, list)):
-            result.extend(str(f) for f in item)
-        elif isinstance(item, str):
-            result.append(item)
-    return result
+    from fairdm.registry.config import flatten_fields
+
+    return flatten_fields(fields)
 
 
 def build_model_serializer(

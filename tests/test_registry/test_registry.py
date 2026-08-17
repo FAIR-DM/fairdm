@@ -20,9 +20,9 @@ from django_tables2 import Table
 import fairdm
 from fairdm.core.models import Measurement, Sample
 from fairdm.registry import registry
-from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 from fairdm.registry.config import ModelConfiguration
 from fairdm_demo.models import CustomParentSample, CustomSample, ExampleMeasurement
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 User = get_user_model()
 
@@ -1245,7 +1245,6 @@ class TestSampleRegistration:
 
     def test_unregistered_sample_type_raises_error(self):
         """Test that accessing unregistered model raises appropriate error."""
-        from fairdm.core.sample.models import Sample
 
         # We can't create a test model on the fly because Django requires app_label
         # So we'll just test that a model that's not registered raises KeyError

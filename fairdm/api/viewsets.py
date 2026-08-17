@@ -186,11 +186,11 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
         # Tier 1/2: serializer_fields overrides fields, both auto-generate
         fields: list[str] = list(config.serializer_fields or config.fields or [])
         if not fields:
-            # Fallback: derive safe fields from model inspection
-            from fairdm.registry.factories import FieldInspector
+            # No field list declared, so use the framework's own choice — the same
+            # rule every generated component uses, from the one implementation.
+            from fairdm.utils.inspection import FieldInspector
 
-            inspector = FieldInspector(model)
-            fields = inspector.get_safe_fields()
+            fields = FieldInspector(model).get_default_fields()
         else:
             # Flatten any grouped tuples used for form layout
             from fairdm.api.serializers import _flatten_fields
