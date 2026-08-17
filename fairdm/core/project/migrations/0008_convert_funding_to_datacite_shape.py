@@ -59,7 +59,7 @@ def revert_datacite_shape_to_flat_funding(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("project", "0008_alter_project_funding"),
+        ("project", "0007_project_created_by_alter_project_funding_and_more"),
     ]
 
     operations = [
