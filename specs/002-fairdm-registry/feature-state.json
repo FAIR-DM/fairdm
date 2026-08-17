@@ -1,0 +1,618 @@
+{
+  "$schema": "aeo/feature-state.schema.json",
+  "feature": "002-fairdm-registry",
+  "branch": "002-fairdm-registry",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-08-17T07:00:00Z",
+      "note": "A1 assess: the old spec read against the code; A2 retrospective grilling"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-17T09:30:00Z",
+      "note": "spec.md rewritten in place; decisions.md records 13 adjudications"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-17T09:55:00Z",
+      "note": "spec approved"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-17T10:10:00Z",
+      "note": "epic #81 adopted and promoted; 5 story sub-issues; draft PR #145"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-17T11:10:00Z",
+      "note": "research.md and plan.md written; tasks.md written greenfield then reconciled against 6fa863a: 20 of 53 satisfied with code and test evidence, 33 open (15 never built, 6 built without tests, 12 where the code contradicts the spec). Baseline 222 tests pass. tests/test_registry/test_config.py:1123 pins the base-field-only path validation that T033 reverses; see decision D4."
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-17T09:55:00Z"
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 82,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/__init__.py:8"
+            ],
+            "tests": [
+              "tests/test_registry/test_registry.py"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_registry/__init__.py:1"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:414"
+            ],
+            "tests": [
+              "tests/test_registry/test_registry.py::TestBasicRegistration"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:24",
+              "fairdm/registry/registry.py:414"
+            ],
+            "tests": [
+              "tests/test_registry/test_registry.py::TestRegistrationBasics"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:551"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestFieldResolutionAlgorithm"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/factories.py:77"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestFormFactory"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/factories.py:173"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestTableFactory"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/factories.py:314"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestFilterFactory"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/factories.py:455",
+              "fairdm/registry/factories.py:740"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestAdminFactoryBasics",
+              "tests/test_registry/test_config.py::TestAdminInheritanceValidation::test_autogenerated_sample_admin_inherits_from_child_admin"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:695"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestAutoGeneratedComponents",
+              "tests/test_registry/test_registry.py::TestSampleAutoGeneratedComponents"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:72",
+              "fairdm/registry/config.py:278"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestModelMetadata",
+              "tests/test_registry/test_config.py::TestAuthority",
+              "tests/test_registry/test_config.py::TestCitation"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T049",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_demo/tests/test_registry_api.py:1"
+            ],
+            "tests": [
+              "fairdm_demo/tests/test_registry_api.py::TestDemoRegistryIntrospection"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git rm -r specs/002-fairdm-registry/{contracts,research,checklists} RESEARCH.md data-model.md quickstart.md"
+            ]
+          }
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 142,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T028",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:459",
+              "fairdm/registry/config.py:544"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestComponentOverrides",
+              "tests/test_registry/test_config.py::TestCustomClassOverride"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:345"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestAdminInheritanceValidation"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 143,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:331"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestFieldValidationWithFuzzyMatching"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:238"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestRegistrationValidation::test_model_must_inherit_from_sample_or_measurement"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 144,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T044",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 83,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:163",
+              "fairdm/registry/registry.py:175",
+              "fairdm/registry/registry.py:187"
+            ],
+            "tests": [
+              "tests/test_registry/test_registry.py::TestRegistrySamplesProperty",
+              "tests/test_registry/test_registry.py::TestRegistryMeasurementsProperty"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T046",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:138",
+              "fairdm/registry/registry.py:197"
+            ],
+            "tests": [
+              "tests/test_registry/test_registry.py::TestRegistryEnhancedMethods"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T047",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:82"
+            ],
+            "tests": [
+              "tests/test_registry/test_registry.py::TestRegistryGetForModel"
+            ],
+            "commands": [
+              "pytest tests/test_registry tests/test_utils fairdm_demo/tests/test_registry_api.py -q"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 8000000
+    }
+  },
+  "pr": {
+    "number": 145,
+    "draft": true
+  }
+}
