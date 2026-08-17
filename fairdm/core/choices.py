@@ -9,7 +9,7 @@ class ProjectStatus(models.IntegerChoices):
     PLANNING = 1, _("Planning")
     IN_PROGRESS = 2, _("In progress")
     COMPLETE = 3, _("Complete")
-    SEARCHING_FOR_COLLABORATORS = 4, _("Unknown")
+    SEARCHING_FOR_COLLABORATORS = 4, _("Searching for collaborators")
 
 
 class RAiDPositions(models.TextChoices):
@@ -209,6 +209,20 @@ class DataciteContributorRoles(VocabularyBuilder):
                 ],
             ),
         }
+
+
+#: Maps each member of the project role vocabulary
+#: (``FairDMRoles.from_collection("Project")``) to its equivalent member of
+#: ``DataciteContributorRoles``, so that an export needs no further
+#: translation to name a DataCite contributor type. FR-014.
+PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES = {
+    "Creator": "CREATOR",
+    "ProjectLeader": "PROJECT_LEADER",
+    "ProjectManager": "PROJECT_MANAGER",
+    "ProjectMember": "PROJECT_MEMBER",
+    "ContactPerson": "CONTACT_PERSON",
+    "Other": "OTHER",
+}
 
 
 class DataCiteDateTypes(models.TextChoices):

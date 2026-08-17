@@ -96,7 +96,10 @@ class Project(BaseModel):
         validators=[validate_funding],
     )
     status = models.IntegerField(
-        _("status"), choices=STATUS_CHOICES, default=STATUS_CHOICES.CONCEPT
+        _("status"),
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES.CONCEPT,
+        help_text=_("The current lifecycle stage of the project."),
     )
     contributors = GenericRelation("contributors.Contribution")
 

@@ -30,6 +30,7 @@ from fairdm.core.project.models import (
 )
 from fairdm.factories import (
     PersonFactory,
+    ProjectDescriptionFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
     UserFactory,
@@ -178,6 +179,84 @@ class TestProjectModel:
         # Attempt to delete project should raise PublicDatasetsProtect
         with pytest.raises(PublicDatasetsProtect):
             project.delete()
+
+
+@pytest.mark.django_db
+class TestProjectIdentifierField:
+    """The generated project identifier (US-8).
+
+    Requirement: FR-001 - the identifier is generated on creation and is not
+    editable afterwards.
+    """
+
+    def test_uuid_field_is_not_editable(self):
+        assert Project._meta.get_field("uuid").editable is False
+
+
+@pytest.mark.django_db
+class TestProjectRequiredFields:
+    """A project requires a name; an owning organisation is optional (US-8).
+
+    Requirement: FR-002, FR-005 - D-007 records that ownership stays
+    optional so creation remains cheap.
+    """
+
+    def test_project_without_owner_is_valid(self):
+        project = Project(
+            name="No Owner Project",
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+        )
+        project.full_clean()
+
+    def test_project_without_name_is_invalid(self):
+        from fairdm.contrib.contributors.models import Organization
+
+        owner = Organization.objects.create(name="Test Organization")
+        project = Project(
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PRIVATE,
+            owner=owner,
+        )
+        with pytest.raises(ValidationError):
+            project.full_clean()
+
+
+class TestProjectStatusVocabulary:
+    """Every lifecycle status label names the state its member names (US-8).
+
+    Requirement: FR-003, SC-010. The expected label is derived from the
+    member's own name so this stays meaningful if a member is added later,
+    rather than being a hard-coded list that would pass regardless.
+    """
+
+    def test_every_status_label_names_its_state(self):
+        for member in ProjectStatus:
+            expected = member.name.replace("_", " ").capitalize()
+            assert str(member.label) == expected
+
+
+@pytest.mark.django_db
+class TestProjectDefaultOrdering:
+    """Projects are ordered most-recently-modified first by default (US-8).
+
+    Requirement: FR-007.
+    """
+
+    def test_default_ordering_is_most_recently_modified_first(self):
+        first = ProjectFactory()
+        time.sleep(0.01)
+        second = ProjectFactory()
+        time.sleep(0.01)
+        third = ProjectFactory()
+
+        # Re-saving `first` last makes it the most recently modified,
+        # despite being created first - proving the ordering is by
+        # `modified`, not by creation order or primary key.
+        time.sleep(0.01)
+        first.save()
+
+        assert list(Project.objects.all()) == [first, third, second]
 
 
 @pytest.mark.django_db
@@ -634,7 +713,13 @@ class TestProjectModelIntegration:
         assert all(date.related == project for date in dates)
 
     def test_add_contributor(self):
-        """Test adding a contributor to a project."""
+        """Test adding a contributor to a project.
+
+        Requirement: FR-013 - a contribution records its contributor and its
+        roles, and both read back. Passing roles in and never reading them
+        back would leave this test passing even if `add_contributor` ignored
+        roles entirely, so the roles are asserted explicitly here.
+        """
         project = ProjectFactory()
         user = PersonFactory()
 
@@ -643,6 +728,41 @@ class TestProjectModelIntegration:
         assert contribution is not None
         assert contribution.contributor == user
         assert project.contributors.filter(pk=contribution.pk).exists()
+
+        roles = list(contribution.roles.all())
+        assert [role.name for role in roles] == ["Creator"]
+
+
+@pytest.mark.django_db
+class TestProjectRoleDataciteMapping:
+    """The project role vocabulary is expressible in DataCite's contributor
+    types (US-8).
+
+    Requirement: FR-014. The project role vocabulary's names (PascalCase,
+    e.g. "ProjectLeader") and `DataciteContributorRoles`'s names
+    (SCREAMING_SNAKE_CASE, e.g. "PROJECT_LEADER") differ only in casing
+    convention, so `PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES` records that
+    correspondence rather than requiring export to derive it. The expected
+    role set is read from the vocabulary itself, not hard-coded, so this
+    stays meaningful if the project role collection changes.
+    """
+
+    def test_every_project_role_has_a_datacite_contributor_type(self):
+        from fairdm.core.choices import (
+            PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES,
+            DataciteContributorRoles,
+        )
+
+        project_role_names = set(Project.CONTRIBUTOR_ROLES.values)
+        unmapped = project_role_names - set(PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES)
+        assert not unmapped, f"no DataCite mapping recorded for: {unmapped}"
+
+        datacite_names = set(DataciteContributorRoles().values)
+        missing = {
+            PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES[name]
+            for name in project_role_names
+        } - datacite_names
+        assert not missing, f"mapped to a non-existent DataCite role: {missing}"
 
 
 @pytest.mark.django_db
@@ -1231,3 +1351,132 @@ class TestProjectCreator:
 
         assert project.modified > original_modified
         assert project.created_by == creator
+
+
+class TestProjectTranslationBinding:
+    """Every in-scope surface's strings resolve for translation at request
+    time, not at import time (US-8).
+
+    Requirement: FR-027. `gettext_lazy` returns a lazy proxy that resolves
+    when it is rendered; `gettext` resolves immediately, at import time,
+    against whatever locale happens to be active then. Binding `_` to
+    `gettext_lazy` is what this specification's surfaces rely on, so this
+    asserts the binding directly rather than the string values it produces -
+    a module that imported `gettext` instead would fail this test even
+    though every individual string still "looks" translated.
+    """
+
+    @pytest.mark.parametrize(
+        "module_path",
+        [
+            "fairdm.core.project.models",
+            "fairdm.core.project.admin",
+            "fairdm.core.project.filters",
+            "fairdm.core.project.validators",
+            "fairdm.core.choices",
+            "fairdm.core.vocabularies",
+        ],
+    )
+    def test_module_binds_gettext_lazy_not_eager(self, module_path):
+        from importlib import import_module
+
+        from django.utils.translation import gettext_lazy
+
+        module = import_module(module_path)
+        assert module._ is gettext_lazy, (
+            f"{module_path} binds `_` to something other than gettext_lazy; "
+            "a string assigned at import time with it would resolve "
+            "eagerly rather than at request time."
+        )
+
+
+@pytest.mark.django_db
+class TestProjectWithMetadataQueryCount:
+    """`with_metadata()` loads a project with all its related metadata in a
+    bounded number of queries (US-8).
+
+    Requirement: FR-028, SC-009. Built to fail if the prefetching were
+    removed: the same query count is asserted twice, once against a project
+    carrying one of each related record and once against the same project
+    after several more of each kind are added, proving the count does not
+    grow with the number of related records.
+    """
+
+    @staticmethod
+    def _touch_all_related(projects):
+        """Force evaluation of every relation `with_metadata()` prefetches,
+        for every project in `projects`.
+
+        A single project's relations cost the same one query each whether or
+        not they are prefetched - prefetching only pays off, and N+1 only
+        appears, once more than one project's relations are touched in the
+        same pass. So the count is only meaningful measured across several
+        projects, which is also the shape a real caller (a project list)
+        uses.
+        """
+        for project in projects:
+            list(project.descriptions.all())
+            list(project.dates.all())
+            list(project.identifiers.all())
+            list(project.contributors.all())
+            list(project.keywords.all())
+
+    @staticmethod
+    def _build_project_with_metadata(descriptions, dates, identifiers, keyword_terms):
+        from fairdm.factories.core import ProjectDateFactory
+
+        project = ProjectFactory()
+        for type_ in descriptions:
+            ProjectDescriptionFactory(related=project, type=type_)
+        for type_, value in dates:
+            ProjectDateFactory(related=project, type=type_, value=value)
+        for type_, value in identifiers:
+            ProjectIdentifierFactory(related=project, type=type_, value=value)
+        project.add_contributor(PersonFactory(), with_roles=["Creator"])
+        for term in keyword_terms:
+            project.keywords.add(term)
+        return project
+
+    def test_query_count_does_not_grow_with_related_record_count(
+        self, django_assert_num_queries
+    ):
+        from research_vocabs.models import Concept
+
+        keyword_terms = list(
+            Concept.objects.filter(vocabulary__name="fairdm-roles")[:2]
+        )
+
+        small = self._build_project_with_metadata(
+            descriptions=["Abstract"],
+            dates=[("Start", "2020-01-01")],
+            identifiers=[("DOI", "10.1234/small")],
+            keyword_terms=keyword_terms[:1],
+        )
+
+        with django_assert_num_queries(6):
+            self._touch_all_related(
+                Project.objects.with_metadata().filter(pk=small.pk)
+            )
+
+        # Several projects, each carrying several of every related record -
+        # the query count for loading and touching all of them must not grow
+        # beyond the count above.
+        large = [
+            self._build_project_with_metadata(
+                descriptions=["Abstract", "Objectives"],
+                dates=[("Start", "2020-01-01"), ("End", "2021-01-01")],
+                identifiers=[
+                    ("DOI", f"10.1234/large-{i}"),
+                    ("GRANT_NUMBER", f"GRANT-{i}"),
+                ],
+                keyword_terms=keyword_terms,
+            )
+            for i in range(3)
+        ]
+
+        with django_assert_num_queries(6):
+            self._touch_all_related(
+                Project.objects.with_metadata().filter(
+                    pk__in=[project.pk for project in large]
+                )
+            )
