@@ -158,13 +158,14 @@ class ProjectFactory(DjangoModelFactory):
     # visibility defaults to PRIVATE per model definition
     status = FuzzyChoice(ProjectStatus.values)
 
-    # JSON fields - simplified approach
+    # JSON fields - a list of DataCite funding references (FR-015)
     funding = LazyAttribute(
-        lambda obj: {
-            "agency": "Sample Agency",
-            "grant_number": "GRANT-2024-001",
-            "amount": 50000,
-        }
+        lambda obj: [
+            {
+                "funderName": "Sample Agency",
+                "awardNumber": "GRANT-2024-001",
+            }
+        ]
     )
 
     # Relations - owner required for Project (Organization, not Person)

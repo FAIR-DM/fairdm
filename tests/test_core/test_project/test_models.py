@@ -381,6 +381,150 @@ class TestProjectDateModel:
 
 
 @pytest.mark.django_db
+class TestProjectFunding:
+    """Unit tests for the `Project.funding` field's DataCite shape.
+
+    Requirement: FR-015, FR-016 - funding is a list of DataCite funding
+    references; funder name is required, everything else optional, and the
+    key set and identifier scheme are both closed.
+    """
+
+    def test_award_with_all_parts_round_trips(self):
+        """An award with all six parts is accepted and each part reads back
+        individually.
+
+        Requirement: FR-015, SC-001, SC-005. T031.
+        """
+        project = ProjectFactory()
+        project.funding = [
+            {
+                "funderName": "Sample Agency",
+                "funderIdentifier": "https://doi.org/10.13039/501100000923",
+                "funderIdentifierType": "ROR",
+                "awardNumber": "GRANT-2024-001",
+                "awardTitle": "A study of things",
+                "awardURI": "https://example.org/awards/GRANT-2024-001",
+            }
+        ]
+        project.full_clean()
+        project.save()
+
+        project.refresh_from_db()
+        reference = project.funding[0]
+        assert reference["funderName"] == "Sample Agency"
+        assert (
+            reference["funderIdentifier"]
+            == "https://doi.org/10.13039/501100000923"
+        )
+        assert reference["funderIdentifierType"] == "ROR"
+        assert reference["awardNumber"] == "GRANT-2024-001"
+        assert reference["awardTitle"] == "A study of things"
+        assert reference["awardURI"] == "https://example.org/awards/GRANT-2024-001"
+
+    def test_project_with_two_awards_retains_both(self):
+        """A project carrying two funding records keeps both.
+
+        Requirement: FR-015 - a project MAY carry several funding records.
+        T032.
+        """
+        project = ProjectFactory()
+        project.funding = [
+            {"funderName": "First Agency"},
+            {"funderName": "Second Agency", "awardNumber": "GRANT-002"},
+        ]
+        project.full_clean()
+        project.save()
+
+        project.refresh_from_db()
+        assert len(project.funding) == 2
+        assert project.funding[0]["funderName"] == "First Agency"
+        assert project.funding[1]["funderName"] == "Second Agency"
+
+    def test_award_naming_only_a_funder_is_accepted(self):
+        """A funding record naming only a funder is accepted - every other
+        part is optional.
+
+        Requirement: FR-016, SC-005. T033.
+        """
+        project = ProjectFactory()
+        project.funding = [{"funderName": "Sample Agency"}]
+
+        project.full_clean()  # must not raise
+
+    def test_identifier_scheme_outside_datacite_set_is_refused(self):
+        """A funder identifier scheme outside DataCite's set is refused, and
+        the message names the accepted schemes.
+
+        Requirement: FR-016, SC-005. T034.
+        """
+        project = ProjectFactory()
+        project.funding = [
+            {"funderName": "Sample Agency", "funderIdentifierType": "Wikidata"}
+        ]
+
+        with pytest.raises(ValidationError) as exc_info:
+            project.full_clean()
+
+        message = str(exc_info.value)
+        assert "ISNI" in message
+        assert "GRID" in message
+        assert "Crossref Funder ID" in message
+        assert "ROR" in message
+        assert "Other" in message
+
+    def test_funding_that_is_not_a_list_is_refused(self):
+        """Funding stored as a single object rather than a list is refused.
+
+        Requirement: FR-015 - a single object is not accepted. T035.
+        """
+        project = ProjectFactory()
+        project.funding = {"funderName": "Sample Agency"}
+
+        with pytest.raises(ValidationError):
+            project.full_clean()
+
+    def test_list_of_scalars_is_refused_not_raised(self):
+        """A list whose members are not objects is refused with the same
+        message as a non-list value, rather than raising an unhandled
+        exception.
+
+        Requirement: FR-015. T035.
+        """
+        project = ProjectFactory()
+        project.funding = ["Sample Agency"]
+
+        with pytest.raises(ValidationError) as exc_info:
+            project.full_clean()
+
+        assert "list of funding reference objects" in str(exc_info.value)
+
+    def test_unknown_key_is_refused_and_named(self):
+        """A key outside FR-015's accepted set is refused, and the message
+        names the offending key.
+
+        Requirement: FR-015.
+        """
+        project = ProjectFactory()
+        project.funding = [{"funderName": "Sample Agency", "amount": 50000}]
+
+        with pytest.raises(ValidationError) as exc_info:
+            project.full_clean()
+
+        assert "amount" in str(exc_info.value)
+
+    def test_missing_funder_name_is_refused(self):
+        """A funding record without a funder name is refused.
+
+        Requirement: FR-016 - funder name is required within a record.
+        """
+        project = ProjectFactory()
+        project.funding = [{"awardNumber": "GRANT-2024-001"}]
+
+        with pytest.raises(ValidationError):
+            project.full_clean()
+
+
+@pytest.mark.django_db
 class TestProjectModelIntegration:
     """Tests for the Project model."""
 

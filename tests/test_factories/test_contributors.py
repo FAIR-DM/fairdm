@@ -286,7 +286,7 @@ class TestFactoryIntegration(TestCase):
         # Create project with specific parameters
         custom_project = ProjectFactory(
             name="Custom Project Name",
-            funding={"agency": "Custom Agency", "amount": 100000},
+            funding=[{"funderName": "Custom Agency"}],
         )
 
         # Create person with specific parameters
@@ -296,7 +296,7 @@ class TestFactoryIntegration(TestCase):
 
         # Verify custom values
         self.assertEqual(custom_project.name, "Custom Project Name")
-        self.assertEqual(custom_project.funding["agency"], "Custom Agency")
+        self.assertEqual(custom_project.funding[0]["funderName"], "Custom Agency")
         self.assertEqual(custom_person.first_name, "John")
         self.assertEqual(custom_person.email, "john.doe@example.org")
 

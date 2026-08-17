@@ -20,6 +20,7 @@ from ..vocabularies import (
     FairDMIdentifiers,
     FairDMRoles,
 )
+from .validators import validate_funding
 
 
 class ProjectQuerySet(QuerySet):
@@ -86,9 +87,13 @@ class Project(BaseModel):
     )
     funding = models.JSONField(
         verbose_name=_("funding"),
-        help_text=_("Related funding information."),
+        help_text=_(
+            "Funding awards, in DataCite's funding reference shape: a list "
+            "of objects, each naming a funder and optionally an award."
+        ),
         null=True,
         blank=True,
+        validators=[validate_funding],
     )
     status = models.IntegerField(
         _("status"), choices=STATUS_CHOICES, default=STATUS_CHOICES.CONCEPT
