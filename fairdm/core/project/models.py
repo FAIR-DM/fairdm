@@ -172,8 +172,10 @@ class ProjectDescription(AbstractDescription):
                 raise ValidationError(
                     {
                         "type": _(
-                            "A description of this type already exists for this project."
+                            "A description of type '%(type)s' already exists "
+                            "for this project."
                         )
+                        % {"type": self.type}
                     }
                 )
 

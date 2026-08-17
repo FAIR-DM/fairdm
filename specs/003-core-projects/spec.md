@@ -52,8 +52,8 @@ the ones that shaped this document.
 
 ### User Story 1 - Describe a project in the terms its field uses (Priority: P1)
 
-A researcher records what a project is about. They write an abstract, and separately a description
-of the methods, and separately a statement of why the work matters. Each one is stored under its own
+A researcher records what a project is about. They write an abstract, and separately a statement of
+the project's objectives, and separately the background it sits in. Each one is stored under its own
 type rather than concatenated into a single field, so that a reader — or another system — can ask
 for the abstract alone. They also categorise the work, using terms from a controlled vocabulary
 where one applies and free tags where none does.
@@ -62,7 +62,7 @@ where one applies and free tags where none does.
 prose is not something an external repository can consume. This is the smallest thing that makes a
 project record more than a name.
 
-**Independent Test**: Attach an abstract and a methods description to a project, confirm both are
+**Independent Test**: Attach an abstract and an objectives description to a project, confirm both are
 retrievable independently under their own types, confirm a second abstract is refused, and confirm
 that controlled keywords and free tags round-trip.
 
@@ -72,7 +72,7 @@ that controlled keywords and free tags round-trip.
    against that project under the abstract type and can be retrieved by type.
 2. **Given** a project that already has an abstract, **When** a second abstract is attached,
    **Then** the attempt is refused with a message naming the type that is already used.
-3. **Given** a project with an abstract and a methods description, **When** its descriptions are
+3. **Given** a project with an abstract and an objectives description, **When** its descriptions are
    read, **Then** both are returned, each carrying its own type.
 4. **Given** a project, **When** a term from a configured controlled vocabulary is added as a
    keyword, **Then** the term is stored as a reference to that vocabulary rather than as text.
@@ -282,6 +282,8 @@ its related records.
 - A project name longer than the field allows is refused by the field's own validation; no truncation
   occurs.
 - A project with no owning organisation is a normal state, not an orphan (D-007).
+- A methods description belongs to a dataset, not to a project — the project description vocabulary
+  deliberately omits it while the dataset one carries it (D-015).
 - Two descriptions of the same type are refused at the database as well as in validation, so a
   concurrent write cannot slip past the check.
 - A date record whose value is absent is refused; a type without a date carries no meaning.

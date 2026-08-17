@@ -236,3 +236,21 @@ Findings that are real but are not this feature's work:
 | `ProjectQuerySet.with_list_data()` has no callers (`models.py:49`) | Defect report against 013's layer |
 | The project overview template extends a parent that does not exist and is registered nowhere (`templates/project/plugins/overview.html:1`) | Defect report — dead template |
 | The REST API exposes project create, update and delete, which no specification describes (`fairdm/api/viewsets.py:72`) | Noted against 011, the API specification |
+
+## D-015 — A methods description belongs to a dataset, not a project
+
+**Self-resolved, after implementation surfaced it.**
+
+The rewritten specification's first user story described a researcher writing "a description of the
+methods". The project description vocabulary deliberately omits that type — it is commented out of
+the project collection at `fairdm/core/vocabularies.py` and present in the dataset collection.
+
+Settled in the code's favour, and the specification is the thing corrected. Methods describe how data
+was produced, and the dataset is the record that carries them; repeating them on the parent would
+duplicate them across every dataset beneath it. This is the same reasoning as D-004 on
+data-collection dates, and finding the two independently is evidence the line is in the right place.
+
+A pre-existing test attached a methods description to a project and passed anyway, because the type
+field is a plain character field and Django does not validate choices on save. That is the blind spot
+the vocabulary-binding tests added on this branch exist to close. The test now uses a type the
+project vocabulary contains.

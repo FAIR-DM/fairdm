@@ -239,11 +239,29 @@ class TestProjectPreDeleteSignal:
 class TestProjectDescriptionModel:
     """Unit tests for ProjectDescription model."""
 
-    def test_duplicate_description_type_raises_validation_error(self):
-        """Test that duplicate description types for the same project are prevented.
+    def test_description_type_choices_are_scoped_to_project(self):
+        """The type field's choices are exactly the project description
+        collection's members.
 
-        Requirement: FR-008 - Each project can have at most one description of each type.
-        Implementation: T006, T007 - unique_together constraint and clean() validation.
+        Requirement: FR-008 - A project's descriptions are drawn from a
+        controlled set of description types.
+
+        `type` is a plain CharField, so creating a row cannot prove the
+        vocabulary binding - Django does not validate choices on save. This
+        asserts the choices `GenericModel.__init_subclass__` pushed onto the
+        field directly.
+        """
+        assert (
+            ProjectDescription.type.field.choices
+            == ProjectDescription.VOCABULARY.choices
+        )
+
+    def test_duplicate_description_type_raises_validation_error(self):
+        """Test that duplicate description types for the same project are
+        prevented, and that the message names the type that is already used.
+
+        Requirement: FR-008 - Each project can have at most one description of
+        each type, and the message names it. T004, T005.
         """
         from fairdm.contrib.contributors.models import Organization
 
@@ -270,6 +288,25 @@ class TestProjectDescriptionModel:
 
         assert "type" in exc_info.value.error_dict
         assert "already exists" in str(exc_info.value)
+        assert "Abstract" in str(exc_info.value)
+
+    def test_duplicate_description_type_refused_at_database(self):
+        """The unique constraint on (related, type) refuses a duplicate
+        description type even when validation is bypassed, so a concurrent
+        write cannot slip past it.
+
+        Requirement: FR-008 - At most one description per type, enforced by
+        a database constraint as well as by validation. T006.
+        """
+        project = ProjectFactory()
+        ProjectDescription.objects.create(
+            related=project, type="Abstract", value="First abstract"
+        )
+
+        with pytest.raises(IntegrityError):
+            ProjectDescription.objects.create(
+                related=project, type="Abstract", value="Second abstract"
+            )
 
 
 @pytest.mark.django_db
@@ -783,11 +820,11 @@ class TestProjectDescriptions:
             value="This project studies the impact of X on Y using Z methodology.",
         )
 
-        # Add Methods description
+        # Add Objectives description
         ProjectDescription.objects.create(
             related=project,
-            type="Methods",
-            value="We collected samples from 10 sites and analyzed them using XRF.",
+            type="Objectives",
+            value="We aim to quantify the effect across ten sites using XRF.",
         )
 
         # Verify both descriptions exist
@@ -797,14 +834,64 @@ class TestProjectDescriptions:
         # Verify types are different
         types = [d.type for d in descriptions]
         assert "Abstract" in types
-        assert "Methods" in types
+        assert "Objectives" in types
 
         # Verify content is correct
         abstract_desc = project.descriptions.get(type="Abstract")
         assert "impact of X on Y" in abstract_desc.value
 
-        methods_desc = project.descriptions.get(type="Methods")
-        assert "XRF" in methods_desc.value
+        objectives_desc = project.descriptions.get(type="Objectives")
+        assert "XRF" in objectives_desc.value
+
+
+@pytest.mark.django_db
+class TestProjectKeywordsAndTags:
+    """Tests for project categorisation via controlled keywords and free
+    tags.
+
+    Requirement: FR-006 - A project supports categorisation both by terms
+    drawn from a configured controlled vocabulary and by free-form tags, and
+    the two remain distinguishable.
+    """
+
+    def test_controlled_vocabulary_term_is_stored_as_a_reference(self):
+        """A term from a configured controlled vocabulary added as a keyword
+        is stored as a reference to that vocabulary rather than as text.
+
+        Requirement: FR-006. T008.
+        """
+        from research_vocabs.models import Concept
+
+        project = ProjectFactory()
+        # `Concept.preload()` runs once per session (tests/conftest.py), so
+        # real terms from every registered vocabulary are already available.
+        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        assert term is not None
+
+        project.keywords.add(term)
+
+        stored = project.keywords.get(pk=term.pk)
+        assert isinstance(stored, Concept)
+        assert stored.vocabulary.name == "fairdm-roles"
+        assert stored.name == term.name
+
+    def test_free_tags_are_distinguishable_from_controlled_keywords(self):
+        """Free tags are stored and remain distinguishable from controlled
+        keywords.
+
+        Requirement: FR-006. T009.
+        """
+        from research_vocabs.models import Concept
+
+        project = ProjectFactory()
+        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        project.keywords.add(keyword)
+        project.tags.add("erosion")
+
+        assert "erosion" in project.tags.names()
+        assert project.keywords.count() == 1
+        assert all(isinstance(k, Concept) for k in project.keywords.all())
+        assert not project.keywords.filter(name="erosion").exists()
 
 
 @pytest.mark.django_db
