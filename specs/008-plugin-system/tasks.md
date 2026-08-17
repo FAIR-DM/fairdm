@@ -31,8 +31,10 @@ complete without both.
 - **T006** `Plugin` base class: a `View` subclass carrying `name`, `url_path`, `permission`,
   `check`, `extra_views`, `registered_model` and `plugin_class`, all with defaults. *(FR-001)*
 - **T007** `get_name()` — returns `name`, else the slugified class name. Test both. *(FR-002)*
-- **T008** `slugify()` in `utils.py`: CamelCase to hyphens, spaces and underscores to hyphens,
-  non-alphanumerics dropped, no duplicate or trailing hyphens. Test each rule. *(FR-002)*
+- **T008** Delete the hand-rolled `slugify` and derive the name with
+  `django.utils.text.camel_case_to_spaces` composed with `django.utils.text.slugify`. The bespoke
+  version mangles acronyms — `URLTestPlugin` becomes `u-r-l-test-plugin` — and a current test
+  asserts that as correct; correct the assertion with the code. *(FR-002)*
 - **T009** `get_url_path()` — returns `url_path`, else the slugified class name; `None` means no
   segment of its own. Test all three. *(FR-002, FR-003)*
 - **T010** `PluginRegistry` with a `register(*models, **options)` decorator returning the class
@@ -57,20 +59,27 @@ complete without both.
 
 ## Phase 3 — US2: Reach the record without disturbing the view
 
-- **T019** `get_base_object()` resolving the record from the URL kwargs the registration declared.
-  *(FR-006)*
-- **T020** `base_object` as a `cached_property` over it, named to match the existing related-object
-  mixin. *(FR-006)*
-- **T021** Put `base_object` in the template context. Test it is present and correct. *(FR-007)*
+- **T019** Compose the existing related-object mixin rather than reimplementing record access; it
+  already supplies a `base_object` `cached_property` over `get_object_or_404`, a configurable lookup
+  kwarg, and `non_polymorphic_object`, which the template tags read first and which the polymorphic
+  records need. Generalise its lookup to the declared map. *(FR-006)*
+- **T020** Test `base_object` resolves for a polymorphic record accessed as its base type, and that
+  `non_polymorphic_object` is present. *(FR-006)*
+- **T021** Test `base_object` is in the template context and is the core record. *(FR-007)*
 - **T022** Do **not** assign `self.object`. Test that a plugin over a `CreateView` still sees
   `self.object is None` in its own `get()`, and that a plugin over a `DetailView` keeps its own
   resolution. *(FR-008, US2 sc.1)*
 - **T023** Test that a plugin over a stock `UpdateView` keeps its own `form_class`, `get_object`
   and `form_valid`. *(FR-008, SC-006)*
-- **T024** Raise `Http404` when the address names a record that does not exist. Test the status code
-  through the URLconf, not the exception. *(FR-009, US2 sc.3)*
-- **T025** Registration declares the record's URL fragment and lookup fields, defaulting to the
-  `uuid` form. Test a model addressed by something other than `uuid`. *(FR-006)*
+- **T024** Test a request naming a record that does not exist returns 404 through the URLconf, not
+  an exception — the composed mixin's `get_object_or_404` supplies this. *(FR-009, US2 sc.3)*
+- **T025** Model-level addressing: a model declares its URL route and an explicit kwarg-to-field map,
+  defaulting to the `uuid` form. Not per-registration — two plugins on one model cannot disagree
+  about how their shared record is found. *(FR-006)*
+- **T025a** Reverse uses the declared map. The current helper hardcodes a `uuid` kwarg, and the
+  navigation package filters kwargs and then swallows the failure, so a record without one renders
+  an **empty menu rather than an error**. Test that a location plugin's entry renders a working
+  href. *(FR-005, FR-006)*
 - **T026** `get_breadcrumbs()` resolving the record's list address and the record's own address by
   reverse, not by literal. Test both hrefs resolve. *(FR-010, US2 sc.4)*
 - **T027** Give `Plugin` a `page_title` default so a plugin that sets none does not raise while
@@ -83,14 +92,23 @@ complete without both.
 ## Phase 4 — US3: Visibility and reachability are one set
 
 - **T030** `access.py` with `can_open(view_class, request, obj)`. *(FR-019, FR-020)*
-- **T031** Read the predicate with `inspect.getattr_static`. Test that a plain function, a lambda
-  and a `staticmethod` all receive `(request, obj)` identically. *(FR-017)*
+- **T031** Read the predicate with `inspect.getattr_static`. Test that a plain function, a lambda,
+  a `staticmethod` and an inherited attribute all receive `(request, obj)` identically. *(FR-017)*
+- **T031a** Refuse a `check` that is neither callable nor a bool. `getattr_static` returns a
+  `classmethod` object unchanged; it is **not callable but is truthy**, so a `callable()` guard falls
+  through and publishes the page. Test that a `classmethod` predicate is refused at registration
+  rather than silently permitting everyone. *(FR-017, FR-033)*
 - **T032** Permission resolution as `has_perm(p) or has_perm(p, obj)`. Test a user with only a
   model-level permission and a user with only an object-level one — **both must pass**. *(FR-018,
   FR-021)*
-- **T033** Memoise permission results on the request by `(permission, id(obj))`. *(FR-021)*
-- **T034** `PluginAccessMixin` over `AccessMixin`: `get_permission_required`, `has_permission`,
-  `dispatch` delegating to `handle_no_permission`. *(FR-018)*
+- **T033** Memoise permission results on the request by `(permission, model label, pk)` — not
+  `id(obj)`, which CPython reuses after collection, and the decision is reachable from template loops
+  over temporary objects. **Export the helper**, because the real per-page cost is author predicates
+  calling the permission check themselves, which an internal memo never sees. *(FR-021)*
+- **T034** Subclass `PermissionRequiredMixin` and override `has_permission()` only. It already
+  defines the permission normaliser, the predicate and the `dispatch` that delegates to
+  `handle_no_permission`; the only difference this feature needs is the second, object-level call.
+  *(FR-018)*
 - **T035** Test an anonymous visitor is redirected to login and an authenticated one gets 403.
   *(FR-018)*
 - **T036** The registry passes the navigation package an adapter closure calling `can_open`, never
@@ -117,8 +135,12 @@ complete without both.
   *(FR-028, US4 sc.1)*
 - **T047** Allow the same name on different models. *(FR-032, US4 sc.7)*
 - **T048** Refuse a duplicate path segment on one model. *(FR-029, US4 sc.2)*
-- **T049** Refuse a segment that cannot appear in a route, accepting `<converter:name>` and checking
-  the converter against Django's registered converters. *(FR-030, US4 sc.5)*
+- **T049** Refuse a segment that cannot appear in a route by constructing it with `path()` inside a
+  `try` and re-raising with the plugin named, rather than parsing converters by hand — `path()`
+  already raises on an unknown converter. *(FR-030, FR-033, US4 sc.5)*
+- **T049a** Refuse a duplicate **generated URL name** on one model. Segments and plugin names are not
+  enough: a plugin `a` with a child `b` and a separate plugin `a-b` produce the same reverse name
+  from different paths, and Django keeps the last one silently. *(FR-029, FR-031)*
 - **T050** Test every refusal names the plugin, the model and the problem. *(FR-033)*
 - **T051** Test refusal happens at registration, not at first request — assert the import itself
   raises. *(FR-034)*
@@ -175,3 +197,35 @@ complete without both.
 - **T077** **End-to-end**: an addon-style package registers a plugin against a core model it does not
   own, and it is served. *(SC-002)*
 - **T078** Full suite, lint, type checks and build green.
+
+## Phase 9 — Added after design review
+
+- **T079** `can_open` consults the **owning plugin's** predicate, not only the view's own. An
+  additional view inherits the permissive default, so reading the predicate off the view class alone
+  leaves a child of a restricted plugin reachable while its parent is refused and unlisted. The mount
+  already binds the owning plugin; nothing read it. Test the child case directly. *(FR-019, SC-003)*
+- **T080** The registry owns the per-model navigation object and creates it on first registration.
+  They are currently five hand-written objects found by a string convention, one of which registers
+  under a different name than its variable, and a record with none makes the registry append to
+  `None`. *(FR-011)*
+- **T081** State and test the context contract: `base_object` is the core record, `object` stays the
+  view's own object, and the plugin system never assigns `self.object`. *(FR-007, FR-008)*
+- **T082** Migrate the four consumers that read `object` as the core record today — the base
+  template, the template tags, the contributor overview template, and the contributor plugin module,
+  which also calls a method defined nowhere in the tree. *(FR-008)*
+- **T083** Navigation tests assert entry **contents**, not merely a 200 response. A missing context
+  key renders empty, the reverse fails, and the entry is hidden — so a page with no navigation at all
+  still returns 200. *(FR-011, FR-013)*
+- **T084** Give every surviving shipped registration explicit `label`, `icon` and `order` kwargs.
+  Removing the class-attribute fallback otherwise leaves around ten of them rendering a slugified
+  class name and the default icon. *(FR-013, FR-015)*
+- **T085** Remove the `menu` class attribute from the shipped plugins that declare one. *(FR-016)*
+- **T086** Replace, do not merely delete, the templates that live plugins serve. Four extend a base
+  template that does not exist; deleting them leaves those plugins with no template at all. *(SC-001)*
+- **T087** Remove the template lookup chain in the generic plugin module. It is the chain the
+  decisions record orders removed, and it reads an attribute no class defines. *(FR-008)*
+- **T088** Fold the predicate helpers into the access module and delete the separate module.
+- **T089** A system check reports a registration against a model with no mounted attachment point.
+  This cannot be caught in the decorator, because no URL configuration exists when it runs — so it is
+  a weaker guarantee than the rest, and recorded as such. It is also the failure that let five
+  registrations sit inert. *(FR-027)*

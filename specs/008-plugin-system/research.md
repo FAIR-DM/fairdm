@@ -199,9 +199,16 @@ both paths reach the same function object, so FR-020 holds structurally rather t
 - Add `object=object` to `base.html:31` so predicates receive the record instead of re-fetching it.
 - **The entry's condition is the parent view's own condition**, following admin. A plugin whose
   parent is permitted but whose children are not still shows one entry; the children are refused at
-  their own dispatch and were never advertised. The inverse — child permitted, parent not — hides the
-  entry and leaves the child reachable by address, which is correct under D7 because the child was
-  never shown, but it is worth naming as a decision rather than an accident.
+  their own dispatch and were never advertised.
+
+  **Corrected after design review.** An earlier draft of this section said the inverse case — the
+  parent refused, a child still reachable by address — was "correct under D7 because the child was
+  never shown". That is wrong, and it defeats the guarantee the whole story exists for. An
+  additional view inherits `Plugin.check = True`, so reading the predicate off the view class alone
+  would leave `CurationEdit` served to a user who is refused `Curation` and shown no entry for it.
+  The predicate belongs to the plugin, and a child belongs to the plugin, so `can_open` consults the
+  owning plugin's predicate as well as the view's own permission. The mount already binds
+  `plugin_class`; nothing was reading it.
 - Replace `dispatch`/`has_permission` with a mixin over `AccessMixin`, so an anonymous visitor is
   redirected to login rather than given the 403 the current unconditional `PermissionDenied` sends.
 

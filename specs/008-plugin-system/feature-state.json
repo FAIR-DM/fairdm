@@ -3,7 +3,7 @@
   "feature": "008-plugin-system",
   "branch": "008-plugin-system",
   "repo": "FAIR-DM/fairdm",
-  "state": "RECONCILED",
+  "state": "DESIGN_REVIEWED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -29,6 +29,11 @@
       "state": "RECONCILED",
       "at": "2026-08-17T15:20:00Z",
       "note": "78 greenfield tasks, 4 satisfied with code and a passing test, 74 open"
+    },
+    {
+      "state": "DESIGN_REVIEWED",
+      "at": "2026-08-17T16:10:00Z",
+      "note": "18 findings, 5 blocking; plan and task list revised, ledger corrected on 5 tasks"
     }
   ],
   "gates": {
@@ -41,8 +46,8 @@
       "at": null
     },
     "design_review": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "design-review",
+      "at": "2026-08-17T16:10:00Z"
     },
     "merge": {
       "approved_by": null,
@@ -50,17 +55,22 @@
     }
   },
   "reconciliation": {
-    "tasks_total": 78,
-    "satisfied": 4,
-    "open": 74,
+    "tasks_total": 92,
+    "satisfied": 5,
+    "open": 87,
     "open_by_reason": {
-      "not built": 39,
+      "not built": 51,
       "built differently": 13,
-      "built, untested": 10,
+      "built, untested": 9,
       "broken": 10,
       "vacuous test": 2
     },
-    "rule": "satisfied requires BOTH a code citation and a currently passing test that exercises the behaviour"
+    "rule": "satisfied requires a code citation AND a passing test that exercises the behaviour; structural tasks with no testable behaviour are marked done with an explicit reason and no test",
+    "review_corrections": [
+      "T001, T002: kept done, but as structural with no test cited \u2014 a conftest is not a test",
+      "T010: returned to todo; the tests assert the class name appears, never that the class is unchanged",
+      "T007, T009: moved to done; real passing tests already cover them"
+    ]
   },
   "stories": [
     {
@@ -79,9 +89,19 @@
         },
         {
           "id": "T007",
-          "status": "todo",
+          "status": "done",
           "attempts": 0,
-          "open_reason": "built, untested"
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py:51"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registry.py:103"
+            ],
+            "commands": [
+              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
+            ]
+          }
         },
         {
           "id": "T008",
@@ -91,27 +111,25 @@
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
-        },
-        {
-          "id": "T010",
           "status": "done",
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/contrib/plugins/registry.py:52",
-              "fairdm/contrib/plugins/registry.py:87"
+              "fairdm/contrib/plugins/base.py:64"
             ],
             "tests": [
-              "tests/test_contrib/test_plugins/test_registry.py:17::test_register_plugin_for_single_model",
-              "tests/test_contrib/test_plugins/test_registry.py:33::test_register_plugin_for_multiple_models"
+              "tests/test_contrib/test_plugins/test_registry.py:115"
             ],
             "commands": [
               "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
             ]
           }
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "built, untested"
         },
         {
           "id": "T011",
@@ -259,6 +277,13 @@
           "status": "todo",
           "attempts": 0,
           "open_reason": "vacuous test"
+        },
+        {
+          "id": "T025a",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
         }
       ]
     },
@@ -359,6 +384,20 @@
           "status": "todo",
           "attempts": 0,
           "open_reason": "broken"
+        },
+        {
+          "id": "T031a",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T079",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
         }
       ]
     },
@@ -417,6 +456,20 @@
           "status": "todo",
           "attempts": 0,
           "open_reason": "not built"
+        },
+        {
+          "id": "T049a",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T089",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
         }
       ]
     },
@@ -521,6 +574,34 @@
           "status": "todo",
           "attempts": 0,
           "open_reason": "broken"
+        },
+        {
+          "id": "T080",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T083",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T084",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T085",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
         }
       ]
     },
@@ -541,13 +622,10 @@
               "fairdm/contrib/plugins/apps.py:7",
               "fairdm/conf/settings/apps.py:54"
             ],
-            "tests": [
-              "tests/test_contrib/test_plugins/test_templatetags.py:14::test_plugin_url_with_non_polymorphic_object"
-            ],
-            "commands": [
-              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
-            ]
-          }
+            "tests": [],
+            "commands": []
+          },
+          "done_reason": "structural: package registration, no behaviour to test"
         },
         {
           "id": "T002",
@@ -557,13 +635,10 @@
             "code": [
               "tests/test_contrib/test_plugins/__init__.py:1"
             ],
-            "tests": [
-              "tests/test_contrib/test_plugins/conftest.py:1"
-            ],
-            "commands": [
-              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
-            ]
-          }
+            "tests": [],
+            "commands": []
+          },
+          "done_reason": "structural: test package layout, no behaviour to test"
         },
         {
           "id": "T003",
@@ -652,6 +727,41 @@
           "status": "todo",
           "attempts": 0,
           "open_reason": "built differently"
+        },
+        {
+          "id": "T081",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T082",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T086",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T087",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
+        },
+        {
+          "id": "T088",
+          "status": "todo",
+          "attempts": 0,
+          "open_reason": "not built",
+          "source": "design review"
         }
       ]
     }
