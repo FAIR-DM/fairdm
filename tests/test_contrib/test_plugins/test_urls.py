@@ -189,3 +189,62 @@ class TestExtraViews:
             kwargs={"uuid": "abc", "pk": 7},
         )
         assert url == "/project/abc/contributors/7/edit/"
+
+
+@pytest.mark.django_db
+class TestTheNavigationTrail:
+    def test_the_record_entry_links_to_the_record(self, client):
+        sample = SampleFactory()
+        response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
+        trail = response.context["breadcrumbs"]
+        record_entry = next(e for e in trail if e["text"] == str(sample))
+        assert record_entry["href"] == sample.get_absolute_url()
+
+    def test_no_entry_carries_a_placeholder_link(self, client):
+        """Both hrefs used to be hardcoded, one to the site root and one to a dead anchor."""
+        sample = SampleFactory()
+        response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
+        for entry in response.context["breadcrumbs"]:
+            assert entry.get("href") not in {"#", "/"}
+
+    def test_a_plugin_without_a_page_title_does_not_raise(self, rf, plain_user):
+        """Issue #112: get_breadcrumbs read an attribute the base class never defined."""
+        sample = SampleFactory()
+
+        class Quiet(Plugin, TemplateView):
+            template_name = "fairdm/plugin.html"
+
+        view = Quiet()
+        view.request = rf.get("/")
+        view.request.user = plain_user
+        view.kwargs = {"uuid": sample.uuid}
+        view.registered_model = Sample
+        assert view.get_breadcrumbs()
+
+
+@pytest.mark.django_db
+class TestDeclaredAssets:
+    def test_declared_stylesheets_and_scripts_reach_the_response(self, client):
+        sample = SampleFactory()
+        response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
+        # The base template renders plugin_media in the head and before the closing body.
+        assert "plugin_media" in response.context
+
+    def test_a_plugin_declaring_media_exposes_it(self, rf, plain_user):
+        sample = SampleFactory()
+
+        class WithAssets(Plugin, TemplateView):
+            template_name = "fairdm/plugin.html"
+
+            class Media:
+                css = {"all": ["myapp/analysis.css"]}
+                js = ["myapp/analysis.js"]
+
+        view = WithAssets()
+        view.request = rf.get("/")
+        view.request.user = plain_user
+        view.kwargs = {"uuid": sample.uuid}
+        view.registered_model = Sample
+        media = view.get_context_data()["plugin_media"]
+        assert "myapp/analysis.css" in str(media)
+        assert "myapp/analysis.js" in str(media)

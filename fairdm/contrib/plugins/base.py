@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -55,6 +56,10 @@ class Plugin(PermissionRequiredMixin, View):
     # tab = None
     #: Additional view classes belonging to this plugin. Read only through get_extra_views().
     extra_views: ClassVar[list[type[Plugin]]] = []
+
+    #: Shown as the last entry in the navigation trail. Declared here because get_breadcrumbs()
+    #: reads it directly, and a plugin that set none used to raise AttributeError (issue #112).
+    page_title: ClassVar[str] = ""
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
 
@@ -246,26 +251,37 @@ class Plugin(PermissionRequiredMixin, View):
         Returns:
             List of breadcrumb dicts with 'text' and optionally 'href' keys
         """
-        breadcrumbs = []
+        from django.urls import NoReverseMatch
+        from django.urls import reverse as django_reverse
 
-        # Add model list view breadcrumb
+        breadcrumbs: list[dict[str, Any]] = []
+
         if self.registered_model:
-            model_name = self.registered_model._meta.verbose_name_plural
-            # TODO: Reverse model list URL
-            breadcrumbs.append({"text": model_name, "href": "/"})
+            meta = self.registered_model._meta
+            entry: dict[str, Any] = {"text": meta.verbose_name_plural}
+            # A record type may have no list page; a trail entry that does not navigate is worse
+            # than one that is plain text, so the link is added only when it resolves.
+            for candidate in (f"{meta.model_name}-list", f"{meta.model_name}s"):
+                try:
+                    entry["href"] = django_reverse(candidate)
+                except NoReverseMatch:
+                    continue
+                break
+            breadcrumbs.append(entry)
 
-        # Add object breadcrumb
         obj = self.base_object
         if obj is not None:
             obj_str = str(obj)
-            # Truncate long object names
             if len(obj_str) > 50:
                 obj_str = obj_str[:47] + "..."
-            # TODO: Reverse object detail URL
-            breadcrumbs.append({"text": obj_str, "href": "#"})
+            entry = {"text": obj_str}
+            get_absolute_url = getattr(obj, "get_absolute_url", None)
+            if callable(get_absolute_url):
+                with contextlib.suppress(Exception):
+                    entry["href"] = get_absolute_url()
+            breadcrumbs.append(entry)
 
-        # Add current page breadcrumb
-        if self.menu:
+        if self.page_title:
             breadcrumbs.append({"text": self.page_title})
 
         return breadcrumbs

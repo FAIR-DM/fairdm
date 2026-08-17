@@ -3,7 +3,7 @@
   "feature": "008-plugin-system",
   "branch": "008-plugin-system",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENTING",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "INTAKE",
@@ -39,6 +39,11 @@
       "state": "IMPLEMENTING",
       "at": "2026-08-17T17:30:00Z",
       "note": "access decision landed; sample pages serve again; 19/92 tasks done"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-17T18:30:00Z",
+      "note": "91/92 tasks done; suite 1582 passing, gates green"
     }
   ],
   "gates": {
@@ -61,8 +66,8 @@
   },
   "reconciliation": {
     "tasks_total": 92,
-    "satisfied": 19,
-    "open": 73,
+    "satisfied": 91,
+    "open": 1,
     "open_by_reason": {
       "not built": 51,
       "built differently": 13,
@@ -83,58 +88,98 @@
       "priority": "P1",
       "issue": 149,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestNaming"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T007",
           "status": "done",
-          "attempts": 0,
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/contrib/plugins/base.py:51"
+              "fairdm/contrib/plugins/base.py"
             ],
             "tests": [
-              "tests/test_contrib/test_plugins/test_registry.py:103"
+              "tests/test_contrib/test_plugins/test_urls.py::TestNaming::test_explicit_name_wins"
             ],
             "commands": [
-              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
             ]
           }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/utils.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestNaming::test_acronyms_are_not_split_into_letters"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T009",
           "status": "done",
-          "attempts": 0,
+          "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/contrib/plugins/base.py:64"
+              "fairdm/contrib/plugins/base.py"
             ],
             "tests": [
-              "tests/test_contrib/test_plugins/test_registry.py:115"
+              "tests/test_contrib/test_plugins/test_urls.py::TestNaming::test_a_plugin_can_decline_a_segment"
             ],
             "commands": [
-              "pytest tests/test_contrib/test_plugins/ -q -p no:randomly"
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
             ]
           }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestOneClassTwoRecords"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T011",
@@ -155,21 +200,57 @@
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestExtraViews::test_children_share_the_parent_prefix"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/sample/urls.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py::TestRecordPagesServe"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestAddresses"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T015",
@@ -190,33 +271,93 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestAddresses::test_an_explicit_segment_is_the_one_served"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestOneClassTwoRecords"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestOneClassTwoRecords::test_each_mount_resolves_its_own_record_type"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T061",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T062",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear::test_a_registration_gets_an_entry_by_default"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         }
       ]
     },
@@ -225,26 +366,62 @@
       "priority": "P1",
       "issue": 150,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestReachingTheRecord"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestReachingTheRecord::test_a_view_keeps_its_own_object"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestReachingTheRecord::test_the_record_is_in_the_context"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T022",
@@ -265,52 +442,148 @@
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "vacuous test"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestReachingTheRecord::test_a_stock_update_view_keeps_its_form_class"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestReachingTheRecord::test_a_missing_record_is_404"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py::TestARecordWithoutAUuid"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestTheNavigationTrail::test_no_entry_carries_a_placeholder_link"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestTheNavigationTrail::test_a_plugin_without_a_page_title_does_not_raise"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_base.py::TestPluginGetContextData"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "vacuous test"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestDeclaredAssets"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T025a",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/utils.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py::TestARecordWithoutAUuid::test_a_location_plugin_resolves_and_reverses"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         }
       ]
     },
@@ -319,7 +592,7 @@
       "priority": "P1",
       "issue": 151,
       "worktree": null,
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -410,9 +683,21 @@
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_base.py::TestPluginHasPermission::test_has_permission_with_anonymous_user"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T036",
@@ -468,21 +753,57 @@
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestVisibilityMatchesReachability::test_a_refused_plugin_is_neither_listed_nor_reachable"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestVisibilityMatchesReachability::test_a_plugin_whose_permission_is_missing_is_not_listed"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T041",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestCanOpen::test_is_instance_of_narrows_by_subtype"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T042",
@@ -503,22 +824,58 @@
         },
         {
           "id": "T043",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py::TestWhatARecordPageCosts"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T068",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/templates/base.html"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestCanOpen::test_predicate_receives_the_record"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T031a",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestPredicates::test_a_classmethod_predicate_is_refused"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T079",
@@ -545,69 +902,177 @@
       "priority": "P1",
       "issue": 152,
       "worktree": null,
-      "status": "todo",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
           "id": "T044",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T045",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestModelsAreRequired"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T046",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestUniqueness::test_duplicate_name_on_one_record_is_refused"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T047",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestUniqueness::test_the_same_name_on_different_records_is_allowed"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T048",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestUniqueness::test_duplicate_segment_on_one_record_is_refused"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T049",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestRoutes"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T050",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestUniqueness::test_the_message_names_the_plugin_and_the_record"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T051",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestRefusalHappensAtRegistration"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T049a",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestUniqueness::test_a_generated_address_name_cannot_collide"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T089",
           "status": "todo",
           "attempts": 0,
-          "open_reason": "not built",
+          "open_reason": "routed to the later roadmap item on attachment points: it cannot be caught at registration, because no URL configuration exists when the decorator runs",
           "source": "design review"
         }
       ]
@@ -617,62 +1082,170 @@
       "priority": "P2",
       "issue": 153,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T052",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestExtraViews"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T053",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestExtraViews::test_children_share_the_parent_prefix"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T054",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestExtraViews::test_the_shipped_contribution_views_address_their_target"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T055",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestExtraViews::test_children_are_bound_to_the_record_and_their_owner"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T056",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T057",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_access.py::TestCanOpen::test_extra_view_keeps_its_own_permission"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T058",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestRoutes::test_a_route_converter_is_allowed"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T059",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestExtraViews::test_colliding_children_are_refused"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T060",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/checks.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestExtraViews::test_nesting_is_refused"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         }
       ]
     },
@@ -681,66 +1254,174 @@
       "priority": "P2",
       "issue": 154,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T063",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear::test_a_registration_can_decline_its_entry"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T064",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestOrdering"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T065",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear::test_the_declared_label_and_icon_are_used"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T066",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built, untested"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear::test_defaults_come_from_the_class_and_the_framework"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T067",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "broken"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear::test_a_class_attribute_cannot_configure_the_entry"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T080",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/registration.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestMenusExistForAnyRecord"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T083",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_plugins/test_menus.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T084",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/core/sample/plugins.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear::test_the_declared_label_and_icon_are_used"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T085",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_menus.py::TestEntriesAppear::test_a_class_attribute_cannot_configure_the_entry"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         }
       ]
     },
@@ -749,7 +1430,7 @@
       "priority": "P1",
       "issue": 148,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -781,9 +1462,21 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/core.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py::TestARecordWithoutAUuid"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T004",
@@ -804,9 +1497,21 @@
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_plugins/conftest.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py::TestUniqueness"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         }
       ]
     },
@@ -815,96 +1520,266 @@
       "priority": "P1",
       "issue": 148,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T069",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/sample/urls.py",
+              "fairdm/contrib/location/urls.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py::TestRecordPagesServe"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          },
+          "done_reason": "every record with an attachment point is mounted; measurements have none by design, per decisions.md D4"
         },
         {
           "id": "T070",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/location/urls.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py::TestARecordWithoutAUuid"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T071",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/plugins.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T072",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/templates/fairdm/plugin.html"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py::TestRecordPagesServe"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T073",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/import_export/views.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_checks.py"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T074",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/create_a_plugin.md"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py::TestAnAddonCanExtendARecordItDoesNotOwn"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T075",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/create_a_plugin.md"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T076",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/ROADMAP.md"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T077",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/__init__.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_integration.py::TestAnAddonCanExtendARecordItDoesNotOwn"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T078",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "built differently"
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "pyproject.toml"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T081",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_urls.py::TestReachingTheRecord::test_a_view_keeps_its_own_object"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T082",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/core/plugins.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py::TestRecordPagesServe"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T086",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/templates/fairdm/plugin.html"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T087",
-          "status": "todo",
-          "attempts": 0,
-          "open_reason": "not built",
-          "source": "design review"
+          "status": "done",
+          "attempts": 1,
+          "source": "design review",
+          "evidence": {
+            "code": [
+              "fairdm/contrib/generic/plugins.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py"
+            ],
+            "commands": [
+              "pytest tests/ -q -p no:randomly",
+              "pre-commit run --all-files",
+              "poetry build"
+            ]
+          }
         },
         {
           "id": "T088",
@@ -913,14 +1788,15 @@
           "source": "design review",
           "evidence": {
             "code": [
-              "fairdm/contrib/plugins/access.py:24"
+              "fairdm/contrib/plugins/access.py"
             ],
             "tests": [
               "tests/test_contrib/test_plugins/test_access.py::TestCanOpen::test_is_instance_of_narrows_by_subtype"
             ],
             "commands": [
               "pytest tests/ -q -p no:randomly",
-              "pre-commit run --all-files"
+              "pre-commit run --all-files",
+              "poetry build"
             ]
           }
         }
