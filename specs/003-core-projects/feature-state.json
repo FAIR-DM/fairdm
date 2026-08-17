@@ -1,0 +1,657 @@
+{
+  "$schema": "../../../.aeo/feature-state.schema.json",
+  "feature": "003-core-projects",
+  "branch": "003-core-projects",
+  "repo": "FAIR-DM/fairdm",
+  "state": "DESIGN_REVIEW",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-18T00:10:00Z",
+      "note": "specification rewritten in place; scope narrowed to the domain"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-18T00:40:00Z",
+      "note": "brief posted on #84"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-18T01:10:00Z",
+      "note": "research and plan written; task list written greenfield"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-18T01:40:00Z",
+      "note": "reconciled: 12 of 79 tasks proven done"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "sam",
+      "at": "2026-08-18T00:40:00Z",
+      "self_resolved": [
+        "D-002 delete guard: public datasets only, administrator override dropped",
+        "D-004 project dates: data-collection types dropped",
+        "D-005 status vocabulary: shipped set kept, one label corrected",
+        "D-006 visibility: organisation-scoped tier routed out",
+        "D-007 owning organisation stays optional",
+        "D-008 contribution roles: shipped vocabulary kept",
+        "D-009 role-to-permission matrix dropped and routed out",
+        "D-010 audit trail means creator plus timestamps, not revision history"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 158,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:127"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_project_descriptions_relationship",
+              "tests/test_core/test_project/test_models.py::TestProjectDescriptions::test_add_multiple_descriptions_to_project"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:127",
+              "fairdm/core/abstract.py:278"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectDescriptions::test_add_multiple_descriptions_to_project"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 159,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:157",
+              "fairdm/core/vocabularies.py:388"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectDates::test_add_date_range_to_project",
+              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_project_dates_relationship"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:157"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectDates::test_add_date_range_to_project"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 160,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 161,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P1",
+      "issue": 162,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T044",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T045",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T046",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P2",
+      "issue": 163,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T047",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T049",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/admin.py:57"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_concept_status"
+            ]
+          }
+        },
+        {
+          "id": "T050",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/admin.py:57"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_concept_status",
+              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_visibility"
+            ]
+          }
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T055",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T056",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US7",
+      "priority": "P3",
+      "issue": 164,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T057",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T058",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T060",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T061",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T062",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US8",
+      "priority": "P2",
+      "issue": 166,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:73"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_creation_with_required_fields",
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_uuid_is_unique"
+            ]
+          }
+        },
+        {
+          "id": "T064",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:73"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_uuid_is_unique"
+            ]
+          }
+        },
+        {
+          "id": "T065",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T066",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T067",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T068",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T069",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/utils/choices.py:14",
+              "fairdm/core/project/models.py:80"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_visibility_choices"
+            ]
+          }
+        },
+        {
+          "id": "T070",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:80"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_visibility_choices",
+              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_project_visibility_default"
+            ]
+          }
+        },
+        {
+          "id": "T071",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T072",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T073",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/abstract.py:80",
+              "fairdm/core/project/models.py:95"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_add_contributor"
+            ]
+          }
+        },
+        {
+          "id": "T074",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/abstract.py:80"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_add_contributor"
+            ]
+          }
+        },
+        {
+          "id": "T075",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T076",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T077",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T078",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T079",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 3
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 3000000
+    }
+  },
+  "pr": {
+    "number": 165,
+    "draft": true
+  }
+}

@@ -1,393 +1,153 @@
-# Research: Core Projects MVP
+# Research — 003 The project record
 
-**Phase**: 0 (Outline & Research)
-**Date**: January 14, 2026
-**Purpose**: Resolve technical unknowns and establish best practices for implementation
+What the surrounding machinery already provides, and what it constrains. Every claim here was read
+out of the repository on 2026-08-18 and carries its citation.
 
-## Research Questions & Findings
+## Controlled vocabularies
 
-### 1. DataCite Metadata Schema for Funding
+Vocabularies are `VocabularyBuilder` subclasses in `fairdm/core/vocabularies.py`, backed by
+`django-research-vocabs`. A term is a class attribute — either a `Concept(prefLabel=…)` or a raw
+dict with fully qualified SKOS keys — and its URI is derived from `Meta.namespace` plus the attribute
+name rather than being written out. `Meta.name` is the registry key that `Concept` rows are stored
+under.
 
-**Question**: What is the exact structure of DataCite's funding metadata schema?
+A model binds to a vocabulary by setting `VOCABULARY`, and `GenericModel.__init_subclass__` pushes
+`VOCABULARY.choices` onto the `type` field at class construction
+(`fairdm/core/abstract.py:247`). The stored value is the attribute name — `"Abstract"`, `"Start"`,
+`"ORCID"` — not a URI. `from_collection("Project")` returns a subclass scoped to one collection
+(`research_vocabs/core.py:389`).
 
-**Research Approach**: Review DataCite Metadata Schema documentation (v4.4)
+Two facts shape the identifier work:
 
-**Decision**: Use DataCite FundingReference structure
+- `FairDMIdentifiers` has no `Project` collection. Its two collections are `Person` and
+  `Organization`, and its terms are ORCID, ResearcherID, ROR, Wikidata, ISNI and Crossref Funder ID
+  (`fairdm/core/vocabularies.py:6`). There is no DOI term anywhere in it.
+- `ProjectIdentifier` binds the whole unscoped vocabulary — `VOCABULARY = FairDMIdentifiers()`
+  (`fairdm/core/project/models.py:177`) — where descriptions and dates both scope themselves with
+  `from_collection("Project")`. That inconsistency is why the wrong terms are offered.
 
-**Rationale**: DataCite FundingReference is the standard for research funding metadata and includes:
+`FairDMIdentifiers.Meta.name` is `"fairdm-descriptions"` (`fairdm/core/vocabularies.py:65`), the same
+registry key `FairDMDescriptions` uses (`:208`). Two vocabularies sharing one key is a collision in
+the `Concept` table, whose uniqueness is `("vocabulary", "name")`
+(`research_vocabs/models.py:126`).
 
-- `funderName` (required): Name of funding provider
-- `funderIdentifier` (optional): Unique identifier for funder (e.g., Crossref Funder ID, ROR)
-- `funderIdentifierType` (optional): Type of identifier (Crossref Funder ID, ROR, GRID, ISNI, Other)
-- `awardNumber` (optional): Grant/award number
-- `awardURI` (optional): URI for the award
-- `awardTitle` (optional): Title of award/grant
+## The related-record abstracts
 
-**Implementation**: Store as JSONField with schema validation. Example structure:
+All three inherit `GenericModel` (`fairdm/core/abstract.py:220`), which is a plain Django model with
+`added` and `modified` explicitly removed.
 
-```json
-{
-  "funding": [
-    {
-      "funderName": "National Science Foundation",
-      "funderIdentifier": "https://ror.org/021nxhr62",
-      "funderIdentifierType": "ROR",
-      "awardNumber": "1234567",
-      "awardURI": "https://www.nsf.gov/awardsearch/showAward?AWD_ID=1234567",
-      "awardTitle": "Understanding Arctic Climate Change"
-    }
-  ]
-}
-```
+| Abstract | Fields | Constraint |
+|---|---|---|
+| `AbstractDescription` (`:278`) | `type` char(50), `value` text | unique `(related, type)` |
+| `AbstractDate` (`:295`) | `type` char(50), `value` `PartialDateField` | unique `(related, type)` |
+| `AbstractIdentifier` (`:313`) | `type` char(50), `value` char(255) **globally unique** | unique `(related, type)` |
 
-**Alternatives Considered**:
+The decisive fact for the date work: **`AbstractDate` carries `type` and `value` and nothing else.**
+There is no `end_date` and no `date`. So a project's start and end are two separate rows, and any
+comparison between them is across records rather than within one. `ProjectDate.clean()` compares
+`self.date` to `self.end_date` (`fairdm/core/project/models.py:168`), which is why it raises an
+attribute error.
 
-- Custom schema: Rejected because it would not interoperate with DataCite exports
-- Separate FundingSource model: Rejected for MVP to reduce complexity; can be added later if needed
+`value` is a `PartialDateField` (`fairdm/db/fields.py`), so a date may carry year-only, year-month or
+full precision. Any comparison has to tolerate that.
 
----
-
-### 2. Role-Based Permission Patterns in django-guardian
-
-**Question**: What is the best practice for implementing role-based permissions with django-guardian at the object level?
-
-**Research Approach**: Review django-guardian documentation, FairDM existing permission patterns in core models
-
-**Decision**: Use Guardian's object-level permissions with role-based permission groups
-
-**Rationale**:
-
-- Guardian provides `assign_perm(permission, user_or_group, obj)` for object-level permissions
-- Create permission groups per project with role-specific permissions
-- Map contributor roles to permission sets at assignment time
-- Leverage Guardian's efficient permission checking in views/templates
-
-**Implementation Pattern**:
-
-```python
-# In models.py Meta class
-permissions = [
-    ("view_project", "Can view project"),
-    ("change_project_metadata", "Can edit project metadata"),
-    ("change_project_settings", "Can change project settings"),
-    ("delete_project", "Can delete project"),
-]
-
-# Permission mapping by role
-ROLE_PERMISSIONS = {
-    "PrincipalInvestigator": ["view_project", "change_project_metadata", "change_project_settings", "delete_project"],
-    "DataManager": ["view_project", "change_project_metadata"],
-    "Contributor": ["view_project"],
-}
-
-# Assignment pattern (in view/signal)
-from guardian.shortcuts import assign_perm
-
-def add_contributor(project, user, role):
-    permissions = ROLE_PERMISSIONS.get(role, ["view_project"])
-    for perm in permissions:
-        assign_perm(f"project.{perm}", user, project)
-```
-
-**Alternatives Considered**:
-
-- Django's built-in permissions: Too coarse-grained, no object-level support
-- Custom permission middleware: Overly complex, reinvents guardian's wheel
-- Field-level permissions: Too granular for MVP, adds significant complexity
-
----
-
-### 3. Unique Constraints for ProjectDescription Types
-
-**Question**: How to enforce one description per type at database level while maintaining usability?
-
-**Research Approach**: Review Django unique_together constraints, existing FairDM patterns
-
-**Decision**: Use `unique_together` constraint on (project, type) with helpful validation errors
-
-**Rationale**:
-
-- Database-level constraint prevents race conditions
-- Django's model validation catches issues before save
-- Form validation provides user-friendly messaging
-- Existing FairDM models use similar patterns
-
-**Implementation**:
-
-```python
-class ProjectDescription(AbstractDescription):
-    VOCABULARY = FairDMDescriptions.from_collection("Project")
-    related = models.ForeignKey("Project", on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = [("related", "type")]
-        verbose_name = _("project description")
-        verbose_name_plural = _("project descriptions")
-
-    def clean(self):
-        super().clean()
-        if self.related_id and self.type:
-            existing = ProjectDescription.objects.filter(
-                related=self.related, type=self.type
-            ).exclude(pk=self.pk).exists()
-            if existing:
-                raise ValidationError({
-                    "type": _("A description of this type already exists for this project.")
-                })
-```
-
-**Alternatives Considered**:
-
-- Application-level only: Race condition risk
-- Multiple descriptions same type: Violates requirement from clarification session
-- Soft uniqueness with warnings: Would allow invalid state
-
----
-
-### 4. Streamlined Project Creation Forms
-
-**Question**: How to implement GitHub-style streamlined creation while supporting future metadata addition?
-
-**Research Approach**: Review django-crispy-forms patterns, existing FairDM form patterns
-
-**Decision**: Two separate forms - ProjectCreateForm (minimal) and ProjectUpdateForm (comprehensive)
-
-**Rationale**:
-
-- Separate forms clearly communicate different workflows
-- Create form has only required fields: name, status, visibility, owner
-- Edit form includes all metadata fields with inline formsets for descriptions/dates/identifiers
-- Reduces cognitive load on creation
-- Matches user expectation from clarification (GitHub-like simplicity)
-
-**Implementation Pattern**:
-
-```python
-class ProjectCreateForm(ModelForm):
-    """Streamlined form for project creation - GitHub-style minimal fields."""
-
-    class Meta:
-        model = Project
-        fields = ["name", "status", "visibility", "owner"]
-
-class ProjectUpdateForm(ModelForm):
-    """Comprehensive form for editing project metadata."""
-
-    class Meta:
-        model = Project
-        fields = [
-            "name", "image", "status", "visibility", "owner",
-            "funding", "keywords", "tags"
-        ]
-```
-
-**Alternatives Considered**:
-
-- Single form with conditional field display: More complex, harder to maintain
-- Wizard-style multi-step: Too heavyweight for simple creation
-- All fields in create form: Violates requirement for streamlined creation
-
----
-
-### 5. Query Optimization for Project Lists
-
-**Question**: How to achieve <1s load time and <5 queries for project detail views with 10k projects?
-
-**Research Approach**: Review Django select_related/prefetch_related patterns, existing FairDM QuerySet optimizations
-
-**Decision**: Use custom QuerySet methods with strategic prefetch_related
-
-**Rationale**:
-
-- `select_related` for ForeignKey relationships (owner organization)
-- `prefetch_related` for reverse ForeignKey relationships (descriptions, dates, identifiers, contributors)
-- Custom QuerySet methods encapsulate optimization logic
-- Pagination limits result set (50 per page)
-
-**Implementation Pattern**:
-
-```python
-class ProjectQuerySet(models.QuerySet):
-    def with_metadata(self):
-        """Optimize queries for detail view."""
-        return self.select_related(
-            "owner"
-        ).prefetch_related(
-            "descriptions",
-            "dates",
-            "identifiers",
-            "contributors__contributor",
-            "keywords",
-            "tags"
-        )
-
-    def with_list_data(self):
-        """Optimize queries for list view."""
-        return self.select_related("owner").prefetch_related("keywords")
-
-# In views
-class ProjectDetailView(DetailView):
-    queryset = Project.objects.with_metadata()
-
-class ProjectListView(ListView):
-    queryset = Project.objects.with_list_data()
-    paginate_by = 50
-```
-
-**Alternatives Considered**:
-
-- No optimization: Would exceed query budget
-- Caching: Premature for MVP, adds complexity
-- Denormalization: Violates normalization principles, harder to maintain
-
----
-
-### 6. Bootstrap 5 + Cotton Component Patterns for Project UI
-
-**Question**: What Cotton component patterns should be used for consistent project UI?
-
-**Research Approach**: Review existing FairDM Cotton components, Bootstrap 5 card/form patterns
-
-**Decision**: Create reusable Cotton components: ProjectCard, ProjectMetadataPanel, ProjectFilterForm
-
-**Rationale**:
-
-- Cotton components ensure UI consistency across application
-- Encapsulate Bootstrap 5 markup patterns
-- Reusable across list/detail/dashboard views
-- Maintainable - changes propagate automatically
-
-**Component Structure**:
-
-```
-fairdm/core/project/templates/project/components/
-├── project_card.html          # Card display for list view
-├── project_metadata.html       # Metadata display for detail view
-├── project_filters.html        # Filter form sidebar
-└── project_form_fields.html    # Reusable form field layouts
-```
-
-**Alternatives Considered**:
-
-- Template includes: Less composable than Cotton components
-- Inline template code: Harder to maintain, inconsistent
-- React/Vue components: Violates server-rendered requirement
-
----
-
-### 7. Django Admin Inline Formsets for Related Metadata
-
-**Question**: What's the best pattern for editing descriptions/dates/identifiers inline in admin?
-
-**Research Approach**: Review Django admin inline documentation, existing FairDM admin patterns
-
-**Decision**: Use StackedInline for better UX with related metadata
-
-**Rationale**:
-
-- StackedInline provides clearer visual hierarchy than TabularInline
-- Allows for longer text fields (descriptions)
-- Existing FairDM pattern (seen in current admin.py)
-- Supports extra=0 for cleaner initial display
-
-**Implementation Pattern**:
-
-```python
-class ProjectDescriptionInline(admin.StackedInline):
-    model = ProjectDescription
-    extra = 0
-    max_num = 10
-    fields = ["type", "text", "order"]
-
-class ProjectDateInline(admin.StackedInline):
-    model = ProjectDate
-    extra = 0
-    max_num = 10
-    fields = ["type", "date", "end_date"]
-
-class ProjectIdentifierInline(admin.StackedInline):
-    model = ProjectIdentifier
-    extra = 0
-    max_num = 10
-    fields = ["type", "identifier", "url"]
-
-@admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
-    inlines = [
-        ProjectDescriptionInline,
-        ProjectDateInline,
-        ProjectIdentifierInline,
-    ]
-```
-
-**Alternatives Considered**:
-
-- TabularInline: Cramped for long text fields
-- Separate admin pages: More clicks, worse UX
-- Custom admin templates: Unnecessary complexity for standard pattern
-
----
-
-### 8. i18n String Wrapping Best Practices
-
-**Question**: What are the Django i18n best practices for user-facing strings?
-
-**Research Approach**: Review Django i18n documentation, existing FairDM i18n patterns
-
-**Decision**: Use `gettext_lazy` (_) for all user-facing strings in models/forms/admin, `gettext` for views
-
-**Rationale**:
-
-- `gettext_lazy` delays translation until string is rendered (required for model/form definitions)
-- `gettext` for immediate translation (views, logic)
-- Existing FairDM pattern consistently uses this approach
-- Supports multiple languages without code changes
-
-**Implementation Checklist**:
-
-- [ ] Model verbose_name, verbose_name_plural, help_text
-- [ ] Form field labels, help_text, error messages
-- [ ] Admin list_display labels, fieldset titles
-- [ ] Template strings (use {% trans %} and {% blocktrans %})
-- [ ] Validation error messages
-- [ ] Success/info messages
-
-**Pattern**:
-
-```python
-from django.utils.translation import gettext_lazy as _
-
-class Project(BaseModel):
-    name = models.CharField(
-        _("name"),
-        max_length=255,
-        help_text=_("Enter the project name.")
-    )
-
-    class Meta:
-        verbose_name = _("project")
-        verbose_name_plural = _("projects")
-```
-
-**Alternatives Considered**:
-
-- English-only: Violates constitutional requirement
-- Runtime translation: Too late for model/form strings
-- Translation libraries other than Django's: Unnecessary complexity
-
----
-
-## Summary of Decisions
-
-| Topic | Decision | Key Technology/Pattern |
-|-------|----------|----------------------|
-| Funding Schema | DataCite FundingReference | JSONField with validation |
-| Permissions | Object-level with role mapping | django-guardian + permission groups |
-| Description Uniqueness | unique_together constraint | Database + model validation |
-| Creation Forms | Separate create/edit forms | django-crispy-forms |
-| Query Optimization | Custom QuerySet methods | select_related + prefetch_related |
-| UI Components | Reusable Cotton components | Bootstrap 5 + Cotton |
-| Admin Inlines | StackedInline formsets | Django admin |
-| Internationalization | gettext_lazy throughout | Django i18n |
-
-All research questions resolved with no remaining clarifications needed. Ready for Phase 1 (Design & Contracts).
+An identifier's value is already unique across every row of a concrete subclass
+(`fairdm/core/abstract.py:315`), so nothing is needed for the uniqueness requirement beyond a test.
+
+## Contributions
+
+`Contribution` (`fairdm/contrib/contributors/models.py:1068`) is a generic-foreign-key join with
+`roles` as a `ConceptManyToManyField` onto the shared role vocabulary. `Project.contributors` is a
+`GenericRelation` to it, so iterating it yields contributions rather than contributors, and a
+contribution's roles are read with `contribution.roles.all()`.
+
+`BaseModel.add_contributor()` (`fairdm/core/abstract.py:80`) creates the contribution and sets roles
+by name. The project create view already calls it with Creator, ProjectMember and ContactPerson
+(`fairdm/core/project/views.py:110`).
+
+A DataCite transform for contributors already exists — `Contributor.to_datacite()`
+(`fairdm/contrib/contributors/models.py:335`) emitting `name`, `nameType` and `nameIdentifiers` — and
+so does a schema.org one, `Contributor.to_schema_org()` (`:349`). Export reuses both rather than
+re-deriving them.
+
+`DataciteContributorRoles` already exists in `fairdm/core/choices.py:89`, which is what makes the
+role vocabulary expressible in DataCite's terms without a new table.
+
+## Funding
+
+The field is an unvalidated `JSONField` (`fairdm/core/project/models.py:86`). Two different shapes
+are in play and neither is enforced:
+
+- The factory writes a flat dict — `{"agency": …, "grant_number": …, "amount": …}`
+  (`fairdm/factories/core.py:147`).
+- The form's help text and placeholder describe a list of DataCite funding references
+  (`fairdm/core/project/forms.py:64`).
+
+Three tests assert the flat shape (`tests/test_factories/test_core.py:234`, `:356`;
+`tests/test_factories/test_contributors.py:289`). Changing the shape means changing those tests,
+which is a deliberate modification of pre-existing tests and is recorded as such in the plan.
+
+DataCite's funding reference carries `funderName` (required), `funderIdentifier`,
+`funderIdentifierType`, `awardNumber` and `awardTitle`. It has no field for an amount, so the
+factory's `amount` has no destination.
+
+## Export
+
+What exists are two administrative actions using nothing but `json.dumps`. `export_json` emits six
+scalar fields (`fairdm/core/project/admin.py:129`); `export_datacite` emits a title, a publication
+year and a resource type (`:154`). Neither touches a related record, and neither has a test.
+
+Elsewhere in the package there is a DataCite **XML** path, but it is dataset-scoped and template-driven
+(`fairdm/contrib/import_export/utils.py:38`, rendering `publishing/datacite44.xml`). There is JSON-LD,
+but only for contributors (`fairdm/contrib/contributors/utils/transforms.py:218`). No DataCite library
+is in the dependency set, and none is needed — the output is a dictionary.
+
+`rdflib` is present transitively through `django-research-vocabs`, so JSON-LD can be validated in a
+test without adding a dependency.
+
+## The user model and the creation record
+
+`AUTH_USER_MODEL` is `contributors.Person` (`fairdm/conf/settings/auth.py:19`), a polymorphic,
+email-keyed subclass of `AbstractUser`.
+
+No model in the package records who created it. The nearest established pattern for a nullable
+person reference is `ClaimingAuditLog.initiated_by` — `SET_NULL`, `null=True`, `blank=True`
+(`fairdm/contrib/contributors/models.py:1290`). Core models use `fairdm.db.models.ForeignKey`, which
+re-exports `auto_prefetch.ForeignKey` (`fairdm/db/models.py:3`).
+
+Nothing in the model layer can observe the request user, so the creator has to be written where a
+project is created. There are two such places: the portal create view
+(`fairdm/core/project/views.py:98`) and the API viewset (`fairdm/api/viewsets.py:72`).
+
+## Querysets
+
+`ProjectQuerySet.with_metadata()` already selects the owner and prefetches descriptions, dates,
+identifiers, contributors and keywords (`fairdm/core/project/models.py:35`). The requirement for a
+bounded query count is therefore about proving it, not building it.
+
+`with_list_data()` (`:49`) has no callers anywhere in the package or the tests.
+
+## Tooling and conventions
+
+- Python 3.13, Django 5.1–5.2, Poetry, the shared family dev bundle pinned at `v0.2.0`.
+- pytest with `--no-migrations`, so **migrations are never exercised by the suite**. A migration's
+  correctness has to be reasoned about rather than tested, which argues for keeping data migrations
+  simple and reversible.
+- Ruff at the default line length, with `E501` ignored; mypy with the Django plugin over `fairdm/`,
+  excluding `fairdm/contrib/*`.
+- No coverage floor is configured in `pyproject.toml`.
+- Factories live in the package at `fairdm/factories/`, not under `tests/`. There is no identifier
+  factory for projects, and `ProjectDateFactory` defaults to `type = "Created"`
+  (`fairdm/factories/core.py:121`), which is not a member of the project date collection.
+- Tests use `@pytest.mark.django_db` on the class, `Test<Subject>` class names, plain `assert`, and
+  docstrings citing the requirement they cover.
+- `tests/conftest.py` preloads vocabulary concepts once per session
+  (`tests/conftest.py:12`), which is what makes role and type lookups resolve in tests.
+
+## Open questions carried into the plan
+
+1. How `PartialDateField` values compare when their precisions differ. The comparison in the date
+   check has to be defined at the coarser of the two precisions, or a year-only end date will appear
+   to precede a full-precision start in the same year.
+2. Whether the funding migration should preserve the factory's `amount`. DataCite has nowhere to put
+   it, and no real portal data is known to exist.

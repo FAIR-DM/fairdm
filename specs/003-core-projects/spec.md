@@ -240,6 +240,42 @@ then modify it and confirm the modification timestamp moves while the creator do
 
 ---
 
+### User Story 8 - The project record itself (Priority: P2)
+
+A project carries a generated identifier that names it inside the portal, a name, an optional image,
+an optional owning organisation, a lifecycle status and a visibility. Contributions are recorded
+against it under roles that mean something to the systems it exports to. Everything it presents to a
+person is translatable, and loading it with all its related metadata costs a bounded number of
+queries however much metadata it carries.
+
+**Why this priority**: These are the guarantees the other seven stories rest on. It is P2 rather than
+P1 because most of them already hold — what is missing is the proof, and one lifecycle status whose
+label does not name its state.
+
+**Independent Test**: Create a project, confirm its identifier is generated and prefixed, confirm it
+is valid without an owning organisation, confirm every status label names its state, record a
+contribution with roles and read them back, and count the queries needed to load the project with all
+its related records.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new project, **When** it is saved, **Then** it carries a unique prefixed identifier
+   that was generated rather than supplied.
+2. **Given** a project with no owning organisation, **When** it is validated, **Then** it is valid.
+3. **Given** the lifecycle status vocabulary, **When** each member is read, **Then** its label names
+   the state the member names.
+4. **Given** the visibility vocabulary, **When** it is read, **Then** it offers private and public
+   and defaults to private.
+5. **Given** several projects changed at different times, **When** they are listed with no ordering
+   applied, **Then** the most recently changed comes first.
+6. **Given** a contribution recorded against a project with roles, **When** the contribution is read,
+   **Then** its contributor and each of its roles read back.
+7. **Given** a project carrying many descriptions, dates, identifiers and contributions, **When** it
+   is loaded with all of them, **Then** the number of queries does not grow with the number of
+   related records.
+
+---
+
 ### Edge Cases
 
 - A project name longer than the field allows is refused by the field's own validation; no truncation
