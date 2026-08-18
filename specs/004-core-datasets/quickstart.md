@@ -49,7 +49,7 @@ everything you narrowed by, so that line returns every dataset in the table rath
 all, so the method is removed rather than repaired (FR-019, R1).
 
 `get_visible()` and `for_user()` go with it. There are two visibility levels, so "exclude private"
-and "only public" select the same rows and `get_visible()` was a second name for the default;
+and "only public" select the same rows and `get_visible()` was a second name for the default.
 `for_user()` had no callers and gated on a permission no model declares.
 
 **What still sees every dataset, whichever manager you use:**
@@ -88,8 +88,8 @@ dataset.license     # the portal's configured default
 ```
 
 A dataset is **private unless you say otherwise**. A dataset with no project is valid — data migrated
-from a system with no project structure arrives that way. Two datasets may carry the same name;
-the generated identifier is what names one unambiguously.
+from a system with no project structure arrives that way. Two datasets may carry the same name.
+The generated identifier is what names one unambiguously.
 
 To publish it:
 
@@ -163,7 +163,7 @@ identifiers — not just within one dataset. The same DOI cannot name two things
 
 `Created` is not a dataset date type — the moment a record was created is already its `added`
 timestamp, and a dataset's collection period is what these dates are for. `ARK`, `Handle`, `URL` and
-`URN` are not identifier types; nothing in the repository or the roadmap asks for them, and an unused
+`URN` are not identifier types. Nothing in the repository or the roadmap asks for them, and an unused
 member is a wrong choice offered to every user.
 
 Watch for this, because it is why the drift above went unnoticed for so long:
@@ -240,8 +240,8 @@ ProjectMember, Supervisor, WorkPackageLeader, RightsHolder, Other. They are expr
 contributor types, so a future submission needs no translation table.
 
 **A role does not confer a permission.** The `ROLE_PERMISSIONS` map in the code today names `Viewer`
-and `Manager`, neither of which is a role in that collection, and nothing reads it. It is removed;
-which roles confer which rights is issue #169.
+and `Manager`, neither of which is a role in that collection, and nothing reads it. It is removed.
+Which roles confer which rights is issue #169.
 
 Separately from contributions, a dataset records who created it:
 
@@ -250,7 +250,7 @@ dataset.created_by          # a Person, or None if that account has been removed
 ```
 
 The creator is written server-side, never through a form or a serialiser field, and survives the
-removal of both the account and the contribution record. A contribution can be withdrawn; the fact of
+removal of both the account and the contribution record. A contribution can be withdrawn. The fact of
 authorship cannot.
 
 ## Loading a full record
@@ -281,8 +281,8 @@ FAIRDM_DEFAULT_LICENSE = "CC BY-SA 4.0"   # in the portal's settings
 Standing a portal up seeds the licences the framework recommends — CC0 1.0, CC BY 4.0 and
 CC BY-SA 4.0 — so the configured default resolves without anyone loading a fixture by hand. The step
 is idempotent and keyed on the licence name, so running it twice changes nothing, including a licence
-the portal has edited. A portal that wants a different set drops the step and curates its own rows;
-which licences a portal offers is its own decision.
+the portal has edited. A portal that wants a different set drops the step and curates its own rows.
+Which licences a portal offers is its own decision.
 
 The NC and ND variants are not seeded. They fail the Open Definition, and a framework named for
 reusability should not present "no derivatives" as a recommendation for research data. A portal that
@@ -306,7 +306,7 @@ class DatasetAdmin(admin.ModelAdmin):
 ```
 
 Datasets are findable by name, by their own generated identifier, by any external identifier attached
-to them, and by project; the list narrows by project, licence and visibility. Descriptions, dates and
+to them, and by project. The list narrows by project, licence and visibility. Descriptions, dates and
 identifiers are edited inline, each offering no more rows than its vocabulary has types. Each row
 shows whether the dataset has an abstract and whether it has a DOI, computed in the list query rather
 than per row.

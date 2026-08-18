@@ -163,7 +163,7 @@ by any test — see the reconciliation note in `tasks.md`.
 (`fairdm/api/viewsets.py:128`). No other core model has them, nothing outside the dataset app reads
 them, and one of them is the direct cause of `DatasetFilter.date_type` raising `FieldError` on every
 application — `field_name="dates__date_type"` is an ORM path through a Python property. The filter is
-routed out as #186; the aliases go here.
+routed out as #186. The aliases go here.
 
 ### DatasetDescription
 
@@ -182,7 +182,7 @@ Published, Withdrawn** (`vocabularies.py:431`). Ordered by `value`. Indexed on `
 `dataset_date_type_idx`.
 
 `Created` is **not** a member, and never was. `DatasetDateFactory` defaults to it
-(`fairdm/factories/core.py:275`) and four tests use it as an example of a valid type; they pass
+(`fairdm/factories/core.py:275`) and four tests use it as an example of a valid type. They pass
 because `objects.create()` does not call `full_clean()` and Django does not validate `choices` on
 save. The factory and the tests are corrected (D-008).
 
@@ -225,7 +225,7 @@ scheme is a three-line addition when one is asked for.
 The trap this closes: `GenericModel.__init_subclass__` assigns `cls.type.field.choices` from the
 `VOCABULARY` (`abstract.py:247`), and Django does not validate `choices` on save. A row written
 through `objects.create()` with any string persists silently. Tests for the vocabularies therefore
-**assert their members by name**; a test that iterates `VOCABULARY.choices` proves nothing, because
+**assert their members by name**. A test that iterates `VOCABULARY.choices` proves nothing, because
 it passes over an empty collection (SC-004).
 
 ## DatasetLiteratureRelation
