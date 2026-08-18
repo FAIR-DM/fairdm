@@ -22,8 +22,11 @@ def django_db_setup(django_db_setup, django_db_blocker):
     The django_db_blocker ensures database access is properly controlled.
     """
     with django_db_blocker.unblock():
-        # Load Creative Commons licenses from django-content-license
-        call_command("loaddata", "creativecommons", verbosity=0)
+        # Seed the licences FairDM recommends, through the real deployment
+        # path (`fairdm/management/commands/seed_licenses.py`) rather than
+        # loading django-content-license's fixture by hand - so the test
+        # suite exercises the same route a portal does (FR-007a, T099).
+        call_command("seed_licenses", verbosity=0)
         # Load all registered research vocabularies (e.g. FairDM Roles)
         from research_vocabs.models import Concept
 
