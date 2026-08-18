@@ -443,9 +443,9 @@ class TestFilterPerformance:
         # Arrange - Create 50 datasets with descriptions
         datasets = DatasetFactory.create_batch(50)
         for ds in datasets[:25]:  # Half have ABSTRACT
-            DatasetDescriptionFactory(related=ds, description_type="ABSTRACT")
+            DatasetDescriptionFactory(related=ds, type="ABSTRACT")
         for ds in datasets[25:]:  # Half have METHODS
-            DatasetDescriptionFactory(related=ds, description_type="METHODS")
+            DatasetDescriptionFactory(related=ds, type="METHODS")
 
         # Act & Assert - Should use at most 5 queries regardless of dataset count
         # (1 for filter setup, 1 for count, 1 for main query, 2 for joins)

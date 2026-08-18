@@ -145,9 +145,7 @@ same DOI to a second record is refused.
    **Then** the attempt is refused.
 3. **Given** a dataset identifier, **When** its available types are read, **Then** they are types
    that apply to a dataset, and none of them is an identifier for a person or an organisation.
-4. **Given** a dataset, **When** two identifiers of different types are attached, **Then** both are
-   retained.
-5. **Given** a dataset, **When** a second identifier of a type it already carries is attached,
+4. **Given** a dataset, **When** a second identifier of a type it already carries is attached,
    **Then** the attempt is refused.
 
 ---

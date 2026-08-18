@@ -605,6 +605,279 @@ class TestDatasetSharedFixtures:
 
 
 @pytest.mark.django_db
+class TestDatasetDescription:
+    """US-1: typed descriptions (T026, T027, T029, T030, T031)."""
+
+    def test_abstract_is_stored_under_its_type_and_retrievable_by_type(self):
+        """An abstract is stored against the dataset under the abstract
+        type, and can be retrieved by type (T026, AC1).
+
+        The existing `test_create_description_with_valid_type` asserts
+        through the now-removed `description_type` alias and never
+        retrieves the description by type - this does both honestly.
+        """
+        dataset = DatasetFactory()
+        DatasetDescription.objects.create(
+            related=dataset, type="Abstract", value="A brief summary."
+        )
+
+        retrieved = dataset.descriptions.get(type="Abstract")
+        assert retrieved.value == "A brief summary."
+
+    def test_second_description_of_a_carried_type_is_refused_naming_the_type(self):
+        """A second description of a type the dataset already carries is
+        refused, and the message names the type (T027, AC2, FR-009).
+        """
+        dataset = DatasetFactory()
+        DatasetDescription.objects.create(
+            related=dataset, type="Abstract", value="First abstract."
+        )
+
+        duplicate = DatasetDescription(
+            related=dataset, type="Abstract", value="Second abstract."
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            duplicate.full_clean()
+
+        assert "Abstract" in str(exc_info.value)
+
+    def test_methods_description_is_accepted(self):
+        """A methods description is accepted - methods describe how the
+        data was produced and belong to the dataset (T029, AC3). `Methods`
+        is a member of the dataset description vocabulary and deliberately
+        absent from the project one.
+        """
+        dataset = DatasetFactory()
+        description = DatasetDescription(
+            related=dataset, type="Methods", value="Samples were analysed by XRF."
+        )
+
+        description.full_clean()  # must not raise
+        description.save()
+
+        assert dataset.descriptions.get(type="Methods").value == (
+            "Samples were analysed by XRF."
+        )
+
+    def test_two_descriptions_are_both_returned_each_under_its_own_type(self):
+        """A dataset with an abstract and a methods description returns
+        both, each under its own type (T030, AC4).
+        """
+        dataset = DatasetFactory()
+        DatasetDescription.objects.create(
+            related=dataset, type="Abstract", value="Abstract text."
+        )
+        DatasetDescription.objects.create(
+            related=dataset, type="Methods", value="Methods text."
+        )
+
+        by_type = {d.type: d.value for d in dataset.descriptions.all()}
+        assert by_type == {
+            "Abstract": "Abstract text.",
+            "Methods": "Methods text.",
+        }
+
+    def test_description_vocabulary_members(self):
+        """The dataset description vocabulary's members are asserted by
+        name, not by iterating whatever it happens to hold (T031, AC5,
+        SC-004).
+        """
+        assert set(DatasetDescription.VOCABULARY.values) == {
+            "Abstract",
+            "Methods",
+            "SeriesInformation",
+            "TechnicalInfo",
+            "Other",
+        }
+
+
+@pytest.mark.django_db
+class TestDatasetDate:
+    """US-2: dates and the collection period (T035, T037-T042)."""
+
+    def test_collection_start_is_stored_under_its_type(self):
+        """A collection start date is attached and stored under the
+        collection start type (T035, AC1).
+        """
+        dataset = DatasetFactory()
+        DatasetDate.objects.create(
+            related=dataset, type=DatasetDate.START_TYPE, value="2020-06-01"
+        )
+
+        stored = dataset.dates.get(type=DatasetDate.START_TYPE)
+        assert str(stored.value) == "2020-06-01"
+
+    def test_second_collection_start_is_refused(self):
+        """A second collection start on the same dataset is refused
+        (AC2, FR-009).
+        """
+        dataset = DatasetFactory()
+        DatasetDate.objects.create(
+            related=dataset, type=DatasetDate.START_TYPE, value="2020-01-01"
+        )
+
+        duplicate = DatasetDate(
+            related=dataset, type=DatasetDate.START_TYPE, value="2021-01-01"
+        )
+        with pytest.raises(ValidationError):
+            duplicate.full_clean()
+
+    def test_collection_end_before_start_is_refused_naming_both_dates(self):
+        """A collection end earlier than an existing collection start is
+        refused, and the message names both dates (T037, AC3, FR-011).
+        """
+        dataset = DatasetFactory()
+        DatasetDate.objects.create(
+            related=dataset, type=DatasetDate.START_TYPE, value="2020-06-01"
+        )
+
+        end = DatasetDate(
+            related=dataset, type=DatasetDate.END_TYPE, value="2019-05-01"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            end.full_clean()
+
+        message = str(exc_info.value)
+        assert "2020-06-01" in message
+        assert "2019-05-01" in message
+
+    def test_moving_start_after_existing_end_is_refused(self):
+        """Changing the start to a date after the existing end is refused
+        for the same reason, whichever of the two dates is being edited
+        (T038, AC4).
+        """
+        dataset = DatasetFactory()
+        start = DatasetDate.objects.create(
+            related=dataset, type=DatasetDate.START_TYPE, value="2020-01-01"
+        )
+        DatasetDate.objects.create(
+            related=dataset, type=DatasetDate.END_TYPE, value="2020-12-31"
+        )
+
+        start.value = "2021-01-01"
+        with pytest.raises(ValidationError):
+            start.full_clean()
+
+    def test_collection_end_with_no_start_is_accepted(self):
+        """A collection end on a dataset with no collection start is
+        accepted - there is nothing to contradict (T039, AC5).
+        """
+        dataset = DatasetFactory()
+        end = DatasetDate(
+            related=dataset, type=DatasetDate.END_TYPE, value="2024-06-15"
+        )
+
+        end.full_clean()  # must not raise
+
+    def test_year_only_end_in_same_year_as_month_precision_start_is_accepted(self):
+        """A year-only end in the same year as a month-precision start is
+        accepted - the comparison happens at the coarser of the two
+        precisions, so a dataset collected starting June 2020 and ending
+        some time in 2020 is not an error (T040).
+        """
+        dataset = DatasetFactory()
+        DatasetDate.objects.create(
+            related=dataset, type=DatasetDate.START_TYPE, value="2020-06"
+        )
+
+        end = DatasetDate(related=dataset, type=DatasetDate.END_TYPE, value="2020")
+        end.full_clean()  # must not raise
+
+    def test_month_precision_end_before_month_precision_start_is_refused(self):
+        """A month-precision end earlier than a month-precision start in
+        the same year is refused - the month-precision branch of
+        `_precedes` was previously exercised by no test (T040).
+        """
+        dataset = DatasetFactory()
+        DatasetDate.objects.create(
+            related=dataset, type=DatasetDate.START_TYPE, value="2020-06"
+        )
+
+        end = DatasetDate(related=dataset, type=DatasetDate.END_TYPE, value="2020-03")
+        with pytest.raises(ValidationError):
+            end.full_clean()
+
+    def test_date_with_no_value_is_refused(self):
+        """A date record whose value is absent is refused - a type with no
+        date carries no meaning (T041).
+        """
+        dataset = DatasetFactory()
+        date = DatasetDate(related=dataset, type="Available")
+
+        with pytest.raises(ValidationError) as exc_info:
+            date.full_clean()
+
+        assert "value" in exc_info.value.error_dict
+
+    def test_date_vocabulary_members(self):
+        """The dataset date vocabulary's members are asserted by name
+        (T042, AC6, SC-004).
+        """
+        assert set(DatasetDate.VOCABULARY.values) == {
+            "Available",
+            "CollectionStart",
+            "CollectionEnd",
+            "Submitted",
+            "Published",
+            "Withdrawn",
+        }
+
+
+@pytest.mark.django_db
+class TestDatasetIdentifier:
+    """US-3: identifiers (T048, T049, T054)."""
+
+    def test_available_types_are_the_dataset_collection_only(self):
+        """The dataset identifier vocabulary's members are asserted by
+        name, and none of them names a person or an organisation (T048,
+        AC3, SC-004).
+        """
+        assert set(DatasetIdentifier.VOCABULARY.values) == {"DOI"}
+        assert set(DatasetIdentifier.VOCABULARY.values).isdisjoint(
+            {
+                "ORCID",
+                "RESEARCHER_ID",
+                "ROR",
+                "WIKIDATA",
+                "ISNI",
+                "CROSSREF_FUNDER_ID",
+            }
+        )
+
+    def test_identifier_value_is_refused_across_every_record_type(self):
+        """An identifier value already in use by a *different record
+        type* - not merely a different dataset - is refused (T049, FR-013).
+
+        `AbstractIdentifier.value` carries `unique=True`, which is a
+        per-table constraint and so only protects `DatasetIdentifier`
+        against itself. `DatasetIdentifier.clean()` additionally checks
+        the value against the other three `AbstractIdentifier` subclasses
+        (project, sample, measurement).
+        """
+        from fairdm.core.project.models import ProjectIdentifier
+
+        project = ProjectFactory()
+        ProjectIdentifier.objects.create(
+            related=project, type="DOI", value="10.5555/shared-value"
+        )
+
+        dataset = DatasetFactory()
+        clashing = DatasetIdentifier(
+            related=dataset, type="DOI", value="10.5555/shared-value"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            clashing.full_clean()
+
+        assert "value" in exc_info.value.error_dict
+
+    def test_dataset_identifier_types_agrees_with_the_related_models_binding(self):
+        """`Dataset.IDENTIFIER_TYPES` agrees with what `DatasetIdentifier`
+        itself binds to (T054).
+        """
+        assert DatasetIdentifier.VOCABULARY.choices == Dataset.IDENTIFIER_TYPES
+
+
+@pytest.mark.django_db
 class TestDatasetDateValidation:
     """Test DatasetDate model validation."""
 
@@ -612,11 +885,11 @@ class TestDatasetDateValidation:
         """Can create date with valid date_type."""
         dataset = DatasetFactory()
         dataset_date = DatasetDate.objects.create(
-            related=dataset, type="Created", value="2024-01-15"
+            related=dataset, type="Available", value="2024-01-15"
         )
 
         assert dataset_date.pk is not None
-        assert dataset_date.type == "Created"
+        assert dataset_date.type == "Available"
         assert str(dataset_date.value) == "2024-01-15"
         assert dataset_date.related == dataset
 
@@ -650,7 +923,7 @@ class TestDatasetDateValidation:
         dataset = DatasetFactory()
         dataset_date = DatasetDate(
             related=dataset,
-            type="Created",
+            type="Available",
             # Missing value
         )
 
@@ -662,7 +935,7 @@ class TestDatasetDateValidation:
     def test_dataset_relationship_required(self):
         """Dataset relationship is required."""
         dataset_date = DatasetDate(
-            type="Created",
+            type="Available",
             value="2024-01-15",
             # Missing related
         )
@@ -674,19 +947,19 @@ class TestDatasetDateValidation:
         """Dataset can have only one date per date_type."""
         dataset = DatasetFactory()
 
-        DatasetDate.objects.create(related=dataset, type="Created", value="2024-01-15")
+        DatasetDate.objects.create(related=dataset, type="Available", value="2024-01-15")
 
         # Attempt duplicate
         with pytest.raises(IntegrityError):
             DatasetDate.objects.create(
-                related=dataset, type="Created", value="2024-02-20"
+                related=dataset, type="Available", value="2024-02-20"
             )
 
     def test_multiple_date_types_allowed(self):
         """Dataset can have multiple dates of different types."""
         dataset = DatasetFactory()
 
-        DatasetDate.objects.create(related=dataset, type="Created", value="2024-01-15")
+        DatasetDate.objects.create(related=dataset, type="Available", value="2024-01-15")
         DatasetDate.objects.create(
             related=dataset, type="Submitted", value="2024-02-01"
         )
@@ -696,7 +969,7 @@ class TestDatasetDateValidation:
     def test_cascade_delete_with_dataset(self):
         """Deleting dataset deletes associated dates."""
         dataset = DatasetFactory()
-        DatasetDate.objects.create(related=dataset, type="Created", value="2024-01-15")
+        DatasetDate.objects.create(related=dataset, type="Available", value="2024-01-15")
 
         dataset_id = dataset.pk
         dataset.delete()
@@ -716,7 +989,7 @@ class TestDatasetDescriptionValidation:
         )
 
         assert description.pk is not None
-        assert description.description_type == "Abstract"
+        assert description.type == "Abstract"
 
     def test_description_type_vocabulary_validation(self):
         """description_type must be from predefined vocabulary."""
@@ -807,7 +1080,7 @@ class TestDatasetIdentifierValidation:
         )
 
         assert identifier.pk is not None
-        assert identifier.identifier_type == "DOI"
+        assert identifier.type == "DOI"
 
     def test_identifier_type_vocabulary_validation(self):
         """identifier_type must be from predefined vocabulary."""
@@ -869,8 +1142,8 @@ class TestDOISupport:
             related=dataset, type="DOI", value="10.1000/xyz123"
         )
 
-        assert doi.identifier_type == "DOI"
-        assert doi.identifier == "10.1000/xyz123"
+        assert doi.type == "DOI"
+        assert doi.value == "10.1000/xyz123"
 
     def test_query_datasets_with_doi(self):
         """Can query datasets that have DOI."""
@@ -890,19 +1163,6 @@ class TestDOISupport:
         assert dataset_with_doi in datasets_with_doi
         assert dataset_without_doi not in datasets_with_doi
 
-    def test_multiple_identifiers_different_types(self):
-        """Dataset can have multiple identifiers of different types."""
-        dataset = DatasetFactory()
-
-        DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.1000/xyz123"
-        )
-        DatasetIdentifier.objects.create(
-            related=dataset, type="ARK", value="ark:/12345/abc"
-        )
-
-        assert dataset.identifiers.count() == 2
-
     def test_get_doi_helper(self):
         """Can retrieve DOI via query."""
         dataset = DatasetFactory()
@@ -912,7 +1172,7 @@ class TestDOISupport:
 
         doi = dataset.identifiers.filter(type="DOI").first()
         assert doi is not None
-        assert doi.identifier == "10.1000/xyz123"
+        assert doi.value == "10.1000/xyz123"
 
     def test_cascade_delete_with_dataset(self):
         """Deleting dataset deletes associated identifiers."""

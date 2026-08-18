@@ -16,10 +16,13 @@ individual visibility changes to prevent accidental exposure of private datasets
 """
 
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.forms import BaseInlineFormSet
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget, Select2Widget
 from literature.models import LiteratureItem
+from partial_date import PartialDate
 
 from .models import Dataset, DatasetDate, DatasetDescription, DatasetIdentifier
 
@@ -61,19 +64,71 @@ class DescriptionInline(admin.StackedInline):
         return formset
 
 
+class DateInlineFormSet(BaseInlineFormSet):
+    """Refuses a backwards CollectionStart/CollectionEnd pair across the
+    whole formset.
+
+    Mirrors `ProjectAdmin.DateInlineFormSet`
+    (`fairdm/core/project/admin.py:24-67`): a formset validates every form
+    before any of them saves, so `DatasetDate.clean()`'s sibling lookup - a
+    database query - sees no unsaved sibling when both the collection start
+    and end are new rows in the same submission, and each form's individual
+    validation short-circuits. This reads the two values directly off the
+    forms' own `cleaned_data` instead, so the pair is checked whichever of
+    the two (or both) is unsaved.
+    """
+
+    def clean(self):
+        super().clean()
+
+        start_value = None
+        end_value = None
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
+                continue
+            value = form.cleaned_data.get("value")
+            if not value:
+                continue
+            # The form field stores the raw string; the model field's
+            # `PartialDate` conversion only happens on `full_clean()`, which
+            # a formset's own `clean()` runs before, so it is done here too.
+            if not isinstance(value, PartialDate):
+                value = PartialDate(value)
+            if form.cleaned_data.get("type") == DatasetDate.START_TYPE:
+                start_value = value
+            elif form.cleaned_data.get("type") == DatasetDate.END_TYPE:
+                end_value = value
+
+        if start_value is None or end_value is None:
+            return
+
+        if DatasetDate._precedes(end_value, start_value):
+            raise ValidationError(
+                _(
+                    "The dataset's collection end date (%(end)s) cannot be "
+                    "before its collection start date (%(start)s)."
+                )
+                % {"start": start_value, "end": end_value}
+            )
+
+
 class DateInline(admin.StackedInline):
     """Inline admin for Dataset dates.
 
     The max_num is dynamically set based on the number of available date types
-    in the vocabulary (Created, Submitted, Available, etc.). This prevents users
-    from adding more dates than there are valid types.
+    in the vocabulary (Available, CollectionStart, CollectionEnd, Submitted,
+    Published, Withdrawn). This prevents users from adding more dates than
+    there are valid types.
 
     The unique_together constraint on (related, type) ensures only one date of
-    each type can exist per dataset.
+    each type can exist per dataset. `DateInlineFormSet` additionally refuses
+    a backwards CollectionStart/CollectionEnd pair across the whole formset
+    (FR-011).
     """
 
     model = DatasetDate
     fk_name = "related"
+    formset = DateInlineFormSet
     extra = 0
 
     def get_formset(self, request, obj=None, **kwargs):

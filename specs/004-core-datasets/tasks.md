@@ -80,18 +80,24 @@ Runs first: it carries the manager change every other story's tests read through
 
 ### Tests
 
-- [ ] T026 `TestDatasetDescription` in `test_models.py` — an abstract is stored under its type and
+- [x] T026 `TestDatasetDescription` in `test_models.py` — an abstract is stored under its type and
   retrievable by type.
-- [ ] T027 A second description of a type the dataset already carries is refused, and the message
+  **Done.** Code `fairdm/core/dataset/models.py:319`. Test `tests/test_core/test_dataset/test_models.py:611`.
+- [x] T027 A second description of a type the dataset already carries is refused, and the message
   names the type.
+  **Done.** Code `fairdm/core/dataset/models.py:335` (`DatasetDescription.clean()`). Test
+  `tests/test_core/test_dataset/test_models.py:627`.
 - [x] T028 The refusal holds at the database, so a concurrent write cannot slip past it.
   **Done.** Code `fairdm/core/abstract.py:287` — the `UniqueConstraint` on `(related, type)`.
   Test `tests/test_core/test_dataset/test_models.py:481`. The validation half of the same refusal is
   T027, which is open.
-- [ ] T029 A methods description is accepted — methods belong to the dataset.
-- [ ] T030 A dataset with two descriptions returns both, each under its own type.
-- [ ] T031 The description vocabulary's members are asserted **by name**. A loop over
+- [x] T029 A methods description is accepted — methods belong to the dataset.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:644`.
+- [x] T030 A dataset with two descriptions returns both, each under its own type.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:662`.
+- [x] T031 The description vocabulary's members are asserted **by name**. A loop over
   `VOCABULARY.choices` is not this test: it passes over an empty collection.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:680`.
 - [x] T032 A type outside the vocabulary is refused by validation.
   **Done.** Code `fairdm/core/abstract.py:247`. Test `tests/test_core/test_dataset/test_models.py:431`.
 
@@ -100,33 +106,51 @@ Runs first: it carries the manager change every other story's tests read through
 - [x] T033 `DatasetDescription` bound to the dataset description collection, one row per type
   enforced by a database constraint.
   **Done.** Code `fairdm/core/dataset/models.py:635`, `fairdm/core/dataset/models.py:644`, `fairdm/core/abstract.py:287`. Test `tests/test_core/test_dataset/test_models.py:481`.
-- [ ] T034 Each field exposed under one name only — no second name for a field (FR-014).
+- [x] T034 Each field exposed under one name only — no second name for a field (FR-014).
+  **Done.** `description_type`/`description` property aliases removed from `DatasetDescription`
+  (`fairdm/core/dataset/models.py:319-356`). Call sites updated: `tests/test_core/test_dataset/test_models.py:992`.
 
 ## Phase 3 — US-2, dates and the collection period
 
 ### Tests
 
-- [ ] T035 `TestDatasetDate` — a collection start is stored under its type.
+- [x] T035 `TestDatasetDate` — a collection start is stored under its type.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:698`.
 - [x] T036 A second date of a type already carried is refused at the database.
   **Done.** Code `fairdm/core/abstract.py:305` — the `UniqueConstraint` on `(related, type)`.
   Test `tests/test_core/test_dataset/test_models.py:383`.
-- [ ] T037 A collection end earlier than the start is refused, and the message names both dates.
-- [ ] T038 The same refusal when the start is moved after an existing end.
-- [ ] T039 A collection end with no start present is accepted.
-- [ ] T040 Dates of differing precision compare at the coarser precision, so a year and a full date
+- [x] T037 A collection end earlier than the start is refused, and the message names both dates.
+  **Done.** Code `fairdm/core/dataset/models.py:382` (`DatasetDate.clean()`). Test
+  `tests/test_core/test_dataset/test_models.py:725`.
+- [x] T038 The same refusal when the start is moved after an existing end.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:744`.
+- [x] T039 A collection end with no start present is accepted.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:761`.
+- [x] T040 Dates of differing precision compare at the coarser precision, so a year and a full date
   do not compare falsely.
-- [ ] T041 A date record with no value is refused.
-- [ ] T042 The date vocabulary's members are asserted by name.
-- [ ] T043 The check fires through the administrative inline too, where both dates arrive in one
+  **Done.** Code `fairdm/core/dataset/models.py:432` (`DatasetDate._precedes()`). Tests
+  `tests/test_core/test_dataset/test_models.py:772`, `tests/test_core/test_dataset/test_models.py:786`.
+- [x] T041 A date record with no value is refused.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:800`.
+- [x] T042 The date vocabulary's members are asserted by name.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:812`.
+- [x] T043 The check fires through the administrative inline too, where both dates arrive in one
   submission and neither is in the database yet.
+  **Done.** Code `fairdm/core/dataset/admin.py:67` (`DateInlineFormSet`). Tests
+  `tests/test_core/test_dataset/test_admin.py:390`, `tests/test_core/test_dataset/test_admin.py:428`.
 
 ### Implementation
 
 - [x] T044 `DatasetDate` bound to the dataset date collection, one row per type.
   **Done.** Code `fairdm/core/dataset/models.py:673`, `fairdm/core/dataset/models.py:682`. Test `tests/test_core/test_dataset/test_models.py:383`.
-- [ ] T045 The collection-period check, comparing against the sibling record rather than within one
+- [x] T045 The collection-period check, comparing against the sibling record rather than within one
   instance, at the coarser of the two precisions.
-- [ ] T046 Each field exposed under one name only.
+  **Done.** Code `fairdm/core/dataset/models.py:382-445` (`DatasetDate.clean()`, `_sibling_value()`,
+  `_precedes()`) — duplicated from `ProjectDate`, not lifted to `AbstractDate` (Article III, R2).
+- [x] T046 Each field exposed under one name only.
+  **Done.** `date_type`/`date` property aliases removed from `DatasetDate`
+  (`fairdm/core/dataset/models.py:359-445`). No call sites outside the removed aliases themselves
+  used them (verified by repository-wide grep).
 
 ## Phase 4 — US-3, identifiers
 
@@ -134,11 +158,18 @@ Runs first: it carries the manager change every other story's tests read through
 
 - [x] T047 `TestDatasetIdentifier` — a DOI is stored under the DOI type.
   **Done.** Code `fairdm/core/dataset/models.py:711`, `fairdm/core/abstract.py:312`. Test `tests/test_core/test_dataset/test_models.py:585`.
-- [ ] T048 The available types are asserted by name and contain no identifier for a person or an
+- [x] T048 The available types are asserted by name and contain no identifier for a person or an
   organisation.
-- [ ] T049 The same identifier value on a second record is refused, across every record type that
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:830`.
+- [x] T049 The same identifier value on a second record is refused, across every record type that
   carries identifiers, not merely within one dataset.
-- [ ] T050 Two identifiers of different types on one dataset are both retained.
+  **Done.** Code `fairdm/core/dataset/models.py:467` (`DatasetIdentifier.clean()`, checks every
+  `AbstractIdentifier.__subclasses__()`). Test `tests/test_core/test_dataset/test_models.py:847`.
+- [x] T050 **Withdrawn.** Two identifiers of different types on one dataset cannot be
+  demonstrated honestly: the collection is `DOI` alone, so there is no second member. The test that
+  claimed it wrote a type the vocabulary does not contain through `objects.create()`, which skips
+  validation — the exact shape this run exists to remove. Deleted, and US-3's fourth acceptance
+  scenario struck from the specification with it (D-021).
 - [x] T051 A second identifier of a type already carried is refused at the database.
   **Done.** Code `fairdm/core/abstract.py:324` — the `UniqueConstraint` on `(related, type)`.
   Test `tests/test_core/test_dataset/test_models.py:635`.
@@ -147,10 +178,22 @@ Runs first: it carries the manager change every other story's tests read through
 
 ### Implementation
 
-- [ ] T053 `DatasetIdentifier` bound to the dataset identifier collection, one row per type,
+- [x] T053 `DatasetIdentifier` bound to the dataset identifier collection, one row per type,
   value unique across all identifiers.
-- [ ] T054 The class attribute naming the identifier types agrees with what the related model binds.
-- [ ] T055 Each field exposed under one name only.
+  **Done.** Code `fairdm/core/dataset/models.py:464` (`VOCABULARY`), `:467` (cross-model `clean()`).
+  A blocking upstream defect surfaced doing this: `research_vocabs`'s `VocabularyBuilder.choices`
+  (`core.py:205`) crashes with `TypeError: 'Concept' object is not iterable` on a `from_collection`
+  scope with exactly one member, because a single RDF triple doesn't promote to a list the way two or
+  more do. `DOI` alone (R3) is exactly that case. Worked around in `fairdm/core/vocabularies.py`
+  (`FairDMIdentifiers.choices` override) rather than in the third-party library — see the completion
+  report.
+- [x] T054 The class attribute naming the identifier types agrees with what the related model binds.
+  **Done.** Code `fairdm/core/dataset/models.py:209-214` (`Dataset.IDENTIFIER_TYPES`). Test
+  `tests/test_core/test_dataset/test_models.py:873`.
+- [x] T055 Each field exposed under one name only.
+  **Done.** `identifier_type`/`identifier` property aliases removed from `DatasetIdentifier`
+  (`fairdm/core/dataset/models.py:448-487`). Call sites updated: `tests/test_core/test_dataset/test_models.py:1083`,
+  `:1145-1146`, `:1201`, and `tests/test_core/test_dataset/test_filters.py` (factory kwargs).
 
 ## Phase 5 — US-4, visibility
 

@@ -443,3 +443,57 @@ it, and `validate_unique()` does check an unconditional `UniqueConstraint`, so t
 already satisfies it — but writing the test is implementation work, and a tick earned by reasoning
 about the framework rather than by running something is the failure this reconciliation exists to
 catch. It is left unclaimed and noted in `tasks.md`.
+
+## D-020 — `research_vocabs.choices` crashes on a single-member collection; worked around, not patched
+
+**Self-resolved during implementation, 2026-08-18.**
+
+Binding `DatasetIdentifier.VOCABULARY = FairDMIdentifiers.from_collection("Dataset")` (T053) crashes
+the whole app at import time: `TypeError: 'Concept' object is not iterable`, raised from
+`VocabularyBuilder.choices` (`research_vocabs/core.py:205`,
+`for member in collection.attrs["skos:member"]`).
+
+Traced to the RDF layer, not to anything dataset-specific. `Concept.attrs` (`core.py:83-100`) builds
+its dict from the graph's triples for a subject, and only promotes a repeated predicate to a list on
+its *second* occurrence — a predicate with exactly one triple stays a bare `Concept`. D-003 narrows
+the "Dataset" identifier collection to `DOI` alone, so it is exactly the one-triple case; every other
+`from_collection` scope in the package (Project, Person, Organization identifiers; every date and
+description collection) has two or more members and never hits this path. Confirmed by reproducing
+directly against `FairDMIdentifiers.from_collection("Dataset").choices` before writing the fix, and
+again against the multi-member collections to confirm they were unaffected either way.
+
+The assumption in `spec.md` that vocabulary machinery is "already in place and not changed by this
+work" holds for the library itself: `fairdm/core/vocabularies.py` is FairDM's own file, not
+`research_vocabs`'s, and the two `Concept` classes involved are easy to conflate (`research_vocabs
+.builder.skos.Concept`, used to declare members in this file, versus `research_vocabs.core.Concept`,
+the RDF wrapper the crash is in) but are not the same class. `FairDMIdentifiers.choices` is overridden
+to re-derive the exact same `from_collection` branch with the member list normalised to always be a
+list first, rather than patching the dependency. For two-or-more-member collections the override's
+result is provably identical to `super().choices` — same list comprehension, same input — so nothing
+about `FairDMIdentifiers()` unscoped or its other three collections changes.
+
+Not raised as an issue against `research_vocabs` here — that library isn't in this repository's
+tracker. Worth an upstream report; noted in the completion report for Sam to decide whether to file
+one.
+
+
+## D-021 — A scenario the settled vocabulary cannot satisfy is struck, not faked
+
+**Self-resolved, during implementation.**
+
+The rewritten specification's US-3 asked that two identifiers of different types on one dataset both
+be retained. D-003 then narrowed the dataset identifier collection to `DOI` alone, and the two
+decisions are incompatible: with one member there is no second type to attach.
+
+The implementation surfaced this by keeping the pre-existing test and writing `"ARK"` — a type the
+vocabulary does not contain — through `objects.create()`, which skips validation. The docstring
+explained why. That is a confession rather than a fix, and it is precisely the shape this work exists
+to remove: a test that stores a vocabulary-invalid row and passes.
+
+The test is deleted and the scenario is struck. What FR-012 needs is covered without it: the members
+are asserted by name, and a second identifier of a type already carried is refused.
+
+The general rule, which is worth more than the instance: **when a requirement I wrote turns out to be
+unsatisfiable against a decision that was settled later, the text is what changes.** Writing a test
+that appears to satisfy it is how a specification starts claiming more than the code delivers, which
+is the drift this whole exercise was run to remove.

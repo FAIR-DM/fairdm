@@ -378,6 +378,94 @@ class TestInlineDateEditing:
 
 
 @pytest.mark.django_db
+class TestDateInlineCollectionPeriod:
+    """T043: the collection-period check fires through the administrative
+    inline, where both dates arrive in one submission and neither is in
+    the database yet - a sibling lookup in the database (`DatasetDate
+    .clean()`'s `_sibling_value()`) misses a row being added alongside it
+    in the same formset, so `DateInlineFormSet` (`fairdm/core/dataset
+    /admin.py`) checks the pair directly off the submitted forms.
+    """
+
+    def test_backwards_pair_submitted_together_is_refused(self, admin_client):
+        """A CollectionEnd earlier than a CollectionStart submitted in the
+        same inline formset - neither saved yet - is refused.
+        """
+        dataset = DatasetFactory(name="Test Dataset")
+        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
+
+        form_data = {
+            "name": dataset.name,
+            "project": dataset.project.pk,
+            "visibility": dataset.visibility,
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "1000",
+            "dates-TOTAL_FORMS": "2",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "1000",
+            "dates-0-related": dataset.pk,
+            "dates-0-type": DatasetDate.START_TYPE,
+            "dates-0-value": "2020-06-01",
+            "dates-1-related": dataset.pk,
+            "dates-1-type": DatasetDate.END_TYPE,
+            "dates-1-value": "2019-05-01",
+            "_continue": "Save and continue editing",
+        }
+
+        response = admin_client.post(url, data=form_data)
+
+        # A rejected formset re-renders the change form rather than
+        # redirecting.
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "2020-06-01" in content
+        assert "2019-05-01" in content
+        assert not DatasetDate.objects.filter(related=dataset).exists()
+
+    def test_forwards_pair_submitted_together_is_accepted(self, admin_client):
+        """The same submission shape with a CollectionStart before the
+        CollectionEnd succeeds - proving the check discriminates rather
+        than refusing every paired submission.
+        """
+        dataset = DatasetFactory(name="Test Dataset")
+        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
+
+        form_data = {
+            "name": dataset.name,
+            "project": dataset.project.pk,
+            "visibility": dataset.visibility,
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "1000",
+            "dates-TOTAL_FORMS": "2",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "1000",
+            "dates-0-related": dataset.pk,
+            "dates-0-type": DatasetDate.START_TYPE,
+            "dates-0-value": "2020-06-01",
+            "dates-1-related": dataset.pk,
+            "dates-1-type": DatasetDate.END_TYPE,
+            "dates-1-value": "2020-12-01",
+            "_continue": "Save and continue editing",
+        }
+
+        response = admin_client.post(url, data=form_data)
+
+        assert response.status_code == 302
+        assert DatasetDate.objects.filter(
+            related=dataset, type=DatasetDate.START_TYPE
+        ).exists()
+        assert DatasetDate.objects.filter(
+            related=dataset, type=DatasetDate.END_TYPE
+        ).exists()
+
+
+@pytest.mark.django_db
 class TestDynamicInlineFormLimits:
     """Test dynamic inline form limits based on vocabulary size (T060).
 

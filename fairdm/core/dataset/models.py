@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
+from partial_date import PartialDate
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -206,7 +208,11 @@ class Dataset(BaseModel):
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Dataset")
     DATE_TYPES = FairDMDates.from_collection("Dataset")
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Dataset")
-    IDENTIFIER_TYPES = FairDMIdentifiers().choices
+    # Bound to the same "Dataset" collection DatasetIdentifier.VOCABULARY
+    # binds (T054), rather than the unscoped `FairDMIdentifiers()`, which
+    # listed identifiers for people and organisations - none of which name
+    # a dataset (D-003, R3).
+    IDENTIFIER_TYPES = FairDMIdentifiers.from_collection("Dataset").choices
     VISIBILITY_CHOICES = Visibility
     DEFAULT_ROLES = ["ProjectMember"]
 
@@ -311,12 +317,11 @@ class Dataset(BaseModel):
 
 
 class DatasetDescription(AbstractDescription):
-    """
-    Typed descriptions for datasets using controlled FAIR vocabulary.
-
-    Provides property aliases for API compatibility:
-    - description_type → type
-    - description → value
+    """Typed prose about a dataset, drawn from the dataset description
+    collection (`FairDMDescriptions.from_collection("Dataset")`). At most
+    one description per type - enforced by validation (`clean()`, below)
+    and, so a concurrent write cannot slip past it, by a database
+    constraint (`AbstractDescription.Meta.constraints`).
     """
 
     VOCABULARY = FairDMDescriptions.from_collection("Dataset")
@@ -327,95 +332,156 @@ class DatasetDescription(AbstractDescription):
             models.Index(fields=["type"], name="dataset_desc_type_idx"),
         ]
 
-    @property
-    def description_type(self):
-        """Alias for type field (API compatibility)."""
-        return self.type
-
-    @description_type.setter
-    def description_type(self, value):
-        """Setter for description_type alias."""
-        self.type = value
-
-    @property
-    def description(self):
-        """Alias for value field (API compatibility)."""
-        return self.value
-
-    @description.setter
-    def description(self, value):
-        """Setter for description alias."""
-        self.value = value
+    def clean(self):
+        """FR-009: refuse a second description of a type the dataset
+        already carries, naming the type in the message. Mirrors
+        `ProjectDescription.clean()` (`fairdm/core/project/models.py`).
+        """
+        super().clean()
+        if self.related_id and self.type:
+            existing = (
+                DatasetDescription.objects.filter(related=self.related, type=self.type)
+                .exclude(pk=self.pk)
+                .exists()
+            )
+            if existing:
+                raise ValidationError(
+                    {
+                        "type": _(
+                            "A description of type '%(type)s' already exists "
+                            "for this dataset."
+                        )
+                        % {"type": self.type}
+                    }
+                )
 
 
 class DatasetDate(AbstractDate):
-    """
-    Typed dates for datasets using controlled FAIR vocabulary.
+    """Typed dates marking points in a dataset's life, drawn from the
+    dataset date collection (`FairDMDates.from_collection("Dataset")`). At
+    most one date per type - enforced by validation (`clean()`, below) and,
+    so a concurrent write cannot slip past it, by a database constraint
+    (`AbstractDate.Meta.constraints`).
 
-    Provides property aliases for API compatibility:
-    - date_type → type
-    - date → value
+    `CollectionStart` and `CollectionEnd` are additionally checked against
+    each other: the collection end cannot precede the collection start
+    (FR-011).
     """
 
     VOCABULARY = FairDMDates.from_collection("Dataset")
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
+
+    START_TYPE = "CollectionStart"
+    END_TYPE = "CollectionEnd"
 
     class Meta(AbstractDate.Meta):
         indexes = [
             models.Index(fields=["type"], name="dataset_date_type_idx"),
         ]
 
-    @property
-    def date_type(self):
-        """Alias for type field (API compatibility)."""
-        return self.type
+    def clean(self):
+        """Validate that the dataset's collection end does not precede its
+        collection start.
 
-    @date_type.setter
-    def date_type(self, value):
-        """Setter for date_type alias."""
-        self.type = value
+        A dataset's collection start and end are stored as two separate
+        `DatasetDate` rows, one per type, so the comparison is made against
+        the sibling record rather than within a single instance. Mirrors
+        `ProjectDate.clean()` (`fairdm/core/project/models.py:196-250`),
+        duplicated rather than lifted to `AbstractDate` - this is the
+        second use of the *pattern*, not of a shared implementation
+        (Article III, research.md R2). `PartialDate` mixes precision into
+        its ordering (`self.date >= other.date and self.precision >=
+        other.precision`), so comparing two values of different precision
+        directly is unsafe - the check instead compares at the coarser of
+        the two precisions.
+        """
+        super().clean()
 
-    @property
-    def date(self):
-        """Alias for value field (API compatibility)."""
-        return self.value
+        if not self.related_id or not self.value:
+            return
 
-    @date.setter
-    def date(self, value):
-        """Setter for date alias."""
-        self.value = value
+        if self.type == self.START_TYPE:
+            start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
+        elif self.type == self.END_TYPE:
+            start_value, end_value = self._sibling_value(self.START_TYPE), self.value
+        else:
+            return
+
+        if start_value is None or end_value is None:
+            return
+
+        if self._precedes(end_value, start_value):
+            raise ValidationError(
+                {
+                    "value": _(
+                        "The dataset's collection end date (%(end)s) cannot "
+                        "be before its collection start date (%(start)s)."
+                    )
+                    % {"start": start_value, "end": end_value}
+                }
+            )
+
+    def _sibling_value(self, type_):
+        """Return the value of this dataset's other date of `type_`, if any."""
+        queryset = DatasetDate.objects.filter(related_id=self.related_id, type=type_)
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        sibling = queryset.first()
+        return sibling.value if sibling else None
+
+    @staticmethod
+    def _precedes(a: PartialDate, b: PartialDate) -> bool:
+        """Whether PartialDate `a` is earlier than PartialDate `b`.
+
+        Compares at the coarser of the two precisions: years only if either
+        is year-precision, year and month if either is month-precision, and
+        the full date only when both carry day precision.
+        """
+        precision = min(a.precision, b.precision)
+        if precision == PartialDate.YEAR:
+            return bool(a.date.year < b.date.year)
+        if precision == PartialDate.MONTH:
+            return bool((a.date.year, a.date.month) < (b.date.year, b.date.month))
+        return bool(a.date < b.date)
 
 
 class DatasetIdentifier(AbstractIdentifier):
+    """Typed external identifiers naming a dataset outside the portal,
+    drawn from the dataset identifier collection
+    (`FairDMIdentifiers.from_collection("Dataset")`, currently `DOI` alone -
+    D-003, R3). At most one identifier per type - enforced by validation
+    and, so a concurrent write cannot slip past it, by a database
+    constraint (`AbstractIdentifier.Meta.constraints`).
+
+    `value` carries `unique=True` on `AbstractIdentifier`, which is a
+    per-table constraint and so only guarantees uniqueness within
+    `DatasetIdentifier` itself. FR-013 asks for more: the same identifier
+    value must not name two things, whichever of the four
+    `AbstractIdentifier` subclasses (dataset, project, sample, measurement)
+    carries it. `clean()` below checks across all of them.
     """
-    Typed identifiers for datasets using controlled FAIR vocabulary.
 
-    Provides property aliases for API compatibility:
-    - identifier_type → type
-    - identifier → value
-
-    Supports DOI via identifier_type='DOI'.
-    """
-
-    VOCABULARY = FairDMIdentifiers()
+    VOCABULARY = FairDMIdentifiers.from_collection("Dataset")
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
 
-    @property
-    def identifier_type(self):
-        """Alias for type field (API compatibility)."""
-        return self.type
-
-    @identifier_type.setter
-    def identifier_type(self, value):
-        """Setter for identifier_type alias."""
-        self.type = value
-
-    @property
-    def identifier(self):
-        """Alias for value field (API compatibility)."""
-        return self.value
-
-    @identifier.setter
-    def identifier(self, value):
-        """Setter for identifier alias."""
-        self.value = value
+    def clean(self):
+        """FR-013: an identifier value must be unique across every record
+        that carries identifiers, not merely within `DatasetIdentifier`'s
+        own table.
+        """
+        super().clean()
+        if not self.value:
+            return
+        for model in AbstractIdentifier.__subclasses__():
+            queryset = model.objects.filter(value=self.value)
+            if model is type(self) and self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+            if queryset.exists():
+                raise ValidationError(
+                    {
+                        "value": _(
+                            "The identifier '%(value)s' is already in use."
+                        )
+                        % {"value": self.value}
+                    }
+                )
