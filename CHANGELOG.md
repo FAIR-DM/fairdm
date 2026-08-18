@@ -5,6 +5,40 @@ All notable changes to the FairDM project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Datasets are private by default. Reading datasets the ordinary way no longer returns private
+  ones; `Dataset.all_objects` is the explicit route for code that needs them, and the surfaces
+  whose own permission check is the real gate — the API, plugin pages, the sample and measurement
+  forms, and the administrative interface — use it so that check still runs.
+- Dataset identifiers use a vocabulary that applies to datasets. The type list previously offered
+  identifiers for people and organisations.
+- Datasets are ordered most-recently-modified first. The previous ordering put the least recently
+  touched record first.
+- A dataset created without choosing a licence carries the portal's configured default, and the
+  licences the framework recommends are seeded when a portal is stood up. A portal that has migrated
+  previously had no licence rows at all, which left the default silently unapplied.
+
+### Added
+
+- A dataset records who created it.
+- A dataset refuses a collection period that ends before it starts, in the administrative inline as
+  well as on the record.
+- Descriptions, dates and identifiers are all editable from a dataset's administrative page, and the
+  list shows which datasets carry an abstract and a DOI.
+
+### Removed
+
+- `Dataset.ROLE_PERMISSIONS`, which mapped two role names the vocabulary does not contain and had no
+  readers.
+- `DatasetQuerySet.with_private()`, `.get_visible()` and `.for_user()`. The first discarded every
+  condition applied before it, the second duplicated the default, and the third gated on a
+  permission no model declares.
+- The second name each related record carried for its two fields. Nothing read them, and one was an
+  ORM path in a filter that raised on every use.
+
 ## [Unreleased]
 
 ### Added

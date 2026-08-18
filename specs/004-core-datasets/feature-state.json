@@ -3,7 +3,7 @@
   "feature": "004-core-datasets",
   "branch": "004-core-datasets",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -33,6 +33,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-18T12:00:00Z",
       "note": "design review closed clean, ready for story dispatch \u2014 no stories dispatched by this session"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-18T19:30:00Z",
+      "note": "implementation complete, suite green; code review not run - subagent killed by parent-turn interruption twice"
     }
   ],
   "gates": {
@@ -64,7 +69,7 @@
       "id": "US8",
       "priority": "P2",
       "issue": 185,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -85,87 +90,87 @@
         },
         {
           "id": "T009",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T010",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T011",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T012",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T013",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T014",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T015",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T016",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T017",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T018",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T019",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T020",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T021",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T022",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T023",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T024",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T025",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -174,17 +179,17 @@
       "id": "US1",
       "priority": "P1",
       "issue": 178,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T026",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T027",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
@@ -202,17 +207,17 @@
         },
         {
           "id": "T029",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T030",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T031",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
@@ -245,7 +250,7 @@
         },
         {
           "id": "T034",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -254,12 +259,12 @@
       "id": "US2",
       "priority": "P1",
       "issue": 179,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T035",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
@@ -277,37 +282,37 @@
         },
         {
           "id": "T037",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T038",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T039",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T040",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T041",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T042",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T043",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
@@ -326,12 +331,12 @@
         },
         {
           "id": "T045",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T046",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -340,7 +345,7 @@
       "id": "US3",
       "priority": "P1",
       "issue": 180,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -359,17 +364,17 @@
         },
         {
           "id": "T048",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T049",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T050",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
@@ -401,17 +406,17 @@
         },
         {
           "id": "T053",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T054",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T055",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -420,67 +425,67 @@
       "id": "US4",
       "priority": "P1",
       "issue": 181,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T056",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T057",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T058",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T059",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T060",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T061",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T062",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T063",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T064",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T065",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T066",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T067",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -489,47 +494,47 @@
       "id": "US5",
       "priority": "P2",
       "issue": 182,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T068",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T069",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T070",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T071",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T072",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T073",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T074",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T075",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -538,72 +543,72 @@
       "id": "US6",
       "priority": "P2",
       "issue": 183,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T076",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T077",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T078",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T079",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T080",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T081",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T082",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T083",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T084",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T085",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T086",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T087",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T088",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -612,32 +617,32 @@
       "id": "US7",
       "priority": "P3",
       "issue": 184,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T089",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T090",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T091",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T092",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T093",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
@@ -646,102 +651,102 @@
       "id": "US0",
       "priority": "P1",
       "issue": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T002",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T003",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T004",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T005",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T006",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T007",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T094",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T095",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T096",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T097",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T098",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T099",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T100",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T101",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T102",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T103",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T104",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         },
         {
           "id": "T105",
-          "status": "todo",
+          "status": "done",
           "attempts": 0
         }
       ]
