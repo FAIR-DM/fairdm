@@ -1,411 +1,315 @@
-# Data Model: Core Dataset App
+# Data model — 004 The dataset record
 
-**Feature**: 004-core-datasets
-**Created**: 2026-01-15
-**Input**: [spec.md](spec.md), [plan.md](plan.md)
+**Regenerated 2026-08-18**, against `spec.md`, `decisions.md`, `plan.md` and `research.md`.
 
-## Overview
+The January version of this file survived the specification rewrite untouched and described a design
+this document no longer holds: a `PROTECT` project relation, a three-level visibility, `with_private()`
+as the recommended route to private datasets, and an identifier set containing ARK, Handle, URL and
+URN. None of that is carried here. It is replaced rather than corrected, because a document that
+disagrees with the specification in four places probably disagrees in a fifth.
 
-This document defines the detailed data structures, field specifications, relationships, and validation rules for the Dataset app enhancement. All changes reflect the clarifications from Session 2026-01-15 including PROTECT behavior, privacy-first defaults, DataCite standards, and dynamic configurations.
+**This describes the shape the work builds to, not the shape the code has today.** Where the two
+differ the difference is named, because the difference is the work. Line citations are to the code as
+it stands.
 
-## Entity Definitions
+## Dataset
 
-### Dataset
+`fairdm/core/dataset/models.py`. Extends `BaseModel` (`fairdm/core/abstract.py:22`), which extends
+`fairdm.db.models.Model` — a lifecycle-aware, prefetch-aware base carrying the two timestamps.
 
-**Purpose**: Core model representing a collection of samples, measurements, and metadata in the FairDM hierarchy.
+### Fields
 
-**Inheritance**: Extends `fairdm.core.base.BaseModel`
+| Field | Type | Constraints | Origin |
+|---|---|---|---|
+| `added` | `DateTimeField` | `auto_now_add` | `fairdm.db.models.Model` |
+| `modified` | `DateTimeField` | `auto_now` | `fairdm.db.models.Model` |
+| `name` | `CharField(300)` | required | `BaseModel` |
+| `image` | `ThumbnailerImageField` | optional | `BaseModel` |
+| `keywords` | `ManyToManyField` → `research_vocabs.Concept` | optional | `BaseModel` |
+| `tags` | `TaggableManager` through `generic.TaggedItem` | optional | `BaseModel` |
+| `options` | `JSONField` | optional | `BaseModel` |
+| `uuid` | `ShortUUIDField` | `unique`, `editable=False`, prefix `d` | `Dataset` |
+| `visibility` | `IntegerField` | `choices=Visibility`, default `PRIVATE`, **newly indexed** | `Dataset` |
+| `project` | `ForeignKey` → `project.Project` | `on_delete=CASCADE`, optional | `Dataset` |
+| `reference` | `OneToOneField` → `literature.LiteratureItem` | `on_delete=SET_NULL`, optional | `Dataset` |
+| `related_literature` | `ManyToManyField` → `literature.LiteratureItem` | through `DatasetLiteratureRelation` | `Dataset` |
+| `license` | `LicenseField` | optional, no column default | `Dataset` |
+| `contributors` | `GenericRelation` → `contributors.Contribution` | — | `Dataset` |
+| `created_by` | `ForeignKey` → `contributors.Person` | `on_delete=SET_NULL`, optional, `editable=False` | **new** |
 
-**Fields**:
+`keywords` and `tags` are two mechanisms and stay distinguishable: a keyword is a reference to a term
+in a configured vocabulary, a tag is free text (FR-005).
 
-| Field | Type | Constraints | Default | Description |
-|-------|------|-------------|---------|-------------|
-| `uuid` | ShortUUIDField | unique, editable=False, prefix="d" | auto-generated | Stable external identifier |
-| `name` | CharField | required, max_length=200 | - | Human-readable dataset name |
-| `visibility` | IntegerField | choices=Visibility | PRIVATE | Access control level (PUBLIC, INTERNAL, PRIVATE) |
-| `image` | ImageField | optional | - | Visual identification image for cards and meta tags |
-| `project` | ForeignKey | optional, on_delete=PROTECT | null | Associated project (PROTECT prevents deletion) |
-| `reference` | OneToOneField | optional, on_delete=SET_NULL | null | Data publication/literature item |
-| `related_literature` | ManyToManyField | through=DatasetLiteratureRelation | - | Related literature with relationship types |
-| `license` | LicenseField | optional | CC BY 4.0 | Dataset license |
-| `added` | DateTimeField | auto_now_add | current timestamp | Creation timestamp (audit trail) |
-| `modified` | DateTimeField | auto_now | current timestamp | Last modification timestamp (audit trail) |
-| `keywords` | ManyToManyField | optional | - | Taggit tags for categorization |
+`created_by` is copied field-for-field from `Project.created_by`
+(`fairdm/core/project/models.py:113`), including the reasoning recorded beside it. It is a foreign
+key rather than a name, so it carries a database index without a separate decision, and it is not
+editable — the creator is written server-side, never through a form or a serialiser field. `SET_NULL`
+is what makes FR-021 hold: removing the account leaves the dataset with an unknown creator rather
+than deleting the dataset.
 
-**Relationships**:
+`image` exists here, but its aspect ratio, dimensions, thumbnails and upload guidance belong to
+`015-image-field-spec`.
 
-- **Project**: ForeignKey to `project.Project` with `on_delete=PROTECT` (prevents accidental dataset loss when project deleted)
-- **Contributors**: GenericRelation to `contributors.Contribution` (many-to-many through content types)
-- **Descriptions**: Reverse relation from `DatasetDescription` (one-to-many)
-- **Dates**: Reverse relation from `DatasetDate` (one-to-many)
-- **Identifiers**: Reverse relation from `DatasetIdentifier` (one-to-many)
-- **Related Literature**: ManyToManyField to `literature.LiteratureItem` through `DatasetLiteratureRelation`
-- **Samples**: Reverse relation from sample models (one-to-many)
-- **Measurements**: Reverse relation from measurement models (one-to-many)
+### Class attributes
 
-**Validation**:
+| Attribute | Value | Change |
+|---|---|---|
+| `CONTRIBUTOR_ROLES` | `FairDMRoles.from_collection("Dataset")` | unchanged |
+| `DATE_TYPES` | `FairDMDates.from_collection("Dataset")` | unchanged |
+| `DESCRIPTION_TYPES` | `FairDMDescriptions.from_collection("Dataset")` | unchanged |
+| `IDENTIFIER_TYPES` | `FairDMIdentifiers.from_collection("Dataset")` | **was** `FairDMIdentifiers().choices` (D-003) |
+| `VISIBILITY_CHOICES` | `Visibility` | unchanged |
+| `DEFAULT_ROLES` | `["ProjectMember"]` | unchanged |
+| `ROLE_PERMISSIONS` | — | **removed** (D-010) |
 
-- `name` MUST be non-empty (required field)
-- `name` max_length=200
-- `visibility` MUST be one of: PUBLIC, INTERNAL, PRIVATE
-- Orphaned datasets (`project=null`) are permitted but not encouraged
+`IDENTIFIER_TYPES` and `DatasetIdentifier.VOCABULARY` are two statements of the same thing and must
+name the same collection (T054). Today they are both the unscoped vocabulary, which is the defect
+D-003 records.
 
-**Properties**:
+`ROLE_PERMISSIONS` names `Viewer` and `Manager`, neither of which is a member of the dataset role
+collection, and nothing reads it. It goes, and the question it was reaching for is issue #169.
 
-- `has_data` (cached_property): Boolean indicating if dataset has any samples or measurements
-- `bbox` (cached_property): Geographic bounding box for dataset
+### Meta
 
-**Permissions**:
+- `verbose_name` / `verbose_name_plural` — "dataset" / "datasets"
+- `default_related_name` — `datasets`
+- `ordering` — `["-modified"]`. **Was `["modified"]`** (D-013): ascending put the stalest record
+  first, and `Project` was corrected the same way in `003-core-projects`.
+- `permissions` — `add_contributor`, `modify_contributor`, `modify_metadata`
+  (`fairdm/core/utils.py:10`), plus `import_data`, `change_dataset_metadata` and
+  `change_dataset_settings`.
 
-- `view_dataset`: View dataset details
-- `add_dataset`: Create new datasets
-- `change_dataset`: Edit existing datasets
-- `delete_dataset`: Delete datasets
-- `import_data`: Import data into datasets
+FR-020 binds this list: any permission a visibility check consults must appear in it. The
+`dataset.view_private` that `for_user()` gates on does not, which is why `for_user()` can never
+return anything but the public set, and why it is removed rather than repaired.
 
-**Meta**:
+### Managers
 
-- `verbose_name`: "dataset"
-- `verbose_name_plural`: "datasets"
-- `default_related_name`: "datasets"
-- `ordering`: ["modified"]
+Three parts, which is what Django's guidance for a filtered default manager asks for (R1):
 
-**Manager**: `DatasetQuerySet.as_manager()` (custom QuerySet with privacy-first default)
+| Manager | Shape | Purpose |
+|---|---|---|
+| `objects` | `DatasetManager()`, excluding `visibility=PRIVATE` | the ordinary route; declared first, so it is `_default_manager` |
+| `all_objects` | `DatasetQuerySet.as_manager()` | the explicit, named route to every dataset |
 
-**Behavior Notes**:
+`DatasetManager` already exists and already excludes private datasets (`models.py:331-371`). It is
+commented out at `:548-550`. Switching it on is the whole of US-8's privacy work.
 
-- **PROTECT behavior**: Projects with attached datasets cannot be deleted. Users must reassign or delete datasets first.
-- **Orphaned datasets**: Datasets with `project=null` are valid (edge case for project restructuring) but not encouraged.
-- **UUID collision**: Relies on ShortUUID uniqueness + database unique constraint. Collision probability is astronomically low.
-- **Empty datasets**: Datasets without samples/measurements are valid (planning phase) but flagged via `has_data` property.
-- **Image aspect ratio**: TBD based on research (T012, T014). Should work well in card displays and HTML meta tags.
+Two consequences follow from `_default_manager` changing, and both are handled rather than
+discovered:
 
----
+- `ModelAdmin.get_queryset()` reads `_default_manager`, so the administrative list would stop showing
+  private datasets. `DatasetAdmin.get_queryset()` is overridden to use `all_objects`, with the reason
+  stated in the code (T067). The administrative interface is where a portal is repaired, and an
+  unfinished dataset is exactly what needs reaching.
+- A reverse many-to-one manager is built from `related_model._default_manager.__class__`, so
+  `project.datasets.all()` stops returning private datasets. That is correct for portal surfaces. The
+  deletion guard in `fairdm/core/project/models.py:280` counts public datasets, so it is unaffected.
 
-### DatasetQuerySet
+**`Meta.base_manager_name` is not declared, and cannot be.** `fairdm.db.models.PrefetchBase` assigns
+`_meta.base_manager_name = "prefetch_manager"` after the class is built
+(`fairdm/db/models.py:30-55`), so a value declared in `Meta` is silently overwritten — and
+`django-auto-prefetch` raises a system check if it is anything else. The guarantee FR-019a asks for
+holds anyway: `prefetch_manager` is a plain unfiltered manager, so forward relations and the deletion
+collector see every dataset regardless of visibility. Verified against `Dataset._meta` directly, not
+inferred. This is the correction to R1's third part, recorded in D-019.
 
-**Purpose**: Custom QuerySet manager providing privacy-first defaults and optimized query methods.
+### Removed from the queryset
 
-**Methods**:
+| Method | Because |
+|---|---|
+| `with_private()` | Rebuilds from the model and discards `self`, so `Dataset.objects.filter(project=p).with_private()` returns every dataset in the table (`models.py:239-241`) |
+| `get_visible()` | With two visibility levels it selects the same rows as the default manager — a second name for the default |
+| `for_user()` | No callers, and gates on `dataset.view_private`, a permission no model declares (`models.py:195`) |
 
-| Method | Return Type | Parameters | Description |
-|--------|-------------|------------|-------------|
-| `get_all()` or `with_private()` | QuerySet | - | Returns ALL datasets including PRIVATE ones (explicit opt-in) |
-| `with_related()` | QuerySet | - | Prefetches project and contributors (SHOULD, not MUST) |
-| `with_contributors()` | QuerySet | - | Prefetches only contributors (SHOULD, not MUST) |
+There is no correct implementation of `with_private()`, only correct entry points. Once the exclusion
+lives in the manager it is in the SQL by the time a caller holds a queryset, and no method can take
+it back out. FR-019 is written to forbid the shape rather than to require the method: a widening that
+silently discards the caller's conditions is worse than no widening at all.
 
-**Default Behavior**:
+What the queryset keeps is the bounded load — a dataset together with its descriptions, dates,
+identifiers, contributions and keywords in a number of queries that does not grow with how many of
+each it carries (FR-030).
 
-- **Privacy-first**: Default manager excludes datasets with `visibility=PRIVATE`
-- Users MUST explicitly call `get_all()` or `with_private()` to access private datasets
-- This prevents accidental exposure of private data in public views
+### Properties
 
-**Query Optimization**:
+- `has_data` — whether the dataset holds any samples or measurements. A single bounded query rather
+  than the two `exists()` calls it is today (T023, FR-008).
+- `bbox` — the geographic bounding box, from `fairdm.contrib.location`.
 
-- `with_related()`: Reduces queries by ~80% when loading datasets with project and contributor data
-- `with_contributors()`: Optimizes contributor-only queries
-- Methods are suggestions (SHOULD) based on usage patterns, not hard requirements (MUST)
+## The related records
 
-**Query Count Expectations**:
+`DatasetDescription`, `DatasetDate` and `DatasetIdentifier` share one shape, inherited from
+`fairdm/core/abstract.py`. Each carries exactly three fields and **exposes each of them under one
+name only** (FR-014).
 
-- Without optimization: N+1 queries (1 for datasets, 1 per dataset for related data)
-- With `with_related()`: 2-3 queries total (1 for datasets, 1-2 for prefetch)
+| Field | Type | Notes |
+|---|---|---|
+| `related` | `ForeignKey` → `Dataset`, `on_delete=CASCADE` | declared on each concrete model |
+| `type` | `CharField(50)` | choices assigned from `VOCABULARY` by `GenericModel.__init_subclass__` |
+| `value` | varies — see below | the content |
 
----
+Each carries a `UniqueConstraint(fields=["related", "type"], name="%(class)s_unique_type")` from its
+abstract base, so **one row per type is enforced at the database**: `AbstractDescription`
+(`abstract.py:287`), `AbstractDate` (`:305`), `AbstractIdentifier` (`:324`).
 
-### DatasetLiteratureRelation
+The same limit is required in validation as well (FR-009, SC-002), so a researcher gets a message
+naming the type rather than a database error. That half is built in `clean()` and is not yet proven
+by any test — see the reconciliation note in `tasks.md`.
 
-**Purpose**: Intermediate model for Dataset-to-LiteratureItem relationships specifying DataCite relationship types.
-
-**Inheritance**: Extends `django.db.models.Model`
-
-**Fields**:
-
-| Field | Type | Constraints | Default | Description |
-|-------|------|-------------|---------|-------------|
-| `dataset` | ForeignKey | required, on_delete=CASCADE | - | Dataset in relationship |
-| `literature_item` | ForeignKey | required, on_delete=CASCADE | - | Literature item in relationship |
-| `relationship_type` | CharField | required, max_length=50, choices=DATACITE_TYPES | - | DataCite relationship type |
-
-**DataCite Relationship Types** (from DataCite RelationType vocabulary):
-
-- `IsCitedBy`: Dataset is cited by the literature item
-- `Cites`: Dataset cites the literature item
-- `IsSupplementTo`: Dataset supplements the literature item
-- `IsSupplementedBy`: Dataset is supplemented by the literature item
-- `IsReferencedBy`: Dataset is referenced by the literature item
-- `References`: Dataset references the literature item
-- `IsDocumentedBy`: Dataset is documented by the literature item
-- `Documents`: Dataset documents the literature item
-
-**Validation**:
-
-- `relationship_type` MUST be one of the DataCite types
-- Validate against DataCite RelationType vocabulary (research complete list in T011)
-
-**Usage**:
-
-```python
-# Creating a relationship
-DatasetLiteratureRelation.objects.create(
-    dataset=my_dataset,
-    literature_item=paper,
-    relationship_type='IsCitedBy'
-)
-
-# Querying
-dataset.related_literature.through.objects.filter(
-    relationship_type='IsCitedBy'
-)
-```
-
-**Meta**:
-
-- `verbose_name`: "dataset literature relation"
-- `verbose_name_plural`: "dataset literature relations"
-- `unique_together`: [["dataset", "literature_item", "relationship_type"]]
-
----
+**The six property aliases are removed** (D-012, R5). `description_type`, `description`, `date_type`,
+`date`, `identifier_type` and `identifier` are second names for `type` and `value`, documented as
+"API compatibility" for an API that exposes none of these records
+(`fairdm/api/viewsets.py:128`). No other core model has them, nothing outside the dataset app reads
+them, and one of them is the direct cause of `DatasetFilter.date_type` raising `FieldError` on every
+application — `field_name="dates__date_type"` is an ORM path through a Python property. The filter is
+routed out as #186; the aliases go here.
 
 ### DatasetDescription
 
-**Purpose**: Stores typed descriptions for datasets using controlled FAIR vocabulary.
+`value` is a `TextField`. Vocabulary: `FairDMDescriptions.from_collection("Dataset")` — **Abstract,
+Methods, SeriesInformation, TechnicalInfo, Other** (`fairdm/core/vocabularies.py:267`). Indexed on
+`type` as `dataset_desc_type_idx`.
 
-**Inheritance**: Extends `fairdm.core.abstract.AbstractDescription`
-
-**Fields** (from AbstractDescription):
-
-| Field | Type | Constraints | Default | Description |
-|-------|------|-------------|---------|-------------|
-| `related` | ForeignKey | required, on_delete=CASCADE | - | Dataset this description belongs to |
-| `description_type` | CharField | required, choices=VOCABULARY | - | Type from FairDMDescriptions vocabulary |
-| `description` | TextField | required | - | Description text content |
-
-**Vocabulary**: `FairDMDescriptions.from_collection("Dataset")`
-
-**Validation**:
-
-- `description_type` MUST validate against `DESCRIPTION_TYPES` vocabulary
-- Validation errors should reference vocabulary concept URIs for clarity
-
-**Common Description Types** (from FairDMDescriptions):
-
-- Abstract
-- Methods
-- Technical Info
-- Rights
-- Other
-
----
+`Methods` is the member worth naming: `003-core-projects` established that a methods description
+belongs to the dataset rather than the project, and the project collection has it commented out.
 
 ### DatasetDate
 
-**Purpose**: Stores typed dates for datasets using controlled FAIR vocabulary.
+`value` is a `PartialDateField`, so a date may carry year, month or day precision. Vocabulary:
+`FairDMDates.from_collection("Dataset")` — **Available, CollectionStart, CollectionEnd, Submitted,
+Published, Withdrawn** (`vocabularies.py:431`). Ordered by `value`. Indexed on `type` as
+`dataset_date_type_idx`.
 
-**Inheritance**: Extends `fairdm.core.abstract.AbstractDate`
+`Created` is **not** a member, and never was. `DatasetDateFactory` defaults to it
+(`fairdm/factories/core.py:275`) and four tests use it as an example of a valid type; they pass
+because `objects.create()` does not call `full_clean()` and Django does not validate `choices` on
+save. The factory and the tests are corrected (D-008).
 
-**Fields** (from AbstractDate):
+The collection period is checked in `clean()`, comparing against the sibling row rather than within
+one instance, because the two dates are two rows. It follows `ProjectDate.clean()` with
+`_sibling_value()` and `_precedes()` (`fairdm/core/project/models.py:196-250`), including comparison
+at the coarser of the two precisions — years only if either is year-precision, the full date only
+when both carry day precision. The helpers are duplicated rather than lifted: this is the second use
+of the pattern, not of a shared implementation (R2).
 
-| Field | Type | Constraints | Default | Description |
-|-------|------|-------------|---------|-------------|
-| `related` | ForeignKey | required, on_delete=CASCADE | - | Dataset this date belongs to |
-| `date_type` | CharField | required, choices=VOCABULARY | - | Type from FairDMDates vocabulary |
-| `date` | DateField | required | - | Date value |
+`START_TYPE = "CollectionStart"`, `END_TYPE = "CollectionEnd"`.
 
-**Vocabulary**: `FairDMDates.from_collection("Dataset")`
-
-**Validation**:
-
-- `date_type` MUST validate against `DATE_TYPES` vocabulary
-- Validation errors should reference vocabulary concept URIs for clarity
-
-**Common Date Types** (from FairDMDates):
-
-- Collected
-- Created
-- Issued
-- Submitted
-- Accepted
-- Available
-- Copyrighted
-- Updated
-
----
+The administrative inline needs the same check across the formset's forms, because a formset
+validates every row before saving any of them and a sibling lookup in the database misses a row being
+added in the same submission. `ProjectAdmin.DateInlineFormSet` is the pattern
+(`fairdm/core/project/admin.py:24-67`).
 
 ### DatasetIdentifier
 
-**Purpose**: Stores typed identifiers for datasets using controlled FAIR vocabulary.
+`value` is a `CharField(255)` with `unique=True` and `db_index=True` on the abstract, so **an
+identifier value is unique across every record that carries identifiers**, not merely within one
+dataset (FR-013). That global uniqueness predates this work and is kept.
 
-**Inheritance**: Extends `fairdm.core.abstract.AbstractIdentifier`
+Vocabulary: `FairDMIdentifiers.from_collection("Dataset")`, a collection this work adds. It contains
+**DOI alone** (D-003, R3).
 
-**Fields** (from AbstractIdentifier):
+Today the model binds `FairDMIdentifiers()` unscoped (`models.py:722`), which offers ORCID,
+ResearcherID, ROR, Wikidata, ISNI and the Crossref Funder ID — identifiers for people and
+organisations — alongside the DOI, grant number and proposal identifier that `003-core-projects`
+added for projects. So a dataset is offered mostly types for things a dataset is not, and the three
+plausible ones were added for a different record.
 
-| Field | Type | Constraints | Default | Description |
-|-------|------|-------------|---------|-------------|
-| `related` | ForeignKey | required, on_delete=CASCADE | - | Dataset this identifier belongs to |
-| `identifier_type` | CharField | required, choices=VOCABULARY | - | Type from FairDMIdentifiers vocabulary |
-| `identifier` | CharField | required, max_length=255 | - | Identifier value |
+Neither ARK nor Handle is added, though the model docstring names them. Nothing in the repository or
+the roadmap asks for either, and an unused member is a wrong choice offered to every user. A second
+scheme is a three-line addition when one is asked for.
 
-**Vocabulary**: `FairDMIdentifiers()`
+`DOI`'s definition reads "a persistent, resolvable link to a project record"
+(`vocabularies.py:68`) — written for projects, now shared, so it is generalised (T002).
 
-**Validation**:
+The trap this closes: `GenericModel.__init_subclass__` assigns `cls.type.field.choices` from the
+`VOCABULARY` (`abstract.py:247`), and Django does not validate `choices` on save. A row written
+through `objects.create()` with any string persists silently. Tests for the vocabularies therefore
+**assert their members by name**; a test that iterates `VOCABULARY.choices` proves nothing, because
+it passes over an empty collection (SC-004).
 
-- `identifier_type` MUST validate against `IDENTIFIER_TYPES` vocabulary
-- Validation errors should reference vocabulary concept URIs for clarity
+## DatasetLiteratureRelation
 
-**DOI Support**:
+The intermediate model behind `Dataset.related_literature` (`models.py:61-98`). Built, and this work
+gives it its first test that runs.
 
-- DOI identifiers use `identifier_type='DOI'`
-- The `reference` field on Dataset is for linking to literature items/publications, NOT for DOI storage
-- This separation maintains clean data modeling and supports multiple identifier types
+| Field | Type | Constraints |
+|---|---|---|
+| `dataset` | `ForeignKey` → `Dataset` | `on_delete=CASCADE`, related name `literature_relations` |
+| `literature_item` | `ForeignKey` → `literature.LiteratureItem` | `on_delete=CASCADE`, related name `dataset_relations` |
+| `relationship_type` | `CharField(50)` | `choices=DATACITE_RELATIONSHIP_TYPES` |
 
-**Common Identifier Types** (from FairDMIdentifiers):
+`unique_together` on all three, so the same item may be related under two types but not twice under
+one (FR-016). `relationship_type` carries its own index.
 
-- DOI
-- Handle
-- ARK
-- URL
-- URN
+All eleven of its tests are skipped behind four class-level marks reading "Literature app not yet
+complete", and they reference a `LiteratureItemFactory` that exists nowhere in the repository —
+removing the skips would raise `NameError` rather than run them. The literature package is a live
+dependency and `LiteratureItem` exists, so the stated reason no longer holds. The missing factory is
+part of the work (T006, D-016).
 
----
+`reference` is the separate one-to-one naming a dataset's own data publication. It is `SET_NULL`, so
+deleting that publication leaves the dataset intact with no publication named (FR-015).
 
-## Relationships Diagram
+## Contributions
 
-```
-┌─────────────────┐
-│     Project     │
-│                 │
-└────────┬────────┘
-         │ PROTECT (prevents project deletion if datasets exist)
-         │
-         ▼
-┌─────────────────┐                  ┌──────────────────────┐
-│     Dataset     │◄─────────────────┤  DatasetDescription  │
-│                 │  one-to-many     │                      │
-│                 │                  └──────────────────────┘
-│                 │◄─────────────────┤    DatasetDate       │
-│                 │  one-to-many     └──────────────────────┘
-│                 │◄─────────────────┤  DatasetIdentifier   │
-│                 │  one-to-many     └──────────────────────┘
-│                 │
-│                 │◄─────────────────┤    Contribution      │
-│                 │  GenericRelation └──────────────────────┘
-│                 │
-└────────┬────────┘
-         │
-         │ many-to-many (through DatasetLiteratureRelation)
-         │
-         ▼
-┌─────────────────┐                  ┌──────────────────────────────┐
-│ LiteratureItem  │◄─────────────────┤ DatasetLiteratureRelation    │
-│                 │                  │   - dataset (FK)              │
-└─────────────────┘                  │   - literature_item (FK)      │
-                                     │   - relationship_type         │
-                                     │     (DataCite types)          │
-                                     └──────────────────────────────┘
-```
+A dataset's contributors are `contributors.Contribution` rows reached through a `GenericRelation`.
+Each associates a person or an organisation with the dataset under one or more roles drawn from
+`FairDMRoles.from_collection("Dataset")` — Creator, ContactPerson, DataCollector, DataCurator,
+DataManager, Editor, Producer, RelatedPerson, Researcher, ProjectLeader, ProjectManager,
+ProjectMember, Supervisor, WorkPackageLeader, RightsHolder, Other (`vocabularies.py:664`).
 
----
+The contribution model itself is not changed by this work. Which roles confer which rights is issue
+#169, not this specification.
 
-## Database Indexes
+## Licences
 
-**Performance-Critical Indexes**:
+`Dataset.license` is the only licence field in the package. It carries **no column default**, and
+that is deliberate (D-007): the field points at a `License` row, so a default would resolve a
+database lookup at import time and fail wherever the licence rows have not been loaded.
 
-1. **DatasetDescription.description_type**: Required for cross-relationship filter performance (T122)
-2. **DatasetDate.date_type**: Required for cross-relationship filter performance (T123)
-3. **Dataset.visibility**: Default queryset filters on this field frequently
-4. **Dataset.project_id**: Foreign key lookups common in filtering
+The default is a guarantee about creation instead — a dataset created without choosing a licence
+carries the portal's configured `FAIRDM_DEFAULT_LICENSE`, falling back to CC BY 4.0 (FR-007).
 
-**Index Strategy**:
+For that to resolve at all, a portal needs licence rows. `django-content-license` ships a fixture and
+no data migration, so a portal that has migrated and never run `loaddata` by hand has an empty
+`License` table — the configured default silently resolves to `None`, and the portal's dataset form
+declares `license` as a required field over an empty queryset. The recommended set — **CC0 1.0,
+CC BY 4.0, CC BY-SA 4.0** — is seeded by an idempotent management command keyed on `License.name`,
+registered `always_run` in the deployment pipeline at `fairdm/conf/settings/apps.py:254-282`
+(FR-007a, D-018, R4). The NC and ND variants are not seeded: they fail the Open Definition.
 
-- Add indexes after measuring actual query patterns in tests
-- Balance query performance vs. write performance
-- Monitor index usage in production via database analytics
+Not a data migration. Which licences a portal offers is the portal's own decision, and a pipeline
+entry is a default a portal can drop where a migration is not.
 
----
+## Indexes
 
-## Data Migration Considerations
+Article IX asks every field's indexing to be a stated decision.
 
-**Breaking Changes**:
+| Column | State | Reason |
+|---|---|---|
+| `Dataset.visibility` | **newly indexed** | Once the default manager filters on it, every query the framework issues carries `visibility != PRIVATE`, making it the most-used predicate in the package. It was unindexed while nothing filtered by it by default. |
+| `Dataset.created_by` | indexed | By virtue of being a foreign key. "Which datasets did this user create" is a real query. |
+| `Dataset.project` | indexed | Foreign key. |
+| `DatasetIdentifier.value` | indexed and unique | Already so on the abstract. |
+| `DatasetDescription.type` | indexed | `dataset_desc_type_idx`, already present. |
+| `DatasetDate.type` | indexed | `dataset_date_type_idx`, already present. |
+| `DatasetLiteratureRelation.relationship_type` | indexed | Already present. |
 
-1. **PROTECT behavior** (T042): Changing `project.on_delete` from CASCADE to PROTECT
-   - **Impact**: Projects with datasets can no longer be deleted
-   - **Migration**: No data migration needed; behavior change only
-   - **Rollback**: Can revert to CASCADE if needed
+## Migrations
 
-2. **Privacy-first default** (T138): Changing default QuerySet to exclude PRIVATE
-   - **Impact**: Existing views using `Dataset.objects.all()` will exclude private datasets
-   - **Migration**: No data migration; code update needed in views
-   - **Fix**: Use `Dataset.objects.get_all()` or `.with_private()` where private datasets needed
+Two, per Article IX's request for consolidation:
 
-**Non-Breaking Changes**:
+1. One schema migration carrying `created_by`, the `Meta.ordering` change, the `visibility` index and
+   the identifier vocabulary's narrowed choices.
+2. Nothing else. The licence seeding is a management command rather than a migration (R4, D-018), and
+   the alias removal is Python-only — properties are not fields, so they generate no migration.
 
-1. **DatasetLiteratureRelation** (T037): New intermediate model
-   - **Impact**: Converts simple ManyToMany to through model
-   - **Migration**: Django creates bridge table; existing relationships preserved
-   - **Rollback**: Can remove through= parameter to revert
+`makemigrations --check` is green at the end or the work is not finished.
 
-2. **Vocabulary validation** (T039-T041): Adding validators to type fields
-   - **Impact**: New datasets must use valid vocabulary types
-   - **Migration**: Validate existing data matches vocabulary or provide data cleanup
-   - **Rollback**: Remove validators to revert
+## What this document does not describe
 
-**Migration Order**:
-
-1. Add DatasetLiteratureRelation model
-2. Update Dataset.related_literature through= parameter
-3. Add vocabulary validators to Description/Date/Identifier models
-4. Change Dataset.project on_delete to PROTECT
-5. Add database indexes for description_type and date_type
-
----
-
-## Test Data Considerations
-
-**Factory Defaults** (DatasetFactory):
-
-- `name`: Faker-generated dataset name
-- `visibility`: PRIVATE (matches default)
-- `license`: CC BY 4.0 (matches default)
-- `project`: SubFactory(ProjectFactory) - creates associated project
-- `image`: Optional - can use Faker image for tests
-
-**Related Factories**:
-
-- `DatasetDescriptionFactory`: SubFactory(DatasetFactory), valid description_type
-- `DatasetDateFactory`: SubFactory(DatasetFactory), valid date_type
-- `DatasetIdentifierFactory`: SubFactory(DatasetFactory), valid identifier_type, DOI format
-- `DatasetLiteratureRelationFactory`: SubFactory for both dataset and literature_item
-
-**Test Scenarios**:
-
-- Empty datasets (no samples/measurements)
-- Orphaned datasets (project=null)
-- Private/internal/public visibility combinations
-- With/without DOI identifiers
-- Various license types
-- Multiple descriptions/dates/identifiers
-
----
-
-## Edge Case Documentation
-
-**Documented in plan.md Edge Case Resolutions section**:
-
-1. **Orphaned datasets**: project=null permitted
-2. **Duplicate names**: No unique constraint
-3. **Visibility inheritance**: No automatic inheritance
-4. **License changes**: Warning if DOI exists
-5. **Literature deletion**: SET_NULL for reference, CASCADE for ManyToMany
-6. **Empty datasets**: Allowed, flagged via has_data
-7. **Contributor roles**: Validated against CONTRIBUTOR_ROLES
-8. **Date types**: Validated against DATE_TYPES
-9. **Description types**: Validated against DESCRIPTION_TYPES
-10. **UUID collision**: Database constraint handles
-11. **Image aspect ratio**: Research in T012, T014
-12. **Filter performance**: Indexes in T122, T123
-13. **Dynamic inlines**: get_formset() in T072, T073
-14. **Generic search**: Defined scope in T116, T124
-15. **Literature types**: DataCite vocabulary in T011
-
-See [plan.md](plan.md) Edge Case Resolutions for detailed implementation guidance.
+The dataset list, create, edit and delete pages, the forms behind them, the list search box and
+`DatasetFilter` — those are `014-dataset-crud-views`. The image field's dimensions and thumbnails —
+`015-image-field-spec`. The REST API's representation of a dataset — `011-restful-api`. Metadata
+export, which does not exist and is expected to arrive as an addon (D-002).

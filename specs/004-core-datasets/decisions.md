@@ -80,10 +80,14 @@ The specification keeps its requirement and the code is treated as wrong: a data
 collection is introduced. It must contain the DOI, because the DOI is the identifier a dataset is
 cited by, and it must contain no identifier that names a person or an organisation.
 
-The old model docstring names "DOI, ARK, Handle, etc." A dataset genuinely may carry a handle — DOIs
-are built on the handle system and repositories mint them directly — so the collection is DOI and
-Handle. ARK is not added: nothing in the repository or the roadmap has asked for it, and an unused
-member is a wrong choice offered to every user.
+The old model docstring names "DOI, ARK, Handle, etc." Neither ARK nor Handle is added: nothing in
+the repository or the roadmap has asked for either, and an unused member is a wrong choice offered to
+every user. (**Design review, 2026-08-18**: an earlier draft of this decision added Handle
+alongside DOI, on the reasoning that DOIs are built on the handle system. `research.md` R3 reached the
+opposite conclusion — DOI alone — and `tasks.md` T001/T002 were already built to that reading. FR-012
+requires the collection include DOI and exclude person/organisation identifiers; it is silent on
+Handle, so this is a plan-level contradiction, not a spec gap. Corrected to match the two artifacts
+that already agree, rather than the one that didn't.)
 
 The pre-existing global uniqueness of an identifier value (`fairdm/core/abstract.py:316`) is kept.
 
@@ -385,3 +389,57 @@ A separate finding, and not a reason to choose differently: the pipeline is conf
 documentation mentions the command — so `groups`, `django-waffle` and the vocabulary preload are not
 reaching a deployed portal either. That is the pipeline's problem to fix, filed as #193, and this
 specification's guarantee holds once it is.
+
+## D-019 — What a design review of this directory changed
+
+**Self-resolved, 2026-08-18**, after the rewritten directory was reviewed against the code before any
+of it was built. Three things came out of it. The identifier ruling in D-003 is a fourth and is
+recorded there.
+
+**`data-model.md` and `quickstart.md` are regenerated, not patched.** D-017 committed to regenerating
+them and that did not happen — both files came through the rewrite describing the January design.
+Between them they documented a `PROTECT` project relation (D-005 settled `CASCADE`), a three- and a
+four-level visibility (D-006 settled two), `Dataset.objects.with_private()` and `.get_all()` as the
+recommended way to reach private datasets (R1 removes both outright), an identifier set containing
+ARK, Handle, URL and URN (D-003 settled DOI alone), and links to six contract documents D-017 had
+already deleted.
+
+Patching the wrong sentences was rejected. A document that disagrees with the specification in five
+places is not a document with five errors in it, and the parts nobody had checked were no more likely
+to be right than the parts somebody had. Deleting them outright was also rejected: `models.py:528`,
+`fairdm_demo/models.py:265` and `fairdm_demo/factories.py:53` all point a reader at one of these two
+files, and T103 requires those pointers to resolve.
+
+The risk this closes is specific rather than tidy. `quickstart.md` presented `with_private()` under
+the heading "Understanding Privacy-First QuerySets", as the recommended way to widen a query. That
+method is the exact defect D-004 exists to remove — it discards the caller's conditions and returns
+every dataset in the table. Whoever opened that file for a usage pattern would have built the
+behaviour this specification was written to delete.
+
+**`Meta.base_manager_name` cannot be declared, and the plan said to declare it.** R1's third part
+named `all_objects` in `Meta.base_manager_name`, which is Django's own guidance for a filtered
+default manager. `fairdm.db.models.PrefetchBase` assigns `_meta.base_manager_name =
+"prefetch_manager"` after the class is built (`fairdm/db/models.py:30-55`), overwriting anything
+`Meta` declares, and `django-auto-prefetch` raises a system check if the value is anything else.
+Confirmed by declaring it on a probe model and reading `_meta` back rather than by reading the
+metaclass.
+
+The guarantee survives untouched: `prefetch_manager` is a plain unfiltered manager, so following a
+relation to a private dataset and cascading a deletion to one both still work, which is all FR-019a
+asks for. What changes is one line of plan and what the tests assert — behaviour, never the
+attribute. Left alone, this would have cost whoever wrote that task a silent no-op or a system-check
+failure, and the tempting repair is to change the metaclass, which would disable prefetching on every
+model in the package.
+
+**Three ticks claimed more than their tests proved.** T028, T033 and T036 each said the one-row-per-
+type limit holds "at the database as well as in validation". Each cites a test that writes a
+duplicate through `objects.create()` and asserts `IntegrityError`, which never reaches `full_clean()`,
+and a code line that is the `constraints` block on the abstract base. Both halves of the evidence are
+the database half. The claims are cut back to it. T051 was checked against the same charge and
+already claimed only the refusal, so it stands as written.
+
+No test was added to close the gap. The validation half is real — FR-009 requires it, SC-002 measures
+it, and `validate_unique()` does check an unconditional `UniqueConstraint`, so the code probably
+already satisfies it — but writing the test is implementation work, and a tick earned by reasoning
+about the framework rather than by running something is the failure this reconciliation exists to
+catch. It is left unclaimed and noted in `tasks.md`.

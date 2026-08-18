@@ -1,585 +1,364 @@
-# Developer Quickstart: Dataset App
+# Quickstart — 004 The dataset record
 
-**Feature**: 004-core-datasets
-**Purpose**: Onboarding guide for developers working with the enhanced dataset app
-**Audience**: Portal developers, contributors, plugin authors
+**Regenerated 2026-08-18**, against `spec.md`, `decisions.md`, `plan.md`, `research.md` and
+`data-model.md`.
 
----
+The January version of this file survived the specification rewrite untouched and taught patterns
+this work removes — `Dataset.objects.with_private()`, `Dataset.objects.get_all()`, the
+`description_type` / `date_type` / `identifier_type` field aliases, a four-level visibility and a
+`PROTECT` project relation. A developer following it would build the exact behaviour this
+specification exists to remove, so it is replaced rather than corrected.
 
-## 1. Creating Datasets
+**These are the patterns the work builds to, not the ones the code has today.** Where today's code
+differs, it says so.
 
-### Basic Dataset Creation
+This covers the dataset record and the administrative interface. It does not cover the portal's
+list, create, edit and delete pages, their forms or the filter set behind the list — those are
+`014-dataset-crud-views`.
+
+## Reading datasets
+
+Start here, because this is the one that matters.
 
 ```python
 from fairdm.core.dataset.models import Dataset
 
-# Create basic dataset
-dataset = Dataset.objects.create(
-    name="Geological Survey 2024",
-    project=my_project,
-    description="Regional geological survey data from 2024 field season"
-)
+# The ordinary route. Never returns a private dataset.
+Dataset.objects.all()
+Dataset.objects.filter(project=project)
+
+# The explicit route. Returns every dataset, including private ones.
+Dataset.all_objects.all()
+Dataset.all_objects.filter(project=project)
 ```
 
-### With Full Metadata
+`Dataset.objects` is a manager that excludes private datasets before you narrow anything, so the
+exclusion is in the SQL by the time you hold a queryset. Reaching a private dataset is a decision you
+make **before** narrowing, by naming a different manager — not after, by calling a method.
+
+There is deliberately no method that adds private datasets back:
 
 ```python
-from licensing.models import License
+# Does not exist, and will not. It cannot work.
+Dataset.objects.filter(project=project).with_private()
+```
 
-# Create dataset with complete metadata
+The version of `with_private()` in the code today rebuilds the queryset from the model and discards
+everything you narrowed by, so that line returns every dataset in the table rather than the ones on
+`project`. A widening that silently discards the caller's conditions is worse than no widening at
+all, so the method is removed rather than repaired (FR-019, R1).
+
+`get_visible()` and `for_user()` go with it. There are two visibility levels, so "exclude private"
+and "only public" select the same rows and `get_visible()` was a second name for the default;
+`for_user()` had no callers and gated on a permission no model declares.
+
+**What still sees every dataset, whichever manager you use:**
+
+```python
+dataset.project            # forward relations
+project.delete()           # the deletion collector cascades to private datasets
+```
+
+Those go through the base manager, which is unfiltered. Following a relation to a private dataset
+never raises `DoesNotExist` because of visibility.
+
+**What does not:**
+
+```python
+project.datasets.all()     # reverse relation — excludes private datasets
+```
+
+That is correct for portal surfaces. Where you need every dataset on a project, ask the other way
+round: `Dataset.all_objects.filter(project=project)`.
+
+## Creating a dataset
+
+```python
+from fairdm.core.dataset.models import Dataset
+from fairdm.utils.choices import Visibility
+
 dataset = Dataset.objects.create(
-    name="XRF Analysis Results",
+    name="Rhine Valley heat flow, 2024 field season",
     project=project,
-    description="X-ray fluorescence analysis of rock samples",
-    image="datasets/xrf_setup.jpg",
-    license=License.objects.get(name="CC BY 4.0"),
-    visibility=Dataset.PUBLIC,
 )
 
-# Add descriptions
-dataset.descriptions.create(
-    description_type="Abstract",
-    description="Detailed abstract text..."
-)
-dataset.descriptions.create(
-    description_type="Methods",
-    description="Methodology description..."
-)
-
-# Add important dates
-from datetime import date
-dataset.dates.create(
-    date_type="Created",
-    date=date(2024, 1, 15)
-)
-dataset.dates.create(
-    date_type="Submitted",
-    date=date(2024, 3, 20)
-)
-
-# Add identifiers
-dataset.identifiers.create(
-    identifier_type="DOI",
-    identifier="10.1000/xyz123"
-)
+dataset.visibility  # Visibility.PRIVATE — the default
+dataset.uuid        # "dQ7bR2..." — generated, prefixed "d", not editable
+dataset.license     # the portal's configured default
 ```
 
----
+A dataset is **private unless you say otherwise**. A dataset with no project is valid — data migrated
+from a system with no project structure arrives that way. Two datasets may carry the same name;
+the generated identifier is what names one unambiguously.
 
-## 2. Using DatasetForm
-
-### Basic Form Usage
+To publish it:
 
 ```python
-from fairdm.core.dataset.forms import DatasetForm
-
-# In views.py
-def create_dataset(request):
-    if request.method == 'POST':
-        # IMPORTANT: Pass request for user context
-        form = DatasetForm(request.POST, request.FILES, request=request)
-        if form.is_valid():
-            dataset = form.save()
-            return redirect('dataset_detail', pk=dataset.pk)
-    else:
-        form = DatasetForm(request=request)
-
-    return render(request, 'dataset/create.html', {'form': form})
+dataset.visibility = Visibility.PUBLIC
+dataset.save()
 ```
 
-### Understanding User Context
+`Visibility` has two members, `PRIVATE` and `PUBLIC`, and nothing else. Docstrings and filters around
+the package still refer to an `INTERNAL` tier — no such value exists, and correcting those statements
+is part of this work (D-006, FR-031). An organisation-scoped level between the two is issue #168.
 
-The form requires `request` parameter to:
+## Descriptions, dates and identifiers
 
-1. Filter project queryset (user can only create datasets in projects they have access to)
-2. Set default license (CC BY 4.0)
-3. Track user creating the dataset (via `save(commit=False)`)
+All three related records carry the same three fields: `related`, `type` and `value`. **Each field
+has exactly one name.**
 
 ```python
-# Example: Custom queryset filtering
-form = DatasetForm(request=request)
-# Form automatically filters projects based on user's permissions
-# form.fields['project'].queryset includes only user's projects
+dataset.descriptions.create(type="Abstract", value="Heat flow measurements from …")
+dataset.descriptions.create(type="Methods", value="Needle-probe measurements at …")
+
+dataset.dates.create(type="CollectionStart", value="2024-03")
+dataset.dates.create(type="CollectionEnd", value="2024-09-14")
+
+dataset.identifiers.create(type="DOI", value="10.5880/fidgeo.2024.017")
 ```
 
-### Handling DOI Field
+Reading back by type:
 
 ```python
-# DOI input creates DatasetIdentifier on save
-form = DatasetForm(request.POST, request=request)
-if form.is_valid():
-    dataset = form.save()  # Automatically creates DOI identifier if provided
+abstract = dataset.descriptions.get(type="Abstract")
+abstract.value
 
-    # DOI is stored in identifiers
-    doi = dataset.identifiers.filter(identifier_type='DOI').first()
-    print(doi.identifier)  # "10.1000/xyz123"
+doi = dataset.identifiers.filter(type="DOI").first()
 ```
 
----
+The aliases the code carries today — `description_type`, `description`, `date_type`, `date`,
+`identifier_type`, `identifier` — are removed (FR-014, D-012). They were documented as "API
+compatibility" for an API that exposes none of these records, nothing outside the dataset app read
+them, and `dates__date_type` as an ORM path is the direct cause of a filter that raises `FieldError`
+every time it is applied. **Write `type` and `value`.**
 
-## 3. Using DatasetFilter
-
-### In Views
+`.in_order()` returns rows in the order the vocabulary declares, rather than by primary key:
 
 ```python
-from django_filters.views import FilterView
-from fairdm.core.dataset.filters import DatasetFilter
-from fairdm.core.dataset.tables import DatasetTable
-
-class DatasetListView(FilterView):
-    model = Dataset
-    filterset_class = DatasetFilter
-    table_class = DatasetTable
-    template_name = 'dataset/list.html'
-
-    def get_queryset(self):
-        # Use privacy-first queryset
-        return Dataset.objects.all()  # Excludes PRIVATE by default
+for description in dataset.descriptions.in_order():
+    print(description.type, description.value[:60])
 ```
 
-### In Templates
+### One row per type
 
-```html
-<!-- templates/dataset/list.html -->
-<form method="get">
-    {{ filter.form }}
-    <button type="submit">Filter</button>
-</form>
-
-{% load render_table from django_tables2 %}
-{% render_table table %}
-```
-
-### Filter Examples
+A dataset carries at most one description, date or identifier of each type. The limit is enforced by
+a database constraint, so a concurrent write cannot slip past it, and in `clean()`, so a researcher
+gets a message naming the type rather than a database error.
 
 ```python
-# Generic search (searches name, uuid, keywords, related descriptions)
-?search=geological
-
-# Filter by project
-?project=5
-
-# Filter by license
-?license=CC+BY+4.0
-
-# Filter by visibility
-?visibility=PUBLIC
-
-# Filter by description type content
-?description=methodology
-
-# Filter by date type
-?date_type=Created
-
-# Combine filters (AND logic)
-?search=rock&project=5&license=CC+BY+4.0
+dataset.descriptions.create(type="Abstract", value="First")
+dataset.descriptions.create(type="Abstract", value="Second")  # IntegrityError
 ```
 
----
+Different types are fine, and an identifier value is unique across **every** record that carries
+identifiers — not just within one dataset. The same DOI cannot name two things.
 
-## 4. Working with DatasetLiteratureRelation
+### The vocabularies
 
-### Creating Relationships
+| Record | Members |
+|---|---|
+| Descriptions | Abstract, Methods, SeriesInformation, TechnicalInfo, Other |
+| Dates | Available, CollectionStart, CollectionEnd, Submitted, Published, Withdrawn |
+| Identifiers | DOI |
+
+`Created` is not a dataset date type — the moment a record was created is already its `added`
+timestamp, and a dataset's collection period is what these dates are for. `ARK`, `Handle`, `URL` and
+`URN` are not identifier types; nothing in the repository or the roadmap asks for them, and an unused
+member is a wrong choice offered to every user.
+
+Watch for this, because it is why the drift above went unnoticed for so long:
 
 ```python
+# Persists silently. Django does not validate choices on save.
+dataset.dates.create(type="Created", value="2024-01-15")
+
+# Refused.
+date = DatasetDate(related=dataset, type="Created", value="2024-01-15")
+date.full_clean()  # ValidationError
+```
+
+`objects.create()` does not call `full_clean()`. If you are checking that a type is valid, validate
+explicitly — and if you are writing a test about a vocabulary, **assert its members by name**. A loop
+over `VOCABULARY.choices` passes over an empty collection and proves nothing (SC-004).
+
+### The collection period
+
+A collection end earlier than the collection start is refused, whichever of the two you are editing,
+with a message naming both dates.
+
+```python
+dataset.dates.create(type="CollectionStart", value="2024-09")
+
+end = DatasetDate(related=dataset, type="CollectionEnd", value="2024-03")
+end.full_clean()  # ValidationError — the end cannot precede the start
+```
+
+Dates are partial: `"2024"`, `"2024-09"` and `"2024-09-14"` are all valid, and comparison happens at
+the coarser of the two precisions. `"2024"` against `"2024-09-14"` compares as years and does not
+conflict. A collection end with no start present is accepted, because there is nothing to
+contradict.
+
+## Literature
+
+A dataset names at most one data publication, and relates to any number of other items under a stated
+relationship type.
+
+```python
+dataset.reference = paper          # the publication describing this dataset
+dataset.save()
+
 from fairdm.core.dataset.models import DatasetLiteratureRelation
-from literature.models import LiteratureItem
 
-# Create relationship with DataCite type
 DatasetLiteratureRelation.objects.create(
-    dataset=my_dataset,
-    literature_item=paper,
-    relationship_type='IsCitedBy'
-)
-```
-
-### Common Relationship Types
-
-| Type | Meaning | Example Use Case |
-|------|---------|------------------|
-| `IsCitedBy` | Dataset is cited by this literature | Paper citing your dataset |
-| `IsDocumentedBy` | Dataset is documented by this literature | Methods paper describing dataset |
-| `IsDerivedFrom` | Dataset is derived from this literature | Dataset based on published data |
-| `IsSupplementTo` | Dataset supplements this literature | Additional data for a paper |
-| `Cites` | Dataset cites this literature | Dataset references a methodology |
-
-**See [contracts/intermediate_models.py](contracts/intermediate_models.py) for full list of DataCite types.**
-
-### Querying Relationships
-
-```python
-# Get all papers citing a dataset
-citing_papers = dataset.related_literature.filter(
-    dataset_relations__relationship_type='IsCitedBy'
-)
-
-# Get all datasets documented by a paper
-documented = paper.related_datasets.filter(
-    literature_relations__relationship_type='IsDocumentedBy'
-)
-
-# Get relationship details
-for relation in dataset.literature_relations.all():
-    print(f"{relation.literature_item.title}: {relation.relationship_type}")
-```
-
-### Admin Integration
-
-Literature relationships appear as inline formsets in Dataset admin:
-
-- Autocomplete search for literature items
-- Dropdown for DataCite relationship types
-- Can add multiple relationships with different types
-
----
-
-## 5. Understanding Privacy-First QuerySets
-
-### Default Behavior
-
-```python
-# Privacy-first: Excludes PRIVATE datasets by default
-Dataset.objects.all()  # Returns PUBLIC, REGISTERED, EMBARGOED
-
-# Explicitly include PRIVATE
-Dataset.objects.with_private()  # Returns ALL visibility levels
-
-# Get truly all datasets (manager method)
-Dataset.objects.get_all()  # Returns all (bypasses privacy filter)
-```
-
-### When to Use Each Method
-
-| Method | Use Case | Returns PRIVATE? |
-|--------|----------|------------------|
-| `.all()` | Public lists, search results | ❌ No |
-| `.with_private()` | Admin views, owner access | ✅ Yes |
-| `.get_all()` | System tasks, migrations | ✅ Yes |
-
-### Permission Checks
-
-```python
-# Check if user can view dataset
-if user.has_perm('dataset.view_dataset', dataset):
-    # Show dataset
-    pass
-
-# Check if user can edit dataset
-if user.has_perm('dataset.change_dataset', dataset):
-    # Allow editing
-    pass
-```
-
-### Optimization
-
-```python
-# Use with_related() to prefetch related data
-datasets = Dataset.objects.all().with_related()
-# Prefetches: project, license, image, contributors
-
-# For specific relationships
-datasets = Dataset.objects.select_related('project', 'license')
-```
-
----
-
-## 6. Adding DOIs to Datasets
-
-### Via Form
-
-The `DatasetForm` includes a `doi` field that automatically creates a `DatasetIdentifier`:
-
-```python
-form_data = {
-    'name': 'My Dataset',
-    'project': project.id,
-    'doi': '10.1000/xyz123',  # Creates identifier on save
-}
-form = DatasetForm(form_data, request=request)
-if form.is_valid():
-    dataset = form.save()
-    # DOI identifier created automatically
-```
-
-### Programmatically
-
-```python
-from fairdm.core.dataset.models import DatasetIdentifier
-
-# Add DOI identifier
-DatasetIdentifier.objects.create(
     dataset=dataset,
-    identifier_type='DOI',
-    identifier='10.1000/xyz123'
+    literature_item=other_paper,
+    relationship_type="IsCitedBy",
 )
-
-# Check if dataset has DOI
-has_doi = dataset.identifiers.filter(identifier_type='DOI').exists()
 ```
 
-### License Change Protection
-
-Once a dataset has a DOI, changing the license triggers a warning in admin:
+Relationship types are DataCite's. The same item may be related under two different types, but not
+twice under one. Deleting the named data publication leaves the dataset intact with no publication
+named.
 
 ```python
-# In admin save_model()
-if dataset.pk and 'license' in form.changed_data:
-    if dataset.identifiers.filter(identifier_type='DOI').exists():
-        messages.warning(
-            request,
-            "This dataset has a DOI. Changing the license may affect "
-            "published metadata. Update DOI registration if needed."
-        )
+for relation in dataset.literature_relations.select_related("literature_item"):
+    print(relation.get_relationship_type_display(), relation.literature_item)
 ```
 
----
-
-## 7. Role-Based Permissions
-
-### FairDM Roles
-
-The dataset app integrates with FairDM role system:
-
-| Role | Permissions |
-|------|-------------|
-| **Viewer** | View public datasets, view project datasets if member |
-| **Contributor** | Create datasets in projects they belong to |
-| **Editor** | Edit datasets in projects they belong to |
-| **Manager** | Full control over project datasets |
-
-### Checking Permissions
+## Contributors
 
 ```python
-from fairdm.core.utils.permissions import user_can_view, user_can_edit
+dataset.add_contributor(person, with_roles=["Creator", "DataCollector"])
 
-# Check view permission
-if user_can_view(user, dataset):
-    # Show dataset
-    pass
-
-# Check edit permission
-if user_can_edit(user, dataset):
-    # Show edit form
-    pass
+dataset.is_contributor(user)
+dataset.get_direct_contributors()
 ```
 
-### Dataset Visibility Rules
+Roles come from the dataset role collection — Creator, ContactPerson, DataCollector, DataCurator,
+DataManager, Editor, Producer, RelatedPerson, Researcher, ProjectLeader, ProjectManager,
+ProjectMember, Supervisor, WorkPackageLeader, RightsHolder, Other. They are expressible in DataCite's
+contributor types, so a future submission needs no translation table.
 
-| Visibility | Who Can View? |
-|------------|---------------|
-| `PUBLIC` | Anyone (including anonymous) |
-| `REGISTERED` | Logged-in users only |
-| `EMBARGOED` | Project members + portal admins |
-| `PRIVATE` | Dataset contributors + project managers + portal admins |
+**A role does not confer a permission.** The `ROLE_PERMISSIONS` map in the code today names `Viewer`
+and `Manager`, neither of which is a role in that collection, and nothing reads it. It is removed;
+which roles confer which rights is issue #169.
 
----
-
-## 8. Admin Customization
-
-### Dynamic Inline Limits
-
-Description and Date inlines automatically limit max_num based on vocabulary size:
+Separately from contributions, a dataset records who created it:
 
 ```python
-# In admin.py
-class DatasetDescriptionInline(admin.TabularInline):
-    model = DatasetDescription
-
-    def get_formset(self, request, obj=None, **kwargs):
-        kwargs['max_num'] = len(Dataset.DESCRIPTION_TYPES)
-        return super().get_formset(request, obj, **kwargs)
+dataset.created_by          # a Person, or None if that account has been removed
 ```
 
-**Why?** If Dataset has 10 description types, no point showing 20 empty forms.
+The creator is written server-side, never through a form or a serialiser field, and survives the
+removal of both the account and the contribution record. A contribution can be withdrawn; the fact of
+authorship cannot.
 
-### Custom Actions
+## Loading a full record
 
 ```python
-from django.contrib import admin
-from fairdm.core.dataset.admin import DatasetAdmin
+datasets = Dataset.objects.with_related()
 
-# Extend with custom action
-@admin.action(description="Mark as reviewed")
-def mark_reviewed(modeladmin, request, queryset):
-    queryset.update(reviewed=True)
-
-class MyDatasetAdmin(DatasetAdmin):
-    actions = DatasetAdmin.actions + [mark_reviewed]
+for dataset in datasets:
+    dataset.project.name
+    dataset.descriptions.all()
+    dataset.identifiers.all()
 ```
 
-### Search Configuration
+The number of queries does not grow with the number of related records a dataset carries (FR-030).
+If you are asserting that in a test, assert it at **two different related-record counts** — a single
+count cannot tell a bounded query from an unbounded one.
+
+```python
+dataset.has_data   # whether any samples or measurements hang beneath it
+```
+
+## Licences on a portal
+
+```python
+FAIRDM_DEFAULT_LICENSE = "CC BY-SA 4.0"   # in the portal's settings
+```
+
+Standing a portal up seeds the licences the framework recommends — CC0 1.0, CC BY 4.0 and
+CC BY-SA 4.0 — so the configured default resolves without anyone loading a fixture by hand. The step
+is idempotent and keyed on the licence name, so running it twice changes nothing, including a licence
+the portal has edited. A portal that wants a different set drops the step and curates its own rows;
+which licences a portal offers is its own decision.
+
+The NC and ND variants are not seeded. They fail the Open Definition, and a framework named for
+reusability should not present "no derivatives" as a recommendation for research data. A portal that
+needs one adds it.
+
+Without this, a portal that has migrated has no `License` rows at all: the configured default
+silently resolves to `None`, and the create form is a required field over an empty list (D-018, R4).
+
+## In the administrative interface
+
+The administrative dataset list **shows private datasets**, and that is a requirement rather than an
+oversight — the interface that repairs a portal has to reach the records that need repairing. It gets
+there by overriding the queryset:
 
 ```python
 class DatasetAdmin(admin.ModelAdmin):
-    search_fields = ['name', 'uuid', 'descriptions__description']
-    # Searches: dataset name, UUID, and related description text
+    def get_queryset(self, request):
+        # The default manager hides private datasets. The admin is where an
+        # unfinished dataset gets repaired, so it uses the unfiltered manager.
+        return Dataset.all_objects.get_queryset()
 ```
 
----
+Datasets are findable by name, by their own generated identifier, by any external identifier attached
+to them, and by project; the list narrows by project, licence and visibility. Descriptions, dates and
+identifiers are edited inline, each offering no more rows than its vocabulary has types. Each row
+shows whether the dataset has an abstract and whether it has a DOI, computed in the list query rather
+than per row.
 
-## 9. Common Patterns & Gotchas
+No administrative action changes the visibility of more than one dataset at a time. Publishing is a
+deliberate act on one record.
 
-### ✅ DO: Use Privacy-First Defaults
+Changing the licence of a dataset that carries a DOI warns the administrator that metadata published
+under the previous licence may need updating elsewhere.
 
-```python
-# Good: Privacy-first
-datasets = Dataset.objects.all()
-
-# Good: Explicit when needed
-all_datasets = Dataset.objects.with_private()
-```
-
-### ❌ DON'T: Bypass Privacy Unnecessarily
+## Writing tests
 
 ```python
-# Bad: Exposes private datasets
-datasets = Dataset.objects.get_all()  # Only for system tasks!
-```
+from fairdm.factories import DatasetFactory
 
-### ✅ DO: Pass Request to Forms
-
-```python
-# Good: Form can filter by user
-form = DatasetForm(request.POST, request=request)
-```
-
-### ❌ DON'T: Omit Request Parameter
-
-```python
-# Bad: Breaks user context
-form = DatasetForm(request.POST)  # TypeError!
-```
-
-### ✅ DO: Use PROTECT for Projects
-
-```python
-# Good: Deleting project checks for datasets first
-project.delete()  # Raises ProtectedError if has datasets
-```
-
-### ❌ DON'T: Force Delete Projects
-
-```python
-# Bad: Orphans datasets
-for dataset in project.datasets.all():
-    dataset.project = None
-    dataset.save()
-project.delete()
-```
-
-### ✅ DO: Validate Relationship Types
-
-```python
-# Good: Use DataCite vocabulary
-DatasetLiteratureRelation.objects.create(
-    dataset=dataset,
-    literature_item=paper,
-    relationship_type='IsCitedBy'  # Valid DataCite type
-)
-```
-
-### ❌ DON'T: Use Custom Relationship Types
-
-```python
-# Bad: Not DataCite standard
-DatasetLiteratureRelation.objects.create(
-    relationship_type='MyCustomType'  # ValidationError!
-)
-```
-
----
-
-## 10. Testing Your Dataset Code
-
-### Factory Usage
-
-```python
-from fairdm.core.dataset.factories import DatasetFactory
-
-# Create test dataset
 dataset = DatasetFactory()
+public = DatasetFactory(visibility=Visibility.PUBLIC)
 
-# With specific values
+# Related metadata is opt-in
 dataset = DatasetFactory(
-    name="Test Dataset",
-    visibility=Dataset.PUBLIC
+    descriptions=2,
+    descriptions__types=["Abstract", "Methods"],
 )
-
-# Create batch
-datasets = DatasetFactory.create_batch(10)
 ```
 
-### Testing Forms
+Every factory defaults `type` to a member of its own vocabulary. `DatasetDateFactory` defaults to
+`"Created"` today, which is not a member of the dataset date collection — that is corrected as part
+of this work, along with the four tests using it as their example of a valid type (D-008).
 
-```python
-import pytest
-from fairdm.core.dataset.forms import DatasetForm
+Three habits, each earned by a test in this suite that passed while proving nothing:
 
-@pytest.mark.django_db
-def test_dataset_form_requires_request():
-    """DatasetForm must receive request parameter."""
-    with pytest.raises(TypeError):
-        form = DatasetForm({})  # Missing request
+- **Assert vocabulary members by name.** Iterating `VOCABULARY.choices` passes over an empty
+  collection.
+- **Do not assert that a string is absent from a page.** Three administrative tests check that the
+  changelist markup does not contain "make public", "make private" or "change visibility". An action
+  named anything else passes them. Read the behaviour off the administrative class instead.
+- **Validate explicitly when you mean to test validation.** `objects.create()` skips `full_clean()`,
+  so a test written through it proves the database constraint and nothing about `clean()`.
 
-@pytest.mark.django_db
-def test_dataset_form_filters_projects(rf):
-    """Form filters projects by user permissions."""
-    request = rf.get('/')
-    request.user = user
+## What changed, if you have code against the old shape
 
-    form = DatasetForm(request=request)
-    # Only shows projects user has access to
-    assert form.fields['project'].queryset.count() > 0
-```
-
-### Testing QuerySets
-
-```python
-@pytest.mark.django_db
-def test_privacy_first_queryset():
-    """Default queryset excludes PRIVATE datasets."""
-    DatasetFactory(visibility=Dataset.PUBLIC)
-    DatasetFactory(visibility=Dataset.PRIVATE)
-
-    assert Dataset.objects.all().count() == 1  # Only PUBLIC
-
-@pytest.mark.django_db
-def test_with_private_includes_all():
-    """with_private() includes PRIVATE datasets."""
-    DatasetFactory(visibility=Dataset.PUBLIC)
-    DatasetFactory(visibility=Dataset.PRIVATE)
-
-    assert Dataset.objects.with_private().count() == 2
-```
-
-### Testing Admin
-
-```python
-from django.contrib.admin.sites import AdminSite
-from fairdm.core.dataset.admin import DatasetAdmin
-
-@pytest.mark.django_db
-def test_dynamic_inline_max_num(rf):
-    """Description inline limits to vocabulary size."""
-    request = rf.get('/')
-    admin = DatasetAdmin(Dataset, AdminSite())
-
-    formset = admin.get_formset(request, obj=None)
-    assert formset.max_num == len(Dataset.DESCRIPTION_TYPES)
-```
-
----
-
-## Next Steps
-
-1. **Read contracts/**: Detailed interface specifications for all components
-2. **Explore fairdm_demo/**: Reference implementation and examples
-3. **Check tests/**: Comprehensive test suite demonstrating all features
-4. **Review plan.md**: Architectural decisions and trade-offs
-
-## Questions?
-
-- **Architecture**: See [plan.md](plan.md) for technology decisions
-- **Data Models**: See [data-model.md](data-model.md) for entity definitions
-- **Implementation Details**: See [contracts/](contracts/) for interface specs
-- **User Stories**: See [spec.md](spec.md) for functional requirements
+| Was | Now |
+|---|---|
+| `Dataset.objects.with_private()` | `Dataset.all_objects` |
+| `Dataset.objects.get_all()` | `Dataset.all_objects` |
+| `Dataset.objects.get_visible()` | `Dataset.objects` |
+| `Dataset.objects.for_user(user)` | removed; no replacement in this specification |
+| `Dataset.objects.all()` returning private datasets | it no longer does |
+| `description_type`, `description` | `type`, `value` |
+| `date_type`, `date` | `type`, `value` |
+| `identifier_type`, `identifier` | `type`, `value` |
+| Deleting a project raising `ProtectedError` | it cascades to private datasets, and is blocked outright while any dataset is public |
+| `Visibility.INTERNAL` | never existed |
+| `Dataset.ROLE_PERMISSIONS` | removed |
+| Datasets listed oldest-touched first | most recently changed first |

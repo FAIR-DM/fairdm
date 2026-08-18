@@ -66,8 +66,11 @@ Runs first: it carries the manager change every other story's tests read through
 - [ ] T020 `DatasetQuerySet` in the same module, offering the bounded-query load of T015 and nothing
   that claims to widen an already-narrowed query.
 - [ ] T021 `DatasetManager` excluding private datasets, declared first so it is the default.
-- [ ] T022 `all_objects` as the explicit unfiltered manager, and `Meta.base_manager_name` naming it,
-  so following a relation and deleting a depended-on record still see every dataset.
+- [ ] T022 `all_objects` as the explicit unfiltered manager. Do **not** declare
+  `Meta.base_manager_name`: `fairdm.db.models.PrefetchBase` overwrites it with `prefetch_manager`
+  after the class is built, and `django-auto-prefetch` raises a system check if it is anything else.
+  `prefetch_manager` is unfiltered, so following a relation and deleting a depended-on record already
+  see every dataset. T060 and T061 assert that behaviour, not the attribute.
 - [ ] T023 `has_data`, as a single bounded query rather than two counts.
 - [ ] T024 The migration carrying the above.
 - [ ] T025 Rewrite the model's docstrings so every statement they make is true of the code beside
@@ -81,9 +84,10 @@ Runs first: it carries the manager change every other story's tests read through
   retrievable by type.
 - [ ] T027 A second description of a type the dataset already carries is refused, and the message
   names the type.
-- [x] T028 The refusal holds at the database as well as in validation, so a concurrent write cannot
-  slip past it.
-  **Done.** Code `fairdm/core/abstract.py:287`. Test `tests/test_core/test_dataset/test_models.py:481`.
+- [x] T028 The refusal holds at the database, so a concurrent write cannot slip past it.
+  **Done.** Code `fairdm/core/abstract.py:287` — the `UniqueConstraint` on `(related, type)`.
+  Test `tests/test_core/test_dataset/test_models.py:481`. The validation half of the same refusal is
+  T027, which is open.
 - [ ] T029 A methods description is accepted — methods belong to the dataset.
 - [ ] T030 A dataset with two descriptions returns both, each under its own type.
 - [ ] T031 The description vocabulary's members are asserted **by name**. A loop over
@@ -94,7 +98,7 @@ Runs first: it carries the manager change every other story's tests read through
 ### Implementation
 
 - [x] T033 `DatasetDescription` bound to the dataset description collection, one row per type
-  enforced by a database constraint as well as by validation.
+  enforced by a database constraint.
   **Done.** Code `fairdm/core/dataset/models.py:635`, `fairdm/core/dataset/models.py:644`, `fairdm/core/abstract.py:287`. Test `tests/test_core/test_dataset/test_models.py:481`.
 - [ ] T034 Each field exposed under one name only — no second name for a field (FR-014).
 
@@ -103,8 +107,9 @@ Runs first: it carries the manager change every other story's tests read through
 ### Tests
 
 - [ ] T035 `TestDatasetDate` — a collection start is stored under its type.
-- [x] T036 A second date of a type already carried is refused, at the database and in validation.
-  **Done.** Code `fairdm/core/abstract.py:305`. Test `tests/test_core/test_dataset/test_models.py:383`.
+- [x] T036 A second date of a type already carried is refused at the database.
+  **Done.** Code `fairdm/core/abstract.py:305` — the `UniqueConstraint` on `(related, type)`.
+  Test `tests/test_core/test_dataset/test_models.py:383`.
 - [ ] T037 A collection end earlier than the start is refused, and the message names both dates.
 - [ ] T038 The same refusal when the start is moved after an existing end.
 - [ ] T039 A collection end with no start present is accepted.
@@ -134,13 +139,14 @@ Runs first: it carries the manager change every other story's tests read through
 - [ ] T049 The same identifier value on a second record is refused, across every record type that
   carries identifiers, not merely within one dataset.
 - [ ] T050 Two identifiers of different types on one dataset are both retained.
-- [x] T051 A second identifier of a type already carried is refused.
-  **Done.** Code `fairdm/core/abstract.py:324`. Test `tests/test_core/test_dataset/test_models.py:635`.
+- [x] T051 A second identifier of a type already carried is refused at the database.
+  **Done.** Code `fairdm/core/abstract.py:324` — the `UniqueConstraint` on `(related, type)`.
+  Test `tests/test_core/test_dataset/test_models.py:635`.
 - [x] T052 A type outside the vocabulary is refused by validation.
+  **Done.** Code `fairdm/core/dataset/models.py:722`, `fairdm/core/abstract.py:247`. Test `tests/test_core/test_dataset/test_models.py:522`.
 
 ### Implementation
 
-  **Done.** Code `fairdm/core/dataset/models.py:722`, `fairdm/core/abstract.py:247`. Test `tests/test_core/test_dataset/test_models.py:522`.
 - [ ] T053 `DatasetIdentifier` bound to the dataset identifier collection, one row per type,
   value unique across all identifiers.
 - [ ] T054 The class attribute naming the identifier types agrees with what the related model binds.
@@ -300,3 +306,18 @@ That last shape is the one worth naming. **A test that asserts a string is absen
 almost nothing**, and four of the administrative tests are built that way — readonly fields,
 autocomplete, and both inline-presence tests match on words that appear in ordinary Django admin
 markup regardless.
+
+**Three ticks were narrowed on a second pass**, for the same reason and in the other direction.
+T028, T033 and T036 each claimed the one-row-per-type limit was enforced "at the database as well as
+in validation". Their cited tests — `test_unique_together_constraint` at `test_models.py:481`, `:383`
+and `:635` — each write a duplicate through `objects.create()` and assert `IntegrityError`, which
+skips `full_clean()` entirely. Their cited code lines are the `constraints` blocks on the abstract
+bases (`abstract.py:287`, `:305`, `:324`), which are the database half and only the database half.
+The claim was cut back to what the evidence carries. T051 was checked and already claimed only the
+refusal, so it was left alone.
+
+The validation half is a real requirement — FR-009 states it, SC-002 measures it, and Django 5.2's
+`validate_unique()` does check an unconditional `UniqueConstraint`, so the code very likely satisfies
+it. **No task claims it.** T027 carries it for descriptions and is open; dates and identifiers have
+no equivalent. It is left unclaimed rather than ticked on a plausible reading of the framework, and
+no test was invented for it here: writing one is implementation work, and this is a plan.

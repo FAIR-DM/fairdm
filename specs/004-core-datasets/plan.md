@@ -44,8 +44,8 @@ Nothing here introduces a new mechanism. If a task appears to, it is wrong.
 
 Article IX asks for consolidation. This branch produces **two**:
 
-1. One schema migration carrying `created_by`, `base_manager_name`, the `Meta.ordering` change and
-   the identifier vocabulary's narrowed choices.
+1. One schema migration carrying `created_by`, the `Meta.ordering` change, the new index on
+   `visibility` and the identifier vocabulary's narrowed choices.
 2. Nothing else. The licence seeding is a management command, not a migration (R4, D-018), and the
    alias removal is Python-only — properties are not fields, so they generate no migration.
 
@@ -63,9 +63,11 @@ Article IX asks for consolidation. This branch produces **two**:
 
 ## Complexity tracking (Article II)
 
-- **A second manager** (`all_objects`) is an addition, justified by R1: a filtered default manager
-  without an unfiltered base manager makes related-object access raise `DoesNotExist`. Django's own
-  guidance requires the pair.
+- **A second manager** (`all_objects`) is an addition, justified by R1: FR-019 requires a separately
+  named route to private datasets, and once the default manager filters, a manager is the only place
+  that route can live. It is not needed to keep related-object access working — the base manager this
+  package pins (`prefetch_manager`) is already unfiltered, and `Meta.base_manager_name` cannot be
+  declared here at all (R1, D-019).
 - **No new dependency.**
 - **No new abstraction.** The date comparison helpers are duplicated between `ProjectDate` and
   `DatasetDate` on purpose (R2, Article III).

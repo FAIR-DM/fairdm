@@ -19,17 +19,29 @@ manager declared. Verified against this repository:
 - A reverse many-to-one manager is built from `related_model._default_manager.__class__`, so
   `project.datasets.all()` would stop returning private datasets. That is right for portal surfaces
   and wrong for the deletion guard, which counts what is attached.
-- Forward relations and the deletion collector use `Model._base_manager`. Today that is an
-  automatically created plain manager, so cascades and `dataset.project` are unaffected.
+- Forward relations and the deletion collector use `Model._base_manager`. Here that is
+  `prefetch_manager`, a plain unfiltered manager `django-auto-prefetch` declares on every model, so
+  cascades and `dataset.project` are unaffected.
 
-**Decision.** Three parts, which is what Django's own guidance for a filtered default manager asks
-for:
+**Decision.** Two parts:
 
 1. `objects = DatasetManager()` — privacy-first, first declared, so it is the default.
-2. `all_objects = DatasetQuerySet.as_manager()` — the explicit, unfiltered route.
-3. `Meta.base_manager_name = "all_objects"` — so related-object access and the deletion collector
-   keep seeing every row. Without it, following a relation to a private dataset can raise
-   `DoesNotExist`.
+2. `all_objects = DatasetQuerySet.as_manager()` — the explicit, unfiltered route FR-019 requires.
+
+**And a third part that Django's guidance asks for and this package cannot give.** That guidance is
+to name the unfiltered manager in `Meta.base_manager_name`, so related-object access and the deletion
+collector keep seeing every row. **It cannot be declared here.** `fairdm.db.models.PrefetchBase`
+assigns `_meta.base_manager_name = "prefetch_manager"` after the class is built
+(`fairdm/db/models.py:30-55`), overwriting whatever `Meta` said, and `django-auto-prefetch` raises a
+system check if the value is anything else. Verified by declaring `base_manager_name` on a probe
+model and reading `_meta` back: it came out `prefetch_manager`.
+
+The guarantee holds regardless, because `prefetch_manager` is itself unfiltered — following a
+relation to a private dataset and cascading a deletion to one both still work. What changes is the
+test: US-4 asserts the behaviour (T060, T061), never the attribute. A test reading
+`Dataset._meta.base_manager_name == "all_objects"` would fail against working code.
+
+This corrects the first draft of this note, which specified the declaration. Recorded as D-019.
 
 `DatasetAdmin.get_queryset()` is overridden to use `all_objects`. The administrative interface
 seeing private datasets is a requirement, not an oversight, and the override is where that is said
