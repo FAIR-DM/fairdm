@@ -51,6 +51,10 @@ described five layers at once. Each disagreement with the code was settled and r
 - Q: Is a licence part of the record or part of the form? → A: Both. The record may carry no
   licence, and wherever a dataset is created the configured default is applied, so a dataset does
   not reach a reader unlicensed by accident (D-007).
+- Q: A portal that has migrated has no licence rows at all, so the default licence silently does not
+  apply and the portal's create form is a required field over an empty list. Whose problem is that? →
+  A: This specification's. The recommended licences are seeded when a portal is stood up, as a step a
+  portal can decline, because which licences it offers is its own decision (D-018).
 - Q: The related-record models carry a second name for each of their two fields — `description_type`
   for `type`, `date` for `value`, and so on. Are those wanted? → A: No. Nothing consumes them, only
   the dataset models have them, and one of them is the direct cause of a filter that raises an error
@@ -335,6 +339,10 @@ roles and read them back, and count the queries needed to load it with all its r
 - **FR-007**: Where no licence is chosen at creation, the portal's configured default licence MUST be
   applied. The default MUST be settable by the portal and MUST be CC BY 4.0 where the portal states
   none.
+- **FR-007a**: Standing up a portal MUST make the licences the framework recommends available,
+  without a portal author loading them by hand. The step MUST be idempotent, MUST leave alone a
+  licence a portal has already recorded under the same name, and MUST be one a portal can decline —
+  which licences a portal offers is its own decision.
 - **FR-008**: A dataset MUST be able to report whether it holds any samples or measurements, in a
   number of queries that does not grow with how many it holds.
 
@@ -447,6 +455,9 @@ roles and read them back, and count the queries needed to load it with all its r
   filter in FR-023 removes the datasets that do not.
 - **SC-008**: Loading a dataset together with all its related metadata takes a number of queries that
   does not grow with the number of related records.
+- **SC-008a**: After a portal is stood up from an empty database, the default licence resolves and a
+  dataset created without choosing one carries it. Running the step a second time changes nothing,
+  including a licence the portal has edited.
 - **SC-009**: No test covering behaviour in this specification is skipped, and no test in it passes
   when the behaviour it names is removed.
 - **SC-010**: Every statement the dataset models, admin and vocabularies make about their own

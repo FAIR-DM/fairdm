@@ -346,7 +346,7 @@ Findings that are real but are not this feature's work:
 | Full revision history for core records (D-015) | #170 |
 | The deployment pipeline in `apps.py:254` is never invoked, so the `groups` and `django-waffle` fixtures and the vocabulary preload do not reach a deployed portal (D-018) | #193 |
 
-## D-018 — Licences are seeded by a data migration, because the setup pipeline does not run
+## D-018 — Licences are seeded by the setup pipeline, not by a data migration
 
 **Self-resolved, after the maintainer asked which mechanism was right.**
 
@@ -363,33 +363,25 @@ The fixture also carries the NC and ND variants; they fail the Open Definition, 
 for reusability should not present "no derivatives" as a recommended licence for research data. A
 portal that needs one adds it, which is the pattern the licensing package is built for.
 
-The mechanism was the harder question, and the first two answers were wrong. FairDM configures a
-deployment pipeline in `fairdm/conf/settings/apps.py:254-282`: `on_initial` loads the `django-waffle`
-and `groups` fixtures, and `always_run` calls `preload` for the vocabulary package. Adding a licence
-step there would sit beside two precedents of exactly this shape, be overridable by a portal, and
-keep editable content out of migration history — every argument favours it.
+The seeding step is added to the deployment pipeline in `fairdm/conf/settings/apps.py:254-282`,
+beside the `groups` and `django-waffle` fixtures and the vocabulary preload, which are three
+precedents of exactly this shape. It is idempotent, keyed on the licence name, so it leaves alone a
+portal that has curated its own rows.
 
-**Except that the pipeline is not invoked.** The evidence:
+The alternative considered and rejected was a data migration. It is the more reliable mechanism —
+`migrate` runs everywhere and always — but reliability is not what decides this. Curating licences is
+a downstream choice, which is precisely why the licensing package declines to make it. A data
+migration takes that choice back: every portal receives FairDM's three whether or not it wants them,
+and declining them means working against a migration that has already run. A pipeline entry offers
+the same list as a default a portal can drop or replace, because it is a setting.
 
-- The only deployed FairDM portal, `ihfc-iugg/ghfdb-portal`, boots with
-  `manage.py migrate --noinput && collectstatic --noinput && compress && gunicorn`. Its Dockerfile has
-  carried that command for its entire history and has never called the setup command.
-- FairDM's own `docker-compose.yml:36` reads `command: start-django`, naming a script that exists
-  nowhere in the repository.
-- No page under `docs/` mentions the setup command.
+Underneath that, a licence row is content with an administrative interface, meant to be edited.
+Seeding recommended content is a policy step rather than a schema step, and Django deprecated the
+implicit loading of initial data at migrate time for the same reason.
 
-So the pipeline is configured, registered in `INSTALLED_APPS`, and has never run on a real portal.
-Putting a guarantee this specification makes into a mechanism that demonstrably does not execute would
-be specifying something that cannot hold. `migrate` is the one step every FairDM portal actually runs.
-
-A data migration in `fairdm/core/dataset/migrations/`, then, building rows through the historical
-model with `get_or_create` on `name` — which is unique, and which leaves alone a portal that has
-already curated its own licence rows. The reverse is a no-op: removing licences would orphan every
-dataset pointing at one.
-
-The objection to reference data in migrations is real and is the price paid. It is paid knowingly,
-because the alternative is a guarantee that holds only on portals nobody has deployed.
-
-That the seeding pipeline never runs is a finding in its own right — `groups`, `django-waffle` and the
-vocabulary preload are not reaching a deployed portal either. It belongs to the setup specification
-and is routed out.
+A separate finding, and not a reason to choose differently: the pipeline is configured, registered in
+`INSTALLED_APPS`, and appears never to be invoked. The one deployed portal boots straight into
+`migrate`, this repository's compose file names an entrypoint script that does not exist here, and no
+documentation mentions the command — so `groups`, `django-waffle` and the vocabulary preload are not
+reaching a deployed portal either. That is the pipeline's problem to fix, filed as #193, and this
+specification's guarantee holds once it is.
