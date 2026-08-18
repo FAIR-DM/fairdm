@@ -8,6 +8,9 @@ against the January task list.
 
 Test tasks come before their implementation tasks (Article I). Each task names the file it lands in.
 
+Three tasks changed at reconciliation, marked `[~]` or noted in place: T028 withdrawn, T044 folded
+into T043, T053 restated. Numbers are never reused, because the reconciliation ledger cites them.
+
 ## Phase 0 — Foundations
 
 - [ ] T001 Declare a `Sample` collection on `FairDMIdentifiers` in `fairdm/core/vocabularies.py`
@@ -88,8 +91,10 @@ Runs first: every other story's tests are written against the record these tasks
   object is not `None`.
 - [ ] T027 `TestBaseSampleConfiguration` — a specimen type configuration inheriting the base
   configuration receives the base defaults for a component setting it omits.
-- [ ] T028 `TestOrphanedSampleType` — rows belonging to a specimen type no longer present in the
-  code read back as base sample records rather than raising.
+- [~] T028 **Withdrawn at reconciliation.** Reading rows whose specimen type has left the code as
+  base records is not behaviour django-polymorphic offers; building it means a custom real-instance
+  fallback, which is a design decision this specification does not make. FR-013 is withdrawn with
+  it.
 
 ### Implementation
 
@@ -147,8 +152,9 @@ Runs first: every other story's tests are written against the record these tasks
 - [ ] T043 `TestIGSNFormat` — a malformed IGSN is refused with a message naming the expected format,
   and a well-formed one is accepted. The values used are real examples, and the rule they are
   checked against is the one research establishes rather than the one the old code assumed.
-- [ ] T044 `TestIGSNCheckIsReachable` — the format check runs. A value of a type the vocabulary does
-  not contain can never reach it, so this asserts the type is in the vocabulary first.
+- [~] T044 **Folded into T043 at reconciliation.** Written as a separate task it is a tautology:
+  once T001, T002 and T047 put IGSN in the vocabulary, a passing T043 is itself the proof that the
+  format check is reachable. T043 carries the requirement.
 - [ ] T045 `TestSampleIdentifierUniqueness` — the same identifier value cannot be attached to a
   second record of any type, and a second identifier of a type the specimen already carries is
   refused.
@@ -173,8 +179,12 @@ Runs first: every other story's tests are written against the record these tasks
   out of destroyed.
 - [ ] T052 `TestNoRemoteVocabulary` — loading the sample record and creating a specimen both succeed
   with outbound network calls blocked. Asserted by blocking the call, not by reading the source.
-- [ ] T053 `TestStatusMigration` in `tests/test_core/test_sample/test_migrations.py` — rows holding a
-  value from the previous vocabulary read as unknown after the migration.
+- [ ] T053 `TestStoredStatusValues` in `tests/test_core/test_sample/test_models.py` — every status
+  value held in the database is a member of the vocabulary the field declares, so no stored value
+  can raise on read. **Restated at reconciliation:** the original wording needed a migration-runner
+  harness the project does not depend on, because an ordinary test runs against an
+  already-migrated database. This asserts the property the migration exists to guarantee, which is
+  what matters and is reachable without a new dependency.
 
 ### Implementation
 

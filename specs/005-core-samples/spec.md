@@ -401,8 +401,6 @@ needed to load a list of samples with all their related records.
 - A sample with no measurements is a normal state, not an incomplete record.
 - A status may move in any direction, including out of destroyed — a specimen recorded as destroyed
   in error must be correctable.
-- A specimen type registered by a portal and later removed from the code leaves rows behind. Reading
-  them degrades to the base record rather than failing.
 - Attaching the same identifier value to two records is refused globally, not merely within one
   dataset.
 - Non-ASCII characters in names, descriptions and keywords are stored unchanged.
@@ -438,8 +436,10 @@ needed to load a list of samples with all their related records.
 - **FR-012**: The framework MUST supply a base registry configuration that a specimen type's
   configuration inherits component defaults from, and the framework's own reference implementation
   MUST use it.
-- **FR-013**: A specimen type registered by a portal and later removed from the code MUST leave its
-  rows readable as base sample records rather than failing.
+- **FR-013**: *Withdrawn during planning.* Reading rows whose specimen type has left the code as
+  base records is not behaviour the polymorphic library offers, and building it means a custom
+  real-instance fallback — a design decision this specification does not make and was not asked to.
+  The number is retained rather than reused.
 
 ### Descriptions, dates and identifiers
 
