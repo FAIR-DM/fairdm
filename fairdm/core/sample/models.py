@@ -1,5 +1,8 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.db import models as django_models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils.functional import classproperty
 
 # from rest_framework.authtoken.models import Token
@@ -25,6 +28,8 @@ from ..vocabularies import (
     FairDMRoles,
 )
 from .managers import SampleQuerySet
+
+BASE_SAMPLE_ERROR = "Cannot create base Sample instances directly. Please use a specific sample type subclass."
 
 
 class Sample(BasePolymorphicModel):
@@ -61,6 +66,10 @@ class Sample(BasePolymorphicModel):
         unique=True,
         prefix="s",
         verbose_name="UUID",
+        help_text=_(
+            "A unique identifier generated automatically when the sample is created. It cannot "
+            "be edited."
+        ),
     )
     local_id = models.CharField(
         _("Local ID"),
@@ -73,6 +82,7 @@ class Sample(BasePolymorphicModel):
     )
     status = ConceptField(
         verbose_name=_("status"),
+        help_text=_("The current custody status of the physical specimen."),
         vocabulary=SampleStatus,
         default="unknown",
     )
@@ -122,15 +132,12 @@ class Sample(BasePolymorphicModel):
             ValidationError: If attempting to create base Sample instance
         """
         super().clean()
-        from django.core.exceptions import ValidationError
 
-        # Prevent direct instantiation of base Sample model
+        # Prevent direct instantiation of base Sample model. Forms and the admin call
+        # full_clean() before save(), so this is what turns a bare-Sample attempt into a
+        # validation error there rather than the server error the pre_save guard below raises.
         if self.__class__ == Sample:
-            raise ValidationError(
-                _(
-                    "Cannot create base Sample instances directly. Please use a specific sample type subclass."
-                )
-            )
+            raise ValidationError(_(BASE_SAMPLE_ERROR))
 
     def get_absolute_url(self):
         """Get the absolute URL for this sample.
@@ -281,6 +288,21 @@ class Sample(BasePolymorphicModel):
         return [f"{app_name}/{model_name}_card.html", "fairdm/sample_card.html"]
 
 
+@receiver(pre_save, sender=Sample)
+def block_base_sample_creation(sender, instance, **kwargs):
+    """Refuse to save a bare ``Sample`` row, by any route.
+
+    Scoped to ``sender=Sample`` rather than connected without a sender: a subclass instance
+    sends its own class, never ``Sample``, so this never fires for a registered specimen type.
+    ``pre_save`` is the one mechanism that also covers fixture loading (`django.core.serializers`
+    sends it on every deserialized object) and cannot fire on the framework's own read path -
+    django-polymorphic only constructs base instances there, it never saves them (research.md
+    R4). ``Sample.clean()`` stays alongside this so forms and the admin still raise a validation
+    error instead of the server error this receiver raises.
+    """
+    raise ValidationError(_(BASE_SAMPLE_ERROR))
+
+
 class SampleDescription(AbstractDescription):
     """Free-text description of a Sample with type categorization.
 
@@ -342,8 +364,8 @@ class SampleDate(AbstractDate):
 class SampleIdentifier(AbstractIdentifier):
     """External identifiers for a Sample.
 
-    Links samples to external identifier systems (DOI, ARK, Handle, etc.)
-    to support FAIR data principles and cross-referencing.
+    Links a sample to an external identifier system, drawn from ``VOCABULARY``, to support FAIR
+    data principles and cross-referencing.
     """
 
     VOCABULARY = FairDMIdentifiers()

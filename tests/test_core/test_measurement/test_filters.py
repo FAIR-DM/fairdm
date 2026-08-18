@@ -16,7 +16,8 @@ from django.contrib.auth import get_user_model
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.filters import MeasurementFilter
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
-from fairdm.factories import DatasetFactory, SampleFactory
+from fairdm.factories import DatasetFactory
+from fairdm_demo.factories import RockSampleFactory
 from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
 
 User = get_user_model()
@@ -35,8 +36,8 @@ class TestMeasurementFilterDatasetFiltering:
         dataset1 = DatasetFactory(project=project)
         dataset2 = DatasetFactory(project=project)
 
-        sample1 = SampleFactory(dataset=dataset1)
-        sample2 = SampleFactory(dataset=dataset2)
+        sample1 = RockSampleFactory(dataset=dataset1)
+        sample2 = RockSampleFactory(dataset=dataset2)
 
         # Create measurements in different datasets
         measurement1 = XRFMeasurement.objects.create(
@@ -69,8 +70,8 @@ class TestMeasurementFilterSampleFiltering:
     def test_filter_by_sample(self, user, project, dataset):
         """Test filtering measurements by sample relationship."""
         # Create two samples
-        sample1 = SampleFactory(dataset=dataset, name="Sample 1")
-        sample2 = SampleFactory(dataset=dataset, name="Sample 2")
+        sample1 = RockSampleFactory(dataset=dataset, name="Sample 1")
+        sample2 = RockSampleFactory(dataset=dataset, name="Sample 2")
 
         # Create measurements for different samples
         measurement1 = XRFMeasurement.objects.create(
@@ -104,7 +105,7 @@ class TestMeasurementFilterPolymorphicTypeFiltering:
         """Test filtering measurements by polymorphic content type."""
         from django.contrib.contenttypes.models import ContentType
 
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         # Create measurements of different types
         xrf_measurement = XRFMeasurement.objects.create(
@@ -150,7 +151,7 @@ class TestMeasurementFilterSearchFunctionality:
 
     def test_search_by_name_and_uuid(self, user, project, dataset):
         """Test generic search across name and uuid fields."""
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         # Create measurements with distinct names
         measurement1 = XRFMeasurement.objects.create(
@@ -198,7 +199,7 @@ class TestMeasurementFilterCrossRelationshipFiltering:
 
     def test_filter_by_description_text(self, user, project, dataset):
         """Test filtering measurements by description text content."""
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         # Create measurements
         measurement1 = XRFMeasurement.objects.create(
@@ -243,7 +244,7 @@ class TestMeasurementFilterCrossRelationshipFiltering:
     def test_filter_by_date_range(self, user, project, dataset):
         """Test filtering measurements by associated date ranges."""
 
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         # Create measurements
         measurement1 = XRFMeasurement.objects.create(
@@ -308,9 +309,9 @@ class TestMeasurementFilterCombinedFilters:
         dataset1 = DatasetFactory(project=project)
         dataset2 = DatasetFactory(project=project)
 
-        sample1 = SampleFactory(dataset=dataset1, name="Sample 1")
-        sample2 = SampleFactory(dataset=dataset1, name="Sample 2")
-        sample3 = SampleFactory(dataset=dataset2, name="Sample 3")
+        sample1 = RockSampleFactory(dataset=dataset1, name="Sample 1")
+        sample2 = RockSampleFactory(dataset=dataset1, name="Sample 2")
+        sample3 = RockSampleFactory(dataset=dataset2, name="Sample 3")
 
         # Create measurements
         measurement1 = XRFMeasurement.objects.create(
@@ -364,7 +365,7 @@ class TestMeasurementFilterMixinUsage:
                 model = XRFMeasurement
                 fields = [*MeasurementFilterMixin.Meta.fields, "element"]
 
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         # Create XRF measurements
         measurement1 = XRFMeasurement.objects.create(

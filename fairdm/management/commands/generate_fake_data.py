@@ -14,7 +14,9 @@ Configuration:
     }
 
     The command will randomly use these factories to create polymorphic instances.
-    If no factories are configured, it falls back to base Sample/Measurement factories.
+    If no factories are configured, samples and/or measurements are skipped rather than
+    falling back to the base ``Sample``/``Measurement`` models - neither can be created
+    directly.
 
 Usage:
     poetry run python manage.py generate_fake_data

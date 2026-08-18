@@ -3,6 +3,7 @@
 Provides optimized query methods for common Sample operations including:
 - Prefetching related data (dataset, location, contributors)
 - Prefetching metadata (descriptions, dates, identifiers)
+- Prefetching controlled keywords
 - Filtering by relationship types
 - Traversing sample hierarchies
 """
@@ -46,6 +47,23 @@ class SampleQuerySet(PolymorphicQuerySet):
             "contributors__contributor",
             "contributors__roles",
         )
+
+    def with_keywords(self):
+        """Prefetch controlled keywords (the ``keywords`` many-to-many).
+
+        Split from :meth:`with_metadata` because it is a distinct group of related records
+        (FR-044) - the vocabulary concepts a sample is tagged with, not a per-sample record of
+        its own.
+
+        Returns:
+            SampleQuerySet: Chainable queryset with keywords prefetched
+
+        Example:
+            >>> samples = Sample.objects.with_keywords()
+            >>> for sample in samples:
+            ...     sample.keywords.all()  # no additional query
+        """
+        return self.prefetch_related("keywords")
 
     def with_metadata(self):
         """Prefetch sample metadata (descriptions, dates, identifiers).

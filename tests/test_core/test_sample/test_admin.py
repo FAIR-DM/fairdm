@@ -24,7 +24,8 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
-from fairdm.factories.core import DatasetFactory, SampleFactory
+from fairdm.factories.core import DatasetFactory
+from fairdm_demo.factories import RockSampleFactory
 
 User = get_user_model()
 
@@ -60,9 +61,9 @@ class TestSampleAdminSearch:
 
     def test_search_by_name(self, sample_admin, admin_user, request_factory):
         """Test that admin search finds samples by name."""
-        sample1 = SampleFactory(name="Granite Sample")
-        sample2 = SampleFactory(name="Basalt Sample")
-        _sample3 = SampleFactory(name="Water Sample")
+        sample1 = RockSampleFactory(name="Granite Sample")
+        sample2 = RockSampleFactory(name="Basalt Sample")
+        _sample3 = RockSampleFactory(name="Water Sample")
 
         request = request_factory.get("/admin/sample/sample/", {"q": "Granite"})
         request.user = admin_user
@@ -76,8 +77,8 @@ class TestSampleAdminSearch:
 
     def test_search_by_local_id(self, sample_admin, admin_user, request_factory):
         """Test that admin search finds samples by local_id."""
-        sample1 = SampleFactory(local_id="SAMPLE-001")
-        _sample2 = SampleFactory(local_id="SAMPLE-002")
+        sample1 = RockSampleFactory(local_id="SAMPLE-001")
+        _sample2 = RockSampleFactory(local_id="SAMPLE-002")
 
         request = request_factory.get("/admin/sample/sample/", {"q": "SAMPLE-001"})
         request.user = admin_user
@@ -90,7 +91,7 @@ class TestSampleAdminSearch:
 
     def test_search_by_uuid(self, sample_admin, admin_user, request_factory):
         """Test that admin search finds samples by UUID."""
-        sample1 = SampleFactory()
+        sample1 = RockSampleFactory()
 
         request = request_factory.get("/admin/sample/sample/", {"q": sample1.uuid})
         request.user = admin_user
@@ -105,7 +106,7 @@ class TestSampleAdminSearch:
         self, sample_admin, admin_user, request_factory
     ):
         """Test that admin search returns empty queryset when no matches found."""
-        _sample1 = SampleFactory(name="Test Sample")
+        _sample1 = RockSampleFactory(name="Test Sample")
 
         request = request_factory.get("/admin/sample/sample/", {"q": "NonExistent"})
         request.user = admin_user
@@ -126,8 +127,8 @@ class TestSampleAdminFilters:
         dataset1 = DatasetFactory(name="Dataset A")
         dataset2 = DatasetFactory(name="Dataset B")
 
-        sample1 = SampleFactory(dataset=dataset1)
-        _sample2 = SampleFactory(dataset=dataset2)
+        sample1 = RockSampleFactory(dataset=dataset1)
+        _sample2 = RockSampleFactory(dataset=dataset2)
 
         # Simulate filtering by dataset1
         filtered = Sample.objects.filter(dataset=dataset1)
@@ -138,8 +139,8 @@ class TestSampleAdminFilters:
     def test_filter_by_status(self, sample_admin):
         """Test that admin can filter samples by status."""
         # Use default status (unknown) which is valid in the vocabulary
-        sample1 = SampleFactory()
-        sample2 = SampleFactory()
+        sample1 = RockSampleFactory()
+        sample2 = RockSampleFactory()
 
         # Simulate filtering by status (both should have 'unknown' status by default)
         filtered = Sample.objects.filter(status=sample1.status)
@@ -156,8 +157,8 @@ class TestSampleAdminFilters:
         """Test that multiple filters can be combined."""
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
-        sample1 = SampleFactory(dataset=dataset1)
-        _sample2 = SampleFactory(dataset=dataset2)
+        sample1 = RockSampleFactory(dataset=dataset1)
+        _sample2 = RockSampleFactory(dataset=dataset2)
 
         # Simulate combining filters (dataset and status)
         filtered = Sample.objects.filter(dataset=dataset1, status=sample1.status)
@@ -197,7 +198,7 @@ class TestSampleAdminInlines:
 
     def test_inline_metadata_can_be_created(self, sample_admin):
         """Test that inline metadata objects can be created for a sample."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         # Create description via inline
         description = SampleDescription.objects.create(
@@ -209,7 +210,7 @@ class TestSampleAdminInlines:
 
     def test_inline_dates_can_be_created(self, sample_admin):
         """Test that inline date objects can be created for a sample."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         # Create date via inline
         date = SampleDate.objects.create(
@@ -221,7 +222,7 @@ class TestSampleAdminInlines:
 
     def test_inline_identifiers_can_be_created(self, sample_admin):
         """Test that inline identifier objects can be created for a sample."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         # Create identifier via inline
         identifier = SampleIdentifier.objects.create(
@@ -233,8 +234,8 @@ class TestSampleAdminInlines:
 
     def test_inline_relationships_can_be_created(self, sample_admin):
         """Test that inline relationship objects can be created between samples."""
-        parent = SampleFactory(name="Parent Sample")
-        child = SampleFactory(name="Child Sample")
+        parent = RockSampleFactory(name="Parent Sample")
+        child = RockSampleFactory(name="Child Sample")
 
         # Create relationship via inline
         relation = SampleRelation.objects.create(

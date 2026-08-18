@@ -10,7 +10,7 @@ from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.contrib.plugins.utils import slugify
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.sample.models import Sample
-from fairdm.factories import SampleFactory
+from fairdm_demo.factories import RockSampleFactory
 
 
 class TestNaming:
@@ -55,7 +55,7 @@ class TestNaming:
 @pytest.mark.django_db
 class TestAddresses:
     def test_a_registered_plugin_reverses_through_the_record_namespace(self):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         url = reverse("sample:overview", kwargs={"uuid": sample.uuid})
         assert url == f"/samples/{sample.uuid}/overview/"
 
@@ -71,7 +71,7 @@ class TestAddresses:
         assert paths == ["my-segment/"]
 
     def test_reverse_uses_the_record_s_declared_lookup(self):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         assert plugin_reverse(sample, "overview").endswith(f"{sample.uuid}/overview/")
 
 
@@ -100,7 +100,7 @@ class TestOneClassTwoRecords:
 @pytest.mark.django_db
 class TestReachingTheRecord:
     def test_the_record_is_in_the_context(self, client):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         assert response.context["base_object"] == sample
 
@@ -114,7 +114,7 @@ class TestReachingTheRecord:
 
     def test_a_view_keeps_its_own_object(self, rf, plain_user):
         """A plugin over a view that manages its own object must keep it."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         seen = {}
 
@@ -145,7 +145,7 @@ class TestReachingTheRecord:
             slug_field = "uuid"
             slug_url_kwarg = "uuid"
 
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         request = rf.get("/")
         request.user = plain_user
         response = Editor.as_view(registered_model=SampleModel)(
@@ -194,7 +194,7 @@ class TestExtraViews:
 @pytest.mark.django_db
 class TestTheNavigationTrail:
     def test_the_record_entry_links_to_the_record(self, client):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         trail = response.context["breadcrumbs"]
         record_entry = next(e for e in trail if e["text"] == str(sample))
@@ -202,14 +202,14 @@ class TestTheNavigationTrail:
 
     def test_no_entry_carries_a_placeholder_link(self, client):
         """Both hrefs used to be hardcoded, one to the site root and one to a dead anchor."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         for entry in response.context["breadcrumbs"]:
             assert entry.get("href") not in {"#", "/"}
 
     def test_a_plugin_without_a_page_title_does_not_raise(self, rf, plain_user):
         """Issue #112: get_breadcrumbs read an attribute the base class never defined."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         class Quiet(Plugin, TemplateView):
             template_name = "fairdm/plugin.html"
@@ -225,13 +225,13 @@ class TestTheNavigationTrail:
 @pytest.mark.django_db
 class TestDeclaredAssets:
     def test_declared_stylesheets_and_scripts_reach_the_response(self, client):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         # The base template renders plugin_media in the head and before the closing body.
         assert "plugin_media" in response.context
 
     def test_a_plugin_declaring_media_exposes_it(self, rf, plain_user):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         class WithAssets(Plugin, TemplateView):
             template_name = "fairdm/plugin.html"

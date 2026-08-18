@@ -13,9 +13,9 @@ from fairdm.factories import (
     MeasurementFactory,
     PersonFactory,
     ProjectFactory,
-    SampleFactory,
 )
 from fairdm.registry import registry
+from fairdm_demo.factories import RockSampleFactory
 
 User = get_user_model()
 
@@ -47,7 +47,7 @@ def dataset(db, project):
 @pytest.fixture
 def sample(db, dataset):
     """Create a test sample linked to a dataset."""
-    return SampleFactory(dataset=dataset)
+    return RockSampleFactory(dataset=dataset)
 
 
 @pytest.fixture

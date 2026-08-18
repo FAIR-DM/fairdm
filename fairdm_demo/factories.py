@@ -64,6 +64,7 @@ from .models import (
     CustomSample,
     ExampleMeasurement,
     RockSample,
+    SoilSample,
     WaterSample,
 )
 
@@ -230,6 +231,33 @@ class WaterSampleFactory(SampleFactory):
 
     class Meta:
         model = WaterSample
+
+
+class SoilSampleFactory(SampleFactory):
+    """
+    Factory for SoilSample demonstrating component-specific field configuration.
+
+    See: Developer Guide > Testing > Sample Factories
+    """
+
+    soil_type = factory.Faker(
+        "random_element",
+        elements=["clay", "sand", "silt", "loam", "peat"],
+    )
+    ph_level = factory.Faker(
+        "pydecimal", left_digits=1, right_digits=2, min_value=0, max_value=14
+    )
+    organic_matter_percent = factory.Faker(
+        "pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=25
+    )
+    texture = factory.Faker("random_element", elements=["fine", "medium", "coarse"])
+    moisture_content = factory.Faker(
+        "pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=100
+    )
+    depth_cm = factory.Faker("random_int", min=0, max=200)
+
+    class Meta:
+        model = SoilSample
 
 
 # ============================================================================

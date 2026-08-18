@@ -118,7 +118,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Descriptions, dates and identifiers are all editable from a dataset's administrative page, and the
   list shows which datasets carry an abstract and a DOI.
 
+#### Core samples (Feature 005)
+
+- Creating a bare `Sample` — the polymorphic base every specimen type inherits from — is refused
+  everywhere: through validation, a form, the administrative interface, direct saves and the
+  manager, and even fixture loading. Only a registered specimen type (`RockSample`, `WaterSample`
+  and so on) can be created.
+- `Sample.objects` offers `with_related()`, `with_metadata()` and the new `with_keywords()`, each
+  chainable with the others and with ordinary queryset methods, so a list of specimens loads with
+  its dataset, location, descriptions, dates, identifiers, contributions and keywords in a number
+  of queries that does not grow with how many specimens or related records there are.
+
 ### Changed
+
+#### Core samples (Feature 005) — breaking
+
+- **`fairdm.factories.SampleFactory` is abstract.** It declares the fields every specimen shares
+  but can no longer be instantiated directly, matching `Sample` itself. A portal (or test) that
+  called `SampleFactory()` now subclasses it — `fairdm_demo.factories.RockSampleFactory` is the
+  reference example — the same way a portal already subclasses `Sample` for its own specimen
+  types. `MeasurementFactory.sample` and `SampleRelationFactory.source`/`target` have no default
+  for the same reason and must be passed a concrete specimen instance.
 
 #### Portal configuration (Feature 001) — breaking
 

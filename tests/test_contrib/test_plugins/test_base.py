@@ -20,8 +20,8 @@ from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.plugins import DeletePlugin, OverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import Sample
-from fairdm.factories import SampleFactory
 from fairdm.factories.contributors import UserFactory
+from fairdm_demo.factories import RockSampleFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -638,7 +638,7 @@ class TestPluginGetBreadcrumbs:
         """Breadcrumbs should truncate long object names."""
         # Create sample with very long name
         long_name = "A" * 100
-        sample = SampleFactory(name=long_name)
+        sample = RockSampleFactory(name=long_name)
 
         @plugins.register(Sample)
         class TestPlugin(Plugin, TemplateView):

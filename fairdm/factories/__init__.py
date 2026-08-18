@@ -34,8 +34,10 @@ Available Factories
 Core Models:
     - ProjectFactory - Create Project instances
     - DatasetFactory - Create Dataset instances
-    - SampleFactory - Create Sample instances
-    - MeasurementFactory - Create Measurement instances
+    - SampleFactory - Abstract. Subclass it to build a concrete specimen type, e.g.
+      ``fairdm_demo.factories.RockSampleFactory``.
+    - MeasurementFactory - Create Measurement instances. ``sample`` has no default; pass a
+      concrete specimen instance.
 
 Contributors:
     - UserFactory - Create User instances
@@ -84,6 +86,8 @@ from .core import (
     ProjectDescriptionFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
+    SampleDateFactory,
+    SampleDescriptionFactory,
     SampleFactory,
     SampleIdentifierFactory,
     SampleRelationFactory,
@@ -106,6 +110,8 @@ __all__ = [
     "ProjectDescriptionFactory",
     "ProjectFactory",
     "ProjectIdentifierFactory",
+    "SampleDateFactory",
+    "SampleDescriptionFactory",
     "SampleFactory",
     "SampleIdentifierFactory",
     "SampleRelationFactory",
