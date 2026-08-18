@@ -331,14 +331,14 @@ Findings that are real but are not this feature's work:
 
 | Finding | Where it goes |
 |---|---|
-| `DatasetFilter.date_type` raises `FieldError` whenever applied (`filters.py:161`) | new issue |
-| `DatasetFilter.__init__` has two branches that do the same thing, and its docstrings describe a visibility level that does not exist (`filters.py:181-191`) | with the above |
-| A dataset's creator is granted no permissions over it — the assignment is commented out (`views.py:84-94`), against 014's FR-012 | new issue |
-| `DatasetCreateForm` omits `project`, and the create view uses `fields` rather than the form and never passes `request`, against 014's FR-011 and its assumptions (`forms.py:277`, `views.py:46`, `:57`) | with the above |
-| Dataset views bind translations at import time (`views.py:7`), as do `fairdm/contrib/import_export/views.py:6` and `fairdm/core/utils.py:1` | new issue |
-| Every route in `fairdm/contrib/import_export/urls.py` is commented out, so metadata download, data import and package download are unreachable; `import_export/views.py:224` checks a `can_publish` permission no model declares | new issue |
-| The dataset detail template counts `project.samples` and `project.measurements` while its context object is the dataset (`templates/dataset/dataset_detail.html:21`, `:25`); `templates/dataset/plugins/overview.html` is registered by no plugin; `templates/dataset/dataset_create.html` is empty and referenced by nothing | new issue |
-| Five of the eight dataset user-guide pages are "Coming soon" stubs, three of them linked from the plugin headings that tell a user to read them (`plugins.py:29`, `:48`, `:65`) | new issue |
+| `DatasetFilter.date_type` raises `FieldError` whenever applied (`filters.py:161`) | #186 |
+| `DatasetFilter.__init__` has two branches that do the same thing, and its docstrings describe a visibility level that does not exist (`filters.py:181-191`) | #186 |
+| A dataset's creator is granted no permissions over it — the assignment is commented out (`views.py:84-94`), against 014's FR-012 | #187 |
+| `DatasetCreateForm` omits `project`, and the create view uses `fields` rather than the form and never passes `request`, against 014's FR-011 and its assumptions (`forms.py:277`, `views.py:46`, `:57`) | #187 |
+| Dataset views bind translations at import time (`views.py:7`), as do `fairdm/contrib/import_export/views.py:6` and `fairdm/core/utils.py:1` | #188 |
+| Every route in `fairdm/contrib/import_export/urls.py` is commented out, so metadata download, data import and package download are unreachable; `import_export/views.py:224` checks a `can_publish` permission no model declares | #189 |
+| The dataset detail template counts `project.samples` and `project.measurements` while its context object is the dataset (`templates/dataset/dataset_detail.html:21`, `:25`); `templates/dataset/plugins/overview.html` is registered by no plugin; `templates/dataset/dataset_create.html` is empty and referenced by nothing | #190 |
+| Five of the eight dataset user-guide pages are "Coming soon" stubs, three of them linked from the plugin headings that tell a user to read them (`plugins.py:29`, `:48`, `:65`) | #191 |
 | The REST API exposes dataset create, update and delete and five scalar fields, describing none of the related records | noted against 011, the API specification |
 | Funding recorded against a dataset | #175, which covers projects and datasets together |
 | An organisation-scoped visibility level between private and public | #168 |
