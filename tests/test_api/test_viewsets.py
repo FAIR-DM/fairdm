@@ -10,6 +10,7 @@ Covers:
 import pytest
 from django.urls import reverse
 
+from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
@@ -195,6 +196,48 @@ class TestDatasetDetailEndpoint:
         url = reverse("api:dataset-detail", kwargs={"uuid": "doesnotexist"})
         response = api_client.get(url)
         assert response.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Dataset creator (parity with ProjectViewSet.perform_create)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestDatasetCreatorParity:
+    """POST /api/v1/datasets/ - `created_by` (US7).
+
+    `Dataset.created_by` mirrors `Project.created_by` field-for-field, and
+    `DatasetViewSet.perform_create` now mirrors `ProjectViewSet.perform_create`
+    too - the dataset viewset previously fell through to `BaseViewSet`'s
+    unadorned `serializer.save()` and never recorded a creator at all.
+    """
+
+    def test_created_by_is_set_server_side_and_cannot_be_spoofed(
+        self, authenticated_client, user
+    ):
+        """The creator is taken from the request user, and a client-supplied
+        `created_by` value is never honoured.
+
+        Requirement: FR-021.
+        """
+        other_user = UserFactory()
+
+        response = authenticated_client.post(
+            reverse("api:dataset-list"),
+            {"name": "Spoofed Creator Dataset", "created_by": other_user.pk},
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert "created_by" not in response.json()
+
+        # `all_objects`: a dataset created with no visibility stated is
+        # PRIVATE (FR-004), so the privacy-first default manager would
+        # exclude it here regardless of who created it.
+        dataset = Dataset.all_objects.get(uuid=response.json()["uuid"])
+        assert dataset.created_by == user
+        assert dataset.created_by != other_user
 
 
 # ---------------------------------------------------------------------------

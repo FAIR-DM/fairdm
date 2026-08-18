@@ -35,6 +35,7 @@ def get_default_license_pk():
     name = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
     return License.objects.filter(name=name).values_list("pk", flat=True).first()
 
+
 # DataCite RelationType Vocabulary for Dataset-Literature Relationships
 # Source: DataCite Metadata Schema 4.4
 # https://schema.datacite.org/meta/kernel-4.4/
@@ -247,6 +248,26 @@ class Dataset(BaseModel):
     )
 
     # RELATIONS
+    # `created_by` is a ForeignKey rather than a plain nullable char field, so it
+    # carries a database index by default - no additional indexing decision is
+    # needed here. Not editable: the creator is written server-side only (see
+    # the portal create view and DatasetViewSet.perform_create), never through a
+    # form, the admin or a serializer field. Copied field-for-field from
+    # `Project.created_by` (`fairdm/core/project/models.py:113`) - same
+    # reasoning, same model (D-015).
+    created_by = models.ForeignKey(
+        "contributors.Person",
+        on_delete=models.SET_NULL,
+        related_name="created_datasets",
+        verbose_name=_("created by"),
+        help_text=_(
+            "The user who created this dataset. Left unset if that user's "
+            "account has since been removed."
+        ),
+        null=True,
+        blank=True,
+        editable=False,
+    )
     project = models.ForeignKey(
         "project.Project",
         verbose_name=_("project"),
@@ -479,9 +500,7 @@ class DatasetIdentifier(AbstractIdentifier):
             if queryset.exists():
                 raise ValidationError(
                     {
-                        "value": _(
-                            "The identifier '%(value)s' is already in use."
-                        )
+                        "value": _("The identifier '%(value)s' is already in use.")
                         % {"value": self.value}
                     }
                 )

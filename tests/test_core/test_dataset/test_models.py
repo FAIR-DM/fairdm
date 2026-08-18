@@ -16,6 +16,7 @@ Tests cover:
 - General model/queryset/URL smoke tests
 """
 
+import time
 from datetime import timedelta
 
 import pytest
@@ -34,6 +35,7 @@ from fairdm.core.dataset.models import (
     DatasetDescription,
     DatasetIdentifier,
     DatasetLiteratureRelation,
+    DatasetQuerySet,
 )
 from fairdm.factories import (
     DatasetFactory,
@@ -135,6 +137,144 @@ class TestDatasetVisibility:
 
         with pytest.raises(ValidationError):
             dataset.full_clean()
+
+    def test_reading_datasets_with_no_visibility_condition_returns_only_public(self):
+        """T056 / FR-019: `Dataset.objects` - the ordinary way of reading
+        datasets - excludes PRIVATE ones.
+        """
+        public = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(visibility=Visibility.PRIVATE)
+
+        result = list(Dataset.objects.all())
+
+        assert result == [public]
+
+    def test_all_objects_returns_both_and_honours_a_condition_applied_to_it(self):
+        """T057 / FR-019: `Dataset.all_objects` - the separately named,
+        explicit route - returns every dataset regardless of visibility,
+        and a condition applied to it (here, `project`) still applies.
+        """
+        project = ProjectFactory()
+        public = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        private = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC)  # a different project
+
+        everything = Dataset.all_objects.all()
+        assert set(everything) == {public, private, elsewhere}
+
+        narrowed = Dataset.all_objects.filter(project=project)
+        assert set(narrowed) == {public, private}
+
+    def test_no_queryset_method_widens_an_already_narrowed_query(self):
+        """T058 / FR-019: no method `DatasetQuerySet` offers may add PRIVATE
+        datasets back to a query that has already excluded them.
+
+        Asserted over the queryset's public surface - every method
+        `DatasetQuerySet` itself defines - rather than by naming one method,
+        so a differently-named future widening method is caught too (R1: the
+        present `with_related`/`with_contributors`/`with_metadata` are
+        prefetch helpers, not filters, and none of them may become one).
+        """
+        DatasetFactory(visibility=Visibility.PRIVATE)
+        DatasetFactory(visibility=Visibility.PUBLIC)
+
+        own_methods = [
+            name
+            for name, value in vars(DatasetQuerySet).items()
+            if not name.startswith("_") and callable(value)
+        ]
+        assert own_methods, "expected DatasetQuerySet to define at least one method"
+
+        for name in own_methods:
+            widened = list(getattr(Dataset.objects.all(), name)())
+            assert not any(ds.visibility == Visibility.PRIVATE for ds in widened), (
+                f"DatasetQuerySet.{name}() added a PRIVATE dataset back to "
+                "an already-narrowed query"
+            )
+
+    def test_a_dataset_created_with_no_visibility_stated_reads_back_private(self):
+        """T059 / FR-004: the same guarantee as
+        `test_visibility_default_is_private`, read back through both the
+        ordinary and the explicit route rather than off the in-memory
+        instance the factory returned.
+        """
+        dataset = Dataset.objects.create(name="No visibility stated")
+
+        assert Dataset.all_objects.get(pk=dataset.pk).visibility == (
+            Visibility.PRIVATE.value
+        )
+        assert not Dataset.objects.filter(pk=dataset.pk).exists()
+
+
+@pytest.mark.django_db
+class TestDatasetVisibilityGuarantees:
+    """FR-019a: following a relation to a dataset, deleting a record it
+    depends on, and the administrative interface all still see it
+    regardless of visibility. FR-020: any permission a visibility check
+    consults is declared on the model.
+    """
+
+    def test_following_a_relation_to_a_private_dataset_still_finds_it(self):
+        """T060. Never asserts `Dataset._meta.base_manager_name` - it is
+        pinned to `prefetch_manager` by `fairdm.db.models.PrefetchBase`
+        regardless of what this app declares (D-019, research.md R1), and
+        reading it would prove nothing about whether traversal actually
+        reaches a private dataset. Forward FK access (`identifier.related`)
+        goes through `Model._base_manager`, not the privacy-first default
+        manager, so it is unaffected by `DatasetManager`.
+        """
+        private_dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        identifier = DatasetIdentifierFactory(related=private_dataset)
+
+        fetched = DatasetIdentifier.objects.get(pk=identifier.pk).related
+
+        assert fetched == private_dataset
+
+    def test_deleting_a_record_a_private_dataset_depends_on_still_cascades(self):
+        """T061. The deletion collector goes through `Model._base_manager`
+        (unfiltered), so deleting a project cascades to its PRIVATE datasets
+        exactly as it does to public ones.
+        """
+        project = ProjectFactory()
+        private_dataset = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        dataset_pk = private_dataset.pk
+
+        project.delete()
+
+        assert not Dataset.all_objects.filter(pk=dataset_pk).exists()
+
+    def test_permissions_a_visibility_check_could_consult_are_all_declared(self):
+        """T063 / FR-020. The one permission a visibility check used to
+        consult - `for_user()` gated on `dataset.view_private` - named a
+        permission nothing declares (D-004, D-010), and `for_user()` is
+        removed. This guards the invariant itself: any `has_perm(...)` call
+        anywhere in the dataset app's models or admin must name a permission
+        `Dataset._meta.permissions` (or Django's own default add/change/
+        delete/view set) actually declares, so a check against an
+        undeclared one cannot survive unnoticed.
+        """
+        import inspect
+        import re
+
+        from fairdm.core.dataset import admin as dataset_admin_module
+        from fairdm.core.dataset import models as dataset_models_module
+
+        declared = {codename for codename, _label in Dataset._meta.permissions}
+        declared |= {
+            f"{action}_{Dataset._meta.model_name}"
+            for action in Dataset._meta.default_permissions
+        }
+
+        source = inspect.getsource(dataset_models_module) + inspect.getsource(
+            dataset_admin_module
+        )
+        referenced = {
+            codename.rsplit(".", 1)[-1]
+            for codename in re.findall(r'has_perm\(\s*["\']([\w.]+)["\']', source)
+        }
+
+        assert referenced <= declared
+        assert "view_private" not in declared
 
 
 @pytest.mark.django_db
@@ -1202,13 +1342,54 @@ class TestDOISupport:
 
 
 @pytest.mark.django_db
+class TestDatasetLiterature:
+    """FR-015: a dataset may name at most one data publication (`reference`),
+    which survives that publication's deletion.
+    """
+
+    def test_a_data_publication_is_recorded_as_the_datasets_reference(self):
+        """T068."""
+        dataset = DatasetFactory()
+        paper = LiteratureItemFactory()
+
+        dataset.reference = paper
+        dataset.full_clean()
+        dataset.save()
+        dataset.refresh_from_db()
+
+        assert dataset.reference == paper
+
+    def test_the_same_publication_cannot_be_named_by_two_datasets(self):
+        """T068: `reference` is a `OneToOneField`, so at most one dataset can
+        name a given publication - the uniqueness a plain `ForeignKey` would
+        not give this field.
+        """
+        paper = LiteratureItemFactory()
+        DatasetFactory(reference=paper)
+
+        with pytest.raises(IntegrityError):
+            DatasetFactory(reference=paper)
+
+    def test_deleting_the_named_publication_leaves_the_dataset_with_none_named(self):
+        """T069 / FR-015."""
+        paper = LiteratureItemFactory()
+        dataset = DatasetFactory(reference=paper)
+
+        paper.delete()
+        dataset.refresh_from_db()
+
+        assert dataset.pk is not None
+        assert dataset.reference is None
+
+
+@pytest.mark.django_db
 class TestDatasetLiteratureRelationValidation:
     """Test DatasetLiteratureRelation model validation.
 
-    NOTE: All tests deferred - literature app not yet complete.
+    Was skipped as "literature app not yet complete" - it is a live
+    dependency and `LiteratureItem` exists, so that reason no longer holds
+    (D-016).
     """
-
-    pytestmark = pytest.mark.skip(reason="Literature app not yet complete - deferred")
 
     def test_create_relation_with_valid_type(self):
         """Can create relationship with valid DataCite type."""
@@ -1236,12 +1417,32 @@ class TestDatasetLiteratureRelationValidation:
 
         assert "relationship_type" in exc_info.value.error_dict
 
-    def test_all_datacite_types_accepted(self):
-        """All DataCite relationship types are valid."""
+    def test_relationship_types_match_the_datacite_schema_by_name(self):
+        """T073 / FR-016, SC-004: the relationship-type vocabulary is
+        asserted by naming DataCite's own RelationType members (DataCite
+        Metadata Schema 4.4), not by iterating whatever
+        `DATACITE_RELATIONSHIP_TYPES` happens to hold - a loop over the
+        model's own list proves nothing about its contents (R3, D-008 draws
+        the same line for the dataset identifier vocabulary).
+        """
+        expected_codes = {
+            "IsCitedBy", "Cites", "IsSupplementTo", "IsSupplementedBy",
+            "IsContinuedBy", "Continues", "IsDescribedBy", "Describes",
+            "HasMetadata", "IsMetadataFor", "HasVersion", "IsVersionOf",
+            "IsNewVersionOf", "IsPreviousVersionOf", "IsPartOf", "HasPart",
+            "IsPublishedIn", "IsReferencedBy", "References", "IsDocumentedBy",
+            "Documents", "IsCompiledBy", "Compiles", "IsVariantFormOf",
+            "IsOriginalFormOf", "IsIdenticalTo", "IsReviewedBy", "Reviews",
+            "IsDerivedFrom", "IsSourceOf", "IsRequiredBy", "Requires",
+            "Obsoletes", "IsObsoletedBy",
+        }  # fmt: skip
+        actual_codes = {code for code, _label in DATACITE_RELATIONSHIP_TYPES}
+
+        assert actual_codes == expected_codes
+
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
-
-        for type_code, _type_label in DATACITE_RELATIONSHIP_TYPES:
+        for type_code in expected_codes:
             relation = DatasetLiteratureRelation(
                 dataset=dataset, literature_item=paper, relationship_type=type_code
             )
@@ -1278,13 +1479,12 @@ class TestDatasetLiteratureRelationValidation:
 class TestUniqueTogetherConstraint:
     """Test unique_together constraint.
 
-    NOTE: All tests deferred - literature app not yet complete.
+    T071, T072 / FR-016: the same item related under a second type retains
+    both relationships, and the same relationship recorded twice is refused.
     """
 
-    pytestmark = pytest.mark.skip(reason="Literature app not yet complete - deferred")
-
     def test_duplicate_relationship_raises_error(self):
-        """Cannot create duplicate relationships of same type."""
+        """T072. Cannot create duplicate relationships of same type."""
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
@@ -1298,7 +1498,7 @@ class TestUniqueTogetherConstraint:
             )
 
     def test_different_types_allowed(self):
-        """Same dataset-paper can have multiple relationship types."""
+        """T071. Same dataset-paper can have multiple relationship types."""
         dataset = DatasetFactory()
         paper = LiteratureItemFactory()
 
@@ -1314,12 +1514,7 @@ class TestUniqueTogetherConstraint:
 
 @pytest.mark.django_db
 class TestCascadeBehavior:
-    """Test CASCADE delete behavior.
-
-    NOTE: All tests deferred - literature app not yet complete.
-    """
-
-    pytestmark = pytest.mark.skip(reason="Literature app not yet complete - deferred")
+    """Test CASCADE delete behavior."""
 
     def test_cascade_on_dataset_delete(self):
         """Deleting dataset deletes relationships."""
@@ -1350,12 +1545,7 @@ class TestCascadeBehavior:
 
 @pytest.mark.django_db
 class TestQueryingRelationships:
-    """Test querying relationships.
-
-    NOTE: All tests deferred - literature app not yet complete.
-    """
-
-    pytestmark = pytest.mark.skip(reason="Literature app not yet complete - deferred")
+    """Test querying relationships."""
 
     def test_query_by_relationship_type(self):
         """Can filter relationships by type."""
@@ -1811,3 +2001,58 @@ class TestDatasetModel:
 
         assert dataset.project == project
         assert dataset in Dataset.all_objects.filter(project=project)
+
+
+@pytest.mark.django_db
+class TestDatasetCreationRecord:
+    """Unit tests for the `Dataset.created_by` creation record (US7).
+
+    Mirrors `TestProjectCreator` (`tests/test_core/test_project/test_models.py`)
+    - `Dataset.created_by` is `Project.created_by` copied field-for-field
+    (D-015).
+    """
+
+    def test_dataset_created_by_a_known_user_names_that_user(self):
+        """T089 / FR-021."""
+        creator = PersonFactory()
+        dataset = DatasetFactory(created_by=creator)
+
+        dataset.refresh_from_db()
+
+        assert dataset.created_by == creator
+
+    def test_changing_a_field_advances_modified_and_leaves_creator_unchanged(self):
+        """T090 / FR-022."""
+        creator = PersonFactory()
+        dataset = DatasetFactory(created_by=creator)
+        original_modified = dataset.modified
+
+        time.sleep(0.01)
+        dataset.name = "Renamed Dataset"
+        dataset.save()
+        dataset.refresh_from_db()
+
+        assert dataset.modified > original_modified
+        assert dataset.created_by == creator
+
+    def test_dataset_survives_creators_account_removal(self):
+        """T091 / FR-021: the dataset outlives its creator's account, with
+        its creator reading as unknown rather than raising or being deleted
+        itself.
+        """
+        creator = PersonFactory()
+        dataset = DatasetFactory(created_by=creator)
+
+        creator.delete()
+        dataset.refresh_from_db()
+
+        assert dataset.pk is not None
+        assert dataset.created_by is None
+
+    def test_created_by_field_is_not_editable(self):
+        """T092: `created_by` is kept out of forms, the admin and the
+        serializer solely by `editable=False`, mirroring
+        `Project.created_by` - nothing else enforces it, so that flag needs
+        its own assertion.
+        """
+        assert Dataset._meta.get_field("created_by").editable is False

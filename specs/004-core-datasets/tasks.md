@@ -199,43 +199,91 @@ Runs first: it carries the manager change every other story's tests read through
 
 ### Tests
 
-- [ ] T056 `TestDatasetVisibility` in `test_models.py` — reading datasets with no visibility
+- [x] T056 `TestDatasetVisibility` in `test_models.py` — reading datasets with no visibility
   condition returns only public ones.
-- [ ] T057 The named route to private datasets returns both, and honours a condition applied to it.
-- [ ] T058 No queryset method offers to add private datasets back to a query that has already
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:141`.
+- [x] T057 The named route to private datasets returns both, and honours a condition applied to it.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:152`.
+- [x] T058 No queryset method offers to add private datasets back to a query that has already
   excluded them (FR-019). Asserted over the queryset's public surface, not by naming one method.
-- [ ] T059 A dataset created with no visibility stated reads back private.
-- [ ] T060 Following a relation to a private dataset still finds it.
-- [ ] T061 Deleting a record a private dataset depends on still cascades to it.
-- [ ] T062 The administrative dataset list shows private datasets.
-- [ ] T063 Any permission a visibility check consults is declared on the model — asserted by
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:168` — enumerates
+  `vars(DatasetQuerySet)`'s own public methods and asserts none reintroduces a PRIVATE row.
+- [x] T059 A dataset created with no visibility stated reads back private.
+  **Done.** Pre-existing `test_visibility_default_is_private`
+  (`tests/test_core/test_dataset/test_models.py:114`) already covered this; strengthened with
+  `test_a_dataset_created_with_no_visibility_stated_reads_back_private`
+  (`tests/test_core/test_dataset/test_models.py:195`), which reads back through both `all_objects`
+  and `objects` rather than the in-memory factory instance.
+- [x] T060 Following a relation to a private dataset still finds it.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:217`
+  (`TestDatasetVisibilityGuarantees`). Asserts the behaviour (forward FK traversal through
+  `DatasetIdentifier.related`), never `Dataset._meta.base_manager_name` (D-019, research.md R1).
+- [x] T061 Deleting a record a private dataset depends on still cascades to it.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:233`.
+- [x] T062 The administrative dataset list shows private datasets.
+  **Done.** Test `tests/test_core/test_dataset/test_admin.py:207`
+  (`TestAdminChangelistIncludesPrivateDatasets`).
+- [x] T063 Any permission a visibility check consults is declared on the model — asserted by
   reading the model's declared permissions, so a check against an undeclared one cannot survive.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:246`. Scans the dataset app's
+  `models.py`/`admin.py` source for `has_perm(...)` calls and asserts every one names a permission
+  `Dataset._meta.permissions` (or Django's default add/change/delete/view set) actually declares;
+  also asserts `"view_private"` is not among them.
 
 ### Implementation
 
-- [ ] T064 Wire the privacy-first manager as the default (delivered in T021, verified here).
-- [ ] T065 Remove every queryset method that claims to widen an already-narrowed query.
-- [ ] T066 Remove the role-to-permission map, which names roles the vocabulary does not contain and
+- [x] T064 Wire the privacy-first manager as the default (delivered in T021, verified here).
+  **Done, pre-existing.** `DatasetManager` (`fairdm/core/dataset/models.py:159-181`), declared
+  first on `Dataset` so it is `_default_manager`. Verified by T056/T059.
+- [x] T065 Remove every queryset method that claims to widen an already-narrowed query.
+  **Done, pre-existing.** `DatasetQuerySet` (`fairdm/core/dataset/models.py:120-156`) carries only
+  prefetch helpers; `with_private`/`get_visible`/`for_user` are absent. Verified by T058.
+- [x] T066 Remove the role-to-permission map, which names roles the vocabulary does not contain and
   has no readers.
-- [ ] T067 Override the administrative queryset to use the unfiltered manager, with the reason
+  **Done, pre-existing.** `Dataset.ROLE_PERMISSIONS` is absent from
+  `fairdm/core/dataset/models.py` (D-010).
+- [x] T067 Override the administrative queryset to use the unfiltered manager, with the reason
   stated in the code.
+  **Done, pre-existing.** `DatasetAdmin.get_queryset()` (`fairdm/core/dataset/admin.py:227-235`)
+  returns `Dataset.all_objects.all()`, reason stated in its docstring. Verified by T062.
 
 ## Phase 6 — US-5, literature relations
 
 ### Tests
 
-- [ ] T068 `TestDatasetLiterature` — a dataset names at most one data publication.
-- [ ] T069 Deleting that publication leaves the dataset intact with no publication named.
-- [ ] T070 A literature item related under a stated type stores both.
-- [ ] T071 The same item related under a second type retains both relationships.
-- [ ] T072 The same relationship recorded twice is refused.
-- [ ] T073 The relationship types are asserted by name against the external schema's set.
+- [x] T068 `TestDatasetLiterature` — a dataset names at most one data publication.
+  **Done.** Tests `tests/test_core/test_dataset/test_models.py:1345` (new class) —
+  `test_a_data_publication_is_recorded_as_the_datasets_reference` (`:1350`) and
+  `test_the_same_publication_cannot_be_named_by_two_datasets` (`:1362`), the latter proving the
+  `OneToOneField`'s uniqueness the acceptance scenario names.
+- [x] T069 Deleting that publication leaves the dataset intact with no publication named.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:1373`.
+- [x] T070 A literature item related under a stated type stores both.
+  **Done.** Pre-existing `test_create_relation_with_valid_type`
+  (`TestDatasetLiteratureRelationValidation`), unskipped (D-016 — the stated reason for the skip
+  no longer holds; `LiteratureItemFactory` exists).
+- [x] T071 The same item related under a second type retains both relationships.
+  **Done.** Pre-existing `test_different_types_allowed` (`TestUniqueTogetherConstraint`),
+  unskipped.
+- [x] T072 The same relationship recorded twice is refused.
+  **Done.** Pre-existing `test_duplicate_relationship_raises_error`
+  (`TestUniqueTogetherConstraint`), unskipped.
+- [x] T073 The relationship types are asserted by name against the external schema's set.
+  **Done.** `test_all_datacite_types_accepted` — a loop over `DATACITE_RELATIONSHIP_TYPES` itself
+  proving nothing about its contents — rewritten to
+  `test_relationship_types_match_the_datacite_schema_by_name`
+  (`tests/test_core/test_dataset/test_models.py:1420`), asserting the 34 DataCite relationType
+  codes by name (plan.md's pre-existing-test authorisation table, SC-009).
 
 ### Implementation
 
-- [ ] T074 The intermediate model carrying dataset, item and relationship type, with the pair-plus-type
+- [x] T074 The intermediate model carrying dataset, item and relationship type, with the pair-plus-type
   uniqueness enforced at the database and the relationship type indexed.
-- [ ] T075 The data-publication relation, surviving the publication's deletion.
+  **Done, pre-existing.** `DatasetLiteratureRelation` (`fairdm/core/dataset/models.py:79-117`).
+  Verified by T070-T072.
+- [x] T075 The data-publication relation, surviving the publication's deletion.
+  **Done, pre-existing.** `Dataset.reference` (`OneToOneField`, `on_delete=SET_NULL`,
+  `fairdm/core/dataset/models.py:280-287` in the current line numbering). Verified by T068/T069.
 
 ## Phase 7 — US-6, the administrative interface
 
@@ -269,14 +317,32 @@ Runs first: it carries the manager change every other story's tests read through
 
 ### Tests
 
-- [ ] T089 `TestDatasetCreationRecord` — a dataset created by a known user names that user.
-- [ ] T090 Changing a field advances the modification timestamp and leaves the creator unchanged.
-- [ ] T091 Removing the creator's account leaves the dataset, with the creator reading as unknown.
+- [x] T089 `TestDatasetCreationRecord` — a dataset created by a known user names that user.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:2015` (new class, mirrors
+  `TestProjectCreator`).
+- [x] T090 Changing a field advances the modification timestamp and leaves the creator unchanged.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:2024`.
+- [x] T091 Removing the creator's account leaves the dataset, with the creator reading as unknown.
+  **Done.** Test `tests/test_core/test_dataset/test_models.py:2038`.
 
 ### Implementation
 
-- [ ] T092 The creator field, surviving the user's removal.
-- [ ] T093 The creation and modification timestamps.
+- [x] T092 The creator field, surviving the user's removal.
+  **Done.** `Dataset.created_by` (`fairdm/core/dataset/models.py:258-268`), copied field-for-field
+  from `Project.created_by` (`fairdm/core/project/models.py:113`, `on_delete=SET_NULL`, D-015).
+  Migration: added to the existing, unapplied, branch-local `0011_alter_dataset_options_...py`
+  rather than a new migration (Article IX; verified branch-local via `git log --all` — the file has
+  no history before this branch). `makemigrations --check` is clean for the `dataset` app.
+  Test `tests/test_core/test_dataset/test_models.py:2052` asserts `editable=False`.
+  Also fixed `DatasetViewSet`, which had no `perform_create` override and so never recorded a
+  creator at all (parity gap with `ProjectViewSet.perform_create`, `fairdm/api/viewsets.py:97-107`,
+  noted as in-scope by the brief). Added `DatasetViewSet.perform_create`
+  (`fairdm/api/viewsets.py:143-152`), with a red-then-green test
+  `tests/test_api/test_viewsets.py:216` (`TestDatasetCreatorParity`).
+- [x] T093 The creation and modification timestamps.
+  **Done, pre-existing.** `added`/`modified` come from `fairdm.db.models.Model`
+  (`fairdm/db/models.py:69-77`), inherited by every core model including `Dataset`. Verified by
+  T090.
 
 ## Phase 9 — Licences available on a portal
 

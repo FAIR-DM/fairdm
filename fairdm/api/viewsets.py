@@ -140,6 +140,18 @@ class DatasetViewSet(BaseViewSet):
         )
         return self._serializer_class
 
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
+        """Save a new dataset, recording the request user as its creator.
+
+        Mirrors `ProjectViewSet.perform_create` - `Dataset.created_by` is the
+        same field, copied field-for-field from `Project.created_by` (D-015),
+        and needs the same server-side assignment `BaseViewSet.perform_create`
+        does not give it.
+        """
+        if not self.request.user or not self.request.user.is_authenticated:
+            raise PermissionDenied("Authentication is required to create objects.")
+        serializer.save(created_by=self.request.user)
+
 
 class ContributorViewSet(ReadOnlyModelViewSet):
     """People and organizations that contribute to research projects.

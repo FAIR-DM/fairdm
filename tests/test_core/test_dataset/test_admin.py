@@ -197,6 +197,29 @@ class TestAdminListFilterOptions:
 
 
 @pytest.mark.django_db
+class TestAdminChangelistIncludesPrivateDatasets:
+    """T062 / FR-019a: the admin dataset list shows private datasets - the
+    interface that repairs a portal must reach the records that need
+    repairing. `DatasetAdmin.get_queryset()` uses `Dataset.all_objects`
+    rather than the privacy-first default manager (T067).
+    """
+
+    def test_private_dataset_appears_in_the_unfiltered_changelist(
+        self, admin_client
+    ):
+        from fairdm.utils.choices import Visibility
+
+        DatasetFactory(name="Unfinished Private Dataset", visibility=Visibility.PRIVATE)
+
+        url = reverse("admin:dataset_dataset_changelist")
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "Unfinished Private Dataset" in content
+
+
+@pytest.mark.django_db
 class TestInlineDescriptionEditing:
     """Test admin inline editing of dataset descriptions (T058)."""
 
