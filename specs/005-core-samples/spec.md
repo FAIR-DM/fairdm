@@ -14,7 +14,7 @@ identifiers for people, organisations and samples carried through the record.
 **Roadmap**: R5 — samples.
 
 **Input**: A sample is a physical or digital specimen collected as part of a dataset. It is the
-polymorphic base every portal-defined specimen type inherits from, whatever the science — a rock, a
+polymorphic base every portal-defined specimen type inherits from, whatever the science: a rock, a
 water column, a tissue culture, an alloy coupon. This specification describes the sample record
 itself: the fields it carries, the typed descriptions, dates and identifiers attached to it, the
 links back to the samples it came from, who is credited on it, how its access follows from the
@@ -134,7 +134,7 @@ record's vocabulary is refused by validation.
 
 ### User Story 3 - Record when a sample was collected, prepared and stored (Priority: P1)
 
-A researcher records the dates in a specimen's life — when it was collected, when it was prepared,
+A researcher records the dates in a specimen's life: when it was collected, when it was prepared,
 when it was archived, when it was destroyed. The dates are stored as typed records rather than as
 columns, so the vocabulary can grow without a migration, and a type outside the sample vocabulary is
 refused.
@@ -213,7 +213,7 @@ network.
 2. **Given** a sample created with no status stated, **When** it is read back, **Then** its status is
    unknown.
 3. **Given** a sample in any status, **When** its status is changed to any other, **Then** the change
-   is accepted — including from destroyed back to available, because a specimen recorded as destroyed
+   is accepted, including from destroyed back to available, because a specimen recorded as destroyed
    in error must be correctable.
 4. **Given** a portal with no network access, **When** the sample record is loaded and a sample is
    created, **Then** both succeed.
@@ -321,7 +321,7 @@ two-step loop, and confirm both are refused however they are attempted.
 
 A portal administrator finds a specimen by its name, its laboratory identifier or its generated
 identifier, narrows a long list by dataset, status or type, and edits its descriptions, dates,
-identifiers, credits and provenance links without leaving the page — whichever specimen type it is.
+identifiers, credits and provenance links without leaving the page, whichever specimen type it is.
 
 **Why this priority**: The administrative interface is how a portal is repaired when something has
 gone wrong elsewhere, and it is the only route to sample data until the portal pages exist. It is P2
@@ -360,7 +360,7 @@ to. Everything it presents to a person is translatable, and loading a sample wit
 records costs a number of queries that does not grow with how many there are.
 
 **Why this priority**: These are the guarantees the other nine stories rest on. It is P2 rather than
-P1 because most of them already hold — what is missing is the proof.
+P1 because most of them already hold. What is missing is the proof.
 
 **Independent Test**: Create a sample, confirm its identifier is generated and prefixed, confirm two
 samples in different datasets may share a laboratory identifier, delete a dataset and confirm its
@@ -372,7 +372,7 @@ needed to load a list of samples with all their related records.
 1. **Given** a new sample, **When** it is saved, **Then** it carries a unique prefixed identifier
    that was generated rather than supplied and cannot be edited afterwards.
 2. **Given** two samples in different datasets, **When** both are given the same laboratory
-   identifier, **Then** both are accepted — that identifier is the researcher's own and means
+   identifier, **Then** both are accepted, because that identifier is the researcher's own and means
    nothing outside their dataset.
 3. **Given** a sample, **When** its dataset is deleted, **Then** the sample is deleted with it.
 4. **Given** a sample with a collection location, **When** that location is deleted, **Then** the
