@@ -232,18 +232,18 @@ Findings that are real but are not this feature's work:
 
 | Finding | Where it goes |
 |---|---|
-| Detail page shows four count tiles and no metadata (`views.py:219`) | New request — the project detail page |
-| Organisation-scoped visibility (D-006) | New request |
-| Which contribution roles confer which permissions (D-009) | New request |
-| Full revision history for core records (D-010) | New request |
-| Descriptions, keywords and key dates have no portal page — the plugin classes exist but are never registered (`plugins.py:52`) | New request |
+| Detail page shows four count tiles and no metadata (`views.py:219`) | #167 |
+| Organisation-scoped visibility (D-006) | #168 |
+| Which contribution roles confer which permissions (D-009) | #169 |
+| Full revision history for core records (D-010) | #170 |
+| Descriptions, keywords and key dates have no portal page — the plugin classes exist but are never registered (`plugins.py:52`) | #171 |
 | Administrative bulk actions set the wrong status: "Active" writes Planning, "Completed" writes In Progress (`admin.py:115`, `:123`) | Repaired here — it is an admin defect, and the admin is in scope |
-| Keyword filtering combines terms with OR while the old text promised AND (`filters.py:85`) | Defect report against 013's filter layer |
-| Eager translation in the form and view modules (D-014) | Defect report against 013's layer |
-| Update, delete and detail views bypass their own querysets and their prefetching (`views.py:157`, `:199`, `:250`) | Defect report against 013's layer |
-| Detail view compares visibility against the literal `1` (`views.py:253`) | Defect report against 013's layer |
-| `ProjectQuerySet.with_list_data()` has no callers (`models.py:49`) | Defect report against 013's layer |
-| The project overview template extends a parent that does not exist and is registered nowhere (`templates/project/plugins/overview.html:1`) | Defect report — dead template |
+| Keyword filtering combines terms with OR while the old text promised AND (`filters.py:85`) | #172 |
+| Eager translation in the form and view modules (D-014) | #173 |
+| Update, delete and detail views bypass their own querysets and their prefetching (`views.py:157`, `:199`, `:250`) | #174 |
+| Detail view compares visibility against the literal `1` (`views.py:253`) | #174 |
+| `ProjectQuerySet.with_list_data()` has no callers (`models.py:49`) | #174 |
+| The project overview template extends a parent that does not exist and is registered nowhere (`templates/project/plugins/overview.html:1`) | #167 |
 | The REST API exposes project create, update and delete, which no specification describes (`fairdm/api/viewsets.py:72`) | Noted against 011, the API specification |
 
 ## D-015 — A methods description belongs to a dataset, not a project
