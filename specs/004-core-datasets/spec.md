@@ -173,13 +173,17 @@ appear — including when the request already carries a filter.
    condition, **Then** only the public one is returned.
 2. **Given** the same two datasets, **When** private datasets are explicitly included, **Then** both
    are returned.
-3. **Given** a query that has already been narrowed by some condition, **When** private datasets are
-   explicitly included, **Then** the earlier condition still applies and the result is not widened
-   beyond it.
-4. **Given** a dataset created with no visibility stated, **When** it is read back, **Then** it is
+3. **Given** the explicit route to private datasets, **When** a condition is applied to it, **Then**
+   the condition applies and private datasets are included.
+4. **Given** the queryset a caller holds, **When** its methods are read, **Then** none of them
+   claims to add private datasets back to a query that has already excluded them.
+5. **Given** a dataset created with no visibility stated, **When** it is read back, **Then** it is
    private.
-5. **Given** the visibility vocabulary, **When** it is read, **Then** it offers private and public
+6. **Given** the visibility vocabulary, **When** it is read, **Then** it offers private and public
    and nothing else.
+7. **Given** an administrator in the administrative interface, **When** the dataset list is
+   displayed, **Then** private datasets appear — the interface that repairs a portal must reach the
+   records that need repairing.
 
 ---
 
@@ -381,8 +385,12 @@ roles and read them back, and count the queries needed to load it with all its r
 
 ### Visibility
 
-- **FR-019**: The ordinary way of reading datasets MUST exclude private ones. Including them MUST
-  require an explicit call, and that call MUST preserve every condition already applied to the query.
+- **FR-019**: The ordinary way of reading datasets MUST exclude private ones. Reading them MUST be
+  possible through a separately named route, and every condition a caller applies to that route MUST
+  hold. No method MAY offer to add private datasets back to a query that has already excluded them:
+  a widening that silently discards the caller's conditions is worse than no widening at all.
+- **FR-019a**: Following a relation to a dataset, and deleting a record that a dataset depends on,
+  MUST see every dataset regardless of visibility. The administrative interface MUST see them too.
 - **FR-020**: Any permission a visibility check consults MUST be declared on the model. A check
   against a permission that is never declared MUST NOT be carried.
 
@@ -446,9 +454,10 @@ roles and read them back, and count the queries needed to load it with all its r
 - **SC-004**: The dataset identifier vocabulary contains a DOI and contains no identifier type that
   names a person or an organisation. Each of the three dataset vocabularies is asserted by naming the
   members it contains, not by iterating whatever it happens to hold.
-- **SC-005**: Reading datasets without stating a visibility never returns a private one, and
-  including private datasets after a query has already been narrowed returns no record the narrowing
-  excluded.
+- **SC-005**: Reading datasets without stating a visibility never returns a private one; the named
+  route to private datasets honours every condition applied to it; and no queryset method offers to
+  widen an already-narrowed query. Following a relation to a private dataset, deleting a record it
+  depends on, and listing datasets in the administrative interface all still see it.
 - **SC-006**: The same literature item can be related to a dataset under two different types and not
   twice under one, and deleting a dataset's named data publication leaves the dataset intact.
 - **SC-007**: Every administrative search term in FR-023 finds a dataset that matches it, and every
