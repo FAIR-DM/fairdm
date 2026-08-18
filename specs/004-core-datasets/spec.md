@@ -1,244 +1,484 @@
-# Feature Specification: Core Dataset App Cleanup & Enhancement
+# Feature Specification: The dataset record
 
 **Feature Branch**: `004-core-datasets`
-**Created**: 2026-01-15
+
+**Created**: 2026-01-15 · **Rewritten**: 2026-08-18
+
 **Status**: Draft
-**Input**: User description: "Focus on cleaning up and enhancing the fairdm.core.dataset app. We will go through models, modelmanagers, forms, filters and admin, making sure to identify feature holes, testing requirements and enhancements that support fair data and portal useability. Client side integration (e.g. list views, detail views, api, etc) are out of scope for this feature and will be deferred to later specs."
+
+**Goals**: G1 — a core data model of projects, datasets, samples, measurements and contributors that
+domain schemas can extend and rely on. G12 — private and public data side by side, controlled per
+object. G14 — metadata complete enough for a formal-publication addon to submit it unaided. G15 —
+external identifiers carried through the record.
+
+**Roadmap**: R4 — datasets.
+
+**Input**: A dataset is the unit a portal cites and distributes. It sits beneath a project, and
+samples and measurements hang beneath it. This specification describes the dataset record itself —
+the fields it carries, the typed descriptions, dates and identifiers attached to it, the literature
+it relates to, who is credited on it, who created it, how an administrator manages it, and the rule
+that keeps an unfinished dataset out of sight until its author says otherwise.
+
+It does not describe the pages a researcher uses to create or edit a dataset. Those are
+`014-dataset-crud-views`. It does not describe how a dataset's metadata leaves the portal; there is
+no export today and it is expected to arrive as an addon. The reasoning behind both exclusions is in
+`decisions.md`.
+
+## Clarifications
+
+### Session 2026-08-18
+
+The original text was written on 2026-01-15, before most of the dataset app existed, and it
+described five layers at once. Each disagreement with the code was settled and recorded in
+`decisions.md`; the questions and answers below are the ones that shaped this document.
+
+- Q: Does this specification own the dataset list, create, edit and delete pages, their forms and the
+  filter set behind the list? → A: No. It owns the domain record, its related records, its
+  vocabularies, the administrative interface and the creation record. The portal pages belong to
+  `014-dataset-crud-views` (D-001).
+- Q: Does it own metadata export? → A: No. No export exists today, and it is expected to become an
+  addon rather than part of the core record (D-002).
+- Q: A dataset cannot be given a type of identifier that means anything for a dataset, because its
+  identifier vocabulary lists identifiers for people and organisations. Is that intended? → A: No,
+  it is a defect. A dataset needs its own identifier types, and a DOI is the one that matters
+  (D-003).
+- Q: Should a dataset be private unless someone says otherwise, including in code that forgets to
+  ask? → A: Yes. The default way of reading datasets excludes private ones, and reaching them is an
+  explicit act (D-004).
+- Q: Should deleting a project delete its datasets? → A: Yes for private ones, and a separate guard
+  already blocks deletion when any dataset is public. The record's own documentation claiming
+  otherwise is what is wrong (D-005).
+- Q: Is a licence part of the record or part of the form? → A: Both. The record may carry no
+  licence, and wherever a dataset is created the configured default is applied, so a dataset does
+  not reach a reader unlicensed by accident (D-007).
+- Q: The related-record models carry a second name for each of their two fields — `description_type`
+  for `type`, `date` for `value`, and so on. Are those wanted? → A: No. Nothing consumes them, only
+  the dataset models have them, and one of them is the direct cause of a filter that raises an error
+  whenever it is used (D-012).
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Dataset Model Validation & FAIR Compliance (Priority: P1)
+### User Story 1 - Describe a dataset in the terms its field uses (Priority: P1)
 
-As a portal developer using FairDM, I want the Dataset model to enforce FAIR data principles through validation and provide comprehensive metadata fields so that all datasets created in my portal inherently support findability, accessibility, interoperability, and reusability without additional implementation.
+A researcher records what a dataset contains. They write an abstract, and separately a description
+of the methods that produced the data, and separately the technical detail a reuser needs. Each one
+is stored under its own type rather than concatenated into a single field, so that a reader — or
+another system — can ask for the abstract alone.
 
-**Why this priority**: FAIR compliance is a core FairDM principle and foundational to all dataset operations. Without proper model-level enforcement, data quality cannot be guaranteed.
+**Why this priority**: Without typed descriptions the record carries prose and nothing else, and
+prose is not something an external repository can consume. Methods in particular are what make data
+reusable, and the dataset is the record that carries them.
 
-**Independent Test**: Can be fully tested by creating Dataset instances with various metadata combinations and verifying validation rules work correctly. Success is demonstrated when required FAIR metadata is enforced and optional metadata is properly handled.
+**Independent Test**: Attach an abstract and a methods description to a dataset, confirm both are
+retrievable independently under their own types, and confirm a second abstract is refused.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user creates a dataset without a name, **When** the dataset is saved, **Then** validation prevents creation with a clear error message.
-2. **Given** a user creates a dataset with all required FAIR metadata fields populated, **When** the dataset is saved, **Then** the dataset persists successfully with all metadata intact.
-3. **Given** a dataset exists with contributors, dates, descriptions, and identifiers, **When** the dataset is queried, **Then** all related metadata is accessible via proper relationships.
-4. **Given** a user sets dataset visibility to PRIVATE, **When** QuerySet method `get_visible()` is called, **Then** the dataset is excluded from results.
-5. **Given** a dataset has a DOI identifier, **When** the dataset metadata is accessed, **Then** the DOI is properly formatted and accessible.
+1. **Given** a dataset with no descriptions, **When** an abstract is attached, **Then** it is stored
+   against that dataset under the abstract type and can be retrieved by type.
+2. **Given** a dataset that already has an abstract, **When** a second abstract is attached,
+   **Then** the attempt is refused with a message naming the type that is already used.
+3. **Given** a dataset, **When** a methods description is attached, **Then** it is accepted — methods
+   describe how the data was produced and belong to the dataset.
+4. **Given** a dataset with an abstract and a methods description, **When** its descriptions are
+   read, **Then** both are returned, each carrying its own type.
+5. **Given** the dataset description vocabulary, **When** its members are read, **Then** they are the
+   types a dataset carries, and a type outside that set is refused by validation.
 
 ---
 
-### User Story 2 - Enhanced Dataset Admin Interface (Priority: P1)
+### User Story 2 - Record when the data was collected and released (Priority: P1)
 
-As a portal administrator, I want a comprehensive Django admin interface for datasets that provides search, filtering, bulk operations, inline metadata editing, and clear visibility controls so that I can efficiently manage datasets and their metadata without writing custom code.
+A researcher records when data collection started and finished, and when the dataset was submitted,
+published or withdrawn. The dates are stored as typed records rather than as columns, so the
+vocabulary can grow without a migration, and the record refuses a collection period that runs
+backwards.
 
-**Why this priority**: Admin interface is the primary tool for portal administrators to manage data. A well-designed admin directly impacts operational efficiency.
+**Why this priority**: Collection dates are what a reader needs to judge whether data is current, and
+they are required by every metadata schema a dataset is submitted to. A collection period that ends
+before it starts will be rejected by those schemas rather than by the portal.
 
-**Independent Test**: Can be fully tested by accessing the admin interface, performing searches, applying filters, editing datasets with inline metadata, and executing bulk operations. Success is demonstrated when all admin operations work correctly and efficiently.
+**Independent Test**: Attach a collection start and a collection end to a dataset, confirm both
+persist, then attempt an end earlier than the start and confirm the save is refused with a message a
+researcher can act on.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am in the dataset admin list view, **When** I search by dataset name or UUID, **Then** matching datasets appear in results.
-2. **Given** I am viewing a dataset in the admin, **When** I add a description inline without saving the dataset, **Then** the description form appears and allows data entry.
-3. **Given** I have multiple datasets selected in the admin list, **When** I execute a bulk action to change visibility, **Then** all selected datasets update their visibility status.
-4. **Given** I am editing a dataset, **When** I use the project field Select2 widget, **Then** I can search and select projects with autocomplete.
-5. **Given** I am viewing the dataset admin list, **When** I apply filters for project or license, **Then** the list updates to show only matching datasets.
-6. **Given** I am editing a dataset with related literature, **When** I use the ManyToMany widget, **Then** I can add/remove literature items efficiently.
+1. **Given** a dataset, **When** a collection start date is attached, **Then** it is stored under
+   the collection start type.
+2. **Given** a dataset with a collection start, **When** a second collection start is attached,
+   **Then** the attempt is refused.
+3. **Given** a dataset with a collection start, **When** a collection end earlier than that start is
+   attached, **Then** the save is refused and the message states that the end cannot precede the
+   start.
+4. **Given** a dataset with a collection start and end, **When** the start is changed to a date after
+   the existing end, **Then** that save is refused for the same reason.
+5. **Given** a dataset with a collection end and no collection start, **When** the end is saved,
+   **Then** it is accepted — there is nothing to contradict.
+6. **Given** the dataset date vocabulary, **When** its members are read, **Then** they are the dates
+   a dataset carries and no other.
 
 ---
 
-### User Story 3 - Robust Dataset Forms with User Context (Priority: P2)
+### User Story 3 - Give a dataset an identifier the outside world recognises (Priority: P1)
 
-As a developer implementing dataset creation/edit views, I want dataset forms that automatically filter querysets based on user permissions, provide clear help text, use appropriate widgets, and handle optional fields gracefully so that users have an intuitive data entry experience.
+A researcher attaches a DOI to a dataset so that it can be cited. It is stored as a typed identifier
+drawn from a set that means something for a dataset, and the same identifier cannot be attached to
+two records.
 
-**Why this priority**: Forms are the primary user interface for dataset creation and editing. Quality forms directly impact user experience and data quality.
+**Why this priority**: A dataset is the unit that gets cited, and a dataset that cannot be cited is
+not findable. Today the vocabulary offers no identifier type that applies to a dataset — the choices
+are ORCID, ResearcherID, ROR, Wikidata, ISNI and a funder identifier, none of which names a dataset.
 
-**Independent Test**: Can be fully tested by instantiating forms with different user contexts, rendering them, and submitting valid/invalid data. Success is demonstrated when forms properly filter choices, display help text, and validate correctly.
+**Independent Test**: Attach a DOI to a dataset, confirm it persists under the DOI type, confirm the
+available types contain none that name a person or an organisation, and confirm that attaching the
+same DOI to a second record is refused.
 
 **Acceptance Scenarios**:
 
-1. **Given** an authenticated user with access to 3 projects creates a dataset, **When** the form renders, **Then** the project field shows only those 3 projects as choices.
-2. **Given** a form is rendered for a new dataset, **When** no license is selected, **Then** the default license (CC BY 4.0) is pre-selected.
-3. **Given** a user fills the dataset form with a name and project, **When** the form is submitted, **Then** validation passes and the dataset is created.
-4. **Given** a user fills the dataset form with an invalid DOI format, **When** the form is submitted, **Then** validation fails with a clear error message about DOI format requirements.
-5. **Given** a user is editing an existing dataset, **When** the form renders, **Then** all current field values are pre-populated correctly.
-6. **Given** a user without authentication accesses the form, **When** the form renders, **Then** the project queryset is empty or shows only public projects.
+1. **Given** a dataset, **When** a DOI is attached, **Then** it is stored under the DOI type.
+2. **Given** a dataset with a DOI, **When** the same DOI value is attached to a different record,
+   **Then** the attempt is refused.
+3. **Given** a dataset identifier, **When** its available types are read, **Then** they are types
+   that apply to a dataset, and none of them is an identifier for a person or an organisation.
+4. **Given** a dataset, **When** two identifiers of different types are attached, **Then** both are
+   retained.
+5. **Given** a dataset, **When** a second identifier of a type it already carries is attached,
+   **Then** the attempt is refused.
 
 ---
 
-### User Story 4 - Advanced Dataset Filtering & Search (Priority: P2)
+### User Story 4 - An unfinished dataset stays out of sight (Priority: P1)
 
-As a portal user browsing datasets, I want to filter datasets by project, license, visibility, date ranges, and search by name/keywords so that I can quickly find relevant datasets without browsing through all results.
+A researcher's dataset is private until they decide otherwise, and code that reads datasets without
+thinking about visibility does not see it. Reaching a private dataset is an explicit act, written
+where a reader of the code can see it.
 
-**Why this priority**: Effective filtering is essential for usability as dataset collections grow. Poor filtering forces users to manually scan results.
+**Why this priority**: A private dataset is unpublished research. Exposing one is the failure with
+the highest cost in the whole package, and the ordinary way of writing a query is the way it
+happens. Today the guard exists in the file and is commented out, so every default query returns
+private datasets.
 
-**Independent Test**: Can be fully tested by creating datasets with various attributes and applying different filter combinations. Success is demonstrated when filters correctly narrow results and combine logically.
+**Independent Test**: Create a private and a public dataset, read datasets the ordinary way and
+confirm only the public one appears, then ask for private datasets explicitly and confirm both
+appear — including when the request already carries a filter.
 
 **Acceptance Scenarios**:
 
-1. **Given** multiple datasets exist with different licenses, **When** I filter by a specific license, **Then** only datasets with that license appear in results.
-2. **Given** datasets exist across multiple projects, **When** I filter by a specific project, **Then** only datasets from that project appear in results.
-3. **Given** datasets have different visibility settings, **When** I filter by PUBLIC visibility, **Then** only public datasets appear in results.
-4. **Given** datasets were created on different dates, **When** I filter by a date range, **Then** only datasets added within that range appear in results.
-5. **Given** I search for a keyword that appears in dataset names, **When** the filter is applied, **Then** all datasets with that keyword in the name appear in results.
-6. **Given** I apply multiple filters (project AND license), **When** the filters are applied together, **Then** only datasets matching ALL criteria appear in results.
+1. **Given** a private and a public dataset, **When** datasets are read with no visibility
+   condition, **Then** only the public one is returned.
+2. **Given** the same two datasets, **When** private datasets are explicitly included, **Then** both
+   are returned.
+3. **Given** a query that has already been narrowed by some condition, **When** private datasets are
+   explicitly included, **Then** the earlier condition still applies and the result is not widened
+   beyond it.
+4. **Given** a dataset created with no visibility stated, **When** it is read back, **Then** it is
+   private.
+5. **Given** the visibility vocabulary, **When** it is read, **Then** it offers private and public
+   and nothing else.
 
 ---
 
-### User Story 5 - Optimized Dataset QuerySets (Priority: P3)
+### User Story 5 - Relate a dataset to the literature about it (Priority: P2)
 
-As a developer building dataset views, I want optimized QuerySet methods that prefetch related data, filter by visibility, and handle common queries efficiently so that my views perform well even with large dataset collections.
+A researcher names the publication that describes the dataset, and separately records other
+literature the dataset relates to, saying in each case what the relationship is — this dataset is
+cited by that paper, supplements another, is documented by a third.
 
-**Why this priority**: QuerySet optimization prevents N+1 query problems and improves performance. While important, it can be added after core CRUD operations work.
+**Why this priority**: The link between data and the writing about it is what turns a deposit into a
+citable contribution, and the relationship types are the ones an external repository expects. It is
+P2 because a dataset with no literature is still a usable record.
 
-**Independent Test**: Can be fully tested by executing QuerySet methods with Django Debug Toolbar or query logging enabled. Success is demonstrated when complex queries execute efficiently with minimal database hits.
+**Independent Test**: Name a data publication on a dataset, relate two further items under different
+relationship types, and confirm the same item cannot be related twice under the same type.
 
 **Acceptance Scenarios**:
 
-1. **Given** 100 datasets exist with projects and contributors, **When** I call `Dataset.objects.with_related().all()`, **Then** all data loads with 3 or fewer database queries total (1 for datasets, 1-2 for prefetch).
-2. **Given** datasets have different visibility settings, **When** I call `Dataset.objects.get_visible()`, **Then** only PUBLIC datasets are returned.
-3. **Given** I need dataset contributor information, **When** I call `Dataset.objects.with_contributors()`, **Then** contributor data is prefetched without additional queries per dataset.
-4. **Given** I chain multiple QuerySet methods, **When** I call `Dataset.objects.with_related().get_visible()`, **Then** both filters apply correctly and efficiently.
+1. **Given** a dataset, **When** a data publication is named, **Then** it is recorded as the
+   dataset's reference and at most one such publication can be named.
+2. **Given** a dataset, **When** a literature item is related under a stated relationship type,
+   **Then** both the item and the type are stored.
+3. **Given** a dataset already related to an item under one type, **When** the same item is related
+   under a different type, **Then** both relationships are retained.
+4. **Given** a dataset already related to an item under one type, **When** the same relationship is
+   recorded again, **Then** it is refused.
+5. **Given** the available relationship types, **When** they are read, **Then** they are the ones the
+   external schema defines.
+6. **Given** a dataset whose named data publication is deleted, **When** the dataset is read,
+   **Then** the dataset survives with no publication named.
+
+---
+
+### User Story 6 - Manage datasets as an administrator (Priority: P2)
+
+A portal administrator finds a dataset by name, by its generated identifier, by an external
+identifier attached to it or by its project, narrows a long list by project, licence or visibility,
+edits its descriptions, dates and identifiers without leaving the page, and sees at a glance which
+datasets are missing the metadata that matters.
+
+**Why this priority**: The administrative interface is how a portal is repaired when something has
+gone wrong elsewhere. It is P2 because researchers do not use it.
+
+**Independent Test**: Search the dataset list by each supported term, apply each filter, and add a
+description, a date and an identifier through the inline editors.
+
+**Acceptance Scenarios**:
+
+1. **Given** the dataset list, **When** a search term matching a dataset's name, its generated
+   identifier, an external identifier attached to it, or its project's name is entered, **Then** that
+   dataset appears in the results.
+2. **Given** the dataset list, **When** the project, licence or visibility filter is applied,
+   **Then** only datasets matching it remain.
+3. **Given** a dataset open for editing, **When** a description, a date and an identifier are added
+   inline and saved, **Then** all three persist without leaving the page.
+4. **Given** a dataset open for editing, **When** the inline editors are displayed, **Then** the
+   number of rows each offers is bounded by the number of types its vocabulary contains.
+5. **Given** the dataset list, **When** it is displayed, **Then** each row shows whether the dataset
+   has an abstract and whether it has a DOI.
+6. **Given** the administrative actions available on the list, **When** they are read, **Then** none
+   of them changes the visibility of several datasets at once.
+7. **Given** a dataset carrying a DOI, **When** its licence is changed, **Then** the administrator is
+   warned that metadata published under the old licence may need updating elsewhere.
+
+---
+
+### User Story 7 - Know who made a dataset and when it last changed (Priority: P3)
+
+Anyone looking at a dataset can tell who created it, when it was created, and when it was last
+changed. The creator is recorded on the dataset itself, so the attribution survives the removal of
+their contribution record.
+
+**Why this priority**: Attribution is the part that cannot be reconstructed later. It is P3 because
+nothing else in this specification depends on it.
+
+**Independent Test**: Create a dataset as a known user, confirm the creator is recorded against it,
+then modify it and confirm the modification timestamp moves while the creator does not.
+
+**Acceptance Scenarios**:
+
+1. **Given** a dataset created by a known user, **When** the record is read, **Then** it names that
+   user as its creator.
+2. **Given** an existing dataset, **When** any field is changed, **Then** the modification timestamp
+   advances and the creator is unchanged.
+3. **Given** a dataset whose creator's account has been removed, **When** the record is read,
+   **Then** the dataset survives and its creator reads as unknown.
+
+---
+
+### User Story 8 - The dataset record itself (Priority: P2)
+
+A dataset carries a generated identifier that names it inside the portal, a name, an optional image,
+an optional project, a licence, keywords and free tags. Contributions are recorded against it under
+roles that mean something to the systems it is submitted to. Everything it presents to a person is
+translatable, and loading it with all its related metadata costs a bounded number of queries however
+much metadata it carries.
+
+**Why this priority**: These are the guarantees the other seven stories rest on. It is P2 rather than
+P1 because most of them already hold — what is missing is the proof.
+
+**Independent Test**: Create a dataset, confirm its identifier is generated and prefixed, confirm it
+is valid without a project, confirm it lists most-recently-changed first, record a contribution with
+roles and read them back, and count the queries needed to load it with all its related records.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new dataset, **When** it is saved, **Then** it carries a unique prefixed identifier
+   that was generated rather than supplied and cannot be edited afterwards.
+2. **Given** a dataset with no project, **When** it is validated, **Then** it is valid.
+3. **Given** a dataset created with no licence chosen, **When** it is read back, **Then** it carries
+   the portal's configured default licence.
+4. **Given** several datasets changed at different times, **When** they are listed with no ordering
+   applied, **Then** the most recently changed comes first.
+5. **Given** a contribution recorded against a dataset with roles, **When** the contribution is read,
+   **Then** its contributor and each of its roles read back.
+6. **Given** a dataset carrying many descriptions, dates, identifiers and contributions, **When** it
+   is loaded with all of them, **Then** the number of queries does not grow with the number of
+   related records.
+7. **Given** a dataset with no samples and no measurements, **When** it is asked whether it holds
+   data, **Then** it answers that it does not, and it answers that it does once either is added.
 
 ---
 
 ### Edge Cases
 
-- **Project deletion with datasets**: ✅ **RESOLVED** - Use PROTECT behavior. Projects with attached datasets cannot be deleted. Orphaned datasets (project=null) are permitted but not encouraged.
-- **Duplicate dataset names**: Should dataset names be unique within a project, globally unique, or allowed to have duplicates? Current code allows duplicates - is this intentional?
-- **Visibility inheritance**: When a project becomes private, should all its datasets automatically become private? Current code does not enforce this.
-- **License changes after publication**: Can a dataset license be changed after it has a DOI/is published? Current code allows this - should it be prevented or warned?
-- **Related literature deletion**: What happens when a literature item referenced by datasets is deleted? Need consistent CASCADE/SET_NULL behavior across reference field and related_literature ManyToMany.
-- **Empty datasets**: Can a dataset exist with no samples or measurements? Current code allows this via `has_data` property - when should empty datasets be prevented/flagged?
-- **Contributor role validation**: Are dataset contributor roles properly validated against the CONTRIBUTOR_ROLES vocabulary? Current code doesn't explicitly validate.
-- **Date type validation**: Are dataset date types properly validated against the DATE_TYPES vocabulary? Current code doesn't explicitly validate.
-- **Metadata description types**: Are description types validated against DESCRIPTION_TYPES vocabulary? Need explicit validation.
-- **UUID collision**: While extremely unlikely with ShortUUID, what happens if a UUID collision occurs? Current code may fail silently on unique constraint.
-- **Image aspect ratio**: ✅ **RESOLVED** - Research and define optimal aspect ratio for dataset images that works well in card displays and HTML meta tags. Consider responsive design requirements.
-- **Cross-relationship filter performance**: ✅ **NEW** - Filtering by descriptions and dataset dates requires joins across relationships. Research performance implications for large datasets and consider indexing strategies.
-- **Dynamic inline form limits**: ✅ **NEW** - Inline forms must dynamically adjust based on vocabulary size. What happens if vocabulary is extended after deployment? How do existing forms adapt?
-- **Generic search field scope**: ✅ **NEW** - Which fields should the generic search match against? Need to define searchable field set and consider performance with ILIKE queries on large datasets.
-- **Literature relationship types**: ✅ **NEW** - Research DataCite relationship type standards and determine which types are most relevant for dataset-to-literature relationships. Design intermediate model schema.
-
-## Clarifications
-
-### Session 2026-01-15
-
-- Q: Should datasets be deleted when their project is deleted (CASCADE)? → A: No, use PROTECT behavior. Projects with datasets cannot be deleted. Orphaned datasets (project=null) are permitted but not encouraged.
-- Q: What should the default license be? → A: CC BY 4.0 (Creative Commons Attribution 4.0 International)
-- Q: How should DOI be supported? → A: Via DatasetIdentifier model with identifier_type='DOI', not via reference field. The reference field is for linking to literature items/dataset publications.
-- Q: Should literature relationships be simple ManyToMany? → A: No, use intermediate model with relationship types following DataCite standards (IsCitedBy, Cites, IsSupplementTo, etc.)
-- Q: Are timestamps for sorting or auditing? → A: Primarily for auditing, not necessarily for sorting.
-- Q: What image requirements exist? → A: Define aspect ratio suitable for card displays and HTML meta tags. Research optimal ratio for responsive layouts.
-- Q: Should default queryset include private datasets? → A: No, privacy-first. Default should exclude PRIVATE datasets. Provide explicit get_all() or with_private() method when private datasets are needed.
-- Q: Are with_related() and with_contributors() hard requirements? → A: No, they are suggestions (SHOULD not MUST). Plan based on actual usage patterns.
-- Q: Should autocomplete only apply to project field? → A: No, use Select2/autocomplete on ALL applicable fields (ForeignKey, ManyToMany) for consistent UX.
-- Q: Should help text be internationalized? → A: Yes, wrap in gettext_lazy(). Help text should be form-specific, not just copied from model.
-- Q: Where should request parameter pattern live? → A: Consider moving to base form class if widely applicable across forms.
-- Q: Should filters include added/modified date ranges? → A: No, not particularly helpful. Focus on other filters.
-- Q: Should filters have individual text field filters? → A: No, implement generic search field that matches across multiple CharField/TextField fields.
-- Q: Should filters support description and date filtering? → A: Yes, via cross-relationship filters. Research performance implications.
-- Q: Does Django admin have built-in autocomplete? → A: Yes, leverage built-in functionality unless custom queryset filtering requires explicit configuration.
-- Q: What fieldset names should be used? → A: Research and propose improved names beyond placeholders.
-- Q: Should admin have bulk visibility change actions? → A: No, too dangerous - could accidentally expose private datasets. Bulk metadata export is acceptable.
-- Q: Should inline forms have hard-coded limits? → A: No, dynamically calculate based on vocabulary size (description types, date types).
-- Q: How should permissions be structured? → A: Role-based using FairDM roles (Dataset.CONTRIBUTOR_ROLES). Map roles to permissions and use django-guardian for object-level enforcement.
+- A dataset name longer than the field allows is refused by the field's own validation; no truncation
+  occurs.
+- A dataset with no project is a normal state, not an orphan — data migrated from a system with no
+  project structure arrives this way.
+- Deleting a project deletes the private datasets beneath it. Deletion is blocked outright while any
+  of its datasets is public, and that guard belongs to `013-project-crud-views` (D-005).
+- Two descriptions, dates or identifiers of the same type are refused at the database as well as in
+  validation, so a concurrent write cannot slip past the check.
+- A date record whose value is absent is refused; a type without a date carries no meaning.
+- Attaching the same identifier value to two records is refused globally, not merely within one
+  dataset.
+- Two datasets may carry the same name. Nothing distinguishes them but their generated identifiers,
+  which is accepted — a name is a label, not a key (D-011).
+- A dataset with no samples and no measurements is a normal state. It is reported, not prevented.
+- Non-ASCII characters in names, descriptions and keywords are stored unchanged.
 
 ## Requirements *(mandatory)*
 
-### Functional Requirements
+### The dataset record
 
-#### Model & Data Integrity
+- **FR-001**: Each dataset MUST carry a unique, short, human-readable identifier generated on
+  creation, prefixed so that it is recognisable as a dataset, and not editable afterwards.
+- **FR-002**: A dataset MUST carry a name. A dataset MAY carry an image, a project, a licence and a
+  named data publication.
+- **FR-003**: A dataset MAY belong to one project. A dataset without one MUST be valid. Deleting a
+  project MUST delete the datasets beneath it.
+- **FR-004**: A dataset MUST carry a visibility of either private or public, and MUST be private
+  unless a visibility is stated.
+- **FR-005**: A dataset MUST support categorisation both by terms drawn from a configured controlled
+  vocabulary and by free-form tags, and the two MUST remain distinguishable.
+- **FR-006**: Datasets MUST be ordered most-recently-modified first by default.
+- **FR-007**: Where no licence is chosen at creation, the portal's configured default licence MUST be
+  applied. The default MUST be settable by the portal and MUST be CC BY 4.0 where the portal states
+  none.
+- **FR-008**: A dataset MUST be able to report whether it holds any samples or measurements, in a
+  number of queries that does not grow with how many it holds.
 
-- **FR-001**: Dataset model MUST enforce that `name` field is required and non-empty (max 200 characters recommended).
-- **FR-002**: Dataset model MUST support all FAIR metadata through related models: descriptions (DatasetDescription), dates (DatasetDate), identifiers (DatasetIdentifier), and contributors (Contribution).
-- **FR-003**: Dataset model MUST provide a unique, stable identifier via ShortUUID with prefix "d" for external referencing.
-- **FR-004**: Dataset model MUST support visibility control (PUBLIC, INTERNAL, PRIVATE) with default of PRIVATE for data protection.
-- **FR-005**: Dataset model MUST support optional project association with PROTECT delete behavior to prevent accidental dataset deletion when projects are deleted. Projects with attached datasets cannot be deleted until datasets are reassigned or removed. Orphaned datasets (project=null) are permitted.
-- **FR-006**: Dataset model MUST support optional license via LicenseField with default of CC BY 4.0 (Creative Commons Attribution 4.0 International).
-- **FR-007**: Dataset model MUST support DOI via DatasetIdentifier model with identifier_type='DOI' for unique external identification of published datasets.
-- **FR-008**: Dataset model MUST support ManyToMany relationship to related literature with intermediate model specifying relationship types following DataCite standards (e.g., IsCitedBy, Cites, IsSupplementTo, IsSupplementedBy).
-- **FR-009**: DatasetDescription model MUST validate description_type against DESCRIPTION_TYPES vocabulary from FairDMDescriptions.
-- **FR-010**: DatasetDate model MUST validate date_type against DATE_TYPES vocabulary from FairDMDates.
-- **FR-011**: DatasetIdentifier model MUST validate identifier_type against IDENTIFIER_TYPES vocabulary from FairDMIdentifiers.
-- **FR-012**: Dataset model MUST include timestamps (added, modified) primarily for audit trail purposes.
-- **FR-013**: Dataset model MUST support keyword tagging for search and categorization.
-- **FR-014**: Dataset model MUST support optional image field for visual identification with defined aspect ratio suitable for card displays and HTML meta tags (research optimal ratio for responsive card layouts).
+### Descriptions, dates and identifiers
 
-#### QuerySet Methods
+- **FR-009**: A dataset MUST support several descriptions, each drawn from a controlled set of
+  description types, with at most one description per type. The limit MUST be enforced by a database
+  constraint as well as by validation. The set MUST contain an abstract and a methods description.
+- **FR-010**: A dataset MUST support several dates, each drawn from a controlled set of date types,
+  with at most one date per type. The set MUST contain a collection start and a collection end.
+- **FR-011**: The system MUST refuse to save a dataset date that would place the end of data
+  collection before its start, whichever of the two is being edited, and the message MUST state which
+  two dates conflict.
+- **FR-012**: A dataset MUST support several external identifiers, each drawn from a controlled set
+  of identifier types that apply to datasets. That set MUST include a DOI, and MUST NOT be the
+  vocabulary used for people and organisations.
+- **FR-013**: An identifier value MUST be unique across every record that carries identifiers, so the
+  same identifier cannot name two things.
+- **FR-014**: The related description, date and identifier records MUST expose each field under one
+  name only. A second name for a field that no caller uses MUST NOT be carried.
 
-- **FR-015**: Dataset model default manager MUST exclude PRIVATE datasets by default (privacy-first approach). DatasetQuerySet SHOULD provide `get_all()` or `with_private()` method to explicitly include private datasets when needed.
-- **FR-016**: DatasetQuerySet SHOULD provide `with_related()` method that prefetches project and contributors for optimization (not mandatory, but recommended based on actual usage patterns).
-- **FR-017**: DatasetQuerySet SHOULD provide `with_contributors()` method that prefetches only contributors for optimization (not mandatory, but recommended based on actual usage patterns).
-- **FR-018**: Dataset model default manager MUST use DatasetQuerySet to make custom methods available on Dataset.objects.
+### Literature
 
-#### Forms
+- **FR-015**: A dataset MAY name one data publication. Where that publication is deleted, the dataset
+  MUST survive with no publication named.
+- **FR-016**: A dataset MUST support relationships to any number of literature items, each carrying
+  the type of the relationship drawn from the set the external schema defines. The same item MUST NOT
+  be related twice under the same type.
 
-- **FR-019**: DatasetForm MUST include fields for name, image, project, license, and DOI with appropriate widgets.
-- **FR-020**: DatasetForm MUST use Select2Widget or django-autocomplete-light with autocomplete for ALL applicable fields (ForeignKey, ManyToMany) for improved UX, not just project selection.
-- **FR-021**: DatasetForm MUST support "add another" functionality on project field allowing inline project creation.
-- **FR-022**: DatasetForm MUST filter project queryset to show only projects the authenticated user has access to.
-- **FR-023**: DatasetForm MUST default license field to CC BY 4.0 (Creative Commons Attribution 4.0 International).
-- **FR-024**: DatasetForm MUST provide clear, helpful help_text for all fields wrapped in gettext_lazy() for internationalization. Help text SHOULD be form-specific, not just copied from model field help_text.
-- **FR-025**: DatasetForm MUST accept optional `request` parameter in `__init__` to access user context for queryset filtering. Consider moving this pattern to base form class if widely applicable.
-- **FR-026**: DatasetForm MUST properly handle both creation and update scenarios.
+### Contributions
 
-#### Filters
+- **FR-017**: A dataset MUST support contributions associating a person or an organisation with the
+  dataset under one or more roles drawn from a controlled set.
+- **FR-018**: The role vocabulary MUST be expressible in DataCite's contributor types, so that a
+  future submission needs no translation table.
 
-- **FR-027**: DatasetFilter MUST extend BaseListFilter providing consistent filtering interface.
-- **FR-028**: DatasetFilter MUST support filtering by license (exact match).
-- **FR-029**: DatasetFilter MUST support filtering by project (exact match or choice).
-- **FR-030**: DatasetFilter MUST support filtering by visibility level.
-- **FR-031**: DatasetFilter MUST support filtering by description content via cross-relationship filter (research feasibility and performance implications).
-- **FR-032**: DatasetFilter MUST support filtering by dataset date types via cross-relationship filter (e.g., filter by publication date, collection date).
-- **FR-033**: DatasetFilter SHOULD use generic search field that matches across multiple CharField/TextField fields rather than individual text filters for each field.
-- **FR-034**: DatasetFilter relies on django-filter's default AND logic for combining multiple filters (explicit specification not required).
+### Visibility
 
-#### Admin Interface
+- **FR-019**: The ordinary way of reading datasets MUST exclude private ones. Including them MUST
+  require an explicit call, and that call MUST preserve every condition already applied to the query.
+- **FR-020**: Any permission a visibility check consults MUST be declared on the model. A check
+  against a permission that is never declared MUST NOT be carried.
 
-- **FR-035**: DatasetAdmin MUST provide search by name and UUID for quick dataset location.
-- **FR-036**: DatasetAdmin MUST provide list_display showing name, added, and modified dates.
-- **FR-037**: DatasetAdmin MUST provide list_filter for project, license, visibility, and date ranges.
-- **FR-038**: DatasetAdmin MUST include inline editors for DatasetDescription and DatasetDate.
-- **FR-039**: DatasetAdmin SHOULD leverage Django admin's built-in autocomplete functionality for ForeignKey and ManyToMany fields unless custom queryset filtering per-dataset requires explicit Select2Widget configuration.
-- **FR-040**: DatasetAdmin MUST organize fields into logical fieldsets with clear, descriptive names (research and propose improved fieldset organization beyond placeholder names).
-- **FR-041**: DatasetAdmin MUST NOT provide bulk visibility change actions to prevent accidental exposure of private datasets. Bulk export metadata operations are acceptable.
-- **FR-042**: DatasetAdmin MUST make UUID and timestamps readonly to prevent accidental modification.
-- **FR-043**: DatasetAdmin MUST dynamically calculate inline form limits based on available description types and date types from vocabularies rather than hard-coded maximums. Inline forms should match the number of available type choices.
+### The creation record
 
-#### Permissions
+- **FR-021**: A dataset MUST record the user who created it, and MUST survive that user's removal
+  with the creator reading as unknown.
+- **FR-022**: A dataset MUST record when it was created and when it was last changed.
 
-- **FR-044**: Dataset model MUST define custom permissions for FAIR data operations: view_dataset, add_dataset, change_dataset, delete_dataset, import_data.
-- **FR-045**: Dataset permissions MUST be role-based using FairDM roles (Dataset.CONTRIBUTOR_ROLES). Permissions MUST map to roles (e.g., DatasetViewer, DatasetEditor, DatasetManager) and integrate with django-guardian for object-level permission enforcement.
+### Administration
 
-#### Testing Requirements
+- **FR-023**: The administrative interface MUST allow datasets to be found by name, by the dataset's
+  own generated identifier, by any external identifier attached to it, and by project, and MUST allow
+  the list to be narrowed by project, licence and visibility.
+- **FR-024**: The administrative interface MUST allow a dataset's descriptions, dates and identifiers
+  to be edited from the dataset's own page, offering no more rows for each than its vocabulary has
+  types.
+- **FR-025**: The administrative list MUST show, for each dataset, whether it carries an abstract and
+  whether it carries a DOI.
+- **FR-026**: The administrative interface MUST NOT offer any action that changes the visibility of
+  more than one dataset at a time.
+- **FR-027**: The generated identifier and the timestamps MUST be presented as unchangeable.
+- **FR-028**: Changing the licence of a dataset that carries a DOI MUST warn the administrator that
+  metadata published under the previous licence may need updating elsewhere.
 
-- **FR-046**: Dataset model MUST have unit tests for: model creation, validation rules, field constraints, method behaviors, and property calculations.
-- **FR-047**: DatasetQuerySet methods MUST have unit tests for: privacy-first default behavior, get_all()/with_private() methods, with_related(), with_contributors(), and query chaining.
-- **FR-048**: DatasetForm MUST have unit tests for: form validation, queryset filtering, default values, field widgets, request context handling, and gettext_lazy wrapping.
-- **FR-049**: DatasetFilter MUST have unit tests for: each filter field, cross-relationship filters (descriptions, dates), generic search functionality, and edge cases.
-- **FR-050**: DatasetAdmin MUST have integration tests for: search, filters, inline editing, dynamic inline limits, and widget functionality.
-- **FR-051**: All tests MUST use factory-boy factories from fairdm.factories for test data generation.
-- **FR-052**: Test organization MUST follow the testing strategy: unit tests in tests/unit/core/, integration tests in tests/integration/core/.
+### Presentation and performance
+
+- **FR-029**: Every string this specification's surfaces present to a user — field labels, help text,
+  vocabulary terms, administrative labels and validation messages — MUST be marked for translation in
+  a way that resolves at request time rather than at import time.
+- **FR-030**: The dataset model MUST offer a queryset that loads a dataset together with its
+  descriptions, dates, identifiers, contributions and keywords in a bounded number of queries, so
+  that a caller assembling a full record does not issue one query per related record.
+- **FR-031**: The record's own documentation MUST describe the behaviour the record has. Documented
+  behaviour that the code does not implement MUST be removed rather than left standing.
 
 ### Key Entities
 
-- **Dataset**: Core model representing a collection of samples, measurements, and metadata in the FairDM hierarchy.
-- **DatasetDescription**: Related model storing typed descriptions for datasets using controlled vocabulary.
-- **DatasetDate**: Related model storing typed dates for datasets using controlled vocabulary.
-- **DatasetIdentifier**: Related model storing typed identifiers (DOI, etc.) for datasets using controlled vocabulary.
-- **DatasetLiteratureRelation**: Intermediate model for Dataset-to-LiteratureItem relationships specifying DataCite relationship types (to be created).
-- **DatasetQuerySet**: Custom QuerySet providing optimized query methods for dataset retrieval with privacy-first default.
-- **DatasetForm**: ModelForm for dataset creation/editing with user context awareness and internationalized help text.
-- **DatasetFilter**: FilterSet for dataset searching and filtering including cross-relationship filters.
-- **DatasetAdmin**: Django admin configuration for dataset management interface with dynamic inline forms.
+- **Dataset** — the unit of citation and distribution. Carries its identifier, name, image,
+  visibility, licence, project, data publication, creator and timestamps. Related to descriptions,
+  dates, identifiers, contributions, keywords, tags, literature, samples and measurements.
+- **Dataset description** — a typed block of prose about the dataset. One per type.
+- **Dataset date** — a typed date marking a point in the dataset's life. One per type.
+- **Dataset identifier** — a typed external identifier naming the dataset outside the portal. Its
+  value is unique across all identifiers.
+- **Dataset literature relation** — the association of a dataset with a literature item under a
+  stated relationship type.
+- **Contribution** — the association of a person or an organisation with the dataset under one or
+  more roles.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: All dataset CRUD operations complete with proper validation and error messages within 2 seconds for typical use cases.
-- **SC-002**: Dataset list view with 100 datasets and filters applied loads in under 1 second with optimized querysets.
-- **SC-003**: Dataset model achieves 90%+ test coverage with meaningful tests of critical paths and edge cases.
-- **SC-004**: Dataset forms provide clear validation feedback with user-friendly error messages for all invalid inputs.
-- **SC-005**: Dataset admin interface allows administrators to search, filter, and edit datasets without writing custom code.
-- **SC-006**: DatasetQuerySet optimization reduces database queries by 80%+ compared to naive ORM usage when loading datasets with related data.
-- **SC-007**: All mandatory FAIR metadata fields are enforceable at the model level preventing incomplete dataset creation.
-- **SC-008**: Dataset filter combinations work correctly in 100% of test cases without unexpected results.
+- **SC-001**: A dataset can be given an abstract, a methods description, a collection start, a
+  collection end and a DOI, and every one of them can be read back under its own type.
+- **SC-002**: A second description, date or identifier of a type the dataset already carries is
+  refused every time, both through validation and at the database.
+- **SC-003**: A collection end earlier than the collection start is refused every time, from either
+  direction of editing, with a message naming both dates.
+- **SC-004**: The dataset identifier vocabulary contains a DOI and contains no identifier type that
+  names a person or an organisation. Each of the three dataset vocabularies is asserted by naming the
+  members it contains, not by iterating whatever it happens to hold.
+- **SC-005**: Reading datasets without stating a visibility never returns a private one, and
+  including private datasets after a query has already been narrowed returns no record the narrowing
+  excluded.
+- **SC-006**: The same literature item can be related to a dataset under two different types and not
+  twice under one, and deleting a dataset's named data publication leaves the dataset intact.
+- **SC-007**: Every administrative search term in FR-023 finds a dataset that matches it, and every
+  filter in FR-023 removes the datasets that do not.
+- **SC-008**: Loading a dataset together with all its related metadata takes a number of queries that
+  does not grow with the number of related records.
+- **SC-009**: No test covering behaviour in this specification is skipped, and no test in it passes
+  when the behaviour it names is removed.
+- **SC-010**: Every statement the dataset models, admin and vocabularies make about their own
+  behaviour is true of the code as it stands.
+
+## Assumptions
+
+- The controlled vocabulary machinery, the contribution model, the licence field and the tagging
+  library are already in place and are not changed by this work.
+- DataCite's schema is the reference for relationship types and contributor roles.
+- The portal pages through which a researcher creates and edits a dataset are specified by
+  `014-dataset-crud-views`. Where a field specified here needs a form control, that document decides
+  whether it gets one.
+- The image field's dimensions, thumbnails and upload guidance are specified by
+  `015-image-field-spec`.
+- The literature package supplies the item this record relates to; its own model is not changed here.
+- Translation catalogues do not exist in the repository yet. This work marks strings for translation;
+  it does not produce catalogues.
+
+## Out of scope
+
+- Metadata export in any form — no export exists today and it is expected to arrive as an addon
+  (D-002).
+- The dataset list, create, edit and delete pages, their forms, the list search box and the filter
+  set behind it — `014-dataset-crud-views`.
+- The dataset detail page and the portal pages for editing descriptions, keywords and key dates.
+- The image field's dimensions and thumbnails — `015-image-field-spec`.
+- Funding recorded against a dataset — deferred to the work that gives projects and datasets a shared
+  funding record.
+- Blocking deletion of a project that has public datasets — `013-project-crud-views`.
+- Which contribution roles confer which rights, and the granting of permissions when a dataset is
+  created.
+- Enforcing visibility consistently across the portal, the API and the collection tables — this
+  specification makes the record's own default private and stops there.
+- The REST API's representation of a dataset — `011-restful-api`.
