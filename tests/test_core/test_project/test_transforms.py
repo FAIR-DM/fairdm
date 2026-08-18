@@ -1,4 +1,4 @@
-"""Tests for fairdm/core/project/export.py (US-5: metadata export).
+"""Tests for fairdm/core/project/transforms.py (US-5: metadata export).
 
 Covers FR-023 to FR-026: DataCite JSON export, JSON-LD export, the DOI as
 primary identifier, and omitting absent optional metadata.
@@ -6,7 +6,7 @@ primary identifier, and omitting absent optional metadata.
 
 import pytest
 
-from fairdm.core.project.export import to_datacite, to_json_ld
+from fairdm.core.project.transforms import to_datacite, to_json_ld
 from fairdm.factories import (
     PersonFactory,
     ProjectDescriptionFactory,

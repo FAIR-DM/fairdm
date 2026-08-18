@@ -9,8 +9,8 @@ from django.utils.translation import gettext_lazy as _
 from partial_date import PartialDate
 
 from ..choices import ProjectStatus
-from .export import to_datacite, to_json_ld
 from .models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
+from .transforms import to_datacite, to_json_ld
 
 
 class DescriptionInline(admin.StackedInline):

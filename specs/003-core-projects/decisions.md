@@ -236,6 +236,8 @@ Findings that are real but are not this feature's work:
 | Organisation-scoped visibility (D-006) | #168 |
 | Which contribution roles confer which permissions (D-009) | #169 |
 | Full revision history for core records (D-010) | #170 |
+| Funding as a related model rather than a JSON field (D-016) | #175 |
+| A model-agnostic adapter base with a format registry (D-017) | #176 |
 | Descriptions, keywords and key dates have no portal page — the plugin classes exist but are never registered (`plugins.py:52`) | #171 |
 | Administrative bulk actions set the wrong status: "Active" writes Planning, "Completed" writes In Progress (`admin.py:115`, `:123`) | Repaired here — it is an admin defect, and the admin is in scope |
 | Keyword filtering combines terms with OR while the old text promised AND (`filters.py:85`) | #172 |
@@ -263,3 +265,60 @@ A pre-existing test attached a methods description to a project and passed anywa
 field is a plain character field and Django does not validate choices on save. That is the blind spot
 the vocabulary-binding tests added on this branch exist to close. The test now uses a type the
 project vocabulary contains.
+
+## D-016 — Funding stays a JSON field here, and becomes a model in its own right
+
+**Settled by the maintainer, 2026-08-18.**
+
+D-013 gave funding a validated DataCite shape and left it in a `JSONField`. Reviewing the result, the
+maintainer asked the better question: why is it not a model?
+
+It should be. A funder is an `Organization`, which the package already models, and DataCite's
+`funderIdentifier` and `funderIdentifierType` are that organisation's identifiers — ROR, ISNI and
+Crossref Funder ID are all in the vocabulary already, with a transform that resolves them against the
+registry. Held as strings they deduplicate nothing, so two projects funded by the same body share no
+record and "which projects did this body fund" is not a query. Funding is also the only repeating
+typed thing on a project that is not a related record, which is why it needed a hand-written
+validator and a closed key list to reach a weaker version of what the ORM gives descriptions, dates
+and identifiers for free.
+
+Deferred rather than done here, because datasets need funding too and doing it for projects alone
+means doing it twice. Filed as #175, covering both.
+
+The shape landed in this work is a staging step rather than throwaway: its closed key set is the
+model's field list, and the conversion from the older flat shape has to happen either way.
+
+## D-017 — The export mapping belongs in the transform layer that already exists
+
+**Settled by the maintainer, 2026-08-18. This corrects a fault in the plan, not in the code.**
+
+The plan called for a new module holding two functions. The package already has a transform layer for
+this job — `BaseTransform` with `export()`, `import_data()` and `validate()`, and five concrete
+adapters over it for DataCite, schema.org, CSL-JSON, ORCID and ROR
+(`fairdm/contrib/contributors/utils/transforms.py`). The project export duplicated that structure one
+model over, and called into it besides, so both mechanisms sat in the same call stack.
+
+The mapping is unchanged and now lives in `fairdm/core/project/transforms.py` as
+`ProjectDataCiteTransform` and `ProjectSchemaOrgTransform`.
+
+Neither design review nor code review caught this, because the plan presented the module as a fresh
+requirement and both reviewers judged the framing rather than the repository. The lesson is narrow
+and worth keeping: **a plan that introduces a mechanism should have to name what it looked at and
+rejected**, or a reviewer has nothing to weigh it against.
+
+Generalising `BaseTransform` beyond `Contributor`, and giving it a registry so a portal or an addon
+can supply a format, is filed as #176 and is not attempted here.
+
+## D-018 — Two migrations, and no migration that only prints
+
+**Settled by the maintainer, 2026-08-18.**
+
+The branch briefly carried three: the schema changes, the funding conversion, and a third that
+reported `ProjectIdentifier` rows whose type fell outside the narrowed set without changing any of
+them. The third was a fix for a low-severity review finding and it was the wrong shape — a migration
+that only prints runs once, into a deploy log nobody reads, and cannot be acted on afterwards. It is
+removed. A management command is the right home if the need proves real.
+
+What remains is one schema file and the funding conversion standalone, which is what Article IX asks
+for.
+

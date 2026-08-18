@@ -9,11 +9,10 @@ addition, one data-shape change with a migration, one new export module, and a s
 administrative fixes. Nothing here needs a new abstraction — every piece attaches to machinery the
 package already has, and `research.md` records what that machinery is.
 
-Three stories carry migrations. Each is written reversible, and at convergence the ordinary schema
-migrations are squashed into a single file per Article IX, which exempts data migrations — so the
-funding conversion stays standalone. The suite runs with `--no-migrations`, so none of them is
-exercised by a test; that is a reason to keep them small and to read them carefully, not a reason to
-leave them scattered.
+The branch lands **two** migrations: one schema file carrying every field change, and the funding
+conversion standalone, which is what Article IX asks for — schema migrations consolidated, data
+migrations kept separate. The suite runs with `--no-migrations`, so neither is exercised by a test;
+that is a reason to keep them small and read them carefully, not a reason to scatter them.
 
 ## Design decisions taken here
 
@@ -123,10 +122,20 @@ Two vocabularies sharing one registry key collide in the `Concept` table, whose 
 
 ### Export
 
-A new module `fairdm/core/project/export.py` holds two functions, `to_datacite(project)` and
-`to_json_ld(project)`, each returning a dictionary. The administrative actions serialise whatever
-they return. Keeping the mapping out of the admin is what makes it testable and reusable by the API
-later.
+The mapping goes in `fairdm/core/project/transforms.py` as `ProjectDataCiteTransform` and
+`ProjectSchemaOrgTransform`, both subclassing the `BaseTransform` that
+`fairdm/contrib/contributors/utils/transforms.py` already defines, with module-level
+`to_datacite(project)` and `to_json_ld(project)` delegating to them exactly as
+`contributor_to_datacite()` does. The administrative actions serialise whatever those return.
+
+**This is the repository's existing seam, and the first version of this plan missed it.** It called
+for a new module of two functions, which duplicated a transform layer that already had five working
+adapters — DataCite, schema.org, CSL-JSON, ORCID and ROR — one model over, and which the project
+export already calls into. Two mechanisms for one job is what Article III exists to prevent.
+
+`BaseTransform.export()` is typed on `Contributor`, so these subclasses do not generalise it and do
+not try to. Making the base model-agnostic, and giving it the registry that would let a portal or an
+addon supply its own format, is issue #176 and is deliberately not attempted here.
 
 Mappings that need stating:
 
@@ -144,6 +153,9 @@ Mappings that need stating:
   `Contributor.to_schema_org()`. `rdflib` is already available transitively, so the test can parse
   the output rather than merely assert on keys.
 
+Neither adapter implements `import_data()`. The base class's refusal stands rather than a stub that
+returns nothing.
+
 Absent optional metadata is omitted. The functions build their dictionaries by adding keys only when
 there is something to add, rather than emitting empty lists.
 
@@ -151,7 +163,7 @@ there is something to add, rather than emitting empty lists.
 
 | Addition | Justification |
 |---|---|
-| `fairdm/core/project/export.py` | Two mapping functions with no home. Putting them in `admin.py` would make them untestable without the admin and unusable by anything else. |
+| `fairdm/core/project/transforms.py` | Two adapters in the shape the package already uses for contributors. Putting the mapping in `admin.py` would make it untestable without the admin and unusable by anything else. |
 | A funding validator | The specification requires a shape; a shape that is not enforced is documentation. |
 | A `Project` collection in `FairDMIdentifiers` | Required by the specification, and the vocabulary has no project terms at all today. |
 
