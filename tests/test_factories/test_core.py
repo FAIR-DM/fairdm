@@ -467,12 +467,12 @@ class TestDatasetFactories:
     def test_dataset_date_factory(self):
         """Test DatasetDateFactory creates valid dates."""
         dataset = DatasetFactory()
-        date = DatasetDateFactory(related=dataset, type="Issued")
+        date = DatasetDateFactory(related=dataset, type="Available")
 
         assert isinstance(date, DatasetDate)
         assert date.pk is not None
         assert date.related == dataset
-        assert date.type == "Issued"
+        assert date.type == "Available"
         assert date.value
 
 
@@ -629,7 +629,7 @@ class TestFactoryIntegration:
             project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
         )
         DatasetDescriptionFactory(related=dataset, type="Methods")
-        DatasetDateFactory(related=dataset, type="Issued")
+        DatasetDateFactory(related=dataset, type="Available")
         ContributionFactory(content_object=dataset, contributor=person)
 
         # Create samples

@@ -192,11 +192,15 @@ class Plugin(PermissionRequiredMixin, View):
                 )
                 raise ValueError(msg)
 
-        # The plugin's own `has_permission` (via `can_open`) is the access decision for this
-        # record. A model whose default manager is privacy-first (e.g. `Dataset.objects`) would
-        # otherwise 404 a private record before that check ever runs. `all_objects`, where a
-        # model declares one, is the explicit unfiltered route (see 004-core-datasets R1); models
-        # without one keep the default manager unchanged.
+        # Resolving through `all_objects` hands the access decision to the plugin's own
+        # `has_permission` (via `can_open`), because a privacy-first default manager such as
+        # `Dataset.objects` would otherwise 404 a private record before that check ever runs.
+        # `can_open` is only a decision where the plugin declares one: with neither `check` nor
+        # `permission` set it admits every request, anonymous included, so a plugin serving a
+        # model with restricted records MUST declare one (the three in `fairdm.core.dataset`
+        # declare `dataset.change_dataset`). `all_objects`, where a model has one, is the
+        # explicit unfiltered route (see 004-core-datasets R1); models without one keep the
+        # default manager unchanged.
         manager = getattr(self.registered_model, "all_objects", self.registered_model)
         return get_object_or_404(manager, **filters)
 
@@ -208,10 +212,17 @@ class Plugin(PermissionRequiredMixin, View):
         same regression applies there: a privacy-first default manager would 404 a private record
         before ``has_permission()`` (``can_open``) ever runs. Reads through ``all_objects`` where
         the served model declares one, for the same reason and by the same rule as
-        ``get_base_object()``. Falls through to the next class in the MRO (typically
-        ``SingleObjectMixin.get_queryset()``) for anything else, and views that declare their own
-        ``queryset``/``get_queryset`` are unaffected — Django resolves those first.
+        ``get_base_object()``, and carries the same obligation - the plugin's own ``check`` or
+        ``permission`` is the only thing standing between an anonymous request and a private
+        record.
+
+        A view that declares its own ``get_queryset`` overrides this one through the MRO. A view
+        that declares a ``queryset`` attribute does not, because ``SingleObjectMixin`` only ever
+        reads that attribute from inside the method being overridden here - so it is honoured
+        explicitly below.
         """
+        if getattr(self, "queryset", None) is not None:
+            return super().get_queryset()  # type: ignore[misc]
         model = self.registered_model or self.model
         manager = getattr(model, "all_objects", None) if model is not None else None
         if manager is not None:

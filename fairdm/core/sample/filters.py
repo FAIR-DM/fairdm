@@ -45,6 +45,23 @@ class SampleFilterMixin:
         label=_("Has image"),
     )
 
+    def __init__(self, *args, **kwargs):
+        """Initialise the filter and widen the dataset choices.
+
+        On the mixin rather than on `SampleFilter` alone, because this is the published
+        extension point: a portal's own filter inherits `Meta.fields`, and with it a
+        "dataset" choice field whose choices come from the model's default manager.
+        That manager is privacy-first, so without this a portal developer's filter
+        would reject every private dataset - which is every dataset until someone
+        publishes it.
+        """
+        super().__init__(*args, **kwargs)
+
+        from fairdm.core.models import Dataset
+
+        if "dataset" in self.filters:
+            self.filters["dataset"].queryset = Dataset.all_objects.all()
+
     class Meta:
         """Meta configuration for SampleFilterMixin."""
 
@@ -127,10 +144,7 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         from django.contrib.contenttypes.models import ContentType
         from research_vocabs.models import Concept
 
-        from fairdm.core.models import Dataset
-
-        # Set dataset queryset
-        self.filters["dataset"].queryset = Dataset.objects.all()
+        # The dataset choices are set by `SampleFilterMixin.__init__` above.
 
         # Set polymorphic content type queryset
         self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(

@@ -258,6 +258,8 @@ class TestDatasetVisibilityGuarantees:
 
         from fairdm.core.dataset import admin as dataset_admin_module
         from fairdm.core.dataset import models as dataset_models_module
+        from fairdm.core.dataset import plugins as dataset_plugins_module
+        from fairdm.core.dataset import views as dataset_views_module
 
         declared = {codename for codename, _label in Dataset._meta.permissions}
         declared |= {
@@ -265,14 +267,31 @@ class TestDatasetVisibilityGuarantees:
             for action in Dataset._meta.default_permissions
         }
 
-        source = inspect.getsource(dataset_models_module) + inspect.getsource(
-            dataset_admin_module
+        source = "".join(
+            inspect.getsource(module)
+            for module in (
+                dataset_models_module,
+                dataset_admin_module,
+                dataset_views_module,
+                dataset_plugins_module,
+            )
         )
         referenced = {
             codename.rsplit(".", 1)[-1]
             for codename in re.findall(r'has_perm\(\s*["\']([\w.]+)["\']', source)
         }
+        referenced |= {
+            codename.rsplit(".", 1)[-1]
+            for codename in re.findall(
+                r'^\s*permission\s*=\s*["\']([\w.]+)["\']', source, re.MULTILINE
+            )
+        }
 
+        # The scan is the guard, so an empty scan is a broken guard, not a pass:
+        # `referenced <= declared` is trivially true of the empty set.
+        assert referenced, (
+            "no permission references found - the scan has stopped working"
+        )
         assert referenced <= declared
         assert "view_private" not in declared
 
@@ -662,9 +681,9 @@ class TestDatasetPrefetch:
             DatasetDate.objects.create(related=dataset, type=type_, value="2024-01-01")
 
         # Distinct `type` per identifier - AbstractIdentifier enforces one
-        # identifier per (related, type). The identifier vocabulary is not
-        # yet narrowed to the dataset collection (that binding is US-3's),
-        # so any string works here - this test's subject is the query count.
+        # identifier per (related, type). The vocabulary is now narrowed to the
+        # dataset collection, so `count` is capped by how many members it has -
+        # this test's subject is the query count, which the other relations carry.
         for i, type_ in enumerate(DatasetIdentifier.VOCABULARY.values[:count]):
             DatasetIdentifierFactory(
                 related=dataset, type=type_, value=f"10.{9000 + i}/{dataset.pk}"
@@ -1884,9 +1903,7 @@ class TestPerformanceOptimization:
             # 2. Projects
             # 3. Contributors
             # 4. Possible join table
-            result = list(
-                Dataset.all_objects.with_related().with_contributors()
-            )
+            result = list(Dataset.all_objects.with_related().with_contributors())
             for ds in result:
                 _ = ds.project.name if ds.project else None
                 _ = list(ds.contributors.all())

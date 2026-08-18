@@ -83,17 +83,11 @@ class TestSampleFilterDatasetFiltering:
 
     def test_filter_by_dataset(self, user, project):
         """Test filtering samples by dataset relationship."""
-        # Create two datasets. Public: the subject here is dataset filtering, not
-        # visibility, and `SampleFilter`'s "dataset" choice field builds its valid
-        # choices from `Dataset.objects` (privacy-first, 004-core-datasets FR-019),
-        # so a private dataset would fail `filterset.is_valid()` before the filter
-        # itself is ever exercised.
-        dataset1 = Dataset.objects.create(
-            name="Dataset 1", project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
-        )
-        dataset2 = Dataset.objects.create(
-            name="Dataset 2", project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
-        )
+        # Left private, which is the model's default and the ordinary case: the
+        # filter's "dataset" choices come from `Dataset.all_objects`, so filtering
+        # by one works.
+        dataset1 = Dataset.objects.create(name="Dataset 1", project=project)
+        dataset2 = Dataset.objects.create(name="Dataset 2", project=project)
 
         # Create samples in different datasets
         sample1 = RockSample.objects.create(

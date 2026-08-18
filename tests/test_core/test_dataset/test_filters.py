@@ -442,10 +442,10 @@ class TestFilterPerformance:
         """Cross-relationship filters should not cause N+1 query problems."""
         # Arrange - Create 50 datasets with descriptions
         datasets = DatasetFactory.create_batch(50)
-        for ds in datasets[:25]:  # Half have ABSTRACT
-            DatasetDescriptionFactory(related=ds, type="ABSTRACT")
-        for ds in datasets[25:]:  # Half have METHODS
-            DatasetDescriptionFactory(related=ds, type="METHODS")
+        for ds in datasets[:25]:  # Half have Abstract
+            DatasetDescriptionFactory(related=ds, type="Abstract")
+        for ds in datasets[25:]:  # Half have Methods
+            DatasetDescriptionFactory(related=ds, type="Methods")
 
         # Act & Assert - Should use at most 5 queries regardless of dataset count
         # (1 for filter setup, 1 for count, 1 for main query, 2 for joins)
@@ -453,7 +453,7 @@ class TestFilterPerformance:
         # not visibility (see above); `DatasetFactory()` defaults to PRIVATE.
         with django_assert_max_num_queries(5):
             filterset = DatasetFilter(
-                data={"description_type": "ABSTRACT"},
+                data={"description_type": "Abstract"},
                 queryset=Dataset.all_objects.all(),
             )
             result_count = filterset.qs.count()

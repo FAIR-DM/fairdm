@@ -81,10 +81,47 @@ class TestAPortalThatDeclinesTheStep:
     """T096: a portal that drops the step from its settings does not get
     the recommended licences - nothing else creates them."""
 
-    def test_the_licences_do_not_appear_without_running_the_command(self):
+    def test_no_other_setup_step_seeds_the_licences(self, settings):
+        """Run the deploy pipeline with the licence step declined, and the
+        recommended licences stay absent. This is the half FR-007a makes a
+        requirement: seeding is a recommendation the portal may drop, so it
+        must not be smuggled in by a step it cannot drop.
+        """
         License.objects.all().delete()
 
-        assert License.objects.count() == 0
+        always_run = settings.DJANGO_SETUP_TOOLS[""]["always_run"]
+        assert ("seed_licenses",) in always_run, (
+            "the step being declined is not in always_run - see "
+            "TestSeedLicensesInThePipeline"
+        )
+
+        # The framework steps are the test harness's own job and say nothing about
+        # licences; what is worth running is every other step that loads reference
+        # data, `preload` above all.
+        framework_steps = {"migrate", "collectstatic"}
+        remaining = [
+            step
+            for step in always_run
+            if isinstance(step, tuple)
+            and step != ("seed_licenses",)
+            and step[0] not in framework_steps
+        ]
+        assert remaining, "no reference-data step left to run - the guard is vacuous"
+
+        for step in remaining:
+            call_command(*step, verbosity=0)
+
+        assert License.objects.filter(name__in=RECOMMENDED_LICENSE_NAMES).count() == 0
+
+    def test_the_command_is_what_creates_them(self):
+        """The control for the test above: the same empty database, the one
+        declined step run, and the licences appear.
+        """
+        License.objects.all().delete()
+
+        call_command("seed_licenses", verbosity=0)
+
+        assert License.objects.filter(name__in=RECOMMENDED_LICENSE_NAMES).count() == 3
 
 
 class TestSeedLicensesInThePipeline:

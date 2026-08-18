@@ -42,6 +42,23 @@ class MeasurementFilterMixin:
                 fields = MeasurementFilterMixin.Meta.fields + ['custom_field']
     """
 
+    def __init__(self, *args, **kwargs):
+        """Initialise the filter and widen the dataset choices.
+
+        On the mixin rather than on `MeasurementFilter` alone, because this is the
+        published extension point: a portal's own filter inherits `Meta.fields`, and
+        with it a "dataset" choice field whose choices come from the model's default
+        manager. That manager is privacy-first, so without this a portal developer's
+        filter would reject every private dataset - which is every dataset until
+        someone publishes it.
+        """
+        super().__init__(*args, **kwargs)
+
+        from fairdm.core.models import Dataset
+
+        if "dataset" in self.filters:
+            self.filters["dataset"].queryset = Dataset.all_objects.all()
+
     class Meta:
         """Meta configuration for MeasurementFilterMixin."""
 
@@ -123,11 +140,9 @@ class MeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
         # Import here to avoid circular imports and app registry issues
         from django.contrib.contenttypes.models import ContentType
 
-        from fairdm.core.models import Dataset
         from fairdm.core.sample.models import Sample
 
-        # Set dataset queryset
-        self.filters["dataset"].queryset = Dataset.objects.all()
+        # The dataset choices are set by `MeasurementFilterMixin.__init__` above.
 
         # Set sample queryset
         self.filters["sample"].queryset = Sample.objects.all()

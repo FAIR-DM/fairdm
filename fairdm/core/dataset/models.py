@@ -156,7 +156,7 @@ class DatasetQuerySet(QuerySet):
         )
 
 
-class DatasetManager(models.Manager.from_queryset(DatasetQuerySet)):
+class DatasetManager(models.Manager.from_queryset(DatasetQuerySet)):  # type: ignore[misc]
     """The default manager for `Dataset`. Excludes PRIVATE datasets (FR-019).
 
     Built `from_queryset(DatasetQuerySet)` so `Dataset.objects.with_related()`
@@ -178,7 +178,8 @@ class DatasetManager(models.Manager.from_queryset(DatasetQuerySet)):
     """
 
     def get_queryset(self) -> DatasetQuerySet:
-        return super().get_queryset().exclude(visibility=Visibility.PRIVATE)
+        queryset: DatasetQuerySet = super().get_queryset()
+        return queryset.exclude(visibility=Visibility.PRIVATE)
 
 
 class Dataset(BaseModel):
@@ -220,8 +221,8 @@ class Dataset(BaseModel):
     # `objects` is declared first, so Django takes it as `_default_manager`
     # (see `DatasetManager`). `all_objects` is the explicit, unfiltered
     # route FR-019 requires.
-    objects = DatasetManager()
-    all_objects = DatasetQuerySet.as_manager()  # type: ignore[assignment,misc]
+    objects = DatasetManager()  # type: ignore[misc]
+    all_objects = DatasetQuerySet.as_manager()
 
     uuid = ShortUUIDField(
         editable=False,

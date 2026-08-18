@@ -93,20 +93,20 @@ how to programmatically create metadata:
    # Temporal metadata (one per type)
    DatasetDate.objects.create(
        related=my_dataset,
-       type=\"Created\",
+       type=\"Available\",
        value=\"2024-01-15\"  # PartialDate format: YYYY, YYYY-MM, or YYYY-MM-DD
    )
    DatasetDate.objects.create(
        related=my_dataset,
-       type=\"Available\",
+       type=\"Published\",
        value=\"2024-06-01\"
    )
 
    # Additional identifiers (must be globally unique)
    DatasetIdentifier.objects.create(
        related=my_dataset,
-       type=\"ARK\",
-       value=\"ark:/12345/xyz123\"
+       type=\"DOI\",
+       value=\"10.5194/essd-12-345-2024\"
    )
    ```
 **QuerySet Optimization Patterns (T145-T146):**
@@ -116,23 +116,32 @@ improve performance. Use these patterns in your views and APIs:
 
 1. **Privacy-First Default**:
 
-   By default, Dataset.objects.all() EXCLUDES PRIVATE datasets:
+   A dataset is private unless its visibility says otherwise, and the default
+   manager excludes private datasets. Reading them is a separate, explicitly
+   named manager - there is no method that adds them back to a query that has
+   already excluded them.
 
    ```python
-   # Default behavior - excludes PRIVATE datasets
-   public_datasets = Dataset.objects.all()  # Only PUBLIC and INTERNAL
+   # Default manager - public datasets only
+   public_datasets = Dataset.objects.all()
 
-   # Explicit access to private datasets (opt-in)
-   all_datasets = Dataset.objects.with_private()  # Includes PRIVATE
+   # The explicit unfiltered route - every dataset, whatever its visibility
+   all_datasets = Dataset.all_objects.all()
 
-   # Use in views with permission checks
+   # Use in views, with the permission check deciding rather than the manager
    class DatasetListView(ListView):
        def get_queryset(self):
-           qs = Dataset.objects.all()  # Privacy-first default
+           if self.request.user.is_authenticated:
+               # Datasets this user holds rights over, private ones included
+               from guardian.shortcuts import get_objects_for_user
 
-           # Grant private access based on permissions
-           if self.request.user.has_perm('dataset.view_private'):
-               qs = qs.with_private()
+               qs = get_objects_for_user(
+                   self.request.user,
+                   "dataset.change_dataset",
+                   klass=Dataset.all_objects.all(),
+               )
+           else:
+               qs = Dataset.objects.all()  # Privacy-first default
 
            return qs.with_related()  # Optimize queries
    ```
@@ -174,13 +183,14 @@ improve performance. Use these patterns in your views and APIs:
 
 4. **Method Chaining**:
 
-   All QuerySet methods can be chained in any order:
+   The optimization methods chain onto either manager. Which manager you start
+   from is the visibility decision, and it is made once, at the front of the
+   chain - nothing later in the chain can widen it.
 
    ```python
    # Chain methods for complex queries
    datasets = (
-       Dataset.objects
-       .with_private()  # Include private datasets
+       Dataset.all_objects  # Explicitly every dataset, private included
        .filter(project=my_project)  # Filter by project
        .with_related()  # Optimize queries
        .order_by('-modified')  # Order by most recent
@@ -191,7 +201,7 @@ improve performance. Use these patterns in your views and APIs:
 
    filterset = DatasetFilter(
        data=request.GET,
-       queryset=Dataset.objects.with_private().with_related()
+       queryset=Dataset.all_objects.with_related()
    )
    filtered_datasets = filterset.qs  # Filtered and optimized
    ```

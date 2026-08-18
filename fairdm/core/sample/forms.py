@@ -60,29 +60,27 @@ class SampleFormMixin:
                 add_related_url=reverse_lazy("admin:core_dataset_add"),
             )
 
-            # The base queryset a `ModelForm` builds for a foreign key reads through the
-            # related model's default manager, which is `Dataset.objects` — privacy-first
-            # since 004-core-datasets. That pre-empts the real gate below: a dataset is
-            # private until published, so adding a sample to one's own private dataset is
-            # the normal case, and the guardian permission check is what decides it, not
-            # the manager. `all_objects` is the explicit, unfiltered route for exactly this.
             from fairdm.core.dataset.models import Dataset
 
-            self.fields["dataset"].queryset = Dataset.all_objects.all()
-
-            # Filter dataset queryset based on user permissions
+            # `all_objects` is only ever the base the permission check below narrows,
+            # never the queryset the form is left holding. `request` is optional on this
+            # mixin and nothing enforces it, so a caller that omits it has shown no
+            # subject to authorise - and is left with the queryset `ModelForm` built
+            # from the default manager, which is privacy-first. Assigning `all_objects`
+            # unconditionally would have offered every private dataset in the portal to
+            # a caller that had proven nothing.
             if (
                 self.request
                 and hasattr(self.request, "user")
                 and self.request.user.is_authenticated
             ):
-                # Filter to datasets where user has add_sample permission
+                # Filter to datasets where the user holds change_dataset
                 from guardian.shortcuts import get_objects_for_user
 
                 self.fields["dataset"].queryset = get_objects_for_user(
                     self.request.user,
                     "dataset.change_dataset",
-                    klass=self.fields["dataset"].queryset,
+                    klass=Dataset.all_objects.all(),
                 )
 
         if "status" in self.fields:

@@ -7,8 +7,14 @@ inside template rendering, which no unit test reaches. These do.
 
 import pytest
 from django.urls import reverse
+from guardian.shortcuts import assign_perm
 
-from fairdm.factories import DatasetFactory, ProjectFactory, SampleFactory
+from fairdm.factories import (
+    DatasetFactory,
+    ProjectFactory,
+    SampleFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -20,11 +26,29 @@ class TestRecordPagesServe:
 
     def test_dataset_plugin_page(self, client):
         """Dataset has no overview plugin; its own detail view serves that."""
+        user = UserFactory()
         dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
         response = client.get(
             reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         )
         assert response.status_code == 200
+
+    def test_dataset_plugin_page_is_closed_to_a_visitor(self, client):
+        """The dataset management pages edit the record, so they are not open to
+        someone holding only its address. Before they declared a permission the
+        plugin machinery admitted every request, anonymous included, and served a
+        private dataset's descriptions to it.
+        """
+        dataset = DatasetFactory()
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
+
+        anonymous = client.get(url)
+        assert anonymous.status_code == 302
+
+        client.force_login(UserFactory())
+        assert client.get(url).status_code == 403
 
     def test_project_plugin_page(self, client):
         project = ProjectFactory()

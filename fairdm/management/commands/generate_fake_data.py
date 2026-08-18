@@ -195,7 +195,9 @@ class Command(BaseCommand):
             with transaction.atomic():
                 Measurement.objects.all().delete()
                 Sample.objects.all().delete()
-                Dataset.objects.all().delete()
+                # Generated datasets are private, so the privacy-first default manager
+                # would leave every one of them behind.
+                Dataset.all_objects.all().delete()
                 Project.objects.all().delete()
                 Contribution.objects.all().delete()
                 Person.objects.all().delete()
@@ -238,7 +240,9 @@ class Command(BaseCommand):
         )
         self.stdout.write(f"  Projects: {len(projects)}")
 
-        total_datasets = Dataset.objects.count()
+        # Counted through `all_objects`: what the command generated is private, and the
+        # summary reports what it did, not what a visitor would see.
+        total_datasets = Dataset.all_objects.count()
         total_samples = Sample.objects.count()
         total_measurements = Measurement.objects.count()
         total_contributions = Contribution.objects.count()

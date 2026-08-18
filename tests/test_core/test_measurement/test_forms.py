@@ -8,6 +8,8 @@ queryset filtering based on dataset context, and integration patterns.
 import pytest
 from django import forms
 from django.contrib.auth import get_user_model
+from django.test import RequestFactory
+from guardian.shortcuts import assign_perm
 
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
@@ -15,10 +17,24 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
     SampleFactory,
+    UserFactory,
 )
 from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
 
 User = get_user_model()
+
+
+def _request_for(user):
+    """A minimal request carrying an authenticated user.
+
+    `MeasurementFormMixin` narrows the dataset choices to what the request's user
+    may change, and leaves them at the privacy-first default when no request is
+    given. A form exercised without one therefore cannot select a private dataset -
+    which is what the tests below need, and what a portal's own view supplies.
+    """
+    request = RequestFactory().get("/")
+    request.user = user
+    return request
 
 
 @pytest.mark.django_db
@@ -162,7 +178,9 @@ class TestMeasurementFormPolymorphicHandling:
 
     def test_form_handles_polymorphic_type_creation(self):
         """Test that MeasurementForm handles polymorphic type creation correctly."""
+        user = UserFactory()
         dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
         sample = SampleFactory(dataset=dataset)
 
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
@@ -178,7 +196,7 @@ class TestMeasurementFormPolymorphicHandling:
             "concentration_ppm": "25.5",
         }
 
-        form = XRFMeasurementForm(data=form_data)
+        form = XRFMeasurementForm(data=form_data, request=_request_for(user))
         assert form.is_valid(), f"Form errors: {form.errors}"
 
         # Save and verify instance is correct polymorphic type
@@ -188,8 +206,10 @@ class TestMeasurementFormPolymorphicHandling:
 
     def test_form_handles_cross_dataset_sample_reference(self):
         """Test that MeasurementForm allows measurements to reference samples from different datasets."""
+        user = UserFactory()
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
+        assign_perm("change_dataset", user, dataset1)
         sample_in_dataset2 = SampleFactory(dataset=dataset2)
 
         class ExampleMeasurementForm(MeasurementFormMixin, forms.ModelForm):
@@ -206,7 +226,7 @@ class TestMeasurementFormPolymorphicHandling:
             "float_field": "1.5",
         }
 
-        form = ExampleMeasurementForm(data=form_data)
+        form = ExampleMeasurementForm(data=form_data, request=_request_for(user))
         assert form.is_valid(), f"Form errors: {form.errors}"
 
         instance = form.save()

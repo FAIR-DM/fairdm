@@ -6,7 +6,7 @@ The DatasetFilter class enables filtering by:
 
 1. **License**: Exact match filtering by license
 2. **Project**: Choice-based filtering by associated project
-3. **Visibility**: Choice-based filtering by visibility level (PUBLIC/INTERNAL/PRIVATE)
+3. **Visibility**: Choice-based filtering by visibility level (PUBLIC/PRIVATE)
 4. **Generic Search**: Search across name, UUID, and keywords
 5. **Cross-relationship Filters**: Filter by related DatasetDescription and DatasetDate types
 

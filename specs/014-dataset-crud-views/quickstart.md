@@ -73,9 +73,12 @@ class TestDatasetUpdateView:
         response = client.get(url)
         assert response.status_code == 302
 
+    # Superseded by 004-core-datasets: a private dataset answers 404 here, not 403,
+    # so the address of a private dataset is not confirmed. 403 still holds for a
+    # public dataset the user may read but not change.
     def test_no_permission_returns_403(self, client):
         user = UserFactory()
-        dataset = DatasetFactory()
+        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
         url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
@@ -100,9 +103,12 @@ class TestDatasetDeleteView:
         response = client.get(url)
         assert response.status_code == 302
 
+    # Superseded by 004-core-datasets: a private dataset answers 404 here, not 403,
+    # so the address of a private dataset is not confirmed. 403 still holds for a
+    # public dataset the user may read but not change.
     def test_no_permission_returns_403(self, client):
         user = UserFactory()
-        dataset = DatasetFactory()
+        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
         url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
