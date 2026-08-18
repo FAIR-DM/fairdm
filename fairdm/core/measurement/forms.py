@@ -64,6 +64,17 @@ class MeasurementFormMixin:
                 add_related_url=reverse_lazy("admin:core_dataset_add"),
             )
 
+            # The base queryset a `ModelForm` builds for a foreign key reads through the
+            # related model's default manager, which is `Dataset.objects` — privacy-first
+            # since 004-core-datasets. That pre-empts the real gate below: a dataset is
+            # private until published, so adding a measurement to one's own private
+            # dataset is the normal case, and the guardian permission check is what
+            # decides it, not the manager. `all_objects` is the explicit, unfiltered
+            # route for exactly this.
+            from fairdm.core.dataset.models import Dataset
+
+            self.fields["dataset"].queryset = Dataset.all_objects.all()
+
             # Filter dataset queryset based on user permissions
             if (
                 self.request
@@ -77,7 +88,7 @@ class MeasurementFormMixin:
                 self.fields["dataset"].queryset = get_objects_for_user(
                     self.request.user,
                     "dataset.change_dataset",
-                    klass=self.fields["dataset"].queryset.model,
+                    klass=self.fields["dataset"].queryset,
                 )
 
         if "sample" in self.fields:

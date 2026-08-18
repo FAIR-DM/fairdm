@@ -13,6 +13,7 @@ comprehensive filtering capabilities for Measurement models including:
 import pytest
 from django.contrib.auth import get_user_model
 
+from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.filters import MeasurementFilter
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.factories import DatasetFactory, SampleFactory
@@ -28,9 +29,17 @@ class TestMeasurementFilterDatasetFiltering:
 
     def test_filter_by_dataset(self, user, project):
         """Test filtering measurements by dataset relationship."""
-        # Create two datasets
-        dataset1 = DatasetFactory(project=project)
-        dataset2 = DatasetFactory(project=project)
+        # Create two datasets. Public: the subject here is dataset filtering, not
+        # visibility, and `MeasurementFilter`'s "dataset" choice field builds its
+        # valid choices from `Dataset.objects` (privacy-first, 004-core-datasets
+        # FR-019), so a private dataset would fail `filterset.is_valid()` before
+        # the filter itself is ever exercised.
+        dataset1 = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
+        dataset2 = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
 
         sample1 = SampleFactory(dataset=dataset1)
         sample2 = SampleFactory(dataset=dataset2)
@@ -302,8 +311,13 @@ class TestMeasurementFilterCombinedFilters:
 
     def test_combined_filters_dataset_and_sample(self, user, project):
         """Test applying multiple filters simultaneously."""
-        dataset1 = DatasetFactory(project=project)
-        dataset2 = DatasetFactory(project=project)
+        # Public: subject is dataset+sample filtering, not visibility (see above).
+        dataset1 = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
+        dataset2 = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
 
         sample1 = SampleFactory(dataset=dataset1, name="Sample 1")
         sample2 = SampleFactory(dataset=dataset1, name="Sample 2")

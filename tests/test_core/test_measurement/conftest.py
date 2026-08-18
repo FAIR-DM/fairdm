@@ -7,6 +7,7 @@ Provides reusable fixtures for testing the Measurement model and related functio
 import pytest
 from django.contrib.auth import get_user_model
 
+from fairdm.core.dataset.models import Dataset
 from fairdm.factories import (
     DatasetFactory,
     MeasurementFactory,
@@ -33,8 +34,14 @@ def project(db):
 
 @pytest.fixture
 def dataset(db, project):
-    """Create a test dataset linked to a project."""
-    return DatasetFactory(project=project)
+    """Create a test dataset linked to a project.
+
+    Public: no test in this module's subject is visibility, and `MeasurementFilter`'s
+    "dataset" choice field builds its valid choices from `Dataset.objects`
+    (privacy-first, 004-core-datasets FR-019) — a private dataset would fail
+    `filterset.is_valid()` in any test that filters by it.
+    """
+    return DatasetFactory(project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
 
 
 @pytest.fixture

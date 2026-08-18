@@ -67,8 +67,12 @@ class TestLicenseFilter:
         DatasetFactory(license=cc0)  # Should be excluded
 
         # Act
+        # Base queryset is `all_objects`, not `objects`: this test's subject is
+        # license filtering, not visibility, and `DatasetFactory()` defaults to
+        # PRIVATE (004-core-datasets FR-019), which the privacy-first default
+        # manager would otherwise exclude before the license filter ever runs.
         filterset = DatasetFilter(
-            data={"license": cc_by.id}, queryset=Dataset.objects.all()
+            data={"license": cc_by.id}, queryset=Dataset.all_objects.all()
         )
 
         # Assert
@@ -83,7 +87,8 @@ class TestLicenseFilter:
         DatasetFactory.create_batch(3)
 
         # Act
-        filterset = DatasetFilter(data={}, queryset=Dataset.objects.all())
+        # `all_objects`: subject is license filtering, not visibility (see above).
+        filterset = DatasetFilter(data={}, queryset=Dataset.all_objects.all())
 
         # Assert
         assert filterset.is_valid()
@@ -109,8 +114,9 @@ class TestProjectFilter:
         DatasetFactory(project=project2)  # Should be excluded
 
         # Act
+        # `all_objects`: subject is project filtering, not visibility (see above).
         filterset = DatasetFilter(
-            data={"project": project1.id}, queryset=Dataset.objects.all()
+            data={"project": project1.id}, queryset=Dataset.all_objects.all()
         )
 
         # Assert
@@ -166,9 +172,14 @@ class TestVisibilityFilter:
         ds_private = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
 
         # Act
+        # Base queryset is `all_objects`: this test's subject IS visibility, and
+        # `Dataset.objects` (privacy-first, 004-core-datasets FR-019) would exclude
+        # the private row before the filter ever saw it, leaving nothing to prove
+        # the filter itself narrows correctly. `all_objects` supplies both rows so
+        # the filter — not the manager — is what is under test.
         filterset = DatasetFilter(
             data={"visibility": Dataset.VISIBILITY_CHOICES.PRIVATE},
-            queryset=Dataset.objects.all(),
+            queryset=Dataset.all_objects.all(),
         )
 
         # Assert
@@ -199,8 +210,9 @@ class TestGenericSearch:
         DatasetFactory(name="Weather Station Data")
 
         # Act
+        # `all_objects`: subject is search matching, not visibility (see above).
         filterset = DatasetFilter(
-            data={"search": "Geological"}, queryset=Dataset.objects.all()
+            data={"search": "Geological"}, queryset=Dataset.all_objects.all()
         )
 
         # Assert
@@ -216,8 +228,9 @@ class TestGenericSearch:
 
         # Act - search by first 8 characters of UUID
         search_term = str(ds_match.uuid)[:8]
+        # `all_objects`: subject is search matching, not visibility (see above).
         filterset = DatasetFilter(
-            data={"search": search_term}, queryset=Dataset.objects.all()
+            data={"search": search_term}, queryset=Dataset.all_objects.all()
         )
 
         # Assert
@@ -239,8 +252,9 @@ class TestGenericSearch:
         ds_match = DatasetFactory(name="Geological Survey")
 
         # Act
+        # `all_objects`: subject is search matching, not visibility (see above).
         filterset = DatasetFilter(
-            data={"search": "geological"}, queryset=Dataset.objects.all()
+            data={"search": "geological"}, queryset=Dataset.all_objects.all()
         )
 
         # Assert
@@ -254,8 +268,9 @@ class TestGenericSearch:
         ds_match = DatasetFactory(name="Geological Survey 2024")
 
         # Act
+        # `all_objects`: subject is search matching, not visibility (see above).
         filterset = DatasetFilter(
-            data={"search": "Survey"}, queryset=Dataset.objects.all()
+            data={"search": "Survey"}, queryset=Dataset.all_objects.all()
         )
 
         # Assert
@@ -269,7 +284,8 @@ class TestGenericSearch:
         DatasetFactory.create_batch(3)
 
         # Act
-        filterset = DatasetFilter(data={"search": ""}, queryset=Dataset.objects.all())
+        # `all_objects`: subject is search matching, not visibility (see above).
+        filterset = DatasetFilter(data={"search": ""}, queryset=Dataset.all_objects.all())
 
         # Assert
         assert filterset.is_valid()
@@ -329,9 +345,10 @@ class TestMultipleFilterCombinations:
         DatasetFactory(license=cc0, project=project1)  # Wrong license
 
         # Act
+        # `all_objects`: subject is license/project filtering, not visibility (see above).
         filterset = DatasetFilter(
             data={"license": cc_by.id, "project": project1.id},
-            queryset=Dataset.objects.all(),
+            queryset=Dataset.all_objects.all(),
         )
 
         # Assert
@@ -432,9 +449,12 @@ class TestFilterPerformance:
 
         # Act & Assert - Should use at most 5 queries regardless of dataset count
         # (1 for filter setup, 1 for count, 1 for main query, 2 for joins)
+        # `all_objects`: subject is query-count under cross-relationship filtering,
+        # not visibility (see above); `DatasetFactory()` defaults to PRIVATE.
         with django_assert_max_num_queries(5):
             filterset = DatasetFilter(
-                data={"description_type": "ABSTRACT"}, queryset=Dataset.objects.all()
+                data={"description_type": "ABSTRACT"},
+                queryset=Dataset.all_objects.all(),
             )
             result_count = filterset.qs.count()
             assert result_count == 25

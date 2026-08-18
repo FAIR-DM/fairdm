@@ -119,10 +119,16 @@ class DatasetViewSet(BaseViewSet):
 
     @property
     def queryset(self):
-        return Dataset.objects.all()
+        # `all_objects` here, not `objects`: the visibility gate for this
+        # endpoint is `FairDMVisibilityFilter` (list) and
+        # `FairDMObjectPermissions.has_object_permission` (detail), both of
+        # which union in guardian-permitted private datasets. Starting from
+        # the privacy-first default manager would pre-empt that union and
+        # hide a private dataset from a user who holds `view_dataset` on it.
+        return Dataset.all_objects.all()
 
     def get_queryset(self):
-        return Dataset.objects.all()
+        return Dataset.all_objects.all()
 
     def get_serializer_class(self):
         if hasattr(self, "_serializer_class"):

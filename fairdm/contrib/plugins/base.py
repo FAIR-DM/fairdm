@@ -192,7 +192,31 @@ class Plugin(PermissionRequiredMixin, View):
                 )
                 raise ValueError(msg)
 
-        return get_object_or_404(self.registered_model, **filters)
+        # The plugin's own `has_permission` (via `can_open`) is the access decision for this
+        # record. A model whose default manager is privacy-first (e.g. `Dataset.objects`) would
+        # otherwise 404 a private record before that check ever runs. `all_objects`, where a
+        # model declares one, is the explicit unfiltered route (see 004-core-datasets R1); models
+        # without one keep the default manager unchanged.
+        manager = getattr(self.registered_model, "all_objects", self.registered_model)
+        return get_object_or_404(manager, **filters)
+
+    def get_queryset(self):
+        """Base queryset for plugins built on Django's ``SingleObjectMixin``.
+
+        A plugin such as ``DescriptionsPlugin`` (``InlineFormSetView``) resolves its own record
+        through ``SingleObjectMixin.get_object()``, not through ``get_base_object()`` above, so the
+        same regression applies there: a privacy-first default manager would 404 a private record
+        before ``has_permission()`` (``can_open``) ever runs. Reads through ``all_objects`` where
+        the served model declares one, for the same reason and by the same rule as
+        ``get_base_object()``. Falls through to the next class in the MRO (typically
+        ``SingleObjectMixin.get_queryset()``) for anything else, and views that declare their own
+        ``queryset``/``get_queryset`` are unaffected — Django resolves those first.
+        """
+        model = self.registered_model or self.model
+        manager = getattr(model, "all_objects", None) if model is not None else None
+        if manager is not None:
+            return manager.all()
+        return super().get_queryset()  # type: ignore[misc]
 
     def has_permission(self) -> bool:
         """Whether this request may open this view.
