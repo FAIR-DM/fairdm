@@ -1,86 +1,181 @@
-"""Integration tests for Dataset admin interface workflows.
+"""Integration tests for the Dataset admin interface (US-6).
 
-This module tests the Django admin interface enhancements for Dataset management,
-including search functionality, filtering, inline editing, bulk operations, and
-visibility controls.
-
-These tests follow the TDD approach - they are written BEFORE implementation and
-should FAIL initially. Once the admin interface is properly configured (Phase 4
-implementation tasks T067-T083), these tests will pass.
+Covers search, filtering, inline editing, the abstract/DOI list columns,
+the absence of any bulk visibility action, readonly fields and the
+licence-change warning (FR-023 to FR-028).
 """
 
 import pytest
 from django.contrib.admin.sites import AdminSite
+from django.test import RequestFactory
 from django.urls import reverse
+from licensing.models import License
 
-from fairdm.core.dataset.admin import DateInline, DescriptionInline
+from fairdm.core.dataset.admin import (
+    DatasetAdmin,
+    DateInline,
+    DescriptionInline,
+    IdentifierInline,
+)
 from fairdm.core.dataset.models import (
     Dataset,
     DatasetDate,
     DatasetDescription,
+    DatasetIdentifier,
 )
-from fairdm.factories.core import DatasetFactory, ProjectFactory
+from fairdm.factories.core import (
+    DatasetFactory,
+    DatasetIdentifierFactory,
+    ProjectFactory,
+)
+from fairdm.utils.choices import Visibility
+
+
+def _result_pks(response):
+    """The primary keys the changelist actually matched - read off the
+    `ChangeList` Django's admin builds, which is the result set itself,
+    not the rendered markup.
+    """
+    return {obj.pk for obj in response.context["cl"].result_list}
 
 
 @pytest.mark.django_db
-class TestAdminSearchByNameAndUUID:
-    """Test admin search functionality by dataset name and UUID (T055)."""
+class TestDatasetAdminSearch:
+    """T076/FR-023: each search term finds a dataset that matches it -
+    name, generated identifier, external identifier and project - asserted
+    against the changelist's actual result set.
+    """
 
-    def test_search_by_exact_name(self, admin_client):
-        """Test searching for dataset by exact name match."""
-        # Create test datasets
-        DatasetFactory(name="Climate Research Data")
-        DatasetFactory(name="Ocean Temperature Readings")
-        DatasetFactory(name="Solar Energy Measurements")
+    def test_search_by_name(self, admin_client):
+        match = DatasetFactory(name="Climate Research Data")
+        other = DatasetFactory(name="Ocean Temperature Readings")
 
         url = reverse("admin:dataset_dataset_changelist")
         response = admin_client.get(url, {"q": "Climate Research Data"})
 
         assert response.status_code == 200
-        content = response.content.decode()
-        assert "Climate Research Data" in content
-        # Other datasets should not appear (or show "no results")
-        assert "Ocean Temperature" not in content or "no results" in content.lower()
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
 
-    def test_search_by_partial_name(self, admin_client):
-        """Test searching for dataset by partial name match."""
-        DatasetFactory(name="Climate Research Data")
-
-        url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url, {"q": "Research"})
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Climate Research Data" in content
-
-    def test_search_by_uuid(self, admin_client):
-        """Test searching for dataset by UUID."""
-        dataset1 = DatasetFactory(name="Climate Research Data")
+    def test_search_by_generated_identifier(self, admin_client):
+        match = DatasetFactory(name="Climate Research Data")
+        other = DatasetFactory(name="Ocean Temperature Readings")
 
         url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url, {"q": str(dataset1.uuid)})
+        response = admin_client.get(url, {"q": str(match.uuid)})
 
         assert response.status_code == 200
-        content = response.content.decode()
-        assert dataset1.name in content
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
 
-    def test_search_by_partial_uuid(self, admin_client):
-        """Test searching for dataset by partial UUID."""
-        dataset1 = DatasetFactory(name="Climate Research Data")
+    def test_search_by_external_identifier(self, admin_client):
+        match = DatasetFactory(name="Climate Research Data")
+        other = DatasetFactory(name="Ocean Temperature Readings")
+        DatasetIdentifierFactory(
+            related=match, type="DOI", value="10.1234/climate-example"
+        )
 
         url = reverse("admin:dataset_dataset_changelist")
-        # Use first 8 characters of UUID
-        partial_uuid = str(dataset1.uuid)[:8]
-        response = admin_client.get(url, {"q": partial_uuid})
+        response = admin_client.get(url, {"q": "10.1234/climate-example"})
 
         assert response.status_code == 200
-        content = response.content.decode()
-        assert dataset1.name in content
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
+
+    def test_search_by_project(self, admin_client):
+        project = ProjectFactory(name="Example Research Project")
+        match = DatasetFactory(name="Climate Research Data", project=project)
+        other = DatasetFactory(name="Ocean Temperature Readings")
+
+        url = reverse("admin:dataset_dataset_changelist")
+        response = admin_client.get(url, {"q": "Example Research Project"})
+
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
+
+
+@pytest.mark.django_db
+class TestDatasetAdminFilters:
+    """T077/FR-023: each filter narrows to the matching datasets *and*
+    removes the non-matching ones.
+    """
+
+    def test_filter_by_project(self, admin_client):
+        project_a = ProjectFactory(name="Project A")
+        project_b = ProjectFactory(name="Project B")
+        match = DatasetFactory(name="Dataset 1", project=project_a)
+        other = DatasetFactory(name="Dataset 2", project=project_b)
+
+        url = reverse("admin:dataset_dataset_changelist")
+        response = admin_client.get(url, {"project__id__exact": str(project_a.pk)})
+
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
+
+    def test_filter_by_visibility(self, admin_client):
+        match = DatasetFactory(name="Public Dataset", visibility=Visibility.PUBLIC)
+        other = DatasetFactory(name="Private Dataset", visibility=Visibility.PRIVATE)
+
+        url = reverse("admin:dataset_dataset_changelist")
+        response = admin_client.get(
+            url, {"visibility__exact": str(Visibility.PUBLIC.value)}
+        )
+
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
+
+    def test_filter_by_license(self, admin_client):
+        """The session-level `django_db_setup` fixture seeds the
+        recommended licences through `seed_licenses` before any test
+        runs (T099), so CC BY 4.0 and CC BY-SA 4.0 already exist here.
+        """
+        cc_by = License.objects.get(name="CC BY 4.0")
+        cc_by_sa = License.objects.get(name="CC BY-SA 4.0")
+        match = DatasetFactory(name="Open Data", license=cc_by)
+        other = DatasetFactory(name="ShareAlike Data", license=cc_by_sa)
+
+        url = reverse("admin:dataset_dataset_changelist")
+        response = admin_client.get(url, {"license__id__exact": str(cc_by.pk)})
+
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
+
+
+@pytest.mark.django_db
+class TestAdminChangelistIncludesPrivateDatasets:
+    """T062 / FR-019a: the admin dataset list shows private datasets - the
+    interface that repairs a portal must reach the records that need
+    repairing. `DatasetAdmin.get_queryset()` uses `Dataset.all_objects`
+    rather than the privacy-first default manager (T067).
+    """
+
+    def test_private_dataset_appears_in_the_unfiltered_changelist(
+        self, admin_client
+    ):
+        DatasetFactory(name="Unfinished Private Dataset", visibility=Visibility.PRIVATE)
+
+        url = reverse("admin:dataset_dataset_changelist")
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        pks = {obj.pk for obj in response.context["cl"].result_list}
+        assert Dataset.all_objects.get(name="Unfinished Private Dataset").pk in pks
 
 
 @pytest.mark.django_db
 class TestAdminListDisplayFields:
-    """Test admin list_display configuration (T056)."""
+    """Test admin list_display configuration."""
 
     def test_list_display_shows_name(self, admin_client):
         """Test that name field appears in admin list display."""
@@ -130,98 +225,8 @@ class TestAdminListDisplayFields:
 
 
 @pytest.mark.django_db
-class TestAdminListFilterOptions:
-    """Test admin list_filter configuration (T057)."""
-
-    def test_filter_by_project(self, admin_client):
-        """Test filtering datasets by project."""
-        # Create projects and datasets
-        project1 = ProjectFactory(name="Project A")
-        project2 = ProjectFactory(name="Project B")
-        DatasetFactory(name="Dataset 1", project=project1)
-        DatasetFactory(name="Dataset 2", project=project2)
-
-        url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url, {"project__id__exact": str(project1.pk)})
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Dataset 1" in content
-        # Dataset 2 should not appear in filtered results
-        assert "Dataset 2" not in content or "no results" in content.lower()
-
-    def test_filter_by_license(self):
-        """Test filtering datasets by license.
-
-        NOTE: This test uses placeholder License model access.
-        Will need to be updated during implementation (T070) to match
-        actual django-content-license API.
-        """
-        # TODO: Replace with actual License model import during implementation
-        # from fairdm.contrib.content_license.models import License
-        pytest.skip(
-            "License filtering test pending implementation - needs correct License model import"
-        )
-
-        # Create licenses
-        # cc_by = License.objects.get_or_create(name="CC BY 4.0")[0]
-        # cc_by_sa = License.objects.get_or_create(name="CC BY-SA 4.0")[0]
-        #
-        # dataset_cc_by = DatasetFactory(name="Open Data", license=cc_by)
-        # dataset_cc_by_sa = DatasetFactory(name="ShareAlike Data", license=cc_by_sa)
-        #
-        # self.client.force_login(self.admin_user)
-        # url = reverse("admin:dataset_dataset_changelist")
-        # response = self.client.get(url, {"license__id__exact": str(cc_by.pk)})
-        #
-        # assert response.status_code == 200
-        # content = response.content.decode()
-        # assert "Open Data" in content
-
-    def test_filter_by_visibility(self, admin_client):
-        """Test filtering datasets by visibility."""
-        from fairdm.utils.choices import Visibility
-
-        # Create datasets with different visibility settings
-        DatasetFactory(name="Public Dataset", visibility=Visibility.PUBLIC.value)
-        DatasetFactory(name="Private Dataset", visibility=Visibility.PRIVATE.value)
-
-        url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(
-            url, {"visibility__exact": str(Visibility.PUBLIC.value)}
-        )
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Public Dataset" in content
-
-
-@pytest.mark.django_db
-class TestAdminChangelistIncludesPrivateDatasets:
-    """T062 / FR-019a: the admin dataset list shows private datasets - the
-    interface that repairs a portal must reach the records that need
-    repairing. `DatasetAdmin.get_queryset()` uses `Dataset.all_objects`
-    rather than the privacy-first default manager (T067).
-    """
-
-    def test_private_dataset_appears_in_the_unfiltered_changelist(
-        self, admin_client
-    ):
-        from fairdm.utils.choices import Visibility
-
-        DatasetFactory(name="Unfinished Private Dataset", visibility=Visibility.PRIVATE)
-
-        url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Unfinished Private Dataset" in content
-
-
-@pytest.mark.django_db
 class TestInlineDescriptionEditing:
-    """Test admin inline editing of dataset descriptions (T058)."""
+    """Test admin inline editing of dataset descriptions."""
 
     def test_inline_description_shown_in_change_form(self, admin_client):
         """Test that description inline is displayed in dataset change form."""
@@ -241,49 +246,31 @@ class TestInlineDescriptionEditing:
         dataset = DatasetFactory(name="Test Dataset")
         url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
 
-        # Prepare inline form data
         form_data = {
             "name": dataset.name,
             "project": dataset.project.pk,
             "visibility": dataset.visibility,
-            # Description inline formset management form (uses default_related_name from Meta)
             "descriptions-TOTAL_FORMS": "1",
             "descriptions-INITIAL_FORMS": "0",
             "descriptions-MIN_NUM_FORMS": "0",
             "descriptions-MAX_NUM_FORMS": "1000",
-            # First inline form
             "descriptions-0-related": dataset.pk,
             "descriptions-0-type": "Abstract",
             "descriptions-0-value": "This is a test description added via inline form.",
-            # Date inline (empty - but management form required)
             "dates-TOTAL_FORMS": "0",
             "dates-INITIAL_FORMS": "0",
             "dates-MIN_NUM_FORMS": "0",
             "dates-MAX_NUM_FORMS": "1000",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
             "_continue": "Save and continue editing",
         }
 
         response = admin_client.post(url, data=form_data)
 
-        # Debug: Check for form errors
-        if response.status_code == 200:
-            # Form had validation errors - stayed on the same page
-            content = response.content.decode()
-            if "error" in content.lower():
-                print("\n=== FORM ERRORS DETECTED ===")
-                # Extract error messages for debugging
-                import re
-
-                errors = re.findall(
-                    r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL
-                )
-                for error in errors:
-                    print(error)
-
-        # Should redirect or show success
         assert response.status_code in [200, 302]
-
-        # Check that description was created
         descriptions = DatasetDescription.objects.filter(related=dataset)
         assert descriptions.count() > 0, (
             f"Expected descriptions to be created, but found {descriptions.count()}"
@@ -292,7 +279,6 @@ class TestInlineDescriptionEditing:
     def test_can_edit_existing_description_via_inline(self, admin_client):
         """Test editing an existing description through inline form."""
         dataset = DatasetFactory(name="Test Dataset")
-        # Create existing description
         existing_desc = DatasetDescription.objects.create(
             related=dataset,
             type="Abstract",
@@ -301,39 +287,38 @@ class TestInlineDescriptionEditing:
 
         url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
 
-        # Update description via inline form
         form_data = {
             "name": dataset.name,
             "project": dataset.project.pk,
             "visibility": dataset.visibility,
-            # Description inline formset management form (uses default_related_name from Meta)
             "descriptions-TOTAL_FORMS": "1",
             "descriptions-INITIAL_FORMS": "1",
             "descriptions-MIN_NUM_FORMS": "0",
             "descriptions-MAX_NUM_FORMS": "1000",
-            # Edit the existing inline form
             "descriptions-0-id": existing_desc.pk,
             "descriptions-0-related": dataset.pk,
             "descriptions-0-type": "Abstract",
             "descriptions-0-value": "Updated abstract text",
-            # Date inline (empty - but management form required)
             "dates-TOTAL_FORMS": "0",
             "dates-INITIAL_FORMS": "0",
             "dates-MIN_NUM_FORMS": "0",
             "dates-MAX_NUM_FORMS": "1000",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
             "_continue": "Save and continue editing",
         }
 
         admin_client.post(url, data=form_data)
 
-        # Check that description was updated
         existing_desc.refresh_from_db()
         assert "Updated abstract text" in existing_desc.value
 
 
 @pytest.mark.django_db
 class TestInlineDateEditing:
-    """Test admin inline editing of dataset dates (T059)."""
+    """Test admin inline editing of dataset dates."""
 
     def test_inline_date_shown_in_change_form(self, admin_client):
         """Test that date inline is displayed in dataset change form."""
@@ -343,7 +328,6 @@ class TestInlineDateEditing:
 
         assert response.status_code == 200
         content = response.content.decode()
-        # Look for inline formset elements
         assert "datasetdate" in content.lower() or "date" in content.lower()
 
     def test_can_add_date_via_inline(self, admin_client):
@@ -351,53 +335,140 @@ class TestInlineDateEditing:
         dataset = DatasetFactory(name="Test Dataset")
         url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
 
-        # Prepare inline form data
         form_data = {
             "name": dataset.name,
             "project": dataset.project.pk,
             "visibility": dataset.visibility,
-            # Description inline (empty)
             "descriptions-TOTAL_FORMS": "0",
             "descriptions-INITIAL_FORMS": "0",
             "descriptions-MIN_NUM_FORMS": "0",
             "descriptions-MAX_NUM_FORMS": "1000",
-            # Date inline formset management form (uses default_related_name from Meta)
             "dates-TOTAL_FORMS": "1",
             "dates-INITIAL_FORMS": "0",
             "dates-MIN_NUM_FORMS": "0",
             "dates-MAX_NUM_FORMS": "1000",
-            # First inline form
             "dates-0-related": dataset.pk,
             "dates-0-type": "Available",
             "dates-0-value": "2024-01-15",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
             "_continue": "Save and continue editing",
         }
 
         response = admin_client.post(url, data=form_data)
 
-        # Debug: Check for form errors
-        if response.status_code == 200:
-            # Form had validation errors - stayed on the same page
-            content = response.content.decode()
-            if "error" in content.lower():
-                print("\n=== FORM ERRORS DETECTED (DATE TEST) ===")
-                # Extract error messages for debugging
-                import re
-
-                errors = re.findall(
-                    r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL
-                )
-                for error in errors:
-                    print(error)
-
-        # Should redirect or show success
         assert response.status_code in [200, 302]
-
-        # Check that date was created
         dates = DatasetDate.objects.filter(related=dataset)
-        assert dates.count() > 0, (
-            f"Expected dates to be created, but found {dates.count()}"
+        assert dates.count() > 0, f"Expected dates to be created, but found {dates.count()}"
+
+
+@pytest.mark.django_db
+class TestDatasetAdminInlines:
+    """T078/T085/FR-024: a description, a date and an identifier added
+    inline all persist - through a real form submission, not by the page
+    mentioning the word.
+    """
+
+    @staticmethod
+    def _base_form_data(dataset):
+        return {
+            "name": dataset.name,
+            "project": dataset.project.pk if dataset.project else "",
+            "visibility": dataset.visibility,
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "1000",
+            "dates-TOTAL_FORMS": "0",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "1000",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
+            "_continue": "Save and continue editing",
+        }
+
+    def test_description_date_and_identifier_persist_through_one_submission(
+        self, admin_client
+    ):
+        dataset = DatasetFactory(name="Test Dataset")
+        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
+
+        form_data = self._base_form_data(dataset)
+        form_data.update(
+            {
+                "descriptions-TOTAL_FORMS": "1",
+                "descriptions-0-related": dataset.pk,
+                "descriptions-0-type": "Abstract",
+                "descriptions-0-value": "An abstract added inline.",
+                "dates-TOTAL_FORMS": "1",
+                "dates-0-related": dataset.pk,
+                "dates-0-type": "Available",
+                "dates-0-value": "2024-01-15",
+                "identifiers-TOTAL_FORMS": "1",
+                "identifiers-0-related": dataset.pk,
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "10.1234/inline-test",
+            }
         )
+
+        response = admin_client.post(url, data=form_data)
+
+        assert response.status_code == 302, (
+            "A 200 here means the formset rejected the submission - check "
+            "the change form's error list."
+        )
+        assert DatasetDescription.objects.filter(
+            related=dataset, type="Abstract", value="An abstract added inline."
+        ).exists()
+        assert DatasetDate.objects.filter(related=dataset, type="Available").exists()
+        assert DatasetIdentifier.objects.filter(
+            related=dataset, type="DOI", value="10.1234/inline-test"
+        ).exists()
+
+
+@pytest.mark.django_db
+class TestDatasetAdminInlineRowLimits:
+    """T079/FR-024: each inline offers no more rows than its vocabulary
+    has types.
+    """
+
+    def test_description_inline_max_num_matches_vocabulary_size(self, admin_user):
+        vocabulary_size = len(Dataset.DESCRIPTION_TYPES.choices)
+
+        admin_site = AdminSite()
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = DescriptionInline(Dataset, admin_site)
+        formset = inline.get_formset(request)
+
+        assert formset.max_num == vocabulary_size
+
+    def test_date_inline_max_num_matches_vocabulary_size(self, admin_user):
+        vocabulary_size = len(Dataset.DATE_TYPES.choices)
+
+        admin_site = AdminSite()
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = DateInline(Dataset, admin_site)
+        formset = inline.get_formset(request)
+
+        assert formset.max_num == vocabulary_size
+
+    def test_identifier_inline_max_num_matches_vocabulary_size(self, admin_user):
+        vocabulary_size = len(Dataset.IDENTIFIER_TYPES)
+
+        admin_site = AdminSite()
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = IdentifierInline(Dataset, admin_site)
+        formset = inline.get_formset(request)
+
+        assert formset.max_num == vocabulary_size
 
 
 @pytest.mark.django_db
@@ -435,6 +506,10 @@ class TestDateInlineCollectionPeriod:
             "dates-1-related": dataset.pk,
             "dates-1-type": DatasetDate.END_TYPE,
             "dates-1-value": "2019-05-01",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
             "_continue": "Save and continue editing",
         }
 
@@ -474,6 +549,10 @@ class TestDateInlineCollectionPeriod:
             "dates-1-related": dataset.pk,
             "dates-1-type": DatasetDate.END_TYPE,
             "dates-1-value": "2020-12-01",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
             "_continue": "Save and continue editing",
         }
 
@@ -489,112 +568,91 @@ class TestDateInlineCollectionPeriod:
 
 
 @pytest.mark.django_db
-class TestDynamicInlineFormLimits:
-    """Test dynamic inline form limits based on vocabulary size (T060).
-
-    This test verifies that the admin interface dynamically sets max_num for
-    inline formsets based on the number of available choices in the vocabulary.
-    For example, if there are 6 description types, max_num should be 6.
+class TestDatasetAdminColumns:
+    """T080/T086/FR-025: each row shows whether the dataset has an
+    abstract and whether it has a DOI.
     """
 
-    def test_description_inline_max_num_matches_vocabulary_size(self, admin_user):
-        """Test that DescriptionInline max_num matches number of description types."""
-        # Get the vocabulary size for description types
-        vocabulary_size = len(Dataset.DESCRIPTION_TYPES.choices)
-
-        # Get the formset for descriptions
-        from django.test import RequestFactory
-
-        admin_site = AdminSite()
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        description_inline = DescriptionInline(Dataset, admin_site)
-        formset = description_inline.get_formset(request)
-
-        # Verify max_num is set to vocabulary size
-        assert formset.max_num == vocabulary_size, (
-            f"Expected max_num={vocabulary_size} for DescriptionInline, "
-            f"but got {formset.max_num}. The admin should dynamically set "
-            f"max_num based on the number of available description types."
+    def test_columns_reflect_presence_and_absence_of_abstract_and_doi(self, rf):
+        with_both = DatasetFactory(name="Fully Described Dataset")
+        DatasetDescription.objects.create(
+            related=with_both, type="Abstract", value="An abstract."
         )
-
-    def test_date_inline_max_num_matches_vocabulary_size(self, admin_user):
-        """Test that DateInline max_num matches number of date types."""
-        # Get the vocabulary size for date types
-        vocabulary_size = len(Dataset.DATE_TYPES.choices)
-
-        # Get the formset for dates
-        from django.test import RequestFactory
-
-        admin_site = AdminSite()
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        date_inline = DateInline(Dataset, admin_site)
-        formset = date_inline.get_formset(request)
-
-        # Verify max_num is set to vocabulary size
-        assert formset.max_num == vocabulary_size, (
-            f"Expected max_num={vocabulary_size} for DateInline, "
-            f"but got {formset.max_num}. The admin should dynamically set "
-            f"max_num based on the number of available date types."
+        DatasetIdentifier.objects.create(
+            related=with_both, type="DOI", value="10.1234/with-both"
         )
+        without_either = DatasetFactory(name="Bare Dataset")
+
+        admin_instance = DatasetAdmin(Dataset, AdminSite())
+        queryset = admin_instance.get_queryset(rf.get("/"))
+        with_both = queryset.get(pk=with_both.pk)
+        without_either = queryset.get(pk=without_either.pk)
+
+        assert admin_instance.has_abstract(with_both) is True
+        assert admin_instance.has_doi(with_both) is True
+        assert admin_instance.has_abstract(without_either) is False
+        assert admin_instance.has_doi(without_either) is False
 
 
 @pytest.mark.django_db
-class TestNoBulkVisibilityChangeActions:
-    """Test that NO bulk visibility change actions exist (T062).
-
-    This is a critical security feature - visibility changes must be deliberate
-    and individual to prevent accidental exposure of private datasets.
+class TestDatasetAdminColumnsQueryCount:
+    """T080: the abstract/DOI columns are annotated on the changelist
+    queryset, not evaluated with a query per row - guarded so a per-row
+    property cannot creep back in.
     """
 
-    def test_no_make_public_action(self, admin_client):
-        """Test that 'make public' bulk action does NOT exist."""
-        # Create test datasets
-        DatasetFactory.create_batch(3)
+    def test_flags_are_annotated_without_a_query_per_row(
+        self, rf, django_assert_num_queries
+    ):
+        for _ in range(5):
+            dataset = DatasetFactory()
+            DatasetDescription.objects.create(
+                related=dataset, type="Abstract", value="An abstract."
+            )
+            DatasetIdentifier.objects.create(
+                related=dataset, type="DOI", value=f"10.1234/{dataset.pk}"
+            )
+        DatasetFactory()  # a row with neither, to prove both flags read False
 
-        url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url)
+        admin_instance = DatasetAdmin(Dataset, AdminSite())
+        request = rf.get("/")
+        queryset = admin_instance.get_queryset(request)
 
-        assert response.status_code == 200
-        content = response.content.decode().lower()
-        # Should NOT have bulk visibility change actions
-        assert "make public" not in content
-        assert "make_public" not in content
-        assert "bulk_make_public" not in content
+        with django_assert_num_queries(1):
+            for obj in queryset:
+                admin_instance.has_abstract(obj)
+                admin_instance.has_doi(obj)
 
-    def test_no_make_private_action(self, admin_client):
-        """Test that 'make private' bulk action does NOT exist."""
-        # Create test datasets
-        DatasetFactory.create_batch(3)
 
-        url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url)
+@pytest.mark.django_db
+class TestDatasetAdminActions:
+    """T081/FR-026: no action changes the visibility of more than one
+    dataset at a time.
 
-        assert response.status_code == 200
-        content = response.content.decode().lower()
-        assert "make private" not in content
-        assert "make_private" not in content
-        assert "bulk_make_private" not in content
+    The three tests this replaces asserted that "make public", "make
+    private" and "change visibility" were absent from the changelist
+    markup - an action registered under any other name would satisfy
+    that just as well. This reads the behaviour off the registered
+    actions themselves instead.
+    """
 
-    def test_no_change_visibility_action(self, admin_client):
-        """Test that generic 'change visibility' bulk action does NOT exist."""
-        # Create test datasets
-        DatasetFactory.create_batch(3)
+    def test_no_action_besides_delete_is_registered(self, rf, admin_user):
+        admin_instance = DatasetAdmin(Dataset, AdminSite())
+        request = rf.get("/")
+        request.user = admin_user
 
-        url = reverse("admin:dataset_dataset_changelist")
-        response = admin_client.get(url)
+        actions = admin_instance.get_actions(request)
 
-        assert response.status_code == 200
-        content = response.content.decode().lower()
-        assert "change visibility" not in content
-        assert "change_visibility" not in content
-        assert "bulk_change_visibility" not in content
+        # Django's own `delete_selected` removes whole records; it does
+        # not touch `visibility`. `DatasetAdmin` declares no actions of
+        # its own, so nothing registered here can change more than one
+        # dataset's visibility in a single call.
+        assert set(actions) == {"delete_selected"}
 
 
 @pytest.mark.django_db
 class TestAutocompleteOnForeignKeys:
-    """Test Django autocomplete on ForeignKey/ManyToMany fields (T063)."""
+    """Test Django autocomplete on ForeignKey/ManyToMany fields."""
 
     def test_project_field_has_autocomplete(self, admin_client):
         """Test that project field uses autocomplete widget."""
@@ -632,147 +690,90 @@ class TestAutocompleteOnForeignKeys:
 
 
 @pytest.mark.django_db
-class TestReadonlyUUIDAndTimestamps:
-    """Test readonly UUID and timestamp fields (T064)."""
+class TestDatasetAdminReadonly:
+    """T082/FR-027: the generated identifier and the timestamps are
+    unchangeable, asserted against the form's own fields rather than
+    against markup - Django's admin emits the word "readonly" in
+    unrelated places regardless of whether a field actually is one.
+    """
 
-    def test_uuid_field_is_readonly(self, admin_client):
-        """Test that UUID field is readonly in admin form."""
-        dataset = DatasetFactory(name="Test Dataset")
+    def test_uuid_added_and_modified_are_absent_from_the_editable_form_fields(
+        self, rf, admin_user
+    ):
+        dataset = DatasetFactory()
+        admin_instance = DatasetAdmin(Dataset, AdminSite())
+        request = rf.get("/")
+        request.user = admin_user
 
-        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
-        response = admin_client.get(url)
+        form_class = admin_instance.get_form(request, dataset)
 
-        assert response.status_code == 200
-        content = response.content.decode()
-        # UUID should be visible
-        assert str(dataset.uuid) in content
-        # But should be readonly (not in an editable input)
-        # Look for readonly indicator
-        assert "readonly" in content.lower() or "disabled" in content.lower()
+        assert "uuid" not in form_class.base_fields
+        assert "added" not in form_class.base_fields
+        assert "modified" not in form_class.base_fields
 
-    def test_added_timestamp_is_readonly(self, admin_client):
-        """Test that 'added' timestamp is readonly in admin form."""
-        dataset = DatasetFactory(name="Test Dataset")
+    def test_uuid_added_and_modified_are_declared_readonly(self, rf, admin_user):
+        dataset = DatasetFactory()
+        admin_instance = DatasetAdmin(Dataset, AdminSite())
+        request = rf.get("/")
+        request.user = admin_user
 
-        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        # Timestamp should be visible
-        assert str(dataset.added.year) in content
-        # Should be readonly
-        assert "readonly" in content.lower() or "disabled" in content.lower()
-
-    def test_modified_timestamp_is_readonly(self, admin_client):
-        """Test that 'modified' timestamp is readonly in admin form."""
-        dataset = DatasetFactory(name="Test Dataset")
-
-        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        # Timestamp should be visible
-        assert str(dataset.modified.year) in content
-        # Should be readonly
-        assert "readonly" in content.lower() or "disabled" in content.lower()
+        readonly = set(admin_instance.get_readonly_fields(request, dataset))
+        assert {"uuid", "added", "modified"} <= readonly
 
 
 @pytest.mark.django_db
-class TestLicenseChangeWarningWithDOI:
-    """Test license change warning when DOI exists (T065).
-
-    When a dataset has a DOI assigned, changing the license should trigger a
-    warning because the DOI metadata may have been published with the original
-    license information.
+class TestDatasetAdminLicenceWarning:
+    """T083/T087/FR-028: changing the licence of a dataset carrying a DOI
+    warns the administrator; changing it on one without a DOI does not.
     """
 
-    def test_license_change_shows_warning_with_doi(self):
-        """Test that changing license on dataset with DOI shows warning.
+    @staticmethod
+    def _form_data(dataset, license_pk):
+        return {
+            "name": dataset.name,
+            "project": dataset.project.pk if dataset.project else "",
+            "visibility": dataset.visibility,
+            "license": license_pk,
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "1000",
+            "dates-TOTAL_FORMS": "0",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "1000",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
+            "_continue": "Save and continue editing",
+        }
 
-        NOTE: This test uses placeholder License model access.
-        Will need to be updated during implementation (T077) to match
-        actual django-content-license API.
-        """
-        # TODO: Replace with actual License model import during implementation
-        # from fairdm.contrib.content_license.models import License
-        pytest.skip(
-            "License change warning test pending implementation - needs correct License model import"
+    def test_changing_licence_on_a_dataset_with_a_doi_warns(self, admin_client):
+        cc_by = License.objects.get(name="CC BY 4.0")
+        cc_by_sa = License.objects.get(name="CC BY-SA 4.0")
+        dataset = DatasetFactory(name="Published Dataset", license=cc_by)
+        DatasetIdentifierFactory(related=dataset, type="DOI", value="10.1234/published")
+
+        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
+        response = admin_client.post(
+            url, data=self._form_data(dataset, cc_by_sa.pk), follow=True
         )
 
-        # Create new license
-        # new_license = License.objects.get_or_create(name="CC BY-SA 4.0")[0]
-        #
-        # self.client.force_login(self.admin_user)
-        # url = reverse("admin:dataset_dataset_change", args=[self.dataset.pk])
-        #
-        # # Change license
-        # form_data = {
-        #     "name": self.dataset.name,
-        #     "project": self.dataset.project.pk,
-        #     "license": new_license.pk,  # Changed from original
-        #     "visibility": self.dataset.visibility,
-        #     # Empty inlines
-        #     "descriptions-TOTAL_FORMS": "0",
-        #     "descriptions-INITIAL_FORMS": "0",
-        #     "descriptions-MIN_NUM_FORMS": "0",
-        #     "descriptions-MAX_NUM_FORMS": "1000",
-        #     "dates-TOTAL_FORMS": "0",
-        #     "dates-INITIAL_FORMS": "0",
-        #     "dates-MIN_NUM_FORMS": "0",
-        #     "dates-MAX_NUM_FORMS": "1000",
-        #     "_continue": "Save and continue editing",
-        # }
-        #
-        # response = self.client.post(url, data=form_data, follow=True)
-        #
-        # # Should show warning message
-        # content = response.content.decode()
-        # assert "warning" in content.lower() or "doi" in content.lower()
-        # # Should mention license change with DOI
-        # assert "license" in content.lower()
+        messages = [str(m) for m in response.context["messages"]]
+        assert any("doi" in m.lower() for m in messages), messages
 
-    def test_no_warning_without_doi(self):
-        """Test that changing license on dataset WITHOUT DOI shows no warning.
+    def test_changing_licence_on_a_dataset_without_a_doi_does_not_warn(
+        self, admin_client
+    ):
+        cc_by = License.objects.get(name="CC BY 4.0")
+        cc_by_sa = License.objects.get(name="CC BY-SA 4.0")
+        dataset = DatasetFactory(name="Unpublished Dataset", license=cc_by)
 
-        NOTE: This test uses placeholder License model access.
-        Will need to be updated during implementation (T077) to match
-        actual django-content-license API.
-        """
-        # TODO: Replace with actual License model import during implementation
-        # from fairdm.contrib.content_license.models import License
-        pytest.skip(
-            "License change warning test pending implementation - needs correct License model import"
+        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
+        response = admin_client.post(
+            url, data=self._form_data(dataset, cc_by_sa.pk), follow=True
         )
 
-        # Create dataset without DOI
-        # dataset_no_doi = DatasetFactory(name="Unpublished Dataset")
-        # new_license = License.objects.get_or_create(name="CC BY-SA 4.0")[0]
-        #
-        # self.client.force_login(self.admin_user)
-        # url = reverse("admin:dataset_dataset_change", args=[dataset_no_doi.pk])
-        #
-        # # Change license
-        # form_data = {
-        #     "name": dataset_no_doi.name,
-        #     "project": dataset_no_doi.project.pk,
-        #     "license": new_license.pk,
-        #     "visibility": dataset_no_doi.visibility,
-        #     # Empty inlines
-        #     "descriptions-TOTAL_FORMS": "0",
-        #     "descriptions-INITIAL_FORMS": "0",
-        #     "descriptions-MIN_NUM_FORMS": "0",
-        #     "descriptions-MAX_NUM_FORMS": "1000",
-        #     "dates-TOTAL_FORMS": "0",
-        #     "dates-INITIAL_FORMS": "0",
-        #     "dates-MIN_NUM_FORMS": "0",
-        #     "dates-MAX_NUM_FORMS": "1000",
-        #     "_continue": "Save and continue editing",
-        # }
-        #
-        # response = self.client.post(url, data=form_data, follow=True)
-        #
-        # # Should NOT show DOI warning (but may show other messages)
-        # # Check that save was successful
-        # assert response.status_code == 200
+        messages = [str(m) for m in response.context["messages"]]
+        assert not any("doi" in m.lower() for m in messages), messages
