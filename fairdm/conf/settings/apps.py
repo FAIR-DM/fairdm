@@ -272,6 +272,7 @@ DJANGO_SETUP_TOOLS = {
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
             ("preload",),  # django-research-vocabs
+            ("seed_licenses",),  # FairDM's recommended licences (FR-007a, D-018)
             "django_setup_tools.scripts.sync_site_id",
         ],
     },

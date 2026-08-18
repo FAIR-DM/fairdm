@@ -110,6 +110,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - System check tests: All error/warning validations
   - Demo app tests: Real-world plugin examples
 
+#### Core datasets (Feature 004)
+
+- A dataset records who created it.
+- A dataset refuses a collection period that ends before it starts, in the administrative inline as
+  well as on the record.
+- Descriptions, dates and identifiers are all editable from a dataset's administrative page, and the
+  list shows which datasets carry an abstract and a DOI.
+
 ### Changed
 
 #### Portal configuration (Feature 001) — breaking
@@ -119,6 +127,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Portal apps are registered ahead of FairDM's** in `INSTALLED_APPS`, so a portal's own templates and static files now take precedence over FairDM's at the same path. A portal that already ships a shadowing template will find it served where it was previously inert.
 - **The staging environment is no longer supported.** `fairdm/conf/staging.py` is deleted and `DJANGO_ENV=staging` now resolves to the production baseline. A portal that wants staging supplies its own `staging.py` beside its settings module, which applies through the same layering as any other environment. Because those settings are the production baseline, a staging boot is held to the production-critical checks.
 - **`THUMBNAIL_DEBUG` is off in the baseline.** easy-thumbnails re-raises rather than degrading to a blank image when it is on, which turned a missing source file into a 500. It is on in development, as before.
+
+#### Core datasets (Feature 004)
+
+- Datasets are private by default. Reading datasets the ordinary way no longer returns private
+  ones. `Dataset.all_objects` is the explicit route for code that needs them, and the surfaces
+  whose own permission check is the real gate — the API, plugin pages, the sample and measurement
+  forms, and the administrative interface — use it so that check still runs.
+- Dataset identifiers use a vocabulary that applies to datasets. The type list previously offered
+  identifiers for people and organisations.
+- Datasets are ordered most-recently-modified first. The previous ordering put the least recently
+  touched record first.
+- A dataset created without choosing a licence carries the portal's configured default, and the
+  licences the framework recommends are seeded when a portal is stood up. A portal that has migrated
+  previously had no licence rows at all, which left the default silently unapplied.
+- A dataset's descriptions, keywords and key dates now require the `change_dataset` permission.
+  These pages previously opened for anyone holding the dataset's address, including an
+  unauthenticated visitor, and a portal upgrading will find that contributors who were never
+  granted object-level rights over a dataset can no longer reach them.
+- Creating a dataset through the portal grants the creator rights over it, matching what
+  creating a project has always done. Without it a new dataset was unreachable by the person
+  who had just made it, because a dataset is private by default.
+- A dataset a user may not see answers 404 rather than 403, so a page no longer confirms that a
+  private dataset exists.
 
 ### Removed
 
@@ -143,6 +174,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Templates**: Hierarchical resolution now searches multiple paths automatically
 
 - **Permissions**: Permission checking now integrated into Plugin.dispatch() with guardian support
+
+#### Core datasets (Feature 004)
+
+- `Dataset.ROLE_PERMISSIONS`, which mapped two role names the vocabulary does not contain and had no
+  readers.
+- `DatasetQuerySet.with_private()`, `.get_visible()` and `.for_user()`. The first discarded every
+  condition applied before it, the second duplicated the default, and the third gated on a
+  permission no model declares.
+- The second name each related record carried for its two fields. Nothing read them, and one was an
+  ORM path in a filter that raised on every use.
 
 ### Migration Guide
 

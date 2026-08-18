@@ -145,7 +145,10 @@ class TestCoreFactoriesBasic(TestCase):
 
         # Check default types
         self.assertEqual(project_date.type, "Start")
-        self.assertEqual(dataset_date.type, "Created")
+        # "Created" is not a member of the dataset date vocabulary (D-008, D-012;
+        # 004-core-datasets R3) - DatasetDateFactory's default was corrected to
+        # "Available", a real member, so the assertion here tracks that.
+        self.assertEqual(dataset_date.type, "Available")
         self.assertEqual(sample_date.type, "Created")
         self.assertEqual(measurement_date.type, "Created")
 
@@ -464,12 +467,12 @@ class TestDatasetFactories:
     def test_dataset_date_factory(self):
         """Test DatasetDateFactory creates valid dates."""
         dataset = DatasetFactory()
-        date = DatasetDateFactory(related=dataset, type="Issued")
+        date = DatasetDateFactory(related=dataset, type="Available")
 
         assert isinstance(date, DatasetDate)
         assert date.pk is not None
         assert date.related == dataset
-        assert date.type == "Issued"
+        assert date.type == "Available"
         assert date.value
 
 
@@ -616,10 +619,17 @@ class TestFactoryIntegration:
         ContributionFactory(content_object=project, contributor=person)
         ContributionFactory(content_object=project, contributor=org)
 
-        # Create dataset
-        dataset = DatasetFactory(project=project)
+        # Create dataset. Public: the subject here is factory wiring — that a
+        # project's reverse `datasets` relation is populated — not visibility.
+        # `project.datasets` is a reverse FK manager built from `Dataset`'s
+        # default manager, privacy-first since 004-core-datasets FR-019, so a
+        # private dataset would not appear in `project.datasets.count()` even
+        # though the relation is wired correctly.
+        dataset = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
         DatasetDescriptionFactory(related=dataset, type="Methods")
-        DatasetDateFactory(related=dataset, type="Issued")
+        DatasetDateFactory(related=dataset, type="Available")
         ContributionFactory(content_object=dataset, contributor=person)
 
         # Create samples
@@ -645,9 +655,14 @@ class TestFactoryIntegration:
 
     def test_multiple_datasets_share_project(self):
         """Test multiple datasets can share the same project."""
+        # Public: subject is factory wiring, not visibility (see above).
         project = ProjectFactory()
-        dataset1 = DatasetFactory(project=project)
-        dataset2 = DatasetFactory(project=project)
+        dataset1 = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
+        dataset2 = DatasetFactory(
+            project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
+        )
 
         assert dataset1.project == dataset2.project
         assert project.datasets.count() == 2

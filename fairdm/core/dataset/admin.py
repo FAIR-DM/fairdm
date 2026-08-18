@@ -1,25 +1,35 @@
-"""Django admin configuration for Dataset models.
+"""Django admin configuration for Dataset models (US-6).
 
-This module provides a comprehensive admin interface for Dataset management with:
-- Search by name and UUID
-- Filtering by project, license, and visibility
-- Inline editing for descriptions and dates
-- Dynamic inline form limits based on vocabulary size
-- Bulk metadata export (JSON/DataCite format)
-- Security controls (no bulk visibility changes)
-- Autocomplete widgets on ForeignKey fields
-- Readonly UUID and timestamps
-- License change warnings when DOI exists
+This module registers `DatasetAdmin`, which provides:
+- Search by name, generated identifier (UUID), external identifier and
+  project (FR-023).
+- Filtering by project, licence and visibility (FR-023).
+- Inline editing for descriptions, dates and identifiers, each bounded to
+  the number of types its vocabulary carries (FR-024).
+- List columns reporting whether a dataset carries an abstract and whether
+  it carries a DOI, computed in the list query rather than per row
+  (FR-025).
+- No bulk action that changes more than one dataset's visibility at a time
+  (FR-026) - `DatasetAdmin` declares none of its own, so the only action
+  available is Django's own `delete_selected`.
+- Readonly generated identifier and timestamps (FR-027).
+- A warning when the licence of a dataset carrying a DOI is changed
+  (FR-028).
 
 The admin interface follows FAIR data principles and enforces deliberate,
-individual visibility changes to prevent accidental exposure of private datasets.
+individual visibility changes to prevent accidental exposure of private
+datasets.
 """
 
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Exists, OuterRef
+from django.forms import BaseInlineFormSet
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2MultipleWidget, Select2Widget
 from literature.models import LiteratureItem
+from partial_date import PartialDate
 
 from .models import Dataset, DatasetDate, DatasetDescription, DatasetIdentifier
 
@@ -61,19 +71,71 @@ class DescriptionInline(admin.StackedInline):
         return formset
 
 
+class DateInlineFormSet(BaseInlineFormSet):
+    """Refuses a backwards CollectionStart/CollectionEnd pair across the
+    whole formset.
+
+    Mirrors `ProjectAdmin.DateInlineFormSet`
+    (`fairdm/core/project/admin.py:24-67`): a formset validates every form
+    before any of them saves, so `DatasetDate.clean()`'s sibling lookup - a
+    database query - sees no unsaved sibling when both the collection start
+    and end are new rows in the same submission, and each form's individual
+    validation short-circuits. This reads the two values directly off the
+    forms' own `cleaned_data` instead, so the pair is checked whichever of
+    the two (or both) is unsaved.
+    """
+
+    def clean(self):
+        super().clean()
+
+        start_value = None
+        end_value = None
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
+                continue
+            value = form.cleaned_data.get("value")
+            if not value:
+                continue
+            # The form field stores the raw string; the model field's
+            # `PartialDate` conversion only happens on `full_clean()`, which
+            # a formset's own `clean()` runs before, so it is done here too.
+            if not isinstance(value, PartialDate):
+                value = PartialDate(value)
+            if form.cleaned_data.get("type") == DatasetDate.START_TYPE:
+                start_value = value
+            elif form.cleaned_data.get("type") == DatasetDate.END_TYPE:
+                end_value = value
+
+        if start_value is None or end_value is None:
+            return
+
+        if DatasetDate._precedes(end_value, start_value):
+            raise ValidationError(
+                _(
+                    "The dataset's collection end date (%(end)s) cannot be "
+                    "before its collection start date (%(start)s)."
+                )
+                % {"start": start_value, "end": end_value}
+            )
+
+
 class DateInline(admin.StackedInline):
     """Inline admin for Dataset dates.
 
     The max_num is dynamically set based on the number of available date types
-    in the vocabulary (Created, Submitted, Available, etc.). This prevents users
-    from adding more dates than there are valid types.
+    in the vocabulary (Available, CollectionStart, CollectionEnd, Submitted,
+    Published, Withdrawn). This prevents users from adding more dates than
+    there are valid types.
 
     The unique_together constraint on (related, type) ensures only one date of
-    each type can exist per dataset.
+    each type can exist per dataset. `DateInlineFormSet` additionally refuses
+    a backwards CollectionStart/CollectionEnd pair across the whole formset
+    (FR-011).
     """
 
     model = DatasetDate
     fk_name = "related"
+    formset = DateInlineFormSet
     extra = 0
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -84,24 +146,50 @@ class DateInline(admin.StackedInline):
         return formset
 
 
+class IdentifierInline(admin.TabularInline):
+    """Inline admin for Dataset identifiers (T078, T085).
+
+    The max_num is dynamically set based on the number of available
+    identifier types in the dataset identifier vocabulary - currently
+    `DOI` alone (D-003, research.md R3) - the same dynamic-limit pattern
+    `DescriptionInline` and `DateInline` above use.
+    """
+
+    model = DatasetIdentifier
+    fk_name = "related"
+    extra = 0
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Dynamically set max_num based on vocabulary size."""
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.max_num = len(Dataset.IDENTIFIER_TYPES)
+        return formset
+
+
 @admin.register(Dataset)
 class DatasetAdmin(admin.ModelAdmin):
     """Admin interface for Dataset model with comprehensive FAIR data management.
 
     **Search & Filtering:**
-    - Search by name and UUID (full or partial)
-    - Filter by project, license, visibility
+    - Search by name, generated identifier (UUID, full or partial), any
+      external identifier attached to the dataset, and project name
+      (FR-023).
+    - Filter by project, license, visibility (FR-023).
 
     **List Display:**
-    - Name, added timestamp, modified timestamp, has_data indicator
+    - Name, added timestamp, modified timestamp, has_data indicator, and
+      whether the dataset carries an abstract and a DOI (FR-025).
 
     **Inline Editing:**
     - DatasetDescription: Dynamic limit based on vocabulary size
     - DatasetDate: Dynamic limit based on vocabulary size
+    - DatasetIdentifier: Dynamic limit based on vocabulary size
 
     **Bulk Operations:**
-    - Export metadata (JSON, DataCite format) - Available
-    - Change visibility - DISABLED for security
+    - Change visibility - DISABLED for security. `DatasetAdmin` declares no
+      actions of its own, so the only action available on the changelist is
+      Django's own `delete_selected`, which removes whole records rather
+      than changing `visibility` (FR-026).
 
     **Security Note:**
     Bulk visibility change actions are intentionally disabled to prevent
@@ -115,9 +203,16 @@ class DatasetAdmin(admin.ModelAdmin):
     original license and require manual updates in external registries.
     """
 
-    inlines = [DescriptionInline, DateInline]
-    search_fields = ("name", "uuid")
-    list_display = ("name", "added", "modified", "has_data")
+    inlines = [DescriptionInline, DateInline, IdentifierInline]
+    search_fields = ("name", "uuid", "identifiers__value", "project__name")
+    list_display = (
+        "name",
+        "added",
+        "modified",
+        "has_data",
+        "has_abstract",
+        "has_doi",
+    )
     list_filter = ("project", "license", "visibility")
     readonly_fields = ("uuid", "added", "modified")
     autocomplete_fields = ("project", "reference")
@@ -168,6 +263,42 @@ class DatasetAdmin(admin.ModelAdmin):
         models.ForeignKey: {"widget": Select2Widget},
         models.OneToOneField: {"widget": Select2Widget},
     }
+
+    def get_queryset(self, request):
+        """Use `all_objects` rather than the privacy-first default manager,
+        and annotate the abstract/DOI flags on the queryset itself.
+
+        `ModelAdmin.get_queryset()` reads through `Dataset._default_manager`
+        by default, which would hide PRIVATE datasets from the admin
+        changelist. The admin is where a portal is repaired, so it must see
+        every dataset regardless of visibility (FR-019a).
+
+        `list_per_page` is 100 by default, and without the annotations below
+        `has_abstract`/`has_doi` would each run an `.exists()` query per row
+        - `Exists()` subqueries fold both checks into the single query the
+        changelist already runs (FR-025, mirrors
+        `ProjectAdmin.get_queryset()`, `fairdm/core/project/admin.py`).
+        """
+        return Dataset.all_objects.all().annotate(
+            _has_abstract=Exists(
+                DatasetDescription.objects.filter(
+                    related=OuterRef("pk"), type="Abstract"
+                )
+            ),
+            _has_doi=Exists(
+                DatasetIdentifier.objects.filter(related=OuterRef("pk"), type="DOI")
+            ),
+        )
+
+    @admin.display(boolean=True, description=_("Abstract"))
+    def has_abstract(self, obj):
+        """Whether the dataset carries an abstract description (FR-025)."""
+        return obj._has_abstract
+
+    @admin.display(boolean=True, description=_("DOI"))
+    def has_doi(self, obj):
+        """Whether the dataset carries a DOI identifier (FR-025)."""
+        return obj._has_doi
 
     def save_model(self, request, obj, form, change):
         """Save the dataset and display license change warning if DOI exists.

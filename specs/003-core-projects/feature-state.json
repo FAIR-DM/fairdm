@@ -3,7 +3,7 @@
   "feature": "003-core-projects",
   "branch": "003-core-projects",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -44,6 +44,11 @@
       "state": "REVIEW",
       "at": "2026-08-18T06:20:00Z",
       "note": "lint, type checks, suite, build and conformance all green; seven tamper flags all mapped to recorded authorisations"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-18T06:58:14Z",
+      "note": "PR #165 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -66,8 +71,8 @@
       "at": null
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-18T06:58:06Z"
     },
     "design_review": {
       "approved_by": "design-review",
@@ -1362,6 +1367,6 @@
   },
   "pr": {
     "number": 165,
-    "draft": true
+    "draft": false
   }
 }

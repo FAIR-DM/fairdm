@@ -64,20 +64,28 @@ class MeasurementFormMixin:
                 add_related_url=reverse_lazy("admin:core_dataset_add"),
             )
 
-            # Filter dataset queryset based on user permissions
+            from fairdm.core.dataset.models import Dataset
+
+            # `all_objects` is only ever the base the permission check below narrows,
+            # never the queryset the form is left holding. `request` is optional on this
+            # mixin and nothing enforces it, so a caller that omits it has shown no
+            # subject to authorise - and is left with the queryset `ModelForm` built
+            # from the default manager, which is privacy-first. Assigning `all_objects`
+            # unconditionally would have offered every private dataset in the portal to
+            # a caller that had proven nothing.
             if (
                 self.request
                 and hasattr(self.request, "user")
                 and self.request.user is not None
                 and self.request.user.is_authenticated
             ):
-                # Filter to datasets where user has change_dataset permission
+                # Filter to datasets where the user holds change_dataset
                 from guardian.shortcuts import get_objects_for_user
 
                 self.fields["dataset"].queryset = get_objects_for_user(
                     self.request.user,
                     "dataset.change_dataset",
-                    klass=self.fields["dataset"].queryset.model,
+                    klass=Dataset.all_objects.all(),
                 )
 
         if "sample" in self.fields:

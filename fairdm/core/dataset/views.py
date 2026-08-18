@@ -1,12 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
+from guardian.shortcuts import assign_perm
 
-# from guardian.shortcuts import assign_perm
+from fairdm.utils.choices import Visibility
 from fairdm.views import (
     FairDMCreateView,
     FairDMDeleteView,
@@ -31,6 +32,27 @@ class DatasetDetailView(FairDMDetailView):
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
     context_object_name = "dataset"
+
+    def get_object(self, queryset=None):
+        """Retrieve the dataset, then decide whether this user may see it.
+
+        Resolved through ``Dataset.all_objects`` and gated explicitly, rather
+        than left to the privacy-first default manager. The manager alone
+        would hide a private dataset from the person who owns it - including
+        the creator arriving from the create view's redirect - because it has
+        no notion of who is asking.
+
+        A dataset the user may not see answers 404 rather than 403, so the
+        page does not confirm that a private dataset exists. This matches
+        ``fairdm.api.permissions``, which raises ``NotFound`` for the same
+        reason.
+        """
+        dataset = get_object_or_404(Dataset.all_objects, uuid=self.kwargs.get("uuid"))
+        if dataset.visibility == Visibility.PUBLIC:
+            return dataset
+        if self.request.user.has_perm("view_dataset", dataset):
+            return dataset
+        raise Http404("No dataset matches the given query.")
 
 
 class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
@@ -81,17 +103,20 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
 
         user = self.request.user
         dataset = self.object
-        # TODO: Re-enable permission assignment when permissions are fully implemented and tested.
-        # permissions = [
-        #     "view_dataset",
-        #     "change_dataset",
-        #     "delete_dataset",
-        #     "change_dataset_metadata",
-        #     "change_dataset_settings",
-        # ]
 
-        # for perm in permissions:
-        #     assign_perm(perm, user, dataset)
+        # A dataset is private unless stated otherwise, so without these the
+        # creator cannot open, edit or delete the record they just made. The
+        # set and the order match `ProjectCreateView.form_valid`.
+        permissions = [
+            "view_dataset",
+            "change_dataset",
+            "delete_dataset",
+            "change_dataset_metadata",
+            "change_dataset_settings",
+        ]
+
+        for perm in permissions:
+            assign_perm(perm, user, dataset)
 
         dataset.add_contributor(
             user, with_roles=["Creator", "ProjectMember", "ContactPerson"]
@@ -125,11 +150,15 @@ class DatasetListView(FairDMListView):
     def get_queryset(self) -> QuerySet[Dataset]:
         """Return the queryset of visible datasets with prefetched contributors.
 
+        `Dataset.objects` (the base this view's `super().get_queryset()`
+        reads through) is privacy-first by default, so no separate
+        visibility filter is needed here any more (R1).
+
         Returns:
             QuerySet: Filtered and optimized Dataset queryset.
         """
         qs: DatasetQuerySet = super().get_queryset()
-        return qs.get_visible().with_contributors()
+        return qs.with_contributors()
 
 
 class DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView):
@@ -155,10 +184,19 @@ class DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView):
     template_name = "plugins/form_view.html"
 
     def get_object(self, queryset=None):
-        """Retrieve dataset and enforce change_dataset permission."""
+        """Retrieve dataset and enforce change_dataset permission.
+
+        Looked up through ``Dataset.all_objects`` rather than the
+        privacy-first default manager: an owner editing their own private
+        dataset is exactly the case FR-019's default exclusion is not
+        meant to block, and the permission check below is what actually
+        gates access.
+        """
         uuid = self.kwargs.get("uuid")
-        dataset = get_object_or_404(Dataset, uuid=uuid)
+        dataset = get_object_or_404(Dataset.all_objects, uuid=uuid)
         if not self.request.user.has_perm("change_dataset", dataset):
+            if dataset.visibility != Visibility.PUBLIC:
+                raise Http404("No dataset matches the given query.")
             raise PermissionDenied("You do not have permission to edit this dataset.")
         return dataset
 
@@ -202,10 +240,16 @@ class DatasetDeleteView(LoginRequiredMixin, FairDMDeleteView):
     require_confirmation = True
 
     def get_object(self, queryset=None):
-        """Retrieve dataset and enforce delete_dataset permission."""
+        """Retrieve dataset and enforce delete_dataset permission.
+
+        Looked up through ``Dataset.all_objects`` for the same reason as
+        ``DatasetUpdateView.get_object`` above.
+        """
         uuid = self.kwargs.get("uuid")
-        dataset = get_object_or_404(Dataset, uuid=uuid)
+        dataset = get_object_or_404(Dataset.all_objects, uuid=uuid)
         if not self.request.user.has_perm("delete_dataset", dataset):
+            if dataset.visibility != Visibility.PUBLIC:
+                raise Http404("No dataset matches the given query.")
             raise PermissionDenied("You do not have permission to delete this dataset.")
         return dataset
 

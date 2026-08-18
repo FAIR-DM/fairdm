@@ -83,7 +83,9 @@ class TestSampleFilterDatasetFiltering:
 
     def test_filter_by_dataset(self, user, project):
         """Test filtering samples by dataset relationship."""
-        # Create two datasets
+        # Left private, which is the model's default and the ordinary case: the
+        # filter's "dataset" choices come from `Dataset.all_objects`, so filtering
+        # by one works.
         dataset1 = Dataset.objects.create(name="Dataset 1", project=project)
         dataset2 = Dataset.objects.create(name="Dataset 2", project=project)
 

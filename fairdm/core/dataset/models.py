@@ -1,7 +1,10 @@
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
+from partial_date import PartialDate
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -16,6 +19,22 @@ from ..vocabularies import (
     FairDMIdentifiers,
     FairDMRoles,
 )
+
+
+def get_default_license_pk():
+    """Return the pk of the portal's configured default licence (FR-007).
+
+    Reads ``settings.FAIRDM_DEFAULT_LICENSE`` at call time - not at import
+    time - so ``override_settings`` and per-portal configuration are both
+    honoured. Falls back to "CC BY 4.0" where a portal states none. Returns
+    ``None`` (leaving the dataset unlicensed) if the portal hasn't seeded
+    its licences yet - the seeding step is FR-007a, a separate concern.
+    """
+    from licensing.models import License
+
+    name = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
+    return License.objects.filter(name=name).values_list("pk", flat=True).first()
+
 
 # DataCite RelationType Vocabulary for Dataset-Literature Relationships
 # Source: DataCite Metadata Schema 4.4
@@ -99,475 +118,130 @@ class DatasetLiteratureRelation(models.Model):
 
 
 class DatasetQuerySet(QuerySet):
+    """Custom QuerySet for the Dataset model.
+
+    Offers query optimisation helpers (`with_related`, `with_contributors`,
+    `with_metadata`) plus the bounded, all-related-records load FR-030
+    requires. Deliberately does **not** offer any method that claims to
+    widen an already-narrowed query - `Dataset.objects` (privacy-first,
+    see `DatasetManager`) already excludes PRIVATE datasets by the time a
+    caller holds a queryset, and no method built on top of it can correctly
+    add them back (R1). `Dataset.all_objects` is the separately named,
+    unfiltered route FR-019 requires.
     """
-    Custom QuerySet for Dataset model with privacy-first defaults and query optimization.
-
-    **Privacy-First Design:**
-
-    By default, all queries EXCLUDE datasets with visibility=PRIVATE. This ensures
-    that private datasets are not accidentally exposed through list views, APIs, or
-    public interfaces. To access private datasets, you must explicitly call the
-    `with_private()` method.
-
-    **Query Optimization:**
-
-    This QuerySet provides methods to reduce N+1 query problems by prefetching
-    related data. Using these methods can reduce database queries by 80%+ when
-    accessing related objects.
-
-    **Methods:**
-
-    - **with_private()**: Include PRIVATE datasets (explicit opt-in)
-    - **with_related()**: Prefetch project and contributors (max 3 queries)
-    - **with_contributors()**: Prefetch only contributors (max 2 queries)
-    - **get_visible()**: Return only PUBLIC datasets (legacy method)
-
-    **Method Chaining:**
-
-    All methods return QuerySet instances and can be chained in any order:
-    ```python
-    Dataset.objects.with_private().filter(project=x).with_related()
-    ```
-
-    **Performance Expectations:**
-
-    Without optimization (naive):
-    ```python
-    datasets = Dataset.objects.all()
-    for ds in datasets:
-        print(ds.project.name)  # N+1 queries!
-        print(ds.contributors.count())  # N+1 queries!
-    ```
-    - 10 datasets = 21 queries (1 + 10 + 10)
-
-    With optimization:
-    ```python
-    datasets = Dataset.objects.with_related()
-    for ds in datasets:
-        print(ds.project.name)  # No additional queries
-        print(ds.contributors.count())  # No additional queries
-    ```
-    - 10 datasets = 3 queries (1 + 1 + 1) - **86% reduction**
-
-    **Usage Examples:**
-
-    ```python
-    # Default behavior - excludes PRIVATE datasets
-    public_datasets = Dataset.objects.all()  # Only PUBLIC and INTERNAL
-
-    # Explicit private access
-    all_datasets = Dataset.objects.with_private()  # Includes PRIVATE
-
-    # Optimized queries for list views
-    datasets = Dataset.objects.with_related()  # Prefetch everything
-
-    # Optimized queries for contributor-only access
-    datasets = Dataset.objects.with_contributors()  # Lighter than with_related
-
-    # Chaining methods
-    datasets = (
-        Dataset.objects.with_private()  # Include private
-        .filter(project=project)  # Filter by project
-        .with_related()  # Optimize queries
-    )
-    ```
-
-    **Integration with Views:**
-
-    ```python
-    class DatasetListView(ListView):
-        def get_queryset(self):
-            qs = Dataset.objects.all()  # Privacy-first default
-
-            # If user has permission, show private datasets
-            if self.request.user.has_perm("dataset.view_private"):
-                qs = qs.with_private()
-
-            # Optimize for list rendering
-            return qs.with_related()
-    ```
-
-    See Also:
-        - tests/unit/core/dataset/test_queryset.py: Comprehensive test suite
-        - fairdm_demo/models.py: Usage examples and patterns
-    """
-
-    def for_user(self, user):
-        """
-        Filter queryset based on user permissions.
-
-        This method checks the user's permissions and filters the queryset accordingly:
-        - If the user has permission to view private datasets, include them.
-        - Otherwise, return only public datasets.
-
-        Args:
-            user: The user for whom to filter the queryset.
-
-        Returns:
-            QuerySet: Filtered queryset based on user permissions.
-        """
-        if user.is_authenticated and user.has_perm("dataset.view_private"):
-            return self.with_private()
-        return self.get_visible()
-
-    def with_private(self) -> "DatasetQuerySet":
-        """
-        Include PRIVATE datasets in the queryset (explicit opt-in).
-
-        By default, the Dataset manager excludes PRIVATE datasets. Call this method
-        to include them in your query results.
-
-        This method is required to access private datasets, ensuring that sensitive
-        data is not accidentally exposed through default queries.
-
-        Returns:
-            QuerySet including PUBLIC, INTERNAL, and PRIVATE datasets
-
-        Examples:
-            >>> # Get all datasets including private ones
-            >>> Dataset.objects.with_private()
-            <QuerySet [<Dataset: Public>, <Dataset: Private>, ...]>
-
-            >>> # Filter private datasets by project
-            >>> Dataset.objects.with_private().filter(project=my_project)
-            <QuerySet [<Dataset: Private Project Dataset>, ...]>
-
-            >>> # Chain with optimization methods
-            >>> Dataset.objects.with_private().with_related()
-            <QuerySet [...]>  # Optimized queries, includes private
-        """
-        # Return a new DatasetQuerySet with all() to include private datasets
-        # Using self.all() ensures we get the right queryset class with all methods
-        return DatasetQuerySet(self.model, using=self.db).all()
-
-    def get_visible(self) -> "DatasetQuerySet":
-        """
-        Return only datasets with PUBLIC visibility (legacy method).
-
-        Note: The default manager already excludes PRIVATE datasets. This method
-        further restricts to only PUBLIC datasets, excluding INTERNAL ones.
-
-        For most use cases, the default behavior (PUBLIC + INTERNAL) is appropriate.
-        Use this method only when you specifically need PUBLIC-only datasets.
-
-        Returns:
-            QuerySet containing only PUBLIC datasets
-
-        Examples:
-            >>> # Get only public datasets
-            >>> Dataset.objects.get_visible()
-            <QuerySet [<Dataset: Public 1>, <Dataset: Public 2>]>
-        """
-        return self.filter(visibility=Visibility.PUBLIC)
 
     def with_related(self) -> "DatasetQuerySet":
-        """
-        Prefetch project and contributors for optimized access (max 3 queries).
-
-        This method reduces N+1 query problems by prefetching related objects.
-        Use this in list views where you'll be accessing both project and
-        contributor data for each dataset.
-
-        Expected Query Count:
-        - 1 query: Main dataset query
-        - 1 query: Prefetch projects
-        - 1 query: Prefetch contributors
-        - Total: 3 queries (regardless of result count)
-
-        Performance Impact:
-        - 10 datasets without optimization: 21 queries
-        - 10 datasets with optimization: 3 queries
-        - Reduction: 86%
-
-        Returns:
-            QuerySet with prefetched project and contributors
-
-        Examples:
-            >>> # List view with project and contributors
-            >>> datasets = Dataset.objects.with_related()
-            >>> for ds in datasets:
-            ...     print(f"{ds.name} in {ds.project.name}")
-            ...     print(f"Contributors: {ds.contributors.count()}")
-            # No additional queries above!
-
-            >>> # Chain with filters
-            >>> Dataset.objects.filter(visibility=Visibility.PUBLIC).with_related()
-            <QuerySet [...]>  # Filtered and optimized
-        """
+        """Prefetch project and contributors (bounded, regardless of result count)."""
         return self.prefetch_related(
             "project",
             "contributors",
         )
 
     def with_contributors(self) -> "DatasetQuerySet":
-        """
-        Prefetch only contributors for optimized access (max 2 queries).
-
-        This method is lighter than with_related() - use it when you only need
-        contributor data and not project information. This saves one database query.
-
-        Expected Query Count:
-        - 1 query: Main dataset query
-        - 1 query: Prefetch contributors
-        - Total: 2 queries (regardless of result count)
-
-        Returns:
-            QuerySet with prefetched contributors only
-
-        Examples:
-            >>> # List view with only contributors
-            >>> datasets = Dataset.objects.with_contributors()
-            >>> for ds in datasets:
-            ...     print(f"Contributors: {', '.join(c.name for c in ds.contributors.all())}")
-            # No additional queries above!
-
-            >>> # Chain with private access
-            >>> Dataset.objects.with_private().with_contributors()
-            <QuerySet [...]>  # Includes private, optimized for contributors
-        """
+        """Prefetch only contributors - lighter than `with_related()`."""
         return self.prefetch_related("contributors")
 
-
-class DatasetManager(models.Manager):
-    """
-    Custom Manager for Dataset model implementing privacy-first defaults.
-
-    This manager ensures that PRIVATE datasets are excluded from default queries,
-    requiring explicit opt-in via the with_private() method to access them.
-
-    **Privacy-First Behavior:**
-
-    ```python
-    Dataset.objects.all()  # Excludes PRIVATE datasets
-    Dataset.objects.with_private()  # Includes PRIVATE datasets
-    ```
-
-    This design prevents accidental exposure of sensitive data in:
-    - List views
-    - API endpoints
-    - Search results
-    - Public interfaces
-
-    **Implementation:**
-
-    The manager overrides get_queryset() to exclude PRIVATE datasets by default.
-    All queryset methods (filter, exclude, get, etc.) inherit this behavior.
-
-    See Also:
-        DatasetQuerySet: QuerySet methods and optimization
-    """
-
-    def get_queryset(self) -> DatasetQuerySet:
+    def with_metadata(self) -> "DatasetQuerySet":
+        """Prefetch descriptions, dates, identifiers, contributions and
+        keywords in a bounded number of queries (FR-030), so a caller
+        assembling a full record does not issue one query per related
+        record.
         """
-        Return QuerySet excluding PRIVATE datasets by default.
-
-        Override this method to change the privacy-first behavior if needed.
-
-        Returns:
-            DatasetQuerySet excluding datasets with visibility=PRIVATE
-        """
-        return DatasetQuerySet(self.model, using=self._db).exclude(
-            visibility=Visibility.PRIVATE
+        return self.prefetch_related(
+            "descriptions",
+            "dates",
+            "identifiers",
+            "contributors",
+            "keywords",
         )
 
 
+class DatasetManager(models.Manager.from_queryset(DatasetQuerySet)):  # type: ignore[misc]
+    """The default manager for `Dataset`. Excludes PRIVATE datasets (FR-019).
+
+    Built `from_queryset(DatasetQuerySet)` so `Dataset.objects.with_related()`
+    and friends keep working on the privacy-first default manager, not only
+    on the explicit `all_objects` route.
+
+    Declared first on `Dataset` so Django treats it as `_default_manager`,
+    which is what portal code, reverse relations (`project.datasets`) and
+    `ModelAdmin.get_queryset()` consult unless told otherwise -
+    `DatasetAdmin.get_queryset()` is overridden explicitly to use
+    `all_objects`, because the administrative interface is where a portal
+    is repaired and needs to see everything (FR-019a).
+
+    Forward relations and the deletion collector go through
+    `Model._base_manager` instead, which `fairdm.db.models.PrefetchBase`
+    pins to `prefetch_manager` - itself unfiltered - so following a
+    relation to a private dataset, or cascading a deletion to one, is
+    unaffected by this manager (R1).
+    """
+
+    def get_queryset(self) -> DatasetQuerySet:
+        queryset: DatasetQuerySet = super().get_queryset()
+        return queryset.exclude(visibility=Visibility.PRIVATE)
+
+
 class Dataset(BaseModel):
-    """A dataset is a collection of samples, measurements and associated metadata.
+    """A dataset is the unit a portal cites and distributes.
 
-    The Dataset model is the second level in the FairDM schema hierarchy. All geographic
-    sites, samples, and measurements MUST relate back to a dataset. This model enforces
-    FAIR (Findable, Accessible, Interoperable, Reusable) data principles through
-    comprehensive metadata fields and validation.
+    It sits beneath an optional project, and samples and measurements hang
+    beneath it (`has_data` reports whether any do). A dataset is private
+    until its visibility is set otherwise (FR-004): the default manager,
+    `objects`, excludes PRIVATE datasets, and `all_objects` is the
+    separately named, explicit route to every dataset regardless of
+    visibility (R1). Deleting its project deletes it too - `project` is
+    `on_delete=CASCADE`.
 
-    **FAIR Metadata Support:**
+    A dataset with no licence chosen gets the portal's configured default
+    (`get_default_license_pk`, FR-007) the moment it is created.
 
-    - **Findable**: UUID, DOI support via DatasetIdentifier, rich descriptions,
-      keywords, and comprehensive search capabilities
-    - **Accessible**: Visibility controls (PUBLIC/PRIVATE), license information,
-      contributor attribution
-    - **Interoperable**: Standard vocabularies for dates/descriptions/identifiers,
-      DataCite relationship types for literature
-    - **Reusable**: License field (default CC BY 4.0), clear contributor roles,
-      temporal and provenance metadata
+    Related records:
 
-    **Visibility Controls:**
-
-    The visibility field controls dataset access within the application:
-
-    - **PRIVATE** (default): Only visible to project members and authorized users
-    - **PUBLIC**: Visible to all authenticated users
-
-    Visibility can only be changed individually (no bulk operations) to prevent
-    accidental exposure of sensitive research data.
-
-    **DOI Support:**
-
-    Digital Object Identifiers (DOIs) are supported through the DatasetIdentifier
-    model, not the reference field. To assign a DOI:
-
-    ```python
-    dataset.identifiers.create(type="DOI", value="10.1000/xyz123")
-    ```
-
-    The reference field is reserved for the primary data publication (LiteratureItem),
-    while related_literature tracks all related citations with DataCite relationship
-    types.
-
-    **UUID Collision Handling:**
-
-    The uuid field uses ShortUUID with a unique database constraint. In the extremely
-    rare case of a collision (probability < 1 in 10^9), the database will raise an
-    IntegrityError and the application should retry with a new UUID. No explicit
-    collision recovery mechanism is implemented due to the negligible probability.
-
-    **Orphaned Datasets:**
-
-    Datasets can exist without a project (project=null) in specific scenarios:
-
-    - Migrated legacy data without project structure
-    - Datasets awaiting project assignment
-    - Test/sandbox datasets
-
-    The project field uses PROTECT to prevent accidental deletion of projects that
-    have associated datasets. Portal administrators must explicitly reassign or
-    delete datasets before removing a project.
-
-    **Empty Dataset Detection:**
-
-    The `has_data` property uses an efficient EXISTS query to check for samples or
-    measurements. Empty datasets (has_data=False) may indicate incomplete data
-    entry or abandoned work.
-
-    **Image Guidelines:**
-
-    Dataset images are displayed in Bootstrap cards, detail pages, and social media
-    previews. For optimal display across all contexts:
-
-    - **Recommended aspect ratio**: 16:9 (landscape)
-    - **Recommended upload size**: 1920x1080px (Full HD)
-    - **Minimum size**: 800x450px
-    - **Maximum file size**: 5MB
-    - **Formats**: JPEG, PNG, WebP
-
-    The 16:9 aspect ratio was chosen because:
-    1. Works well in Bootstrap card layouts
-    2. Matches Open Graph standard (1.91:1) for social media
-    3. Maintains proportions across all device breakpoints
-    4. Suitable for charts, maps, equipment photos, and field images
-
-    Images are automatically resized using easy-thumbnails for responsive display.
-
-    **Role-Based Permissions:**
-
-    FairDM uses a role-based permission system that maps contributor roles to
-    Django permissions. The Dataset.CONTRIBUTOR_ROLES vocabulary defines available
-    roles, which are automatically mapped to Django's permission system:
-
-    **Permission Mapping**:
-
-    | Role | View | Add | Change | Delete | Description |
-    |------|------|-----|--------|--------|-------------|
-    | **Viewer** | ✓ | ✗ | ✗ | ✗ | Read-only access to dataset |
-    | **Editor** | ✓ | ✓ | ✓ | ✗ | Can view and edit dataset |
-    | **Manager** | ✓ | ✓ | ✓ | ✓ | Full control over dataset |
-
-    **Usage in Views**:
-
-    ```python
-    # Check if user can view dataset
-    if user.has_perm("dataset.view_dataset", dataset):
-        # Show dataset
-        pass
-
-    # Check if user can edit dataset
-    if user.has_perm("dataset.change_dataset", dataset):
-        # Show edit form
-        pass
-
-    # Check if user can delete dataset
-    if user.has_perm("dataset.delete_dataset", dataset):
-        # Show delete button
-        pass
-    ```
-
-    **Integration with django-guardian**:
-
-    Object-level permissions are managed through django-guardian. When a user is
-    added as a contributor with a specific role, the corresponding Django
-    permissions are automatically assigned:
-
-    ```python
-    from guardian.shortcuts import assign_perm
-    from fairdm.core.dataset.models import Dataset
-
-    # Assign Editor role (view + change permissions)
-    assign_perm("view_dataset", user, dataset)
-    assign_perm("change_dataset", user, dataset)
-
-    # Check permissions
-    user.has_perm("view_dataset", dataset)  # True
-    user.has_perm("delete_dataset", dataset)  # False (Editor role)
-    ```
-
-    **See Also**:
-
-    - Developer Guide > Permissions > Object-Level Access
-    - specs/004-core-datasets/research/image-aspect-ratios.md
-
-    **Metadata Models:**
-
-    - DatasetDescription: Abstract, Methods, Technical Info, etc. (one per type)
-    - DatasetDate: Created, Submitted, Available, etc. (one per type)
-    - DatasetIdentifier: DOI, ARK, Handle, etc. (must be unique)
-    - DatasetLiteratureRelation: DataCite relationship types (IsCitedBy, Cites,
-      IsDocumentedBy, etc.)
-
-    See Also:
-        - docs/portal-development/models/dataset.md
-        - docs/user-guide/datasets/creating-datasets.md
-        - specs/004-core-datasets/data-model.md
+    - `DatasetDescription` - typed prose, one per type (US-1)
+    - `DatasetDate` - typed dates, one per type (US-2)
+    - `DatasetIdentifier` - typed external identifiers, globally unique (US-3)
+    - `DatasetLiteratureRelation` - DataCite-typed links to literature, plus
+      the single `reference` (the dataset's own data publication)
+    - `contributors` - `Contribution` records carrying one or more roles
+      from `CONTRIBUTOR_ROLES`, DataCite-expressible (FR-018)
     """
 
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Dataset")
     DATE_TYPES = FairDMDates.from_collection("Dataset")
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Dataset")
-    IDENTIFIER_TYPES = FairDMIdentifiers().choices
+    # Bound to the same "Dataset" collection DatasetIdentifier.VOCABULARY
+    # binds (T054), rather than the unscoped `FairDMIdentifiers()`, which
+    # listed identifiers for people and organisations - none of which name
+    # a dataset (D-003, R3).
+    IDENTIFIER_TYPES = FairDMIdentifiers.from_collection("Dataset").choices
     VISIBILITY_CHOICES = Visibility
     DEFAULT_ROLES = ["ProjectMember"]
-    # DEFAULT_ROLES = FairDMRoles.from_collection("Dataset").get_concept("ProjectMember")
 
-    # Role-to-permission mapping for object-level access control
-    # Maps FairDM roles to Django permissions (view/add/change/delete)
-    ROLE_PERMISSIONS = {
-        "Viewer": ["view_dataset"],
-        "Editor": ["view_dataset", "add_dataset", "change_dataset"],
-        "Manager": ["view_dataset", "add_dataset", "change_dataset", "delete_dataset"],
-    }
-
-    # Default manager includes all datasets (no filtering by default)
-    # To implement privacy-first behavior, uncomment DatasetManager below
-    # objects = DatasetManager()
-    objects = DatasetQuerySet.as_manager()  # type: ignore[assignment,misc]
+    # `objects` is declared first, so Django takes it as `_default_manager`
+    # (see `DatasetManager`). `all_objects` is the explicit, unfiltered
+    # route FR-019 requires.
+    objects = DatasetManager()  # type: ignore[misc]
+    all_objects = DatasetQuerySet.as_manager()
 
     uuid = ShortUUIDField(
         editable=False,
         unique=True,
         prefix="d",
-        verbose_name="UUID",
+        verbose_name=_("UUID"),
+        help_text=_(
+            "A short, unique identifier generated automatically when the "
+            "dataset is created. Cannot be edited afterwards."
+        ),
     )
 
     visibility = models.IntegerField(
         _("visibility"),
         choices=VISIBILITY_CHOICES,
         default=VISIBILITY_CHOICES.PRIVATE,
+        db_index=True,
         help_text=_("Visibility within the application."),
     )
-
-    # published = models.BooleanField(
-    #     _("published"),
-    #     help_text=_("Determines whether data from this dataset can be accessed by the public."),
-    #     default=False,
-    # )
 
     # GENERIC RELATIONS
     contributors = GenericRelation(
@@ -575,6 +249,26 @@ class Dataset(BaseModel):
     )
 
     # RELATIONS
+    # `created_by` is a ForeignKey rather than a plain nullable char field, so it
+    # carries a database index by default - no additional indexing decision is
+    # needed here. Not editable: the creator is written server-side only (see
+    # the portal create view and DatasetViewSet.perform_create), never through a
+    # form, the admin or a serializer field. Copied field-for-field from
+    # `Project.created_by` (`fairdm/core/project/models.py:113`) - same
+    # reasoning, same model (D-015).
+    created_by = models.ForeignKey(
+        "contributors.Person",
+        on_delete=models.SET_NULL,
+        related_name="created_datasets",
+        verbose_name=_("created by"),
+        help_text=_(
+            "The user who created this dataset. Left unset if that user's "
+            "account has since been removed."
+        ),
+        null=True,
+        blank=True,
+        editable=False,
+    )
     project = models.ForeignKey(
         "project.Project",
         verbose_name=_("project"),
@@ -600,7 +294,16 @@ class Dataset(BaseModel):
         related_query_name="related_dataset",
         blank=True,
     )
-    license = LicenseField(null=True, blank=True)
+    license = LicenseField(
+        null=True,
+        blank=True,
+        default=get_default_license_pk,
+        verbose_name=_("license"),
+        help_text=_(
+            "The license under which the dataset's data is published. "
+            "Defaults to the portal's configured license when none is chosen."
+        ),
+    )
 
     _metadata = {
         "title": "name",
@@ -612,7 +315,7 @@ class Dataset(BaseModel):
         verbose_name = _("dataset")
         verbose_name_plural = _("datasets")
         default_related_name = "datasets"
-        ordering = ["modified"]
+        ordering = ["-modified"]
         permissions = [
             *CORE_PERMISSIONS,
             ("import_data", "Can import data into dataset"),
@@ -622,8 +325,11 @@ class Dataset(BaseModel):
 
     @cached_property
     def has_data(self):
-        """Check if the dataset has any samples or measurements."""
-        return self.samples.exists() or self.measurements.exists()
+        """Whether the dataset holds any samples or measurements, checked
+        in a single query (FR-008)."""
+        sample_pks = self.samples.values("pk")
+        measurement_pks = self.measurements.values("pk")
+        return sample_pks.union(measurement_pks).exists()
 
     @cached_property
     def bbox(self):
@@ -633,12 +339,11 @@ class Dataset(BaseModel):
 
 
 class DatasetDescription(AbstractDescription):
-    """
-    Typed descriptions for datasets using controlled FAIR vocabulary.
-
-    Provides property aliases for API compatibility:
-    - description_type → type
-    - description → value
+    """Typed prose about a dataset, drawn from the dataset description
+    collection (`FairDMDescriptions.from_collection("Dataset")`). At most
+    one description per type - enforced by validation (`clean()`, below)
+    and, so a concurrent write cannot slip past it, by a database
+    constraint (`AbstractDescription.Meta.constraints`).
     """
 
     VOCABULARY = FairDMDescriptions.from_collection("Dataset")
@@ -649,95 +354,154 @@ class DatasetDescription(AbstractDescription):
             models.Index(fields=["type"], name="dataset_desc_type_idx"),
         ]
 
-    @property
-    def description_type(self):
-        """Alias for type field (API compatibility)."""
-        return self.type
-
-    @description_type.setter
-    def description_type(self, value):
-        """Setter for description_type alias."""
-        self.type = value
-
-    @property
-    def description(self):
-        """Alias for value field (API compatibility)."""
-        return self.value
-
-    @description.setter
-    def description(self, value):
-        """Setter for description alias."""
-        self.value = value
+    def clean(self):
+        """FR-009: refuse a second description of a type the dataset
+        already carries, naming the type in the message. Mirrors
+        `ProjectDescription.clean()` (`fairdm/core/project/models.py`).
+        """
+        super().clean()
+        if self.related_id and self.type:
+            existing = (
+                DatasetDescription.objects.filter(related=self.related, type=self.type)
+                .exclude(pk=self.pk)
+                .exists()
+            )
+            if existing:
+                raise ValidationError(
+                    {
+                        "type": _(
+                            "A description of type '%(type)s' already exists "
+                            "for this dataset."
+                        )
+                        % {"type": self.type}
+                    }
+                )
 
 
 class DatasetDate(AbstractDate):
-    """
-    Typed dates for datasets using controlled FAIR vocabulary.
+    """Typed dates marking points in a dataset's life, drawn from the
+    dataset date collection (`FairDMDates.from_collection("Dataset")`). At
+    most one date per type - enforced by validation (`clean()`, below) and,
+    so a concurrent write cannot slip past it, by a database constraint
+    (`AbstractDate.Meta.constraints`).
 
-    Provides property aliases for API compatibility:
-    - date_type → type
-    - date → value
+    `CollectionStart` and `CollectionEnd` are additionally checked against
+    each other: the collection end cannot precede the collection start
+    (FR-011).
     """
 
     VOCABULARY = FairDMDates.from_collection("Dataset")
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
+
+    START_TYPE = "CollectionStart"
+    END_TYPE = "CollectionEnd"
 
     class Meta(AbstractDate.Meta):
         indexes = [
             models.Index(fields=["type"], name="dataset_date_type_idx"),
         ]
 
-    @property
-    def date_type(self):
-        """Alias for type field (API compatibility)."""
-        return self.type
+    def clean(self):
+        """Validate that the dataset's collection end does not precede its
+        collection start.
 
-    @date_type.setter
-    def date_type(self, value):
-        """Setter for date_type alias."""
-        self.type = value
+        A dataset's collection start and end are stored as two separate
+        `DatasetDate` rows, one per type, so the comparison is made against
+        the sibling record rather than within a single instance. Mirrors
+        `ProjectDate.clean()` (`fairdm/core/project/models.py:196-250`),
+        duplicated rather than lifted to `AbstractDate` - this is the
+        second use of the *pattern*, not of a shared implementation
+        (Article III, research.md R2). `PartialDate` mixes precision into
+        its ordering (`self.date >= other.date and self.precision >=
+        other.precision`), so comparing two values of different precision
+        directly is unsafe - the check instead compares at the coarser of
+        the two precisions.
+        """
+        super().clean()
 
-    @property
-    def date(self):
-        """Alias for value field (API compatibility)."""
-        return self.value
+        if not self.related_id or not self.value:
+            return
 
-    @date.setter
-    def date(self, value):
-        """Setter for date alias."""
-        self.value = value
+        if self.type == self.START_TYPE:
+            start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
+        elif self.type == self.END_TYPE:
+            start_value, end_value = self._sibling_value(self.START_TYPE), self.value
+        else:
+            return
+
+        if start_value is None or end_value is None:
+            return
+
+        if self._precedes(end_value, start_value):
+            raise ValidationError(
+                {
+                    "value": _(
+                        "The dataset's collection end date (%(end)s) cannot "
+                        "be before its collection start date (%(start)s)."
+                    )
+                    % {"start": start_value, "end": end_value}
+                }
+            )
+
+    def _sibling_value(self, type_):
+        """Return the value of this dataset's other date of `type_`, if any."""
+        queryset = DatasetDate.objects.filter(related_id=self.related_id, type=type_)
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        sibling = queryset.first()
+        return sibling.value if sibling else None
+
+    @staticmethod
+    def _precedes(a: PartialDate, b: PartialDate) -> bool:
+        """Whether PartialDate `a` is earlier than PartialDate `b`.
+
+        Compares at the coarser of the two precisions: years only if either
+        is year-precision, year and month if either is month-precision, and
+        the full date only when both carry day precision.
+        """
+        precision = min(a.precision, b.precision)
+        if precision == PartialDate.YEAR:
+            return bool(a.date.year < b.date.year)
+        if precision == PartialDate.MONTH:
+            return bool((a.date.year, a.date.month) < (b.date.year, b.date.month))
+        return bool(a.date < b.date)
 
 
 class DatasetIdentifier(AbstractIdentifier):
+    """Typed external identifiers naming a dataset outside the portal,
+    drawn from the dataset identifier collection
+    (`FairDMIdentifiers.from_collection("Dataset")`, currently `DOI` alone -
+    D-003, R3). At most one identifier per type - enforced by validation
+    and, so a concurrent write cannot slip past it, by a database
+    constraint (`AbstractIdentifier.Meta.constraints`).
+
+    `value` carries `unique=True` on `AbstractIdentifier`, which is a
+    per-table constraint and so only guarantees uniqueness within
+    `DatasetIdentifier` itself. FR-013 asks for more: the same identifier
+    value must not name two things, whichever of the four
+    `AbstractIdentifier` subclasses (dataset, project, sample, measurement)
+    carries it. `clean()` below checks across all of them.
     """
-    Typed identifiers for datasets using controlled FAIR vocabulary.
 
-    Provides property aliases for API compatibility:
-    - identifier_type → type
-    - identifier → value
-
-    Supports DOI via identifier_type='DOI'.
-    """
-
-    VOCABULARY = FairDMIdentifiers()
+    VOCABULARY = FairDMIdentifiers.from_collection("Dataset")
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
 
-    @property
-    def identifier_type(self):
-        """Alias for type field (API compatibility)."""
-        return self.type
-
-    @identifier_type.setter
-    def identifier_type(self, value):
-        """Setter for identifier_type alias."""
-        self.type = value
-
-    @property
-    def identifier(self):
-        """Alias for value field (API compatibility)."""
-        return self.value
-
-    @identifier.setter
-    def identifier(self, value):
-        """Setter for identifier alias."""
-        self.value = value
+    def clean(self):
+        """FR-013: an identifier value must be unique across every record
+        that carries identifiers, not merely within `DatasetIdentifier`'s
+        own table.
+        """
+        super().clean()
+        if not self.value:
+            return
+        for model in AbstractIdentifier.__subclasses__():
+            queryset = model.objects.filter(value=self.value)
+            if model is type(self) and self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+            if queryset.exists():
+                raise ValidationError(
+                    {
+                        "value": _("The identifier '%(value)s' is already in use.")
+                        % {"value": self.value}
+                    }
+                )

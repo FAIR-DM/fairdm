@@ -32,6 +32,11 @@ class Descriptions(DescriptionsPlugin):
             }
         ],
     }
+    # These three plugins are editing surfaces, not reading ones. Without a
+    # declared permission `can_open()` admits every request, anonymous
+    # included, and a private dataset's metadata would stay readable and
+    # writable by anyone holding its UUID.
+    permission = "dataset.change_dataset"
     model = Dataset
     inline_model = DatasetDescription
 
@@ -51,6 +56,7 @@ class Keywords(KeywordsPlugin):
             }
         ],
     }
+    permission = "dataset.change_dataset"
 
 
 @plugins.register(Dataset, label=_("Key Dates"), icon="date", order=530)
@@ -68,5 +74,6 @@ class KeyDates(KeyDatesPlugin):
             }
         ],
     }
+    permission = "dataset.change_dataset"
     model = Dataset
     inline_model = DatasetDate

@@ -8,12 +8,32 @@ queryset filtering, and integration patterns.
 import pytest
 from django import forms
 from django.contrib.auth import get_user_model
+from django.test import RequestFactory
+from guardian.shortcuts import assign_perm
 
 from fairdm.core.sample.forms import SampleFormMixin
-from fairdm.factories import DatasetFactory, PersonFactory, ProjectFactory
+from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm_demo.models import RockSample, WaterSample
 
 User = get_user_model()
+
+
+def _request_for(user):
+    """A minimal request carrying an authenticated user.
+
+    The sample and measurement form mixins narrow the dataset choices to what the
+    request's user may change, and fall back to public datasets when no request is
+    given. A form exercised without one therefore cannot select a private dataset -
+    which is what the tests below need, and what a portal's own view supplies.
+    """
+    request = RequestFactory().get("/")
+    request.user = user
+    return request
 
 
 @pytest.mark.django_db
@@ -134,7 +154,9 @@ class TestSampleFormPolymorphicHandling:
         """Test that SampleForm handles polymorphic type creation correctly (T065)."""
         from datetime import date
 
+        user = UserFactory()
         dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
 
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
@@ -148,7 +170,7 @@ class TestSampleFormPolymorphicHandling:
             "collection_date": date.today().isoformat(),
         }
 
-        form = RockSampleForm(data=form_data)
+        form = RockSampleForm(data=form_data, request=_request_for(user))
         assert form.is_valid(), f"Form errors: {form.errors}"
 
         # Save and verify instance is correct polymorphic type
@@ -203,7 +225,9 @@ class TestCustomSampleFormIntegration:
                     "temperature_celsius",
                 ]
 
+        user = UserFactory()
         dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
         form_data = {
             "name": "Water Sample 1",
             "dataset": dataset.pk,
@@ -213,7 +237,7 @@ class TestCustomSampleFormIntegration:
             "custom_note": "Test note",
         }
 
-        form = CustomWaterSampleForm(data=form_data)
+        form = CustomWaterSampleForm(data=form_data, request=_request_for(user))
         assert form.is_valid(), f"Form errors: {form.errors}"
 
         instance = form.save()

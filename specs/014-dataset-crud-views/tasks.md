@@ -95,6 +95,8 @@
 
 - [X] T019 [P] [US3] Write `TestDatasetUpdateView.test_anonymous_redirects_to_login` smoke test in `tests/test_core/test_dataset/test_views.py`: `GET reverse("dataset-update", kwargs={"uuid": dataset.uuid})` by anonymous client returns 302 (MUST FAIL before T023 — URL doesn't exist yet)
 - [X] T020 [P] [US3] Write `TestDatasetUpdateView.test_no_permission_returns_403` smoke test in `tests/test_core/test_dataset/test_views.py`: authenticated client without `change_dataset` permission returns 403 (MUST FAIL before T023)
+
+  > **Superseded by 004-core-datasets.** A dataset now carries a visibility and is private unless stated otherwise, so an unpermitted request for a *private* dataset answers 404 rather than 403 — a 403 would confirm that a private dataset with that address exists, which the API path already refuses to do. 403 still holds for a **public** dataset the user may read but not change; the test is split into those two arms.
 - [X] T021 [P] [US3] Write `TestDatasetUpdateView.test_with_permission_returns_200` smoke test in `tests/test_core/test_dataset/test_views.py`: client with `change_dataset` permission `GET` returns 200 (MUST FAIL before T023)
 - [X] T022 [P] [US3] Write `TestDatasetUpdateView.test_valid_post_redirects_to_detail` in `tests/test_core/test_dataset/test_views.py`: valid POST by permitted user returns 302 to `dataset-detail` URL (FR-018a — MUST FAIL before T023)
 
@@ -122,6 +124,8 @@
 
 - [X] T027 [P] [US4] Write `TestDatasetDeleteView.test_anonymous_redirects_to_login` smoke test in `tests/test_core/test_dataset/test_views.py`: `GET reverse("dataset-delete", kwargs={"uuid": dataset.uuid})` by anonymous client returns 302 (MUST FAIL before T031 — URL doesn't exist yet)
 - [X] T028 [P] [US4] Write `TestDatasetDeleteView.test_no_permission_returns_403` smoke test in `tests/test_core/test_dataset/test_views.py`: authenticated client without `delete_dataset` permission returns 403 (MUST FAIL before T031)
+
+  > **Superseded by 004-core-datasets.** A dataset now carries a visibility and is private unless stated otherwise, so an unpermitted request for a *private* dataset answers 404 rather than 403 — a 403 would confirm that a private dataset with that address exists, which the API path already refuses to do. 403 still holds for a **public** dataset the user may read but not change; the test is split into those two arms.
 - [X] T029 [P] [US4] Write `TestDatasetDeleteView.test_with_permission_returns_200` smoke test in `tests/test_core/test_dataset/test_views.py`: client with `delete_dataset` permission `GET` returns 200 (MUST FAIL before T031)
 - [X] T030 [P] [US4] Write `TestDatasetDeleteView.test_wrong_name_shows_error` in `tests/test_core/test_dataset/test_views.py`: POST `{"confirmation": "Wrong Name"}` by permitted user returns 200; assert `form.errors` contains a validation error for `confirmation`; assert dataset still exists (MUST FAIL before T031)
 - [X] T030a [P] [US4] Write `TestDatasetDeleteView.test_correct_name_redirects_to_list` in `tests/test_core/test_dataset/test_views.py`: POST `{"confirmation": dataset.name}` by permitted user returns 302 to `dataset-list`; assert dataset no longer exists (MUST FAIL before T031)

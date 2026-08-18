@@ -85,7 +85,12 @@ from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice
 
 from fairdm.core.choices import ProjectStatus
-from fairdm.core.dataset.models import DatasetDate, DatasetDescription
+from fairdm.core.dataset.models import (
+    DatasetDate,
+    DatasetDescription,
+    DatasetIdentifier,
+    DatasetLiteratureRelation,
+)
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import (
@@ -270,8 +275,58 @@ class DatasetDateFactory(DjangoModelFactory):
     class Meta:
         model = DatasetDate
 
-    type = "Created"  # Default date type
+    # "Created" is not a member of the dataset date vocabulary (Available,
+    # CollectionStart, CollectionEnd, Submitted, Published, Withdrawn) - it
+    # previously saved without complaint because Django does not validate
+    # `choices` on save.
+    type = "Available"  # Default date type - a member of the dataset date collection
     value = Faker("partial_date")
+
+
+class DatasetIdentifierFactory(DjangoModelFactory):
+    """Factory for creating DatasetIdentifier instances."""
+
+    class Meta:
+        model = DatasetIdentifier
+
+    type = "DOI"  # Default identifier type - the only member of the dataset collection
+    value = factory.Sequence(lambda n: f"10.{1000 + n}/dataset-{n}")
+    # related field will be set by the caller
+
+
+class LiteratureItemFactory(DjangoModelFactory):
+    """Factory for creating literature.LiteratureItem instances.
+
+    ``LiteratureItem.save()`` derives ``type`` and ``title`` from the ``item``
+    CSL-JSON blob, and falls back to generating ``citation_key`` from the
+    title when one isn't supplied - so an explicit, sequence-guarded
+    ``citation_key`` is provided here to satisfy its uniqueness constraint.
+    """
+
+    class Meta:
+        model = "literature.LiteratureItem"
+
+    citation_key = factory.Sequence(lambda n: f"literature-item-{n}")
+    item = factory.LazyAttribute(
+        lambda o: {
+            "type": "article-journal",
+            "title": f"Test Literature Item {o.citation_key}",
+        }
+    )
+
+
+class DatasetLiteratureRelationFactory(DjangoModelFactory):
+    """Factory for creating DatasetLiteratureRelation instances.
+
+    Relates a dataset to a literature item under a DataCite relationship type.
+    """
+
+    class Meta:
+        model = DatasetLiteratureRelation
+
+    dataset = SubFactory("fairdm.factories.core.DatasetFactory")
+    literature_item = SubFactory("fairdm.factories.core.LiteratureItemFactory")
+    relationship_type = "IsCitedBy"  # A member of DATACITE_RELATIONSHIP_TYPES
 
 
 class DatasetFactory(DjangoModelFactory):

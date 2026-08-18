@@ -53,7 +53,7 @@ Serves G1.
 
 ### R4 — Datasets
 
-*Delivered · needs verification · advances G1*
+*Delivered · advances G1*
 
 The unit of citation and distribution, carrying its own descriptions, dates, identifiers, licence, keywords and related literature, with visibility held independently of its project.
 

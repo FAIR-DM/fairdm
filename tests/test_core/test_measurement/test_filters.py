@@ -13,6 +13,7 @@ comprehensive filtering capabilities for Measurement models including:
 import pytest
 from django.contrib.auth import get_user_model
 
+from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.filters import MeasurementFilter
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.factories import DatasetFactory, SampleFactory
@@ -28,7 +29,9 @@ class TestMeasurementFilterDatasetFiltering:
 
     def test_filter_by_dataset(self, user, project):
         """Test filtering measurements by dataset relationship."""
-        # Create two datasets
+        # Left private, which is the model's default and the ordinary case: the
+        # filter's "dataset" choices come from `Dataset.all_objects`, so filtering
+        # by one works.
         dataset1 = DatasetFactory(project=project)
         dataset2 = DatasetFactory(project=project)
 

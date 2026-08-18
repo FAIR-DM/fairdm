@@ -124,7 +124,9 @@ class TestDatasetCreateView:
 
         from fairdm.core.dataset.models import Dataset
 
-        dataset = Dataset.objects.get(name="New Test Dataset")
+        # `all_objects` - a newly created dataset defaults to private, and
+        # `Dataset.objects` is privacy-first by default (R1).
+        dataset = Dataset.all_objects.get(name="New Test Dataset")
         expected_url = reverse("dataset-detail", kwargs={"uuid": dataset.uuid})
         assert response.url == expected_url
 
@@ -164,7 +166,8 @@ class TestDatasetCreateView:
 
         from fairdm.core.dataset.models import Dataset
 
-        dataset = Dataset.objects.get(name="Permission Test Dataset")
+        # `all_objects` - a newly created dataset defaults to private.
+        dataset = Dataset.all_objects.get(name="Permission Test Dataset")
 
         contributor = dataset.contributors.filter(contributor=user).first()
         assert contributor is not None, "User should be a contributor"
@@ -190,14 +193,28 @@ class TestDatasetUpdateView:
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
-    def test_no_permission_returns_403(self, client):
+    def test_no_permission_on_a_public_dataset_returns_403(self, client):
         """T020 — Authenticated client without change_dataset returns 403."""
         user = UserFactory()
-        dataset = DatasetFactory()
+        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
         url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 403
+
+    def test_no_permission_on_a_private_dataset_returns_404(self, client):
+        """A private dataset the user may not edit answers 404, not 403, so the
+        response does not confirm that a dataset with this address exists. 004
+        supersedes 014's 403 here: 014 was written before a dataset had a
+        visibility, and the API already answers `NotFound` for the same reason
+        (`fairdm/api/permissions.py`).
+        """
+        user = UserFactory()
+        dataset = DatasetFactory()  # private, per the model default
+        client.force_login(user)
+        url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+        assert response.status_code == 404
 
     def test_with_permission_returns_200(self, client):
         """T021 — Client with change_dataset permission GET returns 200."""
@@ -258,14 +275,28 @@ class TestDatasetDeleteView:
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
-    def test_no_permission_returns_403(self, client):
+    def test_no_permission_on_a_public_dataset_returns_403(self, client):
         """T028 — Authenticated client without delete_dataset returns 403."""
         user = UserFactory()
-        dataset = DatasetFactory()
+        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
         url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 403
+
+    def test_no_permission_on_a_private_dataset_returns_404(self, client):
+        """A private dataset the user may not delete answers 404, not 403, so the
+        response does not confirm that a dataset with this address exists. 004
+        supersedes 014's 403 here: 014 was written before a dataset had a
+        visibility, and the API already answers `NotFound` for the same reason
+        (`fairdm/api/permissions.py`).
+        """
+        user = UserFactory()
+        dataset = DatasetFactory()  # private, per the model default
+        client.force_login(user)
+        url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+        assert response.status_code == 404
 
     def test_with_permission_returns_200(self, client):
         """T029 — Client with delete_dataset permission GET returns 200."""
@@ -289,7 +320,8 @@ class TestDatasetDeleteView:
         response = client.post(url, data={"confirmation": "Wrong Name"})
         assert response.status_code == 200
         assert "confirmation" in response.context["form"].errors
-        assert Dataset.objects.filter(pk=dataset.pk).exists()
+        # `all_objects` - the dataset is private by default.
+        assert Dataset.all_objects.filter(pk=dataset.pk).exists()
 
     def test_correct_name_redirects_to_list(self, client):
         """T030a — POST with correct name redirects to dataset-list; dataset deleted."""

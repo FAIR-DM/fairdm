@@ -119,10 +119,16 @@ class DatasetViewSet(BaseViewSet):
 
     @property
     def queryset(self):
-        return Dataset.objects.all()
+        # `all_objects` here, not `objects`: the visibility gate for this
+        # endpoint is `FairDMVisibilityFilter` (list) and
+        # `FairDMObjectPermissions.has_object_permission` (detail), both of
+        # which union in guardian-permitted private datasets. Starting from
+        # the privacy-first default manager would pre-empt that union and
+        # hide a private dataset from a user who holds `view_dataset` on it.
+        return Dataset.all_objects.all()
 
     def get_queryset(self):
-        return Dataset.objects.all()
+        return Dataset.all_objects.all()
 
     def get_serializer_class(self):
         if hasattr(self, "_serializer_class"):
@@ -133,6 +139,18 @@ class DatasetViewSet(BaseViewSet):
             view_name="api:dataset-detail",
         )
         return self._serializer_class
+
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
+        """Save a new dataset, recording the request user as its creator.
+
+        Mirrors `ProjectViewSet.perform_create` - `Dataset.created_by` is the
+        same field, copied field-for-field from `Project.created_by` (D-015),
+        and needs the same server-side assignment `BaseViewSet.perform_create`
+        does not give it.
+        """
+        if not self.request.user or not self.request.user.is_authenticated:
+            raise PermissionDenied("Authentication is required to create objects.")
+        serializer.save(created_by=self.request.user)
 
 
 class ContributorViewSet(ReadOnlyModelViewSet):

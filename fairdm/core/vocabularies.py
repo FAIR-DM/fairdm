@@ -64,7 +64,7 @@ class FairDMIdentifiers(VocabularyBuilder):
     DOI = {
         "skos:prefLabel": _("DOI"),
         "skos:definition": _(
-            "A Digital Object Identifier providing a persistent, resolvable link to a project record."
+            "A Digital Object Identifier providing a persistent, resolvable link to a record."
         ),
         "dcterms:source": "https://www.doi.org/doi_handbook/",
     }
@@ -82,6 +82,40 @@ class FairDMIdentifiers(VocabularyBuilder):
             "The identifier assigned to the proposal from which the project originated."
         ),
     }
+
+    @property
+    def choices(self):
+        """Work around a `research_vocabs` defect that only surfaces on a
+        single-member collection.
+
+        `VocabularyBuilder.choices` (`research_vocabs/core.py:205`) reads a
+        `from_collection`-scoped vocabulary's members off
+        ``collection.attrs["skos:member"]``. That attribute is built from
+        RDF triples, and a predicate with exactly one triple collapses to a
+        bare ``Concept`` rather than a one-item list - the two-or-more-item
+        case returns a list, as `Concept.attrs` promotes a repeated
+        predicate to one on its second occurrence, never on its first.
+        Iterating the bare ``Concept`` then raises ``TypeError: 'Concept'
+        object is not iterable``.
+
+        The "Dataset" collection below is exactly that case - `DOI` alone
+        (D-003, research.md R3). Rather than patching the third-party
+        library, this re-derives the same `from_collection` branch with the
+        single-member case normalised first. For every collection with two
+        or more members - every other collection on this vocabulary - the
+        result is identical to `super().choices`, since `members` is
+        already a list there and no wrapping happens.
+        """
+        if self._choices:
+            return self._choices
+        if coll := self._meta.from_collection:
+            collection = self.get_concept(coll)
+            members = collection.attrs["skos:member"]
+            if not isinstance(members, list):
+                members = [members]
+            self._choices = [self.get_choice_tuple(member) for member in members]
+            return self._choices
+        return super().choices
 
     class Meta:
         name = "fairdm-identifiers"
@@ -102,6 +136,14 @@ class FairDMIdentifiers(VocabularyBuilder):
                     "DOI",
                     "GRANT_NUMBER",
                     "PROPOSAL_ID",
+                ],
+            ),
+            "Dataset": Collection(
+                prefLabel=_("Dataset Identifiers"),
+                definition=_("Persistent identifiers for research datasets."),
+                ordered=True,
+                members=[
+                    "DOI",
                 ],
             ),
             "Person": Collection(
