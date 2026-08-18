@@ -16,10 +16,16 @@ Tests cover:
 - General model/queryset/URL smoke tests
 """
 
+from datetime import timedelta
+
 import pytest
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection
+from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.functional import Promise
 
 from fairdm.core.dataset.models import (
     DATACITE_RELATIONSHIP_TYPES,
@@ -29,7 +35,15 @@ from fairdm.core.dataset.models import (
     DatasetIdentifier,
     DatasetLiteratureRelation,
 )
-from fairdm.factories import DatasetFactory, PersonFactory, ProjectFactory
+from fairdm.factories import (
+    DatasetFactory,
+    DatasetIdentifierFactory,
+    LiteratureItemFactory,
+    MeasurementFactory,
+    PersonFactory,
+    ProjectFactory,
+    SampleFactory,
+)
 from fairdm.factories.contributors import ContributionFactory
 from fairdm.utils.choices import Visibility
 
@@ -172,10 +186,12 @@ class TestOrphanedDatasets:
 
     def test_orphaned_dataset_queries(self):
         """Can query orphaned datasets."""
+        # `all_objects` - visibility is not this test's concern, and the
+        # datasets above are created with the (private) default.
         Dataset.objects.create(name="Orphaned", project=None)
         DatasetFactory()  # With project
 
-        orphaned = Dataset.objects.filter(project__isnull=True)
+        orphaned = Dataset.all_objects.filter(project__isnull=True)
         assert orphaned.count() == 1
 
     def test_setting_project_to_null_creates_orphan(self):
@@ -266,52 +282,326 @@ class TestDatasetUUID:
 
 
 @pytest.mark.django_db
-class TestDatasetHasDataProperty:
-    """Test Dataset.has_data property."""
+class TestDatasetFields:
+    """Test Dataset's own fields (T009, FR-002, FR-003)."""
 
-    def test_has_data_false_for_empty_dataset(self):
-        """has_data returns False for dataset without samples/measurements."""
+    def test_name_is_required(self):
+        """A dataset requires a name."""
+        dataset = Dataset(project=ProjectFactory())
+
+        with pytest.raises(ValidationError) as exc_info:
+            dataset.full_clean()
+
+        assert "name" in exc_info.value.error_dict
+
+    def test_name_length_is_bound(self):
+        """A name longer than the field allows is refused; no truncation
+        occurs."""
+        dataset = Dataset(name="x" * 301, project=ProjectFactory())
+
+        with pytest.raises(ValidationError) as exc_info:
+            dataset.full_clean()
+
+        assert "name" in exc_info.value.error_dict
+
+    def test_dataset_with_no_project_is_valid(self):
+        """A dataset with no project is a normal state, not an orphan."""
+        dataset = Dataset(name="Orphaned Dataset", project=None)
+
+        dataset.full_clean()  # Should not raise
+
+    def test_image_is_optional(self):
+        """image is not required to create a valid dataset."""
+        dataset = Dataset(name="No Image", project=ProjectFactory())
+
+        dataset.full_clean()  # Should not raise
+
+    def test_project_is_optional(self):
+        """project is not required to create a valid dataset."""
+        dataset = Dataset.objects.create(name="No Project")
+
+        assert dataset.project is None
+
+    def test_data_publication_is_optional(self):
+        """The data publication (reference) is not required to create a
+        valid dataset."""
+        dataset = Dataset(name="No Reference", project=ProjectFactory())
+
+        dataset.full_clean()  # Should not raise
+        assert dataset.reference is None
+
+
+@pytest.mark.django_db
+class TestDatasetOrdering:
+    """Test Dataset.Meta.ordering (T010, FR-006)."""
+
+    def test_default_ordering_is_most_recently_modified_first(self):
+        """Listing datasets with no ordering applied returns the most
+        recently modified dataset first."""
+        oldest = DatasetFactory()
+        middle = DatasetFactory()
+        newest = DatasetFactory()
+
+        now = timezone.now()
+        # `modified` is auto_now - bypass it via update(), which does not
+        # invoke Field.pre_save(), to pin known values for the assertion.
+        Dataset.all_objects.filter(pk=oldest.pk).update(
+            modified=now - timedelta(days=2)
+        )
+        Dataset.all_objects.filter(pk=middle.pk).update(
+            modified=now - timedelta(days=1)
+        )
+        Dataset.all_objects.filter(pk=newest.pk).update(modified=now)
+
+        assert list(Dataset.all_objects.all()) == [newest, middle, oldest]
+
+
+@pytest.mark.django_db
+class TestDatasetLicence:
+    """Test the portal's configured default licence (T011, FR-007)."""
+
+    def test_dataset_created_without_a_licence_gets_the_configured_default(self):
+        """A dataset created without choosing a licence carries the
+        portal's configured default licence."""
+        from licensing.models import License
+
+        dataset = Dataset.objects.create(
+            name="No Licence Chosen", project=ProjectFactory()
+        )
+
+        default_name = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
+        assert dataset.license == License.objects.get(name=default_name)
+
+    def test_a_portal_configured_default_licence_is_honoured(self):
+        """A portal that sets its own default licence gets that one
+        instead."""
+        with override_settings(FAIRDM_DEFAULT_LICENSE="CC BY-SA 4.0"):
+            dataset = Dataset.objects.create(
+                name="Custom Default", project=ProjectFactory()
+            )
+
+        assert dataset.license.name == "CC BY-SA 4.0"
+
+
+@pytest.mark.django_db
+class TestDatasetKeywords:
+    """Test Dataset categorisation by controlled keywords and free tags
+    (T012, FR-005)."""
+
+    def test_controlled_vocabulary_term_is_stored_as_a_reference(self):
+        """A term from a configured controlled vocabulary added as a
+        keyword is stored as a reference to that vocabulary rather than as
+        text."""
+        from research_vocabs.models import Concept
+
+        dataset = DatasetFactory()
+        # `Concept.preload()` runs once per session (tests/conftest.py), so
+        # real terms from every registered vocabulary are already available.
+        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        assert term is not None
+
+        dataset.keywords.add(term)
+
+        stored = dataset.keywords.get(pk=term.pk)
+        assert isinstance(stored, Concept)
+        assert stored.name == term.name
+
+    def test_free_tags_are_distinguishable_from_controlled_keywords(self):
+        """Free tags are stored and remain distinguishable from controlled
+        keywords."""
+        from research_vocabs.models import Concept
+
+        dataset = DatasetFactory()
+        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        dataset.keywords.add(keyword)
+        dataset.tags.add("erosion")
+
+        assert "erosion" in dataset.tags.names()
+        assert dataset.keywords.count() == 1
+        assert all(isinstance(k, Concept) for k in dataset.keywords.all())
+        assert not dataset.keywords.filter(name="erosion").exists()
+
+
+@pytest.mark.django_db
+class TestDatasetContributions:
+    """Test contributions recorded against a dataset (T013, FR-017,
+    FR-018)."""
+
+    def test_contribution_records_contributor_and_roles(self):
+        """A contribution records a contributor and one or more roles, and
+        reads both back."""
+        dataset = DatasetFactory()
+        person = PersonFactory()
+
+        contribution = dataset.add_contributor(
+            person, with_roles=["Creator", "DataCollector"]
+        )
+
+        assert contribution.contributor == person
+        assert set(contribution.roles.values_list("name", flat=True)) == {
+            "Creator",
+            "DataCollector",
+        }
+        assert dataset.contributors.filter(pk=contribution.pk).exists()
+
+    def test_role_vocabulary_members(self):
+        """The role vocabulary's members are asserted by name, not by
+        iterating whatever it happens to hold."""
+        assert set(Dataset.CONTRIBUTOR_ROLES.values) == {
+            "Creator",
+            "ContactPerson",
+            "DataCollector",
+            "DataCurator",
+            "DataManager",
+            "Editor",
+            "Producer",
+            "RelatedPerson",
+            "Researcher",
+            "ProjectLeader",
+            "ProjectManager",
+            "ProjectMember",
+            "Supervisor",
+            "WorkPackageLeader",
+            "RightsHolder",
+            "Other",
+        }
+
+
+@pytest.mark.django_db
+class TestDatasetHasData:
+    """Test Dataset.has_data (T014, FR-008)."""
+
+    def test_no_samples_or_measurements_reports_no_data(
+        self, django_assert_num_queries
+    ):
+        """A dataset with no samples and no measurements reports that it
+        does not hold data."""
         dataset = DatasetFactory()
 
+        with django_assert_num_queries(1):
+            assert dataset.has_data is False
+
+    def test_adding_a_sample_flips_has_data_to_true(self, django_assert_num_queries):
+        dataset = DatasetFactory()
         assert dataset.has_data is False
 
-    @pytest.mark.skip(reason="Sample model not in scope for dataset feature tests")
-    def test_has_data_true_with_samples(self):
-        """has_data returns True for dataset with samples."""
-        from fairdm.core.sample.models import Sample
+        SampleFactory(dataset=dataset)
+        del dataset.has_data  # clear the cached_property
 
+        with django_assert_num_queries(1):
+            assert dataset.has_data is True
+
+    def test_adding_a_measurement_flips_has_data_to_true(
+        self, django_assert_num_queries
+    ):
         dataset = DatasetFactory()
-        Sample.objects.create(name="Test Sample", dataset=dataset)
+        assert dataset.has_data is False
 
-        assert dataset.has_data is True
+        MeasurementFactory(dataset=dataset)
+        del dataset.has_data  # clear the cached_property
 
-    @pytest.mark.skip(reason="Measurement model not in scope for dataset feature tests")
-    def test_has_data_true_with_measurements(self):
-        """has_data returns True for dataset with measurements."""
-        from fairdm.core.measurement.models import Measurement
-        from fairdm.core.sample.models import Sample
+        with django_assert_num_queries(1):
+            assert dataset.has_data is True
 
-        dataset = DatasetFactory()
-        sample = Sample.objects.create(name="Test Sample", dataset=dataset)
-        Measurement.objects.create(sample=sample, dataset=dataset)
 
-        assert dataset.has_data is True
+@pytest.mark.django_db
+class TestDatasetPrefetch:
+    """FR-030: loading a dataset with its descriptions, dates, identifiers,
+    contributions and keywords costs a number of queries that does not grow
+    with the number of related records - asserted at two different
+    related-record counts, not one (T015)."""
 
-    def test_has_data_efficient_query(self):
-        """has_data uses efficient EXISTS query."""
-        from django.db import connection
-        from django.test.utils import CaptureQueriesContext
-
+    def _dataset_with_metadata(self, count):
+        """Build a dataset carrying `count` records of each related type."""
         dataset = DatasetFactory()
 
-        with CaptureQueriesContext(connection) as context:
-            result = dataset.has_data
+        for type_ in DatasetDescription.VOCABULARY.values[:count]:
+            DatasetDescription.objects.create(related=dataset, type=type_, value="x")
 
-        # Should use EXISTS query (efficient)
-        assert result is False
-        assert (
-            len(context.captured_queries) <= 2
-        )  # Max 2 queries (samples + measurements)
+        for type_ in DatasetDate.VOCABULARY.values[:count]:
+            DatasetDate.objects.create(related=dataset, type=type_, value="2024-01-01")
+
+        # Distinct `type` per identifier - AbstractIdentifier enforces one
+        # identifier per (related, type). The identifier vocabulary is not
+        # yet narrowed to the dataset collection (that binding is US-3's),
+        # so any string works here - this test's subject is the query count.
+        for i, type_ in enumerate(DatasetIdentifier.VOCABULARY.values[:count]):
+            DatasetIdentifierFactory(
+                related=dataset, type=type_, value=f"10.{9000 + i}/{dataset.pk}"
+            )
+
+        for _ in range(count):
+            ContributionFactory(content_object=dataset)
+
+        return dataset
+
+    def test_query_count_does_not_grow_with_related_record_count(
+        self, django_assert_num_queries
+    ):
+        small = self._dataset_with_metadata(1)
+        large = self._dataset_with_metadata(3)
+
+        def load_everything(pk):
+            ds = Dataset.all_objects.with_metadata().get(pk=pk)
+            list(ds.descriptions.all())
+            list(ds.dates.all())
+            list(ds.identifiers.all())
+            list(ds.contributors.all())
+            list(ds.keywords.all())
+
+        with django_assert_num_queries(6):
+            load_everything(small.pk)
+
+        with django_assert_num_queries(6):
+            load_everything(large.pk)
+
+
+class TestDatasetTranslatable:
+    """Test that field labels/help text and vocabulary terms resolve at
+    request time rather than at import time (T016, FR-029)."""
+
+    def test_field_labels_and_help_text_are_lazy(self):
+        for field_name in ["uuid", "license", "visibility"]:
+            field = Dataset._meta.get_field(field_name)
+            assert isinstance(field.verbose_name, Promise), field_name
+            assert isinstance(field.help_text, Promise), field_name
+
+    def test_vocabulary_terms_are_lazy(self):
+        from fairdm.core.vocabularies import FairDMIdentifiers
+
+        assert isinstance(FairDMIdentifiers.DOI["skos:prefLabel"], Promise)
+        assert isinstance(FairDMIdentifiers.DOI["skos:definition"], Promise)
+
+
+class TestDatasetVisibilityChoices:
+    """T017, FR-004: the visibility vocabulary offers private and public
+    and nothing else, and the field defaults to private."""
+
+    def test_visibility_vocabulary_members(self):
+        assert {member.name for member in Visibility} == {"PRIVATE", "PUBLIC"}
+
+    def test_visibility_field_defaults_to_private(self):
+        field = Dataset._meta.get_field("visibility")
+        assert field.get_default() == Visibility.PRIVATE
+
+
+@pytest.mark.django_db
+class TestDatasetSharedFixtures:
+    """T007: the shared fixtures build what they claim to."""
+
+    def test_public_and_private_dataset_fixtures(self, public_dataset, private_dataset):
+        assert public_dataset.visibility == Visibility.PUBLIC
+        assert private_dataset.visibility == Visibility.PRIVATE
+
+    def test_dataset_with_full_metadata_carries_one_of_each_related_record(
+        self, dataset_with_full_metadata
+    ):
+        dataset = dataset_with_full_metadata
+        assert dataset.descriptions.count() == 1
+        assert dataset.dates.count() == 1
+        assert dataset.identifiers.count() == 1
+        assert dataset.literature_relations.count() == 1
+        assert dataset.contributors.count() == 1
 
 
 @pytest.mark.django_db
@@ -591,7 +881,11 @@ class TestDOISupport:
 
         dataset_without_doi = DatasetFactory()
 
-        datasets_with_doi = Dataset.objects.filter(identifiers__type="DOI").distinct()
+        # `all_objects` - visibility is not this test's concern, and
+        # DatasetFactory() defaults to private.
+        datasets_with_doi = Dataset.all_objects.filter(
+            identifiers__type="DOI"
+        ).distinct()
 
         assert dataset_with_doi in datasets_with_doi
         assert dataset_without_doi not in datasets_with_doi
@@ -837,18 +1131,13 @@ class TestQueryingRelationships:
 
 @pytest.mark.django_db
 class TestPrivacyFirstDefault:
-    """Test that default manager excludes PRIVATE datasets.
+    """Test that the default manager excludes PRIVATE datasets.
 
     Verifies that Dataset.objects.all() returns only PUBLIC datasets
-    by default, requiring explicit method call to access PRIVATE data.
+    by default. Full coverage of the privacy-first behaviour (exclusion,
+    the explicit `all_objects` route, and the no-widening guarantee) is
+    US-4's (T056-T063).
     """
-
-    @pytest.mark.skip(
-        reason="Privacy-first filtering not currently enabled - see Dataset.objects comment"
-    )
-    def test_default_manager_excludes_private_datasets(self):
-        """Skipped - privacy-first filtering currently disabled in Dataset model."""
-        pass
 
     def test_default_manager_includes_public_datasets(self):
         """Default manager should include PUBLIC datasets."""
@@ -862,50 +1151,6 @@ class TestPrivacyFirstDefault:
         assert result.count() == 1
         assert ds_public in result
 
-    @pytest.mark.skip(
-        reason="INTERNAL visibility does not exist - only PUBLIC and PRIVATE"
-    )
-    def test_default_manager_includes_internal_datasets(self):
-        """Skipped - INTERNAL visibility level does not exist."""
-        pass
-
-    @pytest.mark.skip(
-        reason="Privacy-first filtering not currently enabled - see Dataset.objects comment"
-    )
-    def test_filter_preserves_privacy_first_behavior(self):
-        """Skipped - privacy-first filtering currently disabled in Dataset model."""
-        pass
-
-
-@pytest.mark.django_db
-class TestExplicitPrivateAccess:
-    """Test with_private() method for explicit access to all datasets.
-
-    Verifies that calling with_private() returns ALL datasets including
-    PRIVATE ones, providing explicit opt-in for private data access.
-    """
-
-    @pytest.mark.skip(
-        reason="with_private() method depends on privacy-first filtering being enabled"
-    )
-    def test_with_private_includes_all_visibility_levels(self):
-        """Skipped - with_private() only relevant when privacy-first is enabled."""
-        pass
-
-    @pytest.mark.skip(
-        reason="with_private() method depends on privacy-first filtering being enabled"
-    )
-    def test_with_private_on_filtered_queryset(self):
-        """Skipped - with_private() only relevant when privacy-first is enabled."""
-        pass
-
-    @pytest.mark.skip(
-        reason="with_private() method depends on privacy-first filtering being enabled"
-    )
-    def test_with_private_returns_queryset_for_chaining(self):
-        """Skipped - with_private() only relevant when privacy-first is enabled."""
-        pass
-
 
 @pytest.mark.django_db
 class TestWithRelatedOptimization:
@@ -917,7 +1162,8 @@ class TestWithRelatedOptimization:
 
     def test_with_related_prefetches_project(self, django_assert_max_num_queries):
         """with_related() should prefetch project to prevent N+1 queries."""
-        # Arrange
+        # Arrange - `all_objects`: visibility is not this test's concern,
+        # and DatasetFactory() defaults to private.
         DatasetFactory.create_batch(5, project=ProjectFactory())
 
         # Act & Assert - Should use at most 3 queries:
@@ -925,7 +1171,7 @@ class TestWithRelatedOptimization:
         # 2. Prefetch for projects
         # 3. Possible join table query
         with django_assert_max_num_queries(3):
-            datasets = list(Dataset.objects.with_related())
+            datasets = list(Dataset.all_objects.with_related())
             # Access project on each dataset - should not cause additional queries
             for ds in datasets:
                 _ = ds.project.name if ds.project else None
@@ -940,7 +1186,7 @@ class TestWithRelatedOptimization:
 
         # Act & Assert - Should use at most 3 queries
         with django_assert_max_num_queries(3):
-            datasets = list(Dataset.objects.with_related())
+            datasets = list(Dataset.all_objects.with_related())
             # Access contributors on each dataset - should not cause additional queries
             for ds in datasets:
                 _ = list(ds.contributors.all())
@@ -953,7 +1199,7 @@ class TestWithRelatedOptimization:
         DatasetFactory()  # Different project
 
         # Act
-        result = Dataset.objects.filter(project=project).with_related()
+        result = Dataset.all_objects.filter(project=project).with_related()
 
         # Assert
         assert result.count() == 1
@@ -995,18 +1241,18 @@ class TestWithContributorsOptimization:
         # 1. Main query for datasets
         # 2. Prefetch for contributors
         with django_assert_max_num_queries(2):
-            datasets = list(Dataset.objects.with_contributors())
+            datasets = list(Dataset.all_objects.with_contributors())
             # Access contributors on each dataset - should not cause additional queries
             for ds in datasets:
                 _ = list(ds.contributors.all())
 
     def test_with_contributors_does_not_prefetch_project(self):
         """with_contributors() should not prefetch project (lighter than with_related)."""
-        # Arrange
+        # Arrange - `all_objects`: visibility is not this test's concern.
         datasets = DatasetFactory.create_batch(5, project=ProjectFactory())
 
         # Act
-        result = Dataset.objects.with_contributors()
+        result = Dataset.all_objects.with_contributors()
 
         # Assert - Accessing projects will cause additional queries (not prefetched)
         # This is expected behavior - with_contributors is for cases where
@@ -1023,7 +1269,7 @@ class TestWithContributorsOptimization:
         DatasetFactory()  # Different project
 
         # Act
-        result = Dataset.objects.filter(project=project).with_contributors()
+        result = Dataset.all_objects.filter(project=project).with_contributors()
 
         # Assert
         assert result.count() == 1
@@ -1051,44 +1297,13 @@ class TestMethodChaining:
     and produce correct results.
     """
 
-    def test_chain_with_private_and_with_related(self):
-        """Should be able to chain with_private() and with_related()."""
-        # Arrange
-        ds_private = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
-        ds_public = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-
-        # Act
-        result = Dataset.objects.with_private().with_related()
-
-        # Assert
-        assert result.count() == 2
-        assert ds_private in result
-        assert ds_public in result
-
-    def test_chain_with_private_and_filter(self):
-        """Should be able to chain with_private() with filter()."""
-        # Arrange
-        project = ProjectFactory()
-        ds_match = DatasetFactory(
-            project=project, visibility=Dataset.VISIBILITY_CHOICES.PRIVATE
-        )
-        DatasetFactory(
-            visibility=Dataset.VISIBILITY_CHOICES.PRIVATE
-        )  # Different project
-
-        # Act
-        result = Dataset.objects.with_private().filter(project=project)
-
-        # Assert
-        assert result.count() == 1
-        assert ds_match in result
-
-    def test_chain_filter_with_related_and_with_contributors(self):
+    def test_chain_filter_and_with_related_and_with_contributors(self):
         """Should be able to chain filter(), with_related(), and with_contributors()."""
-        # Arrange
+        # Arrange - PUBLIC so the chain is exercised through the default
+        # (privacy-first) manager rather than incidentally excluded by it.
         project = ProjectFactory()
-        ds_match = DatasetFactory(project=project)
-        DatasetFactory()  # Different project
+        ds_match = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(visibility=Visibility.PUBLIC)  # Different project
 
         # Act
         result = (
@@ -1098,13 +1313,6 @@ class TestMethodChaining:
         # Assert
         assert result.count() == 1
         assert ds_match in result
-
-    @pytest.mark.skip(
-        reason="with_private() method depends on privacy-first filtering being enabled"
-    )
-    def test_chain_all_methods(self):
-        """Skipped - with_private() only relevant when privacy-first is enabled."""
-        pass
 
 
 @pytest.mark.django_db
@@ -1132,10 +1340,12 @@ class TestPerformanceOptimization:
                 ContributionFactory(content_object=ds)
             datasets.append(ds)
 
-        # Measure naive query count (without optimization)
+        # Measure naive query count (without optimization). `all_objects` -
+        # visibility is not this test's concern, and the datasets above are
+        # created with the (private) default.
         with override_settings(DEBUG=True):
             reset_queries()
-            naive_datasets = list(Dataset.objects.all())
+            naive_datasets = list(Dataset.all_objects.all())
             for ds in naive_datasets:
                 _ = ds.project.name if ds.project else None
                 _ = list(ds.contributors.all())
@@ -1143,7 +1353,7 @@ class TestPerformanceOptimization:
 
             # Measure optimized query count (with with_related)
             reset_queries()
-            optimized_datasets = list(Dataset.objects.with_related())
+            optimized_datasets = list(Dataset.all_objects.with_related())
             for ds in optimized_datasets:
                 _ = ds.project.name if ds.project else None
                 _ = list(ds.contributors.all())
@@ -1178,17 +1388,18 @@ class TestPerformanceOptimization:
             for _ in range(3):
                 ContributionFactory(content_object=ds)
 
-        # Measure naive query count
+        # Measure naive query count. `all_objects` - visibility is not this
+        # test's concern.
         with override_settings(DEBUG=True):
             reset_queries()
-            naive_datasets = list(Dataset.objects.all())
+            naive_datasets = list(Dataset.all_objects.all())
             for ds in naive_datasets:
                 _ = list(ds.contributors.all())
             naive_query_count = len(connection.queries)
 
             # Measure optimized query count
             reset_queries()
-            optimized_datasets = list(Dataset.objects.with_contributors())
+            optimized_datasets = list(Dataset.all_objects.with_contributors())
             for ds in optimized_datasets:
                 _ = list(ds.contributors.all())
             optimized_query_count = len(connection.queries)
@@ -1206,7 +1417,9 @@ class TestPerformanceOptimization:
         self, django_assert_max_num_queries
     ):
         """Chaining multiple optimizations should provide compound benefits."""
-        # Arrange
+        # Arrange - `all_objects` is the unfiltered route now that `objects`
+        # is privacy-first (R1); it is the direct replacement for the
+        # removed `with_private()` in this query-optimisation smoke test.
         datasets = []
         for _ in range(5):
             ds = DatasetFactory(project=ProjectFactory())
@@ -1222,7 +1435,7 @@ class TestPerformanceOptimization:
             # 3. Contributors
             # 4. Possible join table
             result = list(
-                Dataset.objects.with_private().with_related().with_contributors()
+                Dataset.all_objects.with_related().with_contributors()
             )
             for ds in result:
                 _ = ds.project.name if ds.project else None
@@ -1248,23 +1461,14 @@ class TestDatasetModel:
         # Factory may set visibility randomly, so just check it's a valid value
         assert dataset.visibility in Visibility.values
 
-    def test_dataset_queryset_get_visible(self):
-        """Test DatasetQuerySet.get_visible() filters correctly."""
-        # Create public and private datasets
-        public_dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        private_dataset = DatasetFactory(visibility=Visibility.PRIVATE)
-
-        visible = Dataset.objects.get_visible()
-
-        assert public_dataset in visible
-        assert private_dataset not in visible
-
     def test_dataset_queryset_with_contributors(self):
         """Test DatasetQuerySet.with_contributors() prefetches correctly."""
+        # `all_objects` - visibility is not this test's concern, and
+        # DatasetFactory() defaults to private.
         dataset = DatasetFactory()
 
         # This should not raise an error and should be efficient
-        queryset = Dataset.objects.with_contributors()
+        queryset = Dataset.all_objects.with_contributors()
         dataset_with_prefetch = queryset.get(pk=dataset.pk)
 
         # Access contributors should not cause additional queries due to prefetch
@@ -1274,7 +1478,7 @@ class TestDatasetModel:
         """Test DatasetQuerySet.with_related() prefetches correctly."""
         dataset = DatasetFactory()
 
-        queryset = Dataset.objects.with_related()
+        queryset = Dataset.all_objects.with_related()
         dataset_with_prefetch = queryset.get(pk=dataset.pk)
 
         # Should have prefetched project and contributors
@@ -1339,8 +1543,11 @@ class TestDatasetModel:
 
     def test_dataset_project_relationship(self):
         """Test that dataset can be associated with a project."""
+        # `all_objects` - the reverse accessor (`project.datasets`) is built
+        # from Dataset's default manager, so it is privacy-filtered too, and
+        # this dataset carries the (private) default.
         project = ProjectFactory()
         dataset = DatasetFactory(project=project)
 
         assert dataset.project == project
-        assert dataset in project.datasets.all()
+        assert dataset in Dataset.all_objects.filter(project=project)

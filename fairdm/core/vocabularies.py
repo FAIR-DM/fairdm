@@ -64,7 +64,7 @@ class FairDMIdentifiers(VocabularyBuilder):
     DOI = {
         "skos:prefLabel": _("DOI"),
         "skos:definition": _(
-            "A Digital Object Identifier providing a persistent, resolvable link to a project record."
+            "A Digital Object Identifier providing a persistent, resolvable link to a record."
         ),
         "dcterms:source": "https://www.doi.org/doi_handbook/",
     }
@@ -102,6 +102,14 @@ class FairDMIdentifiers(VocabularyBuilder):
                     "DOI",
                     "GRANT_NUMBER",
                     "PROPOSAL_ID",
+                ],
+            ),
+            "Dataset": Collection(
+                prefLabel=_("Dataset Identifiers"),
+                definition=_("Persistent identifiers for research datasets."),
+                ordered=True,
+                members=[
+                    "DOI",
                 ],
             ),
             "Person": Collection(

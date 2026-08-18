@@ -125,11 +125,15 @@ class DatasetListView(FairDMListView):
     def get_queryset(self) -> QuerySet[Dataset]:
         """Return the queryset of visible datasets with prefetched contributors.
 
+        `Dataset.objects` (the base this view's `super().get_queryset()`
+        reads through) is privacy-first by default, so no separate
+        visibility filter is needed here any more (R1).
+
         Returns:
             QuerySet: Filtered and optimized Dataset queryset.
         """
         qs: DatasetQuerySet = super().get_queryset()
-        return qs.get_visible().with_contributors()
+        return qs.with_contributors()
 
 
 class DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView):
@@ -155,9 +159,16 @@ class DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView):
     template_name = "plugins/form_view.html"
 
     def get_object(self, queryset=None):
-        """Retrieve dataset and enforce change_dataset permission."""
+        """Retrieve dataset and enforce change_dataset permission.
+
+        Looked up through ``Dataset.all_objects`` rather than the
+        privacy-first default manager: an owner editing their own private
+        dataset is exactly the case FR-019's default exclusion is not
+        meant to block, and the permission check below is what actually
+        gates access.
+        """
         uuid = self.kwargs.get("uuid")
-        dataset = get_object_or_404(Dataset, uuid=uuid)
+        dataset = get_object_or_404(Dataset.all_objects, uuid=uuid)
         if not self.request.user.has_perm("change_dataset", dataset):
             raise PermissionDenied("You do not have permission to edit this dataset.")
         return dataset
@@ -202,9 +213,13 @@ class DatasetDeleteView(LoginRequiredMixin, FairDMDeleteView):
     require_confirmation = True
 
     def get_object(self, queryset=None):
-        """Retrieve dataset and enforce delete_dataset permission."""
+        """Retrieve dataset and enforce delete_dataset permission.
+
+        Looked up through ``Dataset.all_objects`` for the same reason as
+        ``DatasetUpdateView.get_object`` above.
+        """
         uuid = self.kwargs.get("uuid")
-        dataset = get_object_or_404(Dataset, uuid=uuid)
+        dataset = get_object_or_404(Dataset.all_objects, uuid=uuid)
         if not self.request.user.has_perm("delete_dataset", dataset):
             raise PermissionDenied("You do not have permission to delete this dataset.")
         return dataset

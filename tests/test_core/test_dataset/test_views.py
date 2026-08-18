@@ -124,7 +124,9 @@ class TestDatasetCreateView:
 
         from fairdm.core.dataset.models import Dataset
 
-        dataset = Dataset.objects.get(name="New Test Dataset")
+        # `all_objects` - a newly created dataset defaults to private, and
+        # `Dataset.objects` is privacy-first by default (R1).
+        dataset = Dataset.all_objects.get(name="New Test Dataset")
         expected_url = reverse("dataset-detail", kwargs={"uuid": dataset.uuid})
         assert response.url == expected_url
 
@@ -164,7 +166,8 @@ class TestDatasetCreateView:
 
         from fairdm.core.dataset.models import Dataset
 
-        dataset = Dataset.objects.get(name="Permission Test Dataset")
+        # `all_objects` - a newly created dataset defaults to private.
+        dataset = Dataset.all_objects.get(name="Permission Test Dataset")
 
         contributor = dataset.contributors.filter(contributor=user).first()
         assert contributor is not None, "User should be a contributor"
@@ -289,7 +292,8 @@ class TestDatasetDeleteView:
         response = client.post(url, data={"confirmation": "Wrong Name"})
         assert response.status_code == 200
         assert "confirmation" in response.context["form"].errors
-        assert Dataset.objects.filter(pk=dataset.pk).exists()
+        # `all_objects` - the dataset is private by default.
+        assert Dataset.all_objects.filter(pk=dataset.pk).exists()
 
     def test_correct_name_redirects_to_list(self, client):
         """T030a — POST with correct name redirects to dataset-list; dataset deleted."""

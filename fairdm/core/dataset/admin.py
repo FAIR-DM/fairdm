@@ -169,6 +169,16 @@ class DatasetAdmin(admin.ModelAdmin):
         models.OneToOneField: {"widget": Select2Widget},
     }
 
+    def get_queryset(self, request):
+        """Use `all_objects` rather than the privacy-first default manager.
+
+        `ModelAdmin.get_queryset()` reads through `Dataset._default_manager`
+        by default, which would hide PRIVATE datasets from the admin
+        changelist. The admin is where a portal is repaired, so it must see
+        every dataset regardless of visibility (FR-019a).
+        """
+        return Dataset.all_objects.all()
+
     def save_model(self, request, obj, form, change):
         """Save the dataset and display license change warning if DOI exists.
 
