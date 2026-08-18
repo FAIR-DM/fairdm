@@ -5,19 +5,19 @@ says what gets built, in what order, and what it touches.
 
 ## Shape of the work
 
-Eleven groups, ordered so that the ones every other group's tests read through land first. Groups 1
-and 2 change the record itself and the factories that build it, so everything downstream depends on
-them. Groups 3 to 10 are independent of one another and can proceed in parallel once 2 is in.
+Eleven groups. Groups 0 and 1 change the record and the factories that build it, so everything
+downstream depends on them and they run first, together. Groups 3 to 10 are independent of one
+another once 2 is in.
 
 | Group | Story | Touches |
 |---|---|---|
-| 0 Foundations | — | `fairdm/core/vocabularies.py`, `fairdm/core/choices.py`, `fairdm/factories/core.py`, sample conftest |
+| 0 Foundations | US-10 | `fairdm/core/vocabularies.py`, `fairdm/factories/core.py`, `fairdm_demo/factories.py`, the test suite's sample call sites |
 | 1 The record | US-10 | `fairdm/core/sample/models.py`, `managers.py`, migrations |
 | 2 Polymorphism and the registry | US-1 | `models.py`, `config.py`, `fairdm_demo/config.py`, factories |
 | 3 Descriptions | US-2 | `models.py` |
 | 4 Dates | US-3 | `models.py` |
 | 5 Identifiers | US-4 | `models.py`, `fairdm/core/vocabularies.py` |
-| 6 Status | US-5 | `models.py`, `fairdm/core/choices.py`, `fairdm/core/vocabularies.py`, migrations |
+| 6 Status | US-5 | `models.py`, `fairdm/core/vocabularies.py`, an inert stub in `choices.py`, migrations |
 | 7 Access | US-6 | new shared backend, `fairdm/conf/settings/auth.py`, `sample/permissions.py`, `sample/plugins.py` |
 | 8 The mixins | US-7 | `sample/filters.py`, `sample/forms.py`, `fairdm/registry/factories.py` |
 | 9 Provenance | US-8 | `models.py`, `managers.py` |
@@ -33,10 +33,12 @@ its four clauses is wrong.
 
 **Permissions are fixed once, in a shared backend, for every polymorphic record.** Normalising the
 object to its base instance before the guardian check is the only option that satisfies both a
-direct grant on a specimen and a grant inherited from its dataset (R2). It is gated on the exact
-app-label mismatch that currently raises, so no currently-passing check changes behaviour. Raw
-guardian leaves `AUTHENTICATION_BACKENDS`, because a backend that delegates blindly reintroduces the
-raise — `OrganizationPermissionBackend` already does.
+direct grant on a specimen and a grant inherited from its dataset (R2). It is gated on the object —
+normalise when the instance's real class differs from its polymorphic base and that base owns the
+permission — so no currently-passing check changes behaviour. Raw guardian leaves
+`AUTHENTICATION_BACKENDS` and the shared backend is registered in its place, because a backend that
+delegates blindly reintroduces the raise, and leaving the other records' permissions to reach the
+replacement by delegation is an unwritten contract (D-018).
 
 This reaches measurements and contributors. That is the fix's natural surface rather than scope
 creep: the defect is in the backend chain, and writing it for samples alone would leave a blind
@@ -54,6 +56,13 @@ iterating triggers the conversion that raises.
 covers fixture loading, and it cannot fire on the framework's own read path, which a guard in
 `__init__` would (R4). `Sample.clean()` stays so that forms and the admin still produce a validation
 error rather than a server error.
+
+**The permission repair has two halves that fail separately.** The backend fixes the check side.
+Granting a right takes no part in the backend chain, so it needs the same normalisation again in a
+wrapper — otherwise the record ends up with a right that can be consulted and never given (D-019).
+The gate is keyed on the object rather than on the permission string, because the library only
+compares application labels when the permission carries one, and a gate keyed on that comparison
+would turn today's loud error into a silent denial.
 
 **Blocking the base record is mostly a factory change.** The framework's own factory declares the
 base model, and two more reach it without naming it. The sample factory becomes an abstract base and
@@ -84,9 +93,15 @@ status rewrite, which Article IX exempts from squashing.
 
 ## Ordering and parallelism
 
-Group 0 then group 1 then group 2, in sequence — each carries something the next reads through.
-Groups 3 to 10 run in parallel afterwards. Group 6 depends on group 0's vocabulary; group 8 depends
-on group 2's registry work.
+**US-10 runs first, whatever its priority says.** It carries the factories and the block on creating
+the base record, and those two are one change: the framework's own sample factory builds the record
+the specification forbids, and about 140 call sites across fourteen test files reach it. Landing the
+block before the retargeting would red the suite for the length of the run. The design review caught
+this — the first draft had the block in the first story and the factories in the last.
+
+Then US-1, which carries the registry work US-7 reads through. US-4 needs the identifier vocabulary
+and US-5 the status vocabulary, both of which are the first task in their own story. Everything else
+runs in parallel.
 
 Every group writes its tests before its implementation (Article I). Test scope is one class per
 task; the whole suite runs once per group, at its report.

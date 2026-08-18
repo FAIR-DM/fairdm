@@ -97,7 +97,11 @@ found their record pointing at the person-and-organisation vocabulary. Settled t
 sample identifier collection is introduced, containing **IGSN and DOI**. IGSN because it is what
 portals mint for specimens today; DOI because of the direction described in D-005.
 
-The pre-existing global uniqueness of an identifier value (`fairdm/core/abstract.py:316`) is kept.
+The uniqueness of an identifier value is kept and corrected. It is declared on the shared abstract
+(`fairdm/core/abstract.py:316`), but an abstract model yields one index per concrete table, so today
+the same value may name a sample and a dataset at once. The dataset record closes this in its own
+validation; the sample record has no equivalent. The check moves onto the shared abstract so every
+record type inherits it, rather than being written a third time.
 
 ## D-004 — A sample has one relationship type, and it stays that way
 
@@ -276,9 +280,9 @@ Findings that are real but are not this feature's work:
 
 | Finding | Where it goes |
 |---|---|
-| The permission gate on every sample management plugin returns `True` unconditionally (`fairdm/core/sample/plugins.py:19`), so Edit, Descriptions, Keywords and Key Dates are ungated | Filed — a view-level check, and D-001 puts those in the CRUD specification |
+| The permission gate on every sample management plugin returns `True` unconditionally (`fairdm/core/sample/plugins.py:19`), so Edit, Descriptions, Keywords and Key Dates are ungated | ~~Filed — a view-level check, and D-001 puts those in the CRUD specification~~ **Reversed, see D-015.** Repaired here, as FR-033a |
 | `SampleForm`'s `Meta.help_text` should be `help_texts`; all seven help strings are inert (`forms.py:155`) | Leaves with `SampleForm` under D-001 |
-| The dataset "add another" widget reverses `admin:core_dataset_add`, which does not exist — `NoReverseMatch` whenever the form renders (`forms.py:60`) | Leaves with `SampleForm` under D-001 |
+| The dataset "add another" widget reverses `admin:core_dataset_add`, which does not exist — `NoReverseMatch` whenever the form renders (`forms.py:60`) | ~~Leaves with `SampleForm` under D-001~~ **Wrong attribution.** Line 60 is inside `SampleFormMixin`, which D-001 keeps in scope. Repaired here, in T072 |
 | `SampleFilter`'s description and date filters name fields that do not exist and raise `FieldError` (`filters.py:121`, `:128`) | Leaves with `SampleFilter` under D-001 (D-008) |
 | The polymorphic type filter's choices are hardcoded to `app_label__in=["fairdm_core", "fairdm_demo"]` — `fairdm_core` is not a real app label, and a portal's own app is excluded (`filters.py:150`) | Leaves with `SampleFilter` under D-001 |
 | `tests/…/test_admin.py:48` has unreachable code after a `return`, referencing two undefined names | Repaired here — it is a test for a surface in scope |
@@ -298,3 +302,86 @@ mistake as the ODM2 vocabulary: a plausible external reference, adopted without 
 contains. The specification requires that an IGSN be validated against the format its issuing
 authority defines, and which format that is gets settled from the IGSN and DataCite documentation
 during research.
+
+## D-015 — The ungated editing surfaces are repaired here, not routed out
+
+**Self-resolved at design review, reversing an earlier decision of my own.**
+
+The routed-out table above sent the unconditional plugin predicate to the CRUD specification, on the
+grounds that a view-level check belongs with the views. That was defensible when it was written and
+is wrong now, for a reason found afterwards.
+
+The four editing surfaces on a sample declare no required right, and the framework's own
+documentation says plainly that a surface declaring none is opened for every request, anonymous
+included. Adding the declaration is one line each. But it does not work: the right it would name
+cannot be resolved for a specimen type at all, which is D-010's defect and this specification's
+US-6. **The two are one fault seen from two sides** — the derivation is broken, and the only place
+that would have noticed is unguarded.
+
+Routing one half out would ship a record whose access rules are correct and unenforced, and would
+leave the other half looking fixed. So FR-033a and FR-033b are added and the surfaces are closed
+here.
+
+The general point, and why this is recorded rather than quietly amended: **a scope line drawn by
+layer stops being right when one defect spans the layers.** The line held for projects and datasets
+because their view layers were separately specified and separately correct.
+
+## D-016 — What an IGSN looks like, settled from the registries rather than assumed
+
+**Self-resolved. This closes D-014.**
+
+IGSN allocation moved to DataCite. The migration was announced complete in September 2023 and legacy
+handles now resolve by alias rather than by continued allocation. An IGSN today is an ordinary
+DataCite identifier, spread across at least 38 registry prefixes with no shared prefix and no
+enforced suffix grammar, and the count grows as registries are provisioned.
+
+So the shipped pattern is wrong in all four of its clauses rather than merely stale, and no
+replacement can be both correct and specific. The rule adopted normalises the common display forms
+away and then accepts a DataCite identifier case-insensitively, or the legacy handle form. Nothing
+resolves over the network.
+
+Recorded because it is counter-intuitive: **the honest validation here is looser than what the code
+already had.** A stricter check rejects real identifiers, and only resolving against the registry can
+tell an IGSN from any other identifier of the same shape — which is a network call this record does
+not make.
+
+## D-017 — Blocking the base record is a factory change with a guard attached
+
+**Self-resolved at design review.**
+
+The guard is small. The cost is that the framework's own sample factory builds the base record, and
+two further factories reach it without naming it, so about 140 call sites across fourteen test files
+create a row the specification forbids.
+
+The design review caught the ordering. The block sat in the first story and the factory work in the
+last, which would have left the suite red for the length of the run. Both now sit together, and the
+retargeting is its own task rather than an implied cost of the guard.
+
+The factory design is settled the way that keeps the dependency direction right: the framework ships
+an abstract sample factory and the reference implementation ships the concrete ones. A concrete
+factory in the framework would make it import its own demo application.
+
+## D-018 — Removing the raw object-permission backend needs its replacement registered, not inherited
+
+**Self-resolved at design review.**
+
+The fix for D-010 takes the raw object-permission backend out of the chain so nothing can delegate
+around the normalisation. The first draft left the three record-specific backends to answer in its
+place, which works only because each of them hands an object it does not own to its parent.
+
+That is an unwritten contract, and the obvious future tidy-up of any one of them — having it answer
+only for its own records — would silently switch off object permissions for datasets, projects and
+organisations. The shared backend is therefore registered directly, and a test asserts that grants on
+those three records still resolve.
+
+## D-019 — The check side and the grant side fail separately
+
+**Self-resolved at design review.**
+
+The fix for D-010 is an authentication backend, and backends take no part in granting a right — the
+grant resolves the object's own content type directly and looks for a permission that is not filed
+under it. So a repair that only replaces the backend leaves a right that can be consulted and never
+given, and the test that proves the check works cannot set itself up.
+
+Both sides need the same normalisation, in two places. Recorded because the symmetry is easy to
+assume: a permission system that reads correctly is not therefore writable.

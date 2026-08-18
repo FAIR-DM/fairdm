@@ -3,7 +3,7 @@
   "feature": "005-core-samples",
   "branch": "005-core-samples",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "gates": {
     "spec": {
       "approved_by": "sam",
@@ -16,6 +16,22 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-19T01:30:00Z",
+      "self_resolved": [
+        "T029, T050 and T086 reopened - their evidence did not survive the reconciliation lens",
+        "base-record block and the factory retargeting moved into one story, run first",
+        "factory design settled: abstract in the framework, concrete in the reference implementation",
+        "status vocabulary keeps an inert stub so migration history stays importable",
+        "permission gate keyed on the object rather than the permission string",
+        "grant side given its own normalising wrapper; the backend fixes only the check",
+        "shared backend registered directly rather than reached by delegation",
+        "plugin gating reversed back into scope as FR-033a, with D-015 recording why",
+        "cross-record identifier uniqueness lifted onto the shared abstract",
+        "T004 folded, T053 restated against the migration's forward function"
+      ]
     }
   },
   "stories": [
@@ -42,11 +58,6 @@
           }
         },
         {
-          "id": "T025",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
           "id": "T026",
           "status": "todo",
           "attempts": 0
@@ -58,21 +69,6 @@
         },
         {
           "id": "T029",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/sample/models.py:30",
-              "fairdm/core/sample/admin.py:182"
-            ],
-            "tests": [
-              "tests/test_core/test_sample/test_config.py:17",
-              "tests/test_core/test_sample/test_models.py:777"
-            ]
-          }
-        },
-        {
-          "id": "T030",
           "status": "todo",
           "attempts": 0
         },
@@ -96,11 +92,6 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {
-          "id": "T004",
-          "status": "todo",
-          "attempts": 0
-        },
         {
           "id": "T033",
           "status": "todo",
@@ -205,6 +196,11 @@
           "id": "T048",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T097",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -228,16 +224,8 @@
         },
         {
           "id": "T050",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/sample/models.py:77"
-            ],
-            "tests": [
-              "tests/test_core/test_sample/test_models.py:51"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T051",
@@ -266,6 +254,11 @@
         },
         {
           "id": "T056",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T098",
           "status": "todo",
           "attempts": 0
         }
@@ -315,7 +308,22 @@
           "attempts": 0
         },
         {
-          "id": "T064",
+          "id": "T100",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T101",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T095",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T096",
           "status": "todo",
           "attempts": 0
         }
@@ -472,16 +480,8 @@
         },
         {
           "id": "T086",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/sample/admin.py:93"
-            ],
-            "tests": [
-              "tests/test_core/test_sample/test_admin.py:266"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T087",
@@ -495,6 +495,11 @@
         },
         {
           "id": "T089",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T099",
           "status": "todo",
           "attempts": 0
         }
@@ -604,6 +609,21 @@
           "attempts": 0
         },
         {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T094",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
           "id": "T090",
           "status": "todo",
           "attempts": 0
@@ -636,7 +656,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {

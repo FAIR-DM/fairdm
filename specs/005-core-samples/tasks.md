@@ -18,15 +18,24 @@ into T043, T053 restated. Numbers are never reused, because the reconciliation l
 - [ ] T002 Add an `IGSN` member to `FairDMIdentifiers` in `fairdm/core/vocabularies.py` with its
   definition and its authority's source URL. No member for it exists today.
 - [ ] T003 Declare a sample status vocabulary of custody states — available, in use, stored,
-  destroyed, unknown — locally, with no remote source, in `fairdm/core/choices.py`.
-- [ ] T004 Confirm the `Sample` collections on `FairDMDescriptions`, `FairDMDates` and `FairDMRoles`
-  exist and contain the members FR-014, FR-015 and FR-008 require.
+  destroyed, unknown — locally, with no remote source, in `fairdm/core/vocabularies.py` alongside
+  the other four. Two mechanical constraints, both of which the vocabulary it replaces gets wrong:
+  set `Meta.name`, whose absence is why the status filter queries an empty vocabulary name and is
+  permanently blank; and name the unknown member in lower case, because the attribute name is the
+  stored value and the field's default depends on it.
+- [~] T004 **Folded into T034, T038 and T015 at review.** "Confirm a collection exists" produces no
+  artifact, so it can never close against a code citation and a passing test. Each of those three
+  tasks already has to name its vocabulary's members, which is the same check with an assertion
+  behind it.
 - [ ] T005 One factory per model in `fairdm/factories/core.py`: `SampleDescriptionFactory`,
   `SampleDateFactory`, `SampleIdentifierFactory`, `SampleRelationFactory`, each using
   `factory.Sequence` for uniqueness-guarded fields, `factory.SubFactory` for relations, and each
   defaulting `type` to a member of its own vocabulary.
-- [ ] T006 A sample factory that builds a concrete specimen type rather than the polymorphic base,
-  in `fairdm/factories/core.py`, since the base cannot be created (FR-010).
+- [ ] T006 Make `SampleFactory` in `fairdm/factories/core.py` an abstract factory base, and have the
+  reference implementation supply the concrete ones in `fairdm_demo/factories.py`. The framework
+  ships the abstract factory; the demo ships a specimen. A concrete factory in
+  `fairdm/factories/core.py` would make the framework import its own demo app, which inverts the
+  dependency and would ship the demo models as a hard requirement.
 - [ ] T007 Export every sample factory from `fairdm/factories/__init__.py`.
 - [ ] T008 Shared fixtures in `tests/test_core/test_sample/conftest.py` wrapping those factories — a
   specimen of each registered type, a specimen carrying one of every related record, and a
@@ -84,7 +93,8 @@ Runs first: every other story's tests are written against the record these tasks
   samples without naming a type returns each row as its own type and carries that type's own fields.
 - [ ] T025 `TestBaseSampleRefused` — creating a bare base sample is refused through validation,
   through a form, through the administrative interface and through the manager. Each route asserted
-  separately, because they fail independently.
+  separately, because they fail independently. **Runs with T030 in the foundation group, not here**
+  — the block and the factory retargeting are one change.
 - [ ] T026 `TestSampleRegistryGeneration` in `tests/test_core/test_sample/test_config.py` — a
   registered specimen type receives a generated form, filter set, table and administrative entry,
   each carrying that type's own fields, asserted by naming the fields rather than by checking the
@@ -101,8 +111,11 @@ Runs first: every other story's tests are written against the record these tasks
 - [ ] T029 The polymorphic base and the registry integration in `fairdm/core/sample/models.py`, using
   the framework's existing registry rather than a mechanism of this record's own.
 - [ ] T030 Block creation of the base record at every route T025 names, in
-  `fairdm/core/sample/models.py` and the manager. The block must not fire on the framework's own
-  internal instantiation of the base class during queryset resolution.
+  `fairdm/core/sample/models.py`. A `pre_save` receiver scoped to the base class is the mechanism —
+  it is the only one that also covers fixture loading, and it cannot fire on the framework's own
+  read path, which constructs base instances on every polymorphic query. `Sample.clean()` stays
+  alongside it so forms and the administrative interface still produce a validation error rather
+  than a server error. **Runs in the foundation group, after T006 and T094.**
 - [ ] T031 A base registry configuration in `fairdm/core/sample/config.py` carrying the component
   defaults every specimen type should inherit.
 - [ ] T032 Make the framework's reference specimen types in `fairdm_demo/config.py` inherit that base
@@ -179,19 +192,31 @@ Runs first: every other story's tests are written against the record these tasks
   out of destroyed.
 - [ ] T052 `TestNoRemoteVocabulary` — loading the sample record and creating a specimen both succeed
   with outbound network calls blocked. Asserted by blocking the call, not by reading the source.
-- [ ] T053 `TestStoredStatusValues` in `tests/test_core/test_sample/test_models.py` — every status
-  value held in the database is a member of the vocabulary the field declares, so no stored value
-  can raise on read. **Restated at reconciliation:** the original wording needed a migration-runner
-  harness the project does not depend on, because an ordinary test runs against an
-  already-migrated database. This asserts the property the migration exists to guarantee, which is
-  what matters and is reachable without a new dependency.
+- [ ] T053 `TestStatusMigration` in `tests/test_core/test_sample/test_models.py` — insert rows
+  carrying the previous vocabulary's values by raw SQL against the base sample table, call the data
+  migration's forward callable with the historical model, then assert every row reads unknown.
+  **Restated twice.** The original needed a migration-runner harness the project does not depend
+  on. The first restatement — "every stored status is a member of the vocabulary" — was vacuous,
+  because a test database holds only the rows the test itself created and those are valid by
+  construction. Calling the forward function directly tests the thing that matters and needs no new
+  dependency.
 
 ### Implementation
 
 - [ ] T054 Point `Sample.status` at the local status vocabulary in `fairdm/core/sample/models.py`,
   defaulting to unknown.
-- [ ] T055 Remove the remote status vocabulary from `fairdm/core/choices.py`.
-- [ ] T056 A standalone data migration mapping every existing status value to unknown.
+- [ ] T055 Retire the remote status vocabulary. `fairdm/core/sample/migrations/0001_initial.py:105`
+  names `fairdm.core.choices.SampleStatus` inside a field deconstruction, so deleting the class
+  outright makes that file unimportable and breaks migrating from an empty database. Leave an inert
+  local stub carrying the old member names for migration history, with a comment saying why, and
+  remove the remote source. Also drop the `SampleStatus` import at `fairdm/core/sample/filters.py:155`.
+  The report runs `makemigrations --check` and a migrate-from-zero to prove both.
+- [ ] T056 A standalone data migration rewriting every existing status value to unknown, through
+  `QuerySet.update()` rather than by iterating instances — iterating invokes the field conversion
+  that raises on a value the new vocabulary does not contain. It declares
+  `reverse_code=migrations.RunPython.noop`, because the previous values are discarded and cannot be
+  reconstructed, and a migration with no reverse blocks a rollback of everything after it. It is
+  ordered after the field alteration in the same run.
 
 ## Phase 7 — US-6, access
 
@@ -214,9 +239,19 @@ Runs first: every other story's tests are written against the record these tasks
 
 ### Implementation
 
-- [ ] T063 Make the permission check work for a concrete specimen type in
-  `fairdm/core/sample/permissions.py` and wherever the backend order decides it. The check must
-  succeed for both a direct grant on a specimen and a grant inherited from its dataset.
+- [ ] T063 A shared permission backend that normalises a polymorphic instance to its base before
+  the object-level check. **Gate on the object, not on the permission string** — the underlying
+  library only compares application labels when the permission carries one, so a gate keyed on that
+  comparison never fires for an unqualified permission, and the failure becomes a silent denial
+  rather than an error. Normalise when the instance's real class differs from its polymorphic base
+  and that base owns the permission, whether or not the permission is qualified.
+- [ ] T100 Re-parent `fairdm/core/sample/permissions.py`, `fairdm/core/measurement/permissions.py`
+  and `fairdm/contrib/contributors/permissions.py` onto that backend, so none of them can delegate
+  around the normalisation.
+- [ ] T101 Register the shared backend in `fairdm/conf/settings/auth.py` in place of the raw
+  object-permission backend. Registering it directly matters: leaving the other models' object
+  permissions to reach it by delegation through a sample or organisation backend is an unwritten
+  contract that the next tidy-up of either backend would silently break.
 - [ ] T064 Declare the required permission on every editing plugin in
   `fairdm/core/sample/plugins.py`, and remove the predicate that returns true unconditionally.
 
@@ -309,3 +344,39 @@ Runs first: every other story's tests are written against the record these tasks
   documented behaviour the code does not implement.
 - [ ] T092 Changelog entry.
 - [ ] T093 Drop the `needs verification` tag from R5 in `docs/ROADMAP.md`.
+
+## Phase 12 — Added at design review
+
+The review blocked the plan on nine findings beyond the reconciliation ones. These are the tasks
+that close them.
+
+- [ ] T094 Retarget every `SampleFactory(` call site outside `tests/test_core/test_sample/` to a
+  concrete specimen factory — about 140 sites across 14 files, plus the fixture at
+  `tests/test_contrib/test_plugins/conftest.py:43` that calls `Sample.objects.create` directly, and
+  the two factories that reach the base without naming it (`MeasurementFactory.sample`, both ends of
+  `SampleRelationFactory`). This is the bulk of T030's cost and it is separated so that the blocking
+  change and the retargeting land together rather than one before the other.
+- [ ] T095 A permission-assignment wrapper applying the same normalisation as T063, in
+  `fairdm/core/utils.py`. **The backend fixes the check side only** — granting a right takes no part
+  in the backend chain, so `assign_perm` on a specimen type still fails after T063. Route the
+  framework's own assignment sites through it and correct the examples in
+  `fairdm/core/sample/permissions.py`'s docstring, which currently tell a portal developer to make
+  the call that fails.
+- [ ] T096 `TestObjectPermissionsSurvive` in `tests/test_core/test_sample/test_permissions.py` — a
+  right granted on a dataset, on a project and on an organisation still resolves after the backend
+  change. These are the models that lose their answering backend when the raw one is removed, and
+  nothing else in this work would notice if they stopped resolving.
+- [ ] T097 Cross-record identifier uniqueness for `SampleIdentifier`. The uniqueness on the shared
+  abstract is per-table, so the same value can name a sample and a dataset at once; the dataset
+  record solves this in its own validation and the sample record has no equivalent. Lift the check
+  onto the shared abstract so every record type inherits it, rather than copying it a third time.
+  The check is validation-only, so T045's test must use full validation rather than creating a row.
+- [ ] T098 Update the tests the status change reds: the three that assert the previous vocabulary's
+  terms (`tests/test_core/test_sample/test_models.py:132`,
+  `tests/test_core/test_sample/test_forms.py:135`,
+  `tests/test_core/test_sample/test_filters.py:42`), and the skipped status-filter test whose
+  premise the change removes.
+- [ ] T099 Remove the unreachable code at `tests/test_core/test_sample/test_admin.py:48` — a second
+  `return` referencing two names the module does not define — and resolve the skipped
+  `select_subclasses` test at `tests/test_core/test_sample/test_models.py:834`, which SC-011 does not
+  permit to stay skipped.

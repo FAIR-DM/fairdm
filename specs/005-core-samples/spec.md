@@ -493,6 +493,15 @@ needed to load a list of samples with all their related records.
   deleting its samples and adding samples to it.
 - **FR-032**: Rights granted directly on a sample MUST hold independently of any dataset grant.
 - **FR-033**: Every right any check consults MUST be declared on the sample record.
+- **FR-033a**: Every surface that edits a sample MUST require the right to change it. A surface that
+  declares no required right is opened for every request, including one that has not signed in.
+  *Added at design review:* this was routed out as a view-level concern until the work established
+  that the rights themselves do not resolve for a specimen type, which is the same defect. Fixing
+  the derivation without closing the surface would leave the record's access rules correct and
+  unenforced.
+- **FR-033b**: Granting a right on a specimen MUST succeed. *Added at design review:* the check and
+  the grant fail separately and for different reasons, so repairing the check alone leaves a right
+  that can be consulted and never given.
 
 ### Reusable form and filter behaviour
 
@@ -502,8 +511,10 @@ needed to load a list of samples with all their related records.
   it. A filter declared where the framework's filtering library will not collect it MUST NOT be
   carried.
 - **FR-036**: A sample form given the requesting user MUST offer only the datasets that user may add
-  samples to. A sample form given no user MUST NOT offer any dataset that user has not been shown to
-  be entitled to.
+  specimens to. A sample form given no user MUST offer no dataset at all. *Restated at design
+  review:* the earlier wording named the entitlements of a user who does not exist, which nothing
+  could satisfy or test. Offering nothing is the safe default for a published package — a form that
+  has authorised nobody should propose no target.
 - **FR-037**: What the registry generates for a specimen type supplying neither a form nor a filter
   set MUST carry the mixins' behaviour rather than the framework's plain defaults.
 - **FR-038**: Guidance text a form defines for a field MUST reach the rendered field.
@@ -571,7 +582,10 @@ needed to load a list of samples with all their related records.
   both succeed with no network access.
 - **SC-006**: A user holding rights on a dataset alone holds the corresponding rights on its
   samples; a user holding rights on one sample alone holds them on that sample; a user holding
-  neither holds nothing.
+  neither holds nothing. A right can be granted on a specimen as well as consulted, and the same
+  answers hold whether the right is named with its record or without. Every editing surface refuses
+  a request that has not signed in, and rights already granted on the other core records still
+  resolve.
 - **SC-007**: A filter set inheriting the filter mixin carries every filter the mixin declares, and
   the form and filter set the registry generates for a type supplying neither carry the same
   behaviour.
@@ -607,9 +621,10 @@ needed to load a list of samples with all their related records.
 
 ## Out of scope
 
-- The sample list, detail, create, edit and delete pages, the concrete form and filter set those
-  pages would instantiate, and the view-level permission checks — the CRUD specification for
-  samples, roadmap item R16 (D-001).
+- The sample list, detail, create, edit and delete pages, and the concrete form and filter set those
+  pages would instantiate — the CRUD specification for samples, roadmap item R16 (D-001). The
+  requirement that an editing surface declare the right it needs stays here (FR-033a), because it is
+  the same defect as the derivation it enforces.
 - A material field and a vocabulary of materials spanning every science (D-012).
 - Relationship types beyond one sample having come from another (D-004).
 - Geographic querying — bounding box, radius, coordinate reference systems — and any change to the
