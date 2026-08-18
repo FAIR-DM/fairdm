@@ -344,3 +344,52 @@ Findings that are real but are not this feature's work:
 | An organisation-scoped visibility level between private and public | #168 |
 | Which contribution roles confer which rights (D-010) | #169 |
 | Full revision history for core records (D-015) | #170 |
+| The deployment pipeline in `apps.py:254` is never invoked, so the `groups` and `django-waffle` fixtures and the vocabulary preload do not reach a deployed portal (D-018) | #193 |
+
+## D-018 — Licences are seeded by a data migration, because the setup pipeline does not run
+
+**Self-resolved, after the maintainer asked which mechanism was right.**
+
+`Dataset.license` is the only licence field in the package (`models.py:603`). `django-content-license`
+ships `fixtures/creativecommons.json.gz` and no data migration, deliberately — curating licences is
+not that package's job. Nothing in FairDM loads it. So a portal that has migrated and never run
+`loaddata` by hand has no `License` rows at all, and two things follow: the configured default
+resolves to `None` and is silently not applied, and the portal's dataset form declares `license` as a
+required field over an empty queryset (`forms.py:116`), so a dataset cannot be created through the
+portal at all.
+
+Which licences to seed is FairDM's opinion to hold. The set is CC0 1.0, CC BY 4.0 and CC BY-SA 4.0.
+The fixture also carries the NC and ND variants; they fail the Open Definition, and a framework named
+for reusability should not present "no derivatives" as a recommended licence for research data. A
+portal that needs one adds it, which is the pattern the licensing package is built for.
+
+The mechanism was the harder question, and the first two answers were wrong. FairDM configures a
+deployment pipeline in `fairdm/conf/settings/apps.py:254-282`: `on_initial` loads the `django-waffle`
+and `groups` fixtures, and `always_run` calls `preload` for the vocabulary package. Adding a licence
+step there would sit beside two precedents of exactly this shape, be overridable by a portal, and
+keep editable content out of migration history — every argument favours it.
+
+**Except that the pipeline is not invoked.** The evidence:
+
+- The only deployed FairDM portal, `ihfc-iugg/ghfdb-portal`, boots with
+  `manage.py migrate --noinput && collectstatic --noinput && compress && gunicorn`. Its Dockerfile has
+  carried that command for its entire history and has never called the setup command.
+- FairDM's own `docker-compose.yml:36` reads `command: start-django`, naming a script that exists
+  nowhere in the repository.
+- No page under `docs/` mentions the setup command.
+
+So the pipeline is configured, registered in `INSTALLED_APPS`, and has never run on a real portal.
+Putting a guarantee this specification makes into a mechanism that demonstrably does not execute would
+be specifying something that cannot hold. `migrate` is the one step every FairDM portal actually runs.
+
+A data migration in `fairdm/core/dataset/migrations/`, then, building rows through the historical
+model with `get_or_create` on `name` — which is unique, and which leaves alone a portal that has
+already curated its own licence rows. The reverse is a no-op: removing licences would orphan every
+dataset pointing at one.
+
+The objection to reference data in migrations is real and is the price paid. It is paid knowingly,
+because the alternative is a guarantee that holds only on portals nobody has deployed.
+
+That the seeding pipeline never runs is a finding in its own right — `groups`, `django-waffle` and the
+vocabulary preload are not reaching a deployed portal either. It belongs to the setup specification
+and is routed out.
