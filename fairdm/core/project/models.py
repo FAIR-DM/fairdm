@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 
 # from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
@@ -164,8 +165,6 @@ class ProjectDescription(AbstractDescription):
         """Validate that only one description per type exists for this project."""
         super().clean()
         if self.related_id and self.type:
-            from django.core.exceptions import ValidationError
-
             existing = (
                 ProjectDescription.objects.filter(related=self.related, type=self.type)
                 .exclude(pk=self.pk)
@@ -221,8 +220,6 @@ class ProjectDate(AbstractDate):
             return
 
         if self._precedes(end_value, start_value):
-            from django.core.exceptions import ValidationError
-
             raise ValidationError(
                 {
                     "value": _(

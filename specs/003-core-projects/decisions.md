@@ -204,6 +204,15 @@ validated cannot be exported to DataCite, which is the only reason to hold it in
 so the structure is specified and enforced here. Whether the portal form exposes the field is 013's
 call to make, and 013's FR-018 already says it should.
 
+The retired flat shape carried an `amount`. DataCite's funding reference schema has no field for it —
+funding a project's amount is not part of what DataCite records about a funder or an award — so the
+conversion migration (`fairdm/core/project/migrations/0008_convert_funding_to_datacite_shape.py`)
+drops it on the way in. There is nowhere for it to go, forwards or back, so that migration is
+irreversible: a reverse built from `funderName` and `awardNumber` alone would also drop
+`funderIdentifier`, `funderIdentifierType`, `awardTitle` and `awardURI` from any record that carries
+them, and could not distinguish a record it produced from a project created directly in the new shape
+afterwards. It declares no reverse, so a rollback fails loudly rather than destroying data.
+
 ## D-014 — Internationalisation is split along the same scope line
 
 **Self-resolved.**

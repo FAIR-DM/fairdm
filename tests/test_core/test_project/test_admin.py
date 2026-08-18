@@ -13,9 +13,12 @@ from fairdm.core.project.models import (
 )
 from fairdm.factories import (
     OrganizationFactory,
+    PersonFactory,
+    ProjectDescriptionFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
 )
+from fairdm.factories.core import ProjectDateFactory
 
 
 @pytest.mark.django_db
@@ -269,11 +272,61 @@ class TestAdminInlineEditing:
 
 
 @pytest.mark.django_db
+class TestAdminDateInlineOrdering:
+    """FR-010: the date inline refuses a backwards timeline whichever of the
+    two dates is new.
+
+    `ProjectDate.clean()` finds its sibling with a database query and
+    returns early when there is none. A formset validates every form before
+    saving any of them, so on a project with no existing dates, adding a
+    Start and an End in the same admin submission validates both rows
+    against an empty sibling query and both would save unless the formset
+    itself also checks the pair.
+    """
+
+    def test_posting_backwards_start_and_end_together_is_refused(self, admin_client):
+        project = ProjectFactory(name="Backwards Timeline Project")
+        url = reverse("admin:project_project_change", args=[project.pk])
+
+        form_data = {
+            "name": project.name,
+            "status": project.status,
+            "visibility": project.visibility,
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "1000",
+            "dates-TOTAL_FORMS": "2",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "1000",
+            "dates-0-related": project.pk,
+            "dates-0-type": "Start",
+            "dates-0-value": "2020-06-01",
+            "dates-1-related": project.pk,
+            "dates-1-type": "End",
+            "dates-1-value": "2010-01-01",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
+            "_continue": "Save and continue editing",
+        }
+
+        response = admin_client.post(url, data=form_data)
+
+        # A refusal redisplays the form with errors (200), rather than
+        # redirecting after a save (302).
+        assert response.status_code == 200
+        assert not ProjectDate.objects.filter(related=project).exists()
+
+
+@pytest.mark.django_db
 class TestAdminListDisplayColumns:
     """Test admin list columns showing abstract and start-date presence (FR-021)."""
 
     def test_columns_reflect_presence_and_absence_of_abstract_and_start_date(
-        self, admin_client
+        self, admin_client, rf
     ):
         with_both = ProjectFactory(name="Fully Described Project")
         ProjectDate.objects.create(related=with_both, type="Start", value="2024-01-01")
@@ -293,10 +346,49 @@ class TestAdminListDisplayColumns:
         from fairdm.core.project.models import Project
 
         admin_instance = ProjectAdmin(Project, AdminSite())
+        queryset = admin_instance.get_queryset(rf.get(url))
+        with_both = queryset.get(pk=with_both.pk)
+        without_either = queryset.get(pk=without_either.pk)
         assert admin_instance.has_abstract(with_both) is True
         assert admin_instance.has_start_date(with_both) is True
         assert admin_instance.has_abstract(without_either) is False
         assert admin_instance.has_start_date(without_either) is False
+
+
+@pytest.mark.django_db
+class TestAdminListDisplayColumnsQueryCount:
+    """FR-021: the abstract/start-date columns are annotated on the
+    changelist queryset, not evaluated with a query per row.
+
+    `get_queryset` is called once per changelist page and used to render
+    every row, so its query count must not grow with the number of rows
+    touched.
+    """
+
+    def test_flags_are_annotated_without_a_query_per_row(
+        self, rf, django_assert_num_queries
+    ):
+        from django.contrib.admin.sites import AdminSite
+
+        from fairdm.core.project.admin import ProjectAdmin
+        from fairdm.core.project.models import Project
+
+        for _ in range(5):
+            project = ProjectFactory()
+            ProjectDate.objects.create(related=project, type="Start", value="2024-01-01")
+            ProjectDescription.objects.create(
+                related=project, type="Abstract", value="An abstract."
+            )
+        ProjectFactory()  # a row with neither, to prove both flags read False
+
+        admin_instance = ProjectAdmin(Project, AdminSite())
+        request = rf.get("/")
+        queryset = admin_instance.get_queryset(request)
+
+        with django_assert_num_queries(1):
+            for obj in queryset:
+                admin_instance.has_abstract(obj)
+                admin_instance.has_start_date(obj)
 
 
 @pytest.mark.django_db
@@ -383,3 +475,62 @@ class TestAdminExportActions:
         assert len(records) == len(projects)
         exported_names = {name_of(record) for record in records}
         assert exported_names == {p.name for p in projects}
+
+
+@pytest.mark.django_db
+class TestAdminExportActionsQueryCount:
+    """FR-023/FR-026: the export actions prefetch the relations they walk,
+    so each is fetched once for the whole selection rather than once per
+    project.
+
+    A contributor's own representation (`Contributor.to_datacite()` /
+    `to_schema_org()`) still costs its own queries per contributor - that
+    lives in the contributors app, outside this fix's scope - so this
+    checks the four relations the fix names directly, by table, rather than
+    asserting an overall count that residual per-contributor queries would
+    also move.
+    """
+
+    @staticmethod
+    def _build_project_with_full_metadata():
+        project = ProjectFactory(
+            funding=[{"funderName": "Sample Agency", "awardNumber": "GRANT-1"}]
+        )
+        ProjectDescriptionFactory(related=project, type="Abstract", value="An abstract.")
+        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+        ProjectIdentifierFactory(
+            related=project, type="DOI", value=f"10.1234/{project.pk}"
+        )
+        project.add_contributor(PersonFactory(), with_roles=["Creator"])
+        return project
+
+    @pytest.mark.parametrize("action", ["export_json", "export_datacite"])
+    def test_export_action_fetches_each_named_relation_once_for_the_selection(
+        self, action
+    ):
+        from django.contrib.admin.sites import AdminSite
+        from django.db import connection
+        from django.test import RequestFactory
+        from django.test.utils import CaptureQueriesContext
+
+        from fairdm.core.project.admin import ProjectAdmin
+        from fairdm.core.project.models import Project
+
+        admin_instance = ProjectAdmin(Project, AdminSite())
+        action_method = getattr(admin_instance, action)
+        request = RequestFactory().post("/")
+
+        projects = [self._build_project_with_full_metadata() for _ in range(3)]
+
+        with CaptureQueriesContext(connection) as context:
+            action_method(
+                request, Project.objects.filter(pk__in=[p.pk for p in projects])
+            )
+
+        def query_count(table):
+            return sum(1 for query in context.captured_queries if table in query["sql"])
+
+        assert query_count("project_projectdescription") == 1
+        assert query_count("project_projectdate") == 1
+        assert query_count("project_projectidentifier") == 1
+        assert query_count("contributors_contribution_roles") == 1

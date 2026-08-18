@@ -320,7 +320,7 @@ class TestProjectDescriptionModel:
 
     def test_description_type_choices_are_scoped_to_project(self):
         """The type field's choices are exactly the project description
-        collection's members.
+        collection's members, and exclude a dataset-only type.
 
         Requirement: FR-008 - A project's descriptions are drawn from a
         controlled set of description types.
@@ -328,12 +328,23 @@ class TestProjectDescriptionModel:
         `type` is a plain CharField, so creating a row cannot prove the
         vocabulary binding - Django does not validate choices on save. This
         asserts the choices `GenericModel.__init_subclass__` pushed onto the
-        field directly.
+        field directly, against the literal expected member names rather
+        than against `ProjectDescription.VOCABULARY.choices` itself - that
+        comparison would hold for any vocabulary at all, since it is the
+        same assignment's source and target, and so cannot detect a wrong
+        binding.
         """
-        assert (
-            ProjectDescription.type.field.choices
-            == ProjectDescription.VOCABULARY.choices
-        )
+        codes = {code for code, _label in ProjectDescription.type.field.choices}
+        assert codes == {
+            "Abstract",
+            "Introduction",
+            "Background",
+            "Objectives",
+            "ExpectedOutput",
+            "Conclusions",
+            "Other",
+        }
+        assert "Methods" not in codes  # a dataset-only description type
 
     def test_duplicate_description_type_raises_validation_error(self):
         """Test that duplicate description types for the same project are
@@ -401,9 +412,14 @@ class TestProjectDateModel:
         `type` is a plain CharField, so creating a row cannot prove the
         vocabulary binding - Django does not validate choices on save. This
         asserts the choices `GenericModel.__init_subclass__` pushed onto the
-        field directly.
+        field directly, against the literal expected member names rather
+        than against `ProjectDate.VOCABULARY.choices` itself - that
+        comparison would hold for any vocabulary at all, since it is the
+        same assignment's source and target, and so cannot detect a wrong
+        binding.
         """
-        assert ProjectDate.type.field.choices == ProjectDate.VOCABULARY.choices
+        codes = {code for code, _label in ProjectDate.type.field.choices}
+        assert codes == {"Start", "End"}
 
     def test_second_start_date_on_project_is_refused(self):
         """A second start date on the same project is refused by validation.
@@ -494,6 +510,20 @@ class TestProjectDateModel:
 
         end = ProjectDate(related=project, type="End", value="2020")
         end.full_clean()  # must not raise
+
+    def test_month_precision_end_before_month_precision_start_is_refused(self):
+        """A month-precision end earlier than a month-precision start in the
+        same year is refused - the month-precision branch of `_precedes` was
+        previously exercised by no test.
+
+        Requirement: FR-010.
+        """
+        project = ProjectFactory()
+        ProjectDate.objects.create(related=project, type="Start", value="2020-06")
+
+        end = ProjectDate(related=project, type="End", value="2020-03")
+        with pytest.raises(ValidationError):
+            end.full_clean()
 
 
 @pytest.mark.django_db
@@ -635,6 +665,30 @@ class TestProjectFunding:
         """
         project = ProjectFactory()
         project.funding = [{"awardNumber": "GRANT-2024-001"}]
+
+        with pytest.raises(ValidationError):
+            project.full_clean()
+
+    def test_funder_name_that_is_not_a_string_is_refused(self):
+        """A funder name that is not a string is refused rather than stored -
+        a truthiness check alone would accept it and pass it straight into
+        the exported document, where DataCite requires a string.
+
+        Requirement: FR-015, FR-016.
+        """
+        project = ProjectFactory()
+        project.funding = [{"funderName": {"nested": "object"}}]
+
+        with pytest.raises(ValidationError):
+            project.full_clean()
+
+    def test_award_number_that_is_not_a_string_is_refused(self):
+        """A non-string value for another string-typed key is refused too.
+
+        Requirement: FR-015, FR-016.
+        """
+        project = ProjectFactory()
+        project.funding = [{"funderName": "Sample Agency", "awardNumber": 42}]
 
         with pytest.raises(ValidationError):
             project.full_clean()
@@ -1318,6 +1372,16 @@ class TestProjectObjectPermissions:
 class TestProjectCreator:
     """Unit tests for the `Project.created_by` creation record (US7)."""
 
+    def test_created_by_field_is_not_editable(self):
+        """`created_by` is kept out of forms, the admin and the serializer
+        solely by `editable=False` - nothing else enforces it, so that flag
+        needs its own assertion rather than relying on `perform_create`
+        overriding `validated_data` regardless of what the field allows.
+
+        Requirement: FR-017.
+        """
+        assert Project._meta.get_field("created_by").editable is False
+
     def test_project_survives_creators_account_removal(self):
         """A project outlives its creator's account, with its creator reading
         as unknown rather than raising or being deleted itself.
@@ -1364,6 +1428,10 @@ class TestProjectTranslationBinding:
     asserts the binding directly rather than the string values it produces -
     a module that imported `gettext` instead would fail this test even
     though every individual string still "looks" translated.
+
+    `forms.py` is deliberately not among the modules checked below - D-014
+    puts forms out of scope for FR-027, since `fairdm/core/project/forms.py`
+    binds `_` to the eager `gettext` on purpose, not by omission.
     """
 
     @pytest.mark.parametrize(

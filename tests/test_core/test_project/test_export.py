@@ -85,6 +85,24 @@ class TestToDatacite:
         # Funding passes through unchanged.
         assert data["fundingReferences"] == project.funding
 
+    def test_funding_references_is_not_the_same_list_as_the_model_field(self):
+        """Mutating the exported `fundingReferences` list must not mutate the
+        project's own `funding` field in memory.
+
+        `to_datacite` used to assign `project.funding` into the returned
+        dictionary by reference, so a caller mutating the export result
+        mutated the model instance too.
+        """
+        project = ProjectFactory(
+            funding=[{"funderName": "Sample Agency", "awardNumber": "GRANT-42"}]
+        )
+
+        data = to_datacite(project)
+        data["fundingReferences"].append({"funderName": "Injected Agency"})
+
+        assert len(project.funding) == 1
+        assert project.funding[0]["funderName"] == "Sample Agency"
+
     def test_doi_becomes_the_records_primary_identifier(self):
         """T041: a DOI is the primary identifier, not one alternate among others."""
         project = ProjectFactory(funding=None)

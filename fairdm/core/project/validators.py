@@ -55,11 +55,21 @@ def validate_funding(value):
                 },
             )
 
-        if not record.get("funderName"):
+        funder_name = record.get("funderName")
+        if not isinstance(funder_name, str) or not funder_name:
             raise ValidationError(
                 _("Every funding reference must name a funder."),
                 code="funding_missing_funder_name",
             )
+
+        for key in FUNDING_REFERENCE_KEYS - {"funderName"}:
+            value_ = record.get(key)
+            if value_ is not None and not isinstance(value_, str):
+                raise ValidationError(
+                    _("'%(key)s' must be given as a string."),
+                    code="funding_invalid_type",
+                    params={"key": key},
+                )
 
         identifier_type = record.get("funderIdentifierType")
         if identifier_type and identifier_type not in FUNDER_IDENTIFIER_TYPES:

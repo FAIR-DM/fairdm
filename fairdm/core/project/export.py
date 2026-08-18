@@ -57,10 +57,10 @@ def _datacite_dates(project) -> list:
 
     DataCite has no start/end pair, and a project date's value is a
     ``PartialDate`` that may carry year, year-month or day precision -
-    ``repr()`` formats it at whichever precision it carries.
+    ``str()`` formats it at whichever precision it carries.
     """
     return [
-        {"date": repr(date.value), "dateType": "Other", "dateInformation": date.type}
+        {"date": str(date.value), "dateType": "Other", "dateInformation": date.type}
         for date in project.dates.all()
     ]
 
@@ -101,7 +101,10 @@ def _datacite_contributions(project) -> tuple:
         if contribution.contributor is None:
             continue
         representation = contribution.contributor.to_datacite()
-        for role_name in contribution.roles.values_list("name", flat=True):
+        # `.all()` rather than `.values_list()` - the latter always issues
+        # its own query, bypassing a `prefetch_related("contributors__roles")`
+        # the caller may have applied to avoid a query per contribution.
+        for role_name in (role.name for role in contribution.roles.all()):
             if role_name == _CREATOR_ROLE:
                 creators.append(representation)
             else:
@@ -145,7 +148,9 @@ def to_datacite(project) -> dict:
         data["contributors"] = contributors
 
     if project.funding:
-        data["fundingReferences"] = project.funding
+        # A shallow copy - a caller mutating the returned list must not
+        # mutate `project.funding` in memory.
+        data["fundingReferences"] = list(project.funding)
 
     return data
 
@@ -164,7 +169,18 @@ def to_json_ld(project) -> dict:
         "name": project.name,
     }
 
-    if abstract := project.descriptions.filter(type=_DATACITE_ABSTRACT_TYPE).first():
+    # `.all()` rather than `.filter()` - the latter always issues its own
+    # query, bypassing a `prefetch_related("descriptions")` the caller may
+    # have applied.
+    abstract = next(
+        (
+            description
+            for description in project.descriptions.all()
+            if description.type == _DATACITE_ABSTRACT_TYPE
+        ),
+        None,
+    )
+    if abstract:
         data["description"] = abstract.value
 
     contributors = []

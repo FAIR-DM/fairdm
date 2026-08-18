@@ -4,7 +4,14 @@
 #
 # Rows already in the new shape (a list) and rows that match neither shape
 # are left untouched. `amount` has no destination in DataCite's schema and
-# is dropped.
+# is dropped (see D-013 in specs/003-core-projects/decisions.md), so this
+# migration is irreversible: a reverse built from `funderName` and
+# `awardNumber` alone would drop `funderIdentifier`, `funderIdentifierType`,
+# `awardTitle` and `awardURI` from any record that carries them, and it
+# cannot distinguish a record this migration produced from a project
+# created directly in the new shape afterwards - either way it would
+# rewrite data it has no business touching. No reverse is declared, so
+# rolling back this migration fails loudly instead.
 
 from django.db import migrations
 
@@ -34,28 +41,6 @@ def convert_flat_funding_to_datacite_shape(apps, schema_editor):
         project.save(update_fields=["funding"])
 
 
-def revert_datacite_shape_to_flat_funding(apps, schema_editor):
-    Project = apps.get_model("project", "Project")
-
-    for project in Project.objects.exclude(funding__isnull=True).iterator():
-        funding = project.funding
-
-        if not isinstance(funding, list) or len(funding) != 1:
-            continue  # not something this migration produced - leave it alone
-
-        reference = funding[0]
-        if not isinstance(reference, dict) or not reference.get("funderName"):
-            continue
-
-        flat = {"agency": reference["funderName"]}
-        award_number = reference.get("awardNumber")
-        if award_number:
-            flat["grant_number"] = award_number
-
-        project.funding = flat
-        project.save(update_fields=["funding"])
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -65,6 +50,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             convert_flat_funding_to_datacite_shape,
-            revert_datacite_shape_to_flat_funding,
+            # No reverse: see the module docstring above.
         ),
     ]
