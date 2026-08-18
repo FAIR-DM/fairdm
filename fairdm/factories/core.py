@@ -88,7 +88,11 @@ from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import DatasetDate, DatasetDescription
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.core.models import Dataset, Measurement, Project, Sample
-from fairdm.core.project.models import ProjectDate, ProjectDescription
+from fairdm.core.project.models import (
+    ProjectDate,
+    ProjectDescription,
+    ProjectIdentifier,
+)
 from fairdm.core.sample.models import (
     SampleDate,
     SampleDescription,
@@ -118,8 +122,19 @@ class ProjectDateFactory(DjangoModelFactory):
     class Meta:
         model = ProjectDate
 
-    type = "Created"  # Default date type
+    type = "Start"  # Default date type - a member of the project date collection
     value = Faker("partial_date")
+
+
+class ProjectIdentifierFactory(DjangoModelFactory):
+    """Factory for creating ProjectIdentifier instances."""
+
+    class Meta:
+        model = ProjectIdentifier
+
+    type = "DOI"  # Default identifier type
+    value = Faker("bothify", text="10.####/project-?????")
+    # related field will be set by the caller
 
 
 class ProjectFactory(DjangoModelFactory):
@@ -143,13 +158,14 @@ class ProjectFactory(DjangoModelFactory):
     # visibility defaults to PRIVATE per model definition
     status = FuzzyChoice(ProjectStatus.values)
 
-    # JSON fields - simplified approach
+    # JSON fields - a list of DataCite funding references (FR-015)
     funding = LazyAttribute(
-        lambda obj: {
-            "agency": "Sample Agency",
-            "grant_number": "GRANT-2024-001",
-            "amount": 50000,
-        }
+        lambda obj: [
+            {
+                "funderName": "Sample Agency",
+                "awardNumber": "GRANT-2024-001",
+            }
+        ]
     )
 
     # Relations - owner required for Project (Organization, not Person)

@@ -144,7 +144,7 @@ class TestCoreFactoriesBasic(TestCase):
         self.assertEqual(measurement_date.related, measurement)
 
         # Check default types
-        self.assertEqual(project_date.type, "Created")
+        self.assertEqual(project_date.type, "Start")
         self.assertEqual(dataset_date.type, "Created")
         self.assertEqual(sample_date.type, "Created")
         self.assertEqual(measurement_date.type, "Created")
@@ -232,13 +232,19 @@ class TestCoreFactoriesBasic(TestCase):
         self.assertEqual(dataset.license.name, "CC BY 4.0")
 
     def test_project_factory_funding_structure(self):
-        """Test Project factory funding JSON field."""
+        """Test Project factory funding JSON field.
+
+        Requirement: FR-015 - funding is stored as a list of DataCite
+        funding references.
+        """
         project = ProjectFactory()
 
         self.assertIsNotNone(project.funding)
-        self.assertIn("agency", project.funding)
-        self.assertIn("grant_number", project.funding)
-        self.assertIn("amount", project.funding)
+        self.assertIsInstance(project.funding, list)
+        self.assertEqual(len(project.funding), 1)
+        reference = project.funding[0]
+        self.assertIn("funderName", reference)
+        self.assertIn("awardNumber", reference)
 
     @pytest.mark.django_db
     def test_factories_respect_database_constraints(self):
@@ -354,6 +360,7 @@ class TestProjectFactories:
         assert project.visibility is not None
         assert project.status is not None
         assert project.funding
+        assert project.funding[0]["funderName"]
 
     def test_project_factory_no_auto_descriptions(self):
         """Test ProjectFactory doesn't auto-create descriptions."""

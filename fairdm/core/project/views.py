@@ -89,6 +89,9 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             HttpResponse: Redirect to project detail page.
         """
+        # Set the creator before saving so `created_by` is written with the
+        # rest of the record in one save, from the request user only.
+        form.instance.created_by = self.request.user
         response: HttpResponse = super().form_valid(form)
 
         # Assign full permissions to creator

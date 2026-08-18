@@ -45,7 +45,7 @@ Serves G2.
 
 ### R3 — Projects
 
-*Delivered · needs verification · advances G1*
+*Delivered · advances G1*
 
 The outermost container of the core model, with descriptions, dates, identifiers, funding, status and keywords, and a fixed schema that portals consume rather than extend.
 

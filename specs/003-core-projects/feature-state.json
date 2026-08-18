@@ -1,0 +1,1367 @@
+{
+  "$schema": "../../../.aeo/feature-state.schema.json",
+  "feature": "003-core-projects",
+  "branch": "003-core-projects",
+  "repo": "FAIR-DM/fairdm",
+  "state": "REVIEW",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-18T00:10:00Z",
+      "note": "specification rewritten in place; scope narrowed to the domain"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-18T00:40:00Z",
+      "note": "brief posted on #84"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-18T01:10:00Z",
+      "note": "research and plan written; task list written greenfield"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-18T01:40:00Z",
+      "note": "reconciled: 12 of 79 tasks proven done"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-18T02:20:00Z",
+      "note": "one reviewer, four lenses; 1 high, 10 medium, 6 low; all applied"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-18T02:30:00Z",
+      "note": "71 open tasks after the reconciliation lens untick four"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-08-18T06:10:00Z",
+      "note": "eight stories landed; branch schema migrations consolidated into one file"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-18T06:20:00Z",
+      "note": "lint, type checks, suite, build and conformance all green; seven tamper flags all mapped to recorded authorisations"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "sam",
+      "at": "2026-08-18T00:40:00Z",
+      "self_resolved": [
+        "D-002 delete guard: public datasets only, administrator override dropped",
+        "D-004 project dates: data-collection types dropped",
+        "D-005 status vocabulary: shipped set kept, one label corrected",
+        "D-006 visibility: organisation-scoped tier routed out",
+        "D-007 owning organisation stays optional",
+        "D-008 contribution roles: shipped vocabulary kept",
+        "D-009 role-to-permission matrix dropped and routed out",
+        "D-010 audit trail means creator plus timestamps, not revision history"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-review",
+      "at": "2026-08-18T02:20:00Z",
+      "self_resolved": [
+        "high: four January artefacts contradicted the approved spec \u2014 contracts/, checklists/, data-model.md and quickstart.md deleted",
+        "reconciliation: T003, T012, T064 and T074 unticked; their cited tests could not observe the behaviour claimed",
+        "reconciliation: T002 and T050 evidence trimmed of citations that pass vacuously",
+        "reconciliation: T007 and T015 annotated as already satisfied in code; remaining work is the test only",
+        "spec: FR-015 key set closed, FR-019 identifier meaning resolved, SC-005 widened",
+        "plan: migration squash per Article IX; created_by seam moved off BaseViewSet; T022 blast radius named",
+        "security: JSON-LD export drops contributor email; created_by never client-writable; funding members must be objects"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 158,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:127"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectDescriptions::test_add_multiple_descriptions_to_project"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 159,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:157"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectDates::test_add_date_range_to_project"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py",
+              "tests/test_factories/test_core.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 160,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T028",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_forms.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 161,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T038",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_factories/test_core.py",
+              "tests/test_factories/test_contributors.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P1",
+      "issue": 162,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T039",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T040",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T041",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T042",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T043",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T044",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T046",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_export.py",
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P2",
+      "issue": 163,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T047",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T048",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T049",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/admin.py:57"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_concept_status"
+            ]
+          }
+        },
+        {
+          "id": "T050",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/admin.py:57"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_admin.py::TestAdminFilterByStatus::test_filter_by_concept_status"
+            ]
+          }
+        },
+        {
+          "id": "T051",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T052",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T053",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T054",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T055",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T056",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_admin.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US7",
+      "priority": "P3",
+      "issue": 164,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_api/test_viewsets.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_api/test_viewsets.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_api/test_viewsets.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_api/test_viewsets.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_api/test_viewsets.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_api/test_viewsets.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US8",
+      "priority": "P2",
+      "issue": 166,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:73"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_creation_with_required_fields",
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_uuid_is_unique"
+            ]
+          }
+        },
+        {
+          "id": "T064",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T065",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T066",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T067",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T068",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T069",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/utils/choices.py:14",
+              "fairdm/core/project/models.py:80"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_visibility_choices"
+            ]
+          }
+        },
+        {
+          "id": "T070",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:80"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModel::test_project_visibility_choices",
+              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_project_visibility_default"
+            ]
+          }
+        },
+        {
+          "id": "T071",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T072",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T073",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/abstract.py:80",
+              "fairdm/core/project/models.py:95"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectModelIntegration::test_add_contributor"
+            ]
+          }
+        },
+        {
+          "id": "T074",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T075",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T076",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T078",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_models.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 3
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 3000000
+    }
+  },
+  "pr": {
+    "number": 165,
+    "draft": true
+  }
+}

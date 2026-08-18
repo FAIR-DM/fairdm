@@ -1,9 +1,11 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 
 # from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from partial_date import PartialDate
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -19,6 +21,7 @@ from ..vocabularies import (
     FairDMIdentifiers,
     FairDMRoles,
 )
+from .validators import validate_funding
 
 
 class ProjectQuerySet(QuerySet):
@@ -85,16 +88,41 @@ class Project(BaseModel):
     )
     funding = models.JSONField(
         verbose_name=_("funding"),
-        help_text=_("Related funding information."),
+        help_text=_(
+            "Funding awards, in DataCite's funding reference shape: a list "
+            "of objects, each naming a funder and optionally an award."
+        ),
         null=True,
         blank=True,
+        validators=[validate_funding],
     )
     status = models.IntegerField(
-        _("status"), choices=STATUS_CHOICES, default=STATUS_CHOICES.CONCEPT
+        _("status"),
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES.CONCEPT,
+        help_text=_("The current lifecycle stage of the project."),
     )
     contributors = GenericRelation("contributors.Contribution")
 
     # RELATIONS
+    # `created_by` is a ForeignKey rather than a plain nullable char field, so it
+    # carries a database index by default - no additional indexing decision is
+    # needed here. Not editable: the creator is written server-side only (see
+    # the portal create view and ProjectViewSet.perform_create), never through a
+    # form, the admin or a serializer field.
+    created_by = models.ForeignKey(
+        "contributors.Person",
+        on_delete=models.SET_NULL,
+        related_name="created_projects",
+        verbose_name=_("created by"),
+        help_text=_(
+            "The user who created this project. Left unset if that user's "
+            "account has since been removed."
+        ),
+        null=True,
+        blank=True,
+        editable=False,
+    )
     owner = models.ForeignKey(
         "contributors.Organization",
         help_text=_("The organization that owns the project."),
@@ -137,8 +165,6 @@ class ProjectDescription(AbstractDescription):
         """Validate that only one description per type exists for this project."""
         super().clean()
         if self.related_id and self.type:
-            from django.core.exceptions import ValidationError
-
             existing = (
                 ProjectDescription.objects.filter(related=self.related, type=self.type)
                 .exclude(pk=self.pk)
@@ -148,8 +174,10 @@ class ProjectDescription(AbstractDescription):
                 raise ValidationError(
                     {
                         "type": _(
-                            "A description of this type already exists for this project."
+                            "A description of type '%(type)s' already exists "
+                            "for this project."
                         )
+                        % {"type": self.type}
                     }
                 )
 
@@ -158,23 +186,76 @@ class ProjectDate(AbstractDate):
     VOCABULARY = FairDMDates.from_collection("Project")
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
+    START_TYPE = "Start"
+    END_TYPE = "End"
+
     class Meta(AbstractDate.Meta):
         verbose_name = _("project date")
         verbose_name_plural = _("project dates")
 
     def clean(self):
-        """Validate that end_date is not before start date."""
-        super().clean()
-        if self.date and self.end_date and self.end_date < self.date:
-            from django.core.exceptions import ValidationError
+        """Validate that the project's end date does not precede its start.
 
+        A project's start and end are stored as two separate `ProjectDate`
+        rows, one per type, so the comparison is made against the sibling
+        record rather than within a single instance. `PartialDate` mixes
+        precision into its ordering (`self.date >= other.date and
+        self.precision >= other.precision`), so comparing two values of
+        different precision directly is unsafe - the check instead compares
+        at the coarser of the two precisions.
+        """
+        super().clean()
+
+        if not self.related_id or not self.value:
+            return
+
+        if self.type == self.START_TYPE:
+            start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
+        elif self.type == self.END_TYPE:
+            start_value, end_value = self._sibling_value(self.START_TYPE), self.value
+        else:
+            return
+
+        if start_value is None or end_value is None:
+            return
+
+        if self._precedes(end_value, start_value):
             raise ValidationError(
-                {"end_date": _("End date cannot be before start date.")}
+                {
+                    "value": _(
+                        "The project's end date (%(end)s) cannot be before "
+                        "its start date (%(start)s)."
+                    )
+                    % {"start": start_value, "end": end_value}
+                }
             )
+
+    def _sibling_value(self, type_):
+        """Return the value of this project's other date of `type_`, if any."""
+        queryset = ProjectDate.objects.filter(related_id=self.related_id, type=type_)
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        sibling = queryset.first()
+        return sibling.value if sibling else None
+
+    @staticmethod
+    def _precedes(a: PartialDate, b: PartialDate) -> bool:
+        """Whether PartialDate `a` is earlier than PartialDate `b`.
+
+        Compares at the coarser of the two precisions: years only if either
+        is year-precision, year and month if either is month-precision, and
+        the full date only when both carry day precision.
+        """
+        precision = min(a.precision, b.precision)
+        if precision == PartialDate.YEAR:
+            return bool(a.date.year < b.date.year)
+        if precision == PartialDate.MONTH:
+            return bool((a.date.year, a.date.month) < (b.date.year, b.date.month))
+        return bool(a.date < b.date)
 
 
 class ProjectIdentifier(AbstractIdentifier):
-    VOCABULARY = FairDMIdentifiers()
+    VOCABULARY = FairDMIdentifiers.from_collection("Project")
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
     class Meta(AbstractIdentifier.Meta):

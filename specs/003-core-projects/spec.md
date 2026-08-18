@@ -1,251 +1,439 @@
-# Feature Specification: Core Projects MVP
+# Feature Specification: The project record
 
 **Feature Branch**: `003-core-projects`
-**Created**: January 14, 2026
+
+**Created**: 2026-01-14 · **Rewritten**: 2026-08-18
+
 **Status**: Draft
-**Input**: User description: "Focus on the role of Projects within FairDM, targeting code within the fairdm.core.project app. Polish the Project model, ensure i18n compliance, create forms with proper help text and error handling, set up admin interface, configure filtering for portal users."
+
+**Goals**: G1 — a core data model of projects, datasets, samples, measurements and contributors that
+domain schemas can extend and rely on. G14 — metadata complete enough for a formal-publication
+addon to submit it unaided. G15 — external identifiers carried through the record.
+
+**Roadmap**: R3 — projects.
+
+**Input**: A project is the outermost container of the core model. Everything a portal holds hangs
+beneath one: datasets, and through them samples and measurements. This specification describes the
+project record itself — the fields it carries, the typed descriptions, dates and identifiers
+attached to it, who is credited on it, who funded it, how an administrator manages it, and how its
+metadata leaves the portal in a form another system can read.
+
+It does not describe the pages a researcher uses to create or edit a project. Those are
+`013-project-crud-views`, and the reasoning behind the split is in `decisions.md`.
+
+## Clarifications
+
+### Session 2026-08-18
+
+The original text was written before the app existed and disagreed with the code in nineteen places.
+Each disagreement was settled and recorded in `decisions.md`; the questions and answers below are
+the ones that shaped this document.
+
+- Q: Does this specification own the project list, create, edit and delete pages? → A: No. It owns
+  the domain model, the related records, the administrative interface, funding, export and the
+  creation record. The portal pages belong to `013-project-crud-views` (D-001).
+- Q: A project cannot currently be given a DOI, because its identifier vocabulary lists identifiers
+  for people and organisations. Is that intended? → A: No, it is a defect. A project needs its own
+  identifier types, and a DOI is the one that matters (D-003).
+- Q: Should a project carry data-collection dates as well as start and end? → A: No. Data collection
+  is something a dataset does, and repeating those dates on the parent would duplicate them across
+  every dataset beneath it (D-004).
+- Q: Must a project name an owning organisation? → A: No. Creation is deliberately cheap, and many
+  researchers have no single organisation to name. Ownership stays optional (D-007).
+- Q: Which contribution roles may edit which fields? → A: Out of scope. The matrix in the original
+  text named roles the vocabulary does not contain, and deciding the real one is a separate piece of
+  design (D-009).
+- Q: What does "audit trail" mean here — timestamps, or full revision history? → A: The creator and
+  the timestamps. History is a much larger commitment and is routed out (D-010).
+- Q: Funding is stored as free-form JSON. Should it stay that way? → A: No. Funding that is not
+  validated cannot be exported, and export is the only reason to hold it in this shape (D-013).
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Create and Configure Project (Priority: P1)
+### User Story 1 - Describe a project in the terms its field uses (Priority: P1)
 
-A research team lead or project manager wants to create a new project record with a streamlined, minimal form (similar to creating a GitHub repository) containing only essential fields. They can then add detailed metadata through the edit interface after creation.
+A researcher records what a project is about. They write an abstract, and separately a statement of
+the project's objectives, and separately the background it sits in. Each one is stored under its own
+type rather than concatenated into a single field, so that a reader — or another system — can ask
+for the abstract alone. They also categorise the work, using terms from a controlled vocabulary
+where one applies and free tags where none does.
 
-**Why this priority**: This is the foundational capability - without the ability to quickly create projects with core metadata, no other project features can be utilized. Streamlined creation reduces friction and encourages adoption.
+**Why this priority**: Without typed descriptions the record carries prose and nothing else, and
+prose is not something an external repository can consume. This is the smallest thing that makes a
+project record more than a name.
 
-**Independent Test**: Can be fully tested by navigating to the project creation interface, filling in only required fields (name, status, visibility), successfully saving a new project record, and then accessing the edit interface to add additional metadata.
+**Independent Test**: Attach an abstract and an objectives description to a project, confirm both are
+retrievable independently under their own types, confirm a second abstract is refused, and confirm
+that controlled keywords and free tags round-trip.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am a logged-in user with project creation permissions, **When** I navigate to the "Create Project" page and submit the form with required fields (name, status, visibility), **Then** a new project is created with a unique identifier and I am redirected to the project detail page.
-
-2. **Given** I am creating a project, **When** I leave the name field empty and submit, **Then** I see a clear error message indicating that the project name is required.
-
-3. **Given** I am creating a project, **When** I provide a name that exactly matches an existing project owned by the same organization, **Then** I see a warning about potential duplication but am still allowed to create the project.
-
-4. **Given** I am editing an existing project, **When** I change the visibility from "Private" to "Public", **Then** the project becomes visible to non-authenticated users in the project list.
-
-5. **Given** I am creating a project, **When** I select "Concept" as the status, **Then** the status is saved correctly and displayed in the project detail view and list views.
+1. **Given** a project with no descriptions, **When** an abstract is attached, **Then** it is stored
+   against that project under the abstract type and can be retrieved by type.
+2. **Given** a project that already has an abstract, **When** a second abstract is attached,
+   **Then** the attempt is refused with a message naming the type that is already used.
+3. **Given** a project with an abstract and an objectives description, **When** its descriptions are
+   read, **Then** both are returned, each carrying its own type.
+4. **Given** a project, **When** a term from a configured controlled vocabulary is added as a
+   keyword, **Then** the term is stored as a reference to that vocabulary rather than as text.
+5. **Given** a project, **When** free tags are added, **Then** they are stored and are
+   distinguishable from controlled keywords.
 
 ---
 
-### User Story 2 - Add Rich Descriptive Metadata (Priority: P1)
+### User Story 2 - Record when the work happened (Priority: P1)
 
-After creating a project, a researcher wants to add detailed contextual information including multiple description types (abstract, methods, significance), date milestones (start date, end date, data collection periods), and identifiers (DOI, grant numbers) to make the project FAIR-compliant and discoverable.
+A researcher records the project's start and its end. The two dates are stored as typed records
+rather than as two columns, so that the vocabulary of dates can grow without a migration, and the
+record refuses a timeline that runs backwards.
 
-**Why this priority**: Rich metadata is essential for FAIR principles (Findable, Accessible, Interoperable, Reusable). Without this, projects lack the context needed for discovery, citation, and reuse. This is core to FairDM's value proposition.
+**Why this priority**: Dates are required by every metadata schema the package exports to, and a
+project whose end precedes its start will be rejected by those schemas rather than by the portal.
 
-**Independent Test**: Can be fully tested by creating a project, then adding multiple descriptions with different types (Abstract, Methods), adding date ranges (project start/end), and adding external identifiers (DOI, grant number), then verifying all metadata displays correctly on the project detail page.
+**Independent Test**: Attach a start and an end date to a project, confirm both persist, then attempt
+an end date earlier than the start and confirm the save is refused with a message a researcher can
+act on.
 
 **Acceptance Scenarios**:
 
-1. **Given** I have created a project, **When** I add a description with type "Abstract" and save, **Then** the abstract appears in the project detail view under a clearly labeled "Abstract" section.
-
-2. **Given** I have a project with one description, **When** I add a second description with type "Methods", **Then** both descriptions are displayed independently with their respective type labels.
-
-3. **Given** I am adding project dates, **When** I add a start date (type: "Project Start") and end date (type: "Project End"), **Then** the project timeline is displayed correctly showing duration and current phase.
-
-4. **Given** I am adding project identifiers, **When** I add a DOI identifier, **Then** the DOI is displayed as a clickable link in the project detail view and included in metadata exports.
-
-5. **Given** I am editing project descriptions, **When** I delete an existing description, **Then** it is removed from the project detail view and the change is persisted.
+1. **Given** a project, **When** a start date is attached, **Then** it is stored under the start type.
+2. **Given** a project with a start date, **When** a second start date is attached, **Then** the
+   attempt is refused.
+3. **Given** a project with a start date, **When** an end date earlier than that start is attached,
+   **Then** the save is refused and the message states that the end cannot precede the start.
+4. **Given** a project with a start and an end date, **When** the start is changed to a date after
+   the existing end, **Then** that save is refused for the same reason.
+5. **Given** a project with an end date and no start date, **When** the end date is saved, **Then**
+   it is accepted — there is nothing to contradict.
 
 ---
 
-### User Story 3 - Manage Project Team and Contributors (Priority: P2)
+### User Story 3 - Give a project an identifier the outside world recognises (Priority: P1)
 
-A project lead wants to associate contributors (individual researchers, organizations, institutions) with the project and assign them appropriate roles (Principal Investigator, Co-Investigator, Data Manager, etc.) to properly attribute work and manage permissions.
+A researcher attaches a DOI to a project so that it can be cited, and a grant number so that the
+funder's records and the portal's records can be reconciled. Both are stored as typed identifiers,
+and the same identifier cannot be attached to two projects.
 
-**Why this priority**: Proper attribution is critical for academic research and FAIR principles. However, basic project creation and metadata can function without a full contributor system, making this P2 rather than P1.
+**Why this priority**: A project record that cannot be cited is not findable, and findability is the
+first of the principles the package is named for. Today the vocabulary offers no identifier type
+that applies to a project at all.
 
-**Independent Test**: Can be fully tested by creating a project, adding multiple contributors with different roles, verifying their display in the project team section, and confirming that contributor information appears in metadata exports and citation formats.
+**Independent Test**: Attach a DOI and a grant number to a project, confirm both persist under the
+correct types, and confirm that attaching the same DOI to a second project is refused.
 
 **Acceptance Scenarios**:
 
-1. **Given** I have a project, **When** I add a contributor with role "Principal Investigator", **Then** they appear in the project team list with their role clearly identified.
-
-2. **Given** I have a project with multiple contributors, **When** I view the project detail page, **Then** contributors are displayed in a logical order (by role hierarchy or alphabetically) with their names, roles, and affiliations.
-
-3. **Given** I am adding a contributor, **When** I select a person who is already registered in the system, **Then** their existing profile information (name, affiliation, ORCID) is automatically linked rather than duplicated.
-
-4. **Given** I have contributor roles assigned, **When** I change a contributor's role from "Co-Investigator" to "Data Manager", **Then** the change is reflected immediately in all views displaying that contributor.
-
-5. **Given** I am a project contributor, **When** I view the project detail page, **Then** I can see all other contributors and their roles (subject to privacy settings).
+1. **Given** a project, **When** a DOI is attached, **Then** it is stored under the DOI type.
+2. **Given** a project with a DOI, **When** the same DOI is attached to a different project,
+   **Then** the attempt is refused.
+3. **Given** a project, **When** a grant number is attached, **Then** it is stored under the grant
+   type alongside the DOI.
+4. **Given** a project identifier, **When** its type is read, **Then** the available types are those
+   that apply to a project, and none of them is an identifier for a person or an organisation.
 
 ---
 
-### User Story 4 - Organize Projects with Keywords and Tags (Priority: P2)
+### User Story 4 - Record who paid for the work (Priority: P2)
 
-A researcher wants to categorize their project using controlled vocabulary keywords (from discipline-specific ontologies) and free-form tags to improve discoverability through filtering and search.
+A researcher records the funder, the funder's own identifier, the award number and the award title.
+The record is structured, because the point of holding it is to hand it to DataCite, and DataCite
+will not accept an unstructured blob. A project may carry several awards.
 
-**Why this priority**: Keywords and tags significantly enhance findability but are not strictly required for a minimal viable project record. They can be added after initial project creation.
+**Why this priority**: Funding acknowledgement is a condition of most grants, and it is one of the
+fields a publication addon has to supply. It is P2 rather than P1 because a project without it is
+still a usable record.
 
-**Independent Test**: Can be fully tested by creating a project, adding both controlled keywords from a configured vocabulary and custom tags, then using the project filter interface to find projects by those keywords/tags.
+**Independent Test**: Attach two award records to a project with all four parts populated, confirm
+both persist, then attempt a record with a malformed funder identifier type and confirm it is
+refused.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am editing a project, **When** I add keywords from a controlled vocabulary using an autocomplete widget, **Then** the selected keywords are saved and displayed as clickable filter links on the project detail page.
-
-2. **Given** I am editing a project, **When** I add custom free-form tags, **Then** the tags are saved and displayed distinctly from controlled keywords.
-
-3. **Given** I am browsing projects, **When** I click on a keyword or tag, **Then** I am taken to a filtered list showing all projects with that keyword/tag.
-
-4. **Given** I am using the project filter interface, **When** I select multiple keywords, **Then** I see only projects that match all selected keywords (AND logic by default).
-
-5. **Given** I have projects with keywords, **When** I export project metadata, **Then** keywords are included in machine-readable formats using standardized vocabulary URIs.
+1. **Given** a project, **When** funding is recorded with a funder name, a funder identifier, an
+   award number and an award title, **Then** all four are stored under their own names and can be
+   read back individually.
+2. **Given** a project with one award recorded, **When** a second award is added, **Then** both are
+   retained.
+3. **Given** a funding record, **When** it names a funder identifier scheme the schema does not
+   define, **Then** the record is refused with a message naming the accepted schemes.
+4. **Given** a funding record, **When** it carries a funder name and nothing else, **Then** it is
+   accepted — the funder's name is the only part DataCite requires.
 
 ---
 
-### User Story 5 - Configure Admin Interface for Project Management (Priority: P3)
+### User Story 5 - Hand a project's metadata to another system (Priority: P1)
 
-A portal administrator wants a comprehensive Django admin interface for managing projects including bulk operations, advanced filtering, inline editing of related metadata (descriptions, dates, identifiers), and data quality validation.
+A portal administrator exports a project's metadata in a form an external repository can ingest,
+carrying not only the project's own fields but the descriptions, dates, identifiers, contributions
+and funding attached to it. The export is complete enough that the receiving system needs no manual
+completion.
 
-**Why this priority**: Admin interface improvements enhance administrative efficiency but are not required for end-user functionality. Portal users interact through the public interface, not the admin.
+**Why this priority**: Export is the mechanism by which the metadata collected everywhere else in
+this specification becomes useful outside the portal. Without it the rest is bookkeeping.
 
-**Independent Test**: Can be fully tested by logging into the Django admin, navigating to the Projects section, performing CRUD operations, using filters and search, editing inline descriptions/dates, and verifying data quality checks.
+**Independent Test**: Build a project carrying every kind of related record, export it, and confirm
+each related record appears in the output under the correct schema key.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am an admin user, **When** I access the Projects admin, **Then** I can search projects by name, UUID, or owner organization.
-
-2. **Given** I am viewing the project list in admin, **When** I use the status filter, **Then** I see only projects matching the selected status.
-
-3. **Given** I am editing a project in admin, **When** I add/edit descriptions, dates, and identifiers inline without leaving the project edit page, **Then** all changes are saved correctly.
-
-4. **Given** I am viewing a project in admin, **When** the project is missing required metadata (e.g., no abstract, no start date), **Then** I see clear warnings or indicators highlighting the gaps.
-
-5. **Given** I select multiple projects in the admin list, **When** I perform a bulk action (e.g., "Export as JSON", "Change status"), **Then** the action applies to all selected projects correctly.
+1. **Given** a project with descriptions, dates, identifiers, contributions and funding, **When** it
+   is exported in DataCite's JSON form, **Then** every one of those related records appears in the
+   output.
+2. **Given** the same project, **When** it is exported as linked data, **Then** the output is valid
+   JSON-LD carrying an explicit context.
+3. **Given** a project with a DOI, **When** it is exported, **Then** the DOI appears as the record's
+   primary identifier rather than as one identifier among others.
+4. **Given** a project with no optional metadata beyond its required fields, **When** it is exported,
+   **Then** the export succeeds and omits the absent parts rather than emitting empty ones.
+5. **Given** several projects selected together, **When** they are exported, **Then** the output
+   carries all of them.
 
 ---
 
-### User Story 6 - Filter and Search Projects (Priority: P2)
+### User Story 6 - Manage projects as an administrator (Priority: P2)
 
-A portal user wants to find relevant projects by filtering on status, owner organization, keywords, contributors, and other criteria, with an intuitive interface that shows how many projects match before applying filters.
+A portal administrator finds a project by name, identifier or owning organisation, narrows a long
+list by status, edits its descriptions, dates and identifiers without leaving the page, sees at a
+glance which projects are missing the metadata that matters, and changes the status of many at once.
 
-**Why this priority**: Filtering is essential for discoverability in portals with many projects, but basic list views can function without advanced filtering initially.
+**Why this priority**: The administrative interface is how a portal is repaired when something has
+gone wrong elsewhere. It is P2 because researchers do not use it.
 
-**Independent Test**: Can be fully tested by navigating to the project list view, applying various filters (status, owner, keywords), verifying result counts update dynamically, and confirming filtered results match the criteria.
+**Independent Test**: Search the project list by each supported term, apply the status filter, add a
+description through the inline editor, and run a bulk status change over a selection.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am viewing the project list, **When** I select a status filter (e.g., "In Progress"), **Then** only projects with that status are displayed and the result count updates.
+1. **Given** the project list, **When** a search term matching a project's name, its generated
+   identifier, an external identifier attached to it, or its owning organisation is entered, **Then**
+   that project appears in the results.
+2. **Given** the project list, **When** the status filter is applied, **Then** only projects with
+   that status remain.
+3. **Given** a project open for editing, **When** a description, a date and an identifier are added
+   inline and saved, **Then** all three persist without leaving the page.
+4. **Given** the project list, **When** it is displayed, **Then** each row shows whether the project
+   has an abstract and whether it has a start date.
+5. **Given** several projects selected, **When** a bulk status change is applied, **Then** every
+   selected project ends in the status named by the action.
 
-2. **Given** I am using multiple filters, **When** I select both a status and an owner organization, **Then** only projects matching both criteria are shown.
+---
 
-3. **Given** I have applied filters, **When** I clear all filters, **Then** the full project list is restored.
+### User Story 7 - Know who made a project and when it last changed (Priority: P3)
 
-4. **Given** I am filtering by keywords, **When** I select a keyword from the autocomplete widget, **Then** only projects tagged with that keyword appear.
+Anyone looking at a project can tell who created it, when it was created, and when it was last
+changed. The creator is recorded on the project itself, so the attribution survives the removal of
+their contribution record.
 
-5. **Given** I am viewing filtered results, **When** I sort by name or date modified, **Then** the filtered results are sorted correctly without losing the filter state.
+**Why this priority**: Attribution is the part that cannot be reconstructed later. It is P3 because
+nothing else in this specification depends on it.
+
+**Independent Test**: Create a project as a known user, confirm the creator is recorded against it,
+then modify it and confirm the modification timestamp moves while the creator does not.
+
+**Acceptance Scenarios**:
+
+1. **Given** a project is created by a known user, **When** the record is read, **Then** it names
+   that user as its creator.
+2. **Given** an existing project, **When** any field is changed, **Then** the modification timestamp
+   advances and the creator is unchanged.
+3. **Given** a project whose creator's account has been removed, **When** the record is read,
+   **Then** the project survives and its creator reads as unknown.
+
+---
+
+### User Story 8 - The project record itself (Priority: P2)
+
+A project carries a generated identifier that names it inside the portal, a name, an optional image,
+an optional owning organisation, a lifecycle status and a visibility. Contributions are recorded
+against it under roles that mean something to the systems it exports to. Everything it presents to a
+person is translatable, and loading it with all its related metadata costs a bounded number of
+queries however much metadata it carries.
+
+**Why this priority**: These are the guarantees the other seven stories rest on. It is P2 rather than
+P1 because most of them already hold — what is missing is the proof, and one lifecycle status whose
+label does not name its state.
+
+**Independent Test**: Create a project, confirm its identifier is generated and prefixed, confirm it
+is valid without an owning organisation, confirm every status label names its state, record a
+contribution with roles and read them back, and count the queries needed to load the project with all
+its related records.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new project, **When** it is saved, **Then** it carries a unique prefixed identifier
+   that was generated rather than supplied.
+2. **Given** a project with no owning organisation, **When** it is validated, **Then** it is valid.
+3. **Given** the lifecycle status vocabulary, **When** each member is read, **Then** its label names
+   the state the member names.
+4. **Given** the visibility vocabulary, **When** it is read, **Then** it offers private and public
+   and defaults to private.
+5. **Given** several projects changed at different times, **When** they are listed with no ordering
+   applied, **Then** the most recently changed comes first.
+6. **Given** a contribution recorded against a project with roles, **When** the contribution is read,
+   **Then** its contributor and each of its roles read back.
+7. **Given** a project carrying many descriptions, dates, identifiers and contributions, **When** it
+   is loaded with all of them, **Then** the number of queries does not grow with the number of
+   related records.
 
 ---
 
 ### Edge Cases
 
-- What happens when a project name contains special characters or is extremely long (>255 characters)?
-- How does the system handle a project with no owner organization (orphaned projects)?
-- What happens when a user tries to add the same description type multiple times (e.g., two "Abstract" descriptions)? **Resolution**: System enforces unique constraint per description type; frontend UI prevents selecting already-used types; backend validation returns clear error if constraint violated.
-- How does the system handle date inconsistencies (e.g., end date before start date)? **Resolution**: System blocks save and displays clear validation error requiring user to correct dates before proceeding.
-- What happens when a contributor is removed from the system but is still associated with projects?
-- How does the system handle visibility changes when a project has public datasets but is changed to private status?
-- What happens when attempting to create identical external identifiers (e.g., same DOI) for different projects?
-- How are internationalized characters in project names and descriptions handled in search and filtering?
+- A project name longer than the field allows is refused by the field's own validation; no truncation
+  occurs.
+- A project with no owning organisation is a normal state, not an orphan (D-007).
+- A methods description belongs to a dataset, not to a project — the project description vocabulary
+  deliberately omits it while the dataset one carries it (D-015).
+- Two descriptions of the same type are refused at the database as well as in validation, so a
+  concurrent write cannot slip past the check.
+- A date record whose value is absent is refused; a type without a date carries no meaning.
+- Attaching the same identifier value to two projects is refused globally, not merely within a
+  project (D-003).
+- Deleting a project that has public datasets is blocked. That guard belongs to
+  `013-project-crud-views` and is not restated here (D-002).
+- A project with several awards recorded exports all of them; DataCite permits repetition.
+- Non-ASCII characters in names, descriptions and keywords are stored and exported unchanged.
 
 ## Requirements *(mandatory)*
 
-### Functional Requirements
+### The project record
 
-- **FR-001**: System MUST allow authenticated users with appropriate permissions to create new project records with required fields (name, status, visibility).
+- **FR-001**: Each project MUST carry a unique, short, human-readable identifier generated on
+  creation, prefixed so that it is recognisable as a project, and not editable afterwards.
+- **FR-002**: A project MUST carry a name. A project MAY carry an image, an owning organisation and
+  funding information.
+- **FR-003**: A project MUST carry a lifecycle status drawn from a controlled set. Every member of
+  that set MUST be labelled with the state it names.
+- **FR-004**: A project MUST carry a visibility of either private or public.
+- **FR-005**: A project MAY name one owning organisation. A project without one MUST be valid.
+- **FR-006**: A project MUST support categorisation both by terms drawn from a configured controlled
+  vocabulary and by free-form tags, and the two MUST remain distinguishable.
+- **FR-007**: Projects MUST be ordered most-recently-modified first by default.
 
-- **FR-002**: System MUST generate a unique, short, human-readable identifier (UUID with prefix) for each project upon creation.
+### Descriptions, dates and identifiers
 
-- **FR-003**: System MUST support multiple description types (Abstract, Methods, Significance, etc.) for each project, each stored as a separate related record, with the constraint that only one description per type is allowed (enforced via unique constraint on project-type combination).
+- **FR-008**: A project MUST support several descriptions, each drawn from a controlled set of
+  description types, with at most one description per type. The limit MUST be enforced by a database
+  constraint as well as by validation.
+- **FR-009**: A project MUST support several dates, each drawn from a controlled set of date types,
+  with at most one date per type. The set MUST contain a start and an end.
+- **FR-010**: The system MUST refuse to save a project date that would place the project's end before
+  its start, whichever of the two is being edited, and the message MUST state which two dates
+  conflict.
+- **FR-011**: A project MUST support several external identifiers, each drawn from a controlled set
+  of identifier types that apply to projects. That set MUST include a DOI and a grant number, and
+  MUST NOT be the vocabulary used for people and organisations.
+- **FR-012**: An identifier value MUST be unique across every record that carries identifiers, so the
+  same identifier cannot name two things.
 
-- **FR-004**: System MUST allow users to add multiple date records to projects with typed date categories (Project Start, Project End, Data Collection Start, Data Collection End).
+### Contributions
 
-- **FR-005**: System MUST allow users to add multiple external identifiers to projects with identifier types from a controlled vocabulary (DOI, Grant Number, Proposal ID, etc.).
+- **FR-013**: A project MUST support contributions associating a person or an organisation with the
+  project under one or more roles drawn from a controlled set.
+- **FR-014**: The role vocabulary MUST be expressible in DataCite's contributor types, so that export
+  needs no translation table.
 
-- **FR-006**: System MUST support project status tracking through a controlled vocabulary with at least these states: Concept, Planning, Active, On Hold, Complete, Cancelled.
+### Funding
 
-- **FR-007**: System MUST support project visibility levels including at minimum: Private (only team members), Organization (anyone in owning organization), Public (anyone).
+- **FR-015**: Funding MUST be stored in the shape DataCite defines for a funding reference. The
+  accepted keys are exactly `funderName`, `funderIdentifier`, `funderIdentifierType`, `awardNumber`,
+  `awardTitle` and `awardURI`, and no others. A project MAY carry several funding records.
+- **FR-016**: Funder name MUST be required within a funding record; every other part MUST be
+  optional. A funder identifier scheme outside the set DataCite defines MUST be refused.
 
-- **FR-008**: System MUST associate projects with an owning organization (required field). Projects MUST NOT be saved without an owner. The owner field SHOULD default to the creator's primary organization if available. System MAY support multiple contributing organizations (optional).
+### The creation record
 
-- **FR-009**: System MUST allow users to associate contributors (people and organizations) with projects and assign roles from a controlled vocabulary (Principal Investigator, Co-Investigator, Data Manager, etc.).
+- **FR-017**: A project MUST record the user who created it, and MUST survive that user's removal
+  with the creator reading as unknown.
+- **FR-018**: A project MUST record when it was created and when it was last changed.
 
-- **FR-010**: System MUST support both controlled vocabulary keywords and free-form tags for project categorization.
+### Administration
 
-- **FR-011**: System MUST provide form validation with clear, user-friendly error messages in the user's selected language.
+- **FR-019**: The administrative interface MUST allow projects to be found by name, by the project's
+  own generated identifier, by any external identifier attached to it, and by owning organisation,
+  and MUST allow the list to be narrowed by status.
+- **FR-020**: The administrative interface MUST allow a project's descriptions, dates and identifiers
+  to be edited from the project's own page.
+- **FR-021**: The administrative list MUST show, for each project, whether it carries an abstract and
+  whether it carries a start date.
+- **FR-022**: Every bulk action that sets a status MUST set the status its label names.
 
-- **FR-012**: System MUST provide contextual help text for all form fields explaining what information is expected and why it matters.
+### Export
 
-- **FR-013**: System MUST display projects in a list view with pagination, sorting by name, status, and modification date.
+- **FR-023**: The system MUST export a project's metadata in DataCite's JSON form, carrying its
+  descriptions, dates, identifiers, contributions and funding as well as its own fields.
+- **FR-024**: The system MUST export a project's metadata as JSON-LD carrying an explicit context.
+- **FR-025**: Where a project carries a DOI, the export MUST present it as the record's primary
+  identifier.
+- **FR-026**: Export MUST omit absent optional metadata rather than emitting empty structures, and
+  MUST be available over a selection of several projects.
 
-- **FR-014**: System MUST display project details in a dedicated detail view showing all metadata, descriptions, dates, identifiers, contributors, and related datasets.
+### Presentation and performance
 
-- **FR-015**: System MUST provide filtering capabilities for the project list including filters for status, owner, keywords, contributors, and visibility.
-
-- **FR-016**: System MUST support full-text search across project names, descriptions, and keywords.
-
-- **FR-017**: System MUST provide a comprehensive admin interface for project management including search, filtering, inline editing of related metadata, and bulk operations.
-
-- **FR-018**: System MUST enforce object-level permissions using a role-based model where: (1) Principal Investigators can edit all project fields including visibility and status, (2) Data Managers can edit metadata (descriptions, dates, identifiers, keywords) but not visibility or status, (3) other contributor roles have read-only access to projects they are associated with, (4) only project owners can delete projects.
-
-- **FR-019**: System MUST ensure all user-facing strings (field labels, help text, error messages, UI text) use Django's internationalization (i18n) framework for translation support.
-
-- **FR-020**: System MUST validate date ranges to prevent saving when end dates are before start dates, displaying clear error messages that explain the issue and prevent form submission until corrected.
-
-- **FR-021**: System MUST prevent deletion of projects that have associated datasets unless explicitly forced by an administrator.
-
-- **FR-022**: System MUST maintain audit trails showing when projects were created, modified, and by whom.
-
-- **FR-023**: System MUST export project metadata in machine-readable formats (JSON-LD, DataCite JSON) including all descriptions, dates, identifiers, and contributor information.
-
-- **FR-024**: System MUST display project funding information when available, using DataCite metadata schema structure for funding (funder name, funder identifier, award number, award title) to facilitate imports and cross-referencing with DataCite.
-
-- **FR-025**: System MUST optimize database queries for project lists using select_related and prefetch_related to minimize query count.
+- **FR-027**: Every string this specification's surfaces present to a user — field labels, help text,
+  vocabulary terms, administrative labels and validation messages — MUST be marked for translation in
+  a way that resolves at request time rather than at import time.
+- **FR-028**: The project model MUST offer a queryset that loads a project together with its
+  descriptions, dates, identifiers, contributions and keywords in a bounded number of queries, so
+  that a caller assembling a full record does not issue one query per related record.
 
 ### Key Entities
 
-- **Project**: The top-level organizational container representing a research initiative. Core attributes include unique identifier (UUID), name, status, visibility, owner organization, funding information (following DataCite metadata schema), and timestamps (created, modified). Related to: Organization (owner), Contributors (team members), Descriptions (multiple types), Dates (timeline), Identifiers (external IDs), Keywords (controlled vocabulary), Tags (free-form), Datasets (child records).
-
-- **Project Description**: Typed descriptions providing context about the project. Attributes include description type (from controlled vocabulary), text content, and ordering for display. Relationship: Many-to-one with Project.
-
-- **Project Date**: Typed date records marking project milestones and phases. Attributes include date type (from controlled vocabulary), date value, and optional end date for ranges. Relationship: Many-to-one with Project.
-
-- **Project Identifier**: External identifiers for project discovery and citation. Attributes include identifier type (DOI, Grant Number, etc.), identifier value, and optional URL. Relationship: Many-to-one with Project.
-
-- **Project Contributor**: Association between projects and people/organizations with role information. Attributes include contributor reference, role type (from controlled vocabulary), and order/prominence. Relationship: Many-to-one with Project, generic foreign key to Person or Organization.
+- **Project** — the outermost container of the core model. Carries its identifier, name, image,
+  status, visibility, owning organisation, funding, creator and timestamps. Related to descriptions,
+  dates, identifiers, contributions, keywords, tags and datasets.
+- **Project description** — a typed block of prose about the project. One per type.
+- **Project date** — a typed date marking a point in the project's life. One per type.
+- **Project identifier** — a typed external identifier naming the project outside the portal. Its
+  value is unique across all identifiers.
+- **Contribution** — the association of a person or an organisation with the project under one or
+  more roles.
+- **Funding reference** — an award recorded against the project in DataCite's shape.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can create a complete project record (name, status, visibility, owner, and at least one description of any type) in under 3 minutes starting from the project creation page, including the time to navigate to the edit page and add the description.
+- **SC-001**: A project can be given an abstract, a methods description, a start date, an end date, a
+  DOI, a grant number and an award record, and every one of them can be read back under its own type.
+- **SC-002**: A second description of a type the project already carries is refused every time, both
+  through validation and at the database.
+- **SC-003**: An end date earlier than the start date is refused every time, from either direction of
+  editing, with a message naming both dates.
+- **SC-004**: The project identifier vocabulary contains a DOI and a grant number and contains no
+  identifier type that names a person or an organisation.
+- **SC-005**: A funding record naming a funder and nothing else is accepted. One naming an identifier
+  scheme outside DataCite's set, one carrying a key outside FR-015's list, and a funding value whose
+  members are not objects are each refused.
+- **SC-006**: A DataCite export of a fully populated project contains every related record attached
+  to it, and the same export of a minimally populated project contains no empty structures.
+- **SC-007**: The JSON-LD export parses as JSON-LD and carries a context.
+- **SC-008**: Every bulk status action in the administrative interface leaves the selected projects in
+  the status its label names.
+- **SC-009**: Loading a project together with all its related metadata takes a number of queries that
+  does not grow with the number of related records.
+- **SC-010**: Every lifecycle status label matches the state it names.
 
-- **SC-002**: Project list pages load with pagination showing 50 projects in under 1 second for datasets up to 10,000 projects.
+## Assumptions
 
-- **SC-003**: All form validation errors are displayed inline with clear, actionable messages indicating what needs to be corrected.
+- The controlled vocabulary machinery, the contribution model and the tagging library are already in
+  place and are not changed by this work.
+- DataCite's schema is the reference for funding and contributor shapes. Where this specification and
+  that schema disagree on the *meaning* of a field, the schema wins. It does not extend the accepted
+  key set in FR-015, which is closed.
+- The portal pages through which a researcher edits a project are specified by
+  `013-project-crud-views`. Where a field specified here needs a form control, that document decides
+  whether it gets one.
+- Translation catalogues do not exist in the repository yet. This work marks strings for translation;
+  it does not produce catalogues.
 
-- **SC-004**: Filtering the project list by any single criterion (status, owner, keyword) returns results in under 500ms for datasets up to 10,000 projects.
+## Out of scope
 
-- **SC-005**: 100% of user-facing strings (field labels, help text, error messages, buttons) are wrapped in Django translation functions and translatable.
-
-- **SC-006**: Admin users can search for projects by name or UUID and receive results in under 300ms.
-
-- **SC-007**: The project detail view displays all associated metadata (descriptions, dates, identifiers, contributors) in a single page load with no more than 5 database queries.
-
-- **SC-008**: Users can add up to 10 contributors to a project with role assignments in under 2 minutes using an autocomplete interface.
-
-- **SC-009**: Project metadata exports (JSON-LD, DataCite) include all required fields for external repository submission (DataCite, Zenodo, etc.) without manual editing.
-
-- **SC-010**: The admin interface supports bulk status changes for up to 100 projects simultaneously completing in under 5 seconds.
-
-## Clarifications
-
-### Session 2026-01-14
-
-- Q: What permission model should be used for project editing - who can perform what actions? → A: Role-based with standard set (PI can edit all fields, Data Manager can edit metadata but not visibility, team members read-only)
-- Q: What happens when a user tries to add the same description type multiple times? → A: Only one description per type allowed; database/model enforces uniqueness constraint; frontend UI prevents duplicate type selection; attempting to violate constraint returns validation error
-- Q: Should date inconsistencies (end date before start date) block save or just warn? → A: Block save - prevent saving project if end date is before start date; require correction before proceeding
-- Q: What structure should funding information follow? → A: DataCite metadata schema for funding to facilitate imports and cross-referencing with DataCite
-- Q: Can descriptions/dates/identifiers be added during initial project creation or only after? → A: Two-step workflow - initial creation streamlined with only required fields (like GitHub repo creation), then detailed metadata added through edit interface
+- The project list, create, edit and delete pages, their forms, the list search box and the filter
+  attachment — `013-project-crud-views`.
+- The project detail page and the pages for editing descriptions, keywords and dates in the portal.
+- Blocking deletion of a project that has public datasets — `013-project-crud-views`.
+- An organisation-scoped visibility level between private and public.
+- Any mapping from contribution role to permission.
+- Full revision history for core records.
+- The REST API's representation of a project — `011-restful-api`.

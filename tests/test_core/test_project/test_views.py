@@ -85,6 +85,26 @@ class TestProjectCreateView:
         # Verify redirect URL contains project UUID
         assert project.uuid in response.url
 
+    def test_create_project_records_creator(self, authenticated_client, user):
+        """Test that creating a project through the portal records the requesting
+        user as its creator.
+
+        Requirement: FR-017 - A project must record the user who created it.
+        User Story: US7 - Know who made a project and when it last changed.
+        """
+        url = reverse("project-create")
+        form_data = {
+            "name": "Creator Recorded Project",
+            "status": ProjectStatus.CONCEPT,
+            "visibility": Visibility.PRIVATE,
+        }
+        response = authenticated_client.post(url, data=form_data)
+
+        assert response.status_code == 302
+
+        project = Project.objects.get(name="Creator Recorded Project")
+        assert project.created_by == user
+
     def test_create_form_displays_validation_errors(self, authenticated_client):
         """Test that validation errors are displayed inline.
 
