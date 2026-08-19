@@ -551,3 +551,34 @@ point `PartialDateFilterField` is redundant with it and should be replaced, not 
 
 **ADR:** none — a filter validates through the field's own parser; local to this filter set
 
+
+## D21 — What the review changed
+
+**Reviewed 2026-08-19, refutation lens over the whole branch. Verdict: changes requested, all
+applied.**
+
+Both blocking findings were in the documentation, and both were the shape the protocol exists to
+catch: an example a reader would follow that does not do what it claims.
+
+- **The worked example for the value convention was wrong, and its own label said it had been
+  executed.** It creates a measurement and reads the value straight back off the returned instance.
+  The unit library converts a stored quantity on the way *out of the database*, not on the object a
+  manager hands back, so what a reader following it actually gets is `5.0` and `'5.0'` — not the
+  pint measurement and `'5.00 ± 0.30 µg/l'` printed on the page. Confirmed by running it: without a
+  reload `get_value()` returns `5.0`; with one it returns `<Measurement(5.0, 0.3,
+  microgram/liter)>`. The feature's own tests reload before every such assertion, which is how the
+  page and the suite disagreed without anything failing. The example now reloads.
+- **The guide's opening import does not resolve.** `fairdm.core.__init__` is empty, so
+  `from fairdm.core import Measurement` raises. It appears twice, including in the complete example
+  at the end. Both now import from `fairdm.core.models`, which is what the framework itself uses.
+
+Two dead links in the same page were corrected, and the vocabulary guard — three identical copies of
+one check, one per metadata record — was factored onto a shared base that carries the noun for its
+message.
+
+**One finding was not accepted as stated.** The review reported that indexing the researcher's label
+had no recorded rationale. It does: the plan records it, along with the reason a published package
+must decide indexing for a consumer who cannot add their own. What the review was right about is the
+asymmetry — the sample record's equivalent field carries no index, and nothing explains why the two
+differ. That is a real inconsistency and it belongs to the sample record rather than this one, so it
+is noted here and left alone rather than resolved by quietly indexing another feature's field.

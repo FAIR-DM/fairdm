@@ -23,7 +23,7 @@ Create a new measurement type by subclassing `Measurement`:
 ```python
 # myapp/models.py
 from django.db import models
-from fairdm.core import Measurement
+from fairdm.core.models import Measurement
 
 class XRFMeasurement(Measurement):
     """X-ray fluorescence measurement for elemental analysis."""
@@ -133,6 +133,7 @@ and reading its value back proves it (executed on this branch):
 ...     value="5.000",
 ...     uncertainty="0.300",
 ... )
+>>> measurement.refresh_from_db()  # units and uncertainty are read back from the column
 >>> measurement.get_value()
 <Measurement(5.0, 0.3, microgram/liter)>
 >>> measurement.print_value()
@@ -483,7 +484,7 @@ Here's a complete example for a microscopy measurement type:
 ```python
 # myapp/models.py
 from django.db import models
-from fairdm.core import Measurement
+from fairdm.core.models import Measurement
 from fairdm.core.measurement.managers import MeasurementQuerySet
 
 class MicroscopyQuerySet(MeasurementQuerySet):
@@ -649,8 +650,8 @@ measurements = XRFMeasurement.objects.with_related()
 
 ## Next Steps
 
-- [Registry Documentation](registry.md) - Advanced registry configuration
-- [Admin Guide](../portal-administration/measurements-admin.md) - Portal administrator guide
+- [Registry Documentation](using_the_registry.md) - Advanced registry configuration
+- [Admin Guide](../portal-administration/managing-measurements.md) - Portal administrator guide
 - [Controlled Vocabularies](controlled_vocabularies.md) - Standardized metadata terms
 - [Forms and Filters Guide](forms-and-filters/) - Advanced form techniques
 
