@@ -1234,3 +1234,32 @@ tests/test_core/test_measurement/test_cross_dataset.py` → all checks passed.
 Next: T041 — cross-dataset deletion boundaries, same file.
 
 Watch: none.
+
+## 2026-08-19T13:20:00Z · Implementer US2 · T041
+
+Did: Extended `tests/test_core/test_measurement/test_cross_dataset.py` with
+`TestCrossDatasetDeletionBoundaries`, proving both halves of FR-004/FR-005 for the
+cross-dataset case: deleting the measurement's own dataset cascades to (deletes) the
+measurement and leaves its sample — which belongs to a different dataset — standing, and while
+the measurement exists, deleting the sample raises `ProtectedError` and the measurement
+survives. `Measurement.dataset` is `on_delete=models.CASCADE`
+(`fairdm/core/measurement/models.py:57`) and `Measurement.sample` is `on_delete=models.PROTECT`
+(`fairdm/core/measurement/models.py:68`) — confirmed already correct; this task adds only the
+missing proof. Each of the three assertions was confirmed to fail for the right reason when
+inverted (two flipped `exists()` checks, one removed `pytest.raises` wrapper which then raised
+the uncaught `ProtectedError`), then reverted, before being accepted.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_cross_dataset.py -q -p
+no:randomly` → 5 passed. `poetry run ruff check
+tests/test_core/test_measurement/test_cross_dataset.py` → all checks passed.
+
+Next: none — both tasks in this brief (US2: T040, T041) are complete.
+
+Watch: `tests/test_core/test_measurement/test_permissions.py` already carries a
+`TestCrossDatasetPermissionBoundaries` class (T081, a different story) covering closely related
+ground to this story's T040; `test_models.py` carries `TestMeasurementCRUDWorkflow` cases
+(`test_deleting_dataset_cascades_to_measurements`,
+`test_deleting_sample_protects_measurements`) and a `TestCrossDatasetMeasurementSampleLinking`
+class covering ground close to T041. Both files are owned by other concurrently-running stories
+per this story's brief, so left untouched; noted here in case a later pass wants to consolidate
+duplicate coverage.
