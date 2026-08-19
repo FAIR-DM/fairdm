@@ -144,3 +144,174 @@ passed. `poetry run pytest tests/test_factories/test_core.py -q -p no:randomly` 
 Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
+
+## 2026-08-19T12:14:00Z · Implementer US10 · T007
+
+Did: Added `TestMeasurementModelCreation.test_uuid_is_not_editable_afterwards`, mirroring
+`TestSampleIdentity.test_uuid_is_not_editable_afterwards` on the sample side - asserts `uuid` is
+excluded from `MeasurementForm.base_fields` and present in `MeasurementChildAdmin.readonly_fields`.
+No production change: the mechanism (`editable=False`) already exists from T008.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementModelCreation -q -p no:randomly`
+→ 4 passed.
+
+Next: T009.
+
+Watch: none.
+
+## 2026-08-19T12:16:00Z · Implementer US10 · T009
+
+Did: Added `TestMeasurementFields` with `test_name_is_required` (asserts `full_clean()` raises with
+`"name"` in `message_dict` for a bare `ExampleMeasurement`) and
+`test_label_image_keywords_and_tags_are_all_optional` (asserts `local_id`, `image`, `keywords` and
+`tags` are all unset/empty and `full_clean()` does not raise). No production change - all fields
+were already optional except `name`.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementFields -q -p no:randomly`
+→ 2 passed.
+
+Next: T010.
+
+Watch: none.
+
+## 2026-08-19T12:18:00Z · Implementer US10 · T010
+
+Did: Added `TestMeasurementFieldMetadata.test_field_verbose_names_and_help_text_are_lazy`,
+iterating `["dataset", "sample", "local_id"]` and asserting `verbose_name`/`help_text` are
+`django.utils.functional.Promise` instances. `uuid` is excluded, matching the sibling Sample
+record's `TestSampleTranslatable` - its `verbose_name="UUID"` is a plain string there too, not
+wrapped in `_()`. No production change: all three fields already declare lazy translations.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementFieldMetadata -q -p no:randomly`
+→ 1 passed.
+
+Next: T011.
+
+Watch: none.
+
+## 2026-08-19T12:20:00Z · Implementer US10 · T011
+
+Did: Added `TestMeasurementLocalId.test_the_same_local_id_is_valid_in_two_different_datasets`,
+creating two measurements with the same `local_id` in two different datasets and asserting both
+`full_clean()` without raising. No production change: no uniqueness constraint was ever declared.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementLocalId -q -p no:randomly`
+→ 1 passed.
+
+Next: T012.
+
+Watch: none.
+
+## 2026-08-19T12:24:00Z · Implementer US10 · T012
+
+Did: Added `test_local_id_has_no_uniqueness_constraint` and `test_local_id_is_indexed` to
+`TestMeasurementLocalId`. The index assertion failed red first (`field.db_index is False`).
+Added `db_index=True` to `Measurement.local_id` in `fairdm/core/measurement/models.py` (plan.md's
+"Data model" section records this as the story's one migration). Generated the migration with
+`poetry run python manage.py makemigrations measurement` (scoped to the one app deliberately - see
+Watch below) - `fairdm/core/measurement/migrations/0010_alter_measurement_local_id.py`.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementLocalId -q -p no:randomly`
+→ 3 passed (red-then-green observed on `test_local_id_is_indexed`).
+
+Next: T013/T014.
+
+Watch: running unscoped `makemigrations` (no app argument) also generated
+`fairdm/contrib/identity/migrations/0004_alter_authoritytranslation_unique_together_and_more.py`.
+Confirmed by stashing every change from this session and re-running `makemigrations --check
+--dry-run` against a clean `006-cluster-a` tree (at the T011 commit): the `identity` app drift is
+already present with none of my edits applied, so it predates this story and is unrelated to it.
+Did not generate or commit that migration - out of scope, `identity` isn't named anywhere in the
+brief. Flagged in the completion report's `concerns` for Forge to reconcile. (An unscoped run also
+wrote a stray migration into the *installed* `orbit` package under site-packages, outside this git
+worktree entirely; left alone, it is untracked and has no effect on this repo.)
+
+## 2026-08-19T12:30:00Z · Implementer US10 · T013/T014
+
+Did: Deleted the vacuous `TestMeasurementCascadeBehavior.test_deleting_dataset_cascades_to_measurements`
+(it deleted the measurement before the dataset, so its assertion held whatever `on_delete` said -
+named explicitly in the brief as a trap). Updated the class docstring to say so and to point at the
+sound replacement, `TestMeasurementCRUDWorkflow.test_deleting_dataset_cascades_to_measurements`
+(deletes the dataset while the measurement still exists), which was already correct and is
+untouched. This is the one pre-existing test this story was told to delete by name - no other
+existing test was modified or removed.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementCascadeBehavior tests/test_core/test_measurement/test_models.py::TestMeasurementCRUDWorkflow -q -p no:randomly`
+→ 7 passed.
+
+Next: T017.
+
+Watch: none.
+
+## 2026-08-19T12:33:00Z · Implementer US10 · T017
+
+Did: Added `TestMeasurementTimestamps` with `test_creation_and_modification_times_are_recorded`
+and `test_modification_time_advances_on_change` (asserts `modified` moves forward and `added`
+stays exactly equal after a save). No production change: both timestamps already come from
+`fairdm/core/abstract.py` (T018).
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementTimestamps -q -p no:randomly`
+→ 2 passed.
+
+Next: T019/T020.
+
+Watch: none.
+
+## 2026-08-19T12:36:00Z · Implementer US10 · T019/T020
+
+Did: Added `TestMeasurementContributions` with `test_measurement_role_vocabulary_members`
+(asserts `Measurement.CONTRIBUTOR_ROLES.values == ["MeasurementPreparation",
+"MeasurementCollection", "Support"]`, named one by one per the brief's established facts) and
+`test_contribution_records_contributor_and_roles` (adds a contributor under two of those roles via
+`add_contributor` and reads both back). No production change: `CONTRIBUTOR_ROLES` and the
+`contributors` generic relation already existed.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementContributions -q -p no:randomly`
+→ 2 passed. Full-file check: `poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly`
+→ 68 passed, 3 skipped.
+
+Next: T114.
+
+Watch: none.
+
+## 2026-08-19T12:45:00Z · Implementer US10 · T114 (blocked)
+
+Did: Investigated rather than edited. The existing
+`TestMeasurementViews.test_measurement_detail_view_accessible` wraps `client.get(reverse(
+"measurement:overview", ...))` in a bare `try/except Exception: pytest.skip(...)`, and it is
+skipping now. Requested the same address directly (no try/except): it raises
+`django.template.exceptions.TemplateDoesNotExist: cotton/pst/components/section/index.html` while
+rendering `fairdm/core/measurement/templates/measurement/detail.html`, the template
+`MeasurementDetailView` (`fairdm/core/measurement/views.py`) renders - that view's own docstring
+already calls it a placeholder.
+
+Checked the sample equivalent per the brief's instruction, to test the "environment is missing the
+whole `cotton/pst` namespace" hypothesis: requesting `reverse("sample:overview", ...)` directly
+returns a clean 200. That falsifies the hypothesis - the namespace is not uniformly absent. The
+reason sample's live route survives is that `sample:overview` is served through the registry's
+plugin system (`sample/plugins/overview.html` extending `plugins/overview.html`), which never
+references `c-pst`; `fairdm/core/sample/templates/sample/sample_detail.html` also uses
+`c-pst.components.section` but is dead code - no URL renders it. `measurement/detail.html` is the
+one live template using the component, so it is the one route that breaks. A filesystem search
+across every installed package (`site-packages`) found no `pst` template directory anywhere, so
+this is a genuine missing component, not a version/config mismatch specific to this checkout.
+
+Setting `client.raise_request_exception = False` turns the exception into a deterministic
+`response.status_code == 500`, but asserting `== 500` as the expected outcome would encode a known
+defect as the specification, which is a weakened/special-cased assertion the brief and craft-tdd
+both forbid. Per the brief's explicit instruction ("If you cannot get a clean status, report the
+task blocked... Do not paper over it with another skip"), T114 is reported blocked rather than
+completed. The pre-existing skip-wrapped test was left untouched - T114 names it to replace, but
+only in service of a working replacement, which this defect prevents.
+
+Verified (diagnostic only, not committed): ad hoc scratch tests confirming the above were written
+to and removed from `tests/test_core/test_measurement/test_zzz_check.py`; none of that survives in
+the tree.
+
+Next: none - T114 is the last of this story's tasks bar the final full-suite run.
+
+Watch: `fairdm/core/measurement/templates/measurement/detail.html`'s use of
+`c-pst.components.section` needs a real fix (or `MeasurementDetailView` needs to route through the
+same plugin-based template chain `sample:overview` already uses) before the measurement detail
+page is reachable at all. Out of scope for this test-writing task and touches shared
+cotton-component/template territory this story doesn't own.
