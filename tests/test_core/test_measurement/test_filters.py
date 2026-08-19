@@ -69,9 +69,16 @@ class TestMeasurementFilterDatasetFiltering:
             concentration_ppm=15.3,
         )
 
+        # The reader is entitled to both datasets, so both are offered as choices
+        # even though each is private (T115).
+        assign_perm("dataset.change_dataset", user, dataset1)
+        assign_perm("dataset.change_dataset", user, dataset2)
+
         # Filter by dataset1
         filterset = MeasurementFilter(
-            data={"dataset": dataset1.id}, queryset=XRFMeasurement.objects.all()
+            data={"dataset": dataset1.id},
+            queryset=XRFMeasurement.objects.all(),
+            request=_request_for(user),
         )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
@@ -234,12 +241,12 @@ class TestMeasurementFilterCrossRelationshipFiltering:
         # Add descriptions
         MeasurementDescription.objects.create(
             related=measurement1,
-            type="method",
+            type="MeasurementSetup",
             value="High precision analysis using XRF",
         )
         MeasurementDescription.objects.create(
             related=measurement2,
-            type="method",
+            type="MeasurementSetup",
             value="Standard quality measurement",
         )
 
@@ -350,10 +357,13 @@ class TestMeasurementFilterCombinedFilters:
             concentration_ppm=8.7,
         )
 
+        assign_perm("dataset.change_dataset", user, dataset1)
+
         # Filter by dataset AND sample
         filterset = MeasurementFilter(
             data={"dataset": dataset1.id, "sample": sample1.id},
             queryset=XRFMeasurement.objects.all(),
+            request=_request_for(user),
         )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
@@ -465,9 +475,13 @@ class TestMeasurementFilterMixinUsage:
             concentration_ppm=15.3,
         )
 
+        assign_perm("dataset.change_dataset", user, dataset)
+
         # Use custom filter
         filterset = CustomXRFFilter(
-            data={"dataset": dataset.id}, queryset=XRFMeasurement.objects.all()
+            data={"dataset": dataset.id},
+            queryset=XRFMeasurement.objects.all(),
+            request=_request_for(user),
         )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs

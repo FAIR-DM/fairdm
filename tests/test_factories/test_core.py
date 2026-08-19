@@ -624,24 +624,24 @@ class TestMeasurementFactories:
         """Test MeasurementDescriptionFactory creates valid descriptions."""
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         description = MeasurementDescriptionFactory(
-            related=measurement, type="Abstract"
+            related=measurement, type="MeasurementConditions"
         )
 
         assert isinstance(description, MeasurementDescription)
         assert description.pk is not None
         assert description.related == measurement
-        assert description.type == "Abstract"
+        assert description.type == "MeasurementConditions"
         assert description.value
 
     def test_measurement_date_factory(self):
         """Test MeasurementDateFactory creates valid dates."""
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        date = MeasurementDateFactory(related=measurement, type="Created")
+        date = MeasurementDateFactory(related=measurement, type="Setup")
 
         assert isinstance(date, MeasurementDate)
         assert date.pk is not None
         assert date.related == measurement
-        assert date.type == "Created"
+        assert date.type == "Setup"
         assert date.value
 
 

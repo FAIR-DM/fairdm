@@ -61,10 +61,10 @@ def build_measurements_with_metadata(dataset, count):
             sample=RockSampleFactory(dataset=dataset), dataset=dataset
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="method", value=f"Method {i}"
+            related=measurement, type="MeasurementSetup", value=f"Method {i}"
         )
         MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
         MeasurementIdentifier.objects.create(
             related=measurement, type="DOI", value=f"10.1234/meas.{dataset.pk}.{i}"
@@ -143,10 +143,10 @@ class TestWithMetadataPrefetchesRecords:
             sample=RockSampleFactory(dataset=dataset), dataset=dataset
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF analysis"
+            related=measurement, type="MeasurementSetup", value="XRF analysis"
         )
         MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
         MeasurementIdentifier.objects.create(
             related=measurement, type="DOI", value="10.1234/meas.1"
@@ -169,7 +169,7 @@ class TestWithMetadataPrefetchesRecords:
             sample=RockSampleFactory(dataset=dataset), dataset=dataset
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF analysis"
+            related=measurement, type="MeasurementSetup", value="XRF analysis"
         )
 
         (loaded,) = list(Measurement.objects.filter(pk=measurement.pk))
@@ -200,7 +200,7 @@ class TestBothLoadingsComposeWithFilteringAndOrdering:
                 PersonFactory(is_active=True), with_roles=["Creator"]
             )
             MeasurementDescription.objects.create(
-                related=measurement, type="method", value="Method"
+                related=measurement, type="MeasurementSetup", value="Method"
             )
             measurements.append(measurement)
 

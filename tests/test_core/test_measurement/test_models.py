@@ -629,10 +629,10 @@ class TestMeasurementQuerySetOptimizations:
             detection_limit_ppm=2.0,
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF analysis"
+            related=measurement, type="MeasurementSetup", value="XRF analysis"
         )
         MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
 
         # Test without optimization
@@ -1224,10 +1224,10 @@ class TestMeasurementFAIRMetadata:
 
         # Create a description with a Measurement-specific type
         description = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF Analysis"
+            related=measurement, type="MeasurementSetup", value="XRF Analysis"
         )
 
-        assert description.type == "method"
+        assert description.type == "MeasurementSetup"
         assert description.related == measurement
         assert description.value == "XRF Analysis"
         # Verify vocabulary is from Measurement collection
@@ -1239,10 +1239,10 @@ class TestMeasurementFAIRMetadata:
 
         # Create a date with a Measurement-specific type
         measurement_date = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-02-15"
+            related=measurement, type="Setup", value="2024-02-15"
         )
 
-        assert measurement_date.type == "measured"
+        assert measurement_date.type == "Setup"
         assert measurement_date.related == measurement
         assert measurement_date.value == "2024-02-15"
         # Verify vocabulary is from Measurement collection
@@ -1255,7 +1255,7 @@ class TestMeasurementFAIRMetadata:
 
         # Create description with measurement-specific type
         desc = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="Test"
+            related=measurement, type="MeasurementSetup", value="Test"
         )
 
         # Verify the vocabulary is Measurement-specific (not Sample)
@@ -1268,11 +1268,11 @@ class TestMeasurementFAIRMetadata:
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         desc1 = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF Spectroscopy"
+            related=measurement, type="MeasurementSetup", value="XRF Spectroscopy"
         )
 
         desc2 = MeasurementDescription.objects.create(
-            related=measurement, type="instrument", value="Bruker S8 Tiger"
+            related=measurement, type="MeasurementConditions", value="Bruker S8 Tiger"
         )
 
         descriptions = MeasurementDescription.objects.filter(related=measurement)
@@ -1287,11 +1287,11 @@ class TestMeasurementFAIRMetadata:
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         date1 = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-02-15"
+            related=measurement, type="Setup", value="2024-02-15"
         )
 
         date2 = MeasurementDate.objects.create(
-            related=measurement, type="calibrated", value="2024-02-10"
+            related=measurement, type="TearDown", value="2024-02-10"
         )
 
         dates = MeasurementDate.objects.filter(related=measurement)
@@ -1335,10 +1335,10 @@ class TestMeasurementQuerySetOptimization:
         # Create measurement with metadata
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF"
+            related=measurement, type="MeasurementSetup", value="XRF"
         )
         MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024"
+            related=measurement, type="Setup", value="2024"
         )
 
         with CaptureQueriesContext(connection) as queries:
@@ -1359,7 +1359,7 @@ class TestMeasurementQuerySetOptimization:
         for _ in range(3):
             measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
             MeasurementDescription.objects.create(
-                related=measurement, type="method", value="Test"
+                related=measurement, type="MeasurementSetup", value="Test"
             )
 
         # Chain methods
@@ -1433,7 +1433,7 @@ class TestMeasurementQuerySetOptimization:
             m = ExampleMeasurementFactory(sample=RockSampleFactory(), name=f"Measurement {i}")
             m.add_contributor(PersonFactory(), with_roles=["Creator"])
             MeasurementDescription.objects.create(
-                related=m, type="method", value=f"Method {i}"
+                related=m, type="MeasurementSetup", value=f"Method {i}"
             )
             measurements.append(m)
 

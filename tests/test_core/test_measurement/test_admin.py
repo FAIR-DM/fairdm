@@ -286,7 +286,7 @@ class TestMeasurementAdminInlines:
         """Test that inline metadata objects can be created for a measurement."""
         # Create description via inline
         description = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF analysis method description"
+            related=measurement, type="MeasurementSetup", value="XRF analysis method description"
         )
 
         assert description.related == measurement
@@ -296,7 +296,7 @@ class TestMeasurementAdminInlines:
         """Test that inline date objects can be created for a measurement."""
         # Create date via inline
         date = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
 
         assert date.related == measurement
@@ -392,23 +392,23 @@ class TestMeasurementAdminVocabularyCorrectness:
         """Test that MeasurementDescription inline uses Measurement vocabulary collection."""
         # Create a description with a Measurement-specific type
         description = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="Test method"
+            related=measurement, type="MeasurementSetup", value="Test method"
         )
 
         # Verify the vocabulary is from Measurement collection (not Sample)
         assert description.VOCABULARY is not None
-        assert description.type == "method"  # type field returns string value
+        assert description.type == "MeasurementSetup"  # type field returns string value
 
     def test_measurement_date_uses_measurement_vocabulary(self, measurement):
         """Test that MeasurementDate inline uses Measurement vocabulary collection."""
         # Create a date with a Measurement-specific type
         date = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
 
         # Verify the vocabulary is from Measurement collection (not Sample)
         assert date.VOCABULARY is not None
-        assert date.type == "measured"  # type field returns string value
+        assert date.type == "Setup"  # type field returns string value
 
 
 @pytest.mark.django_db
