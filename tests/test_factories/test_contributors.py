@@ -10,13 +10,12 @@ from django.test import TestCase
 from fairdm.contrib.contributors.models import Contribution, Organization, Person
 from fairdm.factories import (
     DatasetFactory,
-    MeasurementFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
 )
 from fairdm.factories.contributors import ContributionFactory, ContributorFactory
-from fairdm_demo.factories import RockSampleFactory
+from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 class TestContributorFactories(TestCase):
@@ -146,7 +145,7 @@ class TestFactoryIntegration(TestCase):
         # Create measurements for each sample
         measurements = []
         for sample in samples:
-            measurement = MeasurementFactory(dataset=dataset, sample=sample)
+            measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
             measurements.append(measurement)
 
         # Verify the complete structure
@@ -185,7 +184,7 @@ class TestFactoryIntegration(TestCase):
         # Create measurements
         all_measurements = []
         for sample in all_samples:
-            measurements = MeasurementFactory.create_batch(
+            measurements = ExampleMeasurementFactory.create_batch(
                 2, dataset=sample.dataset, sample=sample
             )
             all_measurements.extend(measurements)
@@ -242,7 +241,7 @@ class TestFactoryIntegration(TestCase):
         # Create the hierarchy
         dataset = DatasetFactory()
         sample = RockSampleFactory(dataset=dataset)
-        measurement = MeasurementFactory(dataset=dataset, sample=sample)
+        measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
 
         # Create contributors
         sample_collector = PersonFactory(first_name="Field", last_name="Collector")
