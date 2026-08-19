@@ -17,7 +17,6 @@ matching row.
 
 import pytest
 from django.contrib.auth import get_user_model
-from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.core.utils import get_perms as fairdm_get_perms
@@ -152,14 +151,16 @@ class TestMeasurementGuardianIntegration:
         assert not user.has_perm("measurement.delete_measurement", measurement)  # neither
 
 
-@pytest.mark.skip(
-    reason="Cross-dataset permission tests deferred to Feature 007 (Permissions & Access Control). "
-    "Factory fails when trying to create Measurement with sample from different dataset - "
-    "polymorphic type checking issue. See Feature 006 Phase 8 notes for details."
-)
 @pytest.mark.django_db
 class TestCrossDatasetPermissionBoundaries:
-    """Test permission boundaries when measurements reference samples from different datasets (User Story 2)."""
+    """Rights over the sample a measurement names derive from the sample's own dataset,
+    independently of the measurement's (User Story 2, T081).
+
+    The class-level skip this carried claimed the factory failed to build a measurement whose
+    sample belongs to a different dataset than the measurement itself - false, confirmed
+    directly: ``ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)`` below builds
+    without complaint every time this class runs.
+    """
 
     def test_measurement_permissions_based_on_measurement_dataset_not_sample_dataset(
         self, user
@@ -176,7 +177,7 @@ class TestCrossDatasetPermissionBoundaries:
         measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
 
         # Grant user permissions on dataset A only (not dataset B)
-        assign_perm("dataset.change_dataset", user, dataset_a)
+        fairdm_assign_perm("dataset.change_dataset", user, dataset_a)
 
         # User should be able to edit the measurement (in dataset A)
         assert user.has_perm("measurement.change_measurement", measurement_a)
@@ -198,8 +199,8 @@ class TestCrossDatasetPermissionBoundaries:
         measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
 
         # Grant user permissions on dataset A only
-        assign_perm("dataset.change_dataset", user, dataset_a)
-        assign_perm("dataset.view_dataset", user, dataset_a)
+        fairdm_assign_perm("dataset.change_dataset", user, dataset_a)
+        fairdm_assign_perm("dataset.view_dataset", user, dataset_a)
 
         # User can edit measurement but cannot edit the sample it references
         assert user.has_perm("measurement.change_measurement", measurement_a)
@@ -224,8 +225,8 @@ class TestCrossDatasetPermissionBoundaries:
         )
 
         # Grant user permissions on dataset C and dataset A (but not dataset B)
-        assign_perm("dataset.change_dataset", user, dataset_c)
-        assign_perm("dataset.view_dataset", user, dataset_a)
+        fairdm_assign_perm("dataset.change_dataset", user, dataset_c)
+        fairdm_assign_perm("dataset.view_dataset", user, dataset_a)
 
         # User can edit both measurements (both in dataset C)
         assert user.has_perm(
