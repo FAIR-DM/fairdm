@@ -16,11 +16,13 @@ matching row.
 """
 
 import pytest
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from guardian.shortcuts import assign_perm as guardian_assign_perm
 
 from fairdm.core.measurement.models import Measurement
+from fairdm.core.measurement.permissions import MeasurementPermissionBackend
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.core.utils import get_perms as fairdm_get_perms
 from fairdm.core.utils import get_permission_target
@@ -286,6 +288,19 @@ class TestMeasurementRegisteredTypePermissions:
         assert type(measurement) is not Measurement
         assert type(target) is Measurement
         assert target.pk == measurement.pk
+
+
+class TestMeasurementPermissionBackendRegistration:
+    """The measurement permission backend is registered in the project's authentication
+    settings (T084) - asserted here, not assumed.
+    """
+
+    def test_measurement_permission_backend_is_registered(self):
+        backend_path = (
+            f"{MeasurementPermissionBackend.__module__}."
+            f"{MeasurementPermissionBackend.__qualname__}"
+        )
+        assert backend_path in settings.AUTHENTICATION_BACKENDS
 
 
 @pytest.mark.django_db
