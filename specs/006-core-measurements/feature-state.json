@@ -1596,8 +1596,19 @@
     },
     {
      "id": "T113",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:166",
+       "fairdm/core/measurement/forms.py:108"
+      ],
+      "commands": [
+       "poetry run ruff check fairdm/core/measurement/models.py fairdm/core/measurement/forms.py",
+       "poetry run pytest tests/test_core/test_measurement/test_models.py tests/test_core/test_measurement/test_forms.py -q -p no:randomly"
+      ],
+      "verified_by_ci": false
+     }
     },
     {
      "id": "T114",

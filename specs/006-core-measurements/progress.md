@@ -5586,3 +5586,37 @@ internal identifier leaked into the public-facing text.
 Next: T113 (docstring audit).
 
 Watch: none.
+
+## 2026-08-19T15:35:00Z · Implementer US10 · T113
+
+Did: Audited every docstring on `fairdm/core/measurement/models.py`, `admin.py`, `forms.py`,
+`filters.py` and the measurement-scoped collections in `fairdm/core/vocabularies.py` against the
+code as it stands, correcting only what was false. Confirmed the two instances the brief named as
+already fixed in code: `MeasurementFilterMixin`'s docstring lists exactly the filters the class
+declares (dataset, sample, polymorphic_ctype, search, description, date_after/date_before), and
+`MeasurementForm.Meta` is spelled `help_texts` (the attribute Django actually reads), matching its
+own guidance text docstring — no further correction needed on either. Found and fixed two more:
+`Measurement.get_absolute_url()`'s docstring and inline comment called its return value "a
+placeholder for future implementation" — but this feature's own scope decision (see `decisions.md`)
+settled that this method returns the measurement's real, permanent address, and only the page that
+renders it is later work; corrected the docstring and removed the stale "Placeholder" comment.
+`MeasurementForm`'s class docstring stated "Measurement is an abstract polymorphic model" — false:
+`Measurement.Meta` carries no `abstract = True`, it has its own table via multi-table polymorphic
+inheritance, and direct instantiation is refused by `clean()` validation, not by Django's abstract
+mechanism (a model that were actually Django-abstract could never be instantiated or queried at
+all, so the validation guard would be unreachable dead code). Corrected the docstring to describe
+what actually happens. Read `fairdm/core/vocabularies.py` in full: it carries only two docstrings
+in the entire module, on `FairDMIdentifiers.choices` and `FairDMSampleStatus`, neither making a
+claim about `Measurement`'s behaviour — nothing to correct there; the `Collection`/`Concept`
+definitions themselves (verified against in T110) are data, not docstrings. Left every other
+docstring alone — each stated something true of the code as it stands.
+
+Verified: `poetry run ruff check fairdm/core/measurement/models.py fairdm/core/measurement/forms.py`
+→ all checks passed. `poetry run pytest tests/test_core/test_measurement/test_models.py
+tests/test_core/test_measurement/test_forms.py -q -p no:randomly` → 96 passed, 3 skipped (unrelated
+skips, present before this task). No behaviour changed — both fixes are docstring/comment text
+only, confirmed by re-reading the diff before committing.
+
+Next: T114 (replace the skip-swallowing test).
+
+Watch: none.

@@ -166,12 +166,15 @@ class Measurement(BasePolymorphicModel):
     def get_absolute_url(self):
         """Get the absolute URL for this measurement.
 
+        This is the measurement's own, permanent address - it does not deflect to
+        its sample. The view and template that render that address are separate,
+        later work; this method's return value is not a placeholder.
+
         Returns:
-            str: URL path to measurement detail view (placeholder for future implementation)
+            str: URL path to this measurement's own detail view.
         """
         from django.urls import reverse
 
-        # Placeholder - full detail view will be implemented in future feature
         return reverse("measurement:overview", kwargs={"uuid": self.uuid})
 
     def get_template_name(self):
