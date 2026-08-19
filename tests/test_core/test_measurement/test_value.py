@@ -11,6 +11,7 @@ uncertainty (`ICP_MS_Measurement`, T093) so this behaviour is exercised, not onl
 described.
 """
 
+import pint
 import pytest
 
 from fairdm_demo.factories import ExampleMeasurementFactory, ICP_MS_MeasurementFactory
@@ -30,3 +31,27 @@ class TestGetValue:
         measurement = ExampleMeasurementFactory(sample=sample, name="Base Reading")
 
         assert measurement.get_value() == "Base Reading"
+
+
+@pytest.mark.django_db
+class TestGetValueWithUncertainty:
+    """`Measurement.get_value()` carries a type's uncertainty (FR-037)."""
+
+    def test_uncertainty_is_carried_with_the_value(self, sample):
+        measurement = ICP_MS_MeasurementFactory(
+            sample=sample, value="5.000", uncertainty="0.300"
+        )
+        measurement.refresh_from_db()
+
+        result = measurement.get_value()
+
+        # A pint `Measurement`'s attributes are `.value` and `.error` - not `.err`,
+        # which no installed pint object carries (plan.md, R1).
+        assert isinstance(result, pint.Measurement)
+        assert result.value.magnitude == pytest.approx(
+            float(measurement.value.magnitude)
+        )
+        assert result.error.magnitude == pytest.approx(
+            float(measurement.uncertainty.magnitude)
+        )
+        assert result.value.units == measurement.value.units
