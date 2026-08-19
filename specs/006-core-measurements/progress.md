@@ -1214,3 +1214,23 @@ a single pre-existing class's skip-removal and rewrite across two commits would 
 deleting methods in one commit and restoring them in the next - keeping each class whole within
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
+
+## 2026-08-19T13:02:35Z · Implementer US2 · T040
+
+Did: Added `tests/test_core/test_measurement/test_cross_dataset.py` (new file, per the brief —
+`test_models.py` and `test_permissions.py` belong to other concurrently-running stories) with
+`TestCrossDatasetEditingRights`, proving both halves of the acceptance scenario: a user granted
+`dataset.change_dataset` on the measurement's own dataset alone can edit a measurement whose
+sample belongs to a different dataset, and cannot edit that sample. The behaviour was believed
+already correct going in (`MeasurementPermissionBackend`/`SamplePermissionBackend` each derive
+strictly from their own record's dataset) — this task adds only the missing proof. Both
+assertions were confirmed to fail for the right reason when inverted, then reverted, before being
+accepted.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_cross_dataset.py -q -p
+no:randomly` → 2 passed. `poetry run ruff check
+tests/test_core/test_measurement/test_cross_dataset.py` → all checks passed.
+
+Next: T041 — cross-dataset deletion boundaries, same file.
+
+Watch: none.
