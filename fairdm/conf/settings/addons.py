@@ -59,7 +59,6 @@ FLEX_MENUS = {
     "renderers": {
         "sidebar": "mvp.renderers.SidebarRenderer",
         "dock": "mvp.renderers.MobileFooterNavRenderer",
-        "nav": "mvp.renderers.NavRenderer",
         "plugin-menu-renderer": "fairdm.contrib.plugins.menus.PluginMenuRenderer",
     }
 }
