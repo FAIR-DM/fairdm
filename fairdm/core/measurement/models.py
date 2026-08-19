@@ -203,9 +203,7 @@ class MeasurementDescription(AbstractDescription):
         if self.type not in self.VOCABULARY.values:
             raise ValidationError(
                 {
-                    "type": _(
-                        "'%(type)s' is not a valid Measurement description type."
-                    )
+                    "type": _("'%(type)s' is not a valid Measurement description type.")
                     % {"type": self.type}
                 }
             )
