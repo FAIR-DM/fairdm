@@ -2,23 +2,85 @@
 Unit tests for Measurement model permissions.
 
 Tests verify that Measurement integrates with django-guardian for object-level
-permissions and inherits permissions from parent Dataset.
-
-NOTE: Direct permission assignment tests are skipped due to a known limitation
-with django-guardian and polymorphic models. Guardian expects the app label of
-permissions to match the app label of the content type, but polymorphic subclasses
-have different app labels than their base class. Permission inheritance from
-Dataset (the recommended pattern) works correctly.
+permissions and inherits permissions from parent Dataset, going through
+``fairdm.core.utils.assign_perm``/``remove_perm``/``get_perms`` rather than
+guardian's own shortcuts. That entry point normalises a polymorphic
+measurement instance (e.g. ``ExampleMeasurement``) to the base ``Measurement``
+record a permission is actually declared against before handing off to
+guardian (see ``fairdm.core.utils.get_permission_target``). Guardian's own
+``assign_perm``/``remove_perm`` cannot grant a permission directly on a
+polymorphic subclass instance: the permission row is filed under
+``Measurement``'s content type, but guardian resolves the content type to
+check from the object's own (subclass) content type, and the lookup finds no
+matching row.
 """
 
 import pytest
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
+from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.factories import DatasetFactory
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 User = get_user_model()
+
+
+@pytest.mark.django_db
+class TestMeasurementPermissionInheritance:
+    """A measurement holds the rights its dataset holds (FR-021 to FR-024).
+
+    ``MeasurementPermissionBackend`` (``fairdm/core/measurement/permissions.py``) derives
+    ``view_measurement``/``change_measurement``/``delete_measurement`` from the same-named
+    right on the measurement's own dataset. These tests exercise that derivation directly,
+    through the same ``assign_perm`` entry point a caller would use. ``Dataset`` is not a
+    polymorphic model, so ``fairdm.core.utils.assign_perm`` normalises nothing here - it is
+    used anyway, as the entry point this codebase actually calls (see module docstring).
+    """
+
+    def test_measurement_inherits_view_permission_from_dataset(self, user):
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        fairdm_assign_perm("dataset.view_dataset", user, measurement.dataset)
+
+        assert user.has_perm("measurement.view_measurement", measurement)
+
+    def test_measurement_inherits_change_permission_from_dataset(self, user):
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        fairdm_assign_perm("dataset.change_dataset", user, measurement.dataset)
+
+        assert user.has_perm("measurement.change_measurement", measurement)
+
+    def test_measurement_inherits_delete_permission_from_dataset(self, user):
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        fairdm_assign_perm("dataset.delete_dataset", user, measurement.dataset)
+
+        assert user.has_perm("measurement.delete_measurement", measurement)
+
+    def test_measurement_does_not_inherit_without_dataset_permission(self, user):
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        assert not user.has_perm("measurement.view_measurement", measurement)
+        assert not user.has_perm("measurement.change_measurement", measurement)
+        assert not user.has_perm("measurement.delete_measurement", measurement)
+
+    def test_multiple_measurements_inherit_from_same_dataset(self, dataset, user):
+        """The dataset -> measurement derivation is a general mapping, not a one-off wired to
+        a single instance: every measurement in the dataset picks it up.
+        """
+        measurement1 = ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+        measurement2 = ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+
+        fairdm_assign_perm("dataset.view_dataset", user, dataset)
+
+        assert user.has_perm("measurement.view_measurement", measurement1)
+        assert user.has_perm("measurement.view_measurement", measurement2)
 
 
 @pytest.mark.skip(
@@ -77,88 +139,6 @@ class TestMeasurementGuardianIntegration:
         # User can view measurement1 but not measurement2
         assert user.has_perm("measurement.view_measurement", measurement1)
         assert not user.has_perm("measurement.view_measurement", measurement2)
-
-
-@pytest.mark.skip(
-    reason="Permission inheritance tests deferred to Feature 007 (Permissions & Access Control). "
-    "Backend registration complete but change/delete permission mapping needs debugging. "
-    "See Feature 006 Phase 8 notes for details."
-)
-@pytest.mark.django_db
-class TestMeasurementPermissionInheritance:
-    """Test Measurement permissions inherit from parent Dataset."""
-
-    def test_measurement_inherits_view_permission_from_dataset(self, user):
-        """Test that Measurement inherits view permission from parent Dataset."""
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        dataset = measurement.dataset
-
-        # Assign view permission to dataset
-        assign_perm("dataset.view_dataset", user, dataset)
-
-        # Measurement should inherit view permission
-        assert user.has_perm("measurement.view_measurement", measurement)
-
-    def test_measurement_inherits_change_permission_from_dataset(self, user):
-        """Test that Measurement inherits change permission from parent Dataset."""
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        dataset = measurement.dataset
-
-        # Assign change permission to dataset
-        assign_perm("dataset.change_dataset", user, dataset)
-
-        # Measurement should inherit change permission
-        assert user.has_perm("measurement.change_measurement", measurement)
-
-    def test_measurement_inherits_delete_permission_from_dataset(self, user):
-        """Test that Measurement inherits delete permission from parent Dataset."""
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        dataset = measurement.dataset
-
-        # Assign delete permission to dataset
-        assign_perm("dataset.delete_dataset", user, dataset)
-
-        # Measurement should inherit delete permission
-        assert user.has_perm("measurement.delete_measurement", measurement)
-
-    def test_measurement_does_not_inherit_without_dataset_permission(self, user):
-        """Test that Measurement does not have permissions if Dataset permissions not granted."""
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        # No permissions assigned to dataset or measurement
-        assert not user.has_perm("measurement.view_measurement", measurement)
-        assert not user.has_perm("measurement.change_measurement", measurement)
-        assert not user.has_perm("measurement.delete_measurement", measurement)
-
-    def test_direct_measurement_permission_overrides_inheritance(self, user):
-        """Test that direct Measurement permissions take precedence over inherited Dataset permissions."""
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        dataset = measurement.dataset
-
-        # Assign dataset permissions
-        assign_perm("dataset.view_dataset", user, dataset)
-        assign_perm("dataset.change_dataset", user, dataset)
-
-        # Measurement inherits both
-        assert user.has_perm("measurement.view_measurement", measurement)
-        assert user.has_perm("measurement.change_measurement", measurement)
-
-        # Remove direct measurement permission (if it was explicitly assigned)
-        # Inheritance should still work
-        assert user.has_perm("measurement.view_measurement", measurement)
-
-    def test_multiple_measurements_inherit_from_same_dataset(self, dataset, user):
-        """Test that all measurements in a dataset inherit the same permissions."""
-        # Create multiple measurements in the same dataset
-        measurement1 = ExampleMeasurementFactory(dataset=dataset, sample=RockSampleFactory(dataset=dataset))
-        measurement2 = ExampleMeasurementFactory(dataset=dataset, sample=RockSampleFactory(dataset=dataset))
-
-        # Assign permission to dataset
-        assign_perm("dataset.view_dataset", user, dataset)
-
-        # Both measurements inherit the permission
-        assert user.has_perm("measurement.view_measurement", measurement1)
-        assert user.has_perm("measurement.view_measurement", measurement2)
 
 
 @pytest.mark.skip(
