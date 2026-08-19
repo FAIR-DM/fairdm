@@ -85,7 +85,7 @@ dependencies = [
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
-    "django-mvp (>=0.17.0,<0.18.0)",
+    "django-mvp (>=0.19.1,<0.20.0)",
     "django-accounts-center (>=0.7.1,<0.8.0)",
     # Imported directly (fairdm/contrib/collections/tables.py,
     # fairdm/contrib/contributors/models.py) and registered as a template

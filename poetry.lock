@@ -1976,14 +1976,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-mvp"
-version = "0.17.0"
+version = "0.19.1"
 description = "MVP framework for Django - scaffold production-ready applications with sophisticated layouts and UI patterns designed for data-centric applications."
 optional = false
 python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "django_mvp-0.17.0-py3-none-any.whl", hash = "sha256:80de9f5be536813c4a8339041ba81d080bc3980240cf3cca2a157effe1ca792c"},
-    {file = "django_mvp-0.17.0.tar.gz", hash = "sha256:3311f99e6cad95e979b55fc7f936b4157186d236f03d178a66c13f9d441a9a7c"},
+    {file = "django_mvp-0.19.1-py3-none-any.whl", hash = "sha256:d21df16a771be9eaed1e2ad08ee815013ed93523987aec304d4cf55800a93127"},
+    {file = "django_mvp-0.19.1.tar.gz", hash = "sha256:3ba67909f4209ba8832d5468ef7af91808e1e74434c237f22109c15a5441f846"},
 ]
 
 [package.dependencies]
@@ -7196,4 +7196,4 @@ gis = ["djangorestframework-gis"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "17f9252b91d2a990e3c83a85b0b430ee4a56f52aa3fa5f8f029eb99d392289f4"
+content-hash = "4a4abd3058a9589a1d17bb50dce743a40385c22ef80b2e693cffdd35c381a95d"
