@@ -293,6 +293,69 @@ def check_debug_false(app_configs, **kwargs):
 
 
 # =============================================================================
+# COOKIE CHECKS
+# =============================================================================
+
+#: Cookie-name prefixes a browser only honours on a cookie actually sent with
+#: the ``Secure`` attribute (RFC 6265bis, section 4.1.3). A ``Set-Cookie``
+#: carrying one of these without that attribute is discarded outright, and
+#: nothing in the response says so.
+BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES = ("__Secure-", "__Host-")
+
+#: Each cookie-name setting beside the flag deciding whether that cookie is
+#: sent with ``Secure``. Django ships exactly these three pairs.
+PREFIX_CHECKED_COOKIE_SETTINGS = (
+    ("CSRF_COOKIE_NAME", "CSRF_COOKIE_SECURE"),
+    ("SESSION_COOKIE_NAME", "SESSION_COOKIE_SECURE"),
+    ("LANGUAGE_COOKIE_NAME", "LANGUAGE_COOKIE_SECURE"),
+)
+
+
+@register(Tags.security)
+def check_secure_cookie_prefixes_match_secure_flag(app_configs, **kwargs):
+    """
+    Check that no cookie is named with a prefix the browser will not accept
+    for the way that cookie is actually sent.
+
+    Deliberately not a deployment check. The mismatch is harmless in
+    production, where these cookies are secure anyway, and breaks login
+    outright in any environment that serves plain HTTP — so a check only
+    ``--deploy`` runs would never fire where the fault occurs.
+
+    Error ID: fairdm.E006
+    """
+    errors = []
+
+    for name_setting, secure_setting in PREFIX_CHECKED_COOKIE_SETTINGS:
+        name = getattr(settings, name_setting, "") or ""
+        if not name.startswith(BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES):
+            continue
+        if getattr(settings, secure_setting, False):
+            continue
+
+        prefix = next(
+            candidate
+            for candidate in BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES
+            if name.startswith(candidate)
+        )
+        errors.append(
+            Error(
+                f"{name_setting} is {name!r} while {secure_setting} is False. "
+                f"Browsers discard a {prefix} cookie that is not sent with the "
+                "Secure attribute, so this cookie is never stored.",
+                hint=(
+                    f"Either set {secure_setting}=True, or drop the {prefix} "
+                    f"prefix from {name_setting} for environments served over "
+                    "plain HTTP."
+                ),
+                id="fairdm.E006",
+            )
+        )
+
+    return errors
+
+
+# =============================================================================
 # CELERY CHECKS
 # =============================================================================
 

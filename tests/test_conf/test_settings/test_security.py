@@ -38,6 +38,19 @@ class TestSecurity:
         assert module.SECURE_SSL_REDIRECT is True
         assert module.SESSION_COOKIE_SECURE is True
 
+    def test_baseline_keeps_the_browser_enforced_cookie_name_prefixes(
+        self, isolated_env, settings_module
+    ):
+        """The prefix is what stops a network attacker overwriting these
+        cookies from a plain-HTTP subdomain, so relaxing it for local
+        development must not reach the baseline every deployment gets."""
+        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+
+        module = settings_module()
+
+        assert module.CSRF_COOKIE_NAME.startswith("__Secure-")
+        assert module.SESSION_COOKIE_NAME.startswith("__Secure-")
+
     def test_reading_unconfigured_security_never_raises(
         self, isolated_env, settings_module
     ):

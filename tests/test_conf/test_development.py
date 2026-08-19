@@ -66,6 +66,75 @@ class TestDevelopmentDefaults:
         assert settings_module().THUMBNAIL_DEBUG is True
 
 
+class TestDevelopmentCookieNames:
+    """A cookie named with the ``__Secure-`` prefix is rejected by the browser
+    unless it is actually sent with the ``Secure`` attribute, so development —
+    which serves plain HTTP and therefore turns that attribute off — has to
+    take the prefix off the names too, or no cookie is ever stored."""
+
+    def test_development_cookie_names_carry_no_browser_enforced_prefix(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module()
+
+        assert not module.CSRF_COOKIE_NAME.startswith(("__Secure-", "__Host-"))
+        assert not module.SESSION_COOKIE_NAME.startswith(("__Secure-", "__Host-"))
+
+    def test_development_pairs_no_prefixed_name_with_an_insecure_cookie(
+        self, isolated_env, settings_module
+    ):
+        """The pairing is the defect, not either half of it: a prefixed name
+        is correct when the cookie is secure, and an unprefixed name is
+        correct when it is not."""
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module()
+
+        for name_setting, secure_setting in (
+            ("CSRF_COOKIE_NAME", "CSRF_COOKIE_SECURE"),
+            ("SESSION_COOKIE_NAME", "SESSION_COOKIE_SECURE"),
+        ):
+            name = getattr(module, name_setting)
+            secure = getattr(module, secure_setting)
+            assert secure or not name.startswith(("__Secure-", "__Host-")), (
+                f"{name_setting}={name!r} is rejected by browsers "
+                f"while {secure_setting} is False"
+            )
+
+    def test_development_csrf_cookie_is_one_a_browser_will_store(
+        self, isolated_env, settings_module
+    ):
+        """End of the chain the report describes: the login page renders its
+        hidden token either way, so the failure only shows up in the header
+        that carries the matching cookie."""
+        from django.http import HttpResponse
+        from django.middleware.csrf import CsrfViewMiddleware, get_token
+        from django.test import RequestFactory, override_settings
+
+        os.environ["DJANGO_ENV"] = "development"
+        module = settings_module()
+
+        def view(request):
+            get_token(request)  # what {% csrf_token %} does in the template
+            return HttpResponse()
+
+        with override_settings(
+            CSRF_COOKIE_NAME=module.CSRF_COOKIE_NAME,
+            CSRF_COOKIE_SECURE=module.CSRF_COOKIE_SECURE,
+            CSRF_USE_SESSIONS=False,
+        ):
+            request = RequestFactory().get("/account-center/login/", secure=False)
+            response = CsrfViewMiddleware(view)(request)
+
+        cookie = response.cookies[module.CSRF_COOKIE_NAME]
+
+        assert not (
+            cookie.key.startswith(("__Secure-", "__Host-")) and not cookie["secure"]
+        ), f"browsers discard this header: {cookie.OutputString()}"
+
+
 class TestSetupToolsCommands:
     """``DJANGO_SETUP_TOOLS`` ships only commands FairDM actually provides —
     the template scaffold it was copied from named an app and a function that
