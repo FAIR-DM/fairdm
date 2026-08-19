@@ -1169,8 +1169,16 @@
     },
     {
      "id": "T110",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "docs/portal-administration/managing-measurements.md",
+       "fairdm/core/measurement/admin.py",
+       "fairdm/core/vocabularies.py"
+      ],
+      "verified_by_ci": false
+     }
     }
    ]
   },

@@ -5483,3 +5483,51 @@ test_renders_value_uncertainty_and_units_together`, which the baseline run alrea
 Next: T110 (managing-measurements.md).
 
 Watch: none.
+
+## 2026-08-19T15:05:00Z · Implementer US10 · T110
+
+Did: Brought `docs/portal-administration/managing-measurements.md` to what
+`fairdm/core/measurement/admin.py` and the vocabulary modules it draws on
+(`fairdm/core/vocabularies.py`) actually offer. The page's "Adding Metadata"
+section named description types (Abstract/Methods/Other), date types
+(Collected/Available/Created) and identifier types (DOI/Analysis ID/Other) that
+do not exist for a measurement — `MeasurementDescription.VOCABULARY`,
+`MeasurementDate.VOCABULARY` and `MeasurementIdentifier.VOCABULARY` are each
+`from_collection("Measurement")`-scoped, and the real members are Conditions/
+Preparation/Tear Down/Other, Setup date/Tear down date, and DOI-only,
+respectively (each inline in `admin.py` is `max_num`-capped to exactly that
+count). Corrected all three, and the contributor "Roles" field, which the page
+described as free text — it is `Contribution.roles`, a
+`ConceptManyToManyField(vocabulary=FairDMRoles)`, and the measurement-scoped
+collection has exactly three members (Preparation/Collection/Support), not the
+invented "analyst/operator/reviewer/supervisor". Propagated the correction into
+the "Metadata Completeness" and "Quality Control" example blocks under Best
+Practices, which used the same invented vocabulary. Corrected "Text Search":
+`MeasurementChildAdmin.search_fields`/`MeasurementParentAdmin.search_fields` are
+`["name", "uuid"]` only — the page claimed a sample-name search that admin.py
+does not implement — and pointed readers at the Sample filter instead. Corrected
+"Measurement List Display": there is no "Value" column in `list_display`
+(`["name", "sample", "dataset", "measurement_type", "added", "modified"]`); added
+a paragraph explaining where `get_value()`/`print_value()` actually surface
+(string representations, e.g. breadcrumbs and related-object dropdowns) and
+linked it to the value-convention section T109 wrote. Fixed "Created" → "Added"
+in the Columns and Sorting lists — `Measurement`/`BaseModel` has no `created`
+field. Rewrote the "Measurement Value Not Displaying" troubleshooting section,
+which described a `get_value() returns None` failure mode against hypothetical
+required fields (`element`, `ph_value`, `microscope_type`) — the real base
+`get_value()` never returns `None`; it falls back to the record's `name` when no
+`value` field is nominated. Everything else on the page (type selection,
+cross-dataset creation, bulk actions, export/import, polymorphic behaviour,
+permissions) was checked against `admin.py` and found to already describe real
+behaviour; left unchanged.
+
+Verified: read `fairdm/core/measurement/admin.py` and
+`fairdm/core/vocabularies.py` (`FairDMDescriptions`/`FairDMDates`/
+`FairDMIdentifiers`/`FairDMRoles`, `"Measurement"` collections) directly for
+every correction above — no code changed, so no test run was needed to prove
+this page's claims; the vocabulary members and admin `list_display`/
+`search_fields` are read from source, not inferred.
+
+Next: T111 (using_the_registry.md, verify-only per the brief's note).
+
+Watch: none.

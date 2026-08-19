@@ -158,59 +158,66 @@ This allows:
 
 Measurement metadata is managed through inline forms on the measurement edit page:
 
+Each inline is capped to the number of types its own vocabulary carries, so you
+will never see more rows offered than there are types to choose from.
+
 #### Descriptions
 
-Add multiple descriptions of different types:
+Add up to four descriptions, one per type:
 
 1. In the **Descriptions** section, click **Add another Description**
 2. Select **Type**:
-   - **Abstract**: Brief summary of the measurement
-   - **Methods**: Analytical methods and parameters used
-   - **Other**: Additional information
+   - **Conditions**: The environmental or situational factors present during the measurement
+   - **Preparation**: Procedures carried out before the measurement was taken
+   - **Tear Down**: Procedures carried out after the measurement, cleaning and storing equipment
+   - **Other**: Anything that doesn't fit the categories above
 3. Enter **Value** (the description text)
 4. Repeat for additional descriptions
 
 **Example uses:**
 
-- **Abstract**: "Silicon concentration in rock sample by XRF"
-- **Methods**: "Analyzed using Bruker M4 Tornado XRF with 20kV beam energy, 30s dwell time, helium purge"
-- **Other**: "Sample prepared by crushing and pressing into pellet"
+- **Conditions**: "Helium purge, 20kV beam energy, ambient temperature 22°C"
+- **Preparation**: "Sample crushed and pressed into a 32mm pellet, calibrated against NIST SRM 2709a"
+- **Other**: "Repeat analysis of a duplicate pellet for quality control"
 
 #### Dates
 
-Track important dates related to the measurement:
+Track up to two dates related to the measurement:
 
 1. In the **Dates** section, click **Add another Date**
 2. Select **Type**:
-   - **Collected**: When data was collected/measured
-   - **Available**: When data became available
-   - **Created**: When the record was created
+   - **Setup date**: When the measurement setup was completed
+   - **Tear down date**: When the measurement teardown was completed
 3. Enter **Value** in YYYY, YYYY-MM, or YYYY-MM-DD format
-4. Repeat for additional dates
+4. Repeat for the other date type
 
 **Common date patterns:**
 
-- **Collected**: 2024-03-15 (day sample was analyzed)
-- **Available**: 2024-03 (month data was processed and QC'd)
-- **Created**: 2024 (year record was entered into database)
+- **Setup date**: 2024-03-15 (day the instrument was calibrated and ready)
+- **Tear down date**: 2024-03-15 (day the instrument was shut down and cleaned)
+
+For when the sample itself was collected or prepared, use the linked sample's
+own dates - a measurement's dates describe the measurement process, not the
+sample.
 
 #### Identifiers
 
-Assign persistent identifiers to measurements:
+Assign a persistent identifier to a measurement:
 
 1. In the **Identifiers** section, click **Add another Identifier**
 2. Select **Type**:
    - **DOI**: Digital Object Identifier (for published data)
-   - **Analysis ID**: Internal lab analysis number
-   - **Other**: Custom identifier schemes
 3. Enter **Value** (the identifier string)
-4. Repeat for additional identifiers
 
-**Example identifiers:**
+DOI is the only identifier type a measurement currently accepts - it is the only
+one in the vocabulary that isn't scoped to a person, an organisation or a
+project. A portal that needs its own internal analysis or lab IDs should use the
+**Local ID** field on the measurement itself, or a description, rather than an
+identifier.
 
-- **Analysis ID**: "LAB-2024-0123"
+**Example identifier:**
+
 - **DOI**: "10.5555/example.123"
-- **Other**: "QC-CHECK-001"
 
 #### Contributors
 
@@ -218,16 +225,15 @@ Track who performed, analyzed, or owns measurements:
 
 1. In the **Contributors** section, click **Add another Contributor**
 2. Select **Contributor** (user or contact from your portal)
-3. Enter **Roles** (e.g., "analyst", "operator", "reviewer")
+3. Select one or more **Roles** from the controlled list:
+   - **Preparation**: Prepared the measurement, ensuring conditions were met for accurate data acquisition
+   - **Collection**: Acquired the data or measurements
+   - **Support**: Provided assistance, guidance, tools or expertise to the measurement process
 4. Optionally set **Order** for display ordering
 5. Repeat for additional contributors
 
-**Common contributor roles:**
-
-- **analyst**: Person who performed the analysis
-- **operator**: Instrument operator
-- **reviewer**: QC reviewer who validated results
-- **supervisor**: Lab supervisor
+Roles are a controlled vocabulary, not free text - the three above are the
+complete list for a measurement contribution.
 
 ## Searching Measurements
 
@@ -238,13 +244,15 @@ The admin provides multiple ways to find measurements:
 Use the search box at the top to search by:
 
 - Measurement name
-- Sample name (linked sample)
 - UUID (unique identifier)
+
+To find every measurement on a given sample, use the **Sample** filter in the
+sidebar rather than the search box - the sample's own name is not one of the
+search fields.
 
 **Examples:**
 
 - Search "XRF-RS001" to find measurements by name
-- Search "RockSample-001" to find all measurements on that sample
 - Search "m_abc123def456" to find by UUID
 
 ### Filters
@@ -342,28 +350,19 @@ The measurement list shows key information:
 - **Name**: Measurement identifier (click to edit)
 - **Sample**: Linked sample name
 - **Dataset**: Parent dataset name
-- **Value**: Result from `get_value()` method (varies by type)
-- **Type**: Measurement type (XRFMeasurement, pHMeasurement, etc.)
-- **Created**: When record was created
+- **Measurement Type**: The type's verbose name (e.g. "ICP-MS Measurement"),
+  drawn from the polymorphic type - not a plain class name
+- **Added**: When the record was added
 - **Modified**: Last modification date
 
-### Measurement Value Display
-
-Each measurement type defines a `get_value()` method that shows in the admin:
-
-**XRF Measurement:**
-
-- Shows: "45000 ppm Fe"
-
-**pH Measurement:**
-
-- Shows: "pH 7.2 @ 22.5°C"
-
-**Microscopy Measurement:**
-
-- Shows: "SEM 1000x"
-
-This provides quick insight into measurement results without opening each record.
+There is no separate "Value" column in the changelist. Wherever Django needs a
+plain-text label for a measurement - a breadcrumb, a related-object dropdown, a
+`str(measurement)` - it uses the value a type reports through `get_value()`/
+`print_value()`, described in [Custom Measurements: The Value
+Convention](../portal-development/measurements.md#the-value-convention). A type
+that nominates a `value` field (and, where it has one, an `uncertainty` field)
+gets that reporting automatically; one that nominates neither falls back to its
+own name.
 
 ### Sorting
 
@@ -372,7 +371,7 @@ Click column headers to sort:
 - Name (alphabetical)
 - Sample (alphabetical)
 - Dataset (alphabetical)
-- Created/Modified (chronological)
+- Added/Modified (chronological)
 
 Click again to reverse sort order.
 
@@ -440,14 +439,16 @@ When viewing a pH Measurement, you'll see different custom fields:
 
 Aim for complete analytical metadata:
 
-- **Descriptions**: Add Methods description with:
+- **Descriptions**: Add a Conditions and/or a Preparation description with:
   - Instrument model
   - Operating parameters
   - Calibration standards used
   - Sample preparation steps
-- **Dates**: Record when measurement was collected
-- **Identifiers**: Assign lab analysis IDs for traceability
-- **Contributors**: Credit the analyst and instrument operator
+- **Dates**: Record when the measurement setup was completed and, if relevant,
+  when it was torn down
+- **Identifiers**: Assign a DOI if the measurement has one published
+- **Contributors**: Credit whoever prepared, collected or supported the
+  measurement, with the matching role
 
 **Example complete metadata:**
 
@@ -455,20 +456,19 @@ Aim for complete analytical metadata:
 Measurement: XRF-RS001-Fe
 
 Descriptions:
-  - Abstract: "Iron concentration in rock sample by XRF"
-  - Methods: "Bruker M4 Tornado XRF. 20kV, 600μA, 30s live time, helium purge.
-             Calibrated against NIST SRM 2709a. Sample prepared by crushing to
-             <100μm and pressing into 32mm pellet."
+  - Conditions: "20kV beam energy, 600μA, 30s live time, helium purge."
+  - Preparation: "Calibrated against NIST SRM 2709a. Sample prepared by crushing
+                 to <100μm and pressing into a 32mm pellet."
 
 Dates:
-  - Collected: 2024-03-15
+  - Setup date: 2024-03-15
 
 Identifiers:
-  - Analysis ID: LAB-2024-0123
+  - DOI: 10.5555/example.123 (only if this measurement has been published)
 
 Contributors:
-  - Jane Analyst (analyst)
-  - Lab Tech (operator)
+  - Jane Analyst (Collection)
+  - Lab Tech (Preparation)
 ```
 
 ### Quality Control
@@ -483,7 +483,7 @@ Contributors:
 **Example QC documentation:**
 
 ```text
-Description (Methods):
+Description (Conditions):
 "Standard NIST-610 run before and after sample batch. RSD < 5% for all elements.
 Blank run between samples. Detection limit calculated as 3σ of blank."
 ```
@@ -538,20 +538,25 @@ Blank run between samples. Detection limit calculated as 3σ of blank."
 - Contact administrator to register measurement types
 - See developer guide for adding custom measurement types
 
-### Measurement Value Not Displaying
+### Measurement Shows Its Name Instead of a Value
 
-**get_value() returns None:**
+**The measurement's string representation is just its name, not a reported
+reading:**
 
-- Check that required fields are filled in
-- For XRF: both element and concentration must be set
-- For pH: ph_value must be set
-- For Microscopy: microscope_type and magnification must be set
+- The measurement's type does not nominate a `value` field. A type with no
+  `value` field reports its own `name` instead - this is the framework's
+  documented fallback, not a bug.
+- If the type is supposed to report a value, contact a developer: it needs a
+  `value` field (and, where the analysis has one, an `uncertainty` field), per
+  [Custom Measurements: The Value
+  Convention](../portal-development/measurements.md#the-value-convention).
 
-**Value shows "None" in list:**
+**A `value` field is set but the record still shows its name:**
 
-- Implementation issue with get_value() method
-- Contact developer to fix measurement type
-- Edit measurement and verify all required fields are present
+- Confirm the field is actually named `value` on the model - the convention is
+  read by name, not by type or position
+- Edit the measurement and verify the value was saved (an empty or `null`
+  `value` still falls through the same way as no field at all)
 
 ### Cross-Dataset Errors
 
