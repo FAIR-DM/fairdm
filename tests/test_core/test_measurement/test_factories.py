@@ -21,7 +21,13 @@ from fairdm.factories.core import (
     MeasurementFactory,
     MeasurementIdentifierFactory,
 )
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from fairdm_demo.factories import (
+    ExampleMeasurementFactory,
+    ICP_MS_MeasurementFactory,
+    RockSampleFactory,
+    XRFMeasurementFactory,
+)
+from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
 
 
 @pytest.mark.django_db
@@ -106,3 +112,33 @@ class TestMeasurementFactoryIsAbstract:
     def test_calling_it_directly_refuses(self):
         with pytest.raises(factory.errors.FactoryError):
             MeasurementFactory(sample=RockSampleFactory())
+
+
+@pytest.mark.django_db
+class TestConcreteMeasurementFactories:
+    """T003 - each demo measurement type's factory produces a valid instance of that
+    type, with its own required fields supplied, given no arguments beyond a sample."""
+
+    def test_example_measurement_factory_produces_an_example_measurement(self):
+        from fairdm_demo.models import ExampleMeasurement
+
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        assert isinstance(measurement, ExampleMeasurement)
+        assert measurement.pk is not None
+
+    def test_xrf_measurement_factory_supplies_its_required_fields(self):
+        measurement = XRFMeasurementFactory(sample=RockSampleFactory())
+
+        assert isinstance(measurement, XRFMeasurement)
+        assert measurement.pk is not None
+        assert measurement.element
+        assert measurement.concentration_ppm is not None
+
+    def test_icp_ms_measurement_factory_supplies_its_required_fields(self):
+        measurement = ICP_MS_MeasurementFactory(sample=RockSampleFactory())
+
+        assert isinstance(measurement, ICP_MS_Measurement)
+        assert measurement.pk is not None
+        assert measurement.isotope
+        assert measurement.counts_per_second is not None

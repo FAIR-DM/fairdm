@@ -63,9 +63,11 @@ from .models import (
     CustomParentSample,
     CustomSample,
     ExampleMeasurement,
+    ICP_MS_Measurement,
     RockSample,
     SoilSample,
     WaterSample,
+    XRFMeasurement,
 )
 
 # ============================================================================
@@ -153,6 +155,45 @@ class ExampleMeasurementFactory(MeasurementFactory):
 
     class Meta:
         model = ExampleMeasurement
+
+
+class XRFMeasurementFactory(MeasurementFactory):
+    """
+    Factory for XRFMeasurement, an X-ray fluorescence (XRF) spectroscopy measurement.
+
+    ``element`` and ``concentration_ppm`` are required (non-null) fields on the model, so the
+    factory always supplies them.
+    """
+
+    element = factory.Faker(
+        "random_element", elements=["Si", "Al", "Fe", "Ca", "Mg", "K"]
+    )
+    concentration_ppm = factory.Faker(
+        "pydecimal", left_digits=8, right_digits=2, positive=True
+    )
+
+    class Meta:
+        model = XRFMeasurement
+
+
+class ICP_MS_MeasurementFactory(MeasurementFactory):
+    """
+    Factory for ICP_MS_Measurement, an Inductively Coupled Plasma Mass Spectrometry
+    (ICP-MS) measurement.
+
+    ``isotope`` and ``counts_per_second`` are required (non-null) fields on the model, so the
+    factory always supplies them.
+    """
+
+    isotope = factory.Faker(
+        "random_element", elements=["207Pb", "206Pb", "238U", "235U", "87Sr"]
+    )
+    counts_per_second = factory.Faker(
+        "pydecimal", left_digits=13, right_digits=2, positive=True
+    )
+
+    class Meta:
+        model = ICP_MS_Measurement
 
 
 class RockSampleFactory(SampleFactory):
