@@ -1214,3 +1214,42 @@ a single pre-existing class's skip-removal and rewrite across two commits would 
 deleting methods in one commit and restoring them in the next - keeping each class whole within
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
+
+## 2026-08-19T13:05:20Z · Implementer US9 · T104/T106/T107/T108
+
+Did: added `tests/test_core/test_measurement/test_querysets.py` (new file — does not touch
+`test_models.py`, owned by a concurrently running story) with four test classes:
+- `TestWithRelatedQueryCountDoesNotGrow` (T104) — counts queries accessing sample, dataset and
+  contributors at 5 and 25 measurements via `with_related()` and asserts the counts are equal.
+- `TestWithMetadataQueryCountDoesNotGrow` (T106) — same pattern for `with_metadata()` against
+  descriptions, dates and identifiers.
+- `TestWithMetadataPrefetchesRecords` (T107) — proves `with_metadata()` genuinely prefetches by
+  showing relation access after evaluation costs zero further queries, contrasted with the same
+  access against a plain queryset (which does requery — 1 query).
+- `TestBothLoadingsComposeWithFilteringAndOrdering` (T108) — `with_related().with_metadata()`
+  chained with `.filter(dataset=...).order_by("name")`; asserts the result set is both correctly
+  filtered (excludes a measurement in a different dataset) and correctly ordered, and that both
+  prefetches still function (zero further queries) after composing.
+
+No production code changed. `fairdm/core/measurement/managers.py`'s `with_related()` and
+`with_metadata()` already prefetch correctly (T105 was already reconciled done for the first;
+T107 closes the same way for the second) — this story's job was writing tests that actually
+measure the growth-invariance property FR-046 requires, not fixing code that was already right.
+
+Verified RED before green: temporarily edited `managers.py` so both methods returned `self`
+unchanged (no `select_related`/`prefetch_related`), reran the new file — 4 of 5 tests failed for
+the right reason (unequal/non-zero query counts); the fifth (the T107 contrast test, which
+asserts the *unoptimised* path requeries) correctly still passed. Reverted via the backed-up
+original file before proceeding; `git diff --stat` on `managers.py` confirmed no net change.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_querysets.py -q -p no:randomly`
+— 5 passed. `poetry run pytest tests/test_core/test_measurement -q -p no:randomly` — 186 passed,
+4 skipped (up from the 181 passed, 4 skipped baseline; no regressions). `poetry run ruff check`
+and `poetry run ruff format --check` on the new file — both clean.
+
+Watch: `PersonFactory.is_active`'s ~20%-inactive default (recorded previously by US4, D-US4-1 in
+this file) applies here too — every `PersonFactory()` used as a contributor in the new tests is
+called with `is_active=True` explicitly.
+
+Next: story-level final verify (`poetry run pytest tests/ -q`, `poetry run pre-commit run
+--all-files`) and completion report.
