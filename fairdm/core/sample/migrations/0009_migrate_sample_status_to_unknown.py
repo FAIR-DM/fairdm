@@ -23,7 +23,7 @@ def migrate_status_to_unknown(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("sample", "0008_alter_sample_status"),
+        ("sample", "0007_alter_sample_status_alter_sample_uuid_and_more"),
     ]
 
     operations = [
