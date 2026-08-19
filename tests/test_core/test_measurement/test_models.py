@@ -116,6 +116,20 @@ class TestMeasurementFields:
         assert instance.tags.count() == 0
 
 
+class TestMeasurementFieldMetadata:
+    """T010 - every field the record carries declares a verbose name and guidance text, both
+    marked for translation. ``uuid`` is excluded, matching the sibling Sample record's
+    ``TestSampleTranslatable`` - its own ``verbose_name`` is a plain string there too."""
+
+    def test_field_verbose_names_and_help_text_are_lazy(self):
+        from django.utils.functional import Promise
+
+        for field_name in ["dataset", "sample", "local_id"]:
+            field = Measurement._meta.get_field(field_name)
+            assert isinstance(field.verbose_name, Promise), field_name
+            assert isinstance(field.help_text, Promise), field_name
+
+
 @pytest.mark.django_db
 class TestMeasurementPolymorphicInheritance:
     """Test polymorphic inheritance behavior for Measurement model."""
