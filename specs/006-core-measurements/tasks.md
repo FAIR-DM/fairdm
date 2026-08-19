@@ -26,27 +26,27 @@ adjudicated in `decisions.md` before it reached this list.
 
 ## Phase 0 — Foundations
 
-- [ ] T001 One factory per metadata model in `fairdm/factories/core.py` —
+- [X] T001 One factory per metadata model in `fairdm/factories/core.py` —
   `MeasurementDescriptionFactory`, `MeasurementDateFactory`, `MeasurementIdentifierFactory` — each
   using `factory.Sequence` for uniqueness-guarded fields, `factory.SubFactory` for relations, and
   each defaulting `type` to a member of its own vocabulary.
-  - **Open:** never built — no `MeasurementIdentifierFactory` exists; the description and date factories (`fairdm/factories/core.py:562`, `:572`) are not exported and nothing tests them
-- [ ] T002 Make `MeasurementFactory` in `fairdm/factories/core.py` an abstract factory base. The
+  - **Closed by group 0.** `MeasurementIdentifierFactory` added; the description and date factories now default to real vocabulary members and all three are tested.
+- [X] T002 Make `MeasurementFactory` in `fairdm/factories/core.py` an abstract factory base. The
   framework ships the abstract factory; the reference implementation ships concrete measurement
   types. A concrete factory here would make the framework import its own demo application.
-  - **Open:** built differently — `MeasurementFactory` is declared against the bare record (`fairdm/factories/core.py:597`)
-- [ ] T003 Concrete measurement factories in `fairdm_demo/factories.py`, one per demo measurement
+  - **Closed by group 0.** `MeasurementFactory` is an abstract base; calling it directly refuses.
+- [X] T003 Concrete measurement factories in `fairdm_demo/factories.py`, one per demo measurement
   type, each supplying its own required fields.
-  - **Open:** never built — only `ExampleMeasurementFactory` exists (`fairdm_demo/factories.py:130`); the other two types have none
-- [ ] T004 Export every measurement factory from `fairdm/factories/__init__.py`.
-  - **Open:** never built — only `MeasurementFactory` is exported (`fairdm/factories/__init__.py:106`)
-- [ ] T005 Shared fixtures in `tests/test_core/test_measurement/conftest.py` wrapping those
+  - **Closed by group 0.** `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` added beside the existing example.
+- [X] T004 Export every measurement factory from `fairdm/factories/__init__.py`.
+  - **Closed by group 0.** All three metadata factories exported and asserted present in `__all__`.
+- [X] T005 Shared fixtures in `tests/test_core/test_measurement/conftest.py` wrapping those
   factories: a dataset, a concrete sample, a measurement of a concrete type, a second dataset with
   its own sample for the cross-dataset cases, and a user holding no rights at all.
-  - **Open:** built differently — the fixtures exist (`conftest.py:23`) but `measurement` builds the bare record
-- [ ] T006 Retarget every measurement call site in the suite onto a concrete type, so that no test
+  - **Closed by group 0.** The measurement fixture yields a concrete type; a second dataset, its sample, and a user holding no rights added.
+- [X] T006 Retarget every measurement call site in the suite onto a concrete type, so that no test
   depends on the bare record being creatable.
-  - **Open:** never built
+  - **Closed by group 0.** Every bare-record call site retargeted, including twenty-two outside the measurement suite that the first brief's file scope wrongly excluded. Three tests changed meaning rather than call site and are named in the implementation report.
 
 ## Phase 1 — The record
 
