@@ -782,7 +782,7 @@ class AdminFactory(ComponentFactory):
         """Determine the correct admin base class for polymorphic models.
 
         For Sample subclasses, returns SampleChildAdmin.
-        For Measurement subclasses, returns MeasurementAdmin (child admin).
+        For Measurement subclasses, returns MeasurementChildAdmin.
         Otherwise returns standard ModelAdmin.
 
         Returns:
@@ -800,9 +800,9 @@ class AdminFactory(ComponentFactory):
 
             # Check if this is a Measurement subclass (but not the base Measurement itself)
             if issubclass(self.model, Measurement) and self.model is not Measurement:
-                from fairdm.core.admin import MeasurementAdmin
+                from fairdm.core.measurement.admin import MeasurementChildAdmin
 
-                return MeasurementAdmin
+                return MeasurementChildAdmin
 
         except (ImportError, TypeError):
             pass

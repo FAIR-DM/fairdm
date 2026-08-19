@@ -9,7 +9,7 @@ cannot reverse `app_list` for them.
 
 from django.contrib import admin
 
-from fairdm.core.admin import MeasurementAdmin
+from fairdm.core.measurement.admin import MeasurementChildAdmin
 from fairdm.core.sample.admin import SampleChildAdmin
 
 from .models import ConcreteMeasurement, ConcreteSample
@@ -21,5 +21,5 @@ class ConcreteSampleAdmin(SampleChildAdmin):
 
 
 @admin.register(ConcreteMeasurement)
-class ConcreteMeasurementAdmin(MeasurementAdmin):
+class ConcreteMeasurementAdmin(MeasurementChildAdmin):
     base_model = ConcreteMeasurement

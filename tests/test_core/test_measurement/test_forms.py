@@ -154,7 +154,14 @@ class TestMeasurementFormValidation:
         assert "sample" in form.errors
 
     def test_form_prevents_base_measurement_instantiation(self):
-        """Test that MeasurementForm prevents direct Measurement base class instantiation."""
+        """T029: MeasurementForm refuses a bare Measurement, asserted on the message.
+
+        `dataset` here is deliberately private with no `request` passed to the form,
+        so `MeasurementFormMixin`'s dataset-choice scoping alone would invalidate the
+        form (`assert not form.is_valid()` passes for that unrelated reason even with
+        the base-Measurement refusal removed entirely). Asserting on the message in
+        `__all__` is what actually proves the refusal fires.
+        """
         from fairdm.core.measurement.forms import MeasurementForm
 
         dataset = DatasetFactory()
@@ -168,8 +175,9 @@ class TestMeasurementFormValidation:
 
         form = MeasurementForm(data=form_data)
 
-        # Form should be invalid because we can't instantiate base Measurement
         assert not form.is_valid()
+        non_field_errors = " ".join(form.errors.get("__all__", []))
+        assert "subclass" in non_field_errors or "directly" in non_field_errors
 
 
 @pytest.mark.django_db
