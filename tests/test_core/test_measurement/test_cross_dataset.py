@@ -13,6 +13,7 @@ declared on the polymorphic ``Measurement`` base cannot be stored against a subc
 """
 
 import pytest
+from django.db.models import ProtectedError
 
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.factories import DatasetFactory, PersonFactory
@@ -56,3 +57,47 @@ class TestCrossDatasetEditingRights:
         fairdm_assign_perm("dataset.change_dataset", user, dataset_a)
 
         assert not user.has_perm("sample.change_sample", sample_b)
+
+
+@pytest.mark.django_db
+class TestCrossDatasetDeletionBoundaries:
+    """T041 — deleting the measurement's own dataset removes the measurement and leaves its
+    sample standing, whatever dataset the sample belongs to; while the measurement exists,
+    deleting the sample is refused."""
+
+    def test_deleting_the_measurement_dataset_deletes_the_measurement(self):
+        dataset_a = DatasetFactory()
+        dataset_b = DatasetFactory()
+        sample_b = RockSampleFactory(dataset=dataset_b)
+        measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
+        measurement_pk = measurement_a.pk
+
+        dataset_a.delete()
+
+        assert not ExampleMeasurementFactory._meta.model.objects.filter(
+            pk=measurement_pk
+        ).exists()
+
+    def test_deleting_the_measurement_dataset_leaves_the_sample_standing(self):
+        dataset_a = DatasetFactory()
+        dataset_b = DatasetFactory()
+        sample_b = RockSampleFactory(dataset=dataset_b)
+        ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
+        sample_pk = sample_b.pk
+
+        dataset_a.delete()
+
+        assert RockSampleFactory._meta.model.objects.filter(pk=sample_pk).exists()
+
+    def test_deleting_the_sample_is_refused_while_the_measurement_refers_to_it(self):
+        dataset_a = DatasetFactory()
+        dataset_b = DatasetFactory()
+        sample_b = RockSampleFactory(dataset=dataset_b)
+        measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
+
+        with pytest.raises(ProtectedError):
+            sample_b.delete()
+
+        assert ExampleMeasurementFactory._meta.model.objects.filter(
+            pk=measurement_a.pk
+        ).exists()
