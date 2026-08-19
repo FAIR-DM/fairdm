@@ -98,7 +98,11 @@ from fairdm.core.dataset.models import (
     DatasetIdentifier,
     DatasetLiteratureRelation,
 )
-from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
+from fairdm.core.measurement.models import (
+    MeasurementDate,
+    MeasurementDescription,
+    MeasurementIdentifier,
+)
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import (
     ProjectDate,
@@ -565,8 +569,13 @@ class MeasurementDescriptionFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementDescription
 
-    type = "Abstract"  # Default description type
+    # "Abstract" is not a member of the measurement description vocabulary
+    # (MeasurementConditions, MeasurementSetup, MeasurementTearDown, Other) - it
+    # previously saved without complaint because Django does not validate
+    # `choices` on save.
+    type = "MeasurementConditions"  # Default description type - a member of the measurement description collection
     value = Faker("text", max_nb_chars=300)
+    # related field will be set by the caller
 
 
 class MeasurementDateFactory(DjangoModelFactory):
@@ -575,8 +584,24 @@ class MeasurementDateFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementDate
 
-    type = "Created"  # Default date type
+    # "Created" is not a member of the measurement date vocabulary (Setup,
+    # TearDown) - it previously saved without complaint because Django does
+    # not validate `choices` on save.
+    type = "Setup"  # Default date type - a member of the measurement date collection
     value = Faker("partial_date")
+    # related field will be set by the caller
+
+
+class MeasurementIdentifierFactory(DjangoModelFactory):
+    """Factory for creating MeasurementIdentifier instances."""
+
+    class Meta:
+        model = MeasurementIdentifier
+
+    type = "DOI"  # Default identifier type - the only member of the measurement collection
+    # AbstractIdentifier.value is unique across every record that carries identifiers.
+    value = factory.Sequence(lambda n: f"10.{4000 + n}/measurement-{n}")
+    # related field will be set by the caller
 
 
 class MeasurementFactory(DjangoModelFactory):
