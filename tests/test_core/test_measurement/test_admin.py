@@ -24,8 +24,7 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
-from fairdm.factories.core import MeasurementFactory
-from fairdm_demo.factories import RockSampleFactory
+from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 User = get_user_model()
 
@@ -60,9 +59,9 @@ class TestMeasurementAdminSearch:
 
     def test_search_by_name(self, measurement_admin, admin_user, request_factory):
         """Test that admin search finds measurements by name."""
-        measurement1 = MeasurementFactory(sample=RockSampleFactory(), name="XRF Analysis")
-        measurement2 = MeasurementFactory(sample=RockSampleFactory(), name="ICP-MS Analysis")
-        _measurement3 = MeasurementFactory(sample=RockSampleFactory(), name="Spectroscopy")
+        measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="XRF Analysis")
+        measurement2 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="ICP-MS Analysis")
+        _measurement3 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Spectroscopy")
 
         request = request_factory.get("/admin/measurement/measurement/", {"q": "XRF"})
         request.user = admin_user
@@ -76,7 +75,7 @@ class TestMeasurementAdminSearch:
 
     def test_search_by_uuid(self, measurement_admin, admin_user, request_factory):
         """Test that admin search finds measurements by UUID."""
-        measurement1 = MeasurementFactory(sample=RockSampleFactory())
+        measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         request = request_factory.get(
             "/admin/measurement/measurement/", {"q": measurement1.uuid}
@@ -93,7 +92,7 @@ class TestMeasurementAdminSearch:
         self, measurement_admin, admin_user, request_factory
     ):
         """Test that admin search returns empty queryset when no matches found."""
-        _measurement1 = MeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
+        _measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
 
         request = request_factory.get(
             "/admin/measurement/measurement/", {"q": "NonExistent"}

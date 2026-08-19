@@ -15,8 +15,8 @@ import pytest
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
-from fairdm.factories import DatasetFactory, MeasurementFactory
-from fairdm_demo.factories import RockSampleFactory
+from fairdm.factories import DatasetFactory
+from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 User = get_user_model()
 
@@ -33,7 +33,7 @@ class TestMeasurementGuardianIntegration:
 
     def test_can_assign_object_level_permissions_to_measurement(self, user):
         """Test that guardian permissions can be assigned to Measurement instances."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # Assign view permission using base Measurement model (not polymorphic subclass)
         assign_perm("measurement.view_measurement", user, measurement)
@@ -44,7 +44,7 @@ class TestMeasurementGuardianIntegration:
 
     def test_can_assign_multiple_permissions_to_measurement(self, user):
         """Test that multiple permissions can be assigned to a Measurement."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # Assign multiple permissions
         assign_perm("measurement.view_measurement", user, measurement)
@@ -57,7 +57,7 @@ class TestMeasurementGuardianIntegration:
 
     def test_can_remove_object_level_permissions_from_measurement(self, user):
         """Test that guardian permissions can be removed from Measurement instances."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # Assign and then remove permission
         assign_perm("measurement.view_measurement", user, measurement)
@@ -68,8 +68,8 @@ class TestMeasurementGuardianIntegration:
 
     def test_permissions_are_object_specific(self, user):
         """Test that permissions are specific to each Measurement instance."""
-        measurement1 = MeasurementFactory()
-        measurement2 = MeasurementFactory()
+        measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory())
+        measurement2 = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # Assign permission to measurement1 only
         assign_perm("measurement.view_measurement", user, measurement1)
@@ -90,7 +90,7 @@ class TestMeasurementPermissionInheritance:
 
     def test_measurement_inherits_view_permission_from_dataset(self, user):
         """Test that Measurement inherits view permission from parent Dataset."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         dataset = measurement.dataset
 
         # Assign view permission to dataset
@@ -101,7 +101,7 @@ class TestMeasurementPermissionInheritance:
 
     def test_measurement_inherits_change_permission_from_dataset(self, user):
         """Test that Measurement inherits change permission from parent Dataset."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         dataset = measurement.dataset
 
         # Assign change permission to dataset
@@ -112,7 +112,7 @@ class TestMeasurementPermissionInheritance:
 
     def test_measurement_inherits_delete_permission_from_dataset(self, user):
         """Test that Measurement inherits delete permission from parent Dataset."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         dataset = measurement.dataset
 
         # Assign delete permission to dataset
@@ -123,7 +123,7 @@ class TestMeasurementPermissionInheritance:
 
     def test_measurement_does_not_inherit_without_dataset_permission(self, user):
         """Test that Measurement does not have permissions if Dataset permissions not granted."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # No permissions assigned to dataset or measurement
         assert not user.has_perm("measurement.view_measurement", measurement)
@@ -132,7 +132,7 @@ class TestMeasurementPermissionInheritance:
 
     def test_direct_measurement_permission_overrides_inheritance(self, user):
         """Test that direct Measurement permissions take precedence over inherited Dataset permissions."""
-        measurement = MeasurementFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         dataset = measurement.dataset
 
         # Assign dataset permissions
@@ -150,8 +150,8 @@ class TestMeasurementPermissionInheritance:
     def test_multiple_measurements_inherit_from_same_dataset(self, dataset, user):
         """Test that all measurements in a dataset inherit the same permissions."""
         # Create multiple measurements in the same dataset
-        measurement1 = MeasurementFactory(dataset=dataset)
-        measurement2 = MeasurementFactory(dataset=dataset)
+        measurement1 = ExampleMeasurementFactory(dataset=dataset, sample=RockSampleFactory(dataset=dataset))
+        measurement2 = ExampleMeasurementFactory(dataset=dataset, sample=RockSampleFactory(dataset=dataset))
 
         # Assign permission to dataset
         assign_perm("dataset.view_dataset", user, dataset)
@@ -179,10 +179,10 @@ class TestCrossDatasetPermissionBoundaries:
         dataset_b = DatasetFactory(name="Dataset B")
 
         # Create sample in dataset B
-        sample_b = MeasurementFactory.create(dataset=dataset_b)
+        sample_b = RockSampleFactory(dataset=dataset_b)
 
         # Create measurement in dataset A that references sample from dataset B
-        measurement_a = MeasurementFactory(dataset=dataset_a, sample=sample_b)
+        measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
 
         # Grant user permissions on dataset A only (not dataset B)
         assign_perm("dataset.change_dataset", user, dataset_a)
@@ -201,10 +201,10 @@ class TestCrossDatasetPermissionBoundaries:
         dataset_b = DatasetFactory(name="Dataset B")
 
         # Create sample in dataset B
-        sample_b = MeasurementFactory.create(dataset=dataset_b)
+        sample_b = RockSampleFactory(dataset=dataset_b)
 
         # Create measurement in dataset A referencing sample from dataset B
-        measurement_a = MeasurementFactory(dataset=dataset_a, sample=sample_b)
+        measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
 
         # Grant user permissions on dataset A only
         assign_perm("dataset.change_dataset", user, dataset_a)
@@ -222,13 +222,13 @@ class TestCrossDatasetPermissionBoundaries:
         dataset_c = DatasetFactory(name="Dataset C")
 
         # Create samples and measurements across datasets
-        sample_a = MeasurementFactory.create(dataset=dataset_a)
-        sample_b = MeasurementFactory.create(dataset=dataset_b)
+        sample_a = RockSampleFactory(dataset=dataset_a)
+        sample_b = RockSampleFactory(dataset=dataset_b)
 
-        measurement_in_c_ref_sample_a = MeasurementFactory(
+        measurement_in_c_ref_sample_a = ExampleMeasurementFactory(
             dataset=dataset_c, sample=sample_a
         )
-        measurement_in_c_ref_sample_b = MeasurementFactory(
+        measurement_in_c_ref_sample_b = ExampleMeasurementFactory(
             dataset=dataset_c, sample=sample_b
         )
 
@@ -261,7 +261,7 @@ class TestAnonymousUserPermissions:
         """Test that anonymous users cannot view measurements."""
         from django.contrib.auth.models import AnonymousUser
 
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         anonymous = AnonymousUser()
 
         # Anonymous users should have no permissions
@@ -273,7 +273,7 @@ class TestAnonymousUserPermissions:
         """Test that anonymous users cannot change measurements."""
         from django.contrib.auth.models import AnonymousUser
 
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         anonymous = AnonymousUser()
 
         assert not anonymous.has_perm("measurement.change_measurement", measurement)
@@ -282,7 +282,7 @@ class TestAnonymousUserPermissions:
         """Test that anonymous users cannot delete measurements."""
         from django.contrib.auth.models import AnonymousUser
 
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         anonymous = AnonymousUser()
 
         assert not anonymous.has_perm("measurement.delete_measurement", measurement)
@@ -295,7 +295,7 @@ class TestAnonymousUserPermissions:
 
         # Create a dataset and measurement (public/private dataset handling may vary by implementation)
         dataset = DatasetFactory()
-        measurement = MeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
         anonymous = AnonymousUser()
 
         # Even if dataset is "public", anonymous users need explicit view permissions
