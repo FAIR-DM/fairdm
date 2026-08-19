@@ -236,3 +236,26 @@ passed / already formatted.
 Next: T100/T101 - the administrative list names each row's measurement type.
 
 Watch: none outstanding.
+
+## 2026-08-19T12:55:00Z · Implementer US8 · T100/T101
+
+Did: `measurement_type` was already in `list_display` on both `MeasurementChildAdmin` and
+`MeasurementParentAdmin`, and the `measurement_type()` method existed (`admin.py:164`/`:211`), but
+the only covering test (`test_list_display_configured`) never asserted the type column at all.
+Added `TestMeasurementAdminTypeColumn` with three tests: `"measurement_type"` is present in
+`list_display` on both admin classes, and `measurement_admin.measurement_type(obj)` - called the
+way the changelist itself resolves a `list_display` callable - names the real polymorphic type
+(`XRFMeasurement`'s and `ICP_MS_Measurement`'s own `verbose_name`, not the base `Measurement`'s,
+and not equal to each other). No production change was needed - T101's column already existed;
+only the test was missing. Checked the presence assertion was not tautological by temporarily
+removing `"measurement_type"` from `MeasurementChildAdmin.list_display`, confirming the test fails,
+then reverting - `git diff` on `admin.py` is empty.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_admin.py -q -p no:randomly` →
+34 passed. `poetry run ruff check` / `ruff format --check` on the touched test file → all checks
+passed / already formatted.
+
+Next: run the full repo suite once and pre-commit for the completion report - all seven tasks in
+this story (T095-T101) are now done.
+
+Watch: none outstanding.

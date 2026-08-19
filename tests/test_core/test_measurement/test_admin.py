@@ -486,3 +486,53 @@ class TestMeasurementAdminConfiguration:
         assert len(measurement_admin.search_fields) > 0
         # MeasurementAdmin should have list display configured
         assert len(measurement_admin.list_display) > 0
+
+
+@pytest.mark.django_db
+class TestMeasurementAdminTypeColumn:
+    """T100/T101: the administrative list names each row's measurement type."""
+
+    def test_child_admin_list_display_includes_measurement_type(
+        self, measurement_admin
+    ):
+        assert "measurement_type" in measurement_admin.list_display
+
+    def test_parent_admin_list_display_includes_measurement_type(self):
+        from fairdm.core.measurement.admin import MeasurementParentAdmin
+
+        parent_admin = MeasurementParentAdmin(Measurement, AdminSite())
+        assert "measurement_type" in parent_admin.list_display
+
+    def test_measurement_type_column_names_the_real_type(
+        self, measurement_admin, sample
+    ):
+        """The column, called the way the admin changelist calls it, names each row's
+        real (polymorphic) type - not the base Measurement's own verbose name."""
+        from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+
+        xrf = XRFMeasurement.objects.create(
+            name="XRF",
+            sample=sample,
+            dataset=sample.dataset,
+            element="Si",
+            concentration_ppm=250000.0,
+        )
+        icp = ICP_MS_Measurement.objects.create(
+            name="ICP-MS",
+            sample=sample,
+            dataset=sample.dataset,
+            isotope="207Pb",
+            counts_per_second=15000.0,
+            concentration_ppb=120.5,
+        )
+
+        assert (
+            measurement_admin.measurement_type(xrf) == XRFMeasurement._meta.verbose_name
+        )
+        assert (
+            measurement_admin.measurement_type(icp)
+            == ICP_MS_Measurement._meta.verbose_name
+        )
+        assert measurement_admin.measurement_type(
+            xrf
+        ) != measurement_admin.measurement_type(icp)
