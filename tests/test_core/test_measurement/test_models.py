@@ -1203,24 +1203,22 @@ class TestMeasurementValueWithUncertainty:
         base_measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Base Measurement")
         assert base_measurement.get_value() == "Base Measurement"
 
-        # Polymorphic types should provide type-specific value
-        try:
-            from fairdm_demo.models import ICPMSMeasurement
+        # A type that nominates a value and an uncertainty reports both, formatted
+        # together - this is the convention this feature built (see test_value.py).
+        from fairdm_demo.models import ICP_MS_Measurement
 
-            icp_ms = ICPMSMeasurement.objects.create(
-                name="Uranium Analysis",
-                dataset=DatasetFactory(),
-                sample=RockSampleFactory(),
-                isotope="U-238",
-                concentration=12.5,
-            )
+        icp_ms = ICP_MS_Measurement.objects.create(
+            name="Uranium Analysis",
+            dataset=DatasetFactory(),
+            sample=RockSampleFactory(),
+            isotope="U-238",
+            counts_per_second="12000.00",
+            value="12.500",
+            uncertainty="0.400",
+        )
+        icp_ms.refresh_from_db()
 
-            value = icp_ms.get_value()
-            assert value is not None
-            assert str(value) != ""
-
-        except ImportError:
-            pytest.skip("Demo ICPMSMeasurement not available")
+        assert icp_ms.print_value() == "12.50 ± 0.40 µg/l"
 
 
 @pytest.mark.django_db
