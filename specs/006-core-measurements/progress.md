@@ -5164,3 +5164,57 @@ ground to this story's T040; `test_models.py` carries `TestMeasurementCRUDWorkfl
 class covering ground close to T041. Both files are owned by other concurrently-running stories
 per this story's brief, so left untouched; noted here in case a later pass wants to consolidate
 duplicate coverage.
+
+## 2026-08-19T14:06:54Z · Implementer US6 · T066/T067
+
+Did: Added `TestMeasurementFilterPolymorphicTypeChoices` to `test_filters.py`, proving the
+`polymorphic_ctype` filter's choices are exactly the content types of `registry.measurements` —
+by membership (every demo type, plus `tests.registry_models.ConcreteMeasurement` registered from
+outside the framework) and by exclusion (the polymorphic base `Measurement`, and
+`ConcreteSample`, a registered non-measurement) — and that narrowing by the outside-registered
+type leaves only measurements of that type. Confirmed both new tests failed for the right reason
+(`filterset.is_valid()` returned `False` because `ConcreteMeasurement`'s content type, app label
+`registry_models`, was outside the hardcoded `app_label__in=["fairdm_core", "fairdm_demo"]`
+list) before implementing T067: `MeasurementFilterMixin.__init__` now builds the
+`polymorphic_ctype` queryset from `ContentType.objects.get_for_models(*registry.measurements)`
+rather than the hardcoded list. `registry` imported locally in `__init__`, matching the existing
+local imports of `Dataset`/`Sample` in the same method (avoids a module-level import cycle
+between `fairdm.core.measurement.filters` and `fairdm.registry`).
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 13 passed, 1 skipped (the T072 skip, not yet removed). `poetry run ruff check
+fairdm/core/measurement/filters.py tests/test_core/test_measurement/test_filters.py` → all
+checks passed (one import-wrap auto-fix applied by ruff itself).
+
+Next: T072/T073 — the date-range filters and their skipped test.
+
+Watch: none.
+
+## 2026-08-19T14:20:00Z · Implementer US6 · T072/T073
+
+Did: Removed the `pytest.mark.skip` on `test_filter_by_date_range` and extended it with a
+year-and-month-only measurement date (`"2024-06"`) and a year-only one (`"2023"`), chosen well
+clear of the two range boundaries (`"2024-02-01"` / `"2024-02-28"`) so each comparison is
+unambiguous at its own precision — no reliance on the field's second-encoded precision as a
+tie-breaker. Also fixed `type="analysis"` on the pre-existing fixture data to `type="Setup"`, a
+real member of the Measurement date vocabulary (confirmed via `MeasurementDate.VOCABULARY.values`
+→ `['Setup', 'TearDown']`) — invisible while the test was skipped, since `MeasurementDate.save()`
+refuses an out-of-vocabulary `type`. Confirmed the un-skipped test failed for the reported reason
+before implementing T073: reverted the filter fix and re-ran, hitting
+`django.core.exceptions.ValidationError: ["'value' value must be a PartialDate instance, a valid
+partial date string (YYYY, YYYY-MM, YYYY-MM-DD) or None, not '2024-02-01'"]` raised from
+`PartialDateField.to_python` (`partial_date/fields.py:156`), reached via
+`get_prep_lookup`→`get_prep_value` on the `date_after`/`date_before` `gte`/`lte` lookups — the
+exact defect plan.md R2 names. Then reapplied T073: `date_after`/`date_before` changed from
+`django_filters.DateFilter` to `django_filters.CharFilter`, so the cleaned value stays the string
+django-filter received rather than being coerced to a `datetime.date` first; the string reaches
+`PartialDateField.get_prep_value` intact and the field parses it itself at whatever precision it
+carries.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 14 passed, 0 skipped. `poetry run ruff check fairdm/core/measurement/filters.py
+tests/test_core/test_measurement/test_filters.py` → all checks passed.
+
+Next: T074 — the registry-generated half of the dataset-choices coverage.
+
+Watch: none.

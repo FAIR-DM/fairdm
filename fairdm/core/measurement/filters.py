@@ -91,14 +91,21 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         label=_("Description contains"),
     )
 
-    # Date range filters - cross-relationship filtering
-    date_after = django_filters.DateFilter(
+    # Date range filters - cross-relationship filtering. `MeasurementDate.value`
+    # is a `fairdm.db.fields.PartialDateField`: a year, a year and month, or a
+    # full date, stored as a string it parses itself (`partial_date.PartialDate`).
+    # A `django_filters.DateFilter` cleans its input to a `datetime.date`, which
+    # the field's `to_python` refuses outright - that mismatch is what the skip
+    # on `test_filter_by_date_range` was hiding (T072/T073, plan.md R2). A
+    # `CharFilter` passes the validated string straight through to the ORM
+    # lookup, which the field accepts at any of its three precisions.
+    date_after = django_filters.CharFilter(
         field_name="dates__value",
         lookup_expr="gte",
         label=_("Date after"),
     )
 
-    date_before = django_filters.DateFilter(
+    date_before = django_filters.CharFilter(
         field_name="dates__value",
         lookup_expr="lte",
         label=_("Date before"),
