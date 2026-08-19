@@ -395,6 +395,68 @@ class TestMeasurementDateVocabularyMembers:
 
 
 @pytest.mark.django_db
+class TestMeasurementMetadataTypeValidation:
+    """T050/T051 - a description, date or identifier carrying a type outside its
+    vocabulary is refused, whether through ``full_clean()`` or through a direct save
+    that never calls it."""
+
+    def test_description_type_outside_the_vocabulary_is_refused_by_full_clean(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory.build(
+            related=measurement, type="NotARealDescriptionType"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            description.full_clean()
+        assert "NotARealDescriptionType" in str(exc_info.value)
+
+    def test_description_type_outside_the_vocabulary_is_refused_on_direct_save(
+        self, measurement
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            MeasurementDescriptionFactory(
+                related=measurement, type="NotARealDescriptionType"
+            )
+        assert "NotARealDescriptionType" in str(exc_info.value)
+
+    def test_date_type_outside_the_vocabulary_is_refused_by_full_clean(
+        self, measurement
+    ):
+        date = MeasurementDateFactory.build(
+            related=measurement, type="NotARealDateType"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            date.full_clean()
+        assert "NotARealDateType" in str(exc_info.value)
+
+    def test_date_type_outside_the_vocabulary_is_refused_on_direct_save(
+        self, measurement
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            MeasurementDateFactory(related=measurement, type="NotARealDateType")
+        assert "NotARealDateType" in str(exc_info.value)
+
+    def test_identifier_type_outside_the_vocabulary_is_refused_by_full_clean(
+        self, measurement
+    ):
+        identifier = MeasurementIdentifierFactory.build(
+            related=measurement, type="NotARealIdentifierType"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            identifier.full_clean()
+        assert "NotARealIdentifierType" in str(exc_info.value)
+
+    def test_identifier_type_outside_the_vocabulary_is_refused_on_direct_save(
+        self, measurement
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            MeasurementIdentifierFactory(
+                related=measurement, type="NotARealIdentifierType"
+            )
+        assert "NotARealIdentifierType" in str(exc_info.value)
+
+
+@pytest.mark.django_db
 class TestMeasurementCrossDatasetSampleLinking:
     """Test that measurements can link to samples in different datasets."""
 

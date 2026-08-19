@@ -185,6 +185,32 @@ class MeasurementDescription(AbstractDescription):
     VOCABULARY = FairDMDescriptions.from_collection("Measurement")
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
 
+    def save(self, *args, **kwargs):
+        """Refuse a type outside the measurement description vocabulary, even when
+        saved directly.
+
+        T050/T051: ``GenericModel.__init_subclass__`` binds ``type``'s ``choices`` to
+        ``VOCABULARY``, and Django validates ``choices`` only through
+        ``full_clean()`` - ``clean_fields()`` already refuses there, naming the
+        offending value. ``MeasurementDescription.objects.create(type=...)`` and a
+        bare ``.save()`` reach the database without ever calling it, so this closes
+        that route directly, the way ``SampleRelation.save()`` closes the equivalent
+        gap for FR-027 - reusing the field's own choice check rather than
+        duplicating a second copy of the vocabulary comparison.
+        """
+        from django.core.exceptions import ValidationError
+
+        if self.type not in self.VOCABULARY.values:
+            raise ValidationError(
+                {
+                    "type": _(
+                        "'%(type)s' is not a valid Measurement description type."
+                    )
+                    % {"type": self.type}
+                }
+            )
+        super().save(*args, **kwargs)
+
 
 class MeasurementDate(AbstractDate):
     """Important dates associated with a Measurement.
@@ -195,6 +221,21 @@ class MeasurementDate(AbstractDate):
 
     VOCABULARY = FairDMDates.from_collection("Measurement")
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        """Refuse a type outside the measurement date vocabulary, even when saved
+        directly. See ``MeasurementDescription.save()`` for why this is needed
+        alongside ``full_clean()`` (T050/T051)."""
+        from django.core.exceptions import ValidationError
+
+        if self.type not in self.VOCABULARY.values:
+            raise ValidationError(
+                {
+                    "type": _("'%(type)s' is not a valid Measurement date type.")
+                    % {"type": self.type}
+                }
+            )
+        super().save(*args, **kwargs)
 
 
 class MeasurementIdentifier(AbstractIdentifier):
@@ -208,3 +249,18 @@ class MeasurementIdentifier(AbstractIdentifier):
 
     VOCABULARY = FairDMIdentifiers.from_collection("Measurement")
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        """Refuse a type outside the measurement identifier vocabulary, even when
+        saved directly. See ``MeasurementDescription.save()`` for why this is needed
+        alongside ``full_clean()`` (T050/T051)."""
+        from django.core.exceptions import ValidationError
+
+        if self.type not in self.VOCABULARY.values:
+            raise ValidationError(
+                {
+                    "type": _("'%(type)s' is not a valid Measurement identifier type.")
+                    % {"type": self.type}
+                }
+            )
+        super().save(*args, **kwargs)
