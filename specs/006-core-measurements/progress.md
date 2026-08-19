@@ -315,3 +315,36 @@ alongside `Measurement.clean()` (the exact shape already used for `Sample`). If 
 `models.py` lands its own change there before this merges, Forge's convergence pass may want to
 fold `apps.py`'s guard into `models.py` to match the Sample precedent - flagging so it isn't
 mistaken for a second, competing mechanism.
+
+## 2026-08-19T12:22:22Z · Implementer US1 · T029
+
+Did: `test_form_prevents_base_measurement_instantiation`
+(`tests/test_core/test_measurement/test_forms.py`) only asserted `not form.is_valid()`. Probed the
+actual `form.errors` first: the test's dataset is deliberately private and the form is built with
+no `request`, so `MeasurementFormMixin`'s dataset-choice scoping alone puts a `"dataset"` error on
+the form independently of the base-Measurement refusal - the old assertion passed whether or not
+the refusal fired at all. The probe also confirmed the refusal message
+("Cannot create base Measurement instances directly...") appears twice in `form.errors["__all__"]`,
+once from `MeasurementForm.clean()` and once from the model's own `clean()` via `_post_clean()` -
+exactly the duplicate rendering `tasks.md` names. Rewrote the test to assert the message
+("subclass"/"directly") is present in `__all__`, alongside the existing `is_valid()` check.
+
+Deviation from `tasks.md`'s T029 text: did not delete `MeasurementForm.clean()`. That edit is in
+`fairdm/core/measurement/forms.py`, which is on this story's prohibited list (owned by a
+concurrently running story). Only the test-side fix (asserting on the message) is in this story's
+scope per the brief's acceptance criterion, which is scoped to the test's assertion and does not
+itself require the form-side cleanup. The duplicate `__all__` entry remains; noted as a concern
+for whichever story owns `forms.py`.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_forms.py -q -p no:randomly` →
+11 passed. `poetry run ruff check` + `ruff format --check` on the touched file → clean.
+
+Next: full-repo verify (`poetry run pytest tests/ -q` and `poetry run pre-commit run --all-files`)
+for the story's completion report. All eleven of this story's tasks are now committed.
+
+Watch: `MeasurementForm.clean()` (`fairdm/core/measurement/forms.py`) still duplicates the
+base-Measurement refusal the model's own `clean()` already raises via `_post_clean()` - harmless
+today (the duplicate error text is deduplicated by nothing, so a form re-render would show the
+message twice), but it is dead logic once a form's `_post_clean()` runs, and `tasks.md`'s T029
+already names the fix. Left alone because `forms.py` is out of this story's scope; flagging for
+whichever story owns it.
