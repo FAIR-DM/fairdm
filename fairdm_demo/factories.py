@@ -244,8 +244,13 @@ class SoilSampleFactory(SampleFactory):
         "random_element",
         elements=["clay", "sand", "silt", "loam", "peat"],
     )
+    # left_digits=2, not 1: max_value=14 needs two integer digits (Faker's
+    # pydecimal raises "Max value must fit within left digits" otherwise, a
+    # pre-existing defect this story's TestSamplePolymorphism (T024) exposed
+    # via the every-registered-type fixture, which had never exercised this
+    # factory's defaults before.
     ph_level = factory.Faker(
-        "pydecimal", left_digits=1, right_digits=2, min_value=0, max_value=14
+        "pydecimal", left_digits=2, right_digits=2, min_value=0, max_value=14
     )
     organic_matter_percent = factory.Faker(
         "pyfloat", left_digits=2, right_digits=1, min_value=0.1, max_value=25

@@ -25,8 +25,20 @@ from fairdm.registry.config import ModelConfiguration
 class BaseSampleConfiguration(ModelConfiguration):
     """Base registry configuration for Sample subclasses to inherit from.
 
-    This configuration provides common field setup for all sample types.
-    Subclasses should override the model attribute and customize fields as needed.
+    Declares only the shared `fields` list every component (form, table, filter
+    set, serializer, resource, admin) falls back to when a subclass names no
+    field list of its own, per `ModelConfiguration.resolve_fields`. It
+    deliberately does **not** also declare `form_fields`, `table_fields`,
+    `filterset_fields` or `serializer_fields`: each of those, if set here,
+    would win over a subclass's own `fields` for that one component
+    (`resolve_fields` prefers a component's own list first), silently
+    replacing a specimen type's declared fields with this base's generic ones
+    for every component it did not individually restate - the opposite of
+    "sensible defaults without restating them" (D-013). A subclass that wants
+    every component to share one field list therefore only has to set
+    `fields`, exactly as it would with a bare `ModelConfiguration`; this base
+    only saves that one declaration for a subclass that wants the framework's
+    own defaults outright.
 
     WARNING: Do NOT register the base Sample model. Only register polymorphic subclasses.
     """
@@ -34,7 +46,8 @@ class BaseSampleConfiguration(ModelConfiguration):
     # A subclass supplies `model`. The base class already defaults it to None, so
     # restating that here would only add a line to keep in step.
 
-    # Fields for all auto-generated components
+    # The framework's own default fields, used by every component whose own
+    # field list (and `fields` itself) a subclass leaves unset.
     fields = [
         "name",
         "dataset",
@@ -43,47 +56,3 @@ class BaseSampleConfiguration(ModelConfiguration):
         "location",
         "image",
     ]
-
-    # Table columns for list views
-    table_fields = [
-        "name",
-        "dataset",
-        "local_id",
-        "status",
-        "added",
-        "modified",
-    ]
-
-    # Form fields for create/edit views
-    form_fields = [
-        "name",
-        "dataset",
-        "local_id",
-        "status",
-        "location",
-        "image",
-    ]
-
-    # FilterSet fields for search/filter functionality
-    filterset_fields = [
-        "dataset",
-        "status",
-        "added",
-    ]
-
-    # Serializer fields for API (when implemented)
-    serializer_fields = [
-        "id",
-        "uuid",
-        "name",
-        "dataset",
-        "local_id",
-        "status",
-        "location",
-        "added",
-        "modified",
-    ]
-
-    # Display metadata
-    display_name = "Sample"
-    description = "Physical or digital specimen/artifact for research"

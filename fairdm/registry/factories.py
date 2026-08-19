@@ -96,10 +96,12 @@ class FormFactory(ComponentFactory):
         # Build widgets dict with smart defaults
         widgets = self._get_smart_widgets()
 
-        # Build form using Django's modelform_factory
+        # Build form using Django's modelform_factory, on the mixin base FR-037
+        # requires (a specimen type supplying no form of its own still gets
+        # `SampleFormMixin`'s widgets, dataset scoping and guidance text).
         form_class = modelform_factory(
             self.model,
-            form=ModelForm,
+            form=self.get_base_form_class(),
             fields=fields,
             widgets=widgets,
         )
@@ -166,6 +168,25 @@ class FormFactory(ComponentFactory):
                 pass
 
         return widgets
+
+    def get_base_form_class(self) -> type[ModelForm]:
+        """The base ModelForm class to build a specimen type's form on.
+
+        Mirrors `TableFactory.get_base_table_class()`: a specimen type
+        supplying no form of its own still gets `SampleFormMixin`'s widget
+        configuration, dataset scoping and guidance text (FR-037) rather than
+        a bare `ModelForm`.
+        """
+        from fairdm.core.sample.forms import SampleFormMixin
+        from fairdm.core.sample.models import Sample
+
+        if issubclass(self.model, Sample):
+            return cast(
+                type[ModelForm],
+                type("SampleFormBase", (SampleFormMixin, ModelForm), {}),
+            )
+
+        return ModelForm
 
 
 class TableFactory(ComponentFactory):
@@ -331,6 +352,11 @@ class FilterFactory(ComponentFactory):
         # Build custom filter dict with smart types
         filter_overrides = self._get_smart_filters(fields)
 
+        # A specimen type supplying no filter set of its own still gets
+        # `SampleFilterMixin`'s declared filters (FR-037), because the class
+        # built below inherits from this base rather than a bare `FilterSet`.
+        base_filterset = self.get_base_filterset_class()
+
         # Try generating filterset with smart filters
         try:
             # Create Meta class
@@ -346,14 +372,16 @@ class FilterFactory(ComponentFactory):
 
             filterset_class = type(
                 f"{self.model.__name__}FilterSet",
-                (FilterSet,),
+                (base_filterset,),
                 filterset_attrs,
             )
 
             return cast(type[FilterSet], filterset_class)
 
         except Exception:
-            # Fallback to basic filterset_factory with error recovery
+            # Fallback to basic filterset_factory with error recovery. The
+            # base class is threaded through here too - a model that trips
+            # into this branch would otherwise silently lose the mixin.
             fields = [f for f in fields if f in model_field_names]
 
             # Remove problematic fields iteratively
@@ -364,6 +392,7 @@ class FilterFactory(ComponentFactory):
                 try:
                     filterset_class = filterset_factory(
                         self.model,
+                        filterset=base_filterset,
                         fields=fields,
                     )
                     return cast(type[FilterSet], filterset_class)
@@ -381,7 +410,10 @@ class FilterFactory(ComponentFactory):
                     raise
 
             # Return minimal filterset if all else fails
-            return cast(type[FilterSet], filterset_factory(self.model, fields=[]))
+            return cast(
+                type[FilterSet],
+                filterset_factory(self.model, filterset=base_filterset, fields=[]),
+            )
 
     def _get_smart_filters(self, fields: list[str]) -> dict[str, Any]:
         """Generate smart filter types based on field types.
@@ -443,6 +475,23 @@ class FilterFactory(ComponentFactory):
                 pass
 
         return filter_overrides
+
+    def get_base_filterset_class(self) -> type[FilterSet]:
+        """The base FilterSet class to build a specimen type's filter set on.
+
+        Mirrors `TableFactory.get_base_table_class()`: a specimen type's
+        generated filter set carries `SampleFilterMixin`'s declared filters
+        rather than a bare `FilterSet`. `SampleFilterMixin` is already a
+        `FilterSet` subclass (D-008), so - unlike the form factory, whose
+        mixin needs `ModelForm` mixed in - no wrapping is needed here.
+        """
+        from fairdm.core.sample.filters import SampleFilterMixin
+        from fairdm.core.sample.models import Sample
+
+        if issubclass(self.model, Sample):
+            return cast(type[FilterSet], SampleFilterMixin)
+
+        return cast(type[FilterSet], FilterSet)
 
 
 class AdminFactory(ComponentFactory):

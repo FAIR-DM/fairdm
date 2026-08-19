@@ -16,17 +16,21 @@ from django.utils.translation import gettext_lazy as _
 from fairdm.core.sample.models import Sample
 
 
-class SampleFilterMixin:
-    """Mixin providing common filter configurations for Sample models.
+class SampleFilterMixin(django_filters.FilterSet):
+    """Reusable base carrying the filters every Sample type inherits.
 
-    This mixin provides pre-configured filters for common Sample fields that can be
-    reused across custom sample type filters. It includes:
-    - Status filtering (multiple choice)
-    - Dataset filtering
-    - Polymorphic type filtering
-    - Generic search (name, local_id, uuid)
-    - Description content filtering (cross-relationship)
-    - Date range filtering (cross-relationship)
+    A `django_filters.FilterSet` subclass, not a plain mixin: django-filter's
+    metaclass only collects declared filters from the class body and from bases
+    that carry `declared_filters`, which a plain Python class never does (D-008).
+    `Meta` deliberately has no `model` - that is what lets this class exist
+    without a concrete model to generate implicit filters from, the same shape
+    `fairdm.core.filters.BaseListFilter` already uses for projects and datasets.
+    Setting `model = Sample` here would make the metaclass generate a full,
+    unused Sample filter set every time this class (or any subclass) is defined.
+
+    `Meta.fields` stays as a convenience list a subclass's own `Meta` (which does
+    carry a `model`) can extend, matching the existing usage in
+    `fairdm_demo.filters.RockSampleFilter` and `WaterSampleFilter`.
 
     Usage:
         class MyCustomSampleFilter(SampleFilterMixin, django_filters.FilterSet):
@@ -39,11 +43,24 @@ class SampleFilterMixin:
     """
 
     image = django_filters.BooleanFilter(
-        field_name="images",
-        lookup_expr="isnull",
-        exclude=True,
+        method="filter_has_image",
         label=_("Has image"),
     )
+
+    def filter_has_image(self, queryset, name, value):
+        """Narrow to samples that do, or do not, carry an image.
+
+        `image` is a `FileField`, and Django writes an empty string for "no
+        file attached" even where `null=True` allows the column to hold NULL
+        (`lookup_expr="isnull"`, the pattern `BaseListFilter.image` uses, never
+        matches an unset `FileField` for this reason). Both representations
+        count as "no image" here so the filter narrows correctly regardless of
+        which one is on a given row.
+        """
+        if value is None:
+            return queryset
+        no_image = Q(image="") | Q(image__isnull=True)
+        return queryset.exclude(no_image) if value else queryset.filter(no_image)
 
     def __init__(self, *args, **kwargs):
         """Initialise the filter and widen the dataset choices.
@@ -63,9 +80,13 @@ class SampleFilterMixin:
             self.filters["dataset"].queryset = Dataset.all_objects.all()
 
     class Meta:
-        """Meta configuration for SampleFilterMixin."""
+        """Field names a subclass's own `model`-bearing `Meta` may extend.
 
-        model = Sample
+        No `model` here - see the class docstring. Without one, django-filter's
+        `get_filters()` returns only `declared_filters` (`image`) for this class
+        itself, and `fields` is inert until a subclass provides both.
+        """
+
         fields = ["status", "dataset", "polymorphic_ctype"]  # Only actual model fields
 
 

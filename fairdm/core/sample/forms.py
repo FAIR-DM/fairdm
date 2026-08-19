@@ -57,18 +57,18 @@ class SampleFormMixin:
             )
             self.fields["dataset"].widget = AddAnotherWidgetWrapper(
                 select2_widget,
-                add_related_url=reverse_lazy("admin:core_dataset_add"),
+                add_related_url=reverse_lazy("admin:dataset_dataset_add"),
             )
 
             from fairdm.core.dataset.models import Dataset
 
-            # `all_objects` is only ever the base the permission check below narrows,
-            # never the queryset the form is left holding. `request` is optional on this
-            # mixin and nothing enforces it, so a caller that omits it has shown no
-            # subject to authorise - and is left with the queryset `ModelForm` built
-            # from the default manager, which is privacy-first. Assigning `all_objects`
-            # unconditionally would have offered every private dataset in the portal to
-            # a caller that had proven nothing.
+            # FR-036: a form given no user offers no dataset at all - the safe
+            # default for a published package, and the only offer nothing
+            # could satisfy or test. `all_objects` is only ever the base the
+            # permission check below narrows, never the queryset the form is
+            # left holding. Assigning `all_objects` unconditionally would have
+            # offered every private dataset in the portal to a caller that had
+            # proven nothing.
             if (
                 self.request
                 and hasattr(self.request, "user")
@@ -82,6 +82,8 @@ class SampleFormMixin:
                     "dataset.change_dataset",
                     klass=Dataset.all_objects.all(),
                 )
+            else:
+                self.fields["dataset"].queryset = Dataset.objects.none()
 
         if "status" in self.fields:
             # Use Select widget for status
@@ -152,7 +154,7 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
                 }
             ),
         }
-        help_text = {
+        help_texts = {
             "name": _("A unique, descriptive name for this sample."),
             "dataset": _("The dataset this sample belongs to."),
             "local_id": _(

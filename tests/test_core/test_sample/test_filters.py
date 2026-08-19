@@ -14,7 +14,7 @@ import pytest
 from django.contrib.auth import get_user_model
 
 from fairdm.core.models import Dataset
-from fairdm.core.sample.filters import SampleFilter
+from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
 from fairdm_demo.filters import RockSampleFilter
 from fairdm_demo.models import RockSample, WaterSample
 
@@ -278,6 +278,59 @@ class TestSampleFilterMixinConfiguration:
             assert filter_name in filter_instance.filters, (
                 f"Expected filter '{filter_name}' not found in SampleFilter"
             )
+
+
+class TestSampleFilterMixinInheritance:
+    """T065 - a filter set inheriting SampleFilterMixin carries every filter the
+    mixin declares, alongside its own, asserted by naming the filters."""
+
+    def test_inheriting_filter_set_carries_the_mixins_declared_filters(self):
+        """RockSampleFilter inherits SampleFilterMixin, so its own filters set
+        must include every filter the mixin declares (currently just "image"),
+        naming it rather than checking the filter set is merely non-empty."""
+        filterset = RockSampleFilter()
+
+        assert "image" in filterset.filters
+        # And the type's own filters are still present alongside it.
+        assert "rock_type" in filterset.filters
+        assert "mineral_content" in filterset.filters
+        assert "grain_size" in filterset.filters
+
+    def test_mixin_declares_only_image(self):
+        """Confirms the mixin's declared filters are exactly what T071 fixed -
+        the cross-relationship filters (description, dates) stay on SampleFilter,
+        out of scope for this mixin (D-008, D-001)."""
+        assert set(SampleFilterMixin.declared_filters) == {"image"}
+
+
+class TestSampleFilterBehaviour:
+    """T066 - each filter the mixin declares narrows a queryset correctly, over
+    fixtures that would fail if the filter were a no-op."""
+
+    def test_image_filter_narrows_to_samples_with_an_image(self, dataset):
+        """A no-op "image" filter would return every sample regardless of the
+        query value, so the fixture pair below fails as soon as the filter is
+        satisfied by a queryset unaffected by the field."""
+        with_image = RockSample.objects.create(
+            name="Rock With Image",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-01",
+            image="samples/has-image.jpg",
+        )
+        without_image = RockSample.objects.create(
+            name="Rock Without Image",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-01",
+        )
+
+        filterset = RockSampleFilter(
+            data={"image": "true"}, queryset=RockSample.objects.all()
+        )
+        assert filterset.is_valid(), filterset.errors
+        assert with_image in filterset.qs
+        assert without_image not in filterset.qs
 
 
 class TestCustomSampleFilterIntegration:

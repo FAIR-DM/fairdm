@@ -140,6 +140,35 @@ class TestSamplePolymorphicInheritance:
 
 
 @pytest.mark.django_db
+class TestSamplePolymorphism:
+    """T024 - querying samples without naming a type returns each row as its
+    own type and carries that type's own fields."""
+
+    def test_querying_the_base_model_returns_each_row_as_its_own_type(
+        self, each_registered_sample_type
+    ):
+        """`each_registered_sample_type` (T008) holds one specimen of every
+        registered subclass. A query against the base `Sample` model must
+        return each row typed as the subclass it was created with, never as
+        the base `Sample`."""
+        expected_types = {sample.pk: type(sample) for sample in each_registered_sample_type}
+
+        results_by_pk = {sample.pk: type(sample) for sample in Sample.objects.all()}
+
+        assert results_by_pk == expected_types
+
+    def test_a_returned_row_carries_its_own_types_fields(self, dataset):
+        """A row returned from a query against the base model must expose the
+        subclass's own field values, not merely the base model's fields."""
+        rock = RockSampleFactory(dataset=dataset, rock_type="igneous")
+
+        result = Sample.objects.get(pk=rock.pk)
+
+        assert isinstance(result, RockSample)
+        assert result.rock_type == "igneous"
+
+
+@pytest.mark.django_db
 class TestSampleModelValidation:
     """Test Sample model validation rules and field constraints."""
 
