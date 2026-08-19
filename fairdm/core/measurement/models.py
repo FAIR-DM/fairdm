@@ -132,12 +132,19 @@ class Measurement(BasePolymorphicModel):
 
         Note:
             Requires subclass to define 'value' and optionally 'uncertainty' attributes.
+            A type is not obliged to nominate a pint quantity for 'value' - a plain
+            number is allowed (spec Assumptions) - so uncertainty arithmetic is only
+            attempted where the value actually supports it.
         """
         # Handle base Measurement class that doesn't have value/uncertainty fields
         if not hasattr(self, "value"):
             return self.name
 
-        if hasattr(self, "uncertainty") and self.uncertainty is not None:
+        if (
+            hasattr(self, "uncertainty")
+            and self.uncertainty is not None
+            and hasattr(self.value, "plus_minus")
+        ):
             return self.value.plus_minus(self.uncertainty)
         return self.value
 
