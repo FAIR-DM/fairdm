@@ -5243,3 +5243,27 @@ checks passed.
 Next: T076 — make the combined-filters test load-bearing on both filters.
 
 Watch: none.
+
+## 2026-08-19T14:50:00Z · Implementer US6 · T076
+
+Did: Rewrote `TestMeasurementFilterCombinedFilters.test_combined_filters_dataset_and_sample`
+(named at the brief as this task's own to rewrite). The previous version's third measurement was
+bound to `_measurement3` and never asserted, so the dataset filter did no provable work —
+`sample` alone already excluded every other row. Replaced it with three measurements built so
+each filter excludes a row the other cannot: `measurement_wrong_dataset` shares `sample1` with
+`measurement_both` but is linked to `dataset2` (US-2 cross-dataset linking — a measurement's own
+`dataset` need not match its sample's, so this is a legitimate row, not a fixture artefact);
+`measurement_wrong_sample` shares `dataset1` with `measurement_both` but uses `sample2`. Filtering
+by both `dataset=dataset1` and `sample=sample1` together leaves only `measurement_both`.
+Confirmed each filter is load-bearing exactly as the brief asks: removed `"dataset"` from the
+filter data and watched `measurement_wrong_dataset not in filterset.qs` fail (it reappeared,
+alongside `measurement_both`), reverted; removed `"sample"` and watched `measurement_wrong_sample
+not in filterset.qs` fail the same way, reverted to the full combination.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 15 passed. `poetry run ruff check tests/test_core/test_measurement/test_filters.py
+fairdm/core/measurement/filters.py` → all checks passed.
+
+Next: none — all six tasks in this brief (US6: T066, T067, T072, T073, T074, T076) are complete.
+
+Watch: none.

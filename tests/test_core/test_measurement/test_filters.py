@@ -428,36 +428,46 @@ class TestMeasurementFilterCrossRelationshipFiltering:
 
 
 class TestMeasurementFilterCombinedFilters:
-    """Test combined filter functionality."""
+    """T076 - each filter in a combination narrows independently. Reopened at
+    design review: the previous version proved only the sample half - the one
+    row the dataset filter would remove was bound to a discarded name and
+    never asserted, so deleting "dataset" from the filter data left the test
+    green."""
 
     def test_combined_filters_dataset_and_sample(self, user, project):
-        """Test applying multiple filters simultaneously."""
+        """`measurement_wrong_dataset` shares `sample1` with `measurement_both`
+        but is linked to `dataset2` (US-2 cross-dataset linking: a
+        measurement's own `dataset` need not match its sample's) - only the
+        `dataset` filter removes it. Symmetrically, `measurement_wrong_sample`
+        shares `dataset1` with `measurement_both` but uses `sample2` - only
+        the `sample` filter removes it. Filtering by both together leaves
+        only the measurement matching both, and each exclusion is the work of
+        a different filter - confirmed by removing each filter from the data
+        in turn and watching its corresponding assertion fail."""
         dataset1 = DatasetFactory(project=project)
         dataset2 = DatasetFactory(project=project)
 
         sample1 = RockSampleFactory(dataset=dataset1, name="Sample 1")
         sample2 = RockSampleFactory(dataset=dataset1, name="Sample 2")
-        sample3 = RockSampleFactory(dataset=dataset2, name="Sample 3")
 
-        # Create measurements
-        measurement1 = XRFMeasurement.objects.create(
-            name="XRF-001",
+        measurement_both = XRFMeasurement.objects.create(
+            name="XRF-both",
             dataset=dataset1,
             sample=sample1,
             element="Fe",
             concentration_ppm=25.5,
         )
-        measurement2 = XRFMeasurement.objects.create(
-            name="XRF-002",
-            dataset=dataset1,
-            sample=sample2,
+        measurement_wrong_dataset = XRFMeasurement.objects.create(
+            name="XRF-wrong-dataset",
+            dataset=dataset2,
+            sample=sample1,
             element="Cu",
             concentration_ppm=15.3,
         )
-        _measurement3 = XRFMeasurement.objects.create(
-            name="XRF-003",
-            dataset=dataset2,
-            sample=sample3,
+        measurement_wrong_sample = XRFMeasurement.objects.create(
+            name="XRF-wrong-sample",
+            dataset=dataset1,
+            sample=sample2,
             element="Zn",
             concentration_ppm=8.7,
         )
@@ -471,8 +481,9 @@ class TestMeasurementFilterCombinedFilters:
             request=_request_for(user),
         )
         assert filterset.is_valid()
-        assert measurement1 in filterset.qs
-        assert measurement2 not in filterset.qs  # Different sample
+        assert measurement_both in filterset.qs
+        assert measurement_wrong_dataset not in filterset.qs  # the dataset filter's work
+        assert measurement_wrong_sample not in filterset.qs  # the sample filter's work
 
 
 class TestMeasurementFilterMixinInheritance:
