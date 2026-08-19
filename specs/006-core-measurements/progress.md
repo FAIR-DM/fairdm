@@ -5218,3 +5218,28 @@ tests/test_core/test_measurement/test_filters.py` → all checks passed.
 Next: T074 — the registry-generated half of the dataset-choices coverage.
 
 Watch: none.
+
+## 2026-08-19T14:35:00Z · Implementer US6 · T074
+
+Did: Added `TestMeasurementFilterRegistryGeneratedDatasetPrivacy` to `test_filters.py`, proving
+the T115 dataset-choices widening also holds on the filter set the registry generates for a
+registered measurement type (`fairdm.registry.factories.FilterFactory(XRFMeasurement,
+fields=["dataset"]).generate()`), not only on `MeasurementFilter` built directly — the mixin half
+was already covered by `TestMeasurementFilterMixinDatasetPrivacy`. Built via `FilterFactory`
+rather than hand-assembled, matching `TestFilterFactoryMeasurementBranch`
+(tests/test_registry/test_factories.py), so the test proves the registry's own wiring rather
+than a stand-in. The behaviour was believed already correct going in — `FilterFactory` inherits
+`MeasurementFilterMixin` as its base (`get_base_filterset_class`) and doesn't override
+`__init__`, so the mixin's dataset-scoping logic runs unconditionally whether or not "dataset" is
+also present in the factory's smart-filter overrides. The new test passed on first run; per
+`craft-tdd`, confirmed it was not tautological by inverting the assertion (`offered == {other}`)
+and watching it fail with the correct two-dataset mismatch, then reverting to the correct
+assertion.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 15 passed. `poetry run ruff check tests/test_core/test_measurement/test_filters.py` → all
+checks passed.
+
+Next: T076 — make the combined-filters test load-bearing on both filters.
+
+Watch: none.

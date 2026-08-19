@@ -543,6 +543,37 @@ class TestMeasurementFilterMixinDatasetPrivacy:
         assert set(filterset.filters["dataset"].queryset) == set()
 
 
+class TestMeasurementFilterRegistryGeneratedDatasetPrivacy:
+    """T074 - the dataset-choices widening T115 proves on `MeasurementFilter`
+    directly (`TestMeasurementFilterMixinDatasetPrivacy` above) also holds on
+    the filter set the registry generates for a registered measurement type.
+    Built the way the registry builds it -
+    `fairdm.registry.factories.FilterFactory`, matching
+    `TestFilterFactoryMeasurementBranch`
+    (tests/test_registry/test_factories.py) - because a hand-built stand-in
+    would prove nothing about the wiring itself."""
+
+    def test_entitled_reader_finds_a_private_dataset_on_the_registry_generated_filterset(
+        self,
+    ):
+        """A reader holding `change_dataset` on a private dataset finds it
+        among the registry-generated filter set's dataset choices too, and
+        not a private dataset they hold no rights over."""
+        from fairdm.registry.factories import FilterFactory
+
+        user = UserFactory()
+        allowed = DatasetFactory()  # private by default
+        other = DatasetFactory()
+        assign_perm("change_dataset", user, allowed)
+
+        filterset_class = FilterFactory(XRFMeasurement, fields=["dataset"]).generate()
+        filterset = filterset_class(request=_request_for(user))
+
+        offered = set(filterset.filters["dataset"].queryset)
+        assert offered == {allowed}
+        assert other not in offered
+
+
 class TestMeasurementFilterMixinUsage:
     """Test MeasurementFilterMixin for custom filters."""
 
