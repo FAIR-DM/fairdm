@@ -5620,3 +5620,37 @@ only, confirmed by re-reading the diff before committing.
 Next: T114 (replace the skip-swallowing test).
 
 Watch: none.
+
+## 2026-08-19T15:45:00Z · Implementer US10 · T114
+
+Did: Replaced `TestMeasurementViews.test_measurement_detail_view_accessible`, the only test of a
+measurement's own address, which wrapped a real request in a bare `try/except Exception:
+pytest.skip(...)` and so reported a skip whatever happened - a previous Implementer's investigation
+(recorded in this file) found that requesting the address directly raises `TemplateDoesNotExist` for
+a missing `cotton/pst/...` component while rendering `measurement/detail.html`, which the skip
+swallowed silently. Per the scope ruling in this brief, the detail page itself stays out of scope -
+this feature kept only the requirement that a measurement has an address of its own. Deleted the old
+test (explicitly authorised) and wrote two replacements that prove what is in scope, without ever
+calling the client: `test_get_absolute_url_is_the_measurements_own_address` (the URL
+`get_absolute_url()` returns is not the sample's own URL, and carries the measurement's UUID) and
+`test_get_absolute_url_resolves_to_the_measurement_detail_view` (`django.urls.resolve()` on that URL
+names `measurement:overview` with the measurement's UUID as its kwarg) - resolution, never
+rendering, and no skip anywhere. Confirmed RED before considering this correct: temporarily
+patched `Measurement.get_absolute_url()` to `return self.sample.get_absolute_url()` (the old,
+wrong, deflect-to-sample behaviour this feature's decision record replaced), ran the two new tests,
+and watched both fail for the right reason (`'sample:overview' == 'measurement:overview'` and the
+URL-equality assertion) rather than erroring or skipping. Reverted the patch with `git checkout --`
+(the change was never committed) and confirmed both tests pass again against the real
+implementation.
+
+Verified: `poetry run ruff check tests/test_core/test_measurement/test_models.py` → all checks
+passed (ruff's own `--fix` dropped the now-unused `reverse` import; `resolve` is the only
+`django.urls` symbol this file still needs). `poetry run pytest
+tests/test_core/test_measurement/test_models.py::TestMeasurementViews -v -p no:randomly` → 2
+passed. `poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly` → 82
+passed, 2 skipped (both pre-existing, unrelated to this task, not touched).
+
+Next: run the full suite and pre-commit once, then write the completion report - all six tasks are
+now done.
+
+Watch: none.

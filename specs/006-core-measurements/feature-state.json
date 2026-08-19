@@ -1612,8 +1612,23 @@
     },
     {
      "id": "T114",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "tests/test_core/test_measurement/test_models.py"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py::TestMeasurementViews::test_get_absolute_url_is_the_measurements_own_address",
+       "tests/test_core/test_measurement/test_models.py::TestMeasurementViews::test_get_absolute_url_resolves_to_the_measurement_detail_view"
+      ],
+      "commands": [
+       "poetry run ruff check tests/test_core/test_measurement/test_models.py",
+       "poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementViews -v -p no:randomly",
+       "poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly"
+      ],
+      "verified_by_ci": false
+     }
     }
    ]
   }
