@@ -1214,3 +1214,100 @@ a single pre-existing class's skip-removal and rewrite across two commits would 
 deleting methods in one commit and restoring them in the next - keeping each class whole within
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
+
+## 2026-08-19T13:15:00Z · Implementer US5 · T052/T053
+
+Did: Moved every filter `MeasurementFilterMixin`'s docstring advertises (dataset, sample,
+polymorphic_ctype, search, description, date_after, date_before) onto the mixin itself, and made
+it a `django_filters.FilterSet` subclass with a `Meta` that names no model - the same shape
+`SampleFilterMixin` already uses, for the same reason (a plain class carries no
+`declared_filters` for the metaclass to collect). `MeasurementFilter` now supplies only its own
+`Meta.model`; every filter it used to declare is inherited.
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+- 9 passed, 1 skipped. `poetry run ruff check` clean on both changed files.
+Next: T054-T056 (form dataset-scoping tests).
+Watch: none.
+
+## 2026-08-19T13:15:00Z · Implementer US5 · T054/T055/T056
+
+Did: Added `TestMeasurementFormDatasetChoices` to test_forms.py - an entitled user offers exactly
+their entitled (private) dataset, no user offers no dataset at all, and scoping derives from the
+request's own user rather than any other authenticated user's entitlement. `MeasurementFormMixin`
+(forms.py:76) already implements all three; no production code changed for these three tasks.
+Verified: `poetry run pytest tests/test_core/test_measurement/test_forms.py -k
+TestMeasurementFormDatasetChoices -q -p no:randomly` - 3 passed.
+Next: T057/T058 (help_text typo).
+Watch: none.
+
+## 2026-08-19T13:15:00Z · Implementer US5 · T057/T058 and T059/T060
+
+Did: `MeasurementForm.Meta` declared `help_text = {...}`; Django reads `help_texts` (plural), so
+all four guidance strings were silently dropped. Renamed the attribute. Separately,
+`MeasurementFormMixin`'s "add another" widget reversed `admin:core_dataset_add`, which does not
+resolve (the dataset app's admin URL name is `admin:dataset_dataset_add`) - `reverse_lazy` defers
+evaluation, so nothing had forced it to raise. Fixed the name. Both fixes verified RED-then-GREEN
+against a new test each (`TestMeasurementFormHelpText`, `TestMeasurementFormDatasetAddAnotherUrl`).
+Verified: `poetry run pytest tests/test_core/test_measurement/test_forms.py -q -p no:randomly` -
+16 passed. `poetry run ruff check` clean.
+Next: T061-T063 (registry wiring).
+Watch: none.
+
+## 2026-08-19T13:15:00Z · Implementer US5 · T061/T062/T063
+
+Did: `FormFactory.get_base_form_class()` and `FilterFactory.get_base_filterset_class()`
+(`fairdm/registry/factories.py:172`, `:479`) had a Sample branch only; a measurement type
+registered with no `form_class`/`filterset_class` of its own fell through to a bare
+`ModelForm`/`FilterSet`, losing `MeasurementFormMixin`'s widget configuration and dataset scoping
+and `MeasurementFilterMixin`'s declared filters entirely. Added the Measurement branch to each,
+mirroring the Sample branch's shape. New tests
+(`TestFormFactoryMeasurementBranch`, `TestFilterFactoryMeasurementBranch` in
+`tests/test_registry/test_factories.py`, per the brief's instruction to place them there) build
+straight from the factories against a demo measurement type and assert the mixins' own behaviour
+is present, not merely that generation runs without error.
+Verified: `poetry run pytest tests/test_registry/test_factories.py -q -p no:randomly` - 53
+passed. `poetry run pytest tests/test_registry -q -p no:randomly` - 243 passed. `poetry run
+pytest tests/test_core/test_sample tests/test_core/test_measurement/test_config.py
+tests/test_core/test_measurement/test_admin_registry.py -q -p no:randomly` - 278 passed, 7
+skipped (checked for collateral impact on the Sample branch and on the measurement config/admin
+registry paths - none found).
+Next: T115 (dataset-choice privacy fix).
+Watch: none.
+
+## 2026-08-19T13:15:00Z · Implementer US5 · T115
+
+Did: `MeasurementFilterMixin.__init__` assigned `Dataset.all_objects.all()` to the "dataset"
+filter's choices unconditionally, with no reference to the requesting reader - offering the title
+of every private dataset in the portal to anyone who could reach a filter set built on the mixin,
+and (after T063) that reaches every registry-generated measurement filter set. `FilterSet` accepts
+`request` as a constructor keyword natively (no `kwargs.pop` needed, unlike the form mixin).
+Scoped through the requesting reader's `dataset.change_dataset` entitlement when `self.request`
+carries an authenticated user, and left the privacy-first default manager (`Dataset.objects`)
+alone otherwise - the same contract `MeasurementFormMixin` already holds, per the brief's
+instruction to copy it. New tests: an entitled reader is offered exactly their entitled private
+dataset and not one they hold no rights over; a reader with no entitlement (no request at all) is
+offered no private dataset.
+
+**D-US5-1 (recorded here; `decisions.md` is prohibited for this story): the fix breaks three
+pre-existing tests that assumed the defect.** `TestMeasurementFilterDatasetFiltering::
+test_filter_by_dataset`, `TestMeasurementFilterCombinedFilters::
+test_combined_filters_dataset_and_sample`, and `TestMeasurementFilterMixinUsage::
+test_custom_filter_inherits_from_mixin` (all in test_filters.py) each build a filter set with a
+private dataset and no request at all, and assert `filterset.is_valid()`. That assertion now fails
+for exactly the reason T115 exists: an anonymous reader is no longer offered a private dataset as
+a filter choice. None of the three is named by any task in this story as one to replace, and I did
+not author them, so per the Implementer protocol they are left exactly as they stood rather than
+edited to fit the fix. They are stale evidence of the old (insecure) contract, now correctly red.
+The mechanical fix is to pass `request=<entitled user's request>` through each of the three call
+sites; flagged in this report's `concerns` rather than done here, since none of the three tasks
+naming this file authorize touching those tests. Revisit if: a reviewer wants them repaired in the
+same PR rather than triaged separately.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -k
+TestMeasurementFilterMixinDatasetPrivacy -q -p no:randomly` - 2 passed (the new behaviour).
+`poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly` - 8 passed,
+3 failed (the three pre-existing tests above), 1 skipped (full-file run, to identify exactly which
+pre-existing tests the fix affects). `poetry run ruff check` clean on both changed files.
+Next: none - this is the last task in the brief. Full-suite verify and pre-commit remain for the
+completion report.
+Watch: the three failing pre-existing tests named above; not fixed in this story, reported in
+`concerns`.
