@@ -861,48 +861,124 @@
    "tasks": [
     {
      "id": "T086",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:125"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py::TestGetValue"
+      ]
+     }
     },
     {
      "id": "T087",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:125"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py::TestGetValue"
+      ]
+     }
     },
     {
      "id": "T088",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:140-149"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py::TestGetValueWithUncertainty"
+      ]
+     }
     },
     {
      "id": "T089",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:143-149"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py::TestGetValuePlainNumber"
+      ]
+     }
     },
     {
      "id": "T090",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/apps.py:70-86",
+       "fairdm/templatetags/fairdm.py:17-19"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py::TestPrintValue"
+      ]
+     }
     },
     {
      "id": "T091",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:151-161"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py"
+      ]
+     }
     },
     {
      "id": "T092",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/apps.py:70-86",
+       "fairdm/templatetags/fairdm.py:17-19"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py::TestPrintValue"
+      ]
+     }
     },
     {
      "id": "T093",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm_demo/models.py"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py::TestGetValue",
+       "tests/test_core/test_measurement/test_value.py::TestGetValueWithUncertainty"
+      ]
+     }
     },
     {
      "id": "T094",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm_demo/migrations/0003_icp_ms_measurement_uncertainty_and_more.py"
+      ],
+      "commands": [
+       "poetry run python -m manage makemigrations fairdm_demo",
+       "poetry run python -m manage makemigrations --check --dry-run"
+      ]
+     }
     }
    ]
   },
