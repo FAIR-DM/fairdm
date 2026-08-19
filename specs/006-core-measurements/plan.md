@@ -95,9 +95,23 @@ lands on a class the scope cut removes and has to be made twice — the design r
 Groups 3, 4, 7, 8, 9 and 10 are independent of one another. Group 11 runs last, because a
 documentation pass is only worth writing once the code it describes has settled.
 
-**Dispatches are sequential, not parallel.** The suite shares one database, so fanning implementers
-out across groups collides. This is the same constraint the sample run met, and it cost that run
-nothing it could measure.
+**Stories run in parallel where their files are disjoint.** The earlier claim here — that the suite
+shares one database, so implementers cannot run concurrently — was wrong, and was carried over from
+the sample run without being checked. The test database is in memory and per process: two suites run
+concurrently in two checkouts both pass. Measured, not assumed.
+
+What actually constrains concurrency is the file each story edits, because two branches editing one
+file collide at merge. Four clusters, run in parallel, sequential within each:
+
+| Cluster | Stories, in order | Owns |
+|---|---|---|
+| A | US-10, US-3, US-2, US-9, US-7 | `measurement/models.py`, `managers.py`, `test_models.py`, migrations |
+| B | US-1, US-5, US-6 | `fairdm/registry/`, `fairdm/core/admin.py`, `measurement/forms.py`, `filters.py` |
+| C | US-8 | `measurement/admin.py` |
+| D | US-4 | `test_permissions.py` |
+
+The two ordering constraints sit inside cluster B, which is why they cost nothing: the registry work
+precedes the mixins, and the mixins precede the filtering.
 
 Every group writes its tests before its implementation. Test scope is one class per task; the whole
 suite runs once per group, at its report.
