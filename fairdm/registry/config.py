@@ -374,7 +374,7 @@ class ModelConfiguration:
         admin_cls = self._get_class(self.admin_class)
 
         try:
-            from fairdm.core.admin import MeasurementAdmin as MeasurementChildAdmin
+            from fairdm.core.measurement.admin import MeasurementChildAdmin
             from fairdm.core.models import Measurement, Sample
             from fairdm.core.sample.admin import SampleChildAdmin
         except ImportError:  # pragma: no cover - core app always present in practice
@@ -395,9 +395,9 @@ class ModelConfiguration:
         ):
             raise ConfigurationError(
                 f"Admin class for Measurement subclass {self.model.__name__} must "
-                f"inherit from MeasurementAdmin (the child admin base class). Got "
+                f"inherit from MeasurementChildAdmin (the child admin base class). Got "
                 f"{admin_cls.__name__} instead. Change your admin class to: "
-                f"class {admin_cls.__name__}(MeasurementAdmin): ..."
+                f"class {admin_cls.__name__}(MeasurementChildAdmin): ..."
             )
 
     # Field resolution and component production.
