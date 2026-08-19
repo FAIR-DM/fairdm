@@ -18,32 +18,71 @@ from .models import (
 )
 
 
+class MeasurementDatasetListFilter(admin.RelatedFieldListFilter):
+    """A `dataset` list filter offering every dataset, private ones included.
+
+    `Dataset`'s default manager excludes private datasets (FR-019, see
+    `fairdm.core.dataset.models.DatasetManager`), and the built-in related
+    field filter draws its choices from that manager - so without this
+    override, filtering by a private dataset (the model's own default, see
+    `tests/test_core/test_measurement/conftest.py`) would silently be
+    unavailable. The administrative interface is where a portal is repaired
+    and needs to see everything, the same reasoning `DatasetAdmin.get_queryset`
+    already applies (FR-019a).
+    """
+
+    def field_choices(self, field, request, model_admin):
+        ordering = self.field_admin_ordering(field, request, model_admin)
+        return [
+            (obj.pk, str(obj))
+            for obj in field.remote_field.model.all_objects.order_by(*ordering)
+        ]
+
+
 class MeasurementDescriptionInline(admin.StackedInline):
-    """Inline admin for measurement descriptions."""
+    """Inline admin for measurement descriptions.
+
+    Capped to the number of members its vocabulary carries: a description's
+    type is drawn from `MeasurementDescription.VOCABULARY`, so no measurement
+    can ever need more rows than that vocabulary has types.
+    """
 
     model = MeasurementDescription
     extra = 0
-    max_num = 6
+    max_num = len(MeasurementDescription.VOCABULARY.values)
 
 
 class MeasurementDateInline(admin.StackedInline):
-    """Inline admin for measurement dates."""
+    """Inline admin for measurement dates.
+
+    Capped to the number of members its vocabulary carries, for the same
+    reason as `MeasurementDescriptionInline`.
+    """
 
     model = MeasurementDate
     extra = 0
-    max_num = 6
+    max_num = len(MeasurementDate.VOCABULARY.values)
 
 
 class MeasurementIdentifierInline(admin.StackedInline):
-    """Inline admin for measurement identifiers."""
+    """Inline admin for measurement identifiers.
+
+    Capped to the number of members its vocabulary carries, for the same
+    reason as `MeasurementDescriptionInline`.
+    """
 
     model = MeasurementIdentifier
     extra = 0
-    max_num = 3
+    max_num = len(MeasurementIdentifier.VOCABULARY.values)
 
 
 class MeasurementContributionInline(GenericTabularInline):
-    """Inline admin for measurement contributions."""
+    """Inline admin for measurement contributions.
+
+    Deliberately uncapped: a contribution credits a person or organisation,
+    not a vocabulary member, and a measurement may credit any number of
+    contributors, one row each (design review correction).
+    """
 
     model = Contribution
     extra = 0
@@ -82,7 +121,7 @@ class MeasurementChildAdmin(PolymorphicChildModelAdmin):
         "added",
         "modified",
     ]
-    list_filter = ["added"]
+    list_filter = [("dataset", MeasurementDatasetListFilter), "sample", "added"]
     search_fields = ["name", "uuid"]
     readonly_fields = ["uuid", "added", "modified"]
     autocomplete_fields = ["dataset", "sample"]
@@ -160,7 +199,12 @@ class MeasurementParentAdmin(PolymorphicParentModelAdmin):
         "added",
         "modified",
     ]
-    list_filter = [PolymorphicChildModelFilter, "added"]
+    list_filter = [
+        PolymorphicChildModelFilter,
+        ("dataset", MeasurementDatasetListFilter),
+        "sample",
+        "added",
+    ]
     search_fields = ["name", "uuid"]
 
     def measurement_type(self, obj):

@@ -69,7 +69,7 @@ Serves G1.
 
 ### R6 — Measurements
 
-*Delivered · needs verification · advances G1*
+*Delivered · advances G1*
 
 The polymorphic base for results and observations recorded against a sample, including the case where a measurement belongs to a different dataset than the sample it describes.
 

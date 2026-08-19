@@ -1,364 +1,384 @@
-# Tasks: Core Measurement Model Enhancement
-
-**Input**: Design documents from `/specs/006-core-measurements/`
-**Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, quickstart.md ✅
-
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. However, due to the interconnected nature of this enhancement feature (models, admin, forms, filters all reference each other), there is a critical foundational phase that BLOCKS all user story work.
-
-## Format: `[ID] [P?] [Story?] Description`
-
-- **[P]**: Can run in parallel (different files, no dependencies on incomplete tasks)
-- **[Story]**: Which user story this task belongs to (US1-US8 from spec.md)
-- No story label for Setup/Foundational/Polish phases
-- Include exact file paths in descriptions
-
-## Path Conventions
-
-All paths relative to repository root `c:\Users\jennings\Documents\repos\fairdm\`:
-
-- Core code: `fairdm/core/measurement/`
-- Core admin: `fairdm/core/admin.py`
-- Demo app: `fairdm_demo/`
-- Tests: `tests/test_core/test_measurement/`
-- Docs: `docs/`
-
----
-
-## Phase 1: Setup
-
-**Purpose**: No setup required - this is an enhancement feature for existing measurement app
-
-**Status**: ✅ COMPLETE (app structure already exists)
-
----
-
-## Phase 2: Foundational (Blocking Prerequisites)
-
-**Purpose**: Fix critical bugs and add core infrastructure that ALL user stories depend on
-
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
-
-**User Stories Blocked**: All (US1-US8)
-
-- [X] T001 [P] Fix vocabulary references in `fairdm/core/measurement/models.py` — Change `MeasurementDescription.VOCABULARY` from `from_collection("Sample")` to `from_collection("Measurement")` and `MeasurementDate.VOCABULARY` from `from_collection("Sample")` to `from_collection("Measurement")`. No migration needed. Vocabulary validation happens at model level via clean() methods.
-- [X] T002 Create placeholder view and fix get_absolute_url() in `fairdm/core/measurement/models.py`, `fairdm/core/measurement/views.py`, `fairdm/core/measurement/urls.py` — (1) Change get_absolute_url() from returning sample URL to returning reverse("measurement:overview", kwargs={"uuid": self.uuid}). (2) Create placeholder MeasurementDetailView in views.py as DetailView with template_name="measurement/detail.html" that displays: measurement name, UUID, dataset link, sample link, and message "Full measurement detail view implementation coming soon". View MUST return HTTP 200 (not 404). (3) Register URL pattern in urls.py: path('<uuid:uuid>/', views.MeasurementDetailView.as_view(), name='overview'). (4) Create basic template measurement/detail.html with the required content.
-- [X] T003 [P] Create MeasurementQuerySet in `fairdm/core/measurement/managers.py` — Mirror SampleQuerySet pattern with with_related() (select_related sample/dataset, prefetch_related contributors) and with_metadata() (prefetch_related descriptions/dates/identifiers). Update Measurement.objects to use PolymorphicManager.from_queryset(MeasurementQuerySet)().
-- [X] T004 [P] Create MeasurementPermissionBackend in `fairdm/core/measurement/permissions.py` — Mirror SamplePermissionBackend pattern (see fairdm/core/sample/permissions.py) mapping measurement permissions to dataset permissions (view_dataset → view_measurement, change_dataset → change_measurement, delete_dataset → delete_measurement, add_measurement → change_dataset, import_data → import_data). Backend MUST be manually registered in fairdm/conf/settings/auth.py AUTHENTICATION_BACKENDS list (NOT auto-configured). Add comprehensive docstring with usage example showing manual registration requirement. Test permission inheritance with guardian-assigned dataset permissions.
-- [X] T005 [P] Fix plugins inline model references in `fairdm/core/measurement/plugins.py` — Change inline_model from SampleDescription to MeasurementDescription and from SampleDate to MeasurementDate. Fix docstrings.
-- [X] T017 [P] Create test fixtures in `tests/test_core/test_measurement/conftest.py` — Factory fixtures for Measurement, MeasurementDescription, MeasurementDate, MeasurementIdentifier plus Dataset, Sample, and User fixtures with guardian permissions for cross-relationship testing.
-
-**Checkpoint**: Foundation ready - user story implementation can now begin
-
----
-
-## Phase 3: User Story 1 - Measurement Model Polymorphism & Registry Integration (Priority: P1) 🎯 MVP Component
-
-**Goal**: Enable portal developers to define custom polymorphic measurement types that auto-generate forms/filters/tables/admin via registry
-
-**Independent Test**: Define a custom measurement model (e.g., XRFMeasurement), register it with BaseMeasurementConfiguration, verify polymorphic queries return correct subclass instances, and confirm auto-generated components work for CRUD operations
-
-**User Stories Served**: US1 (primary)
-
-**Dependencies**: Foundational phase (T001-T005, T017) MUST be complete
-
-### Tests for User Story 1
-
-- [X] T023 [US1] Write registry integration tests in `tests/test_core/test_measurement/test_registry.py` — Test registration of polymorphic measurement types, auto-generated form/filter/table/admin, BaseMeasurementConfiguration integration, admin inheritance validation
-
-### Implementation for User Story 1
-
-- [X] T015 [P] [US1] Create BaseMeasurementConfiguration in `fairdm/core/measurement/config.py` — Mirror BaseSampleConfiguration pattern defining standard fields, table_fields, form_fields, filterset_fields, serializer_fields for registry auto-generation
-- [X] T016 [US1] Update demo config in `fairdm_demo/config.py` — Change demo measurement configs to inherit from BaseMeasurementConfiguration instead of ModelConfiguration. Verify registry auto-generates correct components.
-
-**Checkpoint**: Custom measurement types can be registered and auto-generated components work correctly
-
----
-
-## Phase 4: User Story 7 - Optimized Measurement QuerySets (Priority: P3)
-
-**Goal**: Provide optimized QuerySet methods that prevent N+1 query problems for measurement views with large collections of mixed polymorphic types
-
-**Independent Test**: Create 1000 measurements of mixed polymorphic types with samples, datasets, contributors. Execute Measurement.objects.with_related().all() and verify minimal database queries via query logging. Confirm 80%+ query reduction vs naive ORM usage.
-
-**User Stories Served**: US7 (primary), supports US2/US3/US4/US5 with performance
-
-**Dependencies**: Foundational phase complete (especially T003 which creates the QuerySet)
-
-### Tests for User Story 7
-
-- [X] T018 [US7] Write model and queryset tests in `tests/test_core/test_measurement/test_models.py` — Test model creation, polymorphism, vocabulary validation, cross-dataset sample linking, get_value()/print_value() methods, clean() prevents base instantiation, get_absolute_url() returns correct pattern, CASCADE/PROTECT behavior, with_related() and with_metadata() query counts, chaining optimization
-
-**Checkpoint**: QuerySet optimization methods reduce queries by 80%+ and are production-ready
-
----
-
-## Phase 5: User Story 3 - Enhanced Measurement Admin Interface (Priority: P1)
-
-**Goal**: Provide comprehensive Django admin for measurements with search, filtering, inline metadata editing, correct vocabularies, and polymorphic type handling
-
-**Independent Test**: Access measurement admin, perform searches by name/UUID, apply filters for dataset/sample/type, edit measurements with inline metadata (descriptions/dates/identifiers/contributors), verify description and date type choices come from Measurement vocabulary (not Sample), test polymorphic type selection interface
-
-**User Stories Served**: US3 (primary), US8 (metadata editing)
-
-**Dependencies**: Foundational phase complete (especially T001 for vocabularies, T005 for plugins)
-
-### Tests for User Story 3
-
-- [X] T019 [US3] Write admin tests in `tests/test_core/test_measurement/test_admin.py` — Test parent admin type selection interface, child admin rendering with inlines, search by name/UUID, filter by dataset/sample/type, vocabulary correctness in inlines
-
-### Implementation for User Story 3
-
-- [X] T006 [P] [US3] Create measurement-specific admin inlines in `fairdm/core/measurement/admin.py` — MeasurementDescriptionInline(admin.StackedInline), MeasurementDateInline(admin.StackedInline), MeasurementIdentifierInline(admin.StackedInline), MeasurementContributionInline(GenericTabularInline). Mirror configuration from Sample inlines.
-- [X] T007 [US3] Create NEW MeasurementChildAdmin in `fairdm/core/measurement/admin.py` — Create a new admin class (separate from the basic MeasurementAdmin currently in fairdm/core/admin.py which will be removed in T009). Mirror SampleChildAdmin with base_fieldsets (tuple) for name/dataset/sample/uuid/timestamps, list_display, list_filter, search_fields, readonly_fields, autocomplete_fields. Include all 4 inlines from T006. Custom measurement_type() display method.
-- [X] T008 [US3] Create MeasurementParentAdmin in `fairdm/core/measurement/admin.py` — Mirror SampleParentAdmin, register with @admin.register(Measurement), get_child_models() returns registry.measurements, include PolymorphicChildModelFilter in list_filter
-- [X] T009 [US3] Remove old measurement admin classes from `fairdm/core/admin.py` — Remove the basic MeasurementParentAdmin class and the basic MeasurementAdmin(PolymorphicChildModelAdmin) class that existed before this feature. Remove related imports. These are being replaced by the new comprehensive admin classes created in T007/T008 in fairdm/core/measurement/admin.py. Keep DescriptionInline/DateInline if used elsewhere for Dataset.
-- [X] T010 [US3] Add demo measurement child admins in `fairdm_demo/admin.py` — Create ExampleMeasurementAdmin, XRFMeasurementAdmin, ICP_MS_MeasurementAdmin inheriting from MeasurementChildAdmin with demo-specific base_fieldsets
-
-**Checkpoint**: Measurement admin provides full CRUD functionality with correct vocabularies and polymorphic support
-
----
-
-## Phase 6: User Story 4 - Measurement Forms with Sample & Dataset Context (Priority: P2)
-
-**Goal**: Provide measurement forms that handle dataset/sample context correctly with autocomplete widgets, dataset-scoped sample selection, and reusable base mixin for custom measurement forms
-
-**Independent Test**: Instantiate MeasurementForm for different measurement types with various sample/dataset contexts. Render form and verify dataset field defaults to current context and sample field shows only samples in that dataset. Submit valid data with cross-dataset sample reference and verify measurement creates correctly. Submit invalid data (missing sample, sample not in dataset) and verify clear validation errors.
-
-**User Stories Served**: US4 (primary), US2 (cross-dataset sample selection)
-
-**Dependencies**: Foundational phase complete (especially T001-T004 for models/permissions)
-
-### Tests for User Story 4
-
-- [X] T020 [US4] Write form tests in `tests/test_core/test_measurement/test_forms.py` — Test form validation (valid/invalid data), sample queryset filtered by dataset, MeasurementFormMixin widget configuration, request context handling, base type rejection
-
-### Implementation for User Story 4
-
-- [X] T011 [P] [US4] Create MeasurementFormMixin in `fairdm/core/measurement/forms.py` — Mirror SampleFormMixin: pop request from kwargs, configure dataset field with ModelSelect2Widget and guardian-filtered queryset, configure sample field with ModelSelect2Widget filtered to samples in selected dataset, create FormHelper(form_tag=False)
-- [X] T012 [US4] Rewrite MeasurementForm in `fairdm/core/measurement/forms.py` — Inherit from MeasurementFormMixin and forms.ModelForm, use fields (not exclude) including name/dataset/sample/image/tags, configure proper widgets and help_text with gettext_lazy(), clean() prevents base Measurement instantiation
-
-**Checkpoint**: Measurement forms provide intuitive UX with dataset-scoped sample selection and clear validation
-
----
-
-## Phase 7: User Story 5 - Measurement Filtering & Search (Priority: P2)
-
-**Goal**: Enable users to filter measurements by dataset/sample/type/date ranges and search by name/UUID with base filter mixin for custom measurement types
-
-**Independent Test**: Create measurements of various types with different attributes. Apply individual filters (dataset, sample, type, search) and verify correct results. Apply combined filters (dataset AND sample) and verify only measurements matching ALL criteria appear. Test search matching both name and UUID. Inherit from MeasurementFilterMixin in custom filter and verify pre-configured filters work.
-
-**User Stories Served**: US5 (primary)
-
-**Dependencies**: Foundational phase complete (especially T003 for QuerySet optimization)
-
-### Tests for User Story 5
-
-- [X] T021 [US5] Write filter tests in `tests/test_core/test_measurement/test_filters.py` — Test individual filter fields, combined filters, search across name/UUID, cross-relationship filters (descriptions/dates), polymorphic type filter
-
-### Implementation for User Story 5
-
-- [X] T013 [P] [US5] Create MeasurementFilterMixin in `fairdm/core/measurement/filters.py` — Mirror SampleFilterMixin with Meta.fields = ["dataset", "sample", "polymorphic_ctype"]
-- [X] T014 [US5] Rewrite MeasurementFilter in `fairdm/core/measurement/filters.py` —Inherit from MeasurementFilterMixin and django_filters.FilterSet. Include dataset (ModelChoiceFilter), sample (ModelChoiceFilter), polymorphic_ctype (ModelChoiceFilter for measurement type), search (CharFilter with custom method searching name+UUID), description (CharFilter on descriptions__value), date_after/date_before (DateFilter on dates__value). Dynamic queryset initialization in **init**.
-
-**Checkpoint**: Measurement filtering enables users to quickly find relevant measurements in large collections
-
----
-
-## Phase 8: User Story 2, 6, 8 - Cross-Dataset Linking, Value Representation, FAIR Metadata (Priority: P1, P2, P3)
-
-**Goal**: Verify cross-dataset measurement-sample linking with correct permission boundaries, test value-with-uncertainty display methods, validate FAIR metadata with correct Measurement vocabularies
-
-**Independent Test**:
-
-- US2: Create measurement in Dataset A referencing sample from Dataset B, verify correct provenance display and permission isolation (edit measurement requires Dataset A perms, edit sample requires Dataset B perms)
-- US6: Create measurements with value/uncertainty fields, call get_value() and print_value(), verify correct formatting
-- US8: Add descriptions/dates/identifiers to measurements, verify type choices come from Measurement vocabularies (not Sample)
-
-**User Stories Served**: US2 (cross-dataset linking), US6 (value representation), US8 (FAIR metadata)
-
-**Dependencies**: All previous phases (forms, admin, filters provide the interface for these workflows)
-
-### Tests for User Story 2, 6, 8
-
-- [X] T022 [P] [US2] Write permission tests in `tests/test_core/test_measurement/test_permissions.py` — **PARTIALLY DEFERRED**: Test infrastructure created (17 tests), anonymous user tests passing (4/17). Permission inheritance tests (9 tests) DEFERRED to Feature 007 (Permissions & Access Control) due to backend mapping issues requiring deeper investigation. Guardian/polymorphic compatibility tests (4 tests) validly skipped with documentation. Files: `tests/test_core/test_measurement/test_permissions.py`, `fairdm/conf/settings/auth.py` (backend registered).
-- [X] T024 [US2] [US6] [US8] Enhance integration tests in `tests/test_core/test_measurement/test_integration.py` — Test end-to-end CRUD workflow, cross-dataset measurement-sample linking with permission verification, value-with-uncertainty display, FAIR metadata with correct vocabularies, QuerySet optimization verification. Added comprehensive test classes: TestMeasurementCRUDWorkflow (8 tests), TestCrossDatasetMeasurementSampleLinking (5 tests), TestMeasurementValueWithUncertainty (4 tests), TestMeasurementFAIRMetadata (6 tests), TestMeasurementQuerySetOptimization (5 tests). All tests passing.
-
-**Checkpoint**: All core user stories (US1-US8) are fully functional and independently testable
-
----
-
-## Phase 9: Polish & Cross-Cutting Concerns
-
-**Purpose**: Documentation to meet FairDM Constitution Principle VI and VII requirements
-
-**Dependencies**: All implementation phases (3-8) complete for accurate documentation
-
-- [ ] T025 [P] Update overview documentation in `docs/overview/data-model.md` — Include measurement model architecture, measurement-sample-dataset relationship flows with diagrams, polymorphic measurement pattern, cross-dataset linking workflow, measurement lifecycle diagrams
-- [ ] T026 [P] Create measurement development guide in `docs/portal-development/measurements.md` — How to define custom measurement types (step-by-step with XRF example), registration with BaseMeasurementConfiguration, creating custom admin inheriting from MeasurementChildAdmin, custom form/filter development using mixins, QuerySet optimization patterns, permission configuration
-- [ ] T027 [P] Update registry documentation in `docs/portal-development/registry.md` — Add measurement-specific registration examples, document BaseMeasurementConfiguration field options, explain polymorphic admin validation rules for measurements, add troubleshooting section
-- [ ] T028 [P] Create measurement admin guide in `docs/portal-administration/measurements-admin.md` — How to use polymorphic admin type selection interface, managing measurement metadata, bulk operations and filtering strategies, vocabulary management for measurement types, troubleshooting common admin issues
-- [X] T029 [P] Update API documentation in `docs/api/` (if REST API exposed) — Document measurement endpoints structure, explain polymorphic type handling in API responses, document filtering query parameters, add measurement API usage examples
-- [X] T030 [P] Update deployment guide in `docs/contributing/deployment.md` — Document vocabulary validation approach (code-only, no migrations), provide data audit checklist for existing portals, explain breaking changes and backward compatibility, deployment troubleshooting section
-- [X] T031 [P] Add inline code documentation — Comprehensive docstrings for MeasurementQuerySet methods, MeasurementFormMixin and MeasurementFilterMixin usage docs, MeasurementChildAdmin and MeasurementParentAdmin configuration guide, BaseMeasurementConfiguration field options. Link docstrings to relevant documentation sections.
-
----
-
-## Dependencies & Execution Order
-
-### Phase Dependencies
-
-- **Setup (Phase 1)**: ✅ Complete (no action needed)
-- **Foundational (Phase 2)**: BLOCKS all user story phases — MUST complete T001-T005, T017 first
-- **User Story Phases (Phase 3-8)**: All depend on Foundational phase completion
-  - After Foundational: US1 (Phase 3), US7 (Phase 4), US3 (Phase 5) can proceed in parallel
-  - US4 (Phase 6) and US5 (Phase 7) can proceed after Foundational
-  - US2/6/8 verification (Phase 8) depends on US3/US4/US5 providing interfaces
-- **Polish (Phase 9)**: Depends on all implementation phases (3-8) for accurate documentation
-
-### User Story Dependencies
-
-- **US1 - Polymorphic & Registry (P1)**: Can start immediately after Foundational — No dependencies on other stories
-- **US7 - QuerySets (P3)**: Can start immediately after Foundational — T003 already created QuerySet, T018 tests it
-- **US3 - Admin Interface (P1)**: Can start immediately after Foundational — Depends on T001 (vocabularies) and T005 (plugins)
-- **US4 - Forms (P2)**: Can start immediately after Foundational — No dependencies on other stories
-- **US5 - Filters (P2)**: Can start immediately after Foundational — Benefits from T003 (QuerySet)
-- **US2 - Cross-Dataset Linking (P1)**: Verification depends on US4 (forms provide interface)
-- **US6 - Value Representation (P2)**: Verification happens in T018 (no separate phase)
-- **US8 - FAIR Metadata (P3)**: Verification depends on US3 (admin provides interface)
-
-### Within Each User Story
-
-#### Foundational Phase Ordering
-
-1. T001, T003, T004, T005, T017 can run in parallel [P]
-2. T002 depends on T001 (for models to be correct)
-
-#### User Story Phases
-
-- Tests can be written first (TDD approach) or alongside implementation
-- Within US1: T023 tests both T015 and T016
-- Within US3: T006, T007, T008 are sequential (inlines → child admin → parent admin), T009, T010 can follow
-- Within US4: T011 and T012 are sequential (mixin first, then form)
-- Within US5: T013 and T014 are sequential (mixin first, then filter)
-- Within US2/6/8: T022 can be in parallel with T024
-
-### Parallel Opportunities
-
-**After Foundational (T001-T005, T017) completes**:
-
-```bash
-# Maximum parallelization - all user story phases can start:
-Phase 3 (US1): T015, T016, T023
-Phase 4 (US7): T018
-Phase 5 (US3): T006 → T007 → T008, then T009, T010, T019
-Phase 6 (US4): T011 → T012, T020
-Phase 7 (US5): T013 → T014, T021
-```
-
-**Documentation phase - all tasks in parallel**:
-
-```bash
-T025, T026, T027, T028, T029, T030, T031 [all P]
-```
-
----
-
-## Parallel Example: Foundational Phase
-
-```bash
-# Launch these together (all marked [P] and work on different files):
-T001: "Fix vocabulary references in fairdm/core/measurement/models.py"
-T003: "Create MeasurementQuerySet in fairdm/core/measurement/managers.py"
-T004: "Create MeasurementPermissionBackend in fairdm/core/measurement/permissions.py"
-T005: "Fix plugins in fairdm/core/measurement/plugins.py"
-T017: "Create test fixtures in tests/test_core/test_measurement/conftest.py"
-
-# Then:
-T002: "Create placeholder view + fix URL (depends on T001)"
-```
-
----
-
-## Parallel Example: After Foundational Complete
-
-```bash
-# Multiple developers can work on different user stories simultaneously:
-Developer A: Phase 3 (US1 - Registry)
-  - T015: BaseMeasurementConfiguration
-  - T016: Update demo config
-  - T023: test_registry.py
-
-Developer B: Phase 5 (US3 - Admin)
-  - T006 → T007 → T008: Admin classes
-  - T009, T010: Cleanup and demo
-  - T019: test_admin.py
-
-Developer C: Phase 6 + 7 (US4, US5 - Forms & Filters)
-  - T011 → T012: Forms
-  - T013 → T014: Filters
-  - T020, T021: Tests
-```
-
----
-
-## Implementation Strategy
-
-### MVP First (P1 Stories Only)
-
-1. Complete Phase 2: Foundational (T001-T005, T017) — CRITICAL foundation
-2. Complete Phase 3: US1 - Registry (T015, T016, T023) — Enable custom measurement types
-3. Complete Phase 5: US3 - Admin (T006-T010, T019) — Admin interface for CRUD
-4. Complete Phase 8 (US2 partial): US2 Tests (T022, T024) — Verify cross-dataset linking
-5. **STOP and VALIDATE**: Test US1, US2, US3 independently
-6. Deploy/demo if ready
-
-### Incremental Delivery
-
-1. Foundational (Phase 2) → Foundation ready ✅
-2. Add US1 (Registry) → Custom measurement types work → Test independently
-3. Add US7 (QuerySets) → Performance optimized → Test with large datasets
-4. Add US3 (Admin) → Full admin interface → Test CRUD workflows
-5. Add US4 (Forms) → User-friendly data entry → Test form validation
-6. Add US5 (Filters) → Efficient data discovery → Test complex filters
-7. Add US2/6/8 verification → Cross-dataset, values, metadata → Integration tests
-8. Add Documentation (Phase 9) → Complete feature
-9. Each phase adds value without breaking previous functionality
-
-### Parallel Team Strategy
-
-With multiple developers (optimal):
-
-1. **Week 1**: Team completes Foundational together (T001-T005, T017)
-2. **Week 2-3**: Once Foundational complete, split work:
-   - Developer A: US1 + US7 (registry and querysets)
-   - Developer B: US3 (admin interface)
-   - Developer C: US4 + US5 (forms and filters)
-3. **Week 4**: Integration and verification (US2/6/8 tests)
-4. **Week 5**: Documentation (all [P] tasks in parallel)
-
----
-
-## Notes
-
-- **[P] marker**: Tasks that can run in parallel (different files, no dependencies)
-- **[Story] label**: Maps task to user story for traceability (US1-US8)
-- **No story label**: Foundational/Polish tasks that serve multiple stories
-- **Independent testing**: Each user story designed to be testable on its own
-- **Constitution compliance**: Documentation phase (T025-T031) required per Principle VI
-- **Living demo**: T010, T016 update demo app per Principle VII
-- **No migrations**: All changes are code-only, vocabulary validation is model-level
-- **Stop at checkpoints**: Validate each phase independently before proceeding
-- **Commit strategy**: Commit after each task or logical group of [P] tasks
-
----
-
-## Success Metrics
-
-- ✅ Portal developers can define custom measurement types in <20 minutes
-- ✅ Measurement CRUD completes in <2 seconds
-- ✅ List view with 1000+ measurements loads in <1 second (80%+ query reduction)
-- ✅ 90%+ test coverage across all components
-- ✅ All 8 user stories independently functional and testable
-- ✅ All vocabulary references use correct Measurement collections
-- ✅ Demo app demonstrates all patterns per Constitution Principle VII
-- ✅ Complete documentation per Constitution Principle VI
+# Tasks — 006 The measurement record
+
+**Written greenfield.** Every task below describes building this feature from nothing, to the
+standard the constitution asks for now. Nothing here was written by reading the existing
+implementation. What the code already satisfies is settled in the reconciliation pass that follows,
+against a code citation and a passing test whose assertion is quoted — never against this list's own
+optimism, and never against the February task list.
+
+Test tasks come before their implementation tasks. Each task names the file it lands in.
+
+**Design review, 2026-08-19.** Ten of the thirty-four ticks did not survive the reconciliation lens
+and are reopened in place with the reason. Two tasks were added and carry the next free numbers:
+T114 and T115. Numbers are never reused, because the ledger cites them.
+
+**Every task is ticked as of the merge gate.** The annotation under each one records what the
+audit found at reconciliation time — it is the evidence for why the task existed, not a statement
+about the code as it stands now.
+
+**Reconciled 2026-08-19.** Thirty-four of the hundred and thirteen tasks are closed against the code
+as it stands. A task closed here cites the code that satisfies it *and* a passing test, with that
+test's assertion quoted — a line number proves a test exists, not what it checks. Seventy-nine stay
+open, and each says why in one of three shapes: never built, built without a test that covers it, or
+built differently from what the specification now asks for.
+
+Two of those shapes matter more than the count. **Built without tests** is not a bookkeeping
+category: it is code nobody can change safely, and on this feature it covers the permission
+derivation, the dataset scoping on the form and the whole of the value convention. **Built
+differently** is where the code and the specification disagree, and every one of those was
+adjudicated in `decisions.md` before it reached this list.
+
+## Phase 0 — Foundations
+
+- [X] T001 One factory per metadata model in `fairdm/factories/core.py` —
+  `MeasurementDescriptionFactory`, `MeasurementDateFactory`, `MeasurementIdentifierFactory` — each
+  using `factory.Sequence` for uniqueness-guarded fields, `factory.SubFactory` for relations, and
+  each defaulting `type` to a member of its own vocabulary.
+  - **Closed by group 0.** `MeasurementIdentifierFactory` added; the description and date factories now default to real vocabulary members and all three are tested.
+- [X] T002 Make `MeasurementFactory` in `fairdm/factories/core.py` an abstract factory base. The
+  framework ships the abstract factory; the reference implementation ships concrete measurement
+  types. A concrete factory here would make the framework import its own demo application.
+  - **Closed by group 0.** `MeasurementFactory` is an abstract base; calling it directly refuses.
+- [X] T003 Concrete measurement factories in `fairdm_demo/factories.py`, one per demo measurement
+  type, each supplying its own required fields.
+  - **Closed by group 0.** `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` added beside the existing example.
+- [X] T004 Export every measurement factory from `fairdm/factories/__init__.py`.
+  - **Closed by group 0.** All three metadata factories exported and asserted present in `__all__`.
+- [X] T005 Shared fixtures in `tests/test_core/test_measurement/conftest.py` wrapping those
+  factories: a dataset, a concrete sample, a measurement of a concrete type, a second dataset with
+  its own sample for the cross-dataset cases, and a user holding no rights at all.
+  - **Closed by group 0.** The measurement fixture yields a concrete type; a second dataset, its sample, and a user holding no rights added.
+- [X] T006 Retarget every measurement call site in the suite onto a concrete type, so that no test
+  depends on the bare record being creatable.
+  - **Closed by group 0.** Every bare-record call site retargeted, including twenty-two outside the measurement suite that the first brief's file scope wrongly excluded. Three tests changed meaning rather than call site and are named in the implementation report.
+
+## Phase 1 — The record
+
+- [X] T007 Tests in `tests/test_core/test_measurement/test_models.py` that a measurement is given a
+  short generated identifier on creation, that it is prefixed so as to be recognisable as a
+  measurement's, and that it cannot be changed afterwards.
+  - **Was, at reconciliation:** built without tests — the prefix and uniqueness are asserted, nothing asserts the identifier cannot be changed
+- [X] T008 The generated identifier field on `Measurement` in `fairdm/core/measurement/models.py`.
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:60`. Test: `tests/test_core/test_measurement/test_models.py:53` — `assert measurement.uuid.startswith("m")`
+- [X] T009 Tests that a measurement requires a name, and that its own label, image, vocabulary terms
+  and free-form tags are each optional.
+  - **Was, at reconciliation:** never built — no test covers the model's own field requirements
+- [X] T010 Those fields on `Measurement`, with `verbose_name`, `help_text` and translation marking.
+  - **Was, at reconciliation:** built without tests — `local_id` (`models.py:78`) has no test at all
+- [X] T011 Tests that two measurements in different datasets may carry the same label, and that both
+  save.
+  - **Was, at reconciliation:** never built
+- [X] T012 The label field declared without a uniqueness constraint.
+  - **Was, at reconciliation:** built without tests — the label carries no uniqueness constraint (`models.py:78`) and nothing asserts it
+- [X] T013 Tests that a measurement requires a dataset, and that deleting the dataset deletes the
+  - **Reopened at design review, since closed:** the cited test deletes the measurement before it deletes the dataset (`test_models.py:293`), so the assertion holds whatever `on_delete` says. Close it against `test_models.py:784`, which deletes the dataset while the measurement lives.
+  measurement.
+- [X] T014 The dataset relation on `Measurement`, cascading on delete.
+  - **Reopened at design review, since closed:** same vacuous citation as T013. Close against `test_models.py:784`.
+- [X] T015 Tests that a measurement requires a sample, and that deleting a sample is refused while
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:71`. Test: `tests/test_core/test_measurement/test_models.py:308` — `with pytest.raises(ProtectedError): sample.delete()`
+  any measurement refers to it.
+- [X] T016 The sample relation on `Measurement`, refusing deletion while referenced.
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:71`. Test: `tests/test_core/test_measurement/test_models.py:308` — `with pytest.raises(ProtectedError): sample.delete()`
+- [X] T017 Tests that a measurement records when it was created and when it was last changed.
+  - **Was, at reconciliation:** built without tests — creation timestamps are asserted, nothing asserts `modified` moves on a change
+- [X] T018 Those timestamps on `Measurement`.
+  - **Reconciled done.** Code: `fairdm/core/abstract.py:23`. Test: `tests/test_core/test_measurement/test_models.py:54` — `assert measurement.added is not None`
+- [X] T019 Tests that a person or organisation can be credited on a measurement under one or more
+  roles, and that the roles offered come from the measurement contributor vocabulary, asserted by
+  naming the members it contains.
+  - **Was, at reconciliation:** never built
+- [X] T020 The contributions relation and the contributor role vocabulary binding on `Measurement`.
+  - **Was, at reconciliation:** built without tests — `CONTRIBUTOR_ROLES` (`models.py:46`) and the relation (`:68`) have no covering test
+- [X] T021 Tests that a measurement's address resolves to that measurement and not to its sample.
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:155`. Test: `tests/test_core/test_measurement/test_models.py:637` — `assert url == f"/measurement/{measurement.uuid}/"`
+- [X] T022 The address on `Measurement`, and the name it reverses, in
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:164, fairdm/core/measurement/urls.py:7`. Test: `tests/test_core/test_measurement/test_models.py:637` — `assert url == f"/measurement/{measurement.uuid}/"`
+  `fairdm/core/measurement/models.py` and `fairdm/core/measurement/urls.py`.
+
+## Phase 2 — Polymorphism and the registry
+
+- [X] T023 Tests that querying measurements without naming a type returns each as the type it was
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:27`. Test: `tests/test_core/test_measurement/test_models.py:137` — `assert isinstance(xrf_instance, XRFMeasurement)`
+  created as, carrying that type's own fields.
+- [X] T024 `Measurement` as a polymorphic base in `fairdm/core/measurement/models.py`.
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:27`. Test: `tests/test_core/test_measurement/test_models.py:137` — `assert isinstance(xrf_instance, XRFMeasurement)`
+- [X] T025 Tests in `test_models.py` that creating a bare measurement belonging to no type is
+  refused through validation, and tests in `test_forms.py` and `test_admin.py` that it is refused
+  through a form and through the administrative interface.
+  - **Was, at reconciliation:** built without tests — validation is covered; the form's refusal passes for an unrelated reason (see T029) and nothing covers the administrative interface
+- [X] T026 Tests that creating one through the manager is refused, and that no fixture in the
+  framework creates one.
+  - **Was, at reconciliation:** never built
+- [X] T027 The refusal in the record's own validation.
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:111`. Test: `tests/test_core/test_measurement/test_models.py:265` — `assert "subclass" in error_message or "directly" in error_message`
+- [X] T028 The refusal in the manager, so that a direct create cannot bypass validation.
+  - **Was, at reconciliation:** never built — `Measurement.objects.create()` produces a bare record today
+- [X] T029 The refusal in the form.
+  - **Reopened at design review, since closed:** the cited assertion is satisfied by an unrelated error. The form is built with a private dataset and no request, so the dataset choice alone invalidates it; deleting the refusal leaves the test passing. Close it by asserting on the message, and delete `MeasurementForm.clean()` — the model already raises the same error through `_post_clean`, which is why it currently renders twice.
+- [X] T030 Tests in `tests/test_core/test_measurement/test_config.py` that registering a measurement
+  type produces a form, a filter set, a table and an administrative entry, each carrying that type's
+  own fields alongside those every measurement has, with none of them written by hand.
+  - **Was, at reconciliation:** built without tests — the generated components are asserted to exist, not to carry the type's own fields
+- [X] T031 The registration path for measurement types through the registry.
+  - **Reconciled done.** Code: `fairdm/registry/registry.py:281`. Test: `tests/test_core/test_measurement/test_config.py:29` — `assert config.get_form_class().Meta.model == XRFMeasurement`
+- [X] T032 Tests in `test_admin.py` that the administrative type selection offers every registered
+  measurement type and nothing else, including a type registered from outside the framework.
+  - **Was, at reconciliation:** built without tests — `assert len(child_models) > 0` does not establish that the choices are the registered types
+- [X] T033 Type discovery from the registry on the parent administrative class.
+  - **Was, at reconciliation:** built without tests — the code reads the registry (`admin.py:172`) but no assertion distinguishes that from any non-empty list
+- [X] T034 Tests that a configuration base exists carrying the fields every measurement has, and
+  that a type inheriting it receives them.
+  - **Was, at reconciliation:** built without tests — `hasattr(config, 'table_fields')` establishes nothing about content
+- [X] T035 `BaseMeasurementConfiguration` in `fairdm/core/measurement/config.py`.
+  - **Reconciled done.** Code: `fairdm/core/measurement/config.py:25`. Test: `tests/test_core/test_measurement/test_config.py:184` — `assert isinstance(config, BaseMeasurementConfiguration)`
+- [X] T036 Tests in `tests/test_registry/test_config.py` that a configuration supplying an
+  administrative class not built on the framework's configured base is refused, and that the message
+  names that base. The test imports the base under its own name, never under an alias.
+  - **Was, at reconciliation:** built differently — the test imports the stub under the real class's name (`tests/test_registry/test_config.py:641`), so it asserts against the wrong class by construction
+- [X] T037 That validation in `fairdm/registry/config.py`, checking against the configured base.
+  - **Was, at reconciliation:** built differently — validation checks `fairdm.core.admin.MeasurementAdmin` (`fairdm/registry/config.py:377`), the two-line stub
+- [X] T038 Exactly one administrative class for the measurement record and exactly one base for the
+  types beneath it, with no unreachable duplicate of either anywhere in the framework. Both registry
+  references are repointed: the validation in `fairdm/registry/config.py` and the generation in
+  `fairdm/registry/factories.py`.
+  - **Was, at reconciliation:** built differently — two administrative classes and two parent admins exist (`fairdm/core/admin.py:26`, `:33`)
+
+## Phase 3 — Cross-dataset linking
+
+- [X] T039 Tests that a measurement in one dataset naming a sample from another is created, and that
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:71`. Test: `tests/test_core/test_measurement/test_models.py:222` — `assert measurement.sample.dataset != measurement.dataset`
+  the measurement is attributed to its own dataset while the sample stays attributed to the sample's.
+- [X] T040 Tests that a user holding editing rights on the measurement's dataset and not on the
+  sample's may edit the measurement and may not edit the sample.
+  - **Was, at reconciliation:** never built — every test covering the cross-dataset rights boundary is skipped
+- [X] T041 Tests that deleting the measurement's dataset removes the measurement whatever dataset
+  - **Reopened at design review, since closed:** same vacuous citation as T013. `test_models.py:784` covers both halves, including the cross-dataset sample.
+  its sample belongs to, and that deleting the sample is refused while the measurement refers to it.
+
+## Phase 4 — Descriptions, dates and identifiers
+
+- [X] T042 Tests that a measurement's descriptions, dates and identifiers each refer to the
+  measurement directly, and that all three are deleted when it is.
+  - **Was, at reconciliation:** built without tests — the direct relation is asserted (`test_models.py:647`); the cascade on delete is not
+- [X] T043 The three records with direct relations to `Measurement`, cascading on delete.
+  - **Was, at reconciliation:** built without tests — same
+- [X] T044 Tests that a description's type is drawn from the measurement description vocabulary,
+  asserted by naming the members that vocabulary contains rather than by iterating whatever it holds.
+  - **Was, at reconciliation:** built differently — the test asserts `desc.type == "method"`, which is not a member of the measurement description vocabulary, and passes only because nothing validates
+- [X] T045 The description vocabulary binding on `MeasurementDescription`.
+  - **Was, at reconciliation:** built without tests — the binding exists (`models.py:184`) but its only test asserts an invalid member
+- [X] T046 Tests that a date's type is drawn from the measurement date vocabulary, asserted the same
+  way.
+  - **Was, at reconciliation:** built differently — the test asserts `date.type == "measured"`, not a member of the measurement date vocabulary
+- [X] T047 The date vocabulary binding on `MeasurementDate`.
+  - **Was, at reconciliation:** built without tests — the binding exists (`models.py:195`) but its only test asserts an invalid member
+- [X] T048 Tests that an identifier's type is drawn from the measurement identifier collection, and
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:208`. Test: `tests/test_core/test_measurement/test_models.py:183` — `assert set(MeasurementIdentifier.VOCABULARY.values) == {"DOI"}`
+  that the collection contains no type belonging to another kind of record.
+- [X] T049 The identifier collection and its binding on `MeasurementIdentifier`.
+  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:208`. Test: `tests/test_core/test_measurement/test_models.py:183` — `assert set(MeasurementIdentifier.VOCABULARY.values).isdisjoint(...)`
+- [X] T050 Tests that a description, date or identifier carrying a type outside its vocabulary is
+  refused by validation with a message naming the offending type.
+  - **Was, at reconciliation:** never built
+- [X] T051 That validation on the three metadata records.
+  - **Was, at reconciliation:** never built — the metadata records carry field choices and no validation, and a direct create bypasses choices entirely
+
+## Phase 5 — The mixins and their wiring
+
+- [X] T052 Tests in `test_filters.py` that a filter set inheriting the filter mixin carries every
+  filter the mixin declares, named one by one.
+  - **Was, at reconciliation:** built differently — the only covering test asserts two measurements are present, which an empty filter set also satisfies
+- [X] T115 The dataset choices offered by the filter mixin are scoped to what the requesting
+  reader may see, the way the form mixin already scopes them — the mixin currently assigns every
+  dataset in the portal unconditionally, so a private dataset's name is offered to a reader holding
+  no right over it, and T063 would carry that into every filter set the registry generates.
+- [X] T053 `MeasurementFilterMixin` in `fairdm/core/measurement/filters.py` carrying those filters,
+  built so that the filtering library collects them from an inheriting class, and with a `Meta` that
+  names no model so no unused filter set is generated per subclass.
+  - **Was, at reconciliation:** never built — the mixin declares no filters (`filters.py:19`)
+- [X] T054 Tests in `test_forms.py` that a form inheriting the form mixin and given the requesting
+  user offers only the datasets that user may add measurements to, including datasets that are not
+  publicly visible.
+  - **Was, at reconciliation:** built differently — the covering test asserts `hasattr(form, 'request')`
+- [X] T055 Tests that a form inheriting the form mixin and given no user offers no dataset at all.
+  - **Was, at reconciliation:** never built
+- [X] T056 The dataset scoping in `MeasurementFormMixin` in `fairdm/core/measurement/forms.py`.
+  - **Was, at reconciliation:** built without tests — the scoping exists (`forms.py:76`) and nothing asserts it
+- [X] T057 Tests that guidance text a form defines for a field reaches the rendered field, asserted
+  on the rendered field rather than on the form's configuration.
+  - **Was, at reconciliation:** never built
+- [X] T058 The guidance text on the measurement form's fields, marked for translation.
+  - **Was, at reconciliation:** built differently — declared as `help_text` rather than `help_texts` (`forms.py:150`), so all four strings are inert
+- [X] T059 Tests that every address the form's controls refer to resolves.
+  - **Was, at reconciliation:** never built
+- [X] T060 Those controls in `MeasurementFormMixin`.
+  - **Was, at reconciliation:** built differently — the control reverses `admin:core_dataset_add` (`forms.py:64`), which does not resolve
+- [X] T061 Tests in `tests/test_registry/` that the form and the filter set the registry generates
+  for a measurement type supplying neither carry the mixins' behaviour rather than the framework's
+  plain defaults.
+  - **Was, at reconciliation:** never built
+- [X] T062 The measurement branch in the registry's form factory, in `fairdm/registry/factories.py`.
+  - **Was, at reconciliation:** never built — the form factory has a sample branch only (`fairdm/registry/factories.py:172`)
+- [X] T063 The measurement branch in the registry's filter factory.
+  - **Was, at reconciliation:** never built — the filter factory has a sample branch only (`fairdm/registry/factories.py:479`)
+
+## Phase 6 — Finding measurements
+
+- [X] T064 Tests that narrowing by one dataset leaves only that dataset's measurements, and
+  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:88`. Test: `tests/test_core/test_measurement/test_filters.py:63` — `assert measurement1 in filterset.qs / assert measurement2 not in filterset.qs`
+  narrowing by one sample only that sample's.
+- [X] T065 The dataset and sample filters.
+  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:88`. Test: `tests/test_core/test_measurement/test_filters.py:63` — `assert measurement2 not in filterset.qs`
+- [X] T066 Tests that the measurement type choices offered are exactly the registered measurement
+  types — including one registered from outside the framework and excluding records that are not
+  measurements — and that narrowing by one leaves only measurements of that type.
+  - **Was, at reconciliation:** built without tests — narrowing is asserted, nothing asserts which choices are offered
+- [X] T067 The type filter, drawing its choices from the registry.
+  - **Was, at reconciliation:** built differently — choices come from a fixed application list (`filters.py:151`) that excludes the record's own application and any portal's
+- [X] T068 Tests that a search term returns measurements whose name or generated identifier contains
+  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:112`. Test: `tests/test_core/test_measurement/test_filters.py:184` — `assert measurement1 in filterset.qs (searched by name, then by uuid at :194)`
+  it, and no others.
+- [X] T069 The search filter.
+  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:155`. Test: `tests/test_core/test_measurement/test_filters.py:184` — `assert measurement3 not in filterset.qs`
+- [X] T070 Tests that narrowing by description text leaves only measurements whose descriptions
+  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:118`. Test: `tests/test_core/test_measurement/test_filters.py:238` — `assert measurement2 not in filterset.qs (filtered on description text)`
+  match.
+- [X] T071 The description filter.
+  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:118`. Test: `tests/test_core/test_measurement/test_filters.py:238` — `assert measurement1 in filterset.qs`
+- [X] T072 Tests that narrowing by a range of dates works, including for dates recorded only as a
+  year or as a year and month.
+  - **Was, at reconciliation:** never built — the covering test is skipped
+- [X] T073 The date-range filters, passing a value the partial-date field accepts.
+  - **Was, at reconciliation:** built differently — a date filter cleans input to a `date`, which the partial-date field refuses (`filters.py:125`)
+- [X] T074 Tests that a reader entitled to a dataset that is not publicly visible finds it among the
+  dataset choices, on a filter set built from the mixin as well as on one built by the registry.
+  - **Was, at reconciliation:** built without tests — the mixin half is covered (`test_filters.py:352` builds a filter set from the mixin and validates against a private dataset); the registry-generated half is not
+- [X] T075 The dataset choices, widened on the mixin so that an inheriting filter set inherits the
+  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:59`. Test: `tests/test_core/test_measurement/test_filters.py:62` — `assert filterset.is_valid() - the test's datasets are deliberately left private (its own comment says so), so an unwidened choice field would fail validation`
+  widening.
+- [X] T076 Tests that two filters applied together leave only measurements satisfying both.
+  - **Reopened at design review, since closed:** the second filter does no work — the only row the dataset filter would remove is assigned to a discarded name and never asserted (`test_filters.py:307`).
+
+## Phase 7 — Access
+
+- [X] T077 Tests in `test_permissions.py` that a user holding view, change or delete over a dataset
+  holds the corresponding right over its measurements, and that a user holding nothing holds nothing.
+  - **Was, at reconciliation:** never built — the covering tests are skipped
+- [X] T078 The derivation of a measurement's rights from its dataset, in
+  `fairdm/core/measurement/permissions.py`.
+  - **Was, at reconciliation:** built without tests — the derivation works (`permissions.py:96`) and every covering test is skipped
+- [X] T079 Tests that a right granted over one measurement applies to that measurement and to no
+  other.
+  - **Was, at reconciliation:** never built — skipped
+- [X] T080 Direct rights over a measurement.
+  - **Was, at reconciliation:** built without tests — skipped
+- [X] T081 Tests that rights over the sample a measurement names derive from that sample's own
+  dataset, independently of the measurement's.
+  - **Was, at reconciliation:** never built — skipped
+- [X] T082 Tests that a right can be granted over a measurement of a registered type as well as
+  consulted on it, and that the answers match those for the bare record.
+  - **Was, at reconciliation:** never built — skipped
+- [X] T083 Whatever normalisation that grant needs, so that a registered type is not treated as a
+  record of its own.
+  - **Was, at reconciliation:** built without tests — the normalisation lives in `fairdm/core/permissions.py` and no measurement test reaches it
+- [X] T084 The backend registered in the project's authentication settings.
+  - **Was, at reconciliation:** built without tests — registered (`fairdm/conf/settings/auth.py:58`) with nothing asserting it
+- [X] T085 Confirm no test covering behaviour in this specification is skipped, and that the suite
+  reports none.
+  - **Was, at reconciliation:** never built — seventeen tests are skipped
+
+## Phase 8 — The value a measurement reports
+
+- [X] T086 Tests that a measurement type nominating a value reports that value, and that a type
+  nominating none reports the record's name.
+  - **Was, at reconciliation:** built without tests — the fallback is asserted; the nominated-value case cannot be, because no type nominates one
+- [X] T087 The value report on `Measurement`.
+  - **Was, at reconciliation:** built without tests — same
+- [X] T088 Tests that where a type records an uncertainty alongside its value, the reported value
+  carries the uncertainty.
+  - **Was, at reconciliation:** never built
+- [X] T089 That behaviour on `Measurement`, returning the value unchanged where it carries no
+  uncertainty arithmetic of its own. A type may nominate a plain number, which the specification's
+  assumptions allow, and the record's string representation calls this — so an unguarded call makes
+  such a type unrenderable everywhere it appears.
+  - **Was, at reconciliation:** built without tests — the branch has never executed
+- [X] T090 Tests that rendering a value for a person shows the value and its uncertainty together
+  with any units, asserted on the rendered string and executed outside any template.
+  - **Was, at reconciliation:** never built
+- [X] T091 The human rendering on `Measurement`, delegating to the framework's existing quantity
+  formatter rather than building a string.
+  - **Was, at reconciliation:** built differently — reads `value.err` (`models.py:151`); the object carries `.value` and `.error`
+- [X] T092 That formatter installed where the application loads it at startup, not as a side effect
+  of importing a template tag module.
+  - **Was, at reconciliation:** built differently — installed as an import side effect of a template tag module
+- [X] T093 A measurement type distributed with the framework nominating a value and recording an
+  uncertainty, in `fairdm_demo/models.py`, using the framework's quantity fields.
+  - **Was, at reconciliation:** never built — no measurement type anywhere nominates a value
+- [X] T094 The migration for those fields, additive and optional.
+  - **Was, at reconciliation:** never built
+
+## Phase 9 — Administration
+
+- [X] T095 Tests in `test_admin.py` that the measurement list can be searched by name and by
+  - **Reopened at design review, since closed:** the search half is genuinely covered (`test_admin.py:61` calls `get_search_results`). The narrowing is not implemented at all: `list_filter` is `["added"]` on both classes (`admin.py:85`, `:163`), and the three filter tests call `Measurement.objects.filter(...)` directly without ever using the admin fixture they accept.
+  generated identifier, and narrowed by dataset, by sample and by measurement type.
+- [X] T096 That search and those filters on the parent administrative class.
+  - **Reopened at design review, since closed:** same as T095 — FR-040's narrowing by dataset and by sample is absent from `list_filter`.
+- [X] T097 Tests that a measurement's descriptions, dates, identifiers and contributions can each be
+  added and changed from the measurement's own page, and that none offers more rows than its
+  vocabulary has types.
+  - **Was, at reconciliation:** built differently — inline row limits are hard-coded to six (`admin.py:26`, `:34`) while the vocabularies hold four and two
+- [X] T098 Those inline editors on the child administrative base.
+  - **Was, at reconciliation:** built differently — same
+- [X] T099 Tests that every registered measurement type offers the same attached-record editors.
+  - **Was, at reconciliation:** never built
+- [X] T100 Tests that the administrative list names the measurement type of each row.
+  - **Was, at reconciliation:** never built — the list_display test does not assert the type column
+- [X] T101 That column.
+  - **Was, at reconciliation:** built without tests — the column exists (`admin.py:166`) with nothing asserting it
+- [X] T102 Tests that the generated identifier and the timestamps are presented as unchangeable.
+  - **Reconciled done.** Code: `fairdm/core/measurement/admin.py:87`. Test: `tests/test_core/test_measurement/test_admin.py:350` — `assert "uuid" in measurement_admin.readonly_fields`
+- [X] T103 Those fields marked unchangeable.
+  - **Reconciled done.** Code: `fairdm/core/measurement/admin.py:87`. Test: `tests/test_core/test_measurement/test_admin.py:350` — `assert "modified" in measurement_admin.readonly_fields`
+
+## Phase 10 — Loading measurements
+
+- [X] T104 Tests in `test_models.py` that loading measurements together with their datasets, samples
+  - **Reopened at design review, since closed:** the cited test creates 100 rows, not the 1000 the evidence quoted, touches only the first ten, and counts once. A single measurement is not a growth bound.
+  and contributors takes a number of queries that does not grow as the number of measurements grows,
+  asserted by counting queries at two different sizes.
+- [X] T105 That loading on the measurement queryset in `fairdm/core/measurement/managers.py`.
+  - **Reconciled done.** Code: `fairdm/core/measurement/managers.py:56`. Test: `tests/test_core/test_measurement/test_models.py:360` — `assert queries_with < queries_without`
+- [X] T106 Tests that loading measurements together with their descriptions, dates and identifiers
+  takes a number of queries that does not grow with the number of measurements.
+  - **Was, at reconciliation:** built without tests — the covering test uses a single measurement, so it cannot establish non-growth
+- [X] T107 That loading on the queryset.
+  - **Reopened at design review, since closed:** tautological — one measurement, and the unoptimised path already meets the asserted bound. The test's own comment says the benefit only shows with several.
+- [X] T108 Tests that both compose with each other and with ordinary filtering and ordering.
+  - **Reopened at design review, since closed:** the cited chain never orders, so half of FR-047 is unexercised.
+
+## Phase 11 — Documentation
+
+- [X] T109 Bring `docs/portal-development/measurements.md` to what the code does: defining a
+  measurement type, what registration produces, the form and filter behaviour inherited, and the
+  value convention with a worked example that runs.
+  - **Was, at reconciliation:** never built
+- [X] T110 Bring `docs/portal-administration/managing-measurements.md` to what the administrative
+  interface does.
+  - **Was, at reconciliation:** never built
+- [X] T111 Correct `docs/portal-development/using_the_registry.md` where it names the administrative
+  base a portal inherits for a measurement type.
+  - **Was, at reconciliation:** never built
+- [X] T112 A changelog entry naming the behaviour that changed, including anything a portal would
+  have to alter.
+  - **Was, at reconciliation:** never built
+- [X] T113 Confirm every statement the measurement models, admin, forms, filters and vocabularies
+  make about their own behaviour is true of the code as it stands, and correct any that is not.
+  - **Was, at reconciliation:** never built
+- [X] T114 Replace the only test of a measurement's own address. It wrapped its request in a bare
+  `try/except Exception` and reported a skip, so it reported a skip whatever went wrong.
+  - **Was, at reconciliation:** added at design review, and reported blocked on the first attempt —
+    the address resolves but the page behind it raises `TemplateDoesNotExist` for a component that
+    ships nowhere. The page is out of scope, so the replacement proves resolution rather than
+    rendering; the broken render is filed as issue #228.

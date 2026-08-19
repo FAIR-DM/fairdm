@@ -7,15 +7,13 @@ Provides reusable fixtures for testing the Measurement model and related functio
 import pytest
 from django.contrib.auth import get_user_model
 
-from fairdm.core.dataset.models import Dataset
 from fairdm.factories import (
     DatasetFactory,
-    MeasurementFactory,
     PersonFactory,
     ProjectFactory,
 )
 from fairdm.registry import registry
-from fairdm_demo.factories import RockSampleFactory
+from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 User = get_user_model()
 
@@ -51,9 +49,38 @@ def sample(db, dataset):
 
 
 @pytest.fixture
+def second_dataset(db, project):
+    """Create a second dataset, distinct from `dataset`, for cross-dataset cases."""
+    return DatasetFactory(project=project)
+
+
+@pytest.fixture
+def second_sample(db, second_dataset):
+    """Create a sample belonging to `second_dataset`, distinct from `sample`."""
+    return RockSampleFactory(dataset=second_dataset)
+
+
+@pytest.fixture
+def user_no_rights(db):
+    """Create a second user holding no permissions on anything at all.
+
+    Distinct from `user`: this fixture exists specifically so a test can assert an
+    absence of access without needing to reason about what `user` might have been
+    granted elsewhere in the same test.
+    """
+    return PersonFactory(is_active=True)
+
+
+@pytest.fixture
 def measurement(db, sample):
-    """Create a base Measurement instance linked to a sample."""
-    return MeasurementFactory(sample=sample)
+    """Create a concrete measurement instance (never a bare Measurement) linked to a
+    sample.
+
+    `Measurement` is a polymorphic base that cannot be created directly (FR-011) - see
+    `MeasurementFactory`'s docstring. This fixture uses the demo application's
+    `ExampleMeasurementFactory` as its concrete type.
+    """
+    return ExampleMeasurementFactory(sample=sample)
 
 
 @pytest.fixture

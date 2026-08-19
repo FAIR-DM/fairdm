@@ -625,3 +625,42 @@ class TestGeneratedFilterSetClass:
         ).generate()
 
         assert "depth" not in filterset_class.base_filters
+
+
+@pytest.mark.django_db
+class TestFormFactoryMeasurementBranch:
+    """T061/T062 - a measurement type supplying no form of its own still
+    gets `MeasurementFormMixin`'s widget configuration (dataset scoping,
+    Select2 widgets) rather than a bare `ModelForm`, the same way
+    `TestRegistryUsesTheMixins` proves it for samples
+    (tests/test_core/test_sample/test_config.py)."""
+
+    def test_generated_form_uses_the_measurement_form_mixins_dataset_widget(self):
+        from django_addanother.widgets import AddAnotherWidgetWrapper
+
+        from fairdm_demo.models import XRFMeasurement
+
+        form_class = FormFactory(XRFMeasurement, fields=["name", "dataset"]).generate()
+        form = form_class()
+
+        assert isinstance(form.fields["dataset"].widget, AddAnotherWidgetWrapper)
+
+
+@pytest.mark.django_db
+class TestFilterFactoryMeasurementBranch:
+    """T061/T063 - a measurement type supplying no filter set of its own
+    still gets `MeasurementFilterMixin`'s declared filters rather than a
+    bare `FilterSet` - a plain `FilterSet` base would never have "search",
+    because it names no model field."""
+
+    def test_generated_filterset_carries_the_measurement_filter_mixins_search_filter(
+        self,
+    ):
+        from fairdm_demo.models import XRFMeasurement
+
+        filterset_class = FilterFactory(
+            XRFMeasurement, fields=["name", "dataset"]
+        ).generate()
+
+        assert "search" in filterset_class.base_filters
+        assert "sample" in filterset_class.base_filters

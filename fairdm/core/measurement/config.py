@@ -19,7 +19,14 @@ Example usage in custom measurement models:
     ```
 """
 
-from fairdm.registry.config import ModelConfiguration
+from fairdm.registry.config import ModelConfiguration, flatten_fields
+
+#: Components whose generated class must carry a registered type's own fields
+#: (``self.fields``) alongside the fields every measurement has. Excludes
+#: ``admin``, whose generated ``list_display`` already draws from ``fields``
+#: directly because ``BaseMeasurementConfiguration`` declares no
+#: ``admin_list_display`` of its own.
+COMPONENTS_ADDING_OWN_FIELDS = ("form", "table", "filterset")
 
 
 class BaseMeasurementConfiguration(ModelConfiguration):
@@ -99,3 +106,25 @@ class BaseMeasurementConfiguration(ModelConfiguration):
     # Display metadata
     display_name = "Measurement"
     description = "Observation or calculation recorded from a sample"
+
+    def resolve_fields(self, component: str) -> list[str]:
+        """The fields every measurement has, followed by this type's own.
+
+        The base class above declares a fixed field list per component, so a
+        subclass's own ``fields`` (e.g. ``XRFMeasurementConfig.fields``) never
+        reaches ``ModelConfiguration.resolve_fields`` for form, table or
+        filterset - that method only falls back to ``self.fields`` when the
+        component's own list is undeclared, and here it always is declared.
+        Appending the type's own fields here is what lets a registered type's
+        form, table and filterset carry its own fields as well as the common
+        ones, without every type author repeating the common list.
+        """
+        common = super().resolve_fields(component)
+        if component not in COMPONENTS_ADDING_OWN_FIELDS:
+            return common
+
+        own = flatten_fields(self.fields)
+        excluded = set(self.exclude)
+        return common + [
+            name for name in own if name not in common and name not in excluded
+        ]

@@ -36,9 +36,10 @@ Factories Available
   instantiated directly because the ``Sample`` model it declares cannot be created directly
   either. A reference implementation lives in ``fairdm_demo.factories`` (e.g.
   ``RockSampleFactory``); a portal defines its own alongside its own specimen types.
-- ``MeasurementFactory`` - Create Measurement instances with optional descriptions/dates. Its
-  ``sample`` field has no default for the same reason - pass a concrete specimen factory's
-  instance.
+- ``MeasurementFactory`` - **Abstract.** The base every measurement factory builds on; it cannot
+  be instantiated directly because the ``Measurement`` model it declares cannot be created
+  directly either. A reference implementation lives in ``fairdm_demo.factories`` (e.g.
+  ``ExampleMeasurementFactory``); a portal defines its own alongside its own measurement types.
 
 Metadata Factories
 ------------------
@@ -98,7 +99,11 @@ from fairdm.core.dataset.models import (
     DatasetIdentifier,
     DatasetLiteratureRelation,
 )
-from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
+from fairdm.core.measurement.models import (
+    MeasurementDate,
+    MeasurementDescription,
+    MeasurementIdentifier,
+)
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import (
     ProjectDate,
@@ -565,8 +570,13 @@ class MeasurementDescriptionFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementDescription
 
-    type = "Abstract"  # Default description type
+    # "Abstract" is not a member of the measurement description vocabulary
+    # (MeasurementConditions, MeasurementSetup, MeasurementTearDown, Other) - it
+    # previously saved without complaint because Django does not validate
+    # `choices` on save.
+    type = "MeasurementConditions"  # Default description type - a member of the measurement description collection
     value = Faker("text", max_nb_chars=300)
+    # related field will be set by the caller
 
 
 class MeasurementDateFactory(DjangoModelFactory):
@@ -575,26 +585,54 @@ class MeasurementDateFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementDate
 
-    type = "Created"  # Default date type
+    # "Created" is not a member of the measurement date vocabulary (Setup,
+    # TearDown) - it previously saved without complaint because Django does
+    # not validate `choices` on save.
+    type = "Setup"  # Default date type - a member of the measurement date collection
     value = Faker("partial_date")
+    # related field will be set by the caller
+
+
+class MeasurementIdentifierFactory(DjangoModelFactory):
+    """Factory for creating MeasurementIdentifier instances."""
+
+    class Meta:
+        model = MeasurementIdentifier
+
+    type = (
+        "DOI"  # Default identifier type - the only member of the measurement collection
+    )
+    # AbstractIdentifier.value is unique across every record that carries identifiers.
+    value = factory.Sequence(lambda n: f"10.{4000 + n}/measurement-{n}")
+    # related field will be set by the caller
 
 
 class MeasurementFactory(DjangoModelFactory):
-    """Factory for creating Measurement instances.
+    """Abstract factory for creating Measurement instances.
+
+    ``Measurement`` is a polymorphic base that cannot be created directly (only a registered
+    measurement type can be) - see ``fairdm.core.measurement.models.Measurement``'s ``clean``
+    guard. This factory declares the fields every measurement shares and is meant to be
+    subclassed, never instantiated on its own. The framework's reference implementation
+    supplies concrete subclasses in ``fairdm_demo.factories`` (``ExampleMeasurementFactory``,
+    ``XRFMeasurementFactory``, ``ICP_MS_MeasurementFactory``, ...); a portal defines its own
+    alongside its own measurement types.
 
     By default, creates a minimal Measurement with only required fields. Dataset is
     auto-created if not provided, but ``sample`` has no default and must always be passed
     explicitly: ``Sample`` is a polymorphic base that cannot be created directly, and this
     factory has no concrete specimen type of its own to fall back on (see ``SampleFactory``).
-    Pass a concrete specimen instance, e.g. ``MeasurementFactory(sample=RockSampleFactory())``.
+    Pass a concrete specimen instance, e.g.
+    ``XRFMeasurementFactory(sample=RockSampleFactory())``.
 
-    To create descriptions/dates:
-        MeasurementFactory(sample=some_sample, descriptions=2)
-        MeasurementFactory(sample=some_sample, dates=1)
+    To create descriptions/dates on a concrete subclass:
+        ExampleMeasurementFactory(sample=some_sample, descriptions=2)
+        ExampleMeasurementFactory(sample=some_sample, dates=1)
     """
 
     class Meta:
         model = Measurement
+        abstract = True
 
     # Basic fields
     name = Faker("word")

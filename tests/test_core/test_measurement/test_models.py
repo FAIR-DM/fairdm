@@ -12,7 +12,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
+from django.urls import resolve
 
 from fairdm.core.measurement.forms import MeasurementForm
 from fairdm.core.measurement.models import (
@@ -23,10 +23,12 @@ from fairdm.core.measurement.models import (
 from fairdm.core.models import Measurement, Sample
 from fairdm.factories import (
     DatasetFactory,
-    MeasurementFactory,
+    MeasurementDateFactory,
+    MeasurementDescriptionFactory,
+    MeasurementIdentifierFactory,
     PersonFactory,
 )
-from fairdm_demo.factories import RockSampleFactory
+from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -80,6 +82,127 @@ class TestMeasurementModelCreation:
         assert xrf_measurement.uuid != icp_ms_measurement.uuid
         assert xrf_measurement.uuid.startswith("m")
         assert icp_ms_measurement.uuid.startswith("m")
+
+    def test_uuid_is_not_editable_afterwards(self, measurement):
+        """T007 - ``editable=False`` is what makes it unchangeable: excluded from a generated
+        ``ModelForm`` and presented read-only in the admin (mirrors
+        ``TestSampleIdentity.test_uuid_is_not_editable_afterwards``)."""
+        from fairdm.core.measurement.admin import MeasurementChildAdmin
+
+        assert "uuid" not in MeasurementForm.base_fields
+        assert "uuid" in MeasurementChildAdmin.readonly_fields
+
+
+@pytest.mark.django_db
+class TestMeasurementFields:
+    """T009 - a name is required; a measurement's own label, image, controlled keywords and
+    free-form tags are each optional."""
+
+    def test_name_is_required(self, sample):
+        from fairdm_demo.models import ExampleMeasurement
+
+        instance = ExampleMeasurement(sample=sample, dataset=sample.dataset)
+
+        with pytest.raises(ValidationError) as exc_info:
+            instance.full_clean()
+
+        assert "name" in exc_info.value.message_dict
+
+    def test_label_image_keywords_and_tags_are_all_optional(self, sample):
+        instance = ExampleMeasurementFactory(sample=sample, local_id=None, image=None)
+
+        instance.full_clean()  # does not raise
+
+        assert not instance.local_id
+        assert not instance.image
+        assert instance.keywords.count() == 0
+        assert instance.tags.count() == 0
+
+
+class TestMeasurementFieldMetadata:
+    """T010 - every field the record carries declares a verbose name and guidance text, both
+    marked for translation. ``uuid`` is excluded, matching the sibling Sample record's
+    ``TestSampleTranslatable`` - its own ``verbose_name`` is a plain string there too."""
+
+    def test_field_verbose_names_and_help_text_are_lazy(self):
+        from django.utils.functional import Promise
+
+        for field_name in ["dataset", "sample", "local_id"]:
+            field = Measurement._meta.get_field(field_name)
+            assert isinstance(field.verbose_name, Promise), field_name
+            assert isinstance(field.help_text, Promise), field_name
+
+
+@pytest.mark.django_db
+class TestMeasurementLocalId:
+    """T011/T012 - the researcher's own label carries no uniqueness constraint and is indexed;
+    two measurements in different datasets may carry the same label."""
+
+    def test_local_id_has_no_uniqueness_constraint(self):
+        field = Measurement._meta.get_field("local_id")
+        assert field.unique is False
+
+    def test_local_id_is_indexed(self):
+        field = Measurement._meta.get_field("local_id")
+        assert field.db_index is True
+
+    def test_the_same_local_id_is_valid_in_two_different_datasets(
+        self, dataset, second_dataset, sample, second_sample
+    ):
+        one = ExampleMeasurementFactory(dataset=dataset, sample=sample, local_id="LAB-001")
+        two = ExampleMeasurementFactory(
+            dataset=second_dataset, sample=second_sample, local_id="LAB-001"
+        )
+
+        one.full_clean()
+        two.full_clean()
+        assert one.local_id == two.local_id == "LAB-001"
+
+
+@pytest.mark.django_db
+class TestMeasurementTimestamps:
+    """T017 - creation and modification times are recorded; modification time advances on a
+    change while creation time does not."""
+
+    def test_creation_and_modification_times_are_recorded(self, measurement):
+        assert measurement.added is not None
+        assert measurement.modified is not None
+
+    def test_modification_time_advances_on_change(self, measurement):
+        original_added = measurement.added
+        original_modified = measurement.modified
+
+        measurement.name = "Renamed"
+        measurement.save()
+        measurement.refresh_from_db()
+
+        assert measurement.modified > original_modified
+        assert measurement.added == original_added
+
+
+@pytest.mark.django_db
+class TestMeasurementContributions:
+    """T019/T020 - a contribution records a contributor and one or more roles, drawn from the
+    measurement contributor vocabulary and no other; the vocabulary's members are asserted by
+    name, never by iterating whatever it holds."""
+
+    def test_measurement_role_vocabulary_members(self):
+        assert Measurement.CONTRIBUTOR_ROLES.values == [
+            "MeasurementPreparation",
+            "MeasurementCollection",
+            "Support",
+        ]
+
+    def test_contribution_records_contributor_and_roles(self, measurement):
+        contributor = PersonFactory()
+
+        contribution = measurement.add_contributor(
+            contributor, with_roles=["MeasurementCollection", "Support"]
+        )
+
+        assert contribution.contributor == contributor
+        role_names = set(contribution.roles.values_list("name", flat=True))
+        assert role_names == {"MeasurementCollection", "Support"}
 
 
 @pytest.mark.django_db
@@ -148,13 +271,18 @@ class TestMeasurementVocabularyValidation:
         """Test that MeasurementDescription uses 'Measurement' vocabulary collection."""
         from fairdm.core.measurement.models import MeasurementDescription
 
-        # Create a description
+        # T044: "method" is not a member of the measurement description vocabulary
+        # (MeasurementConditions, MeasurementSetup, MeasurementTearDown, Other) - it
+        # only passed here because nothing validated `type` before T050/T051 closed
+        # that gap. "MeasurementSetup" is a real member.
         desc = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF spectroscopy analysis"
+            related=measurement,
+            type="MeasurementSetup",
+            value="XRF spectroscopy analysis",
         )
 
         # Verify the vocabulary type comes from Measurement collection
-        assert desc.type == "method"  # type field returns string value
+        assert desc.type == "MeasurementSetup"  # type field returns string value
         # The vocabulary should be from FairDMDescriptions "Measurement" collection
         assert desc.VOCABULARY is not None
 
@@ -162,13 +290,15 @@ class TestMeasurementVocabularyValidation:
         """Test that MeasurementDate uses 'Measurement' vocabulary collection."""
         from fairdm.core.measurement.models import MeasurementDate
 
-        # Create a date
+        # T046: "measured" is not a member of the measurement date vocabulary
+        # (Setup, TearDown) - it only passed here because nothing validated `type`
+        # before T050/T051 closed that gap. "Setup" is a real member.
         date = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
 
         # Verify the vocabulary type comes from Measurement collection
-        assert date.type == "measured"  # type field returns string value
+        assert date.type == "Setup"  # type field returns string value
         # The vocabulary should be from FairDMDates "Measurement" collection
         assert date.VOCABULARY is not None
 
@@ -196,6 +326,134 @@ class TestMeasurementIdentifierVocabulary:
                 "PROPOSAL_ID",
             }
         )
+
+
+@pytest.mark.django_db
+class TestMeasurementMetadataRelations:
+    """T042/T043 - a measurement's descriptions, dates and identifiers refer to it
+    directly, and are removed along with it."""
+
+    def test_description_date_and_identifier_refer_to_the_measurement_directly(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory(related=measurement)
+        date = MeasurementDateFactory(related=measurement)
+        identifier = MeasurementIdentifierFactory(related=measurement)
+
+        assert description.related == measurement
+        assert date.related == measurement
+        assert identifier.related == measurement
+
+    def test_deleting_the_measurement_deletes_its_description_date_and_identifier(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory(related=measurement)
+        date = MeasurementDateFactory(related=measurement)
+        identifier = MeasurementIdentifierFactory(related=measurement)
+
+        measurement.delete()
+
+        assert not MeasurementDescription.objects.filter(pk=description.pk).exists()
+        assert not MeasurementDate.objects.filter(pk=date.pk).exists()
+        assert not MeasurementIdentifier.objects.filter(pk=identifier.pk).exists()
+
+
+@pytest.mark.django_db
+class TestMeasurementDescriptionVocabularyMembers:
+    """T044/T045 - a description's type is drawn from the measurement description
+    vocabulary, asserted by naming its members rather than iterating whatever the
+    vocabulary happens to hold."""
+
+    def test_available_types_are_named_one_by_one(self):
+        assert set(MeasurementDescription.VOCABULARY.values) == {
+            "MeasurementConditions",
+            "MeasurementSetup",
+            "MeasurementTearDown",
+            "Other",
+        }
+
+    def test_a_description_type_is_drawn_from_the_measurement_collection(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory(
+            related=measurement, type="MeasurementSetup"
+        )
+        assert description.type in MeasurementDescription.VOCABULARY.values
+
+
+@pytest.mark.django_db
+class TestMeasurementDateVocabularyMembers:
+    """T046/T047 - a date's type is drawn from the measurement date vocabulary,
+    asserted the same way."""
+
+    def test_available_types_are_named_one_by_one(self):
+        assert set(MeasurementDate.VOCABULARY.values) == {"Setup", "TearDown"}
+
+    def test_a_date_type_is_drawn_from_the_measurement_collection(self, measurement):
+        date = MeasurementDateFactory(related=measurement, type="TearDown")
+        assert date.type in MeasurementDate.VOCABULARY.values
+
+
+@pytest.mark.django_db
+class TestMeasurementMetadataTypeValidation:
+    """T050/T051 - a description, date or identifier carrying a type outside its
+    vocabulary is refused, whether through ``full_clean()`` or through a direct save
+    that never calls it."""
+
+    def test_description_type_outside_the_vocabulary_is_refused_by_full_clean(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory.build(
+            related=measurement, type="NotARealDescriptionType"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            description.full_clean()
+        assert "NotARealDescriptionType" in str(exc_info.value)
+
+    def test_description_type_outside_the_vocabulary_is_refused_on_direct_save(
+        self, measurement
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            MeasurementDescriptionFactory(
+                related=measurement, type="NotARealDescriptionType"
+            )
+        assert "NotARealDescriptionType" in str(exc_info.value)
+
+    def test_date_type_outside_the_vocabulary_is_refused_by_full_clean(
+        self, measurement
+    ):
+        date = MeasurementDateFactory.build(
+            related=measurement, type="NotARealDateType"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            date.full_clean()
+        assert "NotARealDateType" in str(exc_info.value)
+
+    def test_date_type_outside_the_vocabulary_is_refused_on_direct_save(
+        self, measurement
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            MeasurementDateFactory(related=measurement, type="NotARealDateType")
+        assert "NotARealDateType" in str(exc_info.value)
+
+    def test_identifier_type_outside_the_vocabulary_is_refused_by_full_clean(
+        self, measurement
+    ):
+        identifier = MeasurementIdentifierFactory.build(
+            related=measurement, type="NotARealIdentifierType"
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            identifier.full_clean()
+        assert "NotARealIdentifierType" in str(exc_info.value)
+
+    def test_identifier_type_outside_the_vocabulary_is_refused_on_direct_save(
+        self, measurement
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            MeasurementIdentifierFactory(
+                related=measurement, type="NotARealIdentifierType"
+            )
+        assert "NotARealIdentifierType" in str(exc_info.value)
 
 
 @pytest.mark.django_db
@@ -269,34 +527,23 @@ class TestMeasurementDirectInstantiation:
 class TestMeasurementURLPattern:
     """Test get_absolute_url() returns correct pattern."""
 
-    @pytest.mark.skip(reason="URL patterns not implemented yet - Phase 8")
     def test_get_absolute_url_returns_measurement_detail_pattern(self, xrf_measurement):
         """Test that get_absolute_url() follows measurement:overview pattern with UUID."""
         url = xrf_measurement.get_absolute_url()
 
         # Should match pattern: /measurement/{uuid}/
         assert url.startswith("/measurement/")
-        assert xrf_measurement.uuid in url
+        assert str(xrf_measurement.uuid) in url
         assert url.endswith("/")
 
 
 @pytest.mark.django_db
 class TestMeasurementCascadeBehavior:
-    """Test CASCADE and PROTECT deletion behavior."""
-
-    def test_deleting_dataset_cascades_to_measurements(self, xrf_measurement):
-        """Test that deleting a dataset cascades to its measurements (CASCADE)."""
-        dataset = xrf_measurement.dataset
-        measurement_pk = xrf_measurement.pk
-
-        # Delete measurement first (to avoid Sample.dataset PROTECT blocking)
-        xrf_measurement.delete()
-
-        # Delete dataset
-        dataset.delete()
-
-        # Measurement should be deleted
-        assert not Measurement.objects.filter(pk=measurement_pk).exists()
+    """Test PROTECT deletion behavior. T013/T014 - the CASCADE-on-dataset-delete case
+    previously asserted here deleted the measurement before the dataset, so its assertion held
+    whatever ``on_delete`` said; that coverage now lives at
+    ``TestMeasurementCRUDWorkflow.test_deleting_dataset_cascades_to_measurements``, which deletes
+    the dataset while the measurement still exists."""
 
     def test_deleting_sample_protects_measurements(self, xrf_measurement):
         """Test that measurements prevent sample deletion (PROTECT)."""
@@ -381,10 +628,10 @@ class TestMeasurementQuerySetOptimizations:
             detection_limit_ppm=2.0,
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF analysis"
+            related=measurement, type="MeasurementSetup", value="XRF analysis"
         )
         MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
 
         # Test without optimization
@@ -586,7 +833,7 @@ class TestMeasurementModel:
 
     def test_measurement_creation(self):
         """Test creating a basic Measurement instance."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         assert measurement.pk is not None
         assert measurement.name is not None
@@ -595,7 +842,7 @@ class TestMeasurementModel:
 
     def test_measurement_str_representation(self):
         """Test Measurement string representation calls get_value()."""
-        measurement = MeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
         str_repr = str(measurement)
         # Since get_value() depends on subclass fields, just check it doesn't error
         assert str_repr is not None
@@ -603,14 +850,14 @@ class TestMeasurementModel:
     def test_measurement_sample_relationship(self):
         """Test that measurement is associated with a sample."""
         sample = RockSampleFactory()
-        measurement = MeasurementFactory(sample=sample)
+        measurement = ExampleMeasurementFactory(sample=sample)
 
         assert measurement.sample == sample
         assert measurement in sample.measurements.all()
 
     def test_measurement_dataset_relationship(self):
         """Test that measurement is associated with a dataset."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         assert measurement.dataset is not None
         assert measurement in measurement.dataset.measurements.all()
@@ -621,7 +868,7 @@ class TestMeasurementModel:
 
     def test_measurement_get_template_name(self):
         """Test get_template_name returns correct template paths."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         templates = measurement.get_template_name()
 
         assert isinstance(templates, list)
@@ -630,7 +877,7 @@ class TestMeasurementModel:
 
     def test_measurement_get_absolute_url(self):
         """Test get_absolute_url returns measurement's own detail URL."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         url = measurement.get_absolute_url()
 
         # Should return measurement's own detail view
@@ -639,7 +886,7 @@ class TestMeasurementModel:
 
     def test_measurement_descriptions_relationship(self):
         """Test that measurement descriptions can be created correctly."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         descriptions = MeasurementDescription.objects.filter(related=measurement)
 
         # Factory may or may not create descriptions by default
@@ -648,7 +895,7 @@ class TestMeasurementModel:
 
     def test_measurement_dates_relationship(self):
         """Test that measurement dates can be created correctly."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         dates = MeasurementDate.objects.filter(related=measurement)
 
         # Factory may or may not create dates by default
@@ -657,7 +904,7 @@ class TestMeasurementModel:
 
     def test_add_contributor(self):
         """Test adding a contributor to a measurement."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         user = PersonFactory()
 
         contribution = measurement.add_contributor(user, with_roles=["Creator"])
@@ -697,24 +944,34 @@ class TestMeasurementForm:
 
 @pytest.mark.django_db
 class TestMeasurementViews:
-    """Tests for Measurement views."""
+    """Tests for Measurement views.
 
-    def test_measurement_detail_view_accessible(self, client):
-        """Test that measurement detail view is accessible."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
-        # Note: URL pattern may vary, adjust as needed
-        try:
-            response = client.get(
-                reverse("measurement:overview", kwargs={"uuid": measurement.uuid})
-            )
-            assert response.status_code in [
-                200,
-                302,
-                404,
-            ]  # May vary based on permissions
-        except Exception:
-            # URL may not be configured or may require different namespace
-            pytest.skip("Measurement detail URL not configured")
+    The page that renders a measurement's own address is out of scope for this
+    feature (it is broken - rendering `measurement/detail.html` raises
+    `TemplateDoesNotExist` for a missing `cotton/pst/...` component, filed
+    separately) - only that the address itself is real, is the measurement's
+    own, and resolves to the right view. These tests prove resolution, not
+    rendering, and never touch the client.
+    """
+
+    def test_get_absolute_url_is_the_measurements_own_address(self):
+        """`get_absolute_url()` names the measurement, not its sample."""
+        sample = RockSampleFactory()
+        measurement = ExampleMeasurementFactory(sample=sample)
+
+        measurement_url = measurement.get_absolute_url()
+
+        assert measurement_url != sample.get_absolute_url()
+        assert str(measurement.uuid) in measurement_url
+
+    def test_get_absolute_url_resolves_to_the_measurement_detail_view(self):
+        """The address `get_absolute_url()` returns resolves to `measurement:overview`."""
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        match = resolve(measurement.get_absolute_url())
+
+        assert match.view_name == "measurement:overview"
+        assert match.kwargs["uuid"] == str(measurement.uuid)
 
 
 @pytest.mark.django_db
@@ -723,7 +980,7 @@ class TestMeasurementPermissions:
 
     def test_measurement_contributor_relationship(self, user):
         """Test that measurements can have contributors."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         contribution = measurement.add_contributor(user, with_roles=["Creator"])
 
         assert measurement.contributors.count() == 1
@@ -739,7 +996,7 @@ class TestMeasurementCRUDWorkflow:
         dataset = DatasetFactory(name="Test Dataset")
         sample = RockSampleFactory(dataset=dataset)
 
-        measurement = MeasurementFactory(
+        measurement = ExampleMeasurementFactory(
             name="Test Measurement", dataset=dataset, sample=sample
         )
 
@@ -752,7 +1009,7 @@ class TestMeasurementCRUDWorkflow:
 
     def test_read_measurement_via_queryset(self):
         """Test retrieving measurements via querysets."""
-        measurement = MeasurementFactory(sample=RockSampleFactory(), name="Readable Measurement")
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Readable Measurement")
 
         retrieved = Measurement.objects.get(pk=measurement.pk)
 
@@ -762,7 +1019,7 @@ class TestMeasurementCRUDWorkflow:
 
     def test_update_measurement_fields(self):
         """Test updating measurement fields."""
-        measurement = MeasurementFactory(sample=RockSampleFactory(), name="Original Name")
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Original Name")
         original_uuid = measurement.uuid
 
         measurement.name = "Updated Name"
@@ -774,7 +1031,7 @@ class TestMeasurementCRUDWorkflow:
 
     def test_delete_measurement(self):
         """Test deleting a measurement."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         measurement_id = measurement.pk
 
         measurement.delete()
@@ -791,7 +1048,7 @@ class TestMeasurementCRUDWorkflow:
         sample = RockSampleFactory(dataset=sample_dataset)
 
         # Create measurement in different dataset, referencing the sample
-        measurement = MeasurementFactory(dataset=measurement_dataset, sample=sample)
+        measurement = ExampleMeasurementFactory(dataset=measurement_dataset, sample=sample)
         measurement_id = measurement.pk
 
         # Deleting measurement's dataset should cascade to the measurement
@@ -808,7 +1065,7 @@ class TestMeasurementCRUDWorkflow:
         from django.db import IntegrityError
 
         sample = RockSampleFactory()
-        measurement = MeasurementFactory(sample=sample)
+        measurement = ExampleMeasurementFactory(sample=sample)
 
         # Attempting to delete sample should be prevented
         with pytest.raises(IntegrityError):
@@ -831,7 +1088,7 @@ class TestCrossDatasetMeasurementSampleLinking:
         sample_b = RockSampleFactory(dataset=dataset_b)
 
         # Measurement belongs to dataset A but references sample from dataset B
-        measurement_a = MeasurementFactory(dataset=dataset_a, sample=sample_b)
+        measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
 
         assert measurement_a.dataset == dataset_a
         assert measurement_a.sample == sample_b
@@ -845,7 +1102,7 @@ class TestCrossDatasetMeasurementSampleLinking:
         dataset_b = DatasetFactory(name="Sample Dataset")
 
         sample = RockSampleFactory(dataset=dataset_b, name="Sample from B")
-        measurement = MeasurementFactory(
+        measurement = ExampleMeasurementFactory(
             dataset=dataset_a, name="Measurement in A", sample=sample
         )
 
@@ -863,9 +1120,9 @@ class TestCrossDatasetMeasurementSampleLinking:
         sample_b = RockSampleFactory(dataset=dataset_b)
 
         # Create measurements in different configurations
-        m1 = MeasurementFactory(dataset=dataset_a, sample=sample_a)  # Same dataset
-        m2 = MeasurementFactory(dataset=dataset_a, sample=sample_b)  # Cross-dataset
-        m3 = MeasurementFactory(dataset=dataset_b, sample=sample_b)  # Same dataset
+        m1 = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_a)  # Same dataset
+        m2 = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)  # Cross-dataset
+        m3 = ExampleMeasurementFactory(dataset=dataset_b, sample=sample_b)  # Same dataset
 
         # Filter by measurement dataset
         measurements_in_a = Measurement.objects.filter(dataset=dataset_a)
@@ -885,7 +1142,7 @@ class TestCrossDatasetMeasurementSampleLinking:
         dataset_b = DatasetFactory()
 
         sample = RockSampleFactory(dataset=dataset_b)
-        measurement = MeasurementFactory(dataset=dataset_a, sample=sample)
+        measurement = ExampleMeasurementFactory(dataset=dataset_a, sample=sample)
 
         sample_id = sample.pk
         measurement.delete()
@@ -900,7 +1157,7 @@ class TestMeasurementValueWithUncertainty:
 
     def test_get_value_returns_name_for_base_measurement(self):
         """Test that get_value() falls back to name for base Measurement instances."""
-        measurement = MeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
 
         value = measurement.get_value()
 
@@ -908,7 +1165,7 @@ class TestMeasurementValueWithUncertainty:
 
     def test_print_value_returns_string_representation(self):
         """Test that print_value() returns a string representation."""
-        measurement = MeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
 
         printed = measurement.print_value()
 
@@ -917,53 +1174,44 @@ class TestMeasurementValueWithUncertainty:
 
     def test_polymorphic_measurement_get_value_with_value_field(self):
         """Test that polymorphic measurements with value fields return appropriate representations."""
-        # This test requires a polymorphic measurement type
-        # Using demo app's XRFMeasurement as example
-        try:
-            from fairdm_demo.models import XRFMeasurement
+        # Using the demo app's XRFMeasurement, which nominates no value of its own,
+        # so the report falls back to the record's name.
+        from fairdm_demo.models import XRFMeasurement
 
-            xrf = XRFMeasurement.objects.create(
-                name="Iron Analysis",
-                dataset=DatasetFactory(),
-                sample=RockSampleFactory(),
-                element="Fe",
-                concentration_ppm=45.2,
-            )
+        xrf = XRFMeasurement.objects.create(
+            name="Iron Analysis",
+            dataset=DatasetFactory(),
+            sample=RockSampleFactory(),
+            element="Fe",
+            concentration_ppm=45.2,
+        )
 
-            value = xrf.get_value()
+        value = xrf.get_value()
 
-            # Should return meaningful value representation (implementation-specific)
-            assert value is not None
-            # Value could be name, concentration, or formatted string depending on implementation
-            assert str(value) != ""
-
-        except ImportError:
-            pytest.skip("Demo XRFMeasurement not available")
+        assert value == "Iron Analysis"
 
     def test_value_display_consistent_across_polymorphic_types(self):
         """Test that value display is consistent across different measurement types."""
         # Base measurements use name
-        base_measurement = MeasurementFactory(sample=RockSampleFactory(), name="Base Measurement")
+        base_measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Base Measurement")
         assert base_measurement.get_value() == "Base Measurement"
 
-        # Polymorphic types should provide type-specific value
-        try:
-            from fairdm_demo.models import ICPMSMeasurement
+        # A type that nominates a value and an uncertainty reports both, formatted
+        # together - this is the convention this feature built (see test_value.py).
+        from fairdm_demo.models import ICP_MS_Measurement
 
-            icp_ms = ICPMSMeasurement.objects.create(
-                name="Uranium Analysis",
-                dataset=DatasetFactory(),
-                sample=RockSampleFactory(),
-                isotope="U-238",
-                concentration=12.5,
-            )
+        icp_ms = ICP_MS_Measurement.objects.create(
+            name="Uranium Analysis",
+            dataset=DatasetFactory(),
+            sample=RockSampleFactory(),
+            isotope="U-238",
+            counts_per_second="12000.00",
+            value="12.500",
+            uncertainty="0.400",
+        )
+        icp_ms.refresh_from_db()
 
-            value = icp_ms.get_value()
-            assert value is not None
-            assert str(value) != ""
-
-        except ImportError:
-            pytest.skip("Demo ICPMSMeasurement not available")
+        assert icp_ms.print_value() == "12.50 ± 0.40 µg/l"
 
 
 @pytest.mark.django_db
@@ -972,14 +1220,14 @@ class TestMeasurementFAIRMetadata:
 
     def test_measurement_description_uses_measurement_vocabulary(self):
         """Test that MeasurementDescription uses Measurement vocabulary collection."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # Create a description with a Measurement-specific type
         description = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF Analysis"
+            related=measurement, type="MeasurementSetup", value="XRF Analysis"
         )
 
-        assert description.type == "method"
+        assert description.type == "MeasurementSetup"
         assert description.related == measurement
         assert description.value == "XRF Analysis"
         # Verify vocabulary is from Measurement collection
@@ -987,14 +1235,14 @@ class TestMeasurementFAIRMetadata:
 
     def test_measurement_date_uses_measurement_vocabulary(self):
         """Test that MeasurementDate uses Measurement vocabulary collection."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # Create a date with a Measurement-specific type
         measurement_date = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-02-15"
+            related=measurement, type="Setup", value="2024-02-15"
         )
 
-        assert measurement_date.type == "measured"
+        assert measurement_date.type == "Setup"
         assert measurement_date.related == measurement
         assert measurement_date.value == "2024-02-15"
         # Verify vocabulary is from Measurement collection
@@ -1003,11 +1251,11 @@ class TestMeasurementFAIRMetadata:
     def test_measurement_vocabulary_types_differ_from_sample_vocabularies(self):
         """Test that Measurement vocabularies are distinct from Sample vocabularies."""
         # Measurement has specific vocabulary types
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         # Create description with measurement-specific type
         desc = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="Test"
+            related=measurement, type="MeasurementSetup", value="Test"
         )
 
         # Verify the vocabulary is Measurement-specific (not Sample)
@@ -1017,14 +1265,14 @@ class TestMeasurementFAIRMetadata:
 
     def test_measurement_can_have_multiple_descriptions_of_different_types(self):
         """Test that measurements can have multiple descriptions with different vocabulary types."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         desc1 = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF Spectroscopy"
+            related=measurement, type="MeasurementSetup", value="XRF Spectroscopy"
         )
 
         desc2 = MeasurementDescription.objects.create(
-            related=measurement, type="instrument", value="Bruker S8 Tiger"
+            related=measurement, type="MeasurementConditions", value="Bruker S8 Tiger"
         )
 
         descriptions = MeasurementDescription.objects.filter(related=measurement)
@@ -1036,14 +1284,14 @@ class TestMeasurementFAIRMetadata:
 
     def test_measurement_can_have_multiple_dates_of_different_types(self):
         """Test that measurements can have multiple dates with different vocabulary types."""
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         date1 = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-02-15"
+            related=measurement, type="Setup", value="2024-02-15"
         )
 
         date2 = MeasurementDate.objects.create(
-            related=measurement, type="calibrated", value="2024-02-10"
+            related=measurement, type="TearDown", value="2024-02-10"
         )
 
         dates = MeasurementDate.objects.filter(related=measurement)
@@ -1062,7 +1310,7 @@ class TestMeasurementQuerySetOptimization:
         """Test that with_related() prefetches sample, dataset, and contributors."""
         # Create measurements with related data
         for _ in range(5):
-            measurement = MeasurementFactory(sample=RockSampleFactory())
+            measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
             measurement.add_contributor(PersonFactory(), with_roles=["Creator"])
 
         with CaptureQueriesContext(connection) as queries:
@@ -1085,12 +1333,12 @@ class TestMeasurementQuerySetOptimization:
     def test_with_metadata_prefetches_descriptions_dates_identifiers(self):
         """Test that with_metadata() prefetches descriptions, dates, and identifiers."""
         # Create measurement with metadata
-        measurement = MeasurementFactory(sample=RockSampleFactory())
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF"
+            related=measurement, type="MeasurementSetup", value="XRF"
         )
         MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024"
+            related=measurement, type="Setup", value="2024"
         )
 
         with CaptureQueriesContext(connection) as queries:
@@ -1109,9 +1357,9 @@ class TestMeasurementQuerySetOptimization:
         """Test that QuerySet methods can be chained."""
         dataset = DatasetFactory()
         for _ in range(3):
-            measurement = MeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
+            measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
             MeasurementDescription.objects.create(
-                related=measurement, type="method", value="Test"
+                related=measurement, type="MeasurementSetup", value="Test"
             )
 
         # Chain methods
@@ -1134,49 +1382,51 @@ class TestMeasurementQuerySetOptimization:
         assert query_count <= 10
 
     def test_polymorphic_queries_return_correct_typed_instances(self):
-        """Test that polymorphic queries return correctly typed instances."""
-        # Create base measurements
-        base_measurements = [MeasurementFactory(sample=RockSampleFactory()) for _ in range(2)]
+        """Test that polymorphic queries return correctly typed instances.
 
-        # Create polymorphic measurements if available
-        try:
-            from fairdm_demo.models import XRFMeasurement
+        Both measurement types created here are concrete subclasses (FR-011 forbids the
+        bare Measurement record), so the assertion checks each comes back typed as its
+        own concrete class, not as the polymorphic base.
+        """
+        # Create ExampleMeasurement instances
+        example_measurements = [
+            ExampleMeasurementFactory(sample=RockSampleFactory()) for _ in range(2)
+        ]
 
-            polymorphic_measurements = [
-                XRFMeasurement.objects.create(
-                    name=f"XRF {i}",
-                    dataset=DatasetFactory(),
-                    sample=RockSampleFactory(),
-                    element="Fe",
-                    concentration_ppm=10.0 + i,
-                )
-                for i in range(2)
-            ]
+        from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
 
-            # Query all measurements
-            all_measurements = Measurement.objects.all()
-
-            # Verify polymorphic instances are returned as correct type
-            xrf_count = sum(
-                1 for m in all_measurements if isinstance(m, XRFMeasurement)
+        polymorphic_measurements = [
+            XRFMeasurement.objects.create(
+                name=f"XRF {i}",
+                dataset=DatasetFactory(),
+                sample=RockSampleFactory(),
+                element="Fe",
+                concentration_ppm=10.0 + i,
             )
-            base_count = sum(1 for m in all_measurements if type(m) is Measurement)
+            for i in range(2)
+        ]
 
-            assert xrf_count >= 2
-            assert base_count >= 2
+        # Query all measurements
+        all_measurements = Measurement.objects.all()
 
-        except ImportError:
-            pytest.skip("Demo XRFMeasurement not available")
+        # Verify polymorphic instances are returned as correct type
+        xrf_count = sum(1 for m in all_measurements if isinstance(m, XRFMeasurement))
+        example_count = sum(
+            1 for m in all_measurements if type(m) is ExampleMeasurement
+        )
+
+        assert xrf_count >= 2
+        assert example_count >= 2
 
     def test_large_measurement_collection_loads_efficiently(self):
         """Test that large measurement collections (1000+) load efficiently with optimizations."""
         # Create 50 measurements (reduced from 1000 for test speed, principle is the same)
         measurements = []
         for i in range(50):
-            m = MeasurementFactory(sample=RockSampleFactory(), name=f"Measurement {i}")
+            m = ExampleMeasurementFactory(sample=RockSampleFactory(), name=f"Measurement {i}")
             m.add_contributor(PersonFactory(), with_roles=["Creator"])
             MeasurementDescription.objects.create(
-                related=m, type="method", value=f"Method {i}"
+                related=m, type="MeasurementSetup", value=f"Method {i}"
             )
             measurements.append(m)
 
