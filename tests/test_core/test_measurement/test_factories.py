@@ -142,3 +142,32 @@ class TestConcreteMeasurementFactories:
         assert measurement.pk is not None
         assert measurement.isotope
         assert measurement.counts_per_second is not None
+
+
+class TestFairdmFactoriesExports:
+    """T004 - every measurement factory declared in fairdm/factories/core.py is
+    importable from fairdm.factories and appears in __all__."""
+
+    def test_measurement_factories_are_importable_from_the_package(self):
+        from fairdm.factories import (
+            MeasurementDateFactory,
+            MeasurementDescriptionFactory,
+            MeasurementFactory,
+            MeasurementIdentifierFactory,
+        )
+
+        assert MeasurementDateFactory is not None
+        assert MeasurementDescriptionFactory is not None
+        assert MeasurementFactory is not None
+        assert MeasurementIdentifierFactory is not None
+
+    def test_measurement_factories_appear_in_all(self):
+        import fairdm.factories as factories_module
+
+        for name in (
+            "MeasurementDateFactory",
+            "MeasurementDescriptionFactory",
+            "MeasurementFactory",
+            "MeasurementIdentifierFactory",
+        ):
+            assert name in factories_module.__all__

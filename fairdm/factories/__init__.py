@@ -36,7 +36,8 @@ Core Models:
     - DatasetFactory - Create Dataset instances
     - SampleFactory - Abstract. Subclass it to build a concrete specimen type, e.g.
       ``fairdm_demo.factories.RockSampleFactory``.
-    - MeasurementFactory - Create Measurement instances. ``sample`` has no default; pass a
+    - MeasurementFactory - Abstract. Subclass it to build a concrete measurement type, e.g.
+      ``fairdm_demo.factories.ExampleMeasurementFactory``. ``sample`` has no default; pass a
       concrete specimen instance.
 
 Contributors:
@@ -48,6 +49,9 @@ Contributors:
 Relations:
     - SampleIdentifierFactory - Create sample identifiers
     - SampleRelationFactory - Create sample-to-sample relationships
+    - MeasurementDescriptionFactory - Create measurement descriptions
+    - MeasurementDateFactory - Create measurement dates
+    - MeasurementIdentifierFactory - Create measurement identifiers
 
 All core model factories support opt-in metadata via:
     - descriptions=<int>, descriptions__types=[...]
@@ -81,7 +85,10 @@ from .core import (
     DatasetIdentifierFactory,
     DatasetLiteratureRelationFactory,
     LiteratureItemFactory,
+    MeasurementDateFactory,
+    MeasurementDescriptionFactory,
     MeasurementFactory,
+    MeasurementIdentifierFactory,
     PointFactory,
     ProjectDescriptionFactory,
     ProjectFactory,
@@ -103,7 +110,10 @@ __all__ = [
     "DatasetIdentifierFactory",
     "DatasetLiteratureRelationFactory",
     "LiteratureItemFactory",
+    "MeasurementDateFactory",
+    "MeasurementDescriptionFactory",
     "MeasurementFactory",
+    "MeasurementIdentifierFactory",
     "OrganizationFactory",
     "PersonFactory",
     "PointFactory",
