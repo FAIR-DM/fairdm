@@ -341,7 +341,7 @@ class TestStatusMigration:
             )
 
         migration = importlib.import_module(
-            "fairdm.core.sample.migrations.0009_migrate_sample_status_to_unknown"
+            "fairdm.core.sample.migrations.0008_migrate_sample_status_to_unknown"
         )
         migration.migrate_status_to_unknown(django_apps, None)
 
@@ -440,6 +440,20 @@ class TestBaseSampleRefused:
 
         with pytest.raises(ValidationError):
             deserialized.save()
+
+
+class TestBaseSampleErrorIsTranslatable:
+    """F8 - BASE_SAMPLE_ERROR must be a lazy translation, not a plain `str` wrapped in `_()` at
+    the call site: `makemessages` only extracts literals passed directly to `_()`, so a plain
+    module-level constant referenced by name (`_(BASE_SAMPLE_ERROR)`) never reaches the
+    catalogue."""
+
+    def test_base_sample_error_is_a_lazy_translation(self):
+        from django.utils.functional import Promise
+
+        from fairdm.core.sample.models import BASE_SAMPLE_ERROR
+
+        assert isinstance(BASE_SAMPLE_ERROR, Promise)
 
 
 @pytest.mark.django_db
@@ -2052,6 +2066,36 @@ class TestIGSNFormat:
         assert "value" in exc_info.value.error_dict
         message = str(exc_info.value.error_dict["value"][0])
         assert "IGSN" in message
+
+
+@pytest.mark.django_db
+class TestIGSNNormalisation:
+    """F5 - the display-prefix stripping `_validate_igsn_format` does for validation must be
+    written back to `self.value`, or the same identifier stored with a different display prefix
+    passes as a different value: the per-table uniqueness index and the cross-record check both
+    compare the stored string exactly."""
+
+    def test_bare_value_is_stored_unchanged(self, rock_sample):
+        identifier = SampleIdentifier(related=rock_sample, type="IGSN", value="10.60516/AU1101")
+        identifier.full_clean()
+        identifier.save()
+
+        stored = SampleIdentifier.objects.get(pk=identifier.pk)
+        assert stored.value == "10.60516/AU1101"
+
+    def test_a_prefixed_form_of_an_identifier_already_stored_bare_is_refused(self, dataset):
+        first = create_rock_sample("First", dataset)
+        SampleIdentifierFactory(related=first, type="IGSN", value="10.60516/AU1101")
+
+        second = create_rock_sample("Second", dataset)
+        clashing = SampleIdentifier(
+            related=second, type="IGSN", value="doi:10.60516/AU1101"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            clashing.full_clean()
+
+        assert "value" in exc_info.value.error_dict
 
 
 @pytest.mark.django_db

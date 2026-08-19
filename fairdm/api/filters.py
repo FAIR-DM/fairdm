@@ -5,8 +5,9 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
-from guardian.shortcuts import get_objects_for_user
 from rest_framework.filters import BaseFilterBackend
+
+from fairdm.core.utils import get_objects_for_user
 
 if TYPE_CHECKING:
     from rest_framework.request import Request

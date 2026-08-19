@@ -16,7 +16,7 @@ too, rather than through an unwritten delegation contract.
 
 from guardian.backends import ObjectPermissionBackend
 
-from .utils import get_permission_target
+from .utils import get_non_polymorphic_instance, get_permission_target
 
 
 class PolymorphicObjectPermissionBackend(ObjectPermissionBackend):
@@ -33,3 +33,20 @@ class PolymorphicObjectPermissionBackend(ObjectPermissionBackend):
 
     def has_perm(self, user_obj, perm, obj=None):
         return super().has_perm(user_obj, perm, get_permission_target(obj, perm))
+
+    def get_all_permissions(self, user_obj, obj=None):
+        """List every permission this backend grants on ``obj`` (F4).
+
+        Left overriding only ``has_perm`` meant ``user.get_all_permissions(specimen)`` still read
+        the subclass's own content type and never surfaced a grant filed under the polymorphic
+        base. Unlike ``has_perm``, there is no single ``perm`` here to gate a base-owns-it check
+        on (D-019's "no single perm" problem again), so this merges both content types' rows the
+        same way :func:`fairdm.core.utils.get_perms` does, rather than picking one.
+        """
+        base_class = getattr(obj, "type_of", None) if obj is not None else None
+        if base_class is None or type(obj) is base_class:
+            return super().get_all_permissions(user_obj, obj)
+
+        return super().get_all_permissions(user_obj, obj) | super().get_all_permissions(
+            user_obj, get_non_polymorphic_instance(obj)
+        )

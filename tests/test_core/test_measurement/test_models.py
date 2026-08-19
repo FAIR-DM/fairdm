@@ -15,7 +15,11 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from fairdm.core.measurement.forms import MeasurementForm
-from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
+from fairdm.core.measurement.models import (
+    MeasurementDate,
+    MeasurementDescription,
+    MeasurementIdentifier,
+)
 from fairdm.core.models import Measurement, Sample
 from fairdm.factories import (
     DatasetFactory,
@@ -167,6 +171,31 @@ class TestMeasurementVocabularyValidation:
         assert date.type == "measured"  # type field returns string value
         # The vocabulary should be from FairDMDates "Measurement" collection
         assert date.VOCABULARY is not None
+
+
+@pytest.mark.django_db
+class TestMeasurementIdentifierVocabulary:
+    """005 F1/F2 - MeasurementIdentifier is bound to a scoped collection, not the unscoped
+    FairDMIdentifiers vocabulary, so a member added for another record type (e.g. IGSN for
+    samples) cannot be offered as a measurement identifier type."""
+
+    def test_available_types_are_doi_only(self):
+        assert set(MeasurementIdentifier.VOCABULARY.values) == {"DOI"}
+
+    def test_no_type_names_a_sample_person_organisation_or_project(self):
+        assert set(MeasurementIdentifier.VOCABULARY.values).isdisjoint(
+            {
+                "IGSN",
+                "ORCID",
+                "RESEARCHER_ID",
+                "ROR",
+                "WIKIDATA",
+                "ISNI",
+                "CROSSREF_FUNDER_ID",
+                "GRANT_NUMBER",
+                "PROPOSAL_ID",
+            }
+        )
 
 
 @pytest.mark.django_db

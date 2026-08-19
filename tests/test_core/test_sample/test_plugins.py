@@ -9,7 +9,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
-from fairdm.contrib.plugins.access import can_open, resolve_check
+from fairdm.contrib.plugins.access import can_open
 from fairdm.core.sample.plugins import Descriptions, Edit, KeyDates, Keywords, Overview
 from fairdm.core.utils import assign_perm
 
@@ -55,15 +55,24 @@ class TestSampleWritePluginsAreGated:
         assert can_open(Overview, request, rock_sample) is True
 
 
-class TestNoUnconditionalPredicate:
-    """No plugin carries an access predicate that returns true for every request.
-
-    The regression this guards: a module-level ``check_has_edit_permission`` that always
-    returned ``True`` was assigned as every management plugin's ``check``, so the gate on
-    :class:`TestSampleWritePluginsAreGated` never ran. Every editing plugin now relies solely on
-    its declared ``permission`` - none of them declares a callable ``check`` at all.
-    """
+@pytest.mark.django_db
+class TestPermissionStillGatesEvenWithAnAlwaysTruePredicate:
+    """F12 - the deleted assertion (``not callable(resolve_check(plugin_class))``) also passes
+    for ``check = True``, which reopens exactly the surface it was meant to guard: a plugin
+    whose ``check`` is truthy-but-not-callable is treated by ``can_open`` as "no gate", the same
+    as one with no ``check`` at all. This reinstates the original regression - a predicate that
+    always returns ``True`` - on a copy of each editing plugin, and proves ``can_open`` still
+    refuses an anonymous request on ``permission`` alone."""
 
     @pytest.mark.parametrize("plugin_class", EDITING_PLUGINS)
-    def test_no_editing_plugin_declares_a_callable_check(self, plugin_class):
-        assert not callable(resolve_check(plugin_class))
+    def test_an_always_true_predicate_does_not_reopen_the_surface(
+        self, plugin_class, rock_sample
+    ):
+        always_open = type(
+            f"AlwaysOpen{plugin_class.__name__}",
+            (plugin_class,),
+            {"check": staticmethod(lambda request, obj: True)},
+        )
+        request = _request_for(AnonymousUser())
+
+        assert can_open(always_open, request, rock_sample) is False

@@ -31,7 +31,9 @@ from ..vocabularies import (
 )
 from .managers import SampleQuerySet
 
-BASE_SAMPLE_ERROR = "Cannot create base Sample instances directly. Please use a specific sample type subclass."
+BASE_SAMPLE_ERROR = _(
+    "Cannot create base Sample instances directly. Please use a specific sample type subclass."
+)
 
 # research.md R1: IGSN allocation moved to DataCite in 2023, and an IGSN today is an
 # ordinary DataCite DOI spread across at least 38 registry prefixes with no shared prefix
@@ -156,7 +158,7 @@ class Sample(BasePolymorphicModel):
         # full_clean() before save(), so this is what turns a bare-Sample attempt into a
         # validation error there rather than the server error the pre_save guard below raises.
         if self.__class__ == Sample:
-            raise ValidationError(_(BASE_SAMPLE_ERROR))
+            raise ValidationError(BASE_SAMPLE_ERROR)
 
     def get_absolute_url(self):
         """Get the absolute URL for this sample.
@@ -312,7 +314,7 @@ def block_base_sample_creation(sender, instance, **kwargs):
     R4). ``Sample.clean()`` stays alongside this so forms and the admin still raise a validation
     error instead of the server error this receiver raises.
     """
-    raise ValidationError(_(BASE_SAMPLE_ERROR))
+    raise ValidationError(BASE_SAMPLE_ERROR)
 
 
 class SampleDescription(AbstractDescription):
@@ -386,10 +388,18 @@ class SampleIdentifier(AbstractIdentifier):
     def clean(self):
         """Validate identifier_type and IGSN format.
 
+        The IGSN format check runs first because it normalises ``self.value`` (F5) - the
+        uniqueness check inherited from ``AbstractIdentifier.clean()`` (``super().clean()``,
+        below) compares ``self.value`` exactly, so it has to see the normalised form or two
+        display variants of the same identifier would compare unequal and both be accepted.
+
         Raises:
             ValidationError: If type is not in IDENTIFIER_TYPES vocabulary
                            or if IGSN format is invalid
         """
+        if self.type == "IGSN" and self.value:
+            self._validate_igsn_format()
+
         super().clean()
 
         if self.type:
@@ -401,9 +411,6 @@ class SampleIdentifier(AbstractIdentifier):
                         % {"type": self.type}
                     }
                 )
-
-        if self.type == "IGSN" and self.value:
-            self._validate_igsn_format()
 
     def _validate_igsn_format(self):
         """Validate ``self.value`` against the format research.md R1/D-016 settles on.
@@ -418,6 +425,7 @@ class SampleIdentifier(AbstractIdentifier):
             if normalised.lower().startswith(prefix.lower()):
                 normalised = normalised[len(prefix) :]
                 break
+        self.value = normalised
 
         if IGSN_DOI_PATTERN.match(normalised) or IGSN_LEGACY_HANDLE_PATTERN.match(
             normalised

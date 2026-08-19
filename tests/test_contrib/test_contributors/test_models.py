@@ -18,6 +18,7 @@ from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
     Contributor,
+    ContributorIdentifier,
     Organization,
     OrganizationMember,
     Person,
@@ -379,6 +380,28 @@ class TestContributorIdentifierUniqueness:
     def test_person_default_identifier_is_orcid(self):
         """Person.DEFAULT_IDENTIFIER is 'ORCID'."""
         assert Person.DEFAULT_IDENTIFIER == "ORCID"
+
+
+class TestContributorIdentifierVocabulary:
+    """005 F1/F2 - ContributorIdentifier is bound to a scoped collection (the union of the
+    Person and Organization collections), not the unscoped FairDMIdentifiers vocabulary, so a
+    member added for another record type - IGSN for samples - cannot be offered to a person or
+    an organisation."""
+
+    def test_available_types_are_the_union_of_person_and_organization_types(self):
+        assert set(ContributorIdentifier.VOCABULARY.values) == {
+            "ORCID",
+            "RESEARCHER_ID",
+            "ROR",
+            "WIKIDATA",
+            "ISNI",
+            "CROSSREF_FUNDER_ID",
+        }
+
+    def test_no_type_names_a_sample_or_project(self):
+        assert set(ContributorIdentifier.VOCABULARY.values).isdisjoint(
+            {"IGSN", "DOI", "GRANT_NUMBER", "PROPOSAL_ID"}
+        )
 
 
 # ── T027a: Person name internationalization ────────────────────────────────

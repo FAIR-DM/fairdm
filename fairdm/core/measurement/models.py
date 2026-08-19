@@ -199,9 +199,11 @@ class MeasurementDate(AbstractDate):
 class MeasurementIdentifier(AbstractIdentifier):
     """External identifiers for a Measurement.
 
-    Links measurements to external identifier systems (DOI, ARK, Handle, etc.)
-    to support FAIR data principles and cross-referencing.
+    Drawn from the measurement identifier collection
+    (``FairDMIdentifiers.from_collection("Measurement")``, DOI - 005 F1/F2)
+    rather than the unscoped vocabulary, so a member added for another record
+    type (e.g. IGSN for samples) cannot leak in here.
     """
 
-    VOCABULARY = FairDMIdentifiers()
+    VOCABULARY = FairDMIdentifiers.from_collection("Measurement")
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)

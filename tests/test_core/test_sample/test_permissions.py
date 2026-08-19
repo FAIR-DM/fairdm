@@ -141,3 +141,94 @@ class TestObjectPermissionsSurvive:
         assign_perm("view_organization", user, organization)
 
         assert user.has_perm("contributors.view_organization", organization) is True
+
+
+@pytest.mark.django_db
+class TestPolymorphicGatingWithoutTypeOf:
+    """F6: `get_permission_target`, `get_perms` and `get_non_polymorphic_instance` used to gate
+    on `polymorphic_model_marker`, which every polymorphic model carries, and then read
+    `obj.type_of`, which only `Sample`, `Measurement` and `Contributor` declare. A portal's own
+    polymorphic model that is none of those raised `AttributeError` inside an authentication
+    backend - a 500 rather than a denial. `dataset` stands in for that model here: it is not
+    polymorphic, so setting the marker attribute by hand reproduces "has the marker, has no
+    `type_of`" without a throwaway model."""
+
+    def test_get_permission_target_returns_the_object_unchanged(self, dataset):
+        from fairdm.core.utils import get_permission_target
+
+        dataset.polymorphic_model_marker = True
+
+        assert get_permission_target(dataset, "dataset.view_dataset") is dataset
+
+    def test_get_non_polymorphic_instance_returns_the_object_unchanged(self, dataset):
+        from fairdm.core.utils import get_non_polymorphic_instance
+
+        dataset.polymorphic_model_marker = True
+
+        assert get_non_polymorphic_instance(dataset) is dataset
+
+    def test_get_perms_does_not_raise(self, dataset, user):
+        from fairdm.core.utils import get_perms
+
+        dataset.polymorphic_model_marker = True
+
+        assert get_perms(user, dataset) == []
+
+
+@pytest.mark.django_db
+class TestContributionRevocationIsNormalised:
+    """F3 - a right granted on a specimen through `fairdm.core.utils.assign_perm` is filed under
+    the `Sample` base content type (`get_permission_target`), not the concrete subclass's own.
+    `Contribution.remove_user_perms` fires `fairdm.utils.permissions.remove_all_model_perms` with
+    the concrete specimen, so that module has to use the same normalising wrappers or revocation
+    looks under the wrong content type and silently removes nothing."""
+
+    def test_deleting_the_contribution_removes_the_grant(self, rock_sample, user):
+        from fairdm.contrib.contributors.models import Contribution
+
+        assign_perm("change_sample", user, rock_sample)
+        assert user.has_perm("sample.change_sample", rock_sample) is True
+
+        contribution = Contribution.add_to(user, rock_sample)
+
+        contribution.delete()
+
+        assert user.has_perm("sample.change_sample", rock_sample) is False
+
+
+@pytest.mark.django_db
+class TestGetObjectsForUserNormalisesPolymorphicContentType:
+    """F4 - guardian's `get_objects_for_user` derives its content-type filter from the
+    permission string's own app label and model name, so a naive
+    `"fairdm_demo.view_rocksample"` finds nothing when the grant is filed under
+    `sample.view_sample` (`get_permission_target`). `fairdm.core.utils.get_objects_for_user`
+    normalises that the same way the other wrappers normalise `perm`'s content type."""
+
+    def test_a_grant_filed_under_the_base_content_type_is_found(self, dataset, user):
+        from fairdm.core.utils import get_objects_for_user
+        from fairdm_demo.factories import RockSampleFactory
+        from fairdm_demo.models import RockSample
+
+        granted = RockSampleFactory(dataset=dataset)
+        ungranted = RockSampleFactory(dataset=dataset)
+        assign_perm("view_sample", user, granted)
+
+        naive_perm = f"{RockSample._meta.app_label}.view_{RockSample._meta.model_name}"
+        results = get_objects_for_user(user, naive_perm, RockSample.objects.all())
+
+        assert granted in results
+        assert ungranted not in results
+
+
+@pytest.mark.django_db
+class TestGetAllPermissionsNormalisesPolymorphicContentType:
+    """F4 - `PolymorphicObjectPermissionBackend` only overrode `has_perm`, so
+    `user.get_all_permissions(specimen)` still read the subclass's own content type and never
+    surfaced a grant filed under the polymorphic base."""
+
+    def test_a_grant_filed_under_the_base_content_type_appears(self, rock_sample, user):
+        assign_perm("view_sample", user, rock_sample)
+
+        codenames = {p.split(".")[-1] for p in user.get_all_permissions(rock_sample)}
+
+        assert "view_sample" in codenames

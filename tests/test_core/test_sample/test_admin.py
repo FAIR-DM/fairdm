@@ -186,6 +186,34 @@ class TestSampleAdminFilters:
 
 
 @pytest.mark.django_db
+class TestSampleDatasetListFilterOrdering:
+    """F9 - `field_choices` calls `order_by(*ordering)`, and an empty `ordering` tuple - what
+    `field_admin_ordering` returns when nothing declares admin-level ordering, the case here -
+    *clears* `Dataset.Meta.ordering` (`order_by()` with no arguments is not a no-op) rather than
+    leaving the model's own default ordering in place."""
+
+    def test_falls_back_to_the_datasets_own_default_ordering(self):
+        from fairdm.core.sample.admin import SampleDatasetListFilter
+
+        early = DatasetFactory()
+        late = DatasetFactory()
+
+        field = Sample._meta.get_field("dataset")
+        request = RequestFactory().get("/")
+        model_admin = admin.site._registry[Sample]
+        list_filter = SampleDatasetListFilter.__new__(SampleDatasetListFilter)
+
+        choices = list_filter.field_choices(field, request, model_admin)
+        pks_in_order = [pk for pk, _label in choices]
+
+        # Dataset.Meta.ordering = ["-modified"]: the more recently modified/created "late"
+        # dataset sorts first. An empty order_by() falls back to whatever the database happens
+        # to return with no ORDER BY, which for two freshly-inserted rows is ascending pk -
+        # "early" before "late" - the opposite of what is asserted here.
+        assert pks_in_order.index(late.pk) < pks_in_order.index(early.pk)
+
+
+@pytest.mark.django_db
 class TestSampleAdminInlines:
     """T083/T089/FR-039: a description, a date, an identifier, a contribution and a
     provenance link can each be added from the specimen's own page - a real form

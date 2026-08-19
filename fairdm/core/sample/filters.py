@@ -14,6 +14,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.core.sample.models import Sample
+from fairdm.core.vocabularies import FairDMSampleStatus
 
 
 class SampleFilterMixin(django_filters.FilterSet):
@@ -108,11 +109,14 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
             filtered_samples = filterset.qs
     """
 
-    # Status filter - filter by concept relationship
-    status = django_filters.ModelChoiceFilter(
+    # Status filter - `status` is a `ConceptField`, which stores the concept's name as a plain
+    # string, not a foreign key (F7). A `ModelChoiceFilter` compares against `Concept` instances
+    # and never matches, so this uses the same `ChoiceFilter`-over-vocabulary pattern
+    # `ProjectFilter.status` (`fairdm/core/project/filters.py`) already uses.
+    status = django_filters.ChoiceFilter(
         field_name="status",
         label=_("Status"),
-        queryset=None,  # Will be set dynamically in __init__
+        choices=FairDMSampleStatus().choices,
         empty_label=_("Any status"),
     )
 
@@ -163,20 +167,12 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         super().__init__(*args, **kwargs)
         # Import here to avoid circular imports and app registry issues
         from django.contrib.contenttypes.models import ContentType
-        from research_vocabs.models import Concept
 
         # The dataset choices are set by `SampleFilterMixin.__init__` above.
 
         # Set polymorphic content type queryset
         self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(
             app_label__in=["fairdm_core", "fairdm_demo"]
-        )
-
-        # Set status queryset (all Concepts from the FairDMSampleStatus vocabulary)
-        from fairdm.core.vocabularies import FairDMSampleStatus
-
-        self.filters["status"].queryset = Concept.objects.filter(
-            vocabulary__name=FairDMSampleStatus._meta.name
         )
 
     def filter_search(self, queryset, name, value):

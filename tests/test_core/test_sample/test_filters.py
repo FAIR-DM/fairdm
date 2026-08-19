@@ -57,6 +57,36 @@ class TestSampleFilterDatasetFiltering:
         assert sample2 not in filterset.qs
 
 
+class TestSampleFilterStatusFiltering:
+    """F7 - filtering by status narrows the queryset. Deleted with the old (skipped) test that
+    tried to filter by a `Concept` instance against `status`'s `ConceptField`, which the field
+    stores as a plain string - the same mismatch a `ModelChoiceFilter` over it reproduces."""
+
+    def test_filter_by_status(self, dataset):
+        available = RockSample.objects.create(
+            name="Available Rock",
+            dataset=dataset,
+            status="available",
+            rock_type="igneous",
+            collection_date="2024-01-01",
+        )
+        stored = RockSample.objects.create(
+            name="Stored Rock",
+            dataset=dataset,
+            status="stored",
+            rock_type="igneous",
+            collection_date="2024-01-01",
+        )
+
+        filterset = SampleFilter(
+            data={"status": "available"}, queryset=RockSample.objects.all()
+        )
+
+        assert filterset.is_valid()
+        assert available in filterset.qs
+        assert stored not in filterset.qs
+
+
 class TestSampleFilterPolymorphicTypeFiltering:
     """Test polymorphic type filtering functionality."""
 

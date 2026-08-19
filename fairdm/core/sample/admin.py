@@ -35,11 +35,17 @@ class SampleDatasetListFilter(admin.RelatedFieldListFilter):
     def field_choices(self, field, request, model_admin):
         from fairdm.core.dataset.models import Dataset
 
+        # `order_by()` with no arguments clears the model's default ordering rather than
+        # leaving it in place (F9), so an empty `ordering` - what `field_admin_ordering`
+        # returns whenever nothing declares admin-level ordering, the common case - must be
+        # left unapplied instead of passed through.
         ordering = self.field_admin_ordering(field, request, model_admin)
-        return [
-            (dataset.pk, str(dataset))
-            for dataset in Dataset.all_objects.order_by(*ordering)
-        ]
+        queryset = (
+            Dataset.all_objects.order_by(*ordering)
+            if ordering
+            else Dataset.all_objects.all()
+        )
+        return [(dataset.pk, str(dataset)) for dataset in queryset]
 
 
 class SampleDescriptionInline(admin.StackedInline):

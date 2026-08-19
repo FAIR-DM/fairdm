@@ -133,8 +133,11 @@ class TestSampleFormValidation:
         assert "name" in form.errors
         assert "dataset" in form.errors
 
-    def test_form_defaults_status_to_available(self):
-        """Test that SampleForm defaults status field to 'available' (T064)."""
+    def test_form_defaults_status_to_unknown(self):
+        """F10 - the form's initial status must not contradict the model's own default.
+        `Sample.status` defaults to ``unknown`` (FR-022: a specimen created with no status
+        stated reads as unknown), so a form asserting ``available`` claimed custody nobody
+        chose. T064 originally pinned the mismatched ``available`` default; corrected here."""
 
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
@@ -143,8 +146,7 @@ class TestSampleFormValidation:
 
         form = RockSampleForm()
 
-        # Verify status field has 'available' as initial value
-        assert form.fields["status"].initial == "available"
+        assert form.fields["status"].initial == "unknown"
 
 
 @pytest.mark.django_db
@@ -331,6 +333,25 @@ class TestSampleFormDatasetChoices:
         form = RockSampleForm(request=None)
 
         assert set(form.fields["dataset"].queryset) == set()
+
+    def test_offering_no_dataset_with_no_request_logs_a_warning(self, caplog):
+        """F13 - FR-036's "offer nothing" is the right security default, but the failure mode
+        is a create form that can never validate with nothing explaining why. A warning makes
+        that loud rather than silent."""
+        import logging
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        with caplog.at_level(logging.WARNING):
+            RockSampleForm()
+
+        assert any(
+            "dataset" in record.message.lower() and "request" in record.message.lower()
+            for record in caplog.records
+        )
 
 
 @pytest.mark.django_db

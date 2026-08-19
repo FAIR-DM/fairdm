@@ -26,10 +26,17 @@ def documentation_link(path):
 
 
 def get_non_polymorphic_instance(obj):
-    if not hasattr(obj, "polymorphic_model_marker"):
+    """Return ``obj`` re-fetched through its polymorphic base's non-polymorphic manager.
+
+    Gated on ``type_of`` directly (F6), not on ``polymorphic_model_marker``: every
+    polymorphic model carries the marker, but only ``Sample``, ``Measurement`` and
+    ``Contributor`` declare ``type_of`` - a portal-defined polymorphic model that is none of
+    those would otherwise raise ``AttributeError`` here rather than being left alone.
+    """
+    base_class = getattr(obj, "type_of", None)
+    if base_class is None:
         return obj
 
-    base_class = obj.type_of
     return base_class.objects.non_polymorphic().get(pk=obj.pk)
 
 
@@ -47,12 +54,17 @@ def get_permission_target(obj, perm):
     Gated on the object, not on the permission string: guardian only compares app labels when the
     permission carries one (``"." in perm``), so a gate keyed on that would never fire for an
     unqualified permission and the failure would become a silent denial instead of an error.
+
+    Gated on ``type_of`` directly (F6), not on ``polymorphic_model_marker``: every polymorphic
+    model carries the marker, but only ``Sample``, ``Measurement`` and ``Contributor`` declare
+    ``type_of`` - a portal-defined polymorphic model that is none of those would otherwise raise
+    ``AttributeError`` inside an authentication backend rather than being left alone.
     """
-    if obj is None or not hasattr(obj, "polymorphic_model_marker"):
+    if obj is None:
         return obj
 
-    base_class = obj.type_of
-    if type(obj) is base_class:
+    base_class = getattr(obj, "type_of", None)
+    if base_class is None or type(obj) is base_class:
         return obj
 
     from django.contrib.auth.models import Permission
@@ -95,19 +107,51 @@ def get_perms(user_or_group, obj):
     Merges rows stored against ``obj``'s own content type with rows stored against its
     polymorphic base, because :func:`assign_perm` may have written to either depending on which
     one owns the permission - and there is no single ``perm`` here to gate the choice on.
+
+    Gated on ``type_of`` directly (F6), not on ``polymorphic_model_marker`` - see
+    :func:`get_permission_target`.
     """
     from guardian.shortcuts import get_perms as guardian_get_perms
 
     perms = set(guardian_get_perms(user_or_group, obj))
-    if (
-        obj is not None
-        and hasattr(obj, "polymorphic_model_marker")
-        and type(obj) is not obj.type_of
-    ):
+    base_class = getattr(obj, "type_of", None) if obj is not None else None
+    if base_class is not None and type(obj) is not base_class:
         perms |= set(
             guardian_get_perms(user_or_group, get_non_polymorphic_instance(obj))
         )
     return sorted(perms)
+
+
+def get_objects_for_user(user, perm, klass, **kwargs):
+    """List the objects in ``klass`` that ``user`` holds ``perm`` for, normalising a polymorphic
+    subclass's content type the same way :func:`assign_perm`/:func:`has_perm` do (F4).
+
+    ``guardian.shortcuts.get_objects_for_user`` derives its content-type filter from ``perm``'s
+    own app label and model name, so a naive permission built from a specimen subclass (e.g.
+    ``"fairdm_demo.view_rocksample"``) finds nothing when the grant is filed under the
+    polymorphic base's content type (``sample.view_sample``) - and it raises
+    ``MixedContentTypeError`` outright if handed that base-model permission alongside a subclass
+    queryset, so the two cannot simply be passed through together. This recomputes ``perm``
+    against the base model, resolves matching primary keys there, and narrows the caller's own
+    queryset by them - safe because a polymorphic subclass shares its primary key with its base.
+    """
+    from guardian.shortcuts import get_objects_for_user as guardian_get_objects_for_user
+
+    queryset = klass if hasattr(klass, "model") else klass._default_manager.all()
+    model = queryset.model
+    base_class = getattr(model, "type_of", None)
+
+    if base_class is None or base_class is model:
+        return guardian_get_objects_for_user(user, perm, queryset, **kwargs)
+
+    _app_label, codename = perm.split(".", 1)
+    action = codename.rsplit(f"_{model._meta.model_name}", 1)[0]
+    base_perm = f"{base_class._meta.app_label}.{action}_{base_class._meta.model_name}"
+
+    allowed_pks = guardian_get_objects_for_user(
+        user, base_perm, base_class._default_manager.all(), **kwargs
+    ).values_list("pk", flat=True)
+    return queryset.filter(pk__in=allowed_pks)
 
 
 def model_class_inheritance_to_fieldsets(obj_or_class):
