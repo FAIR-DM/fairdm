@@ -1312,3 +1312,25 @@ Watch: the 14 tests listed above will keep failing until either their owning sto
 the filler `type` value, or a follow-up task does. This directly affects merge readiness for
 `test_models.py` (this story's own file, but the specific tests are unnamed by any brief task
 here) and cross-story for `test_admin.py`/`test_filters.py`.
+
+## 2026-08-19T13:16:00Z · Implementer US3 · story-level final verify
+
+Did: ran `poetry run pytest tests/ -q` (once, per protocol). Result: 16 failed, 1957 passed, 17
+skipped. 14 are the ones logged in the T050/T051 entry above. Two more, outside
+`tests/test_core/test_measurement/` and so not visible from that directory's own baseline
+check, surfaced here for the first time:
+
+- `tests/test_factories/test_core.py::TestMeasurementFactories::test_measurement_description_factory`
+  (line 623) - calls `MeasurementDescriptionFactory(related=measurement, type="Abstract")`;
+  `"Abstract"` is a member of the Project/Dataset description vocabulary, not Measurement's.
+- `tests/test_factories/test_core.py::TestMeasurementFactories::test_measurement_date_factory`
+  (line 636) - calls `MeasurementDateFactory(related=measurement, type="Created")`; `"Created"`
+  is a member of the Sample date vocabulary, not Measurement's.
+
+Both docstrings assert the factory "creates valid descriptions/dates", which was never true of
+the vocabulary - only of the absence of validation. Not fixed, for the same reason as the 14
+above: not named by any task in this story's brief, and this file is outside
+`tests/test_core/test_measurement/` entirely. All 16 are listed individually in the completion
+report.
+
+`poetry run pre-commit run --all-files` next, then the completion report.
