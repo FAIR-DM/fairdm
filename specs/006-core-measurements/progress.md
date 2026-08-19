@@ -5560,3 +5560,29 @@ registry's own auto-generated admin also inherits from it).
 Next: T112 (CHANGELOG.md).
 
 Watch: none.
+
+## 2026-08-19T15:25:00Z · Implementer US10 · T112
+
+Did: Added a `CHANGELOG.md` entry for this feature, following the file's existing format (a
+`#### Core measurements (Feature 006)` subsection under `### Added`, matching how Feature 004 and
+Feature 005 are recorded, plus a `### Removed` subsection for the deleted duplicate admin class).
+Covered the five things the brief named as the minimum — the value/uncertainty convention, the
+formatter's startup registration, the type filter now asking the registry, partial-date filtering,
+and the registry validating against the configured administrative base — and added the other
+portal-facing behaviour changes this feature's decisions record turned up: the mixins now wiring
+into the registry-generated form and filter set, the measurement's own address, permission
+inheritance from a dataset, two form defects (a broken "add another dataset" link, inert field
+guidance text), bare-`Measurement` creation being refused including in the framework's own
+fixtures, and the two new `with_related()`/`with_metadata()` queryset methods. Read `decisions.md`
+(D-004, D-005, D-008 through D-014, D-020) for the underlying facts rather than restating requirement
+prose, and did not cite any requirement, task or story identifier in the entry itself.
+
+Verified: read the entry back against `decisions.md` and the earlier stories' `git log` history to
+confirm every claim matches a decision actually recorded or a commit actually landed on this branch,
+rather than restating specification language that might not have shipped as written. `grep -nE
+"FR-|SC-|T[0-9]{3}|US[0-9]|D-0" CHANGELOG.md` over the new section → no matches, confirming no
+internal identifier leaked into the public-facing text.
+
+Next: T113 (docstring audit).
+
+Watch: none.

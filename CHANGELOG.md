@@ -142,6 +142,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   identifier, narrows by dataset, status or type, offers inline rows bounded by the vocabulary
   rather than by a hardcoded number, and reaches specimens in private datasets.
 
+#### Core measurements (Feature 006)
+
+- **A measurement type may nominate a `value` and, where the analysis produces one, an
+  `uncertainty`, and gets formatted reporting for free.** `get_value()` and `print_value()` read
+  those two fields and require nothing else from the type — no method to override, no string to
+  build by hand. `ICP_MS_Measurement` ships with both fields as the worked example.
+- **The quantity formatter is installed when the application starts, not the first time a
+  template loads it.** A value read or rendered outside a template — in a shell, a management
+  command, a test, an API response built without a template — now formats the same way a page
+  does; previously it fell back to the unit library's own default formatting until some template
+  happened to import the tag module that installed it.
+- **The measurement type filter offers every registered type, not a fixed pair of applications.**
+  It previously drew its choices from two hardcoded application labels, so the measurement record's
+  own type was absent from the list, every unrelated model in those two applications appeared, and a
+  portal's own measurement types — which live in the portal's own application — could never be
+  selected. It now asks the registry, the same source the administrative interface already used.
+- **Date filtering accepts a year, a year and month, or a full date**, matching what a measurement's
+  own date fields accept. Filtering by an out-of-range or malformed date now reports a form error
+  instead of an unhandled exception when the filtered list is rendered.
+- **The registry validates a measurement type's administrative class against the class portals were
+  already told to inherit from.** It previously validated against, and generated for a type
+  supplying none, an unconfigured two-line stand-in — so a measurement type that inherited from
+  the documented base as instructed was refused at registration, and one that supplied no
+  administrative class of its own received none of the framework's inline editors, autocomplete
+  fields or read-only handling. See Removed, below, for the stand-in's deletion.
+- **A registered measurement type's generated form and filter set carry the framework's shared
+  widgets, dataset scoping, search and date-range filtering without the type writing a form or
+  filter class of its own.** That wiring previously existed for specimens and not for measurements,
+  so it reached only the portals that wrote their own form and filter classes — the group that
+  needed it least.
+- **A measurement has an address of its own** (`get_absolute_url()`), rather than deflecting to its
+  sample's page. The page that serves it is separate, later work.
+- **Rights over a dataset reach its measurements.** A user holding view, change or delete over a
+  dataset holds the matching right over the measurements in it; a right granted directly on a
+  registered measurement type is honoured the same way.
+- Two form defects are fixed: the "add another dataset" control on a measurement form previously
+  pointed at an administrative address that does not exist, and the form's field guidance text
+  (name, dataset, sample, tags) was declared under the wrong attribute and never reached the
+  rendered form. Both mirror fixes already made on the equivalent sample form.
+- Creating a bare `Measurement` — the polymorphic base every measurement type inherits from — is
+  refused everywhere a bare `Sample` already is, including the framework's own test fixtures, which
+  previously built one directly.
+- `Measurement.objects` offers `with_related()` and `with_metadata()`, chainable with each other and
+  with ordinary queryset methods, so a list of measurements loads its sample, dataset, contributors,
+  descriptions, dates and identifiers in a number of queries that does not grow with how many
+  measurements there are.
+
 ### Changed
 
 #### Core samples (Feature 005) — breaking
@@ -247,6 +294,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   permission no model declares.
 - The second name each related record carried for its two fields. Nothing read them, and one was an
   ORM path in a filter that raised on every use.
+
+#### Core measurements (Feature 006)
+
+- `fairdm.core.admin.MeasurementAdmin` and the second, unregistered `MeasurementParentAdmin`
+  beside it — an unconfigured stand-in the registry validated against and generated from by
+  mistake (see Changed, above). A portal's own measurement admin classes inherit from
+  `fairdm.core.measurement.admin.MeasurementChildAdmin`, which is what the developer guide has
+  always named.
 
 ### Migration Guide
 

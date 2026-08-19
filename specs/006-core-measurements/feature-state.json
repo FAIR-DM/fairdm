@@ -1585,8 +1585,14 @@
     },
     {
      "id": "T112",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "CHANGELOG.md"
+      ],
+      "verified_by_ci": false
+     }
     },
     {
      "id": "T113",
