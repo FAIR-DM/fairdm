@@ -5267,3 +5267,37 @@ fairdm/core/measurement/filters.py` → all checks passed.
 Next: none — all six tasks in this brief (US6: T066, T067, T072, T073, T074, T076) are complete.
 
 Watch: none.
+
+## 2026-08-19T15:15:00Z · Implementer US6 · T073 follow-up
+
+Did: Closed a defect the T073 fix introduced, reported by the coordinator against the delivered
+filter set directly: `MeasurementFilter(data={"date_after": "not-a-date"}, ...)` reported
+`is_valid() is True`, and evaluating `.qs` then raised an unhandled `django.core.exceptions.
+ValidationError` from `PartialDateField.to_python` - a public filter form must never surface a
+query-time exception as its error path. Added
+`TestMeasurementFilterDateRangeValidation` (`test_filters.py`) with a parametrized case
+(`"not-a-date"`, `"2024-13-45"`) asserting `is_valid() is False`, an error on `date_after`, and
+that `list(filterset.qs)` does not raise, plus a case confirming an empty string stays valid.
+Confirmed both parametrized cases failed for the right reason against the pre-fix code
+(`is_valid()` was `True`). Implemented `PartialDateFilterField` (`forms.CharField` subclass) and
+`PartialDateFilter` (`django_filters.CharFilter` subclass carrying it as `field_class`) in
+`filters.py`: `to_python` calls `partial_date.PartialDate.parseDate()` - the same static method
+`fairdm.db.fields.PartialDateField` itself uses - on the cleaned value, letting its
+`ValidationError` propagate as a form error rather than reaching the ORM. `date_after`/
+`date_before` are now declared with `PartialDateFilter` instead of the bare `CharFilter` T073
+left them with. Re-ran `test_filter_by_date_range` on its own to confirm the year-only and
+year-and-month cases (T072/T073's whole point) still pass - a validator that rejected `"2024"`
+would have put the original bug back with a different face. Recorded as D-018 in `decisions.md`:
+reusing the model field's own parser rather than a second regex that could drift from it.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 18 passed. `poetry run pytest tests/test_core/test_measurement/test_filters.py::
+TestMeasurementFilterCrossRelationshipFiltering::test_filter_by_date_range -v -p no:randomly` →
+1 passed. `poetry run ruff check fairdm/core/measurement/filters.py tests/test_core/
+test_measurement/test_filters.py` → all checks passed. `poetry run pytest -q -p no:randomly` →
+full suite green (see completion report). `poetry run pre-commit run --all-files` → all hooks
+passed.
+
+Next: none.
+
+Watch: none.

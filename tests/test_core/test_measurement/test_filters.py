@@ -427,6 +427,46 @@ class TestMeasurementFilterCrossRelationshipFiltering:
         assert measurement_year_only in filterset.qs
 
 
+class TestMeasurementFilterDateRangeValidation:
+    """T073 follow-up - the `CharFilter` swap that let `date_after`/
+    `date_before` accept a year or a year-and-month (T072/T073) also let any
+    string through unvalidated: `is_valid()` reported `True` for junk input,
+    and the request then died with an unhandled `ValidationError` when the
+    queryset was evaluated, rather than a form error a reader could see and
+    correct. A public filter form must never do that - the field now
+    validates the string at clean time, using the same parser
+    (`partial_date.PartialDate.parseDate`) the model field itself uses, so
+    the accepted/rejected shapes cannot drift between the two."""
+
+    @pytest.mark.parametrize("value", ["not-a-date", "2024-13-45"])
+    def test_invalid_date_string_is_a_form_error_not_a_query_time_exception(
+        self, value
+    ):
+        """Junk input fails `is_valid()` and is reported on the `date_after`
+        field - and, critically, evaluating `.qs` on the invalid filter set
+        does not raise. django-filter excludes an invalid field from
+        `form.cleaned_data`, so `filter_queryset` never reaches it once the
+        field itself refuses the value."""
+        filterset = MeasurementFilter(
+            data={"date_after": value}, queryset=Measurement.objects.all()
+        )
+
+        assert filterset.is_valid() is False
+        assert "date_after" in filterset.errors
+
+        # Must not raise.
+        list(filterset.qs)
+
+    def test_empty_date_string_is_valid(self):
+        """An empty value is the ordinary "no filter applied" case, not
+        invalid input."""
+        filterset = MeasurementFilter(
+            data={"date_after": ""}, queryset=Measurement.objects.all()
+        )
+
+        assert filterset.is_valid()
+
+
 class TestMeasurementFilterCombinedFilters:
     """T076 - each filter in a combination narrows independently. Reopened at
     design review: the previous version proved only the sample half - the one
