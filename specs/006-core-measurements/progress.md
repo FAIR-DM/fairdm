@@ -106,3 +106,41 @@ Watch: the full repo suite (`tests/`) is expected to still show failures in
 this story's declared file scope, all direct `MeasurementFactory(...)` call sites that this story
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
+
+## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+
+Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
+named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
+measurement call site in the suite", and the wider instruction governs. Scope widened to also
+permit `tests/test_factories/test_core.py`, `tests/test_factories/test_contributors.py` and
+`tests/test_core/test_dataset/test_models.py`. Retargeted every remaining direct
+`MeasurementFactory(...)` call site in those three files onto `ExampleMeasurementFactory`.
+`tests/test_registry/conftest.py`'s `ConcreteMeasurementFactory` is a separate, unrelated factory
+and was never affected.
+
+Two vocabulary-default assertions in `tests/test_factories/test_core.py` were corrected to match
+T001's fix (`measurement_desc.type` `"Abstract"` → `"MeasurementConditions"`;
+`measurement_date.type` `"Created"` → `"Setup"`). Three tests were asserting a claim FR-011 now
+forbids - "MeasurementFactory creates/builds a valid instance" - and were rewritten, not merely
+retargeted, per Forge's explicit instruction:
+`TestMeasurementFactories.test_measurement_factory_creates_measurement` (renamed
+`..._is_abstract_and_its_concrete_subclass_creates_measurement`),
+`TestBasicFactoryFunctionality.test_all_factories_can_create_instances` and
+`test_all_factories_can_build_instances`. Each now asserts `MeasurementFactory(...)` /
+`.build()` raises `factory.errors.FactoryError` before exercising the concrete/usable factories.
+
+Left `test_measurement_description_factory` and `test_measurement_date_factory`'s explicit
+`type="Abstract"` / `type="Created"` keyword arguments unchanged - those pass an explicit type
+rather than relying on the factory default, so they are testing "the factory stores whatever type
+it is given" (still true; Django does not validate `choices` on save), not a default. Flagged as a
+concern rather than fixed, since fixing it is not required for green and is not what T006 asks for.
+
+Verified: `poetry run pytest tests/test_core/test_dataset/test_models.py -q -p no:randomly` → 136
+passed. `poetry run pytest tests/test_factories/test_contributors.py -q -p no:randomly` → 18
+passed. `poetry run pytest tests/test_factories/test_core.py -q -p no:randomly` → 56 passed.
+`poetry run pytest tests/test_factories tests/test_core/test_dataset tests/test_core/test_measurement -q -p no:randomly`
+→ 440 passed, 22 skipped. `poetry run ruff check` on every touched file → all checks passed.
+
+Next: run the full repo suite once more for the follow-up completion report.
+
+Watch: none outstanding.
