@@ -1,1663 +1,1668 @@
 {
- "$schema": "../../../engineering-org/kit/schemas/feature-state.schema.json",
- "feature": "006-core-measurements",
- "branch": "006-core-measurements",
- "repo": "FAIR-DM/fairdm",
- "state": "PR_READY",
- "state_history": [
-  {
-   "state": "IMPLEMENT",
-   "at": "2026-08-19T11:05:00Z",
-   "note": "group 0 foundations merged"
+  "$schema": "../../../engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "006-core-measurements",
+  "branch": "006-core-measurements",
+  "repo": "FAIR-DM/fairdm",
+  "state": "MERGED",
+  "state_history": [
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-19T11:05:00Z",
+      "note": "group 0 foundations merged"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-19T16:10:00Z",
+      "note": "review findings applied, verify green"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-19T17:57:54Z",
+      "note": "PR #225 merged; approved by SamuelJennings"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "sam",
+      "at": "2026-08-19T09:10:00Z"
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-19T17:57:13Z"
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-19T09:45:00Z",
+      "self_resolved": [
+        "ten reconciliation ticks reversed: T013, T014, T029, T041, T076, T095, T096, T104, T107, T108",
+        "FR-041 amended - the inline row cap applies to the three vocabulary-typed records only, never to contributions",
+        "dataset choices on the filter mixin scoped to the reader's entitlement (T115); the same line on the sample mixin routed out",
+        "T114 added - the only test of the measurement address swallows every exception and reports a skip",
+        "plan ordering corrected - the mixins group runs before the filtering group"
+      ]
+    }
   },
-  {
-   "state": "PR_READY",
-   "at": "2026-08-19T16:10:00Z",
-   "note": "review findings applied, verify green"
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 215,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:27"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:137"
+            ]
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:27"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:137"
+            ]
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:111"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:265"
+            ]
+          }
+        },
+        {
+          "id": "T028",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/registry/registry.py:281"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_config.py:29"
+            ]
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/config.py:25"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_config.py:184"
+            ]
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T038",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T109",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/measurements.md:1"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T111",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/config.py:377",
+              "fairdm/registry/factories.py:820"
+            ],
+            "tests": [
+              "tests/test_registry/test_config.py::TestAdminInheritanceValidation::test_measurement_with_correct_admin_class_passes",
+              "tests/test_registry/test_config.py::TestAdminInheritanceValidation::test_measurement_with_wrong_admin_class_raises",
+              "tests/test_registry/test_config.py::TestAdminInheritanceValidation::test_autogenerated_measurement_admin_inherits_from_child_admin"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_registry/test_config.py -k \"measurement_admin or MeasurementAdmin or measurement_with\" -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 216,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T039",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:71"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:222",
+              "tests/test_core/test_measurement/test_forms.py:233"
+            ]
+          }
+        },
+        {
+          "id": "T040",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T041",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 217,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T042",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T043",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T044",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T046",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T047",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T048",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:208"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:183"
+            ]
+          }
+        },
+        {
+          "id": "T049",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:208"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:183",
+              "tests/test_core/test_measurement/test_models.py:186"
+            ]
+          }
+        },
+        {
+          "id": "T050",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T051",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P1",
+      "issue": 218,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T078",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T080",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T081",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T082",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T083",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T084",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T085",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 219,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T052",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T053",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T054",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T055",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T056",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T115",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P2",
+      "issue": 220,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T064",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:88"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:63",
+              "tests/test_core/test_measurement/test_filters.py:97"
+            ]
+          }
+        },
+        {
+          "id": "T065",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:88"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:63"
+            ]
+          }
+        },
+        {
+          "id": "T066",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:208"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:185",
+              "tests/test_core/test_measurement/test_filters.py:207"
+            ]
+          }
+        },
+        {
+          "id": "T067",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:208"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:185",
+              "tests/test_core/test_measurement/test_filters.py:207"
+            ]
+          }
+        },
+        {
+          "id": "T068",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:112"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:184"
+            ]
+          }
+        },
+        {
+          "id": "T069",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:155"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:184"
+            ]
+          }
+        },
+        {
+          "id": "T070",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:118"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:238"
+            ]
+          }
+        },
+        {
+          "id": "T071",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:118"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:238"
+            ]
+          }
+        },
+        {
+          "id": "T072",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:134",
+              "fairdm/core/measurement/filters.py:140"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:332"
+            ]
+          }
+        },
+        {
+          "id": "T073",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:21",
+              "fairdm/core/measurement/filters.py:42",
+              "fairdm/core/measurement/filters.py:134",
+              "fairdm/core/measurement/filters.py:140"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:332",
+              "tests/test_core/test_measurement/test_filters.py:430"
+            ]
+          }
+        },
+        {
+          "id": "T074",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/registry/factories.py:489"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:567"
+            ]
+          }
+        },
+        {
+          "id": "T075",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:59"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:62"
+            ]
+          }
+        },
+        {
+          "id": "T076",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/filters.py:88"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_filters.py:437"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US7",
+      "priority": "P2",
+      "issue": 221,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T086",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:125"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py::TestGetValue"
+            ]
+          }
+        },
+        {
+          "id": "T087",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:125"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py::TestGetValue"
+            ]
+          }
+        },
+        {
+          "id": "T088",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:140"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py::TestGetValueWithUncertainty"
+            ]
+          }
+        },
+        {
+          "id": "T089",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:143"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py::TestGetValuePlainNumber"
+            ]
+          }
+        },
+        {
+          "id": "T090",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/apps.py:70",
+              "fairdm/templatetags/fairdm.py:17"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py::TestPrintValue"
+            ]
+          }
+        },
+        {
+          "id": "T091",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:151"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py"
+            ]
+          }
+        },
+        {
+          "id": "T092",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/apps.py:70",
+              "fairdm/templatetags/fairdm.py:17"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py::TestPrintValue"
+            ]
+          }
+        },
+        {
+          "id": "T093",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_demo/models.py:1"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_value.py::TestGetValue",
+              "tests/test_core/test_measurement/test_value.py::TestGetValueWithUncertainty"
+            ]
+          }
+        },
+        {
+          "id": "T094",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_demo/migrations/0003_icp_ms_measurement_uncertainty_and_more.py:1"
+            ],
+            "commands": [
+              "poetry run python -m manage makemigrations fairdm_demo",
+              "poetry run python -m manage makemigrations --check --dry-run"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US8",
+      "priority": "P2",
+      "issue": 222,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T095",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T096",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T097",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T098",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T099",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T100",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T101",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T102",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/admin.py:87"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_admin.py:350"
+            ]
+          }
+        },
+        {
+          "id": "T103",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/admin.py:87"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_admin.py:350"
+            ]
+          }
+        },
+        {
+          "id": "T110",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-administration/managing-measurements.md:1",
+              "fairdm/core/measurement/admin.py:1",
+              "fairdm/core/vocabularies.py:1"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US9",
+      "priority": "P2",
+      "issue": 223,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T104",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T105",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/managers.py:56"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:360"
+            ]
+          }
+        },
+        {
+          "id": "T106",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T107",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T108",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US10",
+      "priority": "P2",
+      "issue": 224,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/core.py:596"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_factories.py:38",
+              "tests/test_core/test_measurement/test_factories.py:68",
+              "tests/test_core/test_measurement/test_factories.py:89"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/core.py:635"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_factories.py:113"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm_demo/factories.py:160",
+              "fairdm_demo/factories.py:179"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_factories.py:131",
+              "tests/test_core/test_measurement/test_factories.py:139"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/__init__.py:91"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_factories.py:152",
+              "tests/test_core/test_measurement/test_factories.py:165"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_core/test_measurement/conftest.py:83"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_factories.py:123"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_core/test_measurement/conftest.py:83"
+            ],
+            "tests": [
+              "tests/test_factories/test_core.py:1"
+            ],
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:53"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:71"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:308",
+              "tests/test_core/test_measurement/test_models.py:312"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:71"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:308"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/abstract.py:23"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:54"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:155"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:637"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:164",
+              "fairdm/core/measurement/urls.py:7"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py:637"
+            ]
+          }
+        },
+        {
+          "id": "T112",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "CHANGELOG.md:1"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T113",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/measurement/models.py:166",
+              "fairdm/core/measurement/forms.py:108"
+            ],
+            "commands": [
+              "poetry run ruff check fairdm/core/measurement/models.py fairdm/core/measurement/forms.py",
+              "poetry run pytest tests/test_core/test_measurement/test_models.py tests/test_core/test_measurement/test_forms.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T114",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_core/test_measurement/test_models.py:1"
+            ],
+            "tests": [
+              "tests/test_core/test_measurement/test_models.py::TestMeasurementViews::test_get_absolute_url_is_the_measurements_own_address",
+              "tests/test_core/test_measurement/test_models.py::TestMeasurementViews::test_get_absolute_url_resolves_to_the_measurement_detail_view"
+            ],
+            "commands": [
+              "poetry run ruff check tests/test_core/test_measurement/test_models.py",
+              "poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementViews -v -p no:randomly",
+              "poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 3
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 6000000
+    }
+  },
+  "pr": {
+    "number": 225,
+    "draft": false
   }
- ],
- "gates": {
-  "spec": {
-   "approved_by": "sam",
-   "at": "2026-08-19T09:10:00Z"
-  },
-  "plan": {
-   "approved_by": null,
-   "at": null
-  },
-  "merge": {
-   "approved_by": null,
-   "at": null
-  },
-  "design_review": {
-   "approved_by": "design-panel",
-   "at": "2026-08-19T09:45:00Z",
-   "self_resolved": [
-    "ten reconciliation ticks reversed: T013, T014, T029, T041, T076, T095, T096, T104, T107, T108",
-    "FR-041 amended - the inline row cap applies to the three vocabulary-typed records only, never to contributions",
-    "dataset choices on the filter mixin scoped to the reader's entitlement (T115); the same line on the sample mixin routed out",
-    "T114 added - the only test of the measurement address swallows every exception and reports a skip",
-    "plan ordering corrected - the mixins group runs before the filtering group"
-   ]
-  }
- },
- "stories": [
-  {
-   "id": "US1",
-   "priority": "P1",
-   "issue": 215,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T023",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:27"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:137"
-      ]
-     }
-    },
-    {
-     "id": "T024",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:27"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:137"
-      ]
-     }
-    },
-    {
-     "id": "T025",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T026",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T027",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:111"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:265"
-      ]
-     }
-    },
-    {
-     "id": "T028",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T029",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T030",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T031",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/registry/registry.py:281"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_config.py:29"
-      ]
-     }
-    },
-    {
-     "id": "T032",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T033",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T034",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T035",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/config.py:25"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_config.py:184"
-      ]
-     }
-    },
-    {
-     "id": "T036",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T037",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T038",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T109",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "docs/portal-development/measurements.md:1"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py"
-      ],
-      "commands": [
-       "poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T111",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/registry/config.py:377",
-       "fairdm/registry/factories.py:820"
-      ],
-      "tests": [
-       "tests/test_registry/test_config.py::TestAdminInheritanceValidation::test_measurement_with_correct_admin_class_passes",
-       "tests/test_registry/test_config.py::TestAdminInheritanceValidation::test_measurement_with_wrong_admin_class_raises",
-       "tests/test_registry/test_config.py::TestAdminInheritanceValidation::test_autogenerated_measurement_admin_inherits_from_child_admin"
-      ],
-      "commands": [
-       "poetry run pytest tests/test_registry/test_config.py -k \"measurement_admin or MeasurementAdmin or measurement_with\" -q -p no:randomly"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  },
-  {
-   "id": "US2",
-   "priority": "P1",
-   "issue": 216,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T039",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:71"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:222",
-       "tests/test_core/test_measurement/test_forms.py:233"
-      ]
-     }
-    },
-    {
-     "id": "T040",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T041",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  },
-  {
-   "id": "US3",
-   "priority": "P1",
-   "issue": 217,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T042",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T043",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T044",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T045",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T046",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T047",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T048",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:208"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:183"
-      ]
-     }
-    },
-    {
-     "id": "T049",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:208"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:183",
-       "tests/test_core/test_measurement/test_models.py:186"
-      ]
-     }
-    },
-    {
-     "id": "T050",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T051",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  },
-  {
-   "id": "US4",
-   "priority": "P1",
-   "issue": 218,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T077",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T078",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T079",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T080",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T081",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T082",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T083",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T084",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T085",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  },
-  {
-   "id": "US5",
-   "priority": "P2",
-   "issue": 219,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T052",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T053",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T054",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T055",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T056",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T057",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T058",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T059",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T060",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T061",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T062",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T063",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T115",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  },
-  {
-   "id": "US6",
-   "priority": "P2",
-   "issue": 220,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T064",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:88"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:63",
-       "tests/test_core/test_measurement/test_filters.py:97"
-      ]
-     }
-    },
-    {
-     "id": "T065",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:88"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:63"
-      ]
-     }
-    },
-    {
-     "id": "T066",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:208"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:185",
-       "tests/test_core/test_measurement/test_filters.py:207"
-      ]
-     }
-    },
-    {
-     "id": "T067",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:208"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:185",
-       "tests/test_core/test_measurement/test_filters.py:207"
-      ]
-     }
-    },
-    {
-     "id": "T068",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:112"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:184"
-      ]
-     }
-    },
-    {
-     "id": "T069",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:155"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:184"
-      ]
-     }
-    },
-    {
-     "id": "T070",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:118"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:238"
-      ]
-     }
-    },
-    {
-     "id": "T071",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:118"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:238"
-      ]
-     }
-    },
-    {
-     "id": "T072",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:134",
-       "fairdm/core/measurement/filters.py:140"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:332"
-      ]
-     }
-    },
-    {
-     "id": "T073",
-     "status": "done",
-     "attempts": 2,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:21",
-       "fairdm/core/measurement/filters.py:42",
-       "fairdm/core/measurement/filters.py:134",
-       "fairdm/core/measurement/filters.py:140"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:332",
-       "tests/test_core/test_measurement/test_filters.py:430"
-      ]
-     }
-    },
-    {
-     "id": "T074",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/registry/factories.py:489"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:567"
-      ]
-     }
-    },
-    {
-     "id": "T075",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:59"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:62"
-      ]
-     }
-    },
-    {
-     "id": "T076",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:88"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:437"
-      ]
-     }
-    }
-   ]
-  },
-  {
-   "id": "US7",
-   "priority": "P2",
-   "issue": 221,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T086",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:125"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py::TestGetValue"
-      ]
-     }
-    },
-    {
-     "id": "T087",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:125"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py::TestGetValue"
-      ]
-     }
-    },
-    {
-     "id": "T088",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:140"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py::TestGetValueWithUncertainty"
-      ]
-     }
-    },
-    {
-     "id": "T089",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:143"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py::TestGetValuePlainNumber"
-      ]
-     }
-    },
-    {
-     "id": "T090",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/apps.py:70",
-       "fairdm/templatetags/fairdm.py:17"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py::TestPrintValue"
-      ]
-     }
-    },
-    {
-     "id": "T091",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:151"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py"
-      ]
-     }
-    },
-    {
-     "id": "T092",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/apps.py:70",
-       "fairdm/templatetags/fairdm.py:17"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py::TestPrintValue"
-      ]
-     }
-    },
-    {
-     "id": "T093",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm_demo/models.py:1"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_value.py::TestGetValue",
-       "tests/test_core/test_measurement/test_value.py::TestGetValueWithUncertainty"
-      ]
-     }
-    },
-    {
-     "id": "T094",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm_demo/migrations/0003_icp_ms_measurement_uncertainty_and_more.py:1"
-      ],
-      "commands": [
-       "poetry run python -m manage makemigrations fairdm_demo",
-       "poetry run python -m manage makemigrations --check --dry-run"
-      ]
-     }
-    }
-   ]
-  },
-  {
-   "id": "US8",
-   "priority": "P2",
-   "issue": 222,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T095",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T096",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T097",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T098",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T099",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T100",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T101",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T102",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/admin.py:87"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_admin.py:350"
-      ]
-     }
-    },
-    {
-     "id": "T103",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/admin.py:87"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_admin.py:350"
-      ]
-     }
-    },
-    {
-     "id": "T110",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "docs/portal-administration/managing-measurements.md:1",
-       "fairdm/core/measurement/admin.py:1",
-       "fairdm/core/vocabularies.py:1"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  },
-  {
-   "id": "US9",
-   "priority": "P2",
-   "issue": 223,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T104",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T105",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/managers.py:56"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:360"
-      ]
-     }
-    },
-    {
-     "id": "T106",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T107",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T108",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  },
-  {
-   "id": "US10",
-   "priority": "P2",
-   "issue": 224,
-   "worktree": null,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T001",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/factories/core.py:596"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_factories.py:38",
-       "tests/test_core/test_measurement/test_factories.py:68",
-       "tests/test_core/test_measurement/test_factories.py:89"
-      ],
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ]
-     }
-    },
-    {
-     "id": "T002",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/factories/core.py:635"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_factories.py:113"
-      ],
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ]
-     }
-    },
-    {
-     "id": "T003",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm_demo/factories.py:160",
-       "fairdm_demo/factories.py:179"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_factories.py:131",
-       "tests/test_core/test_measurement/test_factories.py:139"
-      ],
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ]
-     }
-    },
-    {
-     "id": "T004",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/factories/__init__.py:91"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_factories.py:152",
-       "tests/test_core/test_measurement/test_factories.py:165"
-      ],
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ]
-     }
-    },
-    {
-     "id": "T005",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "tests/test_core/test_measurement/conftest.py:83"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_factories.py:123"
-      ],
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ]
-     }
-    },
-    {
-     "id": "T006",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "tests/test_core/test_measurement/conftest.py:83"
-      ],
-      "tests": [
-       "tests/test_factories/test_core.py:1"
-      ],
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ]
-     }
-    },
-    {
-     "id": "T007",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T008",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:60"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:53"
-      ]
-     }
-    },
-    {
-     "id": "T009",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T010",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T011",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T012",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T013",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T014",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T015",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:71"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:308",
-       "tests/test_core/test_measurement/test_models.py:312"
-      ]
-     }
-    },
-    {
-     "id": "T016",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:71"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:308"
-      ]
-     }
-    },
-    {
-     "id": "T017",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T018",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/abstract.py:23"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:54"
-      ]
-     }
-    },
-    {
-     "id": "T019",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T020",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "commands": [
-       "poetry run pytest tests/ -q",
-       "poetry run pre-commit run --all-files"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T021",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:155"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:637"
-      ]
-     }
-    },
-    {
-     "id": "T022",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:164",
-       "fairdm/core/measurement/urls.py:7"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:637"
-      ]
-     }
-    },
-    {
-     "id": "T112",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "CHANGELOG.md:1"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T113",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:166",
-       "fairdm/core/measurement/forms.py:108"
-      ],
-      "commands": [
-       "poetry run ruff check fairdm/core/measurement/models.py fairdm/core/measurement/forms.py",
-       "poetry run pytest tests/test_core/test_measurement/test_models.py tests/test_core/test_measurement/test_forms.py -q -p no:randomly"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T114",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "code": [
-       "tests/test_core/test_measurement/test_models.py:1"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py::TestMeasurementViews::test_get_absolute_url_is_the_measurements_own_address",
-       "tests/test_core/test_measurement/test_models.py::TestMeasurementViews::test_get_absolute_url_resolves_to_the_measurement_detail_view"
-      ],
-      "commands": [
-       "poetry run ruff check tests/test_core/test_measurement/test_models.py",
-       "poetry run pytest tests/test_core/test_measurement/test_models.py::TestMeasurementViews -v -p no:randomly",
-       "poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly"
-      ],
-      "verified_by_ci": false
-     }
-    }
-   ]
-  }
- ],
- "budgets": {
-  "converge_cycles": {
-   "used": 0,
-   "max": 3
-  },
-  "review_cycles": {
-   "used": 1,
-   "max": 1
-  },
-  "design_review_cycles": {
-   "used": 1,
-   "max": 1
-  },
-  "tokens": {
-   "used": 0,
-   "max": 6000000
-  }
- },
- "pr": {
-  "number": 225,
-  "draft": false
- }
 }
