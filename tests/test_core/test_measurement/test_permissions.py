@@ -17,20 +17,30 @@ matching row.
 
 import pytest
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from guardian.shortcuts import assign_perm as guardian_assign_perm
 
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.measurement.permissions import MeasurementPermissionBackend
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
-from fairdm.core.utils import get_perms as fairdm_get_perms
 from fairdm.core.utils import get_permission_target
+from fairdm.core.utils import get_perms as fairdm_get_perms
 from fairdm.core.utils import remove_perm as fairdm_remove_perm
-from fairdm.factories import DatasetFactory
+from fairdm.factories import DatasetFactory, PersonFactory
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
-User = get_user_model()
+
+@pytest.fixture
+def user(db):
+    """Overrides the directory conftest's ``user`` fixture, which is ``PersonFactory()``
+    with no override: ``PersonFactory.is_active`` is ``Faker("boolean",
+    chance_of_getting_true=80)``, so roughly one user in five is inactive.
+    ``guardian.core.ObjectPermissionChecker.has_perm`` denies every object permission to an
+    inactive user unconditionally, which made every test below intermittently and
+    misleadingly fail regardless of the grant under test - confirmed by forcing
+    ``is_active=True`` here and re-running the file repeatedly with no further failures.
+    """
+    return PersonFactory(is_active=True)
 
 
 @pytest.mark.django_db
@@ -96,8 +106,8 @@ class TestMeasurementGuardianIntegration:
     normalising entry point, and object-specific (T079): a right granted over one
     measurement applies to that measurement and to no other.
 
-    ``guardian.shortcuts.assign_perm`` (imported above, unqualified) cannot grant any of
-    these - confirmed directly in this story rather than assumed: it raises
+    Guardian's own ``assign_perm`` cannot grant any of these - confirmed directly elsewhere in
+    this story (``TestMeasurementRegisteredTypePermissions``) rather than assumed: it raises
     ``Permission.DoesNotExist``, because ``view_measurement`` etc. are filed under
     ``Measurement``'s content type while an ``ExampleMeasurement`` instance carries its own.
     ``fairdm_assign_perm``/``fairdm_remove_perm``/``fairdm_get_perms`` normalise the target
@@ -154,7 +164,9 @@ class TestMeasurementGuardianIntegration:
 
         assert user.has_perm("measurement.view_measurement", measurement)  # inherited
         assert user.has_perm("measurement.change_measurement", measurement)  # direct
-        assert not user.has_perm("measurement.delete_measurement", measurement)  # neither
+        assert not user.has_perm(
+            "measurement.delete_measurement", measurement
+        )  # neither
 
 
 @pytest.mark.django_db
@@ -267,9 +279,13 @@ class TestMeasurementRegisteredTypePermissions:
         bare_record = Measurement.objects.non_polymorphic().get(pk=measurement.pk)
         assert user.has_perm("measurement.change_measurement", measurement)
         assert user.has_perm("measurement.change_measurement", bare_record)
-        assert fairdm_get_perms(user, measurement) == fairdm_get_perms(user, bare_record)
+        assert fairdm_get_perms(user, measurement) == fairdm_get_perms(
+            user, bare_record
+        )
 
-    def test_guardian_raw_assign_perm_cannot_grant_on_the_registered_type_directly(self, user):
+    def test_guardian_raw_assign_perm_cannot_grant_on_the_registered_type_directly(
+        self, user
+    ):
         """Confirms why the normalisation in T083 is needed, rather than assuming it: without
         it, guardian's own ``assign_perm`` cannot grant this permission at all, because it is
         declared on ``Measurement``'s content type while the registered-type instance carries
@@ -345,7 +361,9 @@ class TestAnonymousUserPermissions:
 
         # Create a dataset and measurement (public/private dataset handling may vary by implementation)
         dataset = DatasetFactory()
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
+        measurement = ExampleMeasurementFactory(
+            sample=RockSampleFactory(), dataset=dataset
+        )
         anonymous = AnonymousUser()
 
         # Even if dataset is "public", anonymous users need explicit view permissions
