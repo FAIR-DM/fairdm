@@ -20,6 +20,8 @@ from django.contrib.auth import get_user_model
 from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
+from fairdm.core.utils import get_perms as fairdm_get_perms
+from fairdm.core.utils import remove_perm as fairdm_remove_perm
 from fairdm.factories import DatasetFactory
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
@@ -83,36 +85,36 @@ class TestMeasurementPermissionInheritance:
         assert user.has_perm("measurement.view_measurement", measurement2)
 
 
-@pytest.mark.skip(
-    reason="Guardian does not support direct permission assignment to polymorphic subclass instances. "
-    "Permissions are defined on base Measurement model (app: 'measurement') but polymorphic subclass instances "
-    "(XRFMeasurement, ICPMSMeasurement) have different app labels ('fairdm_demo'). This causes WrongAppError. "
-    "Permission inheritance from Dataset (see TestMeasurementPermissionInheritance) is the correct pattern."
-)
 @pytest.mark.django_db
 class TestMeasurementGuardianIntegration:
-    """Test Measurement model integrates with django-guardian for object-level permissions."""
+    """Direct rights over a measurement (T080), granted and consulted through the
+    normalising entry point, and object-specific (T079): a right granted over one
+    measurement applies to that measurement and to no other.
+
+    ``guardian.shortcuts.assign_perm`` (imported above, unqualified) cannot grant any of
+    these - confirmed directly in this story rather than assumed: it raises
+    ``Permission.DoesNotExist``, because ``view_measurement`` etc. are filed under
+    ``Measurement``'s content type while an ``ExampleMeasurement`` instance carries its own.
+    ``fairdm_assign_perm``/``fairdm_remove_perm``/``fairdm_get_perms`` normalise the target
+    first (module docstring), and are what these tests exercise.
+    """
 
     def test_can_assign_object_level_permissions_to_measurement(self, user):
         """Test that guardian permissions can be assigned to Measurement instances."""
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
-        # Assign view permission using base Measurement model (not polymorphic subclass)
-        assign_perm("measurement.view_measurement", user, measurement)
+        fairdm_assign_perm("measurement.view_measurement", user, measurement)
 
-        # Verify permission was assigned
         assert user.has_perm("measurement.view_measurement", measurement)
-        assert "view_measurement" in get_perms(user, measurement)
+        assert "view_measurement" in fairdm_get_perms(user, measurement)
 
     def test_can_assign_multiple_permissions_to_measurement(self, user):
         """Test that multiple permissions can be assigned to a Measurement."""
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
-        # Assign multiple permissions
-        assign_perm("measurement.view_measurement", user, measurement)
-        assign_perm("measurement.change_measurement", user, measurement)
+        fairdm_assign_perm("measurement.view_measurement", user, measurement)
+        fairdm_assign_perm("measurement.change_measurement", user, measurement)
 
-        # Verify both permissions
         assert user.has_perm("measurement.view_measurement", measurement)
         assert user.has_perm("measurement.change_measurement", measurement)
         assert not user.has_perm("measurement.delete_measurement", measurement)
@@ -121,11 +123,10 @@ class TestMeasurementGuardianIntegration:
         """Test that guardian permissions can be removed from Measurement instances."""
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
-        # Assign and then remove permission
-        assign_perm("measurement.view_measurement", user, measurement)
+        fairdm_assign_perm("measurement.view_measurement", user, measurement)
         assert user.has_perm("measurement.view_measurement", measurement)
 
-        remove_perm("measurement.view_measurement", user, measurement)
+        fairdm_remove_perm("measurement.view_measurement", user, measurement)
         assert not user.has_perm("measurement.view_measurement", measurement)
 
     def test_permissions_are_object_specific(self, user):
@@ -133,12 +134,22 @@ class TestMeasurementGuardianIntegration:
         measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory())
         measurement2 = ExampleMeasurementFactory(sample=RockSampleFactory())
 
-        # Assign permission to measurement1 only
-        assign_perm("measurement.view_measurement", user, measurement1)
+        fairdm_assign_perm("measurement.view_measurement", user, measurement1)
 
-        # User can view measurement1 but not measurement2
         assert user.has_perm("measurement.view_measurement", measurement1)
         assert not user.has_perm("measurement.view_measurement", measurement2)
+
+    def test_direct_permission_coexists_with_inherited_dataset_permission(self, user):
+        """A direct grant on the measurement and an inherited grant from its dataset both
+        hold at once - neither masks the other."""
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        fairdm_assign_perm("dataset.view_dataset", user, measurement.dataset)
+        fairdm_assign_perm("measurement.change_measurement", user, measurement)
+
+        assert user.has_perm("measurement.view_measurement", measurement)  # inherited
+        assert user.has_perm("measurement.change_measurement", measurement)  # direct
+        assert not user.has_perm("measurement.delete_measurement", measurement)  # neither
 
 
 @pytest.mark.skip(
