@@ -599,7 +599,9 @@ class MeasurementIdentifierFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementIdentifier
 
-    type = "DOI"  # Default identifier type - the only member of the measurement collection
+    type = (
+        "DOI"  # Default identifier type - the only member of the measurement collection
+    )
     # AbstractIdentifier.value is unique across every record that carries identifiers.
     value = factory.Sequence(lambda n: f"10.{4000 + n}/measurement-{n}")
     # related field will be set by the caller
