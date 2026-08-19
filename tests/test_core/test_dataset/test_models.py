@@ -41,13 +41,12 @@ from fairdm.factories import (
     DatasetFactory,
     DatasetIdentifierFactory,
     LiteratureItemFactory,
-    MeasurementFactory,
     PersonFactory,
     ProjectFactory,
 )
 from fairdm.factories.contributors import ContributionFactory
 from fairdm.utils.choices import Visibility
-from fairdm_demo.factories import RockSampleFactory
+from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -656,7 +655,7 @@ class TestDatasetHasData:
         dataset = DatasetFactory()
         assert dataset.has_data is False
 
-        MeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
+        ExampleMeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
         del dataset.has_data  # clear the cached_property
 
         with django_assert_num_queries(1):
