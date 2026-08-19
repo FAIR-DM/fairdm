@@ -527,14 +527,13 @@ class TestMeasurementDirectInstantiation:
 class TestMeasurementURLPattern:
     """Test get_absolute_url() returns correct pattern."""
 
-    @pytest.mark.skip(reason="URL patterns not implemented yet - Phase 8")
     def test_get_absolute_url_returns_measurement_detail_pattern(self, xrf_measurement):
         """Test that get_absolute_url() follows measurement:overview pattern with UUID."""
         url = xrf_measurement.get_absolute_url()
 
         # Should match pattern: /measurement/{uuid}/
         assert url.startswith("/measurement/")
-        assert xrf_measurement.uuid in url
+        assert str(xrf_measurement.uuid) in url
         assert url.endswith("/")
 
 
