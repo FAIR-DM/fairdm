@@ -16,14 +16,17 @@ Samples represent physical or digital objects in your research portal. Each samp
 
 ### Basic Sample Creation
 
-1. Click **Add Sample** (or specific type like "Add Rock Sample")
-2. Fill in required fields:
+1. Click **Add Sample**. The bare `Sample` record cannot be created directly — by design, no
+   route can create one, including this one — so the admin's first step is always a type-choice
+   page listing every registered sample type (e.g. "Rock Sample", "Water Sample").
+2. Pick a type, then fill in required fields:
    - **Name**: Short identifier for the sample
-   - **Dataset**: Parent dataset (dropdown filtered by your permissions)
+   - **Dataset**: Parent dataset (every dataset is offered here, including private ones — the
+     admin is where a portal is repaired)
 3. Fill in optional fields:
    - **Local ID**: Internal lab identifier
    - **Location**: Geographic location (if applicable)
-   - **Status**: Sample status (Available, Used, Archived, etc.)
+   - **Status**: Custody status (see the Status filter below; defaults to Unknown)
 4. Add type-specific fields (e.g., rock type, pH level, temperature)
 5. Click **Save** or **Save and continue editing**
 
@@ -36,45 +39,64 @@ Sample metadata is managed through inline forms on the sample edit page:
 Add multiple descriptions of different types:
 
 1. In the **Descriptions** section, click **Add another Description**
-2. Select **Type** (Abstract, Methods, Other)
+2. Select **Type**
 3. Enter **Value** (the actual description text)
-4. Repeat for additional descriptions
+4. Repeat for additional descriptions — the form offers at most one row per type in the
+   vocabulary, so a fully-described sample cannot add a sixth
 
-**Example uses**:
+**Sample description types**:
 
-- **Abstract**: Brief summary of what the sample is
-- **Methods**: How it was collected or prepared
-- **Other**: Any other relevant information
+- **Collection**: How and where the specimen was collected
+- **Preparation**: How it was prepared for storage or analysis
+- **Storage**: How and where it is stored
+- **Destruction**: Circumstances of its destruction, where applicable
+- **Other**: Anything that does not fit the four types above
 
 #### Dates
 
 Track important dates related to the sample:
 
 1. In the **Dates** section, click **Add another Date**
-2. Select **Type** (Collected, Available, Created)
+2. Select **Type**
 3. Enter **Value** in YYYY, YYYY-MM, or YYYY-MM-DD format
-4. Repeat for additional dates
+4. Repeat for additional dates — one row per type, same limit as descriptions
 
-**Common date types**:
+**Sample date types**:
 
-- **Collected**: When the sample was collected in the field
-- **Available**: When the sample became available for analysis
 - **Created**: When the sample record was created in the database
+- **Destroyed**: When the specimen was destroyed
+- **Collected**: When the sample was collected in the field
+- **Returned**: When the specimen was returned (e.g. from loan)
+- **Prepared**: When the specimen was prepared for storage or analysis
+- **Archival**: When the specimen entered long-term storage
+- **Restored**: When the specimen was restored from destroyed or another lapsed state
 
 #### Identifiers
 
 Assign persistent identifiers to samples:
 
 1. In the **Identifiers** section, click **Add another Identifier**
-2. Select **Type** (IGSN, Barcode, Other)
+2. Select **Type** — **IGSN** or **DOI**. These are the only two; the identifier vocabulary
+   for samples does not include a lab barcode or a generic "other" type, and it is a different
+   vocabulary from the one used for people, organisations and projects
 3. Enter **Value** (the identifier string)
 4. Repeat for additional identifiers
 
-**Common identifier types**:
+**Sample identifier types**:
 
-- **IGSN**: International Geo Sample Number (for geological samples)
-- **Barcode**: Internal lab barcode
-- **Other**: Any other identifier system
+- **IGSN**: The International Generic Sample Number. Validated as any DataCite DOI
+  (`10.NNNN/…`, case-insensitive) or the legacy `10273/…` handle — IGSN allocation moved to
+  DataCite in 2023 and there is no longer a single prefix or suffix pattern to check against
+- **DOI**: A Digital Object Identifier, for portals that mint DOIs for specimens directly
+
+Two normalisation rules apply to every identifier value, sample or otherwise:
+
+- A common display prefix — `https://doi.org/`, `http://doi.org/`, `https://igsn.org/`,
+  `hdl.handle.net/`, `doi:`, `igsn:` — is stripped before the value is stored, so pasting an
+  IGSN as a full resolvable URL and pasting its bare identifier both store the same value.
+- An identifier value must be unique across **every** record type that carries identifiers —
+  projects, datasets, samples and measurements — not only within samples. The same value cannot
+  identify two different records, whatever kind they are.
 
 #### Contributors
 
@@ -91,17 +113,14 @@ Track who collected, analyzed, or owns samples:
 Track provenance and relationships between samples:
 
 1. In the **Relationships (as source)** section, click **Add another Relationship**
-2. Select **Target** sample (the related sample)
-3. Select **Type** (child_of, derived-from, split-from, replicate-of)
-4. Optionally add **Description** explaining the relationship
-5. Repeat for additional relationships
+2. Select **Target** sample (the sample this one came from)
+3. Select **Type** — `child_of` is the only type the vocabulary offers today
+4. Repeat for additional relationships
 
-**Common relationship types**:
-
-- **child_of**: Sample is a child/subsample of another
-- **derived-from**: Sample derived through processing (e.g., powder from rock)
-- **split-from**: Sample split from a larger sample
-- **replicate-of**: Duplicate/replicate sample for QC
+There is currently one relationship type, `child_of`, and the relationship record carries no
+description field to explain it. A sample cannot be related to itself, the reverse of an
+existing link cannot also be recorded, and the same link cannot be saved twice — all three are
+refused however the relationship is created, not only when a form validates it.
 
 ## Searching Samples
 
@@ -134,13 +153,19 @@ Filter by parent dataset:
 
 #### Status
 
-Filter by sample status:
+Filter by sample status. Status describes physical custody — where a specimen is, not what has
+been done with its data — and it is a fixed, locally-declared vocabulary rather than one fetched
+from a third party:
 
-- **Available**: Samples ready for analysis
-- **Used**: Samples that have been consumed/analyzed
-- **Archived**: Samples in long-term storage
-- **Destroyed**: Samples that no longer exist
-- **Loan**: Samples on loan to another institution
+- **Available**: The specimen is accessible and not currently checked out, in storage, or
+  destroyed
+- **In Use**: The specimen is currently checked out or otherwise in active use
+- **Stored**: The specimen is held in long-term storage
+- **Destroyed**: The specimen has been consumed, destroyed, or is otherwise no longer physically
+  available. This is not a terminal state — a specimen recorded as destroyed can be moved back
+  to any other status, because a mistaken "destroyed" entry must be correctable
+- **Unknown**: The specimen's current custody status is not known — this is what a sample reads
+  as when nobody has set one
 
 #### Sample Type
 
@@ -218,13 +243,13 @@ On a sample's edit page, relationships are shown in two sections:
 
 **Relationships (as source)**:
 
-- Shows samples this sample is related to
-- E.g., "This powder was derived-from Rock-001"
+- Shows the sample this one is recorded as a child of
+- E.g., "Section-A is child_of Core-001"
 
 **Relationships (as target)**:
 
-- Shows samples related to this one
-- E.g., "Powder-001 was derived-from this rock"
+- Shows the samples recorded as children of this one
+- E.g., "Core-001 is the parent of Section-A"
 
 ### Creating Hierarchies
 
@@ -268,28 +293,30 @@ FairDM uses polymorphic inheritance, meaning:
 
 Keep status up to date:
 
-- Set to **Available** when sample enters lab
-- Change to **Used** after analysis that consumes sample
-- Use **Archived** for long-term storage
-- Update to **Destroyed** if sample no longer exists
+- Set to **Available** when the specimen enters the lab and is not otherwise occupied
+- Change to **In Use** while it is checked out or being worked on
+- Use **Stored** for long-term storage
+- Update to **Destroyed** if the specimen no longer exists — and move it back to any other
+  status if that turns out to be wrong, since the move is never refused
+- Leave as **Unknown** rather than guessing; it is the default for a reason
 
 ### Metadata Completeness
 
 Aim for complete metadata:
 
-- Add at least one description (Abstract)
-- Record collection date if known
-- Assign persistent identifiers (IGSN, etc.)
+- Add at least one description (Collection, at minimum)
+- Record the collection date if known
+- Assign a persistent identifier (IGSN or DOI) where the specimen has one
 - Track contributors (collector, analyst)
 
 ### Relationship Documentation
 
 When adding relationships:
 
-- Always include a description explaining the relationship
-- Be consistent with relationship types
-- Create relationships from child to parent
-- Check both directions to verify correctness
+- `child_of` is the only relationship type today; there is nowhere to record why one sample
+  came from another beyond the link itself
+- Create relationships from child to parent — `source` is the child, `target` is the parent
+- Check both the source and target sides after saving to verify the direction is what you meant
 
 ## Troubleshooting
 
@@ -444,6 +471,13 @@ Samples inherit permissions from their dataset:
 1. Contact the dataset owner or project manager
 2. Or contact a portal administrator
 3. Specify which datasets you need access to
+
+A right granted directly on one sample (through the admin's **Object permissions** section, or
+programmatically) holds independently of any dataset-level grant. If you are writing code that
+grants sample permissions rather than using the admin, see
+[Managing Users and Permissions](managing_users_and_permissions.md) — samples are polymorphic,
+and granting or checking their permissions needs FairDM's own helpers rather than django-guardian's
+directly.
 
 ## See Also
 

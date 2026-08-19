@@ -117,6 +117,16 @@ Non-disclosure (404 instead of 403) is used for unauthorized access to detail en
 
 When you create an object via the API, FairDM's `ObjectPermissionsAssignmentMixin` automatically assigns guardian object permissions (`view_*`, `change_*`, `delete_*`) to the requesting user, making the creator the object owner.
 
+```{note}
+This is the API's own permission assignment path, separate from the `fairdm.core.utils` helpers
+described in [Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md).
+If you are writing portal code outside the API — a management command, a signal receiver, a data
+migration — that grants or checks a permission on a sample, a measurement, or a
+contributor/organization programmatically, use those helpers rather than calling
+`django-guardian` directly: those records are polymorphic, and a raw guardian call files or looks
+for the grant under the wrong content type.
+```
+
 ## Customizing Serializer Fields
 
 FairDM uses a three-tier resolution to determine which fields appear in API responses:

@@ -1,0 +1,1339 @@
+{
+  "$schema": "../../../engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "005-core-samples",
+  "branch": "005-core-samples",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PR_READY",
+  "gates": {
+    "spec": {
+      "approved_by": "sam",
+      "at": "2026-08-18T22:40:00Z"
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-19T01:30:00Z",
+      "self_resolved": [
+        "T029, T050 and T086 reopened - their evidence did not survive the reconciliation lens",
+        "base-record block and the factory retargeting moved into one story, run first",
+        "factory design settled: abstract in the framework, concrete in the reference implementation",
+        "status vocabulary keeps an inert stub so migration history stays importable",
+        "permission gate keyed on the object rather than the permission string",
+        "grant side given its own normalising wrapper; the backend fixes only the check",
+        "shared backend registered directly rather than reached by delegation",
+        "plugin gating reversed back into scope as FR-033a, with D-015 recording why",
+        "cross-record identifier uniqueness lifted onto the shared abstract",
+        "T004 folded, T053 restated against the migration's forward function"
+      ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-08-19T08:30:00Z",
+      "self_resolved": [
+        "identifier vocabularies scoped per record type; makemigrations clean across all apps",
+        "normalisation extended to revoking, listing and queryset filtering",
+        "IGSN stored in its normalised form so uniqueness compares like with like",
+        "normalisation declines rather than raises for a polymorphic model without a declared base",
+        "status filter rebuilt on the working filter class and re-covered",
+        "refusal message returned to the translation catalogue",
+        "form status default matched to the record's",
+        "data migration renumbered to close the gap left by squashing"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 199,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/sample/models.py:30"
+            ],
+            "tests": [
+              "tests/test_core/test_sample/test_models.py:777",
+              "tests/test_core/test_sample/test_models.py:820"
+            ]
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 200,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 201,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T038",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T039",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T040",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P1",
+      "issue": 202,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T041",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T042",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T043",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T046",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T047",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T048",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T097",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P1",
+      "issue": 203,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T049",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T050",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T051",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T052",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T053",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T054",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T055",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T056",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T098",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P1",
+      "issue": 204,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T100",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T101",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T095",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T096",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US7",
+      "priority": "P2",
+      "issue": 205,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T065",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T066",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T067",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T068",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T069",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T070",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T071",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T072",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T073",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US8",
+      "priority": "P2",
+      "issue": 206,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T074",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/sample/models.py:411"
+            ],
+            "tests": [
+              "tests/test_core/test_sample/test_models.py:525"
+            ]
+          }
+        },
+        {
+          "id": "T075",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T076",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/sample/models.py:227"
+            ],
+            "tests": [
+              "tests/test_core/test_sample/test_models.py:1129"
+            ]
+          }
+        },
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T078",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T080",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US9",
+      "priority": "P2",
+      "issue": 207,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T081",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T082",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T083",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T084",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T085",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T086",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T087",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T088",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T089",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T099",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US10",
+      "priority": "P2",
+      "issue": 208,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T094",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T090",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T091",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T092",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T093",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "verified_by_ci": false,
+            "commands": [
+              "poetry run pytest tests/ -q",
+              "poetry run pre-commit run --all-files"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 3
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 6000000
+    }
+  }
+}

@@ -7,7 +7,8 @@ from django.views.generic import TemplateView
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
-from fairdm.factories import PointFactory, SampleFactory
+from fairdm.factories import PointFactory
+from fairdm_demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -76,7 +77,7 @@ class TestWhatARecordPageCosts:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         client.force_login(plain_user)
         url = reverse("sample:overview", kwargs={"uuid": sample.uuid})
 

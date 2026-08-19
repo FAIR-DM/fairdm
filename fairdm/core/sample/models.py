@@ -1,5 +1,10 @@
+import re
+
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.db import models as django_models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils.functional import classproperty
 
 # from rest_framework.authtoken.models import Token
@@ -16,15 +21,36 @@ from ..abstract import (
     AbstractIdentifier,
     BasePolymorphicModel,
 )
-from ..choices import SampleStatus
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     FairDMDates,
     FairDMDescriptions,
     FairDMIdentifiers,
     FairDMRoles,
+    FairDMSampleStatus,
 )
 from .managers import SampleQuerySet
+
+BASE_SAMPLE_ERROR = _(
+    "Cannot create base Sample instances directly. Please use a specific sample type subclass."
+)
+
+# research.md R1: IGSN allocation moved to DataCite in 2023, and an IGSN today is an
+# ordinary DataCite DOI spread across at least 38 registry prefixes with no shared prefix
+# and no enforced suffix grammar. A prefix-anchored regex is structurally wrong, not merely
+# stale, so this normalises the display forms an IGSN is commonly pasted in as, then accepts
+# any DataCite DOI or the legacy pre-2023 handle form. Case carries no information and the
+# suffix is never constrained - a slash inside the suffix is normal (D-016).
+IGSN_DISPLAY_PREFIXES = (
+    "https://doi.org/",
+    "http://doi.org/",
+    "https://igsn.org/",
+    "hdl.handle.net/",
+    "doi:",
+    "igsn:",
+)
+IGSN_DOI_PATTERN = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
+IGSN_LEGACY_HANDLE_PATTERN = re.compile(r"^10273/\S+$", re.IGNORECASE)
 
 
 class Sample(BasePolymorphicModel):
@@ -61,6 +87,10 @@ class Sample(BasePolymorphicModel):
         unique=True,
         prefix="s",
         verbose_name="UUID",
+        help_text=_(
+            "A unique identifier generated automatically when the sample is created. It cannot "
+            "be edited."
+        ),
     )
     local_id = models.CharField(
         _("Local ID"),
@@ -73,7 +103,8 @@ class Sample(BasePolymorphicModel):
     )
     status = ConceptField(
         verbose_name=_("status"),
-        vocabulary=SampleStatus,
+        help_text=_("The current custody status of the physical specimen."),
+        vocabulary=FairDMSampleStatus,
         default="unknown",
     )
 
@@ -122,15 +153,12 @@ class Sample(BasePolymorphicModel):
             ValidationError: If attempting to create base Sample instance
         """
         super().clean()
-        from django.core.exceptions import ValidationError
 
-        # Prevent direct instantiation of base Sample model
+        # Prevent direct instantiation of base Sample model. Forms and the admin call
+        # full_clean() before save(), so this is what turns a bare-Sample attempt into a
+        # validation error there rather than the server error the pre_save guard below raises.
         if self.__class__ == Sample:
-            raise ValidationError(
-                _(
-                    "Cannot create base Sample instances directly. Please use a specific sample type subclass."
-                )
-            )
+            raise ValidationError(BASE_SAMPLE_ERROR)
 
     def get_absolute_url(self):
         """Get the absolute URL for this sample.
@@ -227,8 +255,8 @@ class Sample(BasePolymorphicModel):
     def get_descendants(self, depth=None):
         """Get all descendant samples with optional depth limit.
 
-        Uses iterative breadth-first traversal to find descendants. Prevents
-        infinite loops by tracking visited samples.
+        Delegates to :meth:`SampleQuerySet.get_descendants` (D-007) - the single
+        traversal implementation - rather than repeating the walk here.
 
         Args:
             depth: Maximum depth to traverse (None = unlimited). Depth 1 returns
@@ -242,34 +270,27 @@ class Sample(BasePolymorphicModel):
             >>> direct_children = root.get_descendants(depth=1)
             >>> all_descendants = root.get_descendants()
         """
-        if depth is not None and depth < 1:
-            return Sample.objects.none()
+        return Sample.objects.get_descendants(self, max_depth=depth)
 
-        descendants = set()
-        current_level = {self.id}
-        visited = {self.id}
-        current_depth = 0
+    def get_ancestors(self, depth=None):
+        """Get all ancestor samples with optional depth limit.
 
-        while current_level and (depth is None or current_depth < depth):
-            # Get children of current level
-            child_ids = set(
-                SampleRelation.objects.filter(
-                    target_id__in=current_level, type="child_of"
-                ).values_list("source_id", flat=True)
-            )
+        Delegates to :meth:`SampleQuerySet.get_ancestors` (D-007) - the single
+        traversal implementation.
 
-            # Remove already visited to prevent cycles
-            child_ids = child_ids - visited
+        Args:
+            depth: Maximum depth to traverse (None = unlimited). Depth 1 returns
+                  only direct parents, depth 2 includes grandparents, etc.
 
-            if not child_ids:
-                break
+        Returns:
+            QuerySet: All ancestor Sample objects within depth limit
 
-            descendants.update(child_ids)
-            visited.update(child_ids)
-            current_level = child_ids
-            current_depth += 1
-
-        return Sample.objects.filter(id__in=descendants)
+        Example:
+            >>> leaf = Sample.objects.get(uuid="s_abc123")
+            >>> direct_parents = leaf.get_ancestors(depth=1)
+            >>> all_ancestors = leaf.get_ancestors()
+        """
+        return Sample.objects.get_ancestors(self, max_depth=depth)
 
     @classproperty
     def type_of(self):
@@ -279,6 +300,21 @@ class Sample(BasePolymorphicModel):
         app_name = self._meta.app_label
         model_name = self._meta.model_name
         return [f"{app_name}/{model_name}_card.html", "fairdm/sample_card.html"]
+
+
+@receiver(pre_save, sender=Sample)
+def block_base_sample_creation(sender, instance, **kwargs):
+    """Refuse to save a bare ``Sample`` row, by any route.
+
+    Scoped to ``sender=Sample`` rather than connected without a sender: a subclass instance
+    sends its own class, never ``Sample``, so this never fires for a registered specimen type.
+    ``pre_save`` is the one mechanism that also covers fixture loading (`django.core.serializers`
+    sends it on every deserialized object) and cannot fire on the framework's own read path -
+    django-polymorphic only constructs base instances there, it never saves them (research.md
+    R4). ``Sample.clean()`` stays alongside this so forms and the admin still raise a validation
+    error instead of the server error this receiver raises.
+    """
+    raise ValidationError(BASE_SAMPLE_ERROR)
 
 
 class SampleDescription(AbstractDescription):
@@ -298,16 +334,14 @@ class SampleDescription(AbstractDescription):
             ValidationError: If type is not in DESCRIPTION_TYPES vocabulary
         """
         super().clean()
-        from django.core.exceptions import ValidationError
 
         if self.type:
-            valid_types = [item["id"] for item in self.VOCABULARY]
+            valid_types = self.VOCABULARY.values
             if self.type not in valid_types:
                 raise ValidationError(
                     {
-                        "type": _(
-                            "Description type must be from FairDM Sample description vocabulary"
-                        )
+                        "type": _("'%(type)s' is not a valid Sample description type.")
+                        % {"type": self.type}
                     }
                 )
 
@@ -329,60 +363,85 @@ class SampleDate(AbstractDate):
             ValidationError: If type is not in DATE_TYPES vocabulary
         """
         super().clean()
-        from django.core.exceptions import ValidationError
 
         if self.type:
-            valid_types = [item["id"] for item in self.VOCABULARY]
+            valid_types = self.VOCABULARY.values
             if self.type not in valid_types:
                 raise ValidationError(
-                    {"type": _("Date type must be from FairDM Sample date vocabulary")}
+                    {
+                        "type": _("'%(type)s' is not a valid Sample date type.")
+                        % {"type": self.type}
+                    }
                 )
 
 
 class SampleIdentifier(AbstractIdentifier):
     """External identifiers for a Sample.
 
-    Links samples to external identifier systems (DOI, ARK, Handle, etc.)
-    to support FAIR data principles and cross-referencing.
+    Links a sample to an external identifier system, drawn from the sample identifier
+    collection (``FairDMIdentifiers.from_collection("Sample")``, IGSN and DOI - D-003, R3).
     """
 
-    VOCABULARY = FairDMIdentifiers()
+    VOCABULARY = FairDMIdentifiers.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
     def clean(self):
         """Validate identifier_type and IGSN format.
 
+        The IGSN format check runs first because it normalises ``self.value`` (F5) - the
+        uniqueness check inherited from ``AbstractIdentifier.clean()`` (``super().clean()``,
+        below) compares ``self.value`` exactly, so it has to see the normalised form or two
+        display variants of the same identifier would compare unequal and both be accepted.
+
         Raises:
             ValidationError: If type is not in IDENTIFIER_TYPES vocabulary
                            or if IGSN format is invalid
         """
-        super().clean()
-        import re
+        if self.type == "IGSN" and self.value:
+            self._validate_igsn_format()
 
-        from django.core.exceptions import ValidationError
+        super().clean()
 
         if self.type:
-            valid_types = [item["id"] for item in self.VOCABULARY]
+            valid_types = self.VOCABULARY.values
             if self.type not in valid_types:
                 raise ValidationError(
                     {
-                        "type": _(
-                            "Identifier type must be from FairDM identifier vocabulary"
-                        )
+                        "type": _("'%(type)s' is not a valid Sample identifier type.")
+                        % {"type": self.type}
                     }
                 )
 
-        # Validate IGSN format: 10273/[A-Z0-9]{9,}
-        if self.type == "IGSN" and self.value:
-            igsn_pattern = r"^10273/[A-Z0-9]{9,}$"
-            if not re.match(igsn_pattern, self.value):
-                raise ValidationError(
-                    {
-                        "value": _(
-                            "IGSN identifier must match format: 10273/[A-Z0-9]{{9,}} (e.g., 10273/ABCD123456789)"
-                        )
-                    }
+    def _validate_igsn_format(self):
+        """Validate ``self.value`` against the format research.md R1/D-016 settles on.
+
+        An IGSN today is an ordinary DataCite DOI with no shared prefix and no enforced
+        suffix grammar, so this normalises the display forms an IGSN is commonly pasted
+        in as, then accepts any DataCite DOI or the legacy pre-2023 handle form,
+        case-insensitively.
+        """
+        normalised = self.value
+        for prefix in IGSN_DISPLAY_PREFIXES:
+            if normalised.lower().startswith(prefix.lower()):
+                normalised = normalised[len(prefix) :]
+                break
+        self.value = normalised
+
+        if IGSN_DOI_PATTERN.match(normalised) or IGSN_LEGACY_HANDLE_PATTERN.match(
+            normalised
+        ):
+            return
+
+        raise ValidationError(
+            {
+                "value": _(
+                    "'%(value)s' is not a valid IGSN. Expected a DataCite DOI "
+                    "(e.g. 10.60516/AU1101) or a legacy IGSN handle "
+                    "(e.g. 10273/BGRB5054RX05201)."
                 )
+                % {"value": self.value}
+            }
+        )
 
 
 class SampleRelation(models.Model):
@@ -432,10 +491,12 @@ class SampleRelation(models.Model):
         """Return string representation of relationship."""
         return f"{self.source} {self.type} {self.target}"
 
-    def clean(self):
-        """Validate relationship to prevent self-reference and circular relationships."""
-        from django.core.exceptions import ValidationError
+    def _refuse_self_reference_and_loop(self):
+        """Raise if this relationship is a self-reference or a two-step loop.
 
+        FR-027: refused when saved directly, not only under validation - both
+        ``clean()`` and ``save()`` call this rather than each carrying its own copy.
+        """
         # 1. Prevent self-reference
         if self.source_id and self.target_id and self.source_id == self.target_id:
             raise ValidationError(_("Sample cannot relate to itself"))
@@ -456,3 +517,19 @@ class SampleRelation(models.Model):
                         f"has {self.type} relationship to {self.source}"
                     )
                 )
+
+    def clean(self):
+        """Validate relationship to prevent self-reference and circular relationships."""
+        self._refuse_self_reference_and_loop()
+
+    def save(self, *args, **kwargs):
+        """Refuse a self-reference or a two-step loop even when saved directly.
+
+        FR-027 requires the refusal to hold for ``SampleRelation.objects.create()`` and
+        ``.save()``, not only for callers that run ``clean()``/``full_clean()`` first -
+        forms and the admin already do, but the manager and a bare ``.save()`` do not.
+        The duplicate-link case stays enforced by the ``unique_together`` constraint at
+        the database, which every save route already goes through.
+        """
+        self._refuse_self_reference_and_loop()
+        super().save(*args, **kwargs)

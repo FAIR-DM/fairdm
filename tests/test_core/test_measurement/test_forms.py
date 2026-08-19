@@ -16,9 +16,9 @@ from fairdm.factories import (
     DatasetFactory,
     PersonFactory,
     ProjectFactory,
-    SampleFactory,
     UserFactory,
 )
+from fairdm_demo.factories import RockSampleFactory
 from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
 
 User = get_user_model()
@@ -117,8 +117,8 @@ class TestMeasurementFormQuerysetFiltering:
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
 
-        sample1 = SampleFactory(dataset=dataset1)
-        _sample2 = SampleFactory(dataset=dataset2)
+        sample1 = RockSampleFactory(dataset=dataset1)
+        _sample2 = RockSampleFactory(dataset=dataset2)
 
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:
@@ -158,7 +158,7 @@ class TestMeasurementFormValidation:
         from fairdm.core.measurement.forms import MeasurementForm
 
         dataset = DatasetFactory()
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         form_data = {
             "name": "Test Measurement",
@@ -181,7 +181,7 @@ class TestMeasurementFormPolymorphicHandling:
         user = UserFactory()
         dataset = DatasetFactory()
         assign_perm("change_dataset", user, dataset)
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:
@@ -210,7 +210,7 @@ class TestMeasurementFormPolymorphicHandling:
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
         assign_perm("change_dataset", user, dataset1)
-        sample_in_dataset2 = SampleFactory(dataset=dataset2)
+        sample_in_dataset2 = RockSampleFactory(dataset=dataset2)
 
         class ExampleMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:

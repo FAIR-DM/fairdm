@@ -1198,7 +1198,15 @@ class Contribution(LifecycleModelMixin, OrderedModel):
 
 
 class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
-    VOCABULARY = FairDMIdentifiers()
+    """External identifiers for a Contributor (``Person`` or ``Organization``).
+
+    Drawn from the contributor identifier collection
+    (``FairDMIdentifiers.from_collection("Contributor")``), the union of the
+    person and organisation collections rather than the unscoped vocabulary -
+    a person cannot hold a specimen identifier such as IGSN (005 F1/F2).
+    """
+
+    VOCABULARY = FairDMIdentifiers.from_collection("Contributor")
     related = models.ForeignKey("Contributor", on_delete=models.CASCADE)
 
     @hook(AFTER_CREATE)

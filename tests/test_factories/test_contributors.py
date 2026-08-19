@@ -14,9 +14,9 @@ from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
-    SampleFactory,
 )
 from fairdm.factories.contributors import ContributionFactory, ContributorFactory
+from fairdm_demo.factories import RockSampleFactory
 
 
 class TestContributorFactories(TestCase):
@@ -141,7 +141,7 @@ class TestFactoryIntegration(TestCase):
         )
 
         # Create samples in the dataset
-        samples = SampleFactory.create_batch(3, dataset=dataset)
+        samples = RockSampleFactory.create_batch(3, dataset=dataset)
 
         # Create measurements for each sample
         measurements = []
@@ -179,7 +179,7 @@ class TestFactoryIntegration(TestCase):
         # Create samples for each dataset
         all_samples = []
         for dataset in datasets:
-            samples = SampleFactory.create_batch(2, dataset=dataset)
+            samples = RockSampleFactory.create_batch(2, dataset=dataset)
             all_samples.extend(samples)
 
         # Create measurements
@@ -241,7 +241,7 @@ class TestFactoryIntegration(TestCase):
         """Test adding contributors at sample and measurement levels."""
         # Create the hierarchy
         dataset = DatasetFactory()
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
         measurement = MeasurementFactory(dataset=dataset, sample=sample)
 
         # Create contributors
@@ -325,7 +325,7 @@ class TestFactoryIntegration(TestCase):
 
         # Create batch of samples with shared dataset
         dataset = DatasetFactory()
-        samples = SampleFactory.create_batch(10, dataset=dataset)
+        samples = RockSampleFactory.create_batch(10, dataset=dataset)
 
         # Verify all samples belong to the same dataset
         for sample in samples:

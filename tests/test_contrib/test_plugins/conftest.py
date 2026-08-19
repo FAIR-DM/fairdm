@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.core.sample.models import Sample
+from fairdm_demo.factories import RockSampleFactory
 
 User = get_user_model()
 
@@ -40,8 +40,12 @@ def dataset(db, project):
 
 @pytest.fixture
 def sample(db, dataset):
-    """Create a test sample."""
-    return Sample.objects.create(dataset=dataset, local_id="TEST-001")
+    """Create a test sample.
+
+    ``Sample`` itself cannot be created directly (005-core-samples T030) - a registered
+    specimen type stands in for it here, same as everywhere else in the suite.
+    """
+    return RockSampleFactory(dataset=dataset, local_id="TEST-001")
 
 
 @pytest.fixture
@@ -86,9 +90,13 @@ def object_perm_user(db, sample):
 
     The inverse case matters as much as the ordinary one: ``ModelBackend`` contributes nothing once
     an object is passed, so a decision written as a single object-level call refuses this user.
-    """
-    from guardian.shortcuts import assign_perm
 
+    ``sample`` is a concrete specimen type (``RockSample``), and ``change_sample`` is declared on
+    the polymorphic base ``Sample`` - guardian's own ``assign_perm`` resolves the object's content
+    type directly and cannot store the row there (005-core-samples R2/D-019), so this goes through
+    the framework's normalising wrapper instead of ``guardian.shortcuts.assign_perm``.
+    """
+    from fairdm.core.utils import assign_perm
     from fairdm.factories.contributors import UserFactory
 
     user = UserFactory(email="object-perm@example.com")

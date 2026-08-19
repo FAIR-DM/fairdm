@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from research_vocabs.builder.skos import Collection, Concept
-from research_vocabs.vocabularies import RemoteVocabulary, VocabularyBuilder
+from research_vocabs.vocabularies import VocabularyBuilder
 
 
 class ProjectStatus(models.IntegerChoices):
@@ -302,11 +302,45 @@ class DataCiteIdentifiers(models.TextChoices):
     URN = "URN", "URN"
 
 
-class SampleStatus(RemoteVocabulary):
+class SampleStatus(VocabularyBuilder):
+    """Retired (D-002, research.md R3). No model field points at this class any more -
+    ``fairdm.core.sample.models.Sample.status`` uses
+    ``fairdm.core.vocabularies.FairDMSampleStatus`` instead, a local vocabulary of custody
+    states rather than this one's data-collection states.
+
+    This stub is kept only because ``fairdm/core/sample/migrations/0001_initial.py`` and
+    ``0007_alter_sample_status_alter_sample_uuid_and_more.py`` deconstruct their historical
+    ``ConceptField(vocabulary=SampleStatus, ...)`` by importing this class name, so deleting it
+    would make those migration files unimportable and break migrating from an empty database.
+    Its remote source (``vocabulary.odm2.org``, fetched over plain HTTP) is removed - rebuilt
+    locally from the same four terms instead, so replaying migration history never depends on a
+    third-party host being reachable. Do not add members here or point a field at this
+    vocabulary.
+    """
+
+    complete = {
+        "skos:prefLabel": _("Complete"),
+        "skos:definition": _("The data collection activity has finished."),
+    }
+
+    ongoing = {
+        "skos:prefLabel": _("Ongoing"),
+        "skos:definition": _("The data collection activity is in progress."),
+    }
+
+    planned = {
+        "skos:prefLabel": _("Planned"),
+        "skos:definition": _("The data collection activity has not yet started."),
+    }
+
+    unknown = {
+        "skos:prefLabel": _("Unknown"),
+        "skos:definition": _(
+            "The status of the data collection activity is not known."
+        ),
+    }
+
     class Meta:
-        source = {
-            "source": "http://vocabulary.odm2.org/api/v1/status/?format=skos",
-            "format": "xml",
-        }
+        name = "fairdm-sample-status-legacy"
         prefix = "odm2b"
         namespace = "http://vocabulary.odm2.org/status/"

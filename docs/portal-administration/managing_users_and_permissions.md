@@ -54,6 +54,32 @@ For each project or dataset, you can assign:
 - **Delete permission**: User can remove the object (use carefully)
 - **Add permission**: User can create new child objects (e.g., samples within a dataset)
 
+### Samples, Measurements and Other Polymorphic Records
+
+Samples and measurements are polymorphic — a `RockSample` is stored as its own database row but
+the rights that govern it (`sample.view_sample`, `sample.change_sample`, and so on) are declared
+on the shared `Sample` record, not on `RockSample` itself. The admin's own **Object permissions**
+section on a sample or measurement page handles this correctly. Custom code that grants or checks
+these rights does not, if it calls django-guardian directly:
+
+```python
+# Wrong: files the grant under RockSample's own content type, where
+# sample.change_sample is never looked for
+from guardian.shortcuts import assign_perm
+assign_perm("change_sample", user, rock_sample)
+
+# Right: normalises rock_sample to the record that actually owns the permission
+from fairdm.core.utils import assign_perm
+assign_perm("change_sample", user, rock_sample)
+```
+
+`fairdm.core.utils` provides `assign_perm`, `remove_perm`, `get_perms` and
+`get_objects_for_user` as drop-in replacements for the same-named guardian functions. Use them
+whenever your portal's own code — a management command, a signal receiver, a data migration —
+grants or checks a permission on a sample, a measurement, or a contributor (`Organization` and
+`Person` are polymorphic too). They are safe to use against a plain, non-polymorphic record as
+well, since they only normalise the object when the permission being checked actually needs it.
+
 ## Example: Granting Access to a Dataset
 
 To grant a user access to a specific dataset:

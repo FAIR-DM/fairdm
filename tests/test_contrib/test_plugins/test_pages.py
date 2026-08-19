@@ -12,15 +12,15 @@ from guardian.shortcuts import assign_perm
 from fairdm.factories import (
     DatasetFactory,
     ProjectFactory,
-    SampleFactory,
     UserFactory,
 )
+from fairdm_demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db
 class TestRecordPagesServe:
     def test_sample_overview(self, client):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         assert response.status_code == 200
 
@@ -63,7 +63,7 @@ class TestNavigationRenders:
     """A page with no navigation still returns 200, so status is not enough."""
 
     def test_sample_page_renders_its_local_navigation(self, client):
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         content = response.content.decode()
         assert "Overview" in content
@@ -74,7 +74,7 @@ class TestNavigationRenders:
         That is the correct fail-safe, and it is also how a broken menu hides instead of
         announcing itself — so the test asserts entries are present, not merely that nothing blew up.
         """
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         content = response.content.decode()
         assert f"/samples/{sample.uuid}/" in content
@@ -103,6 +103,6 @@ class TestPredicateFailureDoesNotBreakThePage:
         plugin_class = registered[0][0]
         monkeypatch.setattr(plugin_class, "check", wrong_signature, raising=False)
 
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         assert response.status_code == 200

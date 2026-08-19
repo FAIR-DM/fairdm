@@ -501,13 +501,14 @@ Create tests to verify your measurement implementation:
 # myapp/tests/test_xrf_measurement.py
 import pytest
 from myapp.models import XRFMeasurement
-from fairdm.factories import SampleFactory, DatasetFactory
+from myapp.factories import RockSampleFactory
+from fairdm.factories import DatasetFactory
 
 @pytest.mark.django_db
 class TestXRFMeasurement:
     def test_create_measurement(self):
         """Test basic measurement creation."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         measurement = XRFMeasurement.objects.create(
             name="Iron Analysis",
             sample=sample,
@@ -521,7 +522,7 @@ class TestXRFMeasurement:
 
     def test_below_detection_limit(self):
         """Test handling of values below detection limit."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         measurement = XRFMeasurement.objects.create(
             name="Trace Element",
             sample=sample,

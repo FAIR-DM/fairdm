@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
 from fairdm.factories import DatasetFactory, MeasurementFactory
+from fairdm_demo.factories import RockSampleFactory
 
 User = get_user_model()
 
@@ -260,7 +261,7 @@ class TestAnonymousUserPermissions:
         """Test that anonymous users cannot view measurements."""
         from django.contrib.auth.models import AnonymousUser
 
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
         anonymous = AnonymousUser()
 
         # Anonymous users should have no permissions
@@ -272,7 +273,7 @@ class TestAnonymousUserPermissions:
         """Test that anonymous users cannot change measurements."""
         from django.contrib.auth.models import AnonymousUser
 
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
         anonymous = AnonymousUser()
 
         assert not anonymous.has_perm("measurement.change_measurement", measurement)
@@ -281,7 +282,7 @@ class TestAnonymousUserPermissions:
         """Test that anonymous users cannot delete measurements."""
         from django.contrib.auth.models import AnonymousUser
 
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
         anonymous = AnonymousUser()
 
         assert not anonymous.has_perm("measurement.delete_measurement", measurement)
@@ -294,7 +295,7 @@ class TestAnonymousUserPermissions:
 
         # Create a dataset and measurement (public/private dataset handling may vary by implementation)
         dataset = DatasetFactory()
-        measurement = MeasurementFactory(dataset=dataset)
+        measurement = MeasurementFactory(sample=RockSampleFactory(), dataset=dataset)
         anonymous = AnonymousUser()
 
         # Even if dataset is "public", anonymous users need explicit view permissions

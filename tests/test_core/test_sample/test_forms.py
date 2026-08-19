@@ -27,9 +27,10 @@ def _request_for(user):
     """A minimal request carrying an authenticated user.
 
     The sample and measurement form mixins narrow the dataset choices to what the
-    request's user may change, and fall back to public datasets when no request is
-    given. A form exercised without one therefore cannot select a private dataset -
-    which is what the tests below need, and what a portal's own view supplies.
+    request's user may change, and offer no dataset at all when no request is
+    given (FR-036). A form exercised without one therefore cannot select a
+    private dataset - which is what the tests below need, and what a portal's
+    own view supplies.
     """
     request = RequestFactory().get("/")
     request.user = user
@@ -132,8 +133,11 @@ class TestSampleFormValidation:
         assert "name" in form.errors
         assert "dataset" in form.errors
 
-    def test_form_defaults_status_to_available(self):
-        """Test that SampleForm defaults status field to 'available' (T064)."""
+    def test_form_defaults_status_to_unknown(self):
+        """F10 - the form's initial status must not contradict the model's own default.
+        `Sample.status` defaults to ``unknown`` (FR-022: a specimen created with no status
+        stated reads as unknown), so a form asserting ``available`` claimed custody nobody
+        chose. T064 originally pinned the mismatched ``available`` default; corrected here."""
 
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
@@ -142,8 +146,7 @@ class TestSampleFormValidation:
 
         form = RockSampleForm()
 
-        # Verify status field has 'available' as initial value
-        assert form.fields["status"].initial == "available"
+        assert form.fields["status"].initial == "unknown"
 
 
 @pytest.mark.django_db
@@ -244,3 +247,151 @@ class TestCustomSampleFormIntegration:
         assert isinstance(instance, WaterSample)
         assert instance.name == "Water Sample 1"
         assert instance.water_source == "river"
+
+
+@pytest.mark.django_db
+class TestSampleFormMixinWidgets:
+    """T067 - the common sample fields carry the controls the mixin configures,
+    asserted by widget class rather than by the presence of an attribute every
+    widget has."""
+
+    def _form(self):
+        from django_addanother.widgets import AddAnotherWidgetWrapper
+        from django_select2.forms import ModelSelect2Widget
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset", "status", "location"]
+
+        return RockSampleForm(), AddAnotherWidgetWrapper, ModelSelect2Widget
+
+    def test_dataset_field_uses_the_add_another_wrapped_select2_widget(self):
+        form, AddAnotherWidgetWrapper, ModelSelect2Widget = self._form()
+
+        widget = form.fields["dataset"].widget
+        assert isinstance(widget, AddAnotherWidgetWrapper)
+        assert isinstance(widget.widget, ModelSelect2Widget)
+
+    def test_status_field_uses_a_select_widget(self):
+        form, _, _ = self._form()
+
+        assert isinstance(form.fields["status"].widget, forms.Select)
+
+    def test_location_field_uses_a_select2_widget(self):
+        form, _, ModelSelect2Widget = self._form()
+
+        assert isinstance(form.fields["location"].widget, ModelSelect2Widget)
+
+
+@pytest.mark.django_db
+class TestSampleFormDatasetChoices:
+    """T068 / FR-036 - a form given the requesting user offers exactly the
+    datasets that user may add specimens to, and a form given no user offers
+    no dataset at all. Asserted by comparing the offered set to an expected
+    set, not by checking an attribute exists."""
+
+    def test_form_with_a_user_offers_exactly_that_users_datasets(self):
+        user = UserFactory()
+        allowed = DatasetFactory()
+        other = DatasetFactory()
+        assign_perm("change_dataset", user, allowed)
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(user))
+
+        offered = set(form.fields["dataset"].queryset)
+        assert offered == {allowed}
+        assert other not in offered
+
+    def test_form_with_no_user_offers_no_dataset_at_all(self):
+        DatasetFactory()
+        DatasetFactory()
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm()
+
+        assert set(form.fields["dataset"].queryset) == set()
+
+    def test_form_given_a_request_with_no_request_object_offers_no_dataset(self):
+        """`request=None` is the mixin's own default, exercised explicitly."""
+        DatasetFactory()
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=None)
+
+        assert set(form.fields["dataset"].queryset) == set()
+
+    def test_offering_no_dataset_with_no_request_logs_a_warning(self, caplog):
+        """F13 - FR-036's "offer nothing" is the right security default, but the failure mode
+        is a create form that can never validate with nothing explaining why. A warning makes
+        that loud rather than silent."""
+        import logging
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        with caplog.at_level(logging.WARNING):
+            RockSampleForm()
+
+        assert any(
+            "dataset" in record.message.lower() and "request" in record.message.lower()
+            for record in caplog.records
+        )
+
+
+@pytest.mark.django_db
+class TestSampleFormHelpText:
+    """T069 - the guidance a form defines for a field reaches the rendered
+    field."""
+
+    def test_meta_help_text_reaches_the_rendered_field(self):
+        from fairdm.core.sample.forms import SampleForm
+
+        assert str(SampleForm.base_fields["name"].help_text) == (
+            "A unique, descriptive name for this sample."
+        )
+        assert str(SampleForm.base_fields["dataset"].help_text) == (
+            "The dataset this sample belongs to."
+        )
+        assert str(SampleForm.base_fields["status"].help_text) == (
+            "Current status of the sample."
+        )
+
+
+@pytest.mark.django_db
+class TestSampleFormDatasetAddAnotherUrl:
+    """T072 - the "add another" widget on the dataset field must reverse to a
+    URL name the admin actually registers. `reverse_lazy` defers evaluation,
+    so a wrong name only surfaces once something forces it to resolve - which
+    is exactly what rendering the widget does."""
+
+    def test_add_related_url_resolves_to_the_dataset_admin_add_view(self):
+        from django.urls import reverse
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm()
+
+        # `str()` is what forces the lazy proxy to resolve, the same way
+        # template rendering would. The dataset app's label is "dataset", not
+        # "core", so "admin:core_dataset_add" raises `NoReverseMatch` here.
+        add_url = str(form.fields["dataset"].widget.add_related_url)
+        assert add_url == reverse("admin:dataset_dataset_add")

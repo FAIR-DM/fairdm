@@ -25,6 +25,7 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.factories.core import MeasurementFactory
+from fairdm_demo.factories import RockSampleFactory
 
 User = get_user_model()
 
@@ -59,9 +60,9 @@ class TestMeasurementAdminSearch:
 
     def test_search_by_name(self, measurement_admin, admin_user, request_factory):
         """Test that admin search finds measurements by name."""
-        measurement1 = MeasurementFactory(name="XRF Analysis")
-        measurement2 = MeasurementFactory(name="ICP-MS Analysis")
-        _measurement3 = MeasurementFactory(name="Spectroscopy")
+        measurement1 = MeasurementFactory(sample=RockSampleFactory(), name="XRF Analysis")
+        measurement2 = MeasurementFactory(sample=RockSampleFactory(), name="ICP-MS Analysis")
+        _measurement3 = MeasurementFactory(sample=RockSampleFactory(), name="Spectroscopy")
 
         request = request_factory.get("/admin/measurement/measurement/", {"q": "XRF"})
         request.user = admin_user
@@ -75,7 +76,7 @@ class TestMeasurementAdminSearch:
 
     def test_search_by_uuid(self, measurement_admin, admin_user, request_factory):
         """Test that admin search finds measurements by UUID."""
-        measurement1 = MeasurementFactory()
+        measurement1 = MeasurementFactory(sample=RockSampleFactory())
 
         request = request_factory.get(
             "/admin/measurement/measurement/", {"q": measurement1.uuid}
@@ -92,7 +93,7 @@ class TestMeasurementAdminSearch:
         self, measurement_admin, admin_user, request_factory
     ):
         """Test that admin search returns empty queryset when no matches found."""
-        _measurement1 = MeasurementFactory(name="Test Measurement")
+        _measurement1 = MeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
 
         request = request_factory.get(
             "/admin/measurement/measurement/", {"q": "NonExistent"}
@@ -131,9 +132,7 @@ class TestMeasurementAdminFilters:
         )
 
         # Create sample in dataset2 for measurement2
-        from fairdm.factories import SampleFactory
-
-        sample2 = SampleFactory(dataset=dataset2)
+        sample2 = RockSampleFactory(dataset=dataset2)
         measurement2 = XRFMeasurement.objects.create(
             name="XRF 2",
             sample=sample2,
@@ -150,10 +149,9 @@ class TestMeasurementAdminFilters:
 
     def test_filter_by_sample(self, measurement_admin, sample):
         """Test that admin can filter measurements by sample."""
-        from fairdm.factories import SampleFactory
         from fairdm_demo.models import XRFMeasurement
 
-        sample2 = SampleFactory(dataset=sample.dataset)
+        sample2 = RockSampleFactory(dataset=sample.dataset)
 
         measurement1 = XRFMeasurement.objects.create(
             name="XRF 1",

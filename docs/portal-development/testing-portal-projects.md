@@ -164,7 +164,7 @@ FairDM factories use an **opt-in pattern** for creating related metadata objects
 
 ### Pattern Details
 
-All core factories (`ProjectFactory`, `DatasetFactory`, `SampleFactory`, `MeasurementFactory`) support these optional keyword arguments:
+All core factories (`ProjectFactory`, `DatasetFactory`, `SampleFactory`, `MeasurementFactory`) support these optional keyword arguments. `SampleFactory` and `MeasurementFactory` are abstract — the base `Sample` and `Measurement` records cannot be created directly, so you inherit these two rather than instantiate them, and your own concrete factory (e.g. `RockSampleFactory`) picks up the same keyword arguments:
 
 **For descriptions**:
 

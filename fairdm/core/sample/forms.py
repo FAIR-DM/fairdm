@@ -1,5 +1,7 @@
 """Forms for the Sample app."""
 
+import logging
+
 from crispy_forms.helper import FormHelper
 from django import forms
 from django.urls import reverse_lazy
@@ -11,6 +13,8 @@ from easy_thumbnails.widgets import ImageClearableFileInput
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Sample
+
+logger = logging.getLogger(__name__)
 
 
 class SampleFormMixin:
@@ -57,18 +61,18 @@ class SampleFormMixin:
             )
             self.fields["dataset"].widget = AddAnotherWidgetWrapper(
                 select2_widget,
-                add_related_url=reverse_lazy("admin:core_dataset_add"),
+                add_related_url=reverse_lazy("admin:dataset_dataset_add"),
             )
 
             from fairdm.core.dataset.models import Dataset
 
-            # `all_objects` is only ever the base the permission check below narrows,
-            # never the queryset the form is left holding. `request` is optional on this
-            # mixin and nothing enforces it, so a caller that omits it has shown no
-            # subject to authorise - and is left with the queryset `ModelForm` built
-            # from the default manager, which is privacy-first. Assigning `all_objects`
-            # unconditionally would have offered every private dataset in the portal to
-            # a caller that had proven nothing.
+            # FR-036: a form given no user offers no dataset at all - the safe
+            # default for a published package, and the only offer nothing
+            # could satisfy or test. `all_objects` is only ever the base the
+            # permission check below narrows, never the queryset the form is
+            # left holding. Assigning `all_objects` unconditionally would have
+            # offered every private dataset in the portal to a caller that had
+            # proven nothing.
             if (
                 self.request
                 and hasattr(self.request, "user")
@@ -82,12 +86,25 @@ class SampleFormMixin:
                     "dataset.change_dataset",
                     klass=Dataset.all_objects.all(),
                 )
+            else:
+                # F13: the security argument for offering nothing is right, but the failure
+                # mode - a create form that can never validate - explains nothing on its own.
+                # Loud rather than silent.
+                logger.warning(
+                    "%s offers no dataset choices: no request (or no authenticated "
+                    "user on it) was passed, so FR-036's safe default excludes every "
+                    "dataset, including public ones.",
+                    type(self).__name__,
+                )
+                self.fields["dataset"].queryset = Dataset.objects.none()
 
         if "status" in self.fields:
             # Use Select widget for status
             self.fields["status"].widget = forms.Select(attrs={"class": "form-select"})
-            # Set default value
-            self.fields["status"].initial = "available"
+            # F10: matches Sample.status's own model default ("unknown", FR-022) - a form
+            # must not assert where a specimen physically is on the strength of nobody
+            # having chosen.
+            self.fields["status"].initial = "unknown"
 
         if "location" in self.fields:
             # Use Select2 for location
@@ -152,7 +169,7 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
                 }
             ),
         }
-        help_text = {
+        help_texts = {
             "name": _("A unique, descriptive name for this sample."),
             "dataset": _("The dataset this sample belongs to."),
             "local_id": _(

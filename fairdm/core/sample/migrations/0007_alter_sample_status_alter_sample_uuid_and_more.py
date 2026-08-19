@@ -1,0 +1,32 @@
+# The branch's schema changes for the sample record, squashed into one file (Article IX).
+# The status data migration stays standalone, which the same article exempts.
+
+import fairdm.core.vocabularies
+import research_vocabs.fields
+import shortuuid.django_fields
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('sample', '0006_alter_sample_local_id'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='sample',
+            name='status',
+            field=research_vocabs.fields.ConceptField(default='unknown', help_text='The current custody status of the physical specimen.', max_length=9, verbose_name='status', vocabulary=fairdm.core.vocabularies.FairDMSampleStatus),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='uuid',
+            field=shortuuid.django_fields.ShortUUIDField(alphabet=None, editable=False, help_text='A unique identifier generated automatically when the sample is created. It cannot be edited.', length=22, max_length=23, prefix='s', unique=True, verbose_name='UUID'),
+        ),
+        migrations.AlterField(
+            model_name='sampleidentifier',
+            name='type',
+            field=models.CharField(choices=[('IGSN', 'IGSN'), ('DOI', 'DOI')], max_length=50),
+        ),
+    ]

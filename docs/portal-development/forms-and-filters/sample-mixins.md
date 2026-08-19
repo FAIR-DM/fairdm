@@ -4,18 +4,26 @@ This guide explains how to use and customize the form and filter mixins provided
 
 ## Overview
 
-FairDM provides reusable mixins that configure forms and filters for Sample models with sensible defaults. These mixins handle common patterns like:
+FairDM provides two reusable mixins — `SampleFormMixin` and `SampleFilterMixin` — that configure
+common Sample behaviour so that a portal's own form and filter set for a specimen type do not have
+to restate it: widget configuration, dataset-queryset filtering by permission, and the filters a
+reader expects. The registry's own auto-generated form and filter set for a specimen type that
+supplies neither are built on these same two mixins, so what you get by inheriting them is exactly
+what registration gives you for free.
 
-- Dataset queryset filtering based on user permissions
-- Standard field ordering and widgets
-- Common filter configurations
-- Polymorphic type handling
+```{note}
+These are the extension point a portal developer touches. `SampleForm` and `SampleFilter` in
+`fairdm.core.sample` are a reference implementation with no callers outside their own tests —
+`fairdm_demo`'s `RockSampleForm` and `RockSampleFilter`, shown throughout this page, inherit the
+mixins directly, and that is the pattern to copy.
+```
 
 ## Sample Form Mixin
 
 ### SampleFormMixin
 
-The `SampleFormMixin` provides standard form configuration for Sample creation and editing.
+`SampleFormMixin` provides standard form configuration for Sample creation and editing. It is a
+plain mixin, combined with `forms.ModelForm` in your own class — not a `ModelForm` itself.
 
 #### Basic Usage
 
@@ -41,16 +49,21 @@ class RockSampleForm(SampleFormMixin, forms.ModelForm):
 
 #### Features Provided
 
-**Dataset Filtering**: Automatically filters the dataset queryset to only show datasets the user has permission to contribute to:
+**Dataset filtering by permission**: `SampleFormMixin.__init__` takes a `request` keyword
+argument, not a `user`. When it is given a request carrying an authenticated user, the `dataset`
+field's queryset narrows to the datasets that user holds `dataset.change_dataset` on. Given no
+request, or a request with no authenticated user, the queryset is `Dataset.objects.none()` — a
+form that has authorised nobody proposes no dataset, rather than guessing:
 
 ```python
-def __init__(self, *args, user=None, **kwargs):
-    super().__init__(*args, **kwargs)
-    # Filters dataset queryset based on user permissions
-    self.fields['dataset'].queryset = self.get_dataset_queryset(user)
+# In a view
+form = RockSampleForm(request=request, data=request.POST)
 ```
 
-**Optimized Widget Settings**: Provides sensible widget configurations:
+**Optimized widget settings**: the mixin sets a Select2 widget with an "add another" link for
+`dataset`, a plain `Select` for `status`, and a Select2 widget for `location`, whenever those
+field names are present on the form. Add your own widgets for your own fields the normal Django
+way:
 
 ```python
 # In your form
@@ -59,11 +72,12 @@ class Meta:
     fields = ['name', 'dataset', 'collection_date']
     widgets = {
         'collection_date': forms.DateInput(attrs={'type': 'date'}),
-        'dataset': autocomplete.ModelSelect2(url='dataset-autocomplete'),
     }
 ```
 
-**Status Field Default**: Automatically sets status to 'available' if not provided.
+**Status field default**: if `status` is one of the form's fields, its initial value is set to
+`"unknown"` — matching `Sample.status`'s own model default. The mixin does not assert where a
+specimen physically is on the strength of nobody having chosen.
 
 ### Customizing Forms
 
@@ -100,16 +114,15 @@ class RockSampleForm(SampleFormMixin, forms.ModelForm):
 
 #### Custom Field Ordering
 
-Use crispy-forms for layout control:
+`SampleFormMixin.__init__` already builds a crispy-forms `FormHelper` with `form_tag = False`.
+Set your own `self.helper.layout` after calling `super().__init__()` to control field order:
 
 ```python
-from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column
 
 class RockSampleForm(SampleFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 'Basic Information',
@@ -145,20 +158,11 @@ class RockSampleForm(SampleFormMixin, forms.ModelForm):
 #### Custom Widgets
 
 ```python
-from dal import autocomplete
-
 class WaterSampleForm(SampleFormMixin, forms.ModelForm):
     class Meta:
         model = WaterSample
         fields = ['name', 'dataset', 'water_source', 'ph_level']
         widgets = {
-            'water_source': autocomplete.ListSelect2(
-                url='water-source-autocomplete',
-                attrs={
-                    'data-placeholder': 'Select or type water source...',
-                    'data-minimum-input-length': 1,
-                }
-            ),
             'ph_level': forms.NumberInput(attrs={
                 'step': '0.1',
                 'min': '0',
@@ -182,15 +186,10 @@ class RockSampleCreateView(LoginRequiredMixin, CreateView):
     template_name = 'samples/rock_sample_form.html'
 
     def get_form_kwargs(self):
-        """Pass user to form for dataset filtering."""
+        """Pass the request so the mixin can filter dataset choices by permission."""
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['request'] = self.request
         return kwargs
-
-    def form_valid(self, form):
-        """Set creator before saving."""
-        form.instance.created_by = self.request.user
-        return super().form_valid(form)
 ```
 
 #### Update View
@@ -202,9 +201,8 @@ class RockSampleUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'samples/rock_sample_form.html'
 
     def get_form_kwargs(self):
-        """Pass user to form."""
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['request'] = self.request
         return kwargs
 ```
 
@@ -212,16 +210,25 @@ class RockSampleUpdateView(LoginRequiredMixin, UpdateView):
 
 ### SampleFilterMixin
 
-The `SampleFilterMixin` provides standard filter configuration for Sample list views.
+`SampleFilterMixin` is a `django_filters.FilterSet` subclass, not a plain mixin — that matters,
+because django-filter's metaclass only collects declared filters from a class body or from a base
+that carries them, and a plain Python class never does. Its `Meta` deliberately has no `model`:
+that is what lets it exist as an abstract base with no concrete model to generate implicit filters
+from.
 
-#### Basic Usage
+#### Basic Filter Usage
+
+The mixin declares one filter (`image`, a `BooleanFilter`) and one `Meta.fields` list
+(`["status", "dataset", "polymorphic_ctype"]`). A subclass with its own `model`-bearing `Meta`
+**must extend `SampleFilterMixin.Meta`**, or it loses that inherited field list — the declared
+`image` filter survives regardless, since declared filters are collected independently of `Meta`:
 
 ```python
 from fairdm.core.sample.filters import SampleFilterMixin
 import django_filters
+from myapp.models import RockSample
 
 class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
-    # Add custom filters
     rock_type = django_filters.ChoiceFilter(
         choices=[
             ('igneous', 'Igneous'),
@@ -230,48 +237,28 @@ class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
         ]
     )
 
-    weight_min = django_filters.NumberFilter(
-        field_name='weight_grams',
-        lookup_expr='gte',
-        label='Min Weight (g)'
-    )
-
-    class Meta:
+    class Meta(SampleFilterMixin.Meta):
         model = RockSample
-        fields = {
-            'name': ['icontains'],
-            'local_id': ['exact', 'icontains'],
-            'dataset': ['exact'],
-            'status': ['exact'],
-            'rock_type': ['exact'],
-        }
+        fields = SampleFilterMixin.Meta.fields + ['rock_type']
 ```
 
-#### Features Provided
+Writing a fresh `class Meta:` here instead — without extending `SampleFilterMixin.Meta` — would
+still register the `rock_type` filter and the `image` filter, but the mixin's `status`, `dataset`
+and `polymorphic_ctype` fields would silently disappear from the filter set.
 
-**Common Sample Filters**: The mixin provides filters for:
+#### Filter Features Provided
 
-- Name (text search)
-- Local ID (exact match and text search)
-- Dataset (dropdown)
-- Status (dropdown)
-- Polymorphic type (for mixed querysets)
+**Common Sample filters**: inheriting the mixin gets you:
 
-**Search Functionality**: Text search across name, local_id, and UUID:
+- `image` — a boolean filter for whether the sample has an image attached (declared filter)
+- `status`, `dataset`, `polymorphic_ctype` — implicit filters generated from `Meta.fields`, once
+  your own `Meta` extends `SampleFilterMixin.Meta`
 
-```python
-# Users can search by any of these
-search = django_filters.CharFilter(method='search_samples')
-```
-
-**Date Range Filters**: Filter by creation/modification dates:
-
-```python
-created_after = django_filters.DateFilter(
-    field_name='created',
-    lookup_expr='gte'
-)
-```
+**Dataset queryset widening**: `SampleFilterMixin.__init__` runs on every subclass through the
+method resolution order and sets the `dataset` filter's queryset to `Dataset.all_objects.all()`
+whenever `dataset` is one of the filter set's fields — `Dataset`'s own default manager is
+privacy-first, so without this a filter set would offer no private dataset to filter by, which is
+every dataset until one is published.
 
 ### Custom Filters
 
@@ -279,7 +266,6 @@ created_after = django_filters.DateFilter(
 
 ```python
 class WaterSampleFilter(SampleFilterMixin, django_filters.FilterSet):
-    # pH range
     ph_min = django_filters.NumberFilter(
         field_name='ph_level',
         lookup_expr='gte',
@@ -291,15 +277,9 @@ class WaterSampleFilter(SampleFilterMixin, django_filters.FilterSet):
         label='Max pH'
     )
 
-    # Temperature range
-    temp_range = django_filters.NumericRangeFilter(
-        field_name='temperature_celsius',
-        label='Temperature Range (°C)'
-    )
-
-    class Meta:
+    class Meta(SampleFilterMixin.Meta):
         model = WaterSample
-        fields = ['dataset', 'water_source', 'ph_level']
+        fields = SampleFilterMixin.Meta.fields + ['ph_level']
 ```
 
 #### Date Range Filters
@@ -313,30 +293,26 @@ class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
         )
     )
 
-    class Meta:
+    class Meta(SampleFilterMixin.Meta):
         model = RockSample
-        fields = ['dataset', 'rock_type', 'collection_date']
+        fields = SampleFilterMixin.Meta.fields + ['rock_type', 'collection_date']
 ```
 
 #### Vocabulary/Concept Filters
 
 ```python
-class SoilSampleFilter(SampleFilterMixin, django_filters.FilterSet):
-    soil_type = django_filters.ModelChoiceFilter(
-        queryset=Concept.objects.filter(vocabulary='soil_taxonomy'),
-        label='Soil Type',
-        empty_label='All Types'
-    )
+from research_vocabs.models import Concept
 
+class SoilSampleFilter(SampleFilterMixin, django_filters.FilterSet):
     texture = django_filters.ModelMultipleChoiceFilter(
-        queryset=Concept.objects.filter(vocabulary='soil_texture'),
+        queryset=Concept.objects.filter(vocabulary__name="soil-texture"),
         label='Texture Classes',
         widget=forms.CheckboxSelectMultiple
     )
 
-    class Meta:
+    class Meta(SampleFilterMixin.Meta):
         model = SoilSample
-        fields = ['dataset', 'soil_type', 'texture']
+        fields = SampleFilterMixin.Meta.fields + ['texture']
 ```
 
 #### Custom Filter Methods
@@ -360,9 +336,9 @@ class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
             return queryset.filter(id__in=parent_ids)
         return queryset
 
-    class Meta:
+    class Meta(SampleFilterMixin.Meta):
         model = RockSample
-        fields = ['dataset', 'rock_type']
+        fields = SampleFilterMixin.Meta.fields + ['rock_type']
 ```
 
 ### Using Filters in Views
@@ -443,29 +419,22 @@ class RockSampleListView(LoginRequiredMixin, FilterView):
 
 ## Registry Auto-Generation
 
-If you don't need custom forms or filters, the registry can auto-generate them:
+If you don't need custom forms or filters, the registry can auto-generate them — and what it
+generates for a specimen type that supplies neither carries the mixins' behaviour, not the
+framework's plain defaults:
 
 ```python
+from fairdm.core.sample.config import BaseSampleConfiguration
 from fairdm.registry import register
-from fairdm.registry.config import ModelConfiguration
 
 @register
-class RockSampleConfig(ModelConfiguration):
+class RockSampleConfig(BaseSampleConfiguration):
     model = RockSample
-
-    # Fields for auto-generated components
     fields = ['name', 'local_id', 'rock_type', 'collection_date', 'weight_grams']
-
-    # Or specify different fields for each component
-    form_fields = ['name', 'dataset', 'rock_type', 'collection_date', 'weight_grams']
-    filterset_fields = ['dataset', 'rock_type', 'status']
 ```
 
-This automatically generates:
-
-- A ModelForm with the specified fields
-- A FilterSet with the specified fields
-- Appropriate widgets and validators
+This automatically generates a `ModelForm` built on `SampleFormMixin` and a `FilterSet` built on
+`SampleFilterMixin`, with the field list above, plus appropriate widgets.
 
 ## Testing Forms and Filters
 
@@ -476,9 +445,16 @@ import pytest
 from datetime import date
 
 @pytest.mark.django_db
-def test_rock_sample_form_valid_data(user, dataset):
-    """Test form with valid data."""
+def test_rock_sample_form_valid_data(rf, user, dataset):
+    """Test form with valid data. `rf` is pytest-django's RequestFactory fixture."""
+    from guardian.shortcuts import assign_perm
+    assign_perm("dataset.change_dataset", user, dataset)
+
+    request = rf.post("/")
+    request.user = user
+
     form = RockSampleForm(
+        request=request,
         data={
             'name': 'RS-001',
             'dataset': dataset.pk,
@@ -486,7 +462,6 @@ def test_rock_sample_form_valid_data(user, dataset):
             'collection_date': date.today(),
             'weight_grams': 125.5,
         },
-        user=user
     )
 
     assert form.is_valid()
@@ -513,21 +488,11 @@ def test_rock_sample_form_validation():
 @pytest.mark.django_db
 def test_rock_sample_filter_by_type(dataset):
     """Test filtering by rock type."""
-    # Create samples
-    RockSample.objects.create(
-        name='Igneous',
-        dataset=dataset,
-        rock_type='igneous',
-        collection_date=date.today()
-    )
-    RockSample.objects.create(
-        name='Sedimentary',
-        dataset=dataset,
-        rock_type='sedimentary',
-        collection_date=date.today()
-    )
+    from myapp.factories import RockSampleFactory
 
-    # Filter
+    RockSampleFactory(name='Igneous', dataset=dataset, rock_type='igneous')
+    RockSampleFactory(name='Sedimentary', dataset=dataset, rock_type='sedimentary')
+
     filterset = RockSampleFilter(
         data={'rock_type': 'igneous'},
         queryset=RockSample.objects.all()
@@ -535,58 +500,24 @@ def test_rock_sample_filter_by_type(dataset):
 
     assert filterset.qs.count() == 1
     assert filterset.qs.first().rock_type == 'igneous'
-
-@pytest.mark.django_db
-def test_rock_sample_filter_date_range(dataset):
-    """Test filtering by date range."""
-    from datetime import timedelta
-
-    today = date.today()
-    yesterday = today - timedelta(days=1)
-
-    RockSample.objects.create(
-        name='Recent',
-        dataset=dataset,
-        rock_type='igneous',
-        collection_date=today
-    )
-    RockSample.objects.create(
-        name='Older',
-        dataset=dataset,
-        rock_type='igneous',
-        collection_date=yesterday
-    )
-
-    # Filter for today only
-    filterset = RockSampleFilter(
-        data={
-            'collection_date_after': today,
-            'collection_date_before': today,
-        },
-        queryset=RockSample.objects.all()
-    )
-
-    assert filterset.qs.count() == 1
-    assert filterset.qs.first().name == 'Recent'
 ```
 
 ## Best Practices
 
 ### Form Design
 
-1. **Always pass user to forms**: Required for dataset queryset filtering
+1. **Always pass `request` to forms**: it is what `SampleFormMixin` uses for dataset queryset filtering — a form built with no request offers no dataset at all
 2. **Use crispy-forms for layout**: Better than manual HTML
 3. **Validate early**: Use field-level validators when possible
 4. **Provide helpful error messages**: Clear, actionable feedback
-5. **Use appropriate widgets**: Date pickers for dates, autocomplete for FKs
 
 ### Filter Design
 
-1. **Start simple**: Add filters as needed, don't overload the UI
-2. **Use appropriate filter types**: Range filters for numbers, choice filters for enums
-3. **Consider performance**: Add database indexes for frequently filtered fields
-4. **Test filter combinations**: Ensure filters work together correctly
-5. **Provide clear labels**: Users should understand what each filter does
+1. **Extend `SampleFilterMixin.Meta`, always**: `class Meta(SampleFilterMixin.Meta):` plus `fields = SampleFilterMixin.Meta.fields + [...]` — a fresh `Meta` silently drops the mixin's fields
+2. **Start simple**: Add filters as needed, don't overload the UI
+3. **Use appropriate filter types**: Range filters for numbers, choice filters for enums
+4. **Consider performance**: Add database indexes for frequently filtered fields
+5. **Test filter combinations**: Ensure filters work together correctly
 
 ### Template Organization
 
@@ -616,7 +547,7 @@ SampleDescriptionFormSet = inlineformset_factory(
 # In your view
 def sample_create_view(request):
     if request.method == 'POST':
-        form = RockSampleForm(request.POST, user=request.user)
+        form = RockSampleForm(request=request, data=request.POST)
         formset = SampleDescriptionFormSet(request.POST)
 
         if form.is_valid() and formset.is_valid():
@@ -625,36 +556,13 @@ def sample_create_view(request):
             formset.save()
             return redirect(sample.get_absolute_url())
     else:
-        form = RockSampleForm(user=request.user)
+        form = RockSampleForm(request=request)
         formset = SampleDescriptionFormSet()
 
     return render(request, 'sample_form.html', {
         'form': form,
         'formset': formset,
     })
-```
-
-### Conditional Filters
-
-Show/hide filters based on other selections:
-
-```python
-class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
-    rock_type = django_filters.ChoiceFilter(
-        choices=[('igneous', 'Igneous'), ('sedimentary', 'Sedimentary')]
-    )
-
-    # Only relevant for igneous rocks
-    igneous_subtype = django_filters.ChoiceFilter(
-        choices=[('basalt', 'Basalt'), ('granite', 'Granite')],
-        label='Igneous Subtype'
-    )
-
-    class Meta:
-        model = RockSample
-        fields = ['rock_type', 'igneous_subtype']
-
-# Use JavaScript to show/hide igneous_subtype based on rock_type selection
 ```
 
 ## See Also

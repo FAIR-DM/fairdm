@@ -10,9 +10,16 @@ Samples are physical or digital objects that form the core of your research data
 
 - **Polymorphic Inheritance**: All Sample subclasses are stored in a single table with automatic type detection
 - **Rich Metadata**: Built-in support for descriptions, dates, identifiers, and contributors
-- **Relationships**: Track provenance and relationships between samples
+- **Relationships**: Track provenance between samples
 - **Location Support**: Optional spatial data integration
 - **Registry Integration**: Automatic form, filter, and admin generation
+
+```{note}
+The base `Sample` model itself cannot be created — not through the ORM, a form, the admin, or a
+factory. Every route to create one raises. This is deliberate: `Sample` is a polymorphic base a
+portal is meant to extend, never a record in its own right. Everything below defines a concrete
+subclass instead.
+```
 
 ## Basic Sample Creation
 
@@ -49,12 +56,15 @@ The `Sample` base class provides these required fields:
 
 - `name`: Short identifier/label for the sample
 - `dataset`: Foreign key to the parent Dataset
-- `uuid`: Automatically generated unique identifier
+- `uuid`: Automatically generated unique identifier, prefixed `s_`, not editable afterwards
 
 ### Optional Fields
 
-- `local_id`: Local identifier within your lab/project
-- `status`: Sample status (available, used, archived, etc.)
+- `local_id`: Local identifier within your lab/project — need not be unique; two samples in
+  different datasets may share one
+- `status`: Custody status, drawn from a fixed vocabulary — `available`, `in_use`, `stored`,
+  `destroyed`, `unknown`. Defaults to `unknown` when nothing is set, and can move to any other
+  status from any status, including back out of `destroyed`
 - `location`: Spatial location (requires GeoDjango)
 
 ## Advanced Field Types
@@ -78,22 +88,30 @@ class WaterSample(Sample):
 
 ### Using ConceptField
 
-For controlled vocabulary fields:
+For controlled vocabulary fields, define a small vocabulary and pass the class itself as
+`vocabulary` — not a vocabulary name string:
 
 ```python
-from fairdm.db.models import ConceptField
+from django.utils.translation import gettext_lazy as _
+from research_vocabs.core import VocabularyBuilder
+from research_vocabs.fields import ConceptField
+
+class SoilTexture(VocabularyBuilder):
+    sandy = {"skos:prefLabel": _("Sandy")}
+    loamy = {"skos:prefLabel": _("Loamy")}
+    clay = {"skos:prefLabel": _("Clay")}
+
+    class Meta:
+        name = "soil-texture"
 
 class SoilSample(Sample):
-    soil_type = ConceptField(
-        vocabulary="soil_taxonomy",
-        help_text="USDA Soil Taxonomy classification"
-    )
     texture = ConceptField(
-        vocabulary="soil_texture",
-        null=True,
-        blank=True
+        vocabulary=SoilTexture,
+        help_text="Dominant soil texture class",
     )
 ```
+
+See [Controlled Vocabularies](../controlled_vocabularies.md) for the full guide to declaring one.
 
 ### Using PartialDateField
 
@@ -111,120 +129,112 @@ class ArchaeologicalSample(Sample):
 
 ## Sample Metadata
 
-Samples support rich metadata through related models:
+Samples support rich metadata through related models. Each of `SampleDescription`, `SampleDate`
+and `SampleIdentifier` is scoped to its own vocabulary — a `type` outside it is refused by
+`full_clean()`, though not by a plain `.objects.create()`, which does not call it.
 
 ### Descriptions
 
-Multiple descriptions of different types:
+Several descriptions, each drawn from the sample description vocabulary
+(`SampleCollection`, `SamplePreparation`, `SampleStorage`, `SampleDestruction`, `Other`):
 
 ```python
 from fairdm.core.sample.models import SampleDescription
 
-# In your view or factory
 SampleDescription.objects.create(
     related=my_sample,
-    type="abstract",
-    value="Basalt sample from mid-ocean ridge"
+    type="SampleCollection",
+    value="Basalt sample from mid-ocean ridge, collected by dredge.",
 )
 SampleDescription.objects.create(
     related=my_sample,
-    type="methods",
-    value="Collected using rock hammer and chisel"
+    type="SamplePreparation",
+    value="Crushed and sieved to <2mm for analysis.",
 )
 ```
 
-Available description types:
-
-- `abstract`: Brief summary
-- `methods`: Collection/preparation methods
-- `other`: Any other description type
+A sample carries at most one description of each type — the database enforces `(related, type)`
+as unique.
 
 ### Dates
 
-Track important dates:
+The sample date vocabulary is `Created`, `Destroyed`, `Collected`, `Returned`, `Prepared`,
+`Archival`, `Restored`:
 
 ```python
 from fairdm.core.sample.models import SampleDate
 
 SampleDate.objects.create(
     related=my_sample,
-    type="collected",
-    value="2024-03-15"  # PartialDate format
+    type="Collected",
+    value="2024-03-15",  # PartialDate format: "2024", "2024-03", or "2024-03-15"
 )
 ```
 
-Available date types:
-
-- `collected`: Sample collection date
-- `available`: Date made available
-- `created`: Record creation date
-
 ### Identifiers
 
-Assign persistent identifiers:
+The sample identifier vocabulary contains only two types — `IGSN` and `DOI` — the same
+vocabulary datasets, projects and people use has no member that names a sample at all, so this
+is a separate, sample-scoped collection:
 
 ```python
 from fairdm.core.sample.models import SampleIdentifier
 
-# IGSN (International Geo Sample Number)
 SampleIdentifier.objects.create(
     related=my_sample,
     type="IGSN",
-    value="IEABC0123"
-)
-
-# Local barcode
-SampleIdentifier.objects.create(
-    related=my_sample,
-    type="barcode",
-    value="RS-2024-001"
+    value="10.58052/SSH000SUA",
 )
 ```
 
+Two rules apply whenever a `SampleIdentifier.full_clean()` runs (also true for project, dataset
+and measurement identifiers, since they share the same abstract base):
+
+- **Normalisation.** A common display prefix — `https://doi.org/`, `http://doi.org/`,
+  `https://igsn.org/`, `hdl.handle.net/`, `doi:`, `igsn:` — is stripped from the value before it
+  is compared or stored. IGSN allocation moved to DataCite in 2023, so an IGSN today is validated
+  as any DataCite DOI (`10.NNNN/…`, case-insensitive, suffix unconstrained) or the legacy
+  `10273/…` handle — there is no longer a single prefix or suffix shape to check.
+- **Global uniqueness.** `value` must be unique across every record type that carries
+  identifiers — a sample, a dataset, a project and a measurement cannot share one, not only
+  samples among themselves.
+
 ### Contributors
 
-Track who collected, analyzed, or owns samples:
+Track who collected, analyzed, or owns a sample through the shared `Contribution` model, the same
+one projects and datasets use, linked by a generic relation:
 
 ```python
-from fairdm.core.sample.models import SampleContribution
+from fairdm.contrib.contributors.models import Contribution
+from research_vocabs.models import Concept
 
-SampleContribution.objects.create(
-    related=my_sample,
-    contributor=researcher,  # User or Contact instance
-    roles=["collector", "analyst"]
+contribution = Contribution.objects.create(
+    contributor=researcher,  # a Person or Organization instance
+    content_object=my_sample,
 )
+collector_role = Concept.objects.get(vocabulary=my_sample.CONTRIBUTOR_ROLES, label="Collector")
+contribution.roles.add(collector_role)
 ```
 
 ## Sample Relationships
 
-Track provenance and relationships between samples:
+Record that one sample came from another. There is one relationship type, `child_of`, and the
+relationship record carries no field to explain *why* — if that matters, put it in a description
+on the child instead.
 
 ```python
 from fairdm.core.sample.models import SampleRelation
 
-# Parent-child relationship
 SampleRelation.objects.create(
     source=child_sample,
     target=parent_sample,
     type="child_of",
-    description="Split from parent core sample"
-)
-
-# Derived sample
-SampleRelation.objects.create(
-    source=powder_sample,
-    target=rock_sample,
-    type="derived-from",
-    description="Crushed to powder for XRD analysis"
 )
 ```
 
-### Common Relationship Types
-
-- `child_of`: Sample is a child/subsample of another
-- `derived-from`: Sample derived through processing
-- `split-from`: Sample split from a larger sample
-- `replicate-of`: Duplicate/replicate sample
+A sample cannot be related to itself, the reverse of an existing link cannot also be recorded
+(A `child_of` B and B `child_of` A), and the same link cannot be saved twice. All three are
+refused on `save()` directly, not only through form validation.
 
 ### Querying Relationships
 
@@ -235,15 +245,21 @@ children = parent_sample.get_children()
 # Get parent samples
 parents = child_sample.get_parents()
 
-# Get all descendants (recursive)
+# Get all descendants (recursive, optional depth limit)
 descendants = parent_sample.get_descendants(depth=5)
+
+# Get all ancestors (recursive, optional depth limit)
+ancestors = child_sample.get_ancestors(depth=3)
 
 # Query by relationship type
 related = Sample.objects.by_relationship(
     related_to=my_sample,
-    relationship_type="child_of"
+    relationship_type="child_of",
 )
 ```
+
+Each helper on `Sample` delegates to the matching method on `Sample.objects` — there is exactly
+one implementation of the traversal, not two that could disagree.
 
 ## Polymorphic Queries
 
@@ -276,11 +292,14 @@ non_rocks = Sample.objects.not_instance_of(RockSample)
 Use provided QuerySet methods to optimize database queries:
 
 ```python
-# Prefetch related data in bulk
-samples = Sample.objects.with_related()  # Dataset, location, contributors
+# Prefetch dataset, location and contributors
+samples = Sample.objects.with_related()
 
-# Prefetch metadata
-samples = Sample.objects.with_metadata()  # Descriptions, dates, identifiers
+# Prefetch descriptions, dates and identifiers
+samples = Sample.objects.with_metadata()
+
+# Prefetch controlled keywords
+samples = Sample.objects.with_keywords()
 
 # Chain optimization methods
 samples = (
@@ -295,44 +314,6 @@ samples = (
 for sample in samples:
     print(sample.dataset.name)  # No query
     print(list(sample.descriptions.all()))  # No query
-```
-
-## Custom QuerySet Methods
-
-Add domain-specific query methods:
-
-```python
-from fairdm.core.sample.managers import SampleQuerySet
-
-class RockSampleQuerySet(SampleQuerySet):
-    """Custom queryset for RockSample."""
-
-    def igneous(self):
-        """Filter for igneous rocks only."""
-        return self.filter(rock_type__icontains="igneous")
-
-    def by_weight_range(self, min_grams=None, max_grams=None):
-        """Filter by weight range."""
-        qs = self
-        if min_grams is not None:
-            qs = qs.filter(weight_grams__gte=min_grams)
-        if max_grams is not None:
-            qs = qs.filter(weight_grams__lte=max_grams)
-        return qs
-
-class RockSample(Sample):
-    rock_type = models.CharField(max_length=100)
-    weight_grams = models.FloatField(null=True, blank=True)
-
-    objects = RockSampleQuerySet.as_manager()
-
-    class Meta:
-        verbose_name = "Rock Sample"
-        verbose_name_plural = "Rock Samples"
-
-# Usage
-igneous_rocks = RockSample.objects.igneous()
-heavy_rocks = RockSample.objects.by_weight_range(min_grams=100)
 ```
 
 ## Validation
@@ -361,25 +342,26 @@ class WaterSample(Sample):
             })
 ```
 
+`super().clean()` matters here — it is what refuses a bare `Sample` from ever validating, and
+skipping it silently drops that guard for your subclass too.
+
 ## Registry Configuration
 
-Register your Sample type for automatic integration:
+Register your Sample type for automatic integration. `BaseSampleConfiguration` is the recommended
+base — it declares the same `fields` list every generated component (form, table, filter set,
+serializer, resource, admin) falls back to, so a type that wants one shared field list only states
+`fields` once:
 
 ```python
-# In your app's config.py or registry.py
+# In your app's config.py
+from fairdm.core.sample.config import BaseSampleConfiguration
 from fairdm.registry import register
-from fairdm.registry.config import ModelConfiguration
+from .models import RockSample
 
 @register
-class RockSampleConfig(ModelConfiguration):
+class RockSampleConfig(BaseSampleConfiguration):
     model = RockSample
-
-    # Fields to show in tables/lists
     fields = ["name", "local_id", "rock_type", "collection_date", "weight_grams"]
-
-    # Display metadata
-    display_name = "Rock Sample"
-    description = "Geological rock samples with collection metadata"
 
 # This automatically generates:
 # - ModelForm for create/edit
@@ -388,25 +370,48 @@ class RockSampleConfig(ModelConfiguration):
 # - ModelAdmin for admin site
 ```
 
-See [Model Configuration](../model_configuration.md) for complete registry documentation.
+`BaseSampleConfiguration` deliberately declares only `fields`, not `form_fields`, `table_fields`,
+`filterset_fields` or `serializer_fields`. If your type relies on the registry auto-detecting
+per-component field lists rather than sharing one list across every component, subclass the
+plain `ModelConfiguration` instead — setting any of those on `BaseSampleConfiguration` would win
+over your own per-component lists for the one component you didn't restate.
+
+See [Model Configuration](../model_configuration.md) for the complete registry documentation.
 
 ## Testing Custom Samples
+
+FairDM's own `fairdm.factories.SampleFactory` is abstract — it declares the fields every sample
+factory needs but cannot itself build a `Sample`, for the same reason the model can't. Write your
+own concrete factory alongside your sample type, the way `fairdm_demo.factories.RockSampleFactory`
+does for the reference implementation:
+
+```python
+import factory
+from fairdm.factories import SampleFactory
+from myapp.models import RockSample
+
+class RockSampleFactory(SampleFactory):
+    class Meta:
+        model = RockSample
+
+    rock_type = "igneous"
+    collection_date = factory.Faker("date_this_decade")
+```
 
 ### Basic Tests
 
 ```python
 import pytest
 from datetime import date
-from myapp.models import RockSample
+from myapp.factories import RockSampleFactory
 
 @pytest.mark.django_db
 def test_rock_sample_creation(dataset):
     """Test creating a rock sample with required fields."""
-    sample = RockSample.objects.create(
-        name="RS-001",
+    sample = RockSampleFactory(
         dataset=dataset,
         rock_type="igneous",
-        collection_date=date.today()
+        collection_date=date.today(),
     )
 
     assert sample.pk is not None
@@ -414,15 +419,13 @@ def test_rock_sample_creation(dataset):
     assert sample.uuid.startswith("s_")
 
 @pytest.mark.django_db
-def test_rock_sample_validation():
-    """Test sample validation logic."""
-    sample = RockSample(
-        name="Invalid",
-        rock_type="",  # Empty rock_type
-    )
+def test_base_sample_cannot_be_created(dataset):
+    """The polymorphic base itself is refused, by every route."""
+    from django.core.exceptions import ValidationError
+    from fairdm.core.sample.models import Sample
 
     with pytest.raises(ValidationError):
-        sample.full_clean()
+        Sample.objects.create(name="Bare sample", dataset=dataset)
 ```
 
 ### Testing Relationships
@@ -433,19 +436,8 @@ def test_sample_relationships(dataset):
     """Test creating and querying sample relationships."""
     from fairdm.core.sample.models import SampleRelation
 
-    parent = RockSample.objects.create(
-        name="Parent Core",
-        dataset=dataset,
-        rock_type="igneous",
-        collection_date=date.today()
-    )
-
-    child = RockSample.objects.create(
-        name="Child Sample",
-        dataset=dataset,
-        rock_type="igneous",
-        collection_date=date.today()
-    )
+    parent = RockSampleFactory(name="Parent Core", dataset=dataset)
+    child = RockSampleFactory(name="Child Sample", dataset=dataset)
 
     SampleRelation.objects.create(
         source=child,
@@ -477,13 +469,13 @@ def test_sample_relationships(dataset):
 ### Documentation
 
 1. **Write docstrings**: Document the purpose of each Sample type
-2. **Document relationships**: Explain parent-child hierarchies in docstrings
+2. **Document relationships**: Explain what `child_of` means for your specimen type in a docstring, since the relation record itself carries no explanation field
 3. **Provide examples**: Include usage examples in docstrings
 4. **Keep Meta updated**: Set verbose_name and verbose_name_plural
 
 ### Performance
 
-1. **Use with_related()**: Always prefetch related data when iterating
+1. **Use with_related() and with_metadata()**: Always prefetch related data when iterating
 2. **Add select_related for FKs**: For your own custom foreign keys
 3. **Index frequently queried fields**: Add `db_index=True` to filtered fields
 4. **Avoid N+1 queries**: Test query counts in your integration tests
@@ -496,9 +488,9 @@ For samples with parent-child hierarchies:
 
 ```python
 # Creating a hierarchy
-core = CoreSample.objects.create(name="Core-001", dataset=dataset)
-section_a = CoreSection.objects.create(name="Section-A", dataset=dataset)
-section_b = CoreSection.objects.create(name="Section-B", dataset=dataset)
+core = CoreSampleFactory(name="Core-001", dataset=dataset)
+section_a = CoreSectionFactory(name="Section-A", dataset=dataset)
+section_b = CoreSectionFactory(name="Section-B", dataset=dataset)
 
 # Link sections to core
 SampleRelation.objects.create(source=section_a, target=core, type="child_of")
@@ -506,38 +498,6 @@ SampleRelation.objects.create(source=section_b, target=core, type="child_of")
 
 # Query descendants
 all_sections = core.get_descendants()
-```
-
-### Replicate Samples
-
-For duplicate samples:
-
-```python
-original = WaterSample.objects.create(...)
-replicate = WaterSample.objects.create(...)
-
-SampleRelation.objects.create(
-    source=replicate,
-    target=original,
-    type="replicate-of",
-    description="Field replicate for quality control"
-)
-```
-
-### Derived Samples
-
-For processed samples:
-
-```python
-original = RockSample.objects.create(...)
-powder = PowderSample.objects.create(...)
-
-SampleRelation.objects.create(
-    source=powder,
-    target=original,
-    type="derived-from",
-    description="Ground to <63μm powder"
-)
 ```
 
 ## Troubleshooting
@@ -550,12 +510,18 @@ If you're getting base Sample objects instead of typed instances:
 2. Check that `polymorphic_ctype` is being set correctly
 3. Verify migrations are up to date
 
+### "Cannot create base Sample instances directly"
+
+You, a fixture, or a library called `Sample.objects.create()` (or `.save()`) somewhere instead of
+a concrete subclass. This is refused everywhere, including `bulk_create` and fixture loading —
+retarget the call at your own sample type's factory or model.
+
 ### Circular Relationship Errors
 
 If you're getting validation errors on relationships:
 
 ```python
-# This is prevented by validation
+# This is prevented by validation, and on save() directly
 SampleRelation.objects.create(source=sample_a, target=sample_a, type="child_of")  # Error
 
 # This is also prevented
@@ -577,4 +543,5 @@ If queries are slow:
 - [Model Configuration](../model_configuration.md) - Registry configuration
 - [Defining Models](../defining_models.md) - General model patterns
 - [Special Fields](../special_fields.md) - Custom field types
+- [Sample Form and Filter Mixins](../forms-and-filters/sample-mixins.md) - The mixins your own forms and filters inherit
 - [Filtering](../filtering-by-vocabulary.md) - Filter configuration

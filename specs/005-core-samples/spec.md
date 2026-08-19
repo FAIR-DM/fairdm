@@ -1,513 +1,637 @@
-# Feature Specification: Core Sample Model Enhancement
+# Feature Specification: The sample record
 
 **Feature Branch**: `005-core-samples`
-**Created**: January 16, 2026
+
+**Created**: 2026-01-16 · **Rewritten**: 2026-08-18
+
 **Status**: Draft
-**Input**: User description: "Feature 005-core-samples will focus on cleaning up and enhancing the fairdm.core.sample app. We will go through models, modelmanagers, forms, filters and admin, making sure to identify feature holes, testing requirements and enhancements that support fair data and portal useability. Client side integration (e.g. list views, detail views, api, etc) are out of scope for this feature and will be deferred to later specs. The Sample model is intended to reflect the IGSN (International Generic Sample Number) metadata schema as closely as possible. Note however that the IGSN metadata is currently being redesigned as part of an ongoing project which we will need to monitor. For now, we will keep the Sample model simple but functional. We can update it in future releases to address updated IGSN metadata. IMPORTANT: The Sample model is a base polymorphic model from which ALL FairDM samples are derived. This means it integrates tightly with the FairDM registry system. Also, we should focus on providing basic mixin for forms, filters, etc, that provide core Sample-related functionality, from which developers of specific samples types can mixin to their own form classes. e.g. class SampleForm(): ... class RockSampleForm(SampleForm): ..."
+
+**Goals**: G1 — a core data model of projects, datasets, samples, measurements and contributors that
+domain schemas can extend and rely on. G2 — registering a model is enough to get a working portal
+surface. G12 — private and public data side by side, controlled per object. G15 — external
+identifiers for people, organisations and samples carried through the record.
+
+**Roadmap**: R5 — samples.
+
+**Input**: A sample is a physical or digital specimen collected as part of a dataset. It is the
+polymorphic base every portal-defined specimen type inherits from, whatever the science: a rock, a
+water column, a tissue culture, an alloy coupon. This specification describes the sample record
+itself: the fields it carries, the typed descriptions, dates and identifiers attached to it, the
+links back to the samples it came from, who is credited on it, how its access follows from the
+dataset it belongs to, how an administrator manages it, and the form and filter behaviour a portal
+developer inherits when defining a sample type of their own.
+
+Its metadata follows IGSN — the International Generic Sample Number — as its reference schema.
+IGSN is deliberately domain-independent, and following it is what keeps this record neutral between
+sciences rather than shaped by one.
+
+It does not describe the pages a researcher uses to create, list or edit a sample. Those belong to
+the CRUD specification for samples, roadmap item R16, which does not exist yet. The reasoning behind
+that line, and behind everything else this document settles, is in `decisions.md`.
 
 ## Clarifications
 
-### Session 2026-01-16
+### Session 2026-08-18
 
-- Q: Should there be a detailed "Dataset Creator Manages Sample Lifecycle" user story? → A: No, this is beyond scope. Focus on model, forms, filters, and admin as in Feature 006 (datasets).
-- Q: Should User Story 2 refer to "portal administrator" or "portal developer"? → A: Portal developer (not administrator) defines custom sample types.
-- Q: Does User Story 2 overlap with Feature 004 (registry system)? → A: Yes, need to ensure we're not duplicating work from the registry spec and properly reference/build upon it.
-- Q: Is User Story 3 complex enough to require research? → A: Yes, sample relationships can be very complex in some cases and will require research into proper implementation patterns.
-- Q: How important is the base form/filter inheritance? → A: Very important for proper integration - developers must inherit from correct base forms/filters to get all basic functionality defined in the core app.
+The original text was written on 2026-01-16, before most of the sample app existed. It described
+five layers at once, and the file itself is damaged — three of its user stories and two of its
+section headings appear twice, with different content. Each disagreement with the code was settled
+and recorded in `decisions.md`; the questions and answers below are the ones that shaped this
+document.
 
-## User Scenarios & Testing
+- Q: Does this specification own the sample pages, the forms behind them and the filter set behind
+  the list? → A: It owns the record, and it owns `SampleFormMixin` and `SampleFilterMixin` because
+  those are what a portal developer inherits from rather than what a page constructs. The pages and
+  the concrete `SampleForm` and `SampleFilter` belong to the CRUD specification (D-001).
+- Q: A sample's status is drawn from a vocabulary of Complete, Ongoing, Planned and Unknown, fetched
+  over plain HTTP from a third-party host. Those describe a data-collection activity, not a
+  specimen. Is that intended? → A: No, it is a defect. A sample status vocabulary describes physical
+  custody — available, in use, stored, destroyed, unknown — and the remote fetch goes (D-002).
+- Q: A sample cannot be given an IGSN, because its identifier vocabulary lists identifiers for
+  people, organisations and projects and contains no IGSN member at all. Is that intended? → A: No,
+  it is a defect. A sample needs its own identifier types, and they are IGSN and DOI (D-003).
+- Q: Should the single `child_of` relationship type grow into a vocabulary carrying derived-from and
+  split-from? → A: No. At most child-of, and expanding it is overreach for this specification
+  (D-004).
+- Q: Is following the IGSN schema a geoscience bias that should be demoted? → A: No — the opposite.
+  IGSN is generic by design, and following it is what makes the record domain-neutral (D-005).
+- Q: The vocabulary validators on descriptions, dates and identifiers raise a type error rather than
+  a validation error, and always have. Which is right, the specification or the code? → A: The
+  specification. The validators are repaired (D-006).
+- Q: The queryset's ancestor and descendant traversals run in the opposite direction to the model's
+  own. Which direction is right? → A: The model's, which is the direction the stored data uses. The
+  duplicate traversal is removed rather than corrected in two places (D-007).
+- Q: Should a sample carry a material field, as IGSN alignment would suggest? → A: No. A material
+  vocabulary spanning every science is the same overreach as the relationship vocabulary (D-012).
+- Q: What format should an IGSN be validated against, given that sample identifiers may be moving to
+  DataCite? → A: Whatever the issuing authority defines, settled from its documentation during
+  research rather than frozen into this document from an unverified report (D-014).
 
-### User Story 1 - Sample Model Polymorphism & Registry Integration (Priority: P1)
+## User Scenarios & Testing *(mandatory)*
 
-As a portal developer using FairDM, I want the Sample model to support polymorphic inheritance and seamlessly integrate with the FairDM registry (Feature 004) so that I can define domain-specific sample types that automatically get forms, filters, tables, and admin interfaces without duplicating registry functionality.
+### User Story 1 - Define a sample type and get a working record (Priority: P1)
 
-**Why this priority**: Polymorphic sample support and registry integration are fundamental to FairDM's extensibility model. This must work correctly or the framework cannot support different research domains.
+A portal developer defines a specimen type for their own science — a rock sample with a mineral
+content, a tissue sample with a preservation method — by inheriting from the sample record and
+registering it. Registration alone produces the form, filter set, table and administrative entry for
+that type. Querying samples returns each one as the type it actually is, and the bare base record
+cannot be created by anyone.
 
-**Independent Test**: Can be fully tested by defining custom sample models inheriting from Sample, registering them via Feature 004 registry patterns, and verifying polymorphic queries and auto-generated components work correctly. Success is demonstrated when custom sample types integrate seamlessly without manual form/filter/admin creation.
+**Why this priority**: This is what the sample record is for. Every other story in this document
+describes something a portal-defined type inherits, and none of it matters if defining a type does
+not work.
+
+**Independent Test**: Register two sample types with different extra fields, confirm each receives a
+generated form, filter set, table and administrative entry carrying its own fields, query all
+samples and confirm each comes back as its own type, then attempt to create a bare base sample by
+every route and confirm each is refused.
 
 **Acceptance Scenarios**:
 
-1. **Given** I define a new sample type inheriting from Sample (e.g., RockSample with mineral_type field), **When** I register it using Feature 004 registry patterns, **Then** the registry auto-generates appropriate forms, filters, tables, and admin interfaces.
-2. **Given** I have multiple sample types registered (RockSample, WaterSample), **When** I query Sample.objects.all(), **Then** I receive polymorphic results including both base Sample instances and typed subclass instances.
-3. **Given** I have a custom sample type with additional fields, **When** I create instances via the auto-generated form, **Then** both base Sample fields and custom fields are properly handled.
-4. **Given** I register a custom sample without providing custom form/filter classes, **When** the registry auto-generates defaults, **Then** the generated components work correctly for CRUD operations.
-5. **Given** I have polymorphic sample types in the database, **When** I access admin interface, **Then** each sample type displays with its appropriate admin configuration.
+1. **Given** a sample type inheriting from the sample record, **When** it is registered with a
+   configuration naming its fields, **Then** a form, a filter set, a table and an administrative
+   entry are generated for it without any of them being written by hand.
+2. **Given** two registered sample types holding records, **When** samples are queried without
+   naming a type, **Then** each result is an instance of its own type and carries that type's own
+   fields.
+3. **Given** a sample type whose configuration inherits the base sample configuration, **When** it
+   omits a component setting, **Then** it receives the base defaults rather than restating them.
+4. **Given** an attempt to create a bare base sample, **When** it is made through validation, a
+   form, the administrative interface, or the manager directly, **Then** every route refuses it.
+5. **Given** the registered sample types, **When** the administrative interface offers to add a
+   sample, **Then** it asks which type, and routes to that type's own administrative entry.
 
 ---
 
-### User Story 2 - Enhanced Sample Admin Interface (Priority: P1)
+### User Story 2 - Describe a sample in the terms its discipline uses (Priority: P1)
 
-As a portal administrator, I want a comprehensive Django admin interface for samples that provides search, filtering, inline metadata editing, and proper handling of polymorphic sample types so that I can efficiently manage samples and their metadata without writing custom code.
+A researcher records how a specimen was collected, how it was prepared, and how it is stored. Each
+one is stored under its own type rather than concatenated into a single field, so a reader — or
+another system — can ask for the collection method alone. A type outside the sample vocabulary is
+refused.
 
-**Why this priority**: Admin interface is the primary tool for portal administrators to manage sample data. A well-designed admin directly impacts operational efficiency.
+**Why this priority**: Typed descriptions are what make a specimen record interpretable by something
+other than a person reading prose. The validation that keeps the types meaningful has never run.
 
-**Independent Test**: Can be fully tested by accessing the admin interface, performing searches, applying filters, editing samples with inline metadata, and working with different polymorphic sample types. Success is demonstrated when all admin operations work correctly and efficiently for both base Sample and custom sample types.
+**Independent Test**: Attach descriptions of two different types to a sample, confirm both are
+retrievable independently under their own types, and confirm that a type belonging to a different
+record's vocabulary is refused by validation.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am in the sample admin list view, **When** I search by sample name, local_id, or UUID, **Then** matching samples appear in results.
-2. **Given** I am viewing a sample in the admin, **When** I add a description inline without saving the sample, **Then** the description form appears and allows data entry.
-3. **Given** I am editing a sample, **When** I use the dataset field Select2 widget, **Then** I can search and select datasets with autocomplete.
-4. **Given** I am viewing the sample admin list, **When** I apply filters for dataset, status, or location, **Then** the list updates to show only matching samples.
-5. **Given** I am editing a sample with relationships, **When** I use the relationship inline, **Then** I can add/remove sample relationships efficiently.
-6. **Given** I have multiple polymorphic sample types, **When** I view the admin list, **Then** each sample displays with its appropriate type identifier.
+1. **Given** a sample with no descriptions, **When** a description of a type in the sample
+   vocabulary is attached, **Then** it is stored under that type and can be retrieved by type.
+2. **Given** a sample, **When** a description is attached whose type is not in the sample
+   vocabulary, **Then** validation refuses it and names the offending type.
+3. **Given** a sample with descriptions of two types, **When** its descriptions are read, **Then**
+   both are returned, each carrying its own type.
+4. **Given** the sample description vocabulary, **When** its members are read, **Then** they are the
+   types a sample carries, asserted by naming them rather than by iterating whatever it holds.
+5. **Given** a sample description, **When** it is fully validated, **Then** validation completes and
+   returns a verdict rather than raising an error of its own.
 
 ---
 
-### User Story 3 - Robust Sample Forms with Dataset Context (Priority: P2)
+### User Story 3 - Record when a sample was collected, prepared and stored (Priority: P1)
 
-As a developer implementing sample creation/edit views, I want sample forms that automatically filter querysets based on dataset context, provide clear help text, use appropriate widgets, handle polymorphic types, and provide base mixins for custom sample forms so that users have an intuitive data entry experience and I can reuse common functionality.
+A researcher records the dates in a specimen's life: when it was collected, when it was prepared,
+when it was archived, when it was destroyed. The dates are stored as typed records rather than as
+columns, so the vocabulary can grow without a migration, and a type outside the sample vocabulary is
+refused.
 
-**Why this priority**: Forms are the primary user interface for sample creation and editing. Quality forms with reusable mixins directly impact user experience and developer productivity.
+**Why this priority**: Collection date is the single piece of metadata every specimen schema asks
+for, and the same validator defect that affects descriptions affects dates.
 
-**Independent Test**: Can be fully tested by instantiating forms for different sample types with various dataset contexts, rendering them, and submitting valid/invalid data. Success is demonstrated when forms properly filter choices, handle polymorphic types, display help text, and validate correctly.
+**Independent Test**: Attach dates of two types to a sample, confirm both persist under their own
+types, and confirm a type outside the sample vocabulary is refused by validation.
 
 **Acceptance Scenarios**:
 
-1. **Given** an authenticated user with access to specific datasets creates a sample, **When** the form renders, **Then** the dataset field shows only accessible datasets as choices.
-2. **Given** a developer creates a custom sample form, **When** the form inherits from SampleFormMixin, **Then** common sample fields (dataset, status, location) are pre-configured with appropriate widgets.
-3. **Given** a user fills the sample form with name and dataset, **When** the form is submitted, **Then** validation passes and the sample is created with correct polymorphic type.
-4. **Given** a user fills the sample form with an invalid location format, **When** the form is submitted, **Then** validation fails with a clear error message about location format requirements.
-5. **Given** a user is editing an existing sample, **When** the form renders, **Then** all current field values including polymorphic-specific fields are pre-populated correctly.
-6. **Given** a form is rendered for a new sample, **When** no status is selected, **Then** the default status (e.g., "available") is pre-selected.
+1. **Given** a sample, **When** a date of a type in the sample vocabulary is attached, **Then** it
+   is stored under that type.
+2. **Given** a sample, **When** a date is attached whose type is not in the sample vocabulary,
+   **Then** validation refuses it and names the offending type.
+3. **Given** the sample date vocabulary, **When** its members are read, **Then** they are the dates
+   a sample carries, asserted by naming them.
+4. **Given** a sample date, **When** it is fully validated, **Then** validation completes and
+   returns a verdict rather than raising an error of its own.
 
 ---
 
-### User Story 4 - Advanced Sample Filtering & Search (Priority: P2)
+### User Story 4 - Give a sample an identifier the outside world recognises (Priority: P1)
 
-As a portal user browsing samples, I want to filter samples by dataset, status, location, date ranges, polymorphic type, and search by name/local_id/keywords so that I can quickly find relevant samples without browsing through all results, with base filter mixins available for custom sample type filters.
+A researcher attaches an IGSN to a specimen so that it can be cited and resolved outside the portal,
+or a DOI where the portal mints those instead. Each is stored as a typed identifier drawn from a set
+that means something for a sample, its format is checked against what its issuing authority defines,
+and the same identifier cannot name two things.
 
-**Why this priority**: Effective filtering is essential for usability as sample collections grow. Base filter mixins reduce developer effort for custom sample types.
+**Why this priority**: A specimen that cannot be identified outside the portal is not findable, and
+identifiers are the whole reason the record follows IGSN. Today the type list offers ORCID,
+ResearcherID, ROR, Wikidata, ISNI, a funder identifier, a grant number and a proposal identifier —
+none of which names a sample — and no IGSN at all.
 
-**Independent Test**: Can be fully tested by creating samples of various types with different attributes and applying different filter combinations. Success is demonstrated when filters correctly narrow results, handle polymorphic types, combine logically, and mixins provide reusable functionality.
+**Independent Test**: Attach an IGSN to a sample and confirm it persists under the IGSN type,
+confirm the available types contain none that name a person, an organisation or a project, confirm
+a malformed IGSN is refused, and confirm the same identifier value cannot be attached to a second
+record.
 
 **Acceptance Scenarios**:
 
-1. **Given** multiple samples exist with different statuses, **When** I filter by a specific status, **Then** only samples with that status appear in results.
-2. **Given** samples exist across multiple datasets, **When** I filter by a specific dataset, **Then** only samples from that dataset appear in results.
-3. **Given** samples have location data, **When** I filter by a bounding box or radius, **Then** only samples within that geographic area appear in results.
-4. **Given** samples of different polymorphic types exist, **When** I filter by sample type (e.g., RockSample), **Then** only samples of that specific type appear in results.
-5. **Given** I search for a keyword that appears in sample names or local_ids, **When** the filter is applied, **Then** all samples with that keyword appear in results.
-6. **Given** I apply multiple filters (dataset AND status), **When** the filters are applied together, **Then** only samples matching ALL criteria appear in results.
-7. **Given** I am developing a custom sample type filter, **When** I inherit from SampleFilterMixin, **Then** I have pre-configured filters for common sample fields.
+1. **Given** a sample, **When** an IGSN is attached, **Then** it is stored under the IGSN type.
+2. **Given** a sample, **When** a DOI is attached, **Then** it is stored under the DOI type.
+3. **Given** a sample identifier, **When** its available types are read, **Then** they are types
+   that name a sample, and none of them names a person, an organisation or a project.
+4. **Given** a sample, **When** an identifier value that does not match the format its issuing
+   authority defines is attached, **Then** validation refuses it and the message names the expected
+   format.
+5. **Given** a sample carrying an identifier, **When** the same value is attached to any other
+   record, **Then** the attempt is refused.
+6. **Given** a sample, **When** a second identifier of a type it already carries is attached,
+   **Then** the attempt is refused.
 
 ---
 
-### User Story 5 - Sample Relationships & Provenance (Priority: P3)
+### User Story 5 - A sample's status says where the specimen physically is (Priority: P1)
 
-As a researcher, I want to define typed relationships between samples (parent-child, derived-from, split-from) to track sample provenance and hierarchies, so that I can maintain accurate records of sample processing and sub-sampling for scientific reproducibility.
+A researcher records whether a specimen is available, in use, in storage, destroyed, or of unknown
+whereabouts. The terms describe custody of a physical object, and the record does not reach across
+the network to a third party to find out what they are.
 
-**Why this priority**: Sample provenance and relationships are critical for scientific reproducibility, but basic sample CRUD should work before relationships are fully implemented. This feature requires research into complex relationship patterns.
+**Why this priority**: Status is the field a curator reads before promising a specimen to someone.
+Today its terms describe whether a data-collection activity is complete, which says nothing about
+a specimen, and the vocabulary is fetched over plain HTTP from a host outside the project.
 
-**Independent Test**: Can be fully tested by creating parent samples, establishing various relationship types to child samples, and querying relationships bidirectionally. Success is demonstrated when relationships are correctly stored, queried efficiently, and prevent invalid circular references.
+**Independent Test**: Read the status vocabulary and confirm it names custody states, create a
+sample without stating a status and confirm it reads as unknown, move a sample between every pair of
+states and confirm none is refused, and confirm nothing in the record's definition reaches the
+network.
 
 **Acceptance Scenarios**:
 
-1. **Given** I have an existing sample (parent), **When** I create a new sample as a child with relationship type "derived-from", **Then** the typed relationship is recorded and queryable.
-2. **Given** I have related samples, **When** I view the parent sample, **Then** I see all child samples listed with their relationship types.
-3. **Given** I have a child sample, **When** I view its details, **Then** I can navigate to its parent sample with the relationship type displayed.
-4. **Given** I have sample hierarchies, **When** I query for all descendants of a parent, **Then** I receive the complete tree of related samples efficiently.
-5. **Given** I attempt to create a circular relationship, **When** the relationship is validated, **Then** the system prevents the circular reference with a clear error message.
+1. **Given** the sample status vocabulary, **When** its members are read, **Then** they are states a
+   physical specimen can be in, asserted by naming them.
+2. **Given** a sample created with no status stated, **When** it is read back, **Then** its status is
+   unknown.
+3. **Given** a sample in any status, **When** its status is changed to any other, **Then** the change
+   is accepted, including from destroyed back to available, because a specimen recorded as destroyed
+   in error must be correctable.
+4. **Given** a portal with no network access, **When** the sample record is loaded and a sample is
+   created, **Then** both succeed.
+5. **Given** samples holding status values from the previous vocabulary, **When** the migration has
+   run, **Then** each reads as unknown rather than as a term that no longer exists.
 
 ---
 
-### User Story 6 - Optimized Sample QuerySets (Priority: P3)
+### User Story 6 - Access to a sample follows the dataset it belongs to (Priority: P1)
 
-As a developer building sample views, I want optimized QuerySet methods that prefetch related data, handle polymorphic queries efficiently, and provide common query patterns so that my views perform well even with large sample collections of mixed types.
+Someone who may read a dataset may read its samples. Someone who may change a dataset may change and
+add samples within it. Nobody has to be granted rights on each specimen individually, and rights
+granted directly on a specimen still hold.
 
-**Why this priority**: QuerySet optimization prevents N+1 query problems and improves performance. While important, it can be added after core CRUD operations work.
+**Why this priority**: Samples are the records a portal holds most of, and granting rights per
+specimen does not scale. This is also the mechanism the framework's access rules will build on.
 
-**Independent Test**: Can be fully tested by executing QuerySet methods with Django Debug Toolbar or query logging enabled. Success is demonstrated when complex polymorphic queries execute efficiently with minimal database hits.
+**Independent Test**: Grant a user rights on a dataset alone and confirm they hold the corresponding
+rights on its samples, grant rights on a single sample and confirm those hold too, and confirm a
+user with rights on neither holds nothing.
 
 **Acceptance Scenarios**:
 
-1. **Given** 1000 samples of mixed polymorphic types exist with datasets and contributors, **When** I call `Sample.objects.with_related().all()`, **Then** all data loads with minimal database queries (optimized for polymorphic types).
-2. **Given** I need sample metadata and relationships, **When** I call `Sample.objects.with_metadata()`, **Then** descriptions, dates, identifiers, and contributors are prefetched without additional queries per sample.
-3. **Given** I query polymorphic samples, **When** I use `.select_subclasses()`, **Then** the correct subclass instances are returned with their type-specific fields.
-4. **Given** I chain multiple QuerySet methods, **When** I call `Sample.objects.with_related().filter(status='available')`, **Then** both optimizations and filters apply correctly and efficiently.
+1. **Given** a user granted the right to read a dataset, **When** their rights over a sample in that
+   dataset are checked, **Then** they may read it.
+2. **Given** a user granted the right to change a dataset, **When** their rights over a sample in
+   that dataset are checked, **Then** they may change it, delete it and add samples to that dataset.
+3. **Given** a user granted a right directly on one sample, **When** their rights over that sample
+   are checked, **Then** the direct grant holds independently of any dataset grant.
+4. **Given** a user with no rights on a sample or its dataset, **When** their rights are checked,
+   **Then** they hold none.
+5. **Given** the rights the sample record declares, **When** they are read, **Then** every right any
+   check consults is among them.
+
+---
+
+### User Story 7 - Inherit form and filter behaviour when defining a sample type (Priority: P2)
+
+A portal developer writing a form or a filter set for their own specimen type inherits the common
+sample behaviour instead of restating it: the fields every sample has, configured with the controls
+that suit them, and the filters a reader expects. What they inherit is what the registry generates
+for a type that supplies neither.
+
+**Why this priority**: This is the developer-facing half of the registry promise, and the original
+clarification session called it very important. The filter mixin currently declares filters that are
+silently discarded before an inheriting class ever sees them.
+
+**Independent Test**: Write a form and a filter set for a sample type that inherit the mixins and add
+one field each, confirm the inherited fields and filters are all present alongside the new ones,
+then register a type supplying neither and confirm the generated form and filter set carry the same
+inherited behaviour.
+
+**Acceptance Scenarios**:
+
+1. **Given** a filter set for a sample type that inherits the sample filter mixin, **When** its
+   filters are read, **Then** every filter the mixin declares is present alongside the type's own.
+2. **Given** a form for a sample type that inherits the sample form mixin, **When** it is rendered,
+   **Then** the common sample fields carry the controls the mixin configures.
+3. **Given** a sample form that is given the requesting user, **When** its dataset choices are read,
+   **Then** they are the datasets that user may add samples to and no others.
+4. **Given** a sample form that is given no user, **When** its dataset choices are read, **Then**
+   they contain no dataset that user has not been shown to be entitled to.
+5. **Given** a registered sample type supplying neither a form nor a filter set, **When** the
+   registry generates them, **Then** both carry the mixins' behaviour rather than plain defaults.
+6. **Given** a sample form, **When** its fields are rendered, **Then** each carries the guidance text
+   the form defines for it.
+
+---
+
+### User Story 8 - Track where a sample came from (Priority: P2)
+
+A researcher records that one specimen came from another — a subsample of a core, a slide cut from a
+block — and can walk that chain in both directions, from a parent to everything descended from it
+and from a specimen back to its origin. A specimen cannot be its own parent, and the chain cannot
+close into a loop.
+
+**Why this priority**: Provenance is what makes a derived measurement traceable to the material it
+was made on. It is P2 because a specimen with no parent is a complete record.
+
+**Independent Test**: Build a chain three deep, confirm children, parents and all descendants are
+returned correctly from each end, then attempt to relate a specimen to itself and to close a
+two-step loop, and confirm both are refused however they are attempted.
+
+**Acceptance Scenarios**:
+
+1. **Given** two samples, **When** one is recorded as having come from the other, **Then** the link
+   is stored and readable from both ends.
+2. **Given** a chain of samples three deep, **When** all descendants of the first are requested,
+   **Then** every sample below it is returned and none above it.
+3. **Given** the same chain, **When** the ancestors of the last are requested, **Then** every sample
+   above it is returned and none below it.
+4. **Given** descendants requested with a depth limit, **When** the limit is one, **Then** only
+   direct children are returned.
+5. **Given** a sample, **When** it is recorded as having come from itself, **Then** the attempt is
+   refused, whether through validation or saved directly.
+6. **Given** two samples already linked, **When** the reverse link is recorded, **Then** the attempt
+   is refused, whether through validation or saved directly.
+7. **Given** the same link recorded twice, **When** the second is saved, **Then** it is refused.
+8. **Given** a sample hierarchy, **When** it is traversed, **Then** one implementation of that
+   traversal exists, and the record's own helpers and its queryset agree on direction.
+
+---
+
+### User Story 9 - Manage samples as an administrator (Priority: P2)
+
+A portal administrator finds a specimen by its name, its laboratory identifier or its generated
+identifier, narrows a long list by dataset, status or type, and edits its descriptions, dates,
+identifiers, credits and provenance links without leaving the page, whichever specimen type it is.
+
+**Why this priority**: The administrative interface is how a portal is repaired when something has
+gone wrong elsewhere, and it is the only route to sample data until the portal pages exist. It is P2
+because researchers do not use it.
+
+**Independent Test**: Search the sample list by each supported term, apply each filter, and add a
+description, a date, an identifier, a credit and a provenance link through the inline editors of a
+registered sample type.
+
+**Acceptance Scenarios**:
+
+1. **Given** the sample list, **When** a term matching a sample's name, its laboratory identifier or
+   its generated identifier is entered, **Then** that sample appears in the results.
+2. **Given** the sample list, **When** the dataset, status or type filter is applied, **Then** only
+   samples matching it remain.
+3. **Given** a sample open for editing, **When** a description, a date, an identifier, a credit and a
+   provenance link are added inline and saved, **Then** all five persist without leaving the page.
+4. **Given** a sample open for editing, **When** the inline editors are displayed, **Then** the
+   number of rows each offers is bounded by the number of types its vocabulary contains.
+5. **Given** the sample list, **When** it is displayed, **Then** each row names the type of specimen
+   it is.
+6. **Given** the generated identifier and the timestamps, **When** a sample is open for editing,
+   **Then** they are presented as unchangeable.
+7. **Given** a registered sample type, **When** its administrative entry is opened, **Then** it
+   offers the same inline editors as every other sample type.
+
+---
+
+### User Story 10 - The sample record itself (Priority: P2)
+
+A sample carries a generated identifier that names it inside the portal, a name, an optional
+laboratory identifier of the researcher's own devising, an optional image, an optional collection
+location, keywords and free tags. It belongs to exactly one dataset and does not outlive it.
+Contributions are recorded against it under roles that mean something to the systems it is submitted
+to. Everything it presents to a person is translatable, and loading a sample with all its related
+records costs a number of queries that does not grow with how many there are.
+
+**Why this priority**: These are the guarantees the other nine stories rest on. It is P2 rather than
+P1 because most of them already hold. What is missing is the proof.
+
+**Independent Test**: Create a sample, confirm its identifier is generated and prefixed, confirm two
+samples in different datasets may share a laboratory identifier, delete a dataset and confirm its
+samples go with it, record a contribution with roles and read them back, and count the queries
+needed to load a list of samples with all their related records.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new sample, **When** it is saved, **Then** it carries a unique prefixed identifier
+   that was generated rather than supplied and cannot be edited afterwards.
+2. **Given** two samples in different datasets, **When** both are given the same laboratory
+   identifier, **Then** both are accepted, because that identifier is the researcher's own and means
+   nothing outside their dataset.
+3. **Given** a sample, **When** its dataset is deleted, **Then** the sample is deleted with it.
+4. **Given** a sample with a collection location, **When** that location is deleted, **Then** the
+   deletion is refused while the sample refers to it.
+5. **Given** a contribution recorded against a sample with roles, **When** the contribution is read,
+   **Then** its contributor and each of its roles read back.
+6. **Given** many samples each carrying descriptions, dates, identifiers and contributions, **When**
+   they are loaded with all of them, **Then** the number of queries does not grow with the number of
+   samples or of related records.
+7. **Given** a sample, **When** keywords from a controlled vocabulary and free tags are attached,
+   **Then** both are stored and remain distinguishable.
+8. **Given** any string this record presents to a person, **When** the active language changes,
+   **Then** the string resolves in that language rather than the one in force when the code was
+   imported.
 
 ---
 
 ### Edge Cases
 
-- **Dataset deletion with samples**: Should samples be deleted when their dataset is deleted (CASCADE) or should deletion be prevented (PROTECT)? Current spec uses CASCADE - verify this is intentional for sample lifecycle.
-- **Duplicate local_id values**: Should local_id be unique within a dataset, globally unique, or allowed to have duplicates? Current code allows duplicates as local_id is dataset-creator specific.
-- **Sample status transitions**: Status transitions are unrestricted - samples CAN transition from "destroyed" back to "available" or any other status. No state machine validation required.
-- **Polymorphic type changes**: Base Sample entries ARE NOT ALLOWED - only subclass instances (RockSample, WaterSample, etc.) can be created. Type conversion between subclasses is deferred to future feature (would require data migration with loss warnings).
-- **Location data validation**: Deferred to future location feature. Basic foreign key to fairdm_location.Point is sufficient for this feature.
-- **Sample relationship cycles**: Circular relationship prevention implementation is deferred due to complexity. Basic direct-cycle prevention required, but deep traversal depth limits require further research.
-- **IGSN identifier validation**: Should IGSN identifiers be validated against format rules? Should live API validation be attempted?
-- **Empty samples**: Can samples exist without any measurements? When should this be flagged or prevented?
-- **Polymorphic queryset performance**: With many sample types, polymorphic queries may hit performance issues. Research optimization strategies.
-- **Sample image requirements**: Should sample images have specific aspect ratios or size limits? Consider responsive display requirements.
-- **Cross-relationship filter performance**: Filtering by descriptions and dates requires joins. Research performance implications for large sample sets.
-- **Generic search field scope**: Which fields should generic search match against? Define searchable field set considering performance.
-- **Mixin inheritance order**: For forms/filters inheriting from mixins, what's the correct MRO (Method Resolution Order)? Document proper inheritance patterns.
-- **Registry override patterns**: When should developers provide custom forms/filters vs. relying on auto-generation? Define decision criteria.
+- A sample's laboratory identifier may be absent, and may repeat across datasets. It is the
+  researcher's own label, not a key.
+- Two samples may carry the same name. Nothing distinguishes them but their generated identifiers.
+- A sample with no location is a normal state; not every specimen has a collection point, and a
+  digital specimen has none at all.
+- Deleting a dataset deletes its samples. Deleting a location a sample refers to is refused.
+- A sample with no measurements is a normal state, not an incomplete record.
+- A status may move in any direction, including out of destroyed — a specimen recorded as destroyed
+  in error must be correctable.
+- Attaching the same identifier value to two records is refused globally, not merely within one
+  dataset.
+- Non-ASCII characters in names, descriptions and keywords are stored unchanged.
 
-## Requirements
+## Requirements *(mandatory)*
 
-### Functional Requirements
+### The sample record
 
-#### Model & Data Integrity
+- **FR-001**: Each sample MUST carry a unique, short, human-readable identifier generated on
+  creation, prefixed so that it is recognisable as a sample, and not editable afterwards.
+- **FR-002**: A sample MUST carry a name. A sample MAY carry a laboratory identifier of the
+  researcher's own devising, an image, and a collection location.
+- **FR-003**: A laboratory identifier MUST NOT be required to be unique. Two samples in different
+  datasets carrying the same one MUST both be valid.
+- **FR-004**: A sample MUST belong to exactly one dataset, and MUST be deleted when that dataset is
+  deleted.
+- **FR-005**: Deleting a location a sample refers to MUST be refused while any sample refers to it.
+- **FR-006**: A sample MUST support categorisation both by terms drawn from a controlled vocabulary
+  and by free-form tags, and the two MUST remain distinguishable.
+- **FR-007**: A sample MUST record when it was created and when it was last changed.
+- **FR-008**: A sample MUST support contributions associating a person or an organisation with it
+  under one or more roles drawn from a controlled set.
 
-- **FR-001**: Sample model MUST inherit from BasePolymorphicModel to support domain-specific sample types via django-polymorphic. Direct instantiation of base Sample model MUST be prevented - only polymorphic subclass instances (RockSample, WaterSample, etc.) can be created. Forms and admin MUST enforce this constraint.
-- **FR-002**: Sample model MUST include unique UUID identifier with 's' prefix for stable internal referencing using ShortUUID.
-- **FR-003**: Sample model MUST support local_id field for dataset-creator specified identifiers (duplicates allowed across datasets).
-- **FR-004**: Sample model MUST include status field using controlled vocabulary from FairDMSampleStatus (e.g., available, in_use, stored, destroyed, unknown). Sample model SHOULD include material field to specify primary material/substance (e.g., rock, water, soil, sediment, tissue, air) using controlled vocabulary where available.
-- **FR-005**: Sample model MUST support foreign key relationship to Dataset with CASCADE delete behavior (samples deleted when parent dataset deleted).
-- **FR-006**: Sample model MUST support optional location field linking to spatial point data (fairdm_location.Point).
-- **FR-007**: Sample metadata models (SampleDescription, SampleDate, SampleIdentifier) MUST use concrete ForeignKey relationships to Sample for query performance and type safety. Only contributors MUST use GenericRelation (Contribution) for polymorphic contributor support across all core models.
-- **FR-008**: SampleRelation model MUST support typed relationships between samples using controlled vocabulary for relationship types (parent-child, derived-from, split-from, etc.).
-- **FR-009**: SampleRelation model MUST support bidirectional queries (parent→children, child→parent) efficiently.
-- **FR-010**: SampleRelation model MUST prevent circular relationships through validation.
-- **FR-011**: Sample model MUST support keywords from controlled vocabularies and free-text tags for categorization.
-- **FR-012**: Sample model MUST include timestamps (added, modified) for audit trail purposes.
-- **FR-013**: Sample model MUST support optional image field for visual documentation.
-- **FR-014**: SampleDescription model MUST validate description_type against DESCRIPTION_TYPES vocabulary from FairDMDescriptions.
-- **FR-015**: SampleDate model MUST validate date_type against DATE_TYPES vocabulary from FairDMDates.
-- **FR-016**: SampleIdentifier model MUST validate identifier_type against IDENTIFIER_TYPES vocabulary from FairDMIdentifiers, including IGSN type with format validation (IGSN Handle pattern: 10273/[A-Z0-9]{9,}, e.g., 10273/ABCD123456789).
-- **FR-017**: Sample model MUST align with IGSN metadata schema for core fields (name, type, location, material) to support future IGSN integration.
+### Polymorphism and the registry
 
-As a researcher, I need to define relationships between samples (parent-child, derived-from, split-from) to track sample provenance and hierarchies, so that I can maintain accurate records of sample processing and sub-sampling.
+- **FR-009**: The sample record MUST be a polymorphic base from which a portal defines its own
+  specimen types, and querying samples MUST return each as the type it was created as.
+- **FR-010**: The base sample record MUST NOT be creatable directly, by any route — validation, a
+  form, the administrative interface, or the manager. Only a defined specimen type may be created.
+- **FR-011**: Registering a specimen type MUST produce its form, filter set, table and
+  administrative entry without any of them being written by hand, using the framework's existing
+  registry rather than a mechanism of this record's own.
+- **FR-012**: The framework MUST supply a base registry configuration that a specimen type's
+  configuration inherits component defaults from, and the framework's own reference implementation
+  MUST use it.
+- **FR-013**: *Withdrawn during planning.* Reading rows whose specimen type has left the code as
+  base records is not behaviour the polymorphic library offers, and building it means a custom
+  real-instance fallback — a design decision this specification does not make and was not asked to.
+  The number is retained rather than reused.
 
-**Why this priority**: Sample provenance and relationships are critical for scientific reproducibility, but the system can function with basic samples before relationships are fully implemented.
+### Descriptions, dates and identifiers
 
-**Independent Test**: Can be tested by creating a parent sample, splitting it into child samples, and verifying the relationship is bidirectional (parent lists children, child references parent).
+- **FR-014**: A sample MUST support several descriptions, each drawn from a controlled set of
+  description types scoped to samples. A type outside that set MUST be refused by validation.
+- **FR-015**: A sample MUST support several dates, each drawn from a controlled set of date types
+  scoped to samples. A type outside that set MUST be refused by validation.
+- **FR-016**: A sample MUST support several external identifiers, each drawn from a controlled set
+  of identifier types that apply to samples. That set MUST contain an IGSN and a DOI, and MUST NOT
+  be the vocabulary used for people, organisations or projects.
+- **FR-017**: An IGSN MUST be validated against the format its issuing authority defines. Which
+  format that is MUST be established from that authority's documentation rather than assumed, and
+  the check MUST be reachable — a value of a type the vocabulary does not contain can never reach a
+  format check.
+- **FR-018**: An identifier value MUST be unique across every record that carries identifiers, so
+  the same identifier cannot name two things.
+- **FR-019**: Validating a sample description, date or identifier MUST return a verdict. A validator
+  that raises an error of its own instead of accepting or refusing the value MUST NOT be carried.
+- **FR-020**: The sample record's metadata MUST be sufficient to describe a specimen in the terms
+  IGSN defines, so that a portal minting IGSNs needs nothing this record does not hold.
 
-**Acceptance Scenarios**:
+### Status
 
-1. **Given** I have an existing sample (parent), **When** I create a new sample as a child of the parent, **Then** the parent-child relationship is recorded and queryable
-2. **Given** I have related samples, **When** I view the parent sample, **Then** I see all child samples listed with their relationship types
-3. **Given** I have a child sample, **When** I view its details, **Then** I can navigate to its parent sample
-4. **Given** I have complex sample hierarchies, **When** I query for all descendants of a parent, **Then** I receive the complete tree of related samples
+- **FR-021**: A sample MUST carry a status drawn from a controlled set describing the custody of a
+  physical specimen. The set MUST contain available, in use, stored, destroyed and unknown.
+- **FR-022**: A sample created with no status stated MUST read as unknown.
+- **FR-023**: A status MUST be changeable to any other status without restriction, in either
+  direction.
+- **FR-024**: No vocabulary this record depends on MAY be fetched from a remote host at import time
+  or at save time. Loading the record and creating a sample MUST succeed with no network access.
+- **FR-025**: Samples holding a status value from the previous vocabulary MUST be migrated to
+  unknown, because no term in that vocabulary describes a custody state.
 
----
+### Provenance
 
-### User Story 4 - Dataset Creator Adds Rich Sample Metadata (Priority: P2)
+- **FR-026**: A sample MUST support recording that it came from another sample, readable from both
+  ends.
+- **FR-027**: A sample MUST NOT be recordable as having come from itself, and two samples MUST NOT
+  each be recordable as having come from the other. Both MUST be refused when saved directly, not
+  only during validation.
+- **FR-028**: The same link between the same two samples MUST NOT be recordable twice.
+- **FR-029**: The record MUST support retrieving a sample's direct children, its direct parents, all
+  its descendants and all its ancestors, with an optional depth limit on the two unbounded ones.
+- **FR-030**: Exactly one implementation of the hierarchy traversal MUST exist. Where the record's
+  own helpers and its queryset both offer it, one MUST delegate to the other.
 
-As a dataset creator, I need to attach multiple descriptions, dates, identifiers, and contributor records to samples, with limited administrator oversight that includes audit trails and protections against inappropriate modifications, so that samples are properly documented and support FAIR data principles while maintaining data integrity.
+### Access
 
-**Why this priority**: Rich metadata is essential for FAIR compliance and discoverability, but basic sample CRUD operations should work before all metadata types are fully integrated. Administrator access must be controlled similar to User Story 1.
+- **FR-031**: A user's rights over a sample MUST derive from their rights over the dataset it
+  belongs to: reading a dataset confers reading its samples; changing a dataset confers changing and
+  deleting its samples and adding samples to it.
+- **FR-032**: Rights granted directly on a sample MUST hold independently of any dataset grant.
+- **FR-033**: Every right any check consults MUST be declared on the sample record.
+- **FR-033a**: Every surface that edits a sample MUST require the right to change it. A surface that
+  declares no required right is opened for every request, including one that has not signed in.
+  *Added at design review:* this was routed out as a view-level concern until the work established
+  that the rights themselves do not resolve for a specimen type, which is the same defect. Fixing
+  the derivation without closing the surface would leave the record's access rules correct and
+  unenforced.
+- **FR-033b**: Granting a right on a specimen MUST succeed. *Added at design review:* the check and
+  the grant fail separately and for different reasons, so repairing the check alone leaves a right
+  that can be consulted and never given.
 
-**Independent Test**: Can be tested by:
+### Reusable form and filter behaviour
 
-1. Dataset creator adding multiple metadata types to samples
-2. Administrator attempting to modify metadata on published samples and verifying audit trail
-3. Verifying all metadata is displayed and searchable
-4. Confirming checks prevent administrators from editing data they shouldn't
+- **FR-034**: The framework MUST supply a form mixin that configures the controls for the fields
+  every sample carries, and a filter mixin that supplies the filters a reader expects.
+- **FR-035**: Every filter the filter mixin declares MUST be present on a filter set that inherits
+  it. A filter declared where the framework's filtering library will not collect it MUST NOT be
+  carried.
+- **FR-036**: A sample form given the requesting user MUST offer only the datasets that user may add
+  specimens to. A sample form given no user MUST offer no dataset at all. *Restated at design
+  review:* the earlier wording named the entitlements of a user who does not exist, which nothing
+  could satisfy or test. Offering nothing is the safe default for a published package — a form that
+  has authorised nobody should propose no target.
+- **FR-037**: What the registry generates for a specimen type supplying neither a form nor a filter
+  set MUST carry the mixins' behaviour rather than the framework's plain defaults.
+- **FR-038**: Guidance text a form defines for a field MUST reach the rendered field.
 
-**Acceptance Scenarios**:
+### Administration
 
-1. **Given** I am a dataset creator editing a sample, **When** I add multiple descriptions with different types (abstract, methods), **Then** each description is stored with its type, my user ID, and timestamp
-2. **Given** I am a dataset creator editing a sample, **When** I add key dates (collection_date, analysis_date), **Then** dates are stored and can be used for filtering and timeline views
-3. **Given** I am an administrator, **When** I attempt to modify existing sample metadata on a published sample, **Then** the system records an audit log entry with my user ID, timestamp, changed fields, and requires a justification note
-4. **Given** I am registering a sample, **When** I add an IGSN identifier, **Then** the identifier is validated, stored, and displayed with appropriate formatting and external links
-5. **Given** I am documenting a sample, **When** I add contributors with roles (collector, analyst), **Then** contributors are linked to the sample with their specific roles preserved and proper attribution
+- **FR-039**: The administrative interface MUST allow samples to be found by name, by laboratory
+  identifier and by the sample's own generated identifier, and MUST allow the list to be narrowed by
+  dataset, status and specimen type.
+- **FR-040**: The administrative interface MUST allow a sample's descriptions, dates, identifiers,
+  contributions and provenance links to be edited from the sample's own page, offering no more rows
+  for each than its vocabulary has types.
+- **FR-041**: Every registered specimen type MUST offer the same inline editors as every other.
+- **FR-042**: The administrative list MUST name the specimen type of each row.
+- **FR-043**: The generated identifier and the timestamps MUST be presented as unchangeable.
 
----
+### Presentation and performance
 
-### User Story 5 - Developer Reuses Sample Form/Filter Components (Priority: P3)
-
-As a portal developer, I need base form and filter mixins that provide common sample functionality (dataset selection, status filtering, location handling), so that I can quickly create custom forms and filters for my sample types without reimplementing common patterns.
-
-**Why this priority**: Developer experience improvements that reduce boilerplate code. The system can function without these mixins, but they significantly improve development speed and consistency.
-
-**Independent Test**: Can be tested by creating a custom sample form that inherits from SampleFormMixin, verifying that common fields (dataset, status, location) are pre-configured with appropriate widgets and validation.
-
-**Acceptance Scenarios**:
-
-1. **Given** I am creating a custom sample form, **When** I inherit from SampleFormMixin, **Then** common sample fields have appropriate form widgets (e.g., dataset as autocomplete, status as select)
-2. **Given** I am creating a custom filter, **When** I inherit from SampleFilterMixin, **Then** I have pre-configured filters for status, date ranges, and location
-3. **Given** I create a custom sample admin, **When** I inherit from SampleAdmin, **Then** I have standard inlines for descriptions, dates, identifiers, contributors, and relationships
-4. **Given** I use sample mixins, **When** I add my own fields/filters, **Then** they integrate seamlessly with the inherited base functionality
-
----
-
-### Edge Cases
-
-- What happens when a sample's dataset is deleted? (CASCADE delete removes samples, or PROTECT prevents deletion)
-- How does the system handle duplicate local_id values within the same dataset? (Allow duplicates as local_id is dataset-creator specific)
-- What happens when a sample has circular relationships (child is also parent)? (Validation should prevent this)
-- How are polymorphic queries handled when a custom sample type is deleted from code but records exist in database? (Polymorphic system should gracefully degrade to base Sample)
-- What happens when IGSN identifier is added but external IGSN system is unavailable? (Identifier stored locally, validation warning shown)
-- How are sample permissions inherited from parent datasets? (Object-level permissions should cascade from dataset to samples)
-- What happens when location data includes altitude/depth information? (Support z-coordinate in location model)
-
-## Requirements
-
-### Functional Requirements
-
-#### QuerySet Methods
-
-- **FR-018**: Sample model default manager MUST use SampleQuerySet to make custom methods available on Sample.objects.
-- **FR-019**: SampleQuerySet MUST provide manager methods that optimize performance for common cross-table queries (prefetching related models, metadata, and relationships to prevent N+1 query problems).
-- **FR-020**: SampleQuerySet MUST provide manager methods that enable efficient traversal of sample hierarchies and relationships.
-- **FR-021**: QuerySet optimization methods MUST reduce database queries by at least 80% compared to naive ORM usage when loading samples with related data.
-- **FR-022**: QuerySet methods MUST be chainable and composable with standard Django QuerySet operations (filter, exclude, etc.).
-
-#### Forms
-
-- **FR-023**: SampleForm MUST include fields for name, dataset, status, location, local_id with appropriate widgets.
-- **FR-024**: SampleForm MUST use Select2Widget or django-autocomplete-light with autocomplete for ALL applicable fields (ForeignKey, ManyToMany) for improved UX.
-- **FR-025**: SampleForm MUST support "add another" functionality on dataset field allowing inline dataset selection.
-- **FR-026**: SampleForm MUST filter dataset queryset appropriately based on user context.
-- **FR-027**: SampleForm MUST default status field to appropriate default value (e.g., "available").
-- **FR-028**: SampleForm MUST provide clear, helpful help_text for all fields wrapped in gettext_lazy() for internationalization. Help text SHOULD be form-specific.
-- **FR-029**: SampleForm MUST accept optional `request` parameter in `__init__` to access user context for queryset filtering.
-- **FR-030**: SampleForm MUST properly handle both creation and update scenarios for base Sample and polymorphic types.
-- **FR-031**: Forms SHOULD provide SampleFormMixin with pre-configured widgets for common sample fields (dataset, status, location) for reuse in custom sample type forms.
-
-#### Filters
-
-- **FR-032**: SampleFilter MUST extend django_filters.FilterSet providing consistent filtering interface.
-- **FR-033**: SampleFilter MUST support filtering by status (exact match or multiple choice).
-- **FR-034**: SampleFilter MUST support filtering by dataset (exact match or choice).
-- **FR-035**: SampleFilter MUST support filtering by polymorphic sample type.
-- **FR-036**: SampleFilter MUST support filtering by description content via cross-relationship filter.
-- **FR-037**: SampleFilter MUST support filtering by sample date types via cross-relationship filter.
-- **FR-038**: SampleFilter MUST provide generic search field that matches across name, local_id, uuid rather than individual text filters for improved user experience.
-- **FR-039**: Filters SHOULD provide SampleFilterMixin with common sample filter configurations for reuse in custom sample type filters.
-
-#### Admin Interface
-
-- **FR-040**: SampleAdmin MUST be registered with Django admin site and handle polymorphic sample types correctly.
-- **FR-041**: SampleAdmin MUST provide search by name, local_id, and UUID for quick sample location.
-- **FR-042**: SampleAdmin MUST provide list_display showing name, dataset, status, polymorphic type, added, and modified dates.
-- **FR-043**: SampleAdmin MUST provide list_filter for dataset, status, polymorphic type, and location.
-- **FR-044**: SampleAdmin MUST include inline editors for SampleDescription, SampleDate, SampleIdentifier, and SampleRelation.
-- **FR-045**: SampleAdmin SHOULD leverage Django admin's built-in autocomplete functionality for ForeignKey and ManyToMany fields.
-- **FR-046**: SampleAdmin MUST organize fields into logical fieldsets with clear, descriptive names.
-- **FR-047**: SampleAdmin MUST make UUID and timestamps readonly to prevent accidental modification.
-- **FR-048**: SampleAdmin MUST dynamically calculate inline form limits based on available description types, date types, and identifier types from vocabularies.
-- **FR-049**: SampleAdmin MUST properly handle polymorphic sample types in list and detail views.
-
-#### Registry Integration Requirements
-
-- **FR-050**: Sample model MUST integrate with FairDM registry system (Feature 004) for auto-generation of forms, filters, tables without duplicating Feature 004 functionality.
-- **FR-051**: Sample registration MUST leverage existing registry patterns and configuration classes from Feature 004.
-- **FR-052**: Registry MUST support polymorphic sample types with type-specific field configurations.
-- **FR-053**: Registry MUST auto-generate ModelForm when custom form not provided, using configured fields.
-- **FR-054**: Registry MUST auto-generate FilterSet when custom filter not provided, using configured filterset_fields.
-- **FR-055**: Registry MUST auto-generate django-tables2 Table when custom table not provided, using configured table_fields.
-- **FR-056**: Registry SHOULD generate minimal ModelAdmin when custom admin not provided.
-- **FR-057**: SampleFormMixin and SampleFilterMixin MUST be designed to work with registry-generated forms/filters.
-
-#### Permissions
-
-- **FR-058**: Sample model MUST define custom permissions for data operations: view_sample, add_sample, change_sample, delete_sample, import_data.
-- **FR-059**: Sample permissions MUST integrate with django-guardian for object-level permission enforcement.
-- **FR-060**: Sample permissions MUST inherit from parent dataset permissions by default.
-
-#### Testing Requirements
-
-- **FR-061**: Sample model MUST have unit tests for: model creation, polymorphic behavior, validation rules, field constraints, relationship handling, and property calculations.
-- **FR-062**: SampleQuerySet methods MUST have unit tests for: polymorphic queries, with_related(), with_metadata(), by_relationship(), get_descendants(), and query chaining.
-- **FR-063**: SampleForm MUST have unit tests for: form validation, polymorphic type handling, queryset filtering, default values, field widgets, request context handling, and gettext_lazy wrapping.
-- **FR-064**: SampleFormMixin MUST have unit tests verifying proper widget configuration and field setup for common sample fields.
-- **FR-065**: SampleFilter MUST have unit tests for: each filter field, polymorphic type filtering, cross-relationship filters (descriptions, dates), generic search functionality, and edge cases.
-- **FR-066**: SampleFilterMixin MUST have unit tests verifying filter configuration and integration with custom sample type filters.
-- **FR-067**: SampleAdmin MUST have integration tests for: search, filters, polymorphic type handling, inline editing, dynamic inline limits, and widget functionality.
-- **FR-068**: All tests MUST use factory-boy factories from fairdm.factories for test data generation.
-- **FR-069**: Test organization MUST mirror source code structure in tests/test_core/test_sample/ as documented in Architecture & Stack Constraints > Testing & Tooling, with unit and integration tests living together in flat structure.
-- **FR-070**: Tests MUST verify registry integration works correctly for polymorphic sample types without duplicating Feature 004 test coverage.
-- **FR-071**: Sample status transitions MUST be unrestricted - any status can change to any other status without validation (e.g., "destroyed" can become "available"). This edge case MUST have explicit test coverage.
+- **FR-044**: The sample record MUST offer a queryset that loads samples together with their
+  dataset, location, descriptions, dates, identifiers, contributions and keywords in a number of
+  queries that does not grow with the number of samples or of related records.
+- **FR-045**: Queryset methods MUST be chainable with one another and with ordinary query
+  operations.
+- **FR-046**: Every string this specification's surfaces present to a user — field labels, guidance
+  text, vocabulary terms, administrative labels and validation messages — MUST be marked for
+  translation in a way that resolves at request time rather than at import time.
+- **FR-047**: The record's own documentation MUST describe the behaviour the code has. Documented
+  behaviour the code does not implement MUST be removed rather than left standing.
 
 ### Key Entities
 
-- **Sample**: Physical or digital specimen/artifact; core polymorphic base with UUID, name, dataset reference, status, location, optional image. Metadata accessed via reverse relations (descriptions, dates, identifiers). Contributors via GenericRelation.
-- **SampleDescription**: Typed free-text descriptions with concrete ForeignKey to Sample using controlled vocabulary.
-- **SampleDate**: Typed dates linked to sample using controlled vocabulary.
-- **SampleIdentifier**: External identifiers (IGSN, DOI) linked to sample with validation.
-- **SampleRelation**: Typed relationships between samples supporting provenance tracking with circular reference prevention.
-- **SampleQuerySet**: Custom QuerySet providing optimized query methods for polymorphic sample retrieval.
-- **SampleForm**: ModelForm for sample creation/editing with dataset context awareness.
-- **SampleFormMixin**: Reusable mixin providing common sample form functionality for custom sample types.
-- **SampleFilter**: FilterSet for sample searching and filtering including polymorphic type and cross-relationship filters.
-- **SampleFilterMixin**: Reusable mixin providing common sample filter functionality for custom sample types.
-- **SampleAdmin**: Django admin configuration for sample management interface with polymorphic type handling and dynamic inline forms.
-- **Dataset**: Parent container for samples providing context and permissions boundary.
-- **Location**: Spatial point data for sample collection sites.
+- **Sample** — a physical or digital specimen belonging to one dataset. The polymorphic base every
+  portal-defined specimen type inherits from. Carries its generated identifier, name, laboratory
+  identifier, image, status, location, keywords, tags and timestamps. Related to descriptions,
+  dates, identifiers, contributions, measurements and other samples.
+- **Sample description** — a typed block of prose about the specimen, drawn from the sample
+  description vocabulary.
+- **Sample date** — a typed date marking a point in the specimen's life, drawn from the sample date
+  vocabulary.
+- **Sample identifier** — a typed external identifier naming the specimen outside the portal. Its
+  value is unique across all identifiers.
+- **Sample relation** — the record that one sample came from another.
+- **Contribution** — the association of a person or an organisation with the sample under one or
+  more roles.
+- **Dataset** — the record a sample belongs to, and the record its access rights derive from.
 
-## Success Criteria
+## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: Portal developers can define and register custom polymorphic sample types in under 30 minutes (model definition + registration).
-- **SC-002**: Sample CRUD operations complete with proper validation and error messages within 2 seconds for typical use cases.
-- **SC-003**: Sample list view with 1000+ samples of mixed polymorphic types and filters applied loads in under 1 second with optimized querysets.
-- **SC-004**: Sample model achieves 90%+ test coverage with meaningful tests of critical paths and edge cases including polymorphic behavior.
-- **SC-005**: Sample forms provide clear validation feedback with user-friendly error messages for all invalid inputs.
-- **SC-006**: Sample admin interface allows administrators to search, filter, and edit samples of any polymorphic type without writing custom code.
-- **SC-007**: SampleQuerySet optimization reduces database queries by 80%+ compared to naive ORM usage when loading samples with related data.
-- **SC-008**: Sample filter combinations work correctly in 100% of test cases without unexpected results for polymorphic queries.
-- **SC-009**: Custom sample type developers report 60% less boilerplate code using provided mixins compared to manual implementation.
-- **SC-010**: Registry integration generates functional forms/filters/admin for 95% of custom sample types without requiring custom overrides.
+- **SC-001**: A specimen type is defined and registered, and its form, filter set, table and
+  administrative entry all exist and carry that type's own fields, with nothing written by hand.
+- **SC-002**: Creating a bare base sample is refused through validation, through a form, through the
+  administrative interface and through the manager. The framework's own test fixtures do not create
+  one.
+- **SC-003**: A description, a date and an identifier of a type outside the sample vocabularies are
+  each refused by validation with a message naming the type, and each of the three sample
+  vocabularies is asserted by naming the members it contains rather than by iterating whatever it
+  holds.
+- **SC-004**: A sample can be given an IGSN and a DOI and both read back under their own types; the
+  sample identifier vocabulary contains no type naming a person, an organisation or a project; and a
+  malformed IGSN is refused.
+- **SC-005**: The status vocabulary names custody states, a sample created without one reads as
+  unknown, every transition between states is accepted, and loading the record and creating a sample
+  both succeed with no network access.
+- **SC-006**: A user holding rights on a dataset alone holds the corresponding rights on its
+  samples; a user holding rights on one sample alone holds them on that sample; a user holding
+  neither holds nothing. A right can be granted on a specimen as well as consulted, and the same
+  answers hold whether the right is named with its record or without. Every editing surface refuses
+  a request that has not signed in, and rights already granted on the other core records still
+  resolve.
+- **SC-007**: A filter set inheriting the filter mixin carries every filter the mixin declares, and
+  the form and filter set the registry generates for a type supplying neither carry the same
+  behaviour.
+- **SC-008**: A three-deep chain returns the correct children, parents, descendants and ancestors
+  from each end, a depth limit of one returns direct children only, and self-reference, a two-step
+  loop and a duplicate link are each refused when saved directly.
+- **SC-009**: Every search term and every filter in FR-039 finds or removes the samples it names,
+  and a description, date, identifier, contribution and provenance link can each be added inline.
+- **SC-010**: Loading a list of samples together with all their related records takes a number of
+  queries that does not grow with the number of samples or of related records.
+- **SC-011**: No test covering behaviour in this specification is skipped, and no test in it passes
+  when the behaviour it names is removed.
+- **SC-012**: Every statement the sample models, admin, forms, filters and vocabularies make about
+  their own behaviour is true of the code as it stands.
 
 ## Assumptions
 
-### Technical Assumptions
+- The controlled vocabulary machinery, the contribution model, the polymorphic model library, the
+  object-level permission library and the tagging library are already in place and are not changed
+  by this work.
+- IGSN is the reference schema for specimen metadata, and is domain-independent by design.
+- The registry described by `002-fairdm-registry` generates components from a registered
+  configuration, and this work uses it rather than replacing it.
+- The dataset record specified by `004-core-datasets` supplies the container a sample belongs to and
+  the rights its access derives from; its own model is not changed here.
+- The location model supplies the collection point a sample refers to; its own model is not changed
+  here, and geographic querying is not part of this work.
+- The pages through which a researcher creates, lists and edits a sample are specified by the CRUD
+  specification for samples, roadmap item R16. Where a field specified here needs a form control on
+  a page, that document decides whether it gets one.
+- Translation catalogues do not exist in the repository yet. This work marks strings for
+  translation; it does not produce catalogues.
 
-- **A-001**: Django-polymorphic is already installed and configured in the framework.
-- **A-002**: Django-guardian is already installed and configured for object-level permissions.
-- **A-003**: Research-vocabs package is available for controlled vocabulary support.
-- **A-004**: ShortUUID package is available for generating unique identifiers.
-- **A-005**: Location model (fairdm_location.Point) exists and supports spatial queries.
-- **A-006**: FairDM registry system (Feature 004) is already implemented and functional.
-- **A-007**: BasePolymorphicModel, AbstractDescription, AbstractDate, AbstractIdentifier abstracts already exist.
-- **A-008**: Dataset model (Feature 006) is complete and functional.
+## Out of scope
 
-### Scope Assumptions
-
-- **A-009**: Client-side views (list views, detail views) are out of scope and handled in future features.
-- **A-010**: REST API integration is out of scope for this feature.
-- **A-011**: Sample import/export functionality beyond basic admin is out of scope.
-- **A-012**: Advanced spatial queries (GIS analysis) are out of scope; basic location filtering is sufficient.
-- **A-013**: Workflow management (sample routing, approval processes) is out of scope.
-
-### Standards Assumptions
-
-- **A-014**: IGSN metadata schema version 1.0 is current; redesign project status will be monitored but not blocking.
-- **A-015**: IGSN identifier validation can be performed via regex pattern matching; live API validation is optional.
-- **A-016**: DataCite identifier types are sufficient for external identifier support.
-
-## Dependencies
-
-### Internal Dependencies
-
-- **D-001**: FairDM registry system must be functional and tested (Feature 004) - CRITICAL: Polymorphic sample integration builds directly on Feature 004 patterns.
-- **D-002**: Dataset model must be complete with permissions system (Feature 006).
-- **D-003**: Contributor models (Person, Organization) and Contribution through-model with GenericRelation support must exist.
-- **D-004**: Location models must be available (fairdm_location app).
-- **D-005**: Research vocabularies for sample status, description types, date types, identifier types, relationship types must be defined.
-
-### External Dependencies
-
-- **D-006**: Django-polymorphic package (v3.1+)
-- **D-007**: Django-guardian package (v2.4+)
-- **D-008**: Research-vocabs package (custom FairDM package)
-- **D-009**: ShortUUID package (v1.0+)
-- **D-010**: Django-crispy-forms package (v2.0+)
-- **D-011**: Django-filter package (v23.0+)
-- **D-012**: Django-tables2 package (v2.5+)
-
-## Out of Scope
-
-### Explicitly Excluded
-
-- **OS-001**: Sample list views and detail views (deferred to client-side integration feature).
-- **OS-002**: REST API endpoints for samples (deferred to API feature).
-- **OS-003**: Sample import/export wizards beyond basic admin functionality.
-- **OS-004**: Advanced GIS integration and spatial analysis beyond basic location filtering.
-- **OS-005**: Sample workflow management and approval processes.
-- **OS-006**: Integration with external IGSN registration system (identifier storage only).
-- **OS-007**: Real-time collaboration features for sample editing.
-- **OS-008**: Sample barcode/QR code generation and scanning.
-- **OS-009**: Integration with laboratory information management systems (LIMS).
-- **OS-010**: Administrator audit trail and justification system for published samples (deferred to governance feature).
-
-### Future Considerations
-
-- **FC-001**: Monitor IGSN metadata schema redesign project for future updates.
-- **FC-002**: Advanced sample relationship types require research - consider composite, aliquot, section types based on domain requirements.
-- **FC-003**: Evaluate integration with IGSN API for automated registration when schema stabilizes.
-- **FC-004**: Consider sample chain-of-custody tracking in future workflow features.
-- **FC-005**: Evaluate support for 3D sample models and multi-dimensional data in future releases.
-- **FC-006**: Consider administrator audit trail system in future governance/compliance feature.
-- **FC-007**: Location coordinate reference system specification, altitude/depth handling, and advanced spatial validation deferred to future location feature.
-- **FC-008**: Location-based filtering (bounding box, radius queries) deferred until fairdm_location provides comprehensive geo query capabilities.
-- **FC-009**: Sample type conversion between polymorphic subclasses (e.g., RockSample → WaterSample) with data loss warnings deferred to future feature.
-- **FC-010**: Deep circular relationship detection beyond direct cycles (A→B→C→A) and configurable traversal depth limits deferred due to complexity.
-
-## Technical Notes
-
-### Polymorphic Model Considerations
-
-The Sample model uses django-polymorphic as a base, which has specific implications:
-
-1. **Queryset behavior**: Sample.objects.all() returns polymorphic instances (typed subclasses) by default
-2. **Inheritance order**: PolymorphicModel must be listed first in inheritance chain
-3. **Proxy models**: Subclasses should be concrete models, not proxy models
-4. **Type identification**: Each instance has access to .type_of property for identifying its class
-
-### Registry Integration Pattern
-
-Custom sample types integrate via registration pattern:
-
-```python
-# Example registration (illustrative only)
-@register
-class RockSampleConfig(ModelConfiguration):
-    model = RockSample
-    fields = ["name", "dataset", "status", "mineral_type", "hardness"]
-```
-
-The registry auto-generates:
-
-- ModelForm with specified fields
-- FilterSet with appropriate filter types
-- Table with column definitions
-- Basic ModelAdmin with inlines
-
-### Form/Filter Mixin Strategy
-
-Base mixins should provide:
-
-**SampleFormMixin**:
-
-- Pre-configured field ordering
-- Widget selection for common fields
-- Initial value handling for dataset/status
-- Request-based filtering for dataset queryset
-
-**SampleFilterMixin**:
-
-- Status multi-select filter
-- Dataset filter
-- Date range filters
-- Search filter for name/local_id/uuid
-
-**SampleAdmin**:
-
-- Standard inline configuration
-- Common list_display, list_filter, search_fields
-- Fieldset organization
-- Read-only field configuration
-- Audit trail integration for administrator edits on published samples
-- Delete protection for published samples
-
-### Sample Relationship Complexity (Deferred - Requires Research)
-
-Sample relationships are complex and require a more thoughtful solution. This feature implements basic direct circular prevention only.
-
-**Deferred to future feature**:
-
-1. **Deep circular detection**: Detecting cycles beyond A→B→A (e.g., A→B→C→A)
-2. **Traversal depth limits**: Configurable depth for relationship graph traversal
-3. **Complex patterns**: Composite samples, aliquots, sections, splits
-4. **Performance optimization**: Evaluate django-treebeard or django-mppt for hierarchical queries
-
-**This feature scope**:
-
-- Basic typed relationships (parent-child, derived-from, split-from)
-- Direct circular prevention (A→B, B→A blocked)
-- Bidirectional queries (parent→children, child→parents)
-- Self-reference prevention
-
-### Testing Strategy
-
-This feature requires comprehensive testing coverage:
-
-1. **Model tests**: Field validation, relationships, polymorphic behavior, manager methods
-2. **Form tests**: Field rendering, validation, custom widget behavior, request integration
-3. **Filter tests**: Queryset filtering, search, date ranges, location filtering
-4. **Admin tests**: Inline display, field configuration, permissions
-5. **Registry tests**: Auto-generation of forms/filters/tables/admin, custom overrides
-6. **Integration tests**: Sample lifecycle, relationship creation, metadata addition, permission inheritance
-
-### Migration Considerations
-
-- Existing Sample model has established fields; changes should be additive where possible
-- New fields should have sensible defaults or allow null=True to avoid migration issues
-- Relationship model (SampleRelation) already exists; may need additional relationship types
-- Consider data migration for existing samples to populate new required metadata fields
+- The sample list, detail, create, edit and delete pages, and the concrete form and filter set those
+  pages would instantiate — the CRUD specification for samples, roadmap item R16 (D-001). The
+  requirement that an editing surface declare the right it needs stays here (FR-033a), because it is
+  the same defect as the derivation it enforces.
+- A material field and a vocabulary of materials spanning every science (D-012).
+- Relationship types beyond one sample having come from another (D-004).
+- Geographic querying — bounding box, radius, coordinate reference systems — and any change to the
+  location model.
+- Registering a sample with an external identifier authority. Identifiers are stored, not minted.
+- Import and export of sample data beyond what the administrative interface offers.
+- The REST API's representation of a sample — `011-restful-api`.
+- Enforcing visibility consistently across the portal, the API and the collection tables. This
+  specification makes a sample's rights derive from its dataset and stops there.
+- Measurements recorded against a sample — `006-core-measurements`.

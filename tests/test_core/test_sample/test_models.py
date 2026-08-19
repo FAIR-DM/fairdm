@@ -7,6 +7,7 @@ form/view integration, queryset optimization, and SampleRelation
 creation, validation, querying, and hierarchy traversal.
 """
 
+import itertools
 from datetime import date
 
 import pytest
@@ -16,8 +17,22 @@ from django.urls import reverse
 
 from fairdm.core.models import Sample
 from fairdm.core.sample.forms import SampleForm
-from fairdm.core.sample.models import SampleDate, SampleDescription, SampleRelation
-from fairdm.factories import DatasetFactory, PersonFactory, SampleFactory
+from fairdm.core.sample.models import (
+    SampleDate,
+    SampleDescription,
+    SampleIdentifier,
+    SampleRelation,
+)
+from fairdm.core.vocabularies import FairDMSampleStatus
+from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    SampleDateFactory,
+    SampleDescriptionFactory,
+    SampleIdentifierFactory,
+    SampleRelationFactory,
+)
+from fairdm_demo.factories import RockSampleFactory
 from fairdm_demo.models import RockSample, WaterSample
 
 
@@ -126,28 +141,212 @@ class TestSamplePolymorphicInheritance:
 
 
 @pytest.mark.django_db
+class TestSamplePolymorphism:
+    """T024 - querying samples without naming a type returns each row as its
+    own type and carries that type's own fields."""
+
+    def test_querying_the_base_model_returns_each_row_as_its_own_type(
+        self, each_registered_sample_type
+    ):
+        """`each_registered_sample_type` (T008) holds one specimen of every
+        registered subclass. A query against the base `Sample` model must
+        return each row typed as the subclass it was created with, never as
+        the base `Sample`."""
+        expected_types = {sample.pk: type(sample) for sample in each_registered_sample_type}
+
+        results_by_pk = {sample.pk: type(sample) for sample in Sample.objects.all()}
+
+        assert results_by_pk == expected_types
+
+    def test_a_returned_row_carries_its_own_types_fields(self, dataset):
+        """A row returned from a query against the base model must expose the
+        subclass's own field values, not merely the base model's fields."""
+        rock = RockSampleFactory(dataset=dataset, rock_type="igneous")
+
+        result = Sample.objects.get(pk=rock.pk)
+
+        assert isinstance(result, RockSample)
+        assert result.rock_type == "igneous"
+
+
+@pytest.mark.django_db
 class TestSampleModelValidation:
     """Test Sample model validation rules and field constraints."""
 
     def test_sample_status_transitions_unrestricted(self, rock_sample):
-        """Test that status transitions are unrestricted (FR-071)."""
-        # Set to complete
-        rock_sample.status = "complete"
+        """Test that status transitions are unrestricted (FR-023)."""
+        # Set to available
+        rock_sample.status = "available"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "complete"
+        assert rock_sample.status.name == "available"
 
-        # Status should allow transition from complete to ongoing
-        rock_sample.status = "ongoing"
+        # Status should allow transition from available to in_use
+        rock_sample.status = "in_use"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "ongoing"
+        assert rock_sample.status.name == "in_use"
 
-        # Status should allow transition back to planned
-        rock_sample.status = "planned"
+        # Status should allow transition back to stored
+        rock_sample.status = "stored"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "planned"
+        assert rock_sample.status.name == "stored"
+
+
+class TestSampleStatusVocabulary:
+    """T049 - FR-021: the sample status vocabulary names custody states, asserted by name."""
+
+    def test_members_are_custody_states(self):
+        assert set(Sample.status_vocab.values) == {
+            "available",
+            "in_use",
+            "stored",
+            "destroyed",
+            "unknown",
+        }
+
+    def test_vocabulary_class_is_fairdm_sample_status(self):
+        assert Sample.status_vocab.__class__ is FairDMSampleStatus
+
+
+@pytest.mark.django_db
+class TestSampleStatusDefault:
+    """T050 - FR-022: a specimen created with no status stated reads as unknown."""
+
+    def test_no_status_stated_reads_as_unknown(self, dataset):
+        sample = RockSample.objects.create(
+            name="Unstated Status Rock",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-15",
+        )
+        sample.refresh_from_db()
+
+        assert sample.status.name == "unknown"
+
+
+@pytest.mark.django_db
+class TestSampleStatusTransitions:
+    """T051 - FR-023: every transition between custody states is accepted, including out of
+    destroyed - a specimen recorded as destroyed can still be found again."""
+
+    STATES = ["available", "in_use", "stored", "destroyed", "unknown"]
+
+    @pytest.mark.parametrize("start, end", list(itertools.permutations(STATES, 2)))
+    def test_transition_is_accepted(self, rock_sample, start, end):
+        rock_sample.status = start
+        rock_sample.save()
+        rock_sample.refresh_from_db()
+        assert rock_sample.status.name == start
+
+        rock_sample.status = end
+        rock_sample.save()
+        rock_sample.refresh_from_db()
+        assert rock_sample.status.name == end
+
+
+@pytest.mark.django_db
+class TestNoRemoteVocabulary:
+    """T052 - the status vocabulary is declared locally, with no remote source. Loading a
+    sample record and creating a specimen both succeed with outbound network calls blocked,
+    proven by blocking the call rather than by reading the source."""
+
+    def test_reading_and_creating_a_specimen_succeed_with_network_blocked(
+        self, rock_sample, dataset, monkeypatch
+    ):
+        import socket
+
+        def _refuse_connect(*args, **kwargs):
+            raise AssertionError("an outbound network call was attempted")
+
+        monkeypatch.setattr(socket.socket, "connect", _refuse_connect)
+
+        loaded = Sample.objects.get(pk=rock_sample.pk)
+        assert loaded.status.name == "unknown"
+
+        created = RockSample.objects.create(
+            name="Offline Rock",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-15",
+        )
+        created.refresh_from_db()
+        assert created.status.name == "unknown"
+
+    def test_vocabulary_graph_builds_from_scratch_without_network(self, monkeypatch):
+        """`Sample.status_vocab`'s graph is already warm by the time a test runs, from
+        Django's own app loading, so reading it back proves nothing about whether *building*
+        it needs the network. Clearing the class-level cache and instantiating fresh under the
+        same block forces the real proof."""
+        import socket
+
+        def _refuse_connect(*args, **kwargs):
+            raise AssertionError("an outbound network call was attempted")
+
+        monkeypatch.setattr(socket.socket, "connect", _refuse_connect)
+        monkeypatch.setattr(FairDMSampleStatus, "graph", None)
+
+        vocab = FairDMSampleStatus()
+
+        assert set(vocab.values) == {
+            "available",
+            "in_use",
+            "stored",
+            "destroyed",
+            "unknown",
+        }
+
+
+@pytest.mark.django_db
+class TestStatusMigration:
+    """T053 - a row carrying a value from the previous ODM2 vocabulary reads unknown after the
+    forward data migration runs. Calls the migration's forward callable directly, because the
+    suite runs with ``--no-migrations`` and never replays the migration graph itself."""
+
+    def test_forward_rewrites_every_status_to_unknown(self, dataset):
+        import importlib
+
+        from django.apps import apps as django_apps
+        from django.db import connection
+
+        from fairdm_demo.models import WaterSample
+
+        rock = RockSample.objects.create(
+            name="Legacy Rock",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-15",
+        )
+        water = WaterSample.objects.create(
+            name="Legacy Water",
+            dataset=dataset,
+            water_source="river",
+            ph_level=7.0,
+            temperature_celsius=15.0,
+        )
+
+        # Bypass the ORM entirely for the mutation: reading these rows back through
+        # ConceptField.from_db_value would raise ValueError, the very defect this
+        # migration exists to fix, before the migration ever ran.
+        table = Sample._meta.db_table
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"UPDATE {table} SET status = %s WHERE id = %s",  # noqa: S608
+                ["complete", rock.pk],
+            )
+            cursor.execute(
+                f"UPDATE {table} SET status = %s WHERE id = %s",  # noqa: S608
+                ["ongoing", water.pk],
+            )
+
+        migration = importlib.import_module(
+            "fairdm.core.sample.migrations.0008_migrate_sample_status_to_unknown"
+        )
+        migration.migrate_status_to_unknown(django_apps, None)
+
+        assert Sample.objects.get(pk=rock.pk).status.name == "unknown"
+        assert Sample.objects.get(pk=water.pk).status.name == "unknown"
 
 
 @pytest.mark.django_db
@@ -170,6 +369,394 @@ class TestSampleDirectInstantiation:
 
         error_message = str(exc_info.value).lower()
         assert "subclass" in error_message or "directly" in error_message
+
+
+@pytest.mark.django_db
+class TestBaseSampleRefused:
+    """T025 - FR-010: creating a bare base Sample is refused through every route.
+
+    Runs alongside T030 (the ``pre_save`` block) rather than with the rest of US-1, because
+    landing the block without proving every route refuses it - and without retargeting the
+    factories that build the forbidden record - is what would leave the suite red (research.md
+    R4). Each route is asserted separately because they fail independently: `clean()` refuses at
+    validation time, the `pre_save` receiver refuses at save time, and neither alone covers both.
+    """
+
+    def test_validation_refuses_a_bare_sample(self, dataset):
+        """``full_clean()`` on a bare ``Sample`` raises, even with every other field valid."""
+        sample = Sample(name="Direct", dataset=dataset)
+
+        with pytest.raises(ValidationError):
+            sample.full_clean()
+
+    def test_form_refuses_a_bare_sample(self, dataset):
+        """``SampleForm`` - the base model's own registry-generated form - refuses to validate."""
+        form = SampleForm(
+            data={"name": "Direct", "dataset": dataset.pk, "status": "unknown"}
+        )
+
+        assert not form.is_valid()
+
+    def test_admin_refuses_the_base_content_type(self, admin_client):
+        """The polymorphic parent admin's add view never offers the base type as a child.
+
+        ``Sample`` is never a member of ``registry.samples`` (only registered specimen types
+        are), so asking the add view to route to the base type's own content type is refused
+        the same way an unregistered model would be - it is not among the child admins the
+        parent knows how to delegate to.
+        """
+        from django.contrib.contenttypes.models import ContentType
+
+        ct = ContentType.objects.get_for_model(Sample)
+        response = admin_client.get(reverse("admin:sample_sample_add"), {"ct_id": ct.pk})
+
+        assert response.status_code == 403
+
+    def test_manager_refuses_a_bare_sample(self, dataset):
+        """``Sample.objects.create()`` - the manager route T030's ``pre_save`` receiver covers -
+        is refused even though it bypasses form and admin validation entirely."""
+        with pytest.raises(ValidationError):
+            Sample.objects.create(name="Direct", dataset=dataset)
+
+    def test_direct_save_refuses_a_bare_sample(self, dataset):
+        """A bare ``Sample().save()`` - the route ``clean()`` alone does not cover, since nothing
+        calls it - is refused by the ``pre_save`` receiver."""
+        sample = Sample(name="Direct", dataset=dataset)
+
+        with pytest.raises(ValidationError):
+            sample.save()
+
+    def test_fixture_loading_refuses_a_bare_sample(self, dataset):
+        """Deserializing a fixture row for the base model is refused too (research.md R4): the
+        `pre_save` receiver is the one mechanism that also covers `django.core.serializers`,
+        which sends `pre_save` on every raw, deserialized object."""
+        from django.core import serializers
+
+        payload = (
+            "[{\"model\": \"sample.sample\", \"pk\": null, "
+            '"fields": {"name": "Direct", "dataset": %d}}]' % dataset.pk
+        )
+        (deserialized,) = serializers.deserialize("json", payload)
+
+        with pytest.raises(ValidationError):
+            deserialized.save()
+
+
+class TestBaseSampleErrorIsTranslatable:
+    """F8 - BASE_SAMPLE_ERROR must be a lazy translation, not a plain `str` wrapped in `_()` at
+    the call site: `makemessages` only extracts literals passed directly to `_()`, so a plain
+    module-level constant referenced by name (`_(BASE_SAMPLE_ERROR)`) never reaches the
+    catalogue."""
+
+    def test_base_sample_error_is_a_lazy_translation(self):
+        from django.utils.functional import Promise
+
+        from fairdm.core.sample.models import BASE_SAMPLE_ERROR
+
+        assert isinstance(BASE_SAMPLE_ERROR, Promise)
+
+
+@pytest.mark.django_db
+class TestSampleIdentity:
+    """T009 - FR-001: the generated identifier is unique, prefixed, generated rather than
+    supplied, and not editable afterwards."""
+
+    def test_uuid_is_unique_across_specimens(self, rock_sample, water_sample):
+        assert rock_sample.uuid != water_sample.uuid
+
+    def test_uuid_is_prefixed_to_mark_it_a_sample(self, rock_sample):
+        assert rock_sample.uuid.startswith("s")
+
+    def test_uuid_is_generated_rather_than_supplied(self, dataset):
+        """Two specimens created without naming a ``uuid`` each receive their own."""
+        from fairdm_demo.factories import RockSampleFactory
+
+        one = RockSampleFactory(dataset=dataset)
+        two = RockSampleFactory(dataset=dataset)
+
+        assert one.uuid
+        assert two.uuid
+        assert one.uuid != two.uuid
+
+    def test_uuid_is_not_editable_afterwards(self, rock_sample):
+        """``editable=False`` is what makes it unchangeable: excluded from a generated
+        ``ModelForm`` and presented read-only in the admin (FR-043, T086)."""
+        from fairdm.core.sample.admin import SampleChildAdmin
+
+        assert "uuid" not in SampleForm.base_fields
+        assert "uuid" in SampleChildAdmin.readonly_fields
+
+
+@pytest.mark.django_db
+class TestSampleFields:
+    """T010 - FR-002: a name is required; laboratory identifier, image and location are each
+    optional."""
+
+    def test_name_is_required(self, dataset):
+        from fairdm_demo.models import RockSample
+
+        sample = RockSample(
+            dataset=dataset, rock_type="igneous", collection_date="2024-01-15"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            sample.full_clean()
+
+        assert "name" in exc_info.value.message_dict
+
+    def test_local_id_is_optional(self, dataset):
+        from fairdm_demo.factories import RockSampleFactory
+
+        sample = RockSampleFactory(dataset=dataset, local_id=None)
+
+        sample.full_clean()  # does not raise
+
+    def test_image_is_optional(self, dataset):
+        from fairdm_demo.factories import RockSampleFactory
+
+        sample = RockSampleFactory(dataset=dataset, image=None)
+
+        sample.full_clean()  # does not raise
+
+    def test_location_is_optional(self, dataset):
+        from fairdm_demo.factories import RockSampleFactory
+
+        sample = RockSampleFactory(dataset=dataset, location=None)
+
+        sample.full_clean()  # does not raise
+        assert sample.location is None
+
+
+@pytest.mark.django_db
+class TestSampleLocalId:
+    """T011 - FR-003: a laboratory identifier is not required to be unique; two specimens in
+    different datasets carrying the same one are both valid."""
+
+    def test_the_same_local_id_is_valid_in_two_different_datasets(self):
+        from fairdm.factories import DatasetFactory
+        from fairdm_demo.factories import RockSampleFactory
+
+        dataset_a = DatasetFactory()
+        dataset_b = DatasetFactory()
+
+        one = RockSampleFactory(dataset=dataset_a, local_id="LAB-001")
+        two = RockSampleFactory(dataset=dataset_b, local_id="LAB-001")
+
+        one.full_clean()
+        two.full_clean()
+        assert one.local_id == two.local_id == "LAB-001"
+
+
+@pytest.mark.django_db
+class TestSampleDatasetRelation:
+    """T012 - FR-004: a specimen belongs to exactly one dataset, and deleting that dataset
+    deletes the specimen."""
+
+    def test_deleting_the_dataset_deletes_the_specimen(self, rock_sample):
+        dataset = rock_sample.dataset
+        sample_pk = rock_sample.pk
+
+        dataset.delete()
+
+        assert not Sample.objects.filter(pk=sample_pk).exists()
+
+
+@pytest.mark.django_db
+class TestSampleLocationRelation:
+    """T013 - FR-005: deleting a location a specimen refers to is refused while any specimen
+    refers to it."""
+
+    def test_deleting_a_referenced_location_is_refused(self, dataset):
+        from django.db.models.deletion import ProtectedError
+
+        from fairdm.factories import PointFactory
+        from fairdm_demo.factories import RockSampleFactory
+
+        location = PointFactory()
+        RockSampleFactory(dataset=dataset, location=location)
+
+        with pytest.raises(ProtectedError):
+            location.delete()
+
+
+@pytest.mark.django_db
+class TestSampleKeywords:
+    """T014 - FR-006: controlled keywords are stored as references to the vocabulary, free tags
+    as tags, and the two remain distinguishable."""
+
+    def test_controlled_vocabulary_term_is_stored_as_a_reference(self, rock_sample):
+        from research_vocabs.models import Concept
+
+        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        assert term is not None
+
+        rock_sample.keywords.add(term)
+
+        stored = rock_sample.keywords.get(pk=term.pk)
+        assert isinstance(stored, Concept)
+        assert stored.name == term.name
+
+    def test_free_tags_are_distinguishable_from_controlled_keywords(self, rock_sample):
+        from research_vocabs.models import Concept
+
+        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        rock_sample.keywords.add(keyword)
+        rock_sample.tags.add("erosion")
+
+        assert "erosion" in rock_sample.tags.names()
+        assert rock_sample.keywords.count() == 1
+        assert all(isinstance(k, Concept) for k in rock_sample.keywords.all())
+        assert not rock_sample.keywords.filter(name="erosion").exists()
+
+
+@pytest.mark.django_db
+class TestSampleContributions:
+    """T015 - FR-008: a contribution records a contributor and one or more roles and reads both
+    back; the sample role vocabulary's members are asserted by name."""
+
+    def test_sample_role_vocabulary_members(self):
+        assert Sample.CONTRIBUTOR_ROLES.values == [
+            "Collection",
+            "Preparation",
+            "Storage",
+            "Destruction",
+            "Restoration",
+        ]
+
+    def test_contribution_records_contributor_and_roles(self, rock_sample):
+        contributor = PersonFactory()
+
+        contribution = rock_sample.add_contributor(
+            contributor, with_roles=["Collection", "Preparation"]
+        )
+
+        assert contribution.contributor == contributor
+        role_names = set(contribution.roles.values_list("name", flat=True))
+        assert role_names == {"Collection", "Preparation"}
+
+
+@pytest.mark.django_db
+class TestSampleTimestamps:
+    """T016 - FR-007: creation and modification times are recorded, and modification advances on
+    any change."""
+
+    def test_creation_and_modification_times_are_recorded(self, rock_sample):
+        assert rock_sample.added is not None
+        assert rock_sample.modified is not None
+
+    def test_modification_time_advances_on_change(self, rock_sample):
+        original_modified = rock_sample.modified
+
+        rock_sample.name = "Renamed"
+        rock_sample.save()
+        rock_sample.refresh_from_db()
+
+        assert rock_sample.modified > original_modified
+        assert rock_sample.added is not None
+
+
+@pytest.mark.django_db
+class TestSamplePrefetch:
+    """T017 - FR-044: loading specimens with their dataset, location, descriptions, dates,
+    identifiers, contributions and keywords costs a number of queries that does not grow with
+    the number of specimens or of related records. One measurement proves nothing, so this
+    checks two different specimen counts against two different related-record counts."""
+
+    def _build_and_load(self, n_samples, n_related):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        from fairdm.factories import DatasetFactory
+        from fairdm_demo.factories import RockSampleFactory
+
+        dataset = DatasetFactory()
+        description_types = SampleDescription.VOCABULARY.values
+        date_types = SampleDate.VOCABULARY.values
+        identifier_types = SampleIdentifier.VOCABULARY.values
+        role_types = Sample.CONTRIBUTOR_ROLES.values
+
+        for _ in range(n_samples):
+            sample = RockSampleFactory(dataset=dataset)
+            for i in range(n_related):
+                SampleDescriptionFactory(related=sample, type=description_types[i])
+                SampleDateFactory(related=sample, type=date_types[i])
+                sample.add_contributor(PersonFactory(), with_roles=[role_types[i]])
+            # The sample identifier collection has only two members (IGSN, DOI - D-003), and
+            # a sample can carry at most one identifier per type, so this is capped rather
+            # than indexed by `n_related` like the other related-record types above.
+            for i in range(min(n_related, len(identifier_types))):
+                SampleIdentifierFactory(related=sample, type=identifier_types[i])
+
+        with CaptureQueriesContext(connection) as context:
+            samples = list(
+                Sample.objects.filter(dataset=dataset)
+                .with_related()
+                .with_metadata()
+                .with_keywords()
+            )
+            assert len(samples) == n_samples
+            for sample in samples:
+                _ = sample.dataset
+                _ = sample.location
+                list(sample.contributors.all())
+                list(sample.descriptions.all())
+                list(sample.dates.all())
+                list(sample.identifiers.all())
+                list(sample.keywords.all())
+
+        return len(context.captured_queries)
+
+    def test_query_count_does_not_grow_with_specimens_or_related_records(self):
+        small = self._build_and_load(n_samples=2, n_related=1)
+        large = self._build_and_load(n_samples=5, n_related=3)
+
+        assert small == large
+
+
+@pytest.mark.django_db
+class TestSampleQuerySetChaining:
+    """T018 - FR-045: the queryset's own methods chain with one another and with ordinary query
+    operations, in either order, and the result is correct rather than merely non-empty."""
+
+    def test_methods_chain_in_either_order_and_return_the_right_rows(self, dataset):
+        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+
+        target = RockSampleFactory(dataset=dataset, name="Target")
+        WaterSampleFactory(dataset=dataset, name="Other")
+
+        forward = (
+            Sample.objects.with_related()
+            .with_metadata()
+            .with_keywords()
+            .filter(name="Target")
+        )
+        backward = Sample.objects.filter(name="Target").with_related().with_metadata()
+
+        assert list(forward) == [target]
+        assert list(backward) == [target]
+
+
+@pytest.mark.django_db
+class TestSampleTranslatable:
+    """T019 - FR-046: model field labels, help text, and vocabulary terms are lazy rather than
+    resolved at import."""
+
+    def test_field_verbose_names_and_help_text_are_lazy(self):
+        from django.utils.functional import Promise
+
+        for field_name in ["dataset", "local_id", "status", "location"]:
+            field = Sample._meta.get_field(field_name)
+            assert isinstance(field.verbose_name, Promise), field_name
+            assert isinstance(field.help_text, Promise), field_name
+
+    def test_vocabulary_terms_are_lazy(self):
+        from django.utils.functional import Promise
+
+        from fairdm.core.vocabularies import FairDMDescriptions
+
+        assert isinstance(
+            FairDMDescriptions.SampleCollection["skos:prefLabel"], Promise
+        )
 
 
 @pytest.mark.django_db
@@ -420,7 +1007,7 @@ class TestSampleModel:
 
     def test_sample_creation(self):
         """Test creating a basic Sample instance."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         assert sample.pk is not None
         assert sample.name is not None
@@ -429,39 +1016,39 @@ class TestSampleModel:
 
     def test_sample_str_representation(self):
         """Test Sample string representation."""
-        sample = SampleFactory(name="Test Sample")
+        sample = RockSampleFactory(name="Test Sample")
         assert str(sample) == "Test Sample"
 
     def test_sample_dataset_relationship(self):
         """Test that sample is associated with a dataset."""
         dataset = DatasetFactory()
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         assert sample.dataset == dataset
         assert sample in dataset.samples.all()
 
     def test_sample_local_id_optional(self):
         """Test that local_id is optional."""
-        sample = SampleFactory(local_id=None)
+        sample = RockSampleFactory(local_id=None)
         assert sample.local_id is None
 
-        sample_with_id = SampleFactory(local_id="ABC-123")
+        sample_with_id = RockSampleFactory(local_id="ABC-123")
         assert sample_with_id.local_id == "ABC-123"
 
     def test_sample_location_optional(self):
         """Test that location is optional."""
-        sample = SampleFactory(location=None)
+        sample = RockSampleFactory(location=None)
         assert sample.location is None
 
     def test_sample_status_default(self):
         """Test that sample has a status."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         # Status should be set (factory may randomize)
         assert sample.status is not None
 
     def test_sample_get_template_name(self):
         """Test get_template_name returns correct template paths."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         templates = sample.get_template_name()
 
         assert isinstance(templates, list)
@@ -474,7 +1061,7 @@ class TestSampleModel:
 
     def test_sample_descriptions_relationship(self):
         """Test that sample descriptions can be created correctly."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         descriptions = SampleDescription.objects.filter(related=sample)
 
         # Factory may or may not create descriptions by default
@@ -483,7 +1070,7 @@ class TestSampleModel:
 
     def test_sample_dates_relationship(self):
         """Test that sample dates can be created correctly."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         dates = SampleDate.objects.filter(related=sample)
 
         # Factory may or may not create dates by default
@@ -492,7 +1079,7 @@ class TestSampleModel:
 
     def test_add_contributor(self):
         """Test adding a contributor to a sample."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         user = PersonFactory()
 
         contribution = sample.add_contributor(user, with_roles=["Creator"])
@@ -508,8 +1095,8 @@ class TestSampleRelation:
 
     def test_sample_relation_creation(self):
         """Test creating a sample-to-sample relationship."""
-        parent = SampleFactory()
-        child = SampleFactory()
+        parent = RockSampleFactory()
+        child = RockSampleFactory()
 
         relation = SampleRelation.objects.create(
             type="child_of",
@@ -524,8 +1111,8 @@ class TestSampleRelation:
 
     def test_sample_relation_queryset(self):
         """Test querying sample relationships."""
-        parent = SampleFactory()
-        child = SampleFactory()
+        parent = RockSampleFactory()
+        child = RockSampleFactory()
 
         SampleRelation.objects.create(
             type="child_of",
@@ -586,7 +1173,7 @@ class TestSampleViews:
 
     def test_sample_detail_view_accessible(self, client):
         """Test that sample detail view is accessible."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         # Note: URL pattern may vary, adjust as needed
         try:
             response = client.get(
@@ -608,7 +1195,7 @@ class TestSamplePermissions:
 
     def test_sample_contributor_relationship(self, user):
         """Test that samples can have contributors."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         contribution = sample.add_contributor(user, with_roles=["Creator"])
 
         assert sample.contributors.count() == 1
@@ -621,7 +1208,7 @@ class TestSampleQuerySetWithRelated:
 
     def test_with_related_prefetches_dataset(self):
         """Test that with_related() prefetches dataset relationship."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         result = Sample.objects.with_related().get(pk=sample.pk)
 
         assert result.dataset is not None
@@ -629,7 +1216,7 @@ class TestSampleQuerySetWithRelated:
 
     def test_with_related_prefetches_contributors(self):
         """Test that with_related() prefetches contributors via GenericRelation."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         user1 = PersonFactory()
         user2 = PersonFactory()
         sample.add_contributor(user1, with_roles=["Creator"])
@@ -650,8 +1237,8 @@ class TestSampleQuerySetWithRelated:
 
     def test_with_related_can_be_chained(self):
         """Test that with_related() can be chained with other queryset methods."""
-        sample1 = SampleFactory(name="Alpha")
-        _sample2 = SampleFactory(name="Beta")
+        sample1 = RockSampleFactory(name="Alpha")
+        _sample2 = RockSampleFactory(name="Beta")
 
         results = Sample.objects.with_related().filter(name="Alpha")
 
@@ -665,7 +1252,7 @@ class TestSampleQuerySetWithMetadata:
 
     def test_with_metadata_prefetches_descriptions(self):
         """Test that with_metadata() prefetches SampleDescription objects."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         desc1 = SampleDescription.objects.create(
             related=sample, type="Abstract", value="Description 1"
         )
@@ -682,7 +1269,7 @@ class TestSampleQuerySetWithMetadata:
 
     def test_with_metadata_prefetches_dates(self):
         """Test that with_metadata() prefetches SampleDate objects."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         date1 = SampleDate.objects.create(
             related=sample, type="Created", value="2024-01-01"
         )
@@ -706,7 +1293,7 @@ class TestSampleQuerySetWithMetadata:
 
     def test_with_metadata_can_be_chained_with_with_related(self):
         """Test that with_metadata() can be chained with with_related()."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         result = Sample.objects.with_related().with_metadata().get(pk=sample.pk)
 
         assert result.dataset is not None
@@ -718,10 +1305,10 @@ class TestSampleQuerySetByRelationship:
 
     def test_by_relationship_filters_by_type(self):
         """Test that by_relationship() filters samples by relationship type."""
-        parent = SampleFactory()
-        child1 = SampleFactory()
-        child2 = SampleFactory()
-        _unrelated = SampleFactory()
+        parent = RockSampleFactory()
+        child1 = RockSampleFactory()
+        child2 = RockSampleFactory()
+        _unrelated = RockSampleFactory()
 
         SampleRelation.objects.create(source=child1, target=parent, type="child_of")
         SampleRelation.objects.create(source=child2, target=parent, type="child_of")
@@ -735,7 +1322,7 @@ class TestSampleQuerySetByRelationship:
 
     def test_by_relationship_returns_empty_for_no_matches(self):
         """Test that by_relationship() returns empty queryset when no matches."""
-        _sample = SampleFactory()
+        _sample = RockSampleFactory()
 
         results = Sample.objects.by_relationship(relationship_type="nonexistent_type")
 
@@ -743,9 +1330,9 @@ class TestSampleQuerySetByRelationship:
 
     def test_by_relationship_can_be_chained(self):
         """Test that by_relationship() can be chained with other queryset methods."""
-        parent = SampleFactory()
-        child1 = SampleFactory(name="Alpha")
-        child2 = SampleFactory(name="Beta")
+        parent = RockSampleFactory()
+        child1 = RockSampleFactory(name="Alpha")
+        child2 = RockSampleFactory(name="Beta")
 
         SampleRelation.objects.create(source=child1, target=parent, type="child_of")
         SampleRelation.objects.create(source=child2, target=parent, type="child_of")
@@ -831,26 +1418,16 @@ class TestSamplePolymorphicQueries:
         assert hasattr(result, "rock_type")
         assert result.rock_type == "igneous"
 
-    @pytest.mark.skip(
-        reason="select_subclasses() not exposed through custom manager - polymorphic queries work without it"
-    )
-    def test_polymorphic_query_with_select_subclasses(self):
-        """Test that select_subclasses() optimizes polymorphic queries."""
-        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
-
-        rock1 = RockSampleFactory()
-        water1 = WaterSampleFactory()
-
-        results = list(Sample.objects.select_subclasses())
-
-        rock_result = next((r for r in results if r.pk == rock1.pk), None)
-        water_result = next((r for r in results if r.pk == water1.pk), None)
-
-        assert rock_result.__class__.__name__ == "RockSample"
-        assert water_result.__class__.__name__ == "WaterSample"
-
     def test_polymorphic_query_without_select_subclasses_still_works(self):
-        """Test that polymorphic queries work correctly even without explicit select_subclasses()."""
+        """Test that polymorphic queries work correctly even without explicit select_subclasses().
+
+        T099/SC-011: the sibling test that called `Sample.objects.select_subclasses()`
+        was removed rather than un-skipped - the installed django-polymorphic (4.11.6)
+        never defines that method on `PolymorphicQuerySet`/`PolymorphicManager` at all, so
+        there is no API left to exercise. This test is the one that stands in its place:
+        it proves the behaviour the removed test was reaching for - correct subclass
+        typing without any explicit call - still holds.
+        """
         from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
 
         _rock1 = RockSampleFactory()
@@ -868,9 +1445,9 @@ class TestSampleConvenienceMethods:
 
     def test_get_all_relationships_returns_source_and_target(self):
         """Test that get_all_relationships() returns relationships where sample is source or target."""
-        parent = SampleFactory()
-        child = SampleFactory()
-        sibling = SampleFactory()
+        parent = RockSampleFactory()
+        child = RockSampleFactory()
+        sibling = RockSampleFactory()
 
         SampleRelation.objects.create(source=child, target=parent, type="child_of")
         SampleRelation.objects.create(source=sibling, target=parent, type="child_of")
@@ -883,9 +1460,9 @@ class TestSampleConvenienceMethods:
 
     def test_get_related_samples_without_filter(self):
         """Test get_related_samples() returns all related samples."""
-        parent = SampleFactory()
-        child1 = SampleFactory()
-        child2 = SampleFactory()
+        parent = RockSampleFactory()
+        child1 = RockSampleFactory()
+        child2 = RockSampleFactory()
 
         SampleRelation.objects.create(source=child1, target=parent, type="child_of")
         SampleRelation.objects.create(source=child2, target=parent, type="child_of")
@@ -898,8 +1475,8 @@ class TestSampleConvenienceMethods:
 
     def test_get_related_samples_with_relationship_type_filter(self):
         """Test get_related_samples() filters by relationship type."""
-        parent = SampleFactory()
-        child = SampleFactory()
+        parent = RockSampleFactory()
+        child = RockSampleFactory()
 
         SampleRelation.objects.create(source=child, target=parent, type="child_of")
 
@@ -1163,6 +1740,405 @@ class TestComplexSampleHierarchies:
         assert samples[1] in all_descendants
         assert samples[2] in all_descendants
         assert samples[3] in all_descendants
+
+
+@pytest.mark.django_db
+class TestSampleHierarchy:
+    """T075 - FR-027: over a three-deep chain (grandparent <- parent <- child, each
+    ``child_of`` the previous), direct children, direct parents, all descendants and all
+    ancestors each return the right specimens and none from the wrong direction, checked
+    from both ends of the chain."""
+
+    def test_direct_children(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(grandparent.get_children()) == {parent}
+        assert set(parent.get_children()) == {child}
+        assert set(child.get_children()) == set()
+
+    def test_direct_parents(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(child.get_parents()) == {parent}
+        assert set(parent.get_parents()) == {grandparent}
+        assert set(grandparent.get_parents()) == set()
+
+    def test_all_descendants_from_the_top_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(grandparent.get_descendants()) == {parent, child}
+
+    def test_all_descendants_from_the_middle_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(parent.get_descendants()) == {child}
+
+    def test_all_ancestors_from_the_bottom_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(child.get_ancestors()) == {grandparent, parent}
+
+    def test_all_ancestors_from_the_middle_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(parent.get_ancestors()) == {grandparent}
+
+    def test_nothing_from_the_wrong_direction_comes_back(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        # The leaf has no descendants, and the root has no ancestors.
+        assert set(child.get_descendants()) == set()
+        assert set(grandparent.get_ancestors()) == set()
+        # A middle specimen's ancestors never include its own descendants and vice versa.
+        assert child not in parent.get_ancestors()
+        assert grandparent not in parent.get_descendants()
+        # A specimen never appears among its own children, parents, descendants or
+        # ancestors.
+        assert parent not in parent.get_children()
+        assert parent not in parent.get_parents()
+        assert parent not in parent.get_descendants()
+        assert parent not in parent.get_ancestors()
+
+
+@pytest.mark.django_db
+class TestSampleHierarchyDepth:
+    """T076 - a depth limit of one on ``get_descendants()`` returns direct children only,
+    and the limit is respected at each further depth of a longer chain."""
+
+    @pytest.fixture
+    def four_level_chain(self, dataset):
+        root = RockSampleFactory(dataset=dataset, name="Root")
+        level1 = RockSampleFactory(dataset=dataset, name="Level1")
+        level2 = RockSampleFactory(dataset=dataset, name="Level2")
+        level3 = RockSampleFactory(dataset=dataset, name="Level3")
+        SampleRelationFactory(source=level1, target=root, type="child_of")
+        SampleRelationFactory(source=level2, target=level1, type="child_of")
+        SampleRelationFactory(source=level3, target=level2, type="child_of")
+        return root, level1, level2, level3
+
+    def test_depth_one_returns_direct_children_only(self, four_level_chain):
+        root, level1, level2, level3 = four_level_chain
+
+        assert set(root.get_descendants(depth=1)) == {level1}
+
+    def test_depth_limit_is_respected_at_each_further_depth(self, four_level_chain):
+        root, level1, level2, level3 = four_level_chain
+
+        assert set(root.get_descendants(depth=2)) == {level1, level2}
+        assert set(root.get_descendants(depth=3)) == {level1, level2, level3}
+        assert set(root.get_descendants()) == {level1, level2, level3}
+
+
+@pytest.mark.django_db
+class TestSampleRelationRefusals:
+    """T077 - FR-027: self-reference, a two-step loop and a duplicate link are each
+    refused when a ``SampleRelation`` is saved directly - ``.objects.create()`` /
+    ``.save()`` - not only when ``clean()`` is called by hand."""
+
+    def test_self_reference_is_refused_on_direct_save(self, rock_sample):
+        with pytest.raises(ValidationError):
+            SampleRelation.objects.create(
+                source=rock_sample, target=rock_sample, type="child_of"
+            )
+
+    def test_two_step_loop_is_refused_on_direct_save(self, dataset):
+        sample_a = RockSampleFactory(dataset=dataset)
+        sample_b = RockSampleFactory(dataset=dataset)
+        SampleRelation.objects.create(source=sample_a, target=sample_b, type="child_of")
+
+        with pytest.raises(ValidationError):
+            SampleRelation.objects.create(
+                source=sample_b, target=sample_a, type="child_of"
+            )
+
+    def test_duplicate_link_is_refused_on_direct_save(self, dataset):
+        sample_a = RockSampleFactory(dataset=dataset)
+        sample_b = RockSampleFactory(dataset=dataset)
+        SampleRelation.objects.create(source=sample_a, target=sample_b, type="child_of")
+
+        with pytest.raises(IntegrityError):
+            SampleRelation.objects.create(
+                source=sample_a, target=sample_b, type="child_of"
+            )
+
+
+@pytest.mark.django_db
+class TestSingleTraversalImplementation:
+    """T078 - the record's helpers and its queryset return the same specimens for the
+    same question, in the same direction."""
+
+    def test_get_descendants_matches_the_queryset(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(grandparent.get_descendants()) == set(
+            Sample.objects.get_descendants(grandparent)
+        )
+        assert set(grandparent.get_descendants()) == {parent, child}
+
+    def test_get_ancestors_matches_the_queryset(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(child.get_ancestors()) == set(Sample.objects.get_ancestors(child))
+        assert set(child.get_ancestors()) == {grandparent, parent}
+
+
+@pytest.mark.django_db
+class TestSampleDescriptions:
+    """T033 - US-2: a description of a type in the sample vocabulary is stored under that type
+    and retrievable by type."""
+
+    def test_description_is_stored_and_retrievable_by_type(self, rock_sample):
+        SampleDescriptionFactory(related=rock_sample, type="SampleCollection")
+
+        stored = SampleDescription.objects.get(related=rock_sample, type="SampleCollection")
+
+        assert stored.type == "SampleCollection"
+        assert rock_sample.descriptions.get(type="SampleCollection") == stored
+
+
+@pytest.mark.django_db
+class TestSampleDescriptionVocabulary:
+    """T034 - a type outside the sample vocabulary is refused by full validation with a message
+    naming the type, and the vocabulary's members are asserted by name rather than by iterating
+    whatever it holds."""
+
+    def test_vocabulary_members_are_the_sample_description_collection(self):
+        assert set(SampleDescription.VOCABULARY.values) == {
+            "SampleCollection",
+            "SamplePreparation",
+            "SampleStorage",
+            "SampleDestruction",
+            "Other",
+        }
+
+    def test_type_outside_the_vocabulary_is_refused_naming_the_type(self, rock_sample):
+        description = SampleDescription(
+            related=rock_sample, type="NotARealType", value="text"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            description.full_clean()
+
+        assert "type" in exc_info.value.error_dict
+        message = str(exc_info.value.error_dict["type"][0])
+        assert "NotARealType" in message
+
+
+@pytest.mark.django_db
+class TestSampleDescriptionValidationReturns:
+    """T035 - full validation of a description returns a verdict rather than raising an error
+    of its own. This is the test the current validator fails: it builds its valid-type list by
+    iterating the vocabulary, which raises ``TypeError`` before the membership check runs."""
+
+    def test_full_clean_of_a_valid_description_does_not_raise(self, rock_sample):
+        description = SampleDescription(
+            related=rock_sample, type="SampleCollection", value="text"
+        )
+
+        description.full_clean()  # must not raise
+
+
+@pytest.mark.django_db
+class TestSampleDates:
+    """T037 - US-3: a date of a type in the sample vocabulary is stored under that type."""
+
+    def test_date_is_stored_under_its_type(self, rock_sample):
+        SampleDateFactory(related=rock_sample, type="Collected")
+
+        stored = SampleDate.objects.get(related=rock_sample, type="Collected")
+
+        assert stored.type == "Collected"
+
+
+@pytest.mark.django_db
+class TestSampleDateVocabulary:
+    """T038 - a type outside the sample vocabulary is refused by full validation, and the
+    vocabulary's members are asserted by name."""
+
+    def test_vocabulary_members_are_the_sample_date_collection(self):
+        assert set(SampleDate.VOCABULARY.values) == {
+            "Created",
+            "Destroyed",
+            "Collected",
+            "Returned",
+            "Prepared",
+            "Archival",
+            "Restored",
+        }
+
+    def test_type_outside_the_vocabulary_is_refused(self, rock_sample):
+        date = SampleDate(related=rock_sample, type="NotARealType", value="2024-01-15")
+
+        with pytest.raises(ValidationError) as exc_info:
+            date.full_clean()
+
+        assert "type" in exc_info.value.error_dict
+
+
+@pytest.mark.django_db
+class TestSampleDateValidationReturns:
+    """T039 - full validation of a date returns a verdict rather than raising."""
+
+    def test_full_clean_of_a_valid_date_does_not_raise(self, rock_sample):
+        date = SampleDate(related=rock_sample, type="Collected", value="2024-01-15")
+
+        date.full_clean()  # must not raise
+
+
+@pytest.mark.django_db
+class TestSampleIdentifiers:
+    """T041 - US-4: an IGSN is stored under the IGSN type and a DOI under the DOI type."""
+
+    def test_igsn_is_stored_under_the_igsn_type(self, rock_sample):
+        identifier = SampleIdentifierFactory(
+            related=rock_sample, type="IGSN", value="10.60516/AU1101"
+        )
+
+        stored = SampleIdentifier.objects.get(pk=identifier.pk)
+
+        assert stored.type == "IGSN"
+        assert stored.value == "10.60516/AU1101"
+
+    def test_doi_is_stored_under_the_doi_type(self, rock_sample):
+        identifier = SampleIdentifierFactory(
+            related=rock_sample, type="DOI", value="10.1000/sample-doi"
+        )
+
+        stored = SampleIdentifier.objects.get(pk=identifier.pk)
+
+        assert stored.type == "DOI"
+        assert stored.value == "10.1000/sample-doi"
+
+
+@pytest.mark.django_db
+class TestSampleIdentifierVocabulary:
+    """T042 - the available types are asserted by name, and none of them names a person, an
+    organisation or a project."""
+
+    def test_available_types_are_igsn_and_doi_only(self):
+        assert set(SampleIdentifier.VOCABULARY.values) == {"IGSN", "DOI"}
+
+    def test_no_type_names_a_person_organisation_or_project(self):
+        assert set(SampleIdentifier.VOCABULARY.values).isdisjoint(
+            {
+                "ORCID",
+                "RESEARCHER_ID",
+                "ROR",
+                "WIKIDATA",
+                "ISNI",
+                "CROSSREF_FUNDER_ID",
+                "GRANT_NUMBER",
+                "PROPOSAL_ID",
+            }
+        )
+
+
+@pytest.mark.django_db
+class TestIGSNFormat:
+    """T043 - a malformed IGSN is refused with a message naming the expected format, and a
+    well-formed one is accepted. Values are real examples cited in research.md R1, not
+    invented ones, and are checked against the rule research establishes rather than the
+    prefix-anchored pattern the old code assumed."""
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "10.58052/SSH000SUA",
+            "10.60516/AU1101",  # six-character suffix
+            "10.25706/DIGITALCSIC-IGSN/622135",  # a slash inside the suffix
+            "10.71928/M-202600319-N00325",
+            "10273/BGRB5054RX05201",  # legacy handle form
+        ],
+    )
+    def test_well_formed_igsn_is_accepted(self, rock_sample, value):
+        identifier = SampleIdentifier(related=rock_sample, type="IGSN", value=value)
+
+        identifier.full_clean()  # must not raise
+
+    def test_malformed_igsn_is_refused_naming_the_expected_format(self, rock_sample):
+        identifier = SampleIdentifier(
+            related=rock_sample, type="IGSN", value="not-an-identifier"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            identifier.full_clean()
+
+        assert "value" in exc_info.value.error_dict
+        message = str(exc_info.value.error_dict["value"][0])
+        assert "IGSN" in message
+
+
+@pytest.mark.django_db
+class TestIGSNNormalisation:
+    """F5 - the display-prefix stripping `_validate_igsn_format` does for validation must be
+    written back to `self.value`, or the same identifier stored with a different display prefix
+    passes as a different value: the per-table uniqueness index and the cross-record check both
+    compare the stored string exactly."""
+
+    def test_bare_value_is_stored_unchanged(self, rock_sample):
+        identifier = SampleIdentifier(related=rock_sample, type="IGSN", value="10.60516/AU1101")
+        identifier.full_clean()
+        identifier.save()
+
+        stored = SampleIdentifier.objects.get(pk=identifier.pk)
+        assert stored.value == "10.60516/AU1101"
+
+    def test_a_prefixed_form_of_an_identifier_already_stored_bare_is_refused(self, dataset):
+        first = create_rock_sample("First", dataset)
+        SampleIdentifierFactory(related=first, type="IGSN", value="10.60516/AU1101")
+
+        second = create_rock_sample("Second", dataset)
+        clashing = SampleIdentifier(
+            related=second, type="IGSN", value="doi:10.60516/AU1101"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            clashing.full_clean()
+
+        assert "value" in exc_info.value.error_dict
+
+
+@pytest.mark.django_db
+class TestSampleIdentifierUniqueness:
+    """T045/T097 - the same identifier value cannot be attached to a second record of any type,
+    and a second identifier of a type the specimen already carries is refused. The check is
+    validation-only, so this uses ``full_clean()`` rather than creating a row."""
+
+    def test_value_already_used_by_a_dataset_is_refused(self, rock_sample, dataset):
+        from fairdm.core.dataset.models import DatasetIdentifier
+
+        DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.5555/shared-across-records"
+        )
+
+        clashing = SampleIdentifier(
+            related=rock_sample, type="DOI", value="10.5555/shared-across-records"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            clashing.full_clean()
+
+        assert "value" in exc_info.value.error_dict
+
+    def test_second_identifier_of_a_type_already_carried_is_refused(self, rock_sample):
+        SampleIdentifierFactory(related=rock_sample, type="DOI", value="10.1000/first")
+
+        second = SampleIdentifier(related=rock_sample, type="DOI", value="10.1000/second")
+
+        with pytest.raises(ValidationError):
+            second.full_clean()
+
+
+@pytest.mark.django_db
+class TestSampleIdentifierValidationReturns:
+    """T046 - full validation of an identifier returns a verdict rather than raising."""
+
+    def test_full_clean_of_a_valid_identifier_does_not_raise(self, rock_sample):
+        identifier = SampleIdentifier(
+            related=rock_sample, type="DOI", value="10.1000/valid-identifier"
+        )
+
+        identifier.full_clean()  # must not raise
 
 
 @pytest.mark.django_db

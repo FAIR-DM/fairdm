@@ -29,6 +29,7 @@ from django.utils.translation import gettext_lazy as _
 
 import fairdm
 from fairdm.core.measurement.config import BaseMeasurementConfiguration
+from fairdm.core.sample.config import BaseSampleConfiguration
 from fairdm.registry import ModelConfiguration
 from fairdm.registry.config import Authority, Citation, ModelMetadata
 
@@ -48,7 +49,7 @@ from .tables import CustomSampleTable
 
 
 @fairdm.register
-class CustomParentSampleConfig(ModelConfiguration):
+class CustomParentSampleConfig(BaseSampleConfiguration):
     """
     Example configuration demonstrating rich metadata and authority information.
 
@@ -88,6 +89,15 @@ class CustomParentSampleConfig(ModelConfiguration):
 class CustomSampleConfig(ModelConfiguration):
     """
     Advanced configuration with custom component classes and component-specific fields.
+
+    Stays on `ModelConfiguration` rather than `BaseSampleConfiguration` on purpose:
+    it declares no shared `fields` list at all, relying on the framework's own
+    per-component field auto-detection for every component it does not name
+    explicitly (`table_class`, `filterset_class`, `form_fields`,
+    `resource_fields`). Inheriting `BaseSampleConfiguration` would hand every
+    other component `BaseSampleConfiguration.fields` instead of that
+    auto-detection, silently narrowing them - the opposite of what this
+    configuration demonstrates.
 
     This configuration demonstrates:
     - Component-specific field definitions (different fields for table vs form)
@@ -209,7 +219,7 @@ class ExampleMeasurementConfig(BaseMeasurementConfiguration):
 
 
 @fairdm.register
-class RockSampleConfig(ModelConfiguration):
+class RockSampleConfig(BaseSampleConfiguration):
     """Demonstrates minimal registry configuration with auto-generation.
 
     Only the model and fields are specified. FairDM automatically generates:
@@ -262,7 +272,7 @@ class RockSampleConfig(ModelConfiguration):
 
 
 @fairdm.register
-class SoilSampleConfig(ModelConfiguration):
+class SoilSampleConfig(BaseSampleConfiguration):
     """Demonstrates component-specific field configuration.
 
     Different fields are shown in different contexts:
@@ -340,7 +350,7 @@ class SoilSampleConfig(ModelConfiguration):
 
 
 @fairdm.register
-class WaterSampleConfig(ModelConfiguration):
+class WaterSampleConfig(BaseSampleConfiguration):
     """Demonstrates the third tier of customisation: overriding an accessor.
 
     The first two tiers are declarations. A field list configures every component,

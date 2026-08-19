@@ -32,15 +32,20 @@ Factories Available
 
 - ``ProjectFactory`` - Create Project instances with optional descriptions/dates
 - ``DatasetFactory`` - Create Dataset instances with optional descriptions/dates
-- ``SampleFactory`` - Create Sample instances with optional descriptions/dates/identifiers
-- ``MeasurementFactory`` - Create Measurement instances with optional descriptions/dates
+- ``SampleFactory`` - **Abstract.** The base every specimen factory builds on; it cannot be
+  instantiated directly because the ``Sample`` model it declares cannot be created directly
+  either. A reference implementation lives in ``fairdm_demo.factories`` (e.g.
+  ``RockSampleFactory``); a portal defines its own alongside its own specimen types.
+- ``MeasurementFactory`` - Create Measurement instances with optional descriptions/dates. Its
+  ``sample`` field has no default for the same reason - pass a concrete specimen factory's
+  instance.
 
 Metadata Factories
 ------------------
 
 - ``ProjectDescriptionFactory``, ``DatasetDescriptionFactory``, etc.
-- ``ProjectDateFactory``, ``DatasetDateFactory``, etc.
-- ``SampleIdentifierFactory``, ``SampleRelationFactory``
+- ``SampleDescriptionFactory``, ``SampleDateFactory``, ``SampleIdentifierFactory``,
+  ``SampleRelationFactory``
 
 Usage Examples
 --------------
@@ -49,7 +54,9 @@ Basic creation::
 
     project = ProjectFactory()
     dataset = DatasetFactory(project=project)
-    sample = SampleFactory(dataset=dataset)
+    from fairdm_demo.factories import RockSampleFactory
+
+    sample = RockSampleFactory(dataset=dataset)
 
 With metadata (opt-in)::
 
@@ -435,7 +442,7 @@ class SampleDescriptionFactory(DjangoModelFactory):
     class Meta:
         model = SampleDescription
 
-    type = "Abstract"  # Default description type
+    type = "SampleCollection"  # Default description type - a member of the sample collection
     value = Faker("text", max_nb_chars=300)
 
 
@@ -445,7 +452,7 @@ class SampleDateFactory(DjangoModelFactory):
     class Meta:
         model = SampleDate
 
-    type = "Created"  # Default date type
+    type = "Created"  # Default date type - a member of the sample date collection
     value = Faker("partial_date")
 
 
@@ -456,23 +463,29 @@ class SampleIdentifierFactory(DjangoModelFactory):
         model = SampleIdentifier
 
     type = "DOI"  # Default identifier type
-    value = Faker("bothify", text="10.####/sample-?????")
+    # AbstractIdentifier.value is unique across every record that carries identifiers.
+    value = factory.Sequence(lambda n: f"10.{2000 + n}/sample-{n}")
     # related field will be set by the caller
 
 
 class SampleFactory(DjangoModelFactory):
-    """Factory for creating Sample instances.
+    """Abstract factory for creating Sample instances.
 
-    By default, creates a minimal Sample with only required fields.
-    Dataset is auto-created unless provided.
+    ``Sample`` is a polymorphic base that cannot be created directly (only a registered
+    specimen type can be) - see ``fairdm.core.sample.models.Sample``'s ``pre_save`` guard. This
+    factory declares the fields every specimen shares and is meant to be subclassed, never
+    instantiated on its own. The framework's reference implementation supplies concrete
+    subclasses in ``fairdm_demo.factories`` (``RockSampleFactory``, ``WaterSampleFactory``,
+    ``SoilSampleFactory``, ...); a portal defines its own alongside its own specimen types.
 
-    To create descriptions/dates:
-        SampleFactory(descriptions=2)
-        SampleFactory(dates=1)
+    To create descriptions/dates on a concrete subclass:
+        RockSampleFactory(descriptions=2)
+        RockSampleFactory(dates=1)
     """
 
     class Meta:
         model = Sample
+        abstract = True
 
     # Basic fields
     name = Faker("word")
@@ -569,13 +582,15 @@ class MeasurementDateFactory(DjangoModelFactory):
 class MeasurementFactory(DjangoModelFactory):
     """Factory for creating Measurement instances.
 
-    By default, creates a minimal Measurement with only required fields.
-    Dataset and sample are auto-created if not provided.
-    The sample will be created in the same dataset as the measurement.
+    By default, creates a minimal Measurement with only required fields. Dataset is
+    auto-created if not provided, but ``sample`` has no default and must always be passed
+    explicitly: ``Sample`` is a polymorphic base that cannot be created directly, and this
+    factory has no concrete specimen type of its own to fall back on (see ``SampleFactory``).
+    Pass a concrete specimen instance, e.g. ``MeasurementFactory(sample=RockSampleFactory())``.
 
     To create descriptions/dates:
-        MeasurementFactory(descriptions=2)
-        MeasurementFactory(dates=1)
+        MeasurementFactory(sample=some_sample, descriptions=2)
+        MeasurementFactory(sample=some_sample, dates=1)
     """
 
     class Meta:
@@ -584,12 +599,8 @@ class MeasurementFactory(DjangoModelFactory):
     # Basic fields
     name = Faker("word")
 
-    # Relations - both dataset and sample are required
-    # Create dataset first, then create sample in that dataset
+    # Relations - dataset is auto-created; sample has no default (see class docstring)
     dataset = SubFactory(DatasetFactory)
-    sample = SubFactory(
-        SampleFactory, dataset=LazyAttribute(lambda o: o.factory_parent.dataset)
-    )
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):
@@ -657,16 +668,16 @@ class MeasurementFactory(DjangoModelFactory):
 class SampleRelationFactory(DjangoModelFactory):
     """Factory for creating SampleRelation instances.
 
-    Creates a typed relationship between two samples.
-    Both source and target samples must be provided or will be auto-created.
+    Creates a typed relationship between two samples. ``source`` and ``target`` have no
+    default and must always be provided - both are concrete specimens, and ``Sample`` (the
+    class ``SampleFactory`` declares) cannot be created directly. Pass concrete specimen
+    instances, e.g. ``SampleRelationFactory(source=RockSampleFactory(), target=parent)``.
     """
 
     class Meta:
         model = SampleRelation
 
     type = "child_of"  # Default relationship type
-    source = SubFactory(SampleFactory)
-    target = SubFactory(SampleFactory)
 
 
 class PointFactory(DjangoModelFactory):

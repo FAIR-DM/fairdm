@@ -69,6 +69,15 @@ class FairDMIdentifiers(VocabularyBuilder):
         "dcterms:source": "https://www.doi.org/doi_handbook/",
     }
 
+    IGSN = {
+        "skos:prefLabel": _("IGSN"),
+        "skos:definition": _(
+            "The International Generic Sample Number, a persistent identifier for physical "
+            "specimens. Registration moved to DataCite in 2023; legacy handles still resolve."
+        ),
+        "dcterms:source": "https://igsn.org/",
+    }
+
     GRANT_NUMBER = {
         "skos:prefLabel": _("Grant Number"),
         "skos:definition": _(
@@ -146,6 +155,15 @@ class FairDMIdentifiers(VocabularyBuilder):
                     "DOI",
                 ],
             ),
+            "Sample": Collection(
+                prefLabel=_("Sample Identifiers"),
+                definition=_("Persistent identifiers for physical specimens."),
+                ordered=True,
+                members=[
+                    "IGSN",
+                    "DOI",
+                ],
+            ),
             "Person": Collection(
                 prefLabel=_("Person Identifiers"),
                 definition=_(
@@ -168,6 +186,42 @@ class FairDMIdentifiers(VocabularyBuilder):
                     "WIKIDATA",
                     "ISNI",
                     "CROSSREF_FUNDER_ID",
+                ],
+            ),
+            # `Contributor` is the polymorphic base `Person` and `Organization` both
+            # inherit, so its identifier collection is the union of the two - not a
+            # fresh, independently-chosen list (005 F1/F2). Adding IGSN to the
+            # sample-only "Sample" collection above must never widen this one; without
+            # a scoped collection of its own, `ContributorIdentifier` bound the
+            # unscoped vocabulary and picked up every member added anywhere, IGSN
+            # included, offering a specimen identifier to a person or organisation.
+            "Contributor": Collection(
+                prefLabel=_("Contributor Identifiers"),
+                definition=_(
+                    "Persistent identifiers for people and organizations - the union "
+                    "of the person and organization identifier collections."
+                ),
+                ordered=True,
+                members=[
+                    "ORCID",
+                    "RESEARCHER_ID",
+                    "ROR",
+                    "WIKIDATA",
+                    "ISNI",
+                    "CROSSREF_FUNDER_ID",
+                ],
+            ),
+            # No member yet identifies a measurement specifically - DOI is the only
+            # candidate in the vocabulary that is not scoped to a person, an
+            # organisation or a project (005 F1/F2). Scoped rather than left on the
+            # unscoped vocabulary for the same reason "Contributor" is: a member added
+            # for another record type must not silently become available here.
+            "Measurement": Collection(
+                prefLabel=_("Measurement Identifiers"),
+                definition=_("Persistent identifiers for research measurements."),
+                ordered=True,
+                members=[
+                    "DOI",
                 ],
             ),
         }
@@ -753,4 +807,62 @@ class FairDMRoles(VocabularyBuilder):
                     "Support",
                 ],
             ),
+        }
+
+
+class FairDMSampleStatus(VocabularyBuilder):
+    """Custody states for a physical specimen.
+
+    Replaces the vocabulary previously fetched from ``vocabulary.odm2.org``, which named
+    the state of a data-collection activity (Complete, Ongoing, Planned, Unknown) rather
+    than the physical custody of a specimen - calling a rock "ongoing" carries no meaning
+    (D-002, research.md R3). Declared locally, with no remote source, so a core model
+    field no longer depends on a third-party host being reachable at import time.
+
+    The ``unknown`` member's attribute name is lower case deliberately: a ``ConceptField``
+    stores the concept's attribute name as the value, and ``Sample.status``'s default
+    depends on this member being spelled exactly ``"unknown"``.
+    """
+
+    available = {
+        "skos:prefLabel": _("Available"),
+        "skos:definition": _(
+            "The specimen is accessible and not currently checked out, in storage, or "
+            "destroyed."
+        ),
+    }
+
+    in_use = {
+        "skos:prefLabel": _("In Use"),
+        "skos:definition": _(
+            "The specimen is currently checked out or otherwise in active use."
+        ),
+    }
+
+    stored = {
+        "skos:prefLabel": _("Stored"),
+        "skos:definition": _("The specimen is held in long-term storage."),
+    }
+
+    destroyed = {
+        "skos:prefLabel": _("Destroyed"),
+        "skos:definition": _(
+            "The specimen has been consumed, destroyed, or is otherwise no longer "
+            "physically available. This is not a terminal state - a specimen recorded "
+            "as destroyed can still be moved to any other status."
+        ),
+    }
+
+    unknown = {
+        "skos:prefLabel": _("Unknown"),
+        "skos:definition": _("The specimen's current custody status is not known."),
+    }
+
+    class Meta:
+        name = "fairdm-sample-status"
+        prefix = "FAIRDM"
+        namespace = "https://www.fairdm.org/vocabularies/"
+        scheme_attrs = {
+            "skos:prefLabel": _("FairDM Sample Status"),
+            "skos:definition": _("Custody states for a physical specimen."),
         }

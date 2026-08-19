@@ -23,7 +23,8 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from fairdm.factories import DatasetFactory, SampleFactory
+from fairdm.factories import DatasetFactory
+from fairdm_demo.factories import RockSampleFactory
 from fairdm_demo.models import (
     ExampleMeasurement,
     ICP_MS_Measurement,
@@ -49,7 +50,7 @@ def admin_user(db):
 @pytest.fixture
 def sample(db):
     """Create a sample for measurement tests."""
-    return SampleFactory()
+    return RockSampleFactory()
 
 
 @pytest.fixture

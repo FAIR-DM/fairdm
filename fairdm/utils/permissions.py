@@ -1,6 +1,13 @@
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from guardian.shortcuts import assign_perm, get_perms, remove_perm
+
+# `fairdm.core.utils`'s wrappers, not guardian's raw shortcuts (F3): a right granted through
+# `fairdm.core.utils.assign_perm` on a polymorphic subclass instance (e.g. a specimen) is filed
+# under the polymorphic base's content type, not the subclass's own. The raw guardian functions
+# only ever look under the object's own content type, so `remove_all_model_perms` - fired from
+# `Contribution.remove_user_perms` with a concrete specimen - found nothing there and silently
+# left the grant in place.
+from fairdm.core.utils import assign_perm, get_perms, remove_perm
 
 OBJECT_PERMS = [
     "add_{model_name}",

@@ -3,6 +3,7 @@
 Provides optimized query methods for common Sample operations including:
 - Prefetching related data (dataset, location, contributors)
 - Prefetching metadata (descriptions, dates, identifiers)
+- Prefetching controlled keywords
 - Filtering by relationship types
 - Traversing sample hierarchies
 """
@@ -46,6 +47,23 @@ class SampleQuerySet(PolymorphicQuerySet):
             "contributors__contributor",
             "contributors__roles",
         )
+
+    def with_keywords(self):
+        """Prefetch controlled keywords (the ``keywords`` many-to-many).
+
+        Split from :meth:`with_metadata` because it is a distinct group of related records
+        (FR-044) - the vocabulary concepts a sample is tagged with, not a per-sample record of
+        its own.
+
+        Returns:
+            SampleQuerySet: Chainable queryset with keywords prefetched
+
+        Example:
+            >>> samples = Sample.objects.with_keywords()
+            >>> for sample in samples:
+            ...     sample.keywords.all()  # no additional query
+        """
+        return self.prefetch_related("keywords")
 
     def with_metadata(self):
         """Prefetch sample metadata (descriptions, dates, identifiers).
@@ -120,6 +138,13 @@ class SampleQuerySet(PolymorphicQuerySet):
     def get_descendants(self, sample, max_depth=None):
         """Get all descendant samples in a hierarchy.
 
+        The single traversal implementation for "descendants" (D-007): the model's
+        `Sample.get_descendants()` delegates here rather than repeating the walk.
+        `SampleRelation`'s edge convention is ``source = child``, ``target = parent``, so
+        finding descendants means walking from each level's ``target`` to its ``source``
+        - the reverse of this method's previous, swapped implementation, which walked
+        source to target and returned ancestors instead.
+
         Uses iterative breadth-first search to traverse the sample hierarchy
         and collect all descendants. This is more efficient than recursive
         queries for moderate depths (<10 levels).
@@ -142,6 +167,7 @@ class SampleQuerySet(PolymorphicQuerySet):
             return self.none()
 
         descendant_ids = set()
+        visited = {sample.id}
         current_level = {sample.id}
         depth = 0
 
@@ -149,17 +175,22 @@ class SampleQuerySet(PolymorphicQuerySet):
             if max_depth is not None and depth >= max_depth:
                 break
 
-            # Get all samples that have current level samples as sources
+            # Children of the current level: rows whose target is a current-level
+            # sample, keeping their source (D-004: "child_of" is the only type).
             next_level = set(
-                SampleRelation.objects.filter(source_id__in=current_level).values_list(
-                    "target_id", flat=True
-                )
+                SampleRelation.objects.filter(
+                    target_id__in=current_level, type="child_of"
+                ).values_list("source_id", flat=True)
             )
 
             # Remove any samples we've already seen to prevent cycles
-            next_level = next_level - descendant_ids - {sample.id}
+            next_level = next_level - visited
+
+            if not next_level:
+                break
 
             descendant_ids.update(next_level)
+            visited.update(next_level)
             current_level = next_level
             depth += 1
 
@@ -171,8 +202,13 @@ class SampleQuerySet(PolymorphicQuerySet):
     def get_ancestors(self, sample, max_depth=None):
         """Get all ancestor samples in a hierarchy.
 
+        The single traversal implementation for "ancestors" (D-007): the model's
+        `Sample.get_ancestors()` delegates here. Walks the reverse direction of
+        `get_descendants()` - from each level's ``source`` to its ``target`` - since
+        an ancestor is reached by following ``child_of`` from a sample toward its parent.
+
         Uses iterative breadth-first search to traverse the sample hierarchy
-        in reverse (target to source) and collect all ancestors.
+        and collect all ancestors.
 
         Args:
             sample: The sample instance to get ancestors for
@@ -192,6 +228,7 @@ class SampleQuerySet(PolymorphicQuerySet):
             return self.none()
 
         ancestor_ids = set()
+        visited = {sample.id}
         current_level = {sample.id}
         depth = 0
 
@@ -199,17 +236,21 @@ class SampleQuerySet(PolymorphicQuerySet):
             if max_depth is not None and depth >= max_depth:
                 break
 
-            # Get all samples that have current level samples as targets
+            # Parents of the current level: rows whose source is a current-level
+            # sample, keeping their target.
             next_level = set(
-                SampleRelation.objects.filter(target_id__in=current_level).values_list(
-                    "source_id", flat=True
-                )
+                SampleRelation.objects.filter(
+                    source_id__in=current_level, type="child_of"
+                ).values_list("target_id", flat=True)
             )
 
-            # Remove any samples we've already seen to prevent cycles
-            next_level = next_level - ancestor_ids - {sample.id}
+            next_level = next_level - visited
+
+            if not next_level:
+                break
 
             ancestor_ids.update(next_level)
+            visited.update(next_level)
             current_level = next_level
             depth += 1
 

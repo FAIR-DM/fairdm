@@ -373,8 +373,11 @@ class RockSampleAdmin(SampleChildAdmin):
     # Add rock-specific search fields
     search_fields = [*SampleChildAdmin.search_fields, "mineral_content"]
 
-    # Extend base_fieldsets to include geological properties
-    fieldsets = (
+    # `base_fieldsets`, not `fieldsets` (see `SampleChildAdmin`'s docstring): polymorphic
+    # admin concatenates this onto the parent's `base_fieldsets`, whereas a plain
+    # `fieldsets` here replaces it outright and silently drops every base `Sample`
+    # field - name, dataset, status, location, uuid, added, modified - from the form.
+    base_fieldsets = (
         (
             "Geological Properties",
             {
@@ -426,8 +429,11 @@ class WaterSampleAdmin(SampleChildAdmin):
     # Add water-specific search fields
     search_fields = [*SampleChildAdmin.search_fields, "water_source"]
 
-    # Extend base_fieldsets to include water quality parameters
-    fieldsets = (
+    # `base_fieldsets`, not `fieldsets` (see `SampleChildAdmin`'s docstring): polymorphic
+    # admin concatenates this onto the parent's `base_fieldsets`, whereas a plain
+    # `fieldsets` here replaces it outright and silently drops every base `Sample`
+    # field - name, dataset, status, location, uuid, added, modified - from the form.
+    base_fieldsets = (
         (
             "Water Quality Parameters",
             {

@@ -139,6 +139,16 @@ When you're ready to restore access:
 
 - Ensure django-guardian is installed and configured in your FairDM portal. Contact your system administrator if needed.
 
+**A user with "Can change dataset" cannot edit its samples:**
+
+- Rights over a dataset's samples derive from the dataset grant automatically: viewing a dataset
+  confers viewing its samples, and changing a dataset confers changing, deleting and adding
+  samples within it. If that inheritance is not holding, check that the grant was made on the
+  dataset itself (not, say, a project) and that it did not go through a raw django-guardian call —
+  see [Managing Users and Permissions](managing_users_and_permissions.md) for why samples, being
+  polymorphic, need FairDM's own permission helpers when granted programmatically rather than
+  through this admin page.
+
 ```{seealso}
 For more details on user roles and group management, see [Managing Users and Permissions](managing_users_and_permissions.md).
 ```

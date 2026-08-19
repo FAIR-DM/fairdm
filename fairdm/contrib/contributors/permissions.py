@@ -4,10 +4,10 @@ Custom permission backends for Organization model.
 Provides derived permissions based on Affiliation relationships.
 """
 
-from guardian.backends import ObjectPermissionBackend
+from fairdm.core.permissions import PolymorphicObjectPermissionBackend
 
 
-class OrganizationPermissionBackend(ObjectPermissionBackend):
+class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
     """
     Custom permission backend that derives manage_organization from Affiliation.type.
 

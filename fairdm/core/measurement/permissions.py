@@ -9,17 +9,17 @@ Usage:
     AUTHENTICATION_BACKENDS = [
         "django.contrib.auth.backends.ModelBackend",
         "allauth.account.auth_backends.AuthenticationBackend",
-        "guardian.backends.ObjectPermissionBackend",
+        "fairdm.core.permissions.PolymorphicObjectPermissionBackend",
         "fairdm.core.sample.permissions.SamplePermissionBackend",
         "fairdm.core.measurement.permissions.MeasurementPermissionBackend",  # Add this
     ]
     ```
 """
 
-from guardian.backends import ObjectPermissionBackend
+from fairdm.core.permissions import PolymorphicObjectPermissionBackend
 
 
-class MeasurementPermissionBackend(ObjectPermissionBackend):
+class MeasurementPermissionBackend(PolymorphicObjectPermissionBackend):
     """Custom permission backend for Measurement model with dataset inheritance.
 
     This backend extends django-guardian's ObjectPermissionBackend to support:

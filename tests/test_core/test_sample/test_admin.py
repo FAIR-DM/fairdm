@@ -12,11 +12,19 @@ Based on tasks T031-T033 from Feature 007.
 """
 
 import pytest
+from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
+from django.urls import reverse
 
-from fairdm.core.sample.admin import SampleChildAdmin
+from fairdm.core.sample.admin import (
+    SampleChildAdmin,
+    SampleDateInline,
+    SampleDescriptionInline,
+    SampleIdentifierInline,
+    SampleParentAdmin,
+)
 from fairdm.core.sample.models import (
     Sample,
     SampleDate,
@@ -24,7 +32,11 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
-from fairdm.factories.core import DatasetFactory, SampleFactory
+from fairdm.factories.core import DatasetFactory
+from fairdm.registry import registry
+from fairdm.utils.choices import Visibility
+from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+from fairdm_demo.models import RockSample, WaterSample
 
 User = get_user_model()
 
@@ -45,7 +57,6 @@ def admin_user(db):
 def sample_admin():
     """Create a SampleAdmin instance."""
     return SampleChildAdmin(Sample, AdminSite())
-    return SampleAdmin(Sample, site)
 
 
 @pytest.fixture
@@ -54,196 +65,506 @@ def request_factory():
     return RequestFactory()
 
 
+def _result_pks(response):
+    """The primary keys the changelist actually matched - read off the `ChangeList`
+    Django's admin builds, which is the result set itself, not the rendered markup.
+    """
+    return {obj.pk for obj in response.context["cl"].result_list}
+
+
 @pytest.mark.django_db
 class TestSampleAdminSearch:
-    """Tests for admin search functionality (T031)."""
+    """T081/FR-039: each supported search term finds a matching specimen, asserted
+    through the registered polymorphic parent's changelist rather than by calling
+    `get_search_results()` against the model manager."""
 
-    def test_search_by_name(self, sample_admin, admin_user, request_factory):
-        """Test that admin search finds samples by name."""
-        sample1 = SampleFactory(name="Granite Sample")
-        sample2 = SampleFactory(name="Basalt Sample")
-        _sample3 = SampleFactory(name="Water Sample")
+    def test_search_by_name(self, admin_client):
+        match = RockSampleFactory(name="Granite Sample")
+        other = RockSampleFactory(name="Basalt Sample")
 
-        request = request_factory.get("/admin/sample/sample/", {"q": "Granite"})
-        request.user = admin_user
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(url, {"q": "Granite"})
 
-        queryset = sample_admin.get_search_results(
-            request, Sample.objects.all(), "Granite"
-        )[0]
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
 
-        assert sample1 in queryset
-        assert sample2 not in queryset
+    def test_search_by_local_id(self, admin_client):
+        match = RockSampleFactory(local_id="SAMPLE-001")
+        other = RockSampleFactory(local_id="SAMPLE-002")
 
-    def test_search_by_local_id(self, sample_admin, admin_user, request_factory):
-        """Test that admin search finds samples by local_id."""
-        sample1 = SampleFactory(local_id="SAMPLE-001")
-        _sample2 = SampleFactory(local_id="SAMPLE-002")
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(url, {"q": "SAMPLE-001"})
 
-        request = request_factory.get("/admin/sample/sample/", {"q": "SAMPLE-001"})
-        request.user = admin_user
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
 
-        queryset = sample_admin.get_search_results(
-            request, Sample.objects.all(), "SAMPLE-001"
-        )[0]
+    def test_search_by_uuid(self, admin_client):
+        match = RockSampleFactory()
+        other = RockSampleFactory()
 
-        assert sample1 in queryset
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(url, {"q": match.uuid})
 
-    def test_search_by_uuid(self, sample_admin, admin_user, request_factory):
-        """Test that admin search finds samples by UUID."""
-        sample1 = SampleFactory()
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
 
-        request = request_factory.get("/admin/sample/sample/", {"q": sample1.uuid})
-        request.user = admin_user
+    def test_search_returns_empty_for_no_matches(self, admin_client):
+        RockSampleFactory(name="Test Sample")
 
-        queryset = sample_admin.get_search_results(
-            request, Sample.objects.all(), sample1.uuid
-        )[0]
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(url, {"q": "NonExistent"})
 
-        assert sample1 in queryset
-
-    def test_search_returns_empty_for_no_matches(
-        self, sample_admin, admin_user, request_factory
-    ):
-        """Test that admin search returns empty queryset when no matches found."""
-        _sample1 = SampleFactory(name="Test Sample")
-
-        request = request_factory.get("/admin/sample/sample/", {"q": "NonExistent"})
-        request.user = admin_user
-
-        queryset = sample_admin.get_search_results(
-            request, Sample.objects.all(), "NonExistent"
-        )[0]
-
-        assert queryset.count() == 0
+        assert response.status_code == 200
+        assert _result_pks(response) == set()
 
 
 @pytest.mark.django_db
 class TestSampleAdminFilters:
-    """Tests for admin filtering functionality (T032)."""
+    """T082/FR-039: each supported filter removes the specimens that do not match,
+    asserted through the changelist's actual result set."""
 
-    def test_filter_by_dataset(self, sample_admin):
-        """Test that admin can filter samples by dataset."""
+    def test_filter_by_dataset(self, admin_client):
         dataset1 = DatasetFactory(name="Dataset A")
         dataset2 = DatasetFactory(name="Dataset B")
 
-        sample1 = SampleFactory(dataset=dataset1)
-        _sample2 = SampleFactory(dataset=dataset2)
+        match = RockSampleFactory(dataset=dataset1)
+        other = RockSampleFactory(dataset=dataset2)
 
-        # Simulate filtering by dataset1
-        filtered = Sample.objects.filter(dataset=dataset1)
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(url, {"dataset__id__exact": str(dataset1.pk)})
 
-        assert sample1 in filtered
-        assert filtered.count() == 1
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
 
-    def test_filter_by_status(self, sample_admin):
-        """Test that admin can filter samples by status."""
-        # Use default status (unknown) which is valid in the vocabulary
-        sample1 = SampleFactory()
-        sample2 = SampleFactory()
+    def test_filter_by_status(self, admin_client):
+        match = RockSampleFactory()
+        match.status = "available"
+        match.save()
+        other = RockSampleFactory()
+        other.status = "stored"
+        other.save()
 
-        # Simulate filtering by status (both should have 'unknown' status by default)
-        filtered = Sample.objects.filter(status=sample1.status)
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(url, {"status__exact": "available"})
 
-        assert sample1 in filtered
-        assert sample2 in filtered
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert other.pk not in pks
 
-    def test_list_filter_configuration(self, sample_admin):
-        """Test that list_filter is configured correctly."""
-        assert "status" in sample_admin.list_filter
-        assert "added" in sample_admin.list_filter
-
-    def test_multiple_filters_can_be_combined(self, sample_admin):
-        """Test that multiple filters can be combined."""
+    def test_multiple_filters_can_be_combined(self, admin_client):
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
-        sample1 = SampleFactory(dataset=dataset1)
-        _sample2 = SampleFactory(dataset=dataset2)
+        match = RockSampleFactory(dataset=dataset1)
+        match.status = "available"
+        match.save()
+        # Same dataset, different status - excluded by the status half of the filter.
+        same_dataset = RockSampleFactory(dataset=dataset1)
+        same_dataset.status = "stored"
+        same_dataset.save()
+        # Same status, different dataset - excluded by the dataset half of the filter.
+        RockSampleFactory(dataset=dataset2)
 
-        # Simulate combining filters (dataset and status)
-        filtered = Sample.objects.filter(dataset=dataset1, status=sample1.status)
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(
+            url,
+            {"dataset__id__exact": str(dataset1.pk), "status__exact": "available"},
+        )
 
-        assert sample1 in filtered
-        assert filtered.count() == 1
+        assert response.status_code == 200
+        pks = _result_pks(response)
+        assert match.pk in pks
+        assert same_dataset.pk not in pks
+
+
+@pytest.mark.django_db
+class TestSampleDatasetListFilterOrdering:
+    """F9 - `field_choices` calls `order_by(*ordering)`, and an empty `ordering` tuple - what
+    `field_admin_ordering` returns when nothing declares admin-level ordering, the case here -
+    *clears* `Dataset.Meta.ordering` (`order_by()` with no arguments is not a no-op) rather than
+    leaving the model's own default ordering in place."""
+
+    def test_falls_back_to_the_datasets_own_default_ordering(self):
+        from fairdm.core.sample.admin import SampleDatasetListFilter
+
+        early = DatasetFactory()
+        late = DatasetFactory()
+
+        field = Sample._meta.get_field("dataset")
+        request = RequestFactory().get("/")
+        model_admin = admin.site._registry[Sample]
+        list_filter = SampleDatasetListFilter.__new__(SampleDatasetListFilter)
+
+        choices = list_filter.field_choices(field, request, model_admin)
+        pks_in_order = [pk for pk, _label in choices]
+
+        # Dataset.Meta.ordering = ["-modified"]: the more recently modified/created "late"
+        # dataset sorts first. An empty order_by() falls back to whatever the database happens
+        # to return with no ORDER BY, which for two freshly-inserted rows is ascending pk -
+        # "early" before "late" - the opposite of what is asserted here.
+        assert pks_in_order.index(late.pk) < pks_in_order.index(early.pk)
 
 
 @pytest.mark.django_db
 class TestSampleAdminInlines:
-    """Tests for admin inline metadata editing (T033)."""
+    """T083/T089/FR-039: a description, a date, an identifier, a contribution and a
+    provenance link can each be added from the specimen's own page - a real form
+    submission through the *registered* admin, not `Model.objects.create()` and not
+    `SampleChildAdmin` instantiated by hand.
 
-    def test_description_inline_configured(self, sample_admin):
-        """Test that DescriptionInline is configured in SampleAdmin."""
-        inline_names = [inline.__name__ for inline in sample_admin.inlines]
-        assert "SampleDescriptionInline" in inline_names
+    The dataset a specimen belongs to defaults to PRIVATE (D-019 in the dataset
+    story), and `SampleChildAdmin`'s `dataset` field only offers the choices
+    `Dataset`'s privacy-first default manager returns - the same restriction
+    `DatasetAdmin.get_queryset()` works around for the dataset changelist itself, not
+    fixed here since it is outside this story's named scope (see the completion
+    report's `concerns`). Every fixture below uses a PUBLIC dataset so the base
+    change form saves.
+    """
 
-    def test_date_inline_configured(self, sample_admin):
-        """Test that DateInline is configured in SampleAdmin."""
-        inline_names = [inline.__name__ for inline in sample_admin.inlines]
-        assert "SampleDateInline" in inline_names
+    @staticmethod
+    def _base_form_data(sample):
+        return {
+            "name": sample.name,
+            "dataset": sample.dataset.pk,
+            "local_id": sample.local_id or "",
+            "status": "unknown",
+            "rock_type": sample.rock_type,
+            "collection_date": sample.collection_date,
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "1000",
+            "dates-TOTAL_FORMS": "0",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "1000",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
+            "contributors-contribution-content_type-object_id-TOTAL_FORMS": "0",
+            "contributors-contribution-content_type-object_id-INITIAL_FORMS": "0",
+            "contributors-contribution-content_type-object_id-MIN_NUM_FORMS": "0",
+            "contributors-contribution-content_type-object_id-MAX_NUM_FORMS": "1000",
+            "related_samples-TOTAL_FORMS": "0",
+            "related_samples-INITIAL_FORMS": "0",
+            "related_samples-MIN_NUM_FORMS": "0",
+            "related_samples-MAX_NUM_FORMS": "1000",
+            "_continue": "Save and continue editing",
+        }
 
-    def test_identifier_inline_configured(self, sample_admin):
-        """Test that IdentifierInline is configured in SampleAdmin."""
-        inline_names = [inline.__name__ for inline in sample_admin.inlines]
-        assert "SampleIdentifierInline" in inline_names
+    def _change_url(self, sample):
+        return reverse("admin:fairdm_demo_rocksample_change", args=[sample.pk])
 
-    def test_relationship_inline_configured(self, sample_admin):
-        """Test that SampleRelationInline is configured in SampleAdmin."""
-        inline_names = [inline.__name__ for inline in sample_admin.inlines]
-        assert "SampleRelationInline" in inline_names
-
-    def test_contribution_inline_configured(self, sample_admin):
-        """Test that ContributionInline is configured in SampleAdmin."""
-        inline_names = [inline.__name__ for inline in sample_admin.inlines]
-        assert "SampleContributionInline" in inline_names
-
-    def test_inline_metadata_can_be_created(self, sample_admin):
-        """Test that inline metadata objects can be created for a sample."""
-        sample = SampleFactory()
-
-        # Create description via inline
-        description = SampleDescription.objects.create(
-            related=sample, type="Abstract", value="Test description for sample"
+    def test_description_can_be_added_from_the_specimens_own_page(self, admin_client):
+        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        data = self._base_form_data(sample)
+        data.update(
+            {
+                "descriptions-TOTAL_FORMS": "1",
+                "descriptions-0-related": sample.pk,
+                "descriptions-0-type": "SampleCollection",
+                "descriptions-0-value": "Added inline.",
+            }
         )
 
-        assert description.related == sample
-        assert sample.descriptions.count() == 1
+        response = admin_client.post(self._change_url(sample), data=data)
 
-    def test_inline_dates_can_be_created(self, sample_admin):
-        """Test that inline date objects can be created for a sample."""
-        sample = SampleFactory()
+        assert response.status_code == 302, (
+            "A 200 here means the formset rejected the submission - check "
+            "the change form's error list."
+        )
+        assert SampleDescription.objects.filter(
+            related=sample, type="SampleCollection", value="Added inline."
+        ).exists()
 
-        # Create date via inline
-        date = SampleDate.objects.create(
-            related=sample, type="Collected", value="2024-01-15"
+    def test_date_can_be_added_from_the_specimens_own_page(self, admin_client):
+        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        data = self._base_form_data(sample)
+        data.update(
+            {
+                "dates-TOTAL_FORMS": "1",
+                "dates-0-related": sample.pk,
+                "dates-0-type": "Collected",
+                "dates-0-value": "2024-01-15",
+            }
         )
 
-        assert date.related == sample
-        assert sample.dates.count() == 1
+        response = admin_client.post(self._change_url(sample), data=data)
 
-    def test_inline_identifiers_can_be_created(self, sample_admin):
-        """Test that inline identifier objects can be created for a sample."""
-        sample = SampleFactory()
+        assert response.status_code == 302, (
+            "A 200 here means the formset rejected the submission - check "
+            "the change form's error list."
+        )
+        assert SampleDate.objects.filter(related=sample, type="Collected").exists()
 
-        # Create identifier via inline
-        identifier = SampleIdentifier.objects.create(
-            related=sample, type="DOI", value="10.1234/sample.123"
+    def test_identifier_can_be_added_from_the_specimens_own_page(self, admin_client):
+        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        data = self._base_form_data(sample)
+        data.update(
+            {
+                "identifiers-TOTAL_FORMS": "1",
+                "identifiers-0-related": sample.pk,
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "10.1234/inline-test",
+            }
         )
 
-        assert identifier.related == sample
-        assert sample.identifiers.count() == 1
+        response = admin_client.post(self._change_url(sample), data=data)
 
-    def test_inline_relationships_can_be_created(self, sample_admin):
-        """Test that inline relationship objects can be created between samples."""
-        parent = SampleFactory(name="Parent Sample")
-        child = SampleFactory(name="Child Sample")
+        assert response.status_code == 302, (
+            "A 200 here means the formset rejected the submission - check "
+            "the change form's error list."
+        )
+        assert SampleIdentifier.objects.filter(
+            related=sample, type="DOI", value="10.1234/inline-test"
+        ).exists()
 
-        # Create relationship via inline
-        relation = SampleRelation.objects.create(
-            source=child, target=parent, type="child_of"
+    def test_contribution_can_be_added_from_the_specimens_own_page(
+        self, admin_client
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.factories import PersonFactory
+        from research_vocabs.models import Concept
+
+        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        contributor = PersonFactory()
+        role = Concept.objects.filter(
+            vocabulary__name="fairdm-roles", name="Collection"
+        ).first()
+        assert role is not None
+
+        data = self._base_form_data(sample)
+        prefix = "contributors-contribution-content_type-object_id"
+        data.update(
+            {
+                f"{prefix}-TOTAL_FORMS": "1",
+                f"{prefix}-0-contributor": contributor.pk,
+                f"{prefix}-0-roles": [role.pk],
+            }
         )
 
-        assert relation.source == child
-        assert relation.target == parent
-        assert child.get_all_relationships().count() == 1
+        response = admin_client.post(self._change_url(sample), data=data)
+
+        assert response.status_code == 302, (
+            "A 200 here means the formset rejected the submission - check "
+            "the change form's error list."
+        )
+        assert Contribution.objects.filter(
+            object_id=str(sample.pk), contributor=contributor
+        ).exists()
+
+    def test_provenance_link_can_be_added_from_the_specimens_own_page(
+        self, admin_client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        parent = RockSampleFactory(dataset=dataset, name="Parent Sample")
+        child = RockSampleFactory(dataset=dataset, name="Child Sample")
+
+        data = self._base_form_data(child)
+        data.update(
+            {
+                "related_samples-TOTAL_FORMS": "1",
+                "related_samples-0-source": child.pk,
+                "related_samples-0-type": "child_of",
+                "related_samples-0-target": parent.pk,
+            }
+        )
+
+        response = admin_client.post(self._change_url(child), data=data)
+
+        assert response.status_code == 302, (
+            "A 200 here means the formset rejected the submission - check "
+            "the change form's error list."
+        )
+        assert SampleRelation.objects.filter(source=child, target=parent).exists()
+
+    def test_the_admin_registered_for_sample_is_the_polymorphic_parent(self):
+        """T089: the entry `admin.site` actually holds for `Sample` is the
+        polymorphic parent admin - it carries no inlines of its own; editing (and
+        therefore the inlines) is delegated entirely to the registered specimen
+        type's own admin, asserted next."""
+        assert isinstance(admin.site._registry[Sample], SampleParentAdmin)
+
+    def test_a_registered_specimen_types_admin_carries_the_inlines(self):
+        """T089: the admin actually registered for a concrete specimen type -
+        `admin.site._registry[RockSample]` - carries the inlines, not only the
+        `SampleChildAdmin` class it inherits from."""
+        registered_admin = admin.site._registry[RockSample]
+
+        inline_names = {inline.__name__ for inline in registered_admin.inlines}
+
+        assert inline_names == {
+            "SampleDescriptionInline",
+            "SampleDateInline",
+            "SampleIdentifierInline",
+            "SampleContributionInline",
+            "SampleRelationInline",
+        }
+
+
+@pytest.mark.django_db
+class TestSampleAdminInlineLimits:
+    """T084/FR-039: the rows each inline editor offers are bounded by the number of
+    types its vocabulary contains, and the bound moves when the vocabulary does."""
+
+    def test_description_inline_max_num_matches_vocabulary_size(self, admin_user):
+        vocabulary_size = len(SampleDescription.VOCABULARY.values)
+
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = SampleDescriptionInline(Sample, AdminSite())
+        formset = inline.get_formset(request)
+
+        assert formset.max_num == vocabulary_size
+
+    def test_date_inline_max_num_matches_vocabulary_size(self, admin_user):
+        vocabulary_size = len(SampleDate.VOCABULARY.values)
+
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = SampleDateInline(Sample, AdminSite())
+        formset = inline.get_formset(request)
+
+        assert formset.max_num == vocabulary_size
+
+    def test_identifier_inline_max_num_matches_vocabulary_size(self, admin_user):
+        vocabulary_size = len(SampleIdentifier.VOCABULARY.values)
+
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = SampleIdentifierInline(Sample, AdminSite())
+        formset = inline.get_formset(request)
+
+        assert formset.max_num == vocabulary_size
+
+    def test_description_inline_bound_moves_when_the_vocabulary_does(
+        self, admin_user, monkeypatch
+    ):
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = SampleDescriptionInline(Sample, AdminSite())
+        original_max_num = inline.get_formset(request).max_num
+
+        monkeypatch.setattr(
+            SampleDescription.VOCABULARY, "_choices", [("A", "A"), ("B", "B")]
+        )
+
+        shrunk_max_num = inline.get_formset(request).max_num
+
+        assert shrunk_max_num == 2
+        assert shrunk_max_num != original_max_num
+
+    def test_date_inline_bound_moves_when_the_vocabulary_does(
+        self, admin_user, monkeypatch
+    ):
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = SampleDateInline(Sample, AdminSite())
+        original_max_num = inline.get_formset(request).max_num
+
+        monkeypatch.setattr(SampleDate.VOCABULARY, "_choices", [("A", "A")])
+
+        shrunk_max_num = inline.get_formset(request).max_num
+
+        assert shrunk_max_num == 1
+        assert shrunk_max_num != original_max_num
+
+    def test_identifier_inline_bound_moves_when_the_vocabulary_does(
+        self, admin_user, monkeypatch
+    ):
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        inline = SampleIdentifierInline(Sample, AdminSite())
+        original_max_num = inline.get_formset(request).max_num
+
+        monkeypatch.setattr(
+            SampleIdentifier.VOCABULARY,
+            "_choices",
+            [("A", "A"), ("B", "B"), ("C", "C")],
+        )
+
+        grown_max_num = inline.get_formset(request).max_num
+
+        assert grown_max_num == 3
+        assert grown_max_num != original_max_num
+
+
+@pytest.mark.django_db
+class TestSampleAdminTypeColumn:
+    """T085/FR-039: the changelist names the specimen type of each row."""
+
+    def test_the_changelist_names_each_rows_specimen_type(self, admin_client):
+        RockSampleFactory(name="A Rock")
+        WaterSampleFactory(name="A Water Sample")
+
+        url = reverse("admin:sample_sample_changelist")
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert str(RockSample._meta.verbose_name) in content
+        assert str(WaterSample._meta.verbose_name) in content
+
+
+@pytest.mark.django_db
+class TestSampleAdminReadonly:
+    """T086/FR-043: the generated identifier and the timestamps are presented as
+    unchangeable, asserted through a rendered admin form's actual editable field set
+    rather than by checking that a name appears in `readonly_fields` - for both the
+    registered parent admin's change view and a registered specimen type's own."""
+
+    def test_absent_from_editable_fields_through_a_registered_specimen_type(
+        self, admin_client
+    ):
+        sample = RockSampleFactory()
+        url = reverse("admin:fairdm_demo_rocksample_change", args=[sample.pk])
+
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        editable_fields = response.context["adminform"].form.fields
+        assert "uuid" not in editable_fields
+        assert "added" not in editable_fields
+        assert "modified" not in editable_fields
+        # Still displayed to the user, just not as an editable input.
+        assert sample.uuid in response.content.decode()
+
+    def test_absent_from_editable_fields_through_the_registered_parent_admin(
+        self, admin_client
+    ):
+        sample = RockSampleFactory()
+        url = reverse("admin:sample_sample_change", args=[sample.pk])
+
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        editable_fields = response.context["adminform"].form.fields
+        assert "uuid" not in editable_fields
+        assert "added" not in editable_fields
+        assert "modified" not in editable_fields
+        assert sample.uuid in response.content.decode()
+
+
+@pytest.mark.django_db
+class TestEveryTypeGetsTheInlines:
+    """T087/FR-039: every registered specimen type offers the same inline editors."""
+
+    def test_every_registered_specimen_type_carries_the_same_inlines(self):
+        expected = {inline.__name__ for inline in SampleChildAdmin.inlines}
+
+        for model in registry.samples:
+            registered_admin = admin.site._registry[model]
+            actual = {inline.__name__ for inline in registered_admin.inlines}
+            assert actual == expected, model
 
 
 @pytest.mark.django_db
@@ -284,3 +605,55 @@ class TestSampleAdminConfiguration:
         assert len(sample_admin.search_fields) > 0
         # SampleAdmin should have list display configured
         assert len(sample_admin.list_display) > 0
+
+
+@pytest.mark.django_db
+class TestSampleAdminReachesPrivateDatasets:
+    """A specimen in a private dataset can be edited.
+
+    The dataset field's choices come from the privacy-first default manager
+    unless the admin says otherwise, so a specimen belonging to a private
+    dataset could be opened and then refused on save — its own dataset was
+    not among the choices. The administrative interface is where a portal is
+    repaired, so it has to reach the records that need repairing.
+    """
+
+    def test_the_dataset_field_offers_a_private_dataset(self, rf, admin_user):
+        from fairdm.factories import DatasetFactory
+        from fairdm.utils.choices import Visibility
+        from fairdm_demo.factories import RockSampleFactory
+
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=private)
+
+        request = rf.get("/")
+        request.user = admin_user
+        model_admin = admin.site._registry[type(sample)]
+        form = model_admin.get_form(request, sample)()
+
+        assert private in form.fields["dataset"].queryset
+
+    def test_a_specimen_in_a_private_dataset_validates(self, rf, admin_user):
+        from fairdm.factories import DatasetFactory
+        from fairdm.utils.choices import Visibility
+        from fairdm_demo.factories import RockSampleFactory
+
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=private)
+
+        request = rf.get("/")
+        request.user = admin_user
+        model_admin = admin.site._registry[type(sample)]
+        form_class = model_admin.get_form(request, sample)
+        form = form_class(
+            data={
+                "name": sample.name,
+                "dataset": private.pk,
+                "status": "unknown",
+                "rock_type": sample.rock_type,
+                "collection_date": sample.collection_date,
+            },
+            instance=sample,
+        )
+
+        assert "dataset" not in form.errors

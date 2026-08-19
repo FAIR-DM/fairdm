@@ -66,7 +66,14 @@ def reverse(instance, view_name, *args, **kwargs):
     """
     from .registration import registry
 
-    namespace = instance._meta.model_name.lower()
+    # Use the record's declared polymorphic base (``type_of``), not its own real class, when
+    # the model defines one. A concrete specimen type (e.g. ``RockSample``) shares its pages
+    # with every other sample type under one namespace - the same convention
+    # `BasePolymorphicModel.get_absolute_url` already uses (`fairdm/core/abstract.py`). Using
+    # the real class here looked for a per-subclass namespace ("rocksample") that is never
+    # registered, because only the base's namespace ("sample") is.
+    model = getattr(instance, "type_of", type(instance))
+    namespace = model._meta.model_name.lower()
     for kwarg, field in registry.lookup_for(type(instance)).items():
         kwargs.setdefault(kwarg, getattr(instance, field))
     return urls.reverse(f"{namespace}:{view_name}", args=args, kwargs=kwargs)

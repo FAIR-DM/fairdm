@@ -23,7 +23,6 @@ from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
-    SampleFactory,
 )
 from fairdm.factories.contributors import ContributionFactory, ContributorFactory
 from fairdm.factories.core import (
@@ -36,6 +35,7 @@ from fairdm.factories.core import (
     SampleDateFactory,
     SampleDescriptionFactory,
 )
+from fairdm_demo.factories import RockSampleFactory
 
 
 class TestCoreFactoriesBasic(TestCase):
@@ -72,7 +72,7 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_sample_factory_creates_instance(self):
         """Test SampleFactory creates valid instances with relationships."""
-        sample = SampleFactory(descriptions=2, dates=1)
+        sample = RockSampleFactory(descriptions=2, dates=1)
 
         self.assertIsInstance(sample, Sample)
         self.assertIsNotNone(sample.pk)
@@ -87,7 +87,7 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_measurement_factory_creates_instance(self):
         """Test MeasurementFactory creates valid instances with relationships."""
-        measurement = MeasurementFactory(descriptions=2, dates=1)
+        measurement = MeasurementFactory(sample=RockSampleFactory(), descriptions=2, dates=1)
 
         self.assertIsInstance(measurement, Measurement)
         self.assertIsNotNone(measurement.pk)
@@ -105,8 +105,8 @@ class TestCoreFactoriesBasic(TestCase):
         """Test description factories work when provided with related objects."""
         project = ProjectFactory()
         dataset = DatasetFactory()
-        sample = SampleFactory()
-        measurement = MeasurementFactory()
+        sample = RockSampleFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
 
         # Test description factories
         project_desc = ProjectDescriptionFactory(related=project)
@@ -122,15 +122,18 @@ class TestCoreFactoriesBasic(TestCase):
         # Check default types
         self.assertEqual(project_desc.type, "Abstract")
         self.assertEqual(dataset_desc.type, "Abstract")
-        self.assertEqual(sample_desc.type, "Abstract")
+        # "Abstract" is not a member of the sample description vocabulary (005-core-samples
+        # T005) - SampleDescriptionFactory's default was corrected to "SampleCollection", a
+        # real member, so the assertion here tracks that.
+        self.assertEqual(sample_desc.type, "SampleCollection")
         self.assertEqual(measurement_desc.type, "Abstract")
 
     def test_date_factories_with_related_objects(self):
         """Test date factories work when provided with related objects."""
         project = ProjectFactory()
         dataset = DatasetFactory()
-        sample = SampleFactory()
-        measurement = MeasurementFactory()
+        sample = RockSampleFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
 
         # Test date factories
         project_date = ProjectDateFactory(related=project)
@@ -156,7 +159,7 @@ class TestCoreFactoriesBasic(TestCase):
         """Test that all factories support build mode (without saving to database)."""
         project = ProjectFactory.build()
         dataset = DatasetFactory.build()
-        sample = SampleFactory.build()
+        sample = RockSampleFactory.build()
         measurement = MeasurementFactory.build()
 
         # Built instances should not have PKs
@@ -188,7 +191,7 @@ class TestCoreFactoriesBasic(TestCase):
         # Create a complete hierarchy
         project = ProjectFactory()
         dataset = DatasetFactory(project=project)
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
         measurement = MeasurementFactory(dataset=dataset, sample=sample)
 
         # Verify relationships
@@ -220,7 +223,7 @@ class TestCoreFactoriesBasic(TestCase):
 
     def test_sample_factory_specific_features(self):
         """Test Sample-specific factory features."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         self.assertIsNotNone(sample.local_id)
         self.assertTrue(sample.local_id.startswith("SAMPLE-"))
@@ -255,8 +258,8 @@ class TestCoreFactoriesBasic(TestCase):
         # Create multiple objects to test uniqueness constraints
         projects = ProjectFactory.create_batch(3)
         datasets = DatasetFactory.create_batch(3)
-        samples = SampleFactory.create_batch(3)
-        measurements = MeasurementFactory.create_batch(3)
+        samples = RockSampleFactory.create_batch(3)
+        measurements = MeasurementFactory.create_batch(3, sample=RockSampleFactory())
 
         # Verify all have unique PKs
         project_pks = [p.pk for p in projects]
@@ -299,14 +302,14 @@ class TestFactoryVocabularyValidation(TestCase):
     def test_sample_factory_rejects_invalid_description_types(self):
         """Test SampleFactory raises error for invalid description types."""
         with self.assertRaises(ValueError) as cm:
-            SampleFactory(descriptions=1, descriptions__types=["InvalidType"])
+            RockSampleFactory(descriptions=1, descriptions__types=["InvalidType"])
 
         self.assertIn("Invalid description types", str(cm.exception))
 
     def test_measurement_factory_rejects_invalid_description_types(self):
         """Test MeasurementFactory raises error for invalid description types."""
         with self.assertRaises(ValueError) as cm:
-            MeasurementFactory(descriptions=1, descriptions__types=["InvalidType"])
+            MeasurementFactory(sample=RockSampleFactory(), descriptions=1, descriptions__types=["InvalidType"])
 
         self.assertIn("Invalid description types", str(cm.exception))
 
@@ -482,7 +485,7 @@ class TestSampleFactories:
 
     def test_sample_factory_creates_sample(self):
         """Test SampleFactory creates a valid Sample instance."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         assert isinstance(sample, Sample)
         assert sample.pk is not None
@@ -494,25 +497,25 @@ class TestSampleFactories:
     def test_sample_factory_with_existing_dataset(self):
         """Test SampleFactory can use an existing dataset."""
         dataset = DatasetFactory()
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
 
         assert sample.dataset == dataset
 
     def test_sample_factory_no_auto_descriptions(self):
         """Test SampleFactory doesn't auto-create descriptions."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         assert sample.descriptions.count() == 0
 
     def test_sample_factory_no_auto_dates(self):
         """Test SampleFactory doesn't auto-create dates."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
 
         assert sample.dates.count() == 0
 
     def test_sample_description_factory(self):
         """Test SampleDescriptionFactory creates valid descriptions."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         description = SampleDescriptionFactory(related=sample, type="Technical Info")
 
         assert isinstance(description, SampleDescription)
@@ -523,7 +526,7 @@ class TestSampleFactories:
 
     def test_sample_date_factory(self):
         """Test SampleDateFactory creates valid dates."""
-        sample = SampleFactory()
+        sample = RockSampleFactory()
         date = SampleDateFactory(related=sample, type="Collected")
 
         assert isinstance(date, SampleDate)
@@ -539,7 +542,10 @@ class TestMeasurementFactories:
 
     def test_measurement_factory_creates_measurement(self):
         """Test MeasurementFactory creates a valid Measurement instance."""
-        measurement = MeasurementFactory()
+        dataset = DatasetFactory()
+        measurement = MeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
 
         assert isinstance(measurement, Measurement)
         assert measurement.pk is not None
@@ -551,7 +557,9 @@ class TestMeasurementFactories:
     def test_measurement_factory_with_existing_dataset(self):
         """Test MeasurementFactory can use an existing dataset."""
         dataset = DatasetFactory()
-        measurement = MeasurementFactory(dataset=dataset)
+        measurement = MeasurementFactory(
+            sample=RockSampleFactory(dataset=dataset), dataset=dataset
+        )
 
         assert measurement.dataset == dataset
         assert measurement.sample.dataset == dataset
@@ -559,7 +567,7 @@ class TestMeasurementFactories:
     def test_measurement_factory_with_sample(self):
         """Test MeasurementFactory can link to a specific sample."""
         dataset = DatasetFactory()
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
         measurement = MeasurementFactory(dataset=dataset, sample=sample)
 
         assert measurement.sample == sample
@@ -567,19 +575,19 @@ class TestMeasurementFactories:
 
     def test_measurement_factory_no_auto_descriptions(self):
         """Test MeasurementFactory doesn't auto-create descriptions."""
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
 
         assert measurement.descriptions.count() == 0
 
     def test_measurement_factory_no_auto_dates(self):
         """Test MeasurementFactory doesn't auto-create dates."""
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
 
         assert measurement.dates.count() == 0
 
     def test_measurement_description_factory(self):
         """Test MeasurementDescriptionFactory creates valid descriptions."""
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
         description = MeasurementDescriptionFactory(
             related=measurement, type="Abstract"
         )
@@ -592,7 +600,7 @@ class TestMeasurementFactories:
 
     def test_measurement_date_factory(self):
         """Test MeasurementDateFactory creates valid dates."""
-        measurement = MeasurementFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
         date = MeasurementDateFactory(related=measurement, type="Created")
 
         assert isinstance(date, MeasurementDate)
@@ -633,8 +641,8 @@ class TestFactoryIntegration:
         ContributionFactory(content_object=dataset, contributor=person)
 
         # Create samples
-        sample1 = SampleFactory(dataset=dataset)
-        sample2 = SampleFactory(dataset=dataset)
+        sample1 = RockSampleFactory(dataset=dataset)
+        sample2 = RockSampleFactory(dataset=dataset)
         SampleDescriptionFactory(related=sample1)
         SampleDateFactory(related=sample1)
 
@@ -688,8 +696,8 @@ class TestBasicFactoryFunctionality(TestCase):
         # Test core factories
         project = ProjectFactory()
         dataset = DatasetFactory()
-        sample = SampleFactory()
-        measurement = MeasurementFactory()
+        sample = RockSampleFactory()
+        measurement = MeasurementFactory(sample=RockSampleFactory())
 
         # Test contributor factories
         person = PersonFactory()
@@ -708,7 +716,7 @@ class TestBasicFactoryFunctionality(TestCase):
         # Test core factories
         project = ProjectFactory.build()
         dataset = DatasetFactory.build()
-        sample = SampleFactory.build()
+        sample = RockSampleFactory.build()
         measurement = MeasurementFactory.build()
 
         # Test contributor factories
@@ -751,7 +759,7 @@ class TestBasicFactoryFunctionality(TestCase):
         # Create related objects
         project = ProjectFactory()
         dataset = DatasetFactory(project=project)
-        sample = SampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset)
         measurement = MeasurementFactory(dataset=dataset, sample=sample)
 
         # Verify relationships

@@ -43,4 +43,6 @@ IdentifierLookup = {
     "Wikidata": "https://www.wikidata.org/wiki/",
     "ISNI": "https://isni.org/isni/",
     "Crossref Funder ID": "https://doi.org/",
+    "IGSN": "https://igsn.org/",
+    "DOI": "https://doi.org/",
 }
