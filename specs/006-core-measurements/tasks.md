@@ -145,78 +145,78 @@ adjudicated in `decisions.md` before it reached this list.
 - [X] T039 Tests that a measurement in one dataset naming a sample from another is created, and that
   - **Reconciled done.** Code: `fairdm/core/measurement/models.py:71`. Test: `tests/test_core/test_measurement/test_models.py:222` — `assert measurement.sample.dataset != measurement.dataset`
   the measurement is attributed to its own dataset while the sample stays attributed to the sample's.
-- [ ] T040 Tests that a user holding editing rights on the measurement's dataset and not on the
+- [X] T040 Tests that a user holding editing rights on the measurement's dataset and not on the
   sample's may edit the measurement and may not edit the sample.
   - **Open:** never built — every test covering the cross-dataset rights boundary is skipped
-- [ ] T041 Tests that deleting the measurement's dataset removes the measurement whatever dataset
+- [X] T041 Tests that deleting the measurement's dataset removes the measurement whatever dataset
   - **Reopened at design review:** same vacuous citation as T013. `test_models.py:784` covers both halves, including the cross-dataset sample.
   its sample belongs to, and that deleting the sample is refused while the measurement refers to it.
 
 ## Phase 4 — Descriptions, dates and identifiers
 
-- [ ] T042 Tests that a measurement's descriptions, dates and identifiers each refer to the
+- [X] T042 Tests that a measurement's descriptions, dates and identifiers each refer to the
   measurement directly, and that all three are deleted when it is.
   - **Open:** built without tests — the direct relation is asserted (`test_models.py:647`); the cascade on delete is not
-- [ ] T043 The three records with direct relations to `Measurement`, cascading on delete.
+- [X] T043 The three records with direct relations to `Measurement`, cascading on delete.
   - **Open:** built without tests — same
-- [ ] T044 Tests that a description's type is drawn from the measurement description vocabulary,
+- [X] T044 Tests that a description's type is drawn from the measurement description vocabulary,
   asserted by naming the members that vocabulary contains rather than by iterating whatever it holds.
   - **Open:** built differently — the test asserts `desc.type == "method"`, which is not a member of the measurement description vocabulary, and passes only because nothing validates
-- [ ] T045 The description vocabulary binding on `MeasurementDescription`.
+- [X] T045 The description vocabulary binding on `MeasurementDescription`.
   - **Open:** built without tests — the binding exists (`models.py:184`) but its only test asserts an invalid member
-- [ ] T046 Tests that a date's type is drawn from the measurement date vocabulary, asserted the same
+- [X] T046 Tests that a date's type is drawn from the measurement date vocabulary, asserted the same
   way.
   - **Open:** built differently — the test asserts `date.type == "measured"`, not a member of the measurement date vocabulary
-- [ ] T047 The date vocabulary binding on `MeasurementDate`.
+- [X] T047 The date vocabulary binding on `MeasurementDate`.
   - **Open:** built without tests — the binding exists (`models.py:195`) but its only test asserts an invalid member
 - [X] T048 Tests that an identifier's type is drawn from the measurement identifier collection, and
   - **Reconciled done.** Code: `fairdm/core/measurement/models.py:208`. Test: `tests/test_core/test_measurement/test_models.py:183` — `assert set(MeasurementIdentifier.VOCABULARY.values) == {"DOI"}`
   that the collection contains no type belonging to another kind of record.
 - [X] T049 The identifier collection and its binding on `MeasurementIdentifier`.
   - **Reconciled done.** Code: `fairdm/core/measurement/models.py:208`. Test: `tests/test_core/test_measurement/test_models.py:183` — `assert set(MeasurementIdentifier.VOCABULARY.values).isdisjoint(...)`
-- [ ] T050 Tests that a description, date or identifier carrying a type outside its vocabulary is
+- [X] T050 Tests that a description, date or identifier carrying a type outside its vocabulary is
   refused by validation with a message naming the offending type.
   - **Open:** never built
-- [ ] T051 That validation on the three metadata records.
+- [X] T051 That validation on the three metadata records.
   - **Open:** never built — the metadata records carry field choices and no validation, and a direct create bypasses choices entirely
 
 ## Phase 5 — The mixins and their wiring
 
-- [ ] T052 Tests in `test_filters.py` that a filter set inheriting the filter mixin carries every
+- [X] T052 Tests in `test_filters.py` that a filter set inheriting the filter mixin carries every
   filter the mixin declares, named one by one.
   - **Open:** built differently — the only covering test asserts two measurements are present, which an empty filter set also satisfies
-- [ ] T115 The dataset choices offered by the filter mixin are scoped to what the requesting
+- [X] T115 The dataset choices offered by the filter mixin are scoped to what the requesting
   reader may see, the way the form mixin already scopes them — the mixin currently assigns every
   dataset in the portal unconditionally, so a private dataset's name is offered to a reader holding
   no right over it, and T063 would carry that into every filter set the registry generates.
-- [ ] T053 `MeasurementFilterMixin` in `fairdm/core/measurement/filters.py` carrying those filters,
+- [X] T053 `MeasurementFilterMixin` in `fairdm/core/measurement/filters.py` carrying those filters,
   built so that the filtering library collects them from an inheriting class, and with a `Meta` that
   names no model so no unused filter set is generated per subclass.
   - **Open:** never built — the mixin declares no filters (`filters.py:19`)
-- [ ] T054 Tests in `test_forms.py` that a form inheriting the form mixin and given the requesting
+- [X] T054 Tests in `test_forms.py` that a form inheriting the form mixin and given the requesting
   user offers only the datasets that user may add measurements to, including datasets that are not
   publicly visible.
   - **Open:** built differently — the covering test asserts `hasattr(form, 'request')`
-- [ ] T055 Tests that a form inheriting the form mixin and given no user offers no dataset at all.
+- [X] T055 Tests that a form inheriting the form mixin and given no user offers no dataset at all.
   - **Open:** never built
-- [ ] T056 The dataset scoping in `MeasurementFormMixin` in `fairdm/core/measurement/forms.py`.
+- [X] T056 The dataset scoping in `MeasurementFormMixin` in `fairdm/core/measurement/forms.py`.
   - **Open:** built without tests — the scoping exists (`forms.py:76`) and nothing asserts it
-- [ ] T057 Tests that guidance text a form defines for a field reaches the rendered field, asserted
+- [X] T057 Tests that guidance text a form defines for a field reaches the rendered field, asserted
   on the rendered field rather than on the form's configuration.
   - **Open:** never built
-- [ ] T058 The guidance text on the measurement form's fields, marked for translation.
+- [X] T058 The guidance text on the measurement form's fields, marked for translation.
   - **Open:** built differently — declared as `help_text` rather than `help_texts` (`forms.py:150`), so all four strings are inert
-- [ ] T059 Tests that every address the form's controls refer to resolves.
+- [X] T059 Tests that every address the form's controls refer to resolves.
   - **Open:** never built
-- [ ] T060 Those controls in `MeasurementFormMixin`.
+- [X] T060 Those controls in `MeasurementFormMixin`.
   - **Open:** built differently — the control reverses `admin:core_dataset_add` (`forms.py:64`), which does not resolve
-- [ ] T061 Tests in `tests/test_registry/` that the form and the filter set the registry generates
+- [X] T061 Tests in `tests/test_registry/` that the form and the filter set the registry generates
   for a measurement type supplying neither carry the mixins' behaviour rather than the framework's
   plain defaults.
   - **Open:** never built
-- [ ] T062 The measurement branch in the registry's form factory, in `fairdm/registry/factories.py`.
+- [X] T062 The measurement branch in the registry's form factory, in `fairdm/registry/factories.py`.
   - **Open:** never built — the form factory has a sample branch only (`fairdm/registry/factories.py:172`)
-- [ ] T063 The measurement branch in the registry's filter factory.
+- [X] T063 The measurement branch in the registry's filter factory.
   - **Open:** never built — the filter factory has a sample branch only (`fairdm/registry/factories.py:479`)
 
 ## Phase 6 — Finding measurements
@@ -340,18 +340,18 @@ adjudicated in `decisions.md` before it reached this list.
 
 ## Phase 10 — Loading measurements
 
-- [ ] T104 Tests in `test_models.py` that loading measurements together with their datasets, samples
+- [X] T104 Tests in `test_models.py` that loading measurements together with their datasets, samples
   - **Reopened at design review:** the cited test creates 100 rows, not the 1000 the evidence quoted, touches only the first ten, and counts once. A single measurement is not a growth bound.
   and contributors takes a number of queries that does not grow as the number of measurements grows,
   asserted by counting queries at two different sizes.
 - [X] T105 That loading on the measurement queryset in `fairdm/core/measurement/managers.py`.
   - **Reconciled done.** Code: `fairdm/core/measurement/managers.py:56`. Test: `tests/test_core/test_measurement/test_models.py:360` — `assert queries_with < queries_without`
-- [ ] T106 Tests that loading measurements together with their descriptions, dates and identifiers
+- [X] T106 Tests that loading measurements together with their descriptions, dates and identifiers
   takes a number of queries that does not grow with the number of measurements.
   - **Open:** built without tests — the covering test uses a single measurement, so it cannot establish non-growth
-- [ ] T107 That loading on the queryset.
+- [X] T107 That loading on the queryset.
   - **Reopened at design review:** tautological — one measurement, and the unoptimised path already meets the asserted bound. The test's own comment says the benefit only shows with several.
-- [ ] T108 Tests that both compose with each other and with ordinary filtering and ordering.
+- [X] T108 Tests that both compose with each other and with ordinary filtering and ordering.
   - **Reopened at design review:** the cited chain never orders, so half of FR-047 is unexercised.
 
 ## Phase 11 — Documentation
