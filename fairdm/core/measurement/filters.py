@@ -16,17 +16,29 @@ from django.utils.translation import gettext_lazy as _
 from fairdm.core.measurement.models import Measurement
 
 
-class MeasurementFilterMixin:
-    """Mixin providing common filter configurations for Measurement models.
+class MeasurementFilterMixin(django_filters.FilterSet):
+    """Reusable base carrying the filters every Measurement type inherits.
 
-    This mixin provides pre-configured filters for common Measurement fields that can be
-    reused across custom measurement type filters. It includes:
-    - Dataset filtering
-    - Sample filtering
-    - Polymorphic type filtering
-    - Generic search (name, uuid)
-    - Description content filtering (cross-relationship)
-    - Date range filtering (cross-relationship)
+    A `django_filters.FilterSet` subclass, not a plain mixin: django-filter's
+    metaclass only collects declared filters from the class body and from bases
+    that carry `declared_filters`, which a plain Python class never does (matches
+    `SampleFilterMixin`, D-008). `Meta` deliberately has no `model` - that is what
+    lets this class exist without a concrete model to generate implicit filters
+    from. Setting `model = Measurement` here would make the metaclass generate a
+    full, unused Measurement filter set every time this class (or any subclass)
+    is defined.
+
+    `Meta.fields` stays as a convenience list naming only actual model fields, that
+    a subclass's own `Meta` (which does carry a `model`) can extend - the same shape
+    `SampleFilterMixin.Meta` uses.
+
+    Provides filters for:
+    - dataset: Filter by parent dataset
+    - sample: Filter by associated sample
+    - polymorphic_ctype: Filter by measurement type (XRFMeasurement, ICP_MS_Measurement, etc.)
+    - search: Generic search across name and uuid
+    - description: Search in associated description text
+    - date_after/date_before: Filter by associated date ranges
 
     See Also:
         - Developer Guide: docs/portal-development/measurements.md#step-4-custom-forms-and-filters
@@ -40,48 +52,6 @@ class MeasurementFilterMixin:
             class Meta(MeasurementFilterMixin.Meta):
                 model = MyCustomMeasurement
                 fields = MeasurementFilterMixin.Meta.fields + ['custom_field']
-    """
-
-    def __init__(self, *args, **kwargs):
-        """Initialise the filter and widen the dataset choices.
-
-        On the mixin rather than on `MeasurementFilter` alone, because this is the
-        published extension point: a portal's own filter inherits `Meta.fields`, and
-        with it a "dataset" choice field whose choices come from the model's default
-        manager. That manager is privacy-first, so without this a portal developer's
-        filter would reject every private dataset - which is every dataset until
-        someone publishes it.
-        """
-        super().__init__(*args, **kwargs)
-
-        from fairdm.core.models import Dataset
-
-        if "dataset" in self.filters:
-            self.filters["dataset"].queryset = Dataset.all_objects.all()
-
-    class Meta:
-        """Meta configuration for MeasurementFilterMixin."""
-
-        model = Measurement
-        fields = ["dataset", "sample", "polymorphic_ctype"]  # Only actual model fields
-
-
-class MeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
-    """FilterSet for Measurement model with comprehensive filtering capabilities.
-
-    Provides filters for:
-    - dataset: Filter by parent dataset
-    - sample: Filter by associated sample
-    - polymorphic_ctype: Filter by measurement type (XRFMeasurement, ICP_MS_Measurement, etc.)
-    - search: Generic search across name and uuid
-    - description: Search in associated description text
-    - date_after/date_before: Filter by associated date ranges
-
-    Example:
-        # In a view
-        filterset = MeasurementFilter(request.GET, queryset=Measurement.objects.all())
-        if filterset.is_valid():
-            filtered_measurements = filterset.qs
     """
 
     # Dataset filter - allow filtering by parent dataset
@@ -134,24 +104,6 @@ class MeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
         label=_("Date before"),
     )
 
-    def __init__(self, *args, **kwargs):
-        """Initialize the filter and set dynamic querysets."""
-        super().__init__(*args, **kwargs)
-        # Import here to avoid circular imports and app registry issues
-        from django.contrib.contenttypes.models import ContentType
-
-        from fairdm.core.sample.models import Sample
-
-        # The dataset choices are set by `MeasurementFilterMixin.__init__` above.
-
-        # Set sample queryset
-        self.filters["sample"].queryset = Sample.objects.all()
-
-        # Set polymorphic content type queryset
-        self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(
-            app_label__in=["fairdm_core", "fairdm_demo"]
-        )
-
     def filter_search(self, queryset, name, value):
         """Filter by generic search across name and uuid fields.
 
@@ -167,6 +119,78 @@ class MeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
             return queryset
 
         return queryset.filter(Q(name__icontains=value) | Q(uuid__icontains=value))
+
+    def __init__(self, *args, **kwargs):
+        """Initialise the filter and set the dynamic querysets.
+
+        On the mixin rather than on `MeasurementFilter` alone, because this is the
+        published extension point: a portal's own filter inherits this behaviour
+        directly, including a "dataset" choice field.
+
+        T115: `Dataset.all_objects` bypasses the privacy-first default manager
+        entirely, so assigning it unconditionally offered the title of every
+        private dataset in the portal to any reader who could reach this filter
+        set - and, once the registry builds every measurement type's filter set
+        on this mixin, that reached the whole portal. `FilterSet` accepts
+        `request` as a constructor keyword natively, so - matching
+        `MeasurementFormMixin`'s own dataset scoping (forms.py) - this scopes
+        through the requesting reader's entitlement when there is one, and
+        otherwise leaves the privacy-first default manager alone rather than
+        falling back to `all_objects`.
+        """
+        super().__init__(*args, **kwargs)
+
+        from django.contrib.contenttypes.models import ContentType
+
+        from fairdm.core.models import Dataset
+        from fairdm.core.sample.models import Sample
+
+        if "dataset" in self.filters:
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user is not None
+                and self.request.user.is_authenticated
+            ):
+                from guardian.shortcuts import get_objects_for_user
+
+                self.filters["dataset"].queryset = get_objects_for_user(
+                    self.request.user,
+                    "dataset.change_dataset",
+                    klass=Dataset.all_objects.all(),
+                )
+            else:
+                self.filters["dataset"].queryset = Dataset.objects.all()
+
+        if "sample" in self.filters:
+            self.filters["sample"].queryset = Sample.objects.all()
+
+        if "polymorphic_ctype" in self.filters:
+            self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(
+                app_label__in=["fairdm_core", "fairdm_demo"]
+            )
+
+    class Meta:
+        """Field names a subclass's own `model`-bearing `Meta` may extend.
+
+        No `model` here - see the class docstring.
+        """
+
+        fields = ["dataset", "sample", "polymorphic_ctype"]  # Only actual model fields
+
+
+class MeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
+    """FilterSet for Measurement model with comprehensive filtering capabilities.
+
+    Every filter is inherited from `MeasurementFilterMixin`; this class only
+    supplies the concrete `model`.
+
+    Example:
+        # In a view
+        filterset = MeasurementFilter(request.GET, queryset=Measurement.objects.all())
+        if filterset.is_valid():
+            filtered_measurements = filterset.qs
+    """
 
     class Meta(MeasurementFilterMixin.Meta):
         """Meta configuration for MeasurementFilter."""

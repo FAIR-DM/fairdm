@@ -61,7 +61,7 @@ class MeasurementFormMixin:
             )
             self.fields["dataset"].widget = AddAnotherWidgetWrapper(
                 select2_widget,
-                add_related_url=reverse_lazy("admin:core_dataset_add"),
+                add_related_url=reverse_lazy("admin:dataset_dataset_add"),
             )
 
             from fairdm.core.dataset.models import Dataset
@@ -147,7 +147,7 @@ class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
                 }
             ),
         }
-        help_text = {
+        help_texts = {
             "name": _("A unique, descriptive name for this measurement."),
             "dataset": _("The dataset this measurement belongs to."),
             "sample": _(
