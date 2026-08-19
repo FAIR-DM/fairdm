@@ -45,10 +45,6 @@ class XRFMeasurement(Measurement):
     class Meta:
         verbose_name = "XRF Measurement"
         verbose_name_plural = "XRF Measurements"
-
-    def get_value(self):
-        """Return human-readable measurement value."""
-        return f"{self.element}: {self.concentration_ppm} ppm"
 ```
 
 **What you get automatically:**
@@ -57,99 +53,157 @@ class XRFMeasurement(Measurement):
 - `dataset` - ForeignKey to the dataset containing this measurement
 - `name` - Descriptive name for the measurement
 - `image` - Optional image/plot
-- `created`, `modified` - Automatic timestamps
+- `added`, `modified` - Automatic timestamps
 - All FAIR metadata fields (descriptions, dates, identifiers, contributors)
 
-### The `get_value()` Method
+### The Value Convention
 
-Override `get_value()` to provide a human-readable representation:
+A measurement type does not implement its own reporting. It nominates a `value`
+field and, where the analysis produces one, an `uncertainty` field. `Measurement`
+itself supplies `get_value()` and `print_value()`, and both read those two fields:
+
+- `get_value()` returns `self.value` on its own, or a pint `Measurement` combining
+  `value` and `uncertainty` when both are set and `value` supports the arithmetic
+  (a pint quantity does; a plain number does not, and is returned unchanged). A
+  type that defines neither field falls back to `self.name`.
+- `print_value()` renders whatever `get_value()` returns as a string, through the
+  framework's shared quantity formatter - the same code path a template uses, so a
+  value printed in a shell or a test looks the same as one rendered on a page.
+
+Neither method is something a type overrides. `value` does not have to be a pint
+quantity field - `get_value()` degrades gracefully for a plain number - but a type
+that wants the formatted `"value ± uncertainty unit"` output needs both fields to
+be quantity fields sharing compatible units.
+
+`ICP_MS_Measurement` in `fairdm_demo/models.py` is the shipped example. It carries
+its historical `concentration_ppb`/`uncertainty_percent` fields unchanged, and adds
+the two the convention expects:
 
 ```python
-def get_value(self):
-    """Used in admin lists, detail views, and string representations."""
-    if self.detection_limit_ppm and self.concentration_ppm < self.detection_limit_ppm:
-        return f"{self.element}: <{self.detection_limit_ppm} ppm (below detection limit)"
-    return f"{self.element}: {self.concentration_ppm} ppm"
+class ICP_MS_Measurement(Measurement):
+    """Inductively Coupled Plasma Mass Spectrometry (ICP-MS) measurement."""
+
+    isotope = models.CharField(
+        "Isotope",
+        max_length=20,
+        help_text="Isotope notation (e.g., 207Pb, 206Pb, 238U)",
+    )
+    counts_per_second = models.DecimalField(
+        "Counts per Second",
+        max_digits=15,
+        decimal_places=2,
+        help_text="Raw instrument counts per second",
+    )
+    # ... concentration_ppb, uncertainty_percent, dilution_factor and the rest of
+    # the model's pre-existing fields are unchanged ...
+
+    value = models.DecimalQuantityField(
+        "microgram / liter",
+        verbose_name="Value",
+        max_digits=12,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text="The measured concentration, reported as a quantity carrying its own units.",
+    )
+    uncertainty = models.DecimalQuantityField(
+        "microgram / liter",
+        verbose_name="Uncertainty",
+        max_digits=12,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text=(
+            "The analytical uncertainty of the measured concentration, in the "
+            "same units as the value."
+        ),
+    )
+```
+
+No `get_value()` or `print_value()` override anywhere on the class. Creating one
+and reading its value back proves it (executed on this branch):
+
+```python
+>>> measurement = ICP_MS_Measurement.objects.create(
+...     name="ICP-MS Pb Analysis",
+...     sample=sample,
+...     dataset=sample.dataset,
+...     isotope="207Pb",
+...     counts_per_second="15000.00",
+...     value="5.000",
+...     uncertainty="0.300",
+... )
+>>> measurement.get_value()
+<Measurement(5.0, 0.3, microgram/liter)>
+>>> measurement.print_value()
+'5.00 ± 0.30 µg/l'
+>>> str(measurement)
+'5.00 ± 0.30 µg/l'
 ```
 
 This appears in:
 
 - Admin changelist columns
-- Measurement detail pages
-- Search results
 - String representations (`str(measurement)`)
-
-### Advanced Example: ICP-MS Measurement
-
-```python
-class ICP_MS_Measurement(Measurement):
-    """ICP-MS measurement with isotope-specific detection."""
-
-    isotope = models.CharField(
-        max_length=10,
-        help_text="Isotope notation (e.g., 207Pb, 238U)"
-    )
-    counts_per_second = models.FloatField(
-        help_text="Raw instrument counts per second"
-    )
-    concentration_ppb = models.FloatField(
-        help_text="Calculated concentration in parts per billion"
-    )
-    standard_used = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Calibration standard reference"
-    )
-
-    class Meta:
-        verbose_name = "ICP-MS Measurement"
-        verbose_name_plural = "ICP-MS Measurements"
-
-    def get_value(self):
-        return f"{self.isotope}: {self.concentration_ppb} ppb ({self.counts_per_second:.0f} cps)"
-```
+- Anywhere a portal calls `print_value()` directly
 
 ## Step 2: Register Your Measurement
 
-Use the FairDM registry to automatically generate admin, forms, filters, and tables:
+Registering a type is what turns a plain model into something a portal can add,
+edit, filter and browse. Subclass `BaseMeasurementConfiguration` (a thin
+`ModelConfiguration` that a measurement type builds on), name the model and the
+fields that matter, and decorate it with `@register`:
 
 ```python
 # myapp/config.py
 from fairdm.registry import register
-from fairdm.registry.config import ModelConfiguration
+from fairdm.core.measurement.config import BaseMeasurementConfiguration
 from .models import XRFMeasurement
 
 @register
-class XRFMeasurementConfig(ModelConfiguration):
+class XRFMeasurementConfig(BaseMeasurementConfiguration):
     model = XRFMeasurement
 
-    # Fields shown in admin list view
-    list_fields = ["name", "sample", "element", "concentration_ppm", "dataset"]
+    # The field list shared by every component that doesn't declare its own
+    fields = ["name", "sample", "dataset", "element", "concentration_ppm", "detection_limit_ppm"]
 
-    # Fields shown in detail view and forms
-    detail_fields = [
-        "name", "sample", "dataset",
-        "element", "concentration_ppm", "detection_limit_ppm"
-    ]
-
-    # Fields available for filtering
-    filterset_fields = ["element", "dataset", "sample"]
-
-    # Searchable fields in admin
-    search_fields = ["name", "element", "sample__name"]
+    display_name = "XRF Measurement"
+    description = "X-ray fluorescence elemental analysis"
 ```
 
-**Configuration Options:**
+**What registering produces.** From that one declaration the registry generates,
+on demand and without caching, six components: a `ModelForm`, a django-filter
+`FilterSet`, a django-tables2 `Table`, a `ModelAdmin`, a DRF serializer and an
+import-export resource. The four a portal developer meets day to day:
 
-| Option | Purpose | Example |
+- **A form** - built on `MeasurementFormMixin` (see Step 4), so a type's form
+  gets the shared widgets and dataset scoping without writing a form class.
+- **A filter set** - built on `MeasurementFilterMixin` (see Step 4), so a type's
+  filter set gets dataset, sample, type, search and date-range filtering for free.
+- **A table** - column layout and Bootstrap 5 styling from the field list.
+- **An administrative entry** - a `ModelAdmin` subclassing `MeasurementChildAdmin`
+  (see Step 3), registered with `admin.site` automatically.
+
+**Configuration attributes:**
+
+| Attribute | Purpose | Example |
 |--------|---------|---------|
-| `list_fields` | Columns in admin changelist | `["name", "element", "concentration_ppm"]` |
-| `detail_fields` | Fields in add/change forms | `["name", "sample", "dataset", "element"]` |
-| `filterset_fields` | Filter sidebar options | `["element", "dataset"]` |
-| `search_fields` | Full-text search fields | `["name", "element", "sample__name"]` |
-| `table_class` | Custom django-tables2 Table | `MyCustomMeasurementTable` |
-| `form_class` | Custom ModelForm | `XRFMeasurementForm` |
-| `filterset_class` | Custom FilterSet | `XRFMeasurementFilter` |
+| `fields` | Field list every component falls back to when it declares none of its own | `["name", "sample", "dataset", "element"]` |
+| `form_fields` | Fields on the generated form only | `["name", "dataset", "sample", "element"]` |
+| `table_fields` | Columns on the generated table only | `["name", "element", "concentration_ppm"]` |
+| `filterset_fields` | Fields on the generated filter set only | `["element", "dataset"]` |
+| `admin_list_display` | Columns on the admin changelist only | `["name", "element", "dataset"]` |
+| `table_class` | Custom django-tables2 Table, replacing generation | `MyCustomMeasurementTable` |
+| `form_class` | Custom ModelForm, replacing generation | `"myapp.forms.XRFMeasurementForm"` |
+| `filterset_class` | Custom FilterSet, replacing generation | `"myapp.filters.XRFMeasurementFilter"` |
+| `admin_class` | Custom ModelAdmin, replacing generation | `"myapp.admin.XRFMeasurementAdmin"` |
+| `display_name` | Human-readable name, defaults to the model's verbose name | `"XRF Measurement"` |
+| `description` | Description of this type, surfaced in the API docs | `"X-ray fluorescence elemental analysis"` |
+
+Declaring a component's field list (e.g. `form_fields`) and a class for the same
+component (e.g. `form_class`) at once is refused at registration - the field list
+would never take effect, so the registry treats it as a configuration error rather
+than silently preferring one.
 
 ## Step 3: Create Custom Admin (Optional)
 
@@ -166,11 +220,11 @@ class XRFMeasurementAdmin(MeasurementChildAdmin):
     # Override default list display
     list_display = [
         "name", "sample", "element", "concentration_ppm",
-        "detection_limit_ppm", "dataset", "created"
+        "detection_limit_ppm", "dataset", "added"
     ]
 
     # Add custom filters
-    list_filter = ["element", "dataset", "created"]
+    list_filter = ["element", "dataset", "added"]
 
     # Enhanced search
     search_fields = ["name", "element", "sample__name", "dataset__name"]
@@ -214,9 +268,18 @@ admin.site.register(XRFMeasurement, XRFMeasurementAdmin)
 
 ## Step 4: Custom Forms and Filters
 
+**A type gets this behaviour whether or not it writes a form or filter set of its
+own.** Step 2's registry generation builds the generated form on top of
+`MeasurementFormMixin` and the generated filter set on top of
+`MeasurementFilterMixin` - that wiring is what makes every registered measurement
+type's form and filter set behave consistently without a portal writing a line of
+form or filter code. Reach for the mixins directly, as this section shows, only
+when the generated component isn't enough and a custom `form_class` or
+`filterset_class` is supplied instead.
+
 ### Custom Forms with MeasurementFormMixin
 
-The `MeasurementFormMixin` adds validation and widget configuration:
+The `MeasurementFormMixin` adds widget configuration and dataset scoping:
 
 ```python
 # myapp/forms.py
@@ -248,7 +311,8 @@ class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
         detection_limit = cleaned_data.get('detection_limit_ppm')
 
         if detection_limit and concentration and detection_limit > concentration:
-            # This is okay, just mark it in get_value()
+            # Below detection limit - a domain-specific case for this type to flag,
+            # e.g. through a field error or a description added at save time.
             pass
 
         return cleaned_data
@@ -256,10 +320,13 @@ class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
 
 **What MeasurementFormMixin provides:**
 
-- Dataset/sample consistency validation
-- Polymorphic type handling
-- Standard widget configuration
-- FAIR metadata field groups
+- A Select2 autocomplete widget for `dataset`, with an "add another" link to the
+  dataset admin
+- The `dataset` queryset scoped to datasets the requesting user holds
+  `change_dataset` on, when the form is built with `request=...`
+- A Select2 autocomplete widget for `sample`
+- A crispy-forms `FormHelper` (`form_tag = False`, so the surrounding page
+  supplies the `<form>` tag)
 
 ### Custom Filters with MeasurementFilterMixin
 
@@ -300,15 +367,23 @@ class XRFMeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
         fields = {
             'dataset': ['exact'],
             'sample': ['exact'],
-            'created': ['gte', 'lte'],
+            'added': ['gte', 'lte'],
         }
 ```
 
 **What MeasurementFilterMixin provides:**
 
-- Common measurement filters (dataset, sample, date ranges)
-- Cross-dataset filtering support
-- Vocabulary-based filters for metadata
+- `dataset` - a `ModelChoiceFilter`, scoped to the requesting user's datasets when
+  the filter set is built with `request=...`, matching `MeasurementFormMixin`
+- `sample` - a `ModelChoiceFilter` over every sample
+- `polymorphic_ctype` - a `ModelChoiceFilter` over the registered measurement types,
+  so a mixed list can be narrowed to one type
+- `search` - a `CharFilter` matching `name` or `uuid`
+- `description` - a `CharFilter` matching text in the measurement's descriptions
+- `date_after` / `date_before` - range filters over the measurement's dates. These
+  accept a year, a year-and-month, or a full date (matching
+  `MeasurementDate.value`'s own partial-date format) and reject anything else as a
+  form error rather than an unhandled exception at query time
 
 ## Step 5: QuerySet Optimization
 
@@ -337,7 +412,7 @@ fe_measurements = XRFMeasurement.objects.filter(
 
 | Method | What it loads | When to use |
 |--------|---------------|-------------|
-| `with_related()` | sample, dataset, sample.dataset | List views, API endpoints |
+| `with_related()` | sample, dataset, contributors | List views, API endpoints |
 | `with_metadata()` | descriptions, dates, identifiers | Detail views, exports |
 | `with_related().with_metadata()` | All of the above | Complete data exports |
 
@@ -452,23 +527,23 @@ class MicroscopyMeasurement(Measurement):
         verbose_name = "Microscopy Measurement"
         verbose_name_plural = "Microscopy Measurements"
 
-    def get_value(self):
-        return f"{self.get_microscope_type_display()} at {self.magnification}x"
+    # No get_value()/print_value() override: this type nominates neither a
+    # `value` nor an `uncertainty` field, so Measurement.get_value() falls back
+    # to the record's own `name` - the reporting a microscopy image doesn't
+    # otherwise have.
 
 # myapp/config.py
 from fairdm.registry import register
-from fairdm.registry.config import ModelConfiguration
+from fairdm.core.measurement.config import BaseMeasurementConfiguration
 
 @register
-class MicroscopyMeasurementConfig(ModelConfiguration):
+class MicroscopyMeasurementConfig(BaseMeasurementConfiguration):
     model = MicroscopyMeasurement
-    list_fields = ["name", "sample", "microscope_type", "magnification", "dataset"]
-    detail_fields = [
+    fields = [
         "name", "sample", "dataset",
-        "microscope_type", "magnification", "scale_bar_microns", "image"
+        "microscope_type", "magnification", "scale_bar_microns", "image",
     ]
     filterset_fields = ["microscope_type", "dataset", "sample"]
-    search_fields = ["name", "sample__name"]
 
 # myapp/admin.py
 from django.contrib import admin
@@ -502,7 +577,6 @@ Create tests to verify your measurement implementation:
 import pytest
 from myapp.models import XRFMeasurement
 from myapp.factories import RockSampleFactory
-from fairdm.factories import DatasetFactory
 
 @pytest.mark.django_db
 class TestXRFMeasurement:
@@ -518,26 +592,21 @@ class TestXRFMeasurement:
         )
 
         assert measurement.element == "Fe"
-        assert measurement.get_value() == "Fe: 5000.0 ppm"
-
-    def test_below_detection_limit(self):
-        """Test handling of values below detection limit."""
-        sample = RockSampleFactory()
-        measurement = XRFMeasurement.objects.create(
-            name="Trace Element",
-            sample=sample,
-            dataset=sample.dataset,
-            element="Au",
-            concentration_ppm=0.5,
-            detection_limit_ppm=1.0
-        )
-
-        assert "<1.0 ppm" in measurement.get_value()
+        # XRFMeasurement nominates no `value` field, so get_value() falls back
+        # to the record's name (the same behaviour proven for `fairdm_demo`'s
+        # ExampleMeasurement in tests/test_core/test_measurement/test_value.py).
+        assert measurement.get_value() == "Iron Analysis"
 ```
+
+For a type that does nominate `value` (and optionally `uncertainty`), test the
+value itself rather than a hand-built string - see
+`tests/test_core/test_measurement/test_value.py`, which exercises exactly this on
+`ICP_MS_Measurement`.
 
 ## Best Practices
 
-1. **Always override `get_value()`** - Provides consistent string representation
+1. **Nominate `value` (and `uncertainty`) where the type has one** - `get_value()`
+   and `print_value()` do the reporting; do not override either
 2. **Use QuerySet methods** - Prevent N+1 queries with `with_related()`
 3. **Validate data** - Add `clean()` methods for domain-specific validation
 4. **Test cross-dataset scenarios** - Ensure measurements work with samples from different datasets

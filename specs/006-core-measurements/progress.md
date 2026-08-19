@@ -5442,3 +5442,44 @@ passed.
 Next: none.
 
 Watch: none.
+
+## 2026-08-19T14:50:00Z · Implementer US10 · T109
+
+Did: Brought `docs/portal-development/measurements.md` to what the code does. Removed the
+`get_value()`-override convention throughout the page (Basic Structure, the former "get_value()
+Method" subsection, the ICP-MS advanced example, the Complete Example, the Testing section, Best
+Practices #1) and replaced it with the real convention: a type nominates `value` (and optionally
+`uncertainty`) as fields, and `Measurement.get_value()`/`print_value()` do the reporting and
+formatting. Pointed to `ICP_MS_Measurement` in `fairdm_demo/models.py` as the worked example, and
+replaced the invented `"Fe: 5000.0 ppm"`-style output with output actually produced by the model
+on this branch. Rewrote "Step 2: Register Your Measurement" against the real `ModelConfiguration`/
+`BaseMeasurementConfiguration` API (`fairdm/registry/config.py`): the doc previously named
+`list_fields`, `detail_fields` and `search_fields`, none of which exist on the class; replaced with
+`fields`, `form_fields`, `table_fields`, `filterset_fields`, `admin_list_display` and the four
+`*_class` overrides, and added the paragraph the brief asked for naming what registration produces
+(form, filter set, table, administrative entry — `fairdm/registry/factories.py`
+`FormFactory`/`FilterFactory`/`TableFactory`/`AdminFactory`). Rewrote "Step 4"'s two "what the
+mixin provides" bullet lists against `fairdm/core/measurement/forms.py` and `filters.py` as they
+stand today (Select2 + dataset scoping for the form; dataset/sample/type/search/description/
+date-range filters for the filter set), and added the paragraph stating that a registered type
+gets this behaviour without writing a form or filter class at all — `FormFactory.
+get_base_form_class()` and `FilterFactory.get_base_filterset_class()` return
+`MeasurementFormMixin`/`MeasurementFilterMixin`-based bases for any `Measurement` subclass. Also
+corrected two field-name errors surfaced while auditing the sections above: `Measurement` has no
+`created` field (it has `added`, from `fairdm.db.models.Model`) — fixed in the "What you get
+automatically" list and the Step 3 custom-admin example — and `with_related()` does not prefetch
+`sample.dataset` (only `sample`, `dataset`, `contributors` — `fairdm/core/measurement/
+managers.py`), fixed in the QuerySet method table.
+
+Verified: the worked example (`ICP_MS_Measurement.objects.create(..., value="5.000",
+uncertainty="0.300")` → `get_value()`, `print_value()`, `str()`) executed against this branch in a
+scratch pytest test (not committed — deleted after confirming output) using the `sample` fixture
+from `tests/test_core/test_measurement/conftest.py`; output matched what the doc now shows
+(`print_value() == "5.00 ± 0.30 µg/l"`), consistent with the existing
+`tests/test_core/test_measurement/test_value.py::TestPrintValue::
+test_renders_value_uncertainty_and_units_together`, which the baseline run already proved passing.
+`poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly` → 5 passed.
+
+Next: T110 (managing-measurements.md).
+
+Watch: none.

@@ -244,8 +244,20 @@
     },
     {
      "id": "T109",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "docs/portal-development/measurements.md"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_value.py"
+      ],
+      "commands": [
+       "poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly"
+      ],
+      "verified_by_ci": false
+     }
     },
     {
      "id": "T111",
