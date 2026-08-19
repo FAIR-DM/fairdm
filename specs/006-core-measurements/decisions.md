@@ -358,3 +358,48 @@ Findings this rewrite turned up that are not this specification's work.
 | R18 states that a measurement is a component of its sample's page rather than a record with a page of its own, which D-003 reverses | The roadmap, when it is next revised |
 | Plugins become attachable to measurements once R16 gives them pages; the five removed on R18's reasoning may be worth restoring | R18, once R16 lands |
 | The concrete `MeasurementForm` and `MeasurementFilter`, and the placeholder detail page, view and template | The CRUD specification, R16 (D-001, D-003) |
+
+## D-017 — What the design review changed
+
+**Reviewed 2026-08-19, one reviewer, four lenses. Verdict: changes requested, all applied.**
+
+The fourth lens exists to challenge the reconciliation, and it earned its place: **ten of the
+thirty-four closed tasks did not survive it.** Every reversal is the same shape, and it is the shape
+the reconciliation rule already names — a citation proves a test exists, not what the test checks.
+
+- **The cascade test deletes the measurement before it deletes the dataset**
+  (`tests/.../test_models.py:293`), so its assertion holds whatever `on_delete` says. Three tasks
+  rested on it. A sound test for the same behaviour was sitting forty lines further down, and it
+  covers the cross-dataset case as well.
+- **The form's refusal of a bare record passes for an unrelated reason.** The form is built with a
+  private dataset and no request, so the dataset choice alone invalidates it. Deleting the refusal
+  leaves the test green. It also surfaced that the refusal is written twice — once on the form and
+  once on the record — so the message renders twice.
+- **The administrative narrowing by dataset, sample and type is not implemented at all.**
+  `list_filter` carries only `added` on both classes, and all three tests that appear to cover it
+  call the query set directly, never touching the administrative fixture they accept.
+- **Two query-count ticks were tautological**, one asserting a bound the unoptimised path already
+  meets on a single row, the other citing a row count its test does not create.
+
+Two findings were not about the reconciliation and both are kept.
+
+**The specification was wrong about inline row limits.** FR-041 capped every inline at the size of
+its vocabulary, which for contributions would have limited how many people a measurement can credit
+— contradicting FR-008 in the same document. The requirement is amended: the cap applies to the
+three records whose type comes from a vocabulary, and never to contributions.
+
+**The filter mixin offers every private dataset's name to anyone.** It assigns the unfiltered
+manager to the dataset choices with no reference to the requesting reader, and the plan would have
+carried that into every filter set the registry generates. The form mixin beside it already does
+this correctly, and says why in a comment. T115 brings the filter mixin into line. The identical
+line on the sample filter is released code and is routed out as issue #226 rather than repaired
+here.
+
+The reviewer also found that the only test of a measurement's own address wraps its request in a
+bare `except` that reports a skip, so any breakage there has been invisible. T114 replaces it.
+
+**One thing the review could not record, which is worth carrying to the retro.** The findings schema
+sets `additionalProperties: false` on each finding and on the root, so a per-finding `lens` field and
+the top-level `notes` array the protocol asks for are both invalid. The reviewer conformed to the
+schema and carried the lens as a prefix in each claim. The protocol and the schema disagree, and the
+protocol is the newer of the two.

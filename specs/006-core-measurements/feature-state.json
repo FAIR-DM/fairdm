@@ -17,6 +17,17 @@
   "merge": {
    "approved_by": null,
    "at": null
+  },
+  "design_review": {
+   "approved_by": "design-panel",
+   "at": "2026-08-19T09:45:00Z",
+   "self_resolved": [
+    "ten reconciliation ticks reversed: T013, T014, T029, T041, T076, T095, T096, T104, T107, T108",
+    "FR-041 amended - the inline row cap applies to the three vocabulary-typed records only, never to contributions",
+    "dataset choices on the filter mixin scoped to the reader's entitlement (T115); the same line on the sample mixin routed out",
+    "T114 added - the only test of the measurement address swallows every exception and reports a skip",
+    "plan ordering corrected - the mixins group runs before the filtering group"
+   ]
   }
  },
  "stories": [
@@ -84,16 +95,8 @@
     },
     {
      "id": "T029",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/forms.py:168"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_forms.py:172"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     },
     {
      "id": "T030",
@@ -197,17 +200,8 @@
     },
     {
      "id": "T041",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:52"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:299",
-       "tests/test_core/test_measurement/test_models.py:308"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     }
    ]
   },
@@ -410,6 +404,11 @@
      "id": "T063",
      "status": "todo",
      "attempts": 0
+    },
+    {
+     "id": "T115",
+     "status": "todo",
+     "attempts": 0
     }
    ]
   },
@@ -540,16 +539,8 @@
     },
     {
      "id": "T076",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/filters.py:88"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_filters.py:345"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     }
    ]
   },
@@ -618,31 +609,13 @@
    "tasks": [
     {
      "id": "T095",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/admin.py:164"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_admin.py:74",
-       "tests/test_core/test_measurement/test_admin.py:147"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     },
     {
      "id": "T096",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/admin.py:163"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_admin.py:147",
-       "tests/test_core/test_measurement/test_admin.py:204"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     },
     {
      "id": "T097",
@@ -712,16 +685,8 @@
    "tasks": [
     {
      "id": "T104",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/managers.py:56"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:532"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     },
     {
      "id": "T105",
@@ -743,29 +708,13 @@
     },
     {
      "id": "T107",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/managers.py:82"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:415"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     },
     {
      "id": "T108",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/managers.py:56"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:486"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     }
    ]
   },
@@ -847,29 +796,13 @@
     },
     {
      "id": "T013",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:52"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:299"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     },
     {
      "id": "T014",
-     "status": "done",
-     "attempts": 0,
-     "evidence": {
-      "code": [
-       "fairdm/core/measurement/models.py:52"
-      ],
-      "tests": [
-       "tests/test_core/test_measurement/test_models.py:299"
-      ]
-     }
+     "status": "todo",
+     "attempts": 0
     },
     {
      "id": "T015",
@@ -962,6 +895,11 @@
      "id": "T113",
      "status": "todo",
      "attempts": 0
+    },
+    {
+     "id": "T114",
+     "status": "todo",
+     "attempts": 0
     }
    ]
   }
@@ -976,7 +914,7 @@
    "max": 1
   },
   "design_review_cycles": {
-   "used": 0,
+   "used": 1,
    "max": 1
   },
   "tokens": {

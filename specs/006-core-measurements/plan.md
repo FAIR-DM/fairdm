@@ -18,7 +18,7 @@ Everything from group 3 onwards is independent.
 | 4 Descriptions, dates and identifiers | US-3 | `models.py` |
 | 5 The mixins and their wiring | US-5 | `measurement/forms.py`, `measurement/filters.py`, `fairdm/registry/factories.py` |
 | 6 Finding measurements | US-6 | `measurement/filters.py` |
-| 7 Access | US-4 | `measurement/permissions.py`, `tests/test_core/test_measurement/test_permissions.py` |
+| 7 Access | US-4 | `tests/test_core/test_measurement/test_permissions.py` — the backend itself is correct and is not modified |
 | 8 The value | US-7 | `models.py`, the formatter's registration site, `fairdm_demo/models.py`, migrations |
 | 9 Administration | US-8 | `measurement/admin.py` |
 | 10 Loading | US-9 | `measurement/managers.py` |
@@ -63,13 +63,18 @@ so the migration is additive.
 
 ## Data model
 
-Two migrations, both additive, neither touching an existing column.
+One migration, additive, touching no existing column.
 
 - `fairdm_demo`: `ICP_MS_Measurement.value` and `.uncertainty`, quantity fields, both nullable.
 - No migration on `fairdm.core.measurement`. The record's fields do not change; what changes is what
   validates, what renders and what the registry generates.
 
 Removing `MeasurementAdmin` needs no migration — administrative classes are not stored.
+
+**Indexing, recorded as the constitution requires.** The researcher's own label is a plausible
+search path and carries no index today; it gains one, because a portal consuming a published package
+cannot add its own. The two new quantity fields on the demo type get none — a demonstration model
+with no lookup path does not earn one, and adding it would suggest a pattern portals should copy.
 
 ## Ordering and parallelism
 
@@ -83,7 +88,11 @@ stated priority.
 touches, and the admin collapse changes what a generated component inherits. Sequencing them avoids
 two implementers editing `fairdm/registry/factories.py` at once.
 
-Groups 3, 4, 6, 7, 8, 9 and 10 are independent of one another. Group 11 runs last, because a
+**Group 5 runs before group 6.** Three of group 6's tasks change filters that group 5 is in the
+middle of moving from the concrete filter set onto the mixin. Run the other way round, that work
+lands on a class the scope cut removes and has to be made twice — the design review caught this.
+
+Groups 3, 4, 7, 8, 9 and 10 are independent of one another. Group 11 runs last, because a
 documentation pass is only worth writing once the code it describes has settled.
 
 **Dispatches are sequential, not parallel.** The suite shares one database, so fanning implementers

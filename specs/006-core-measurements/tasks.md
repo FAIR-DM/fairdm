@@ -8,6 +8,10 @@ optimism, and never against the February task list.
 
 Test tasks come before their implementation tasks. Each task names the file it lands in.
 
+**Design review, 2026-08-19.** Ten of the thirty-four ticks did not survive the reconciliation lens
+and are reopened in place with the reason. Two tasks were added and carry the next free numbers:
+T114 and T115. Numbers are never reused, because the ledger cites them.
+
 **Reconciled 2026-08-19.** Thirty-four of the hundred and thirteen tasks are closed against the code
 as it stands. A task closed here cites the code that satisfies it *and* a passing test, with that
 test's assertion quoted — a line number proves a test exists, not what it checks. Seventy-nine stay
@@ -62,11 +66,11 @@ adjudicated in `decisions.md` before it reached this list.
   - **Open:** never built
 - [ ] T012 The label field declared without a uniqueness constraint.
   - **Open:** built without tests — the label carries no uniqueness constraint (`models.py:78`) and nothing asserts it
-- [X] T013 Tests that a measurement requires a dataset, and that deleting the dataset deletes the
-  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:52`. Test: `tests/test_core/test_measurement/test_models.py:299` — `assert not Measurement.objects.filter(pk=measurement_pk).exists()`
+- [ ] T013 Tests that a measurement requires a dataset, and that deleting the dataset deletes the
+  - **Reopened at design review:** the cited test deletes the measurement before it deletes the dataset (`test_models.py:293`), so the assertion holds whatever `on_delete` says. Close it against `test_models.py:784`, which deletes the dataset while the measurement lives.
   measurement.
-- [X] T014 The dataset relation on `Measurement`, cascading on delete.
-  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:52`. Test: `tests/test_core/test_measurement/test_models.py:299` — `assert not Measurement.objects.filter(pk=measurement_pk).exists()`
+- [ ] T014 The dataset relation on `Measurement`, cascading on delete.
+  - **Reopened at design review:** same vacuous citation as T013. Close against `test_models.py:784`.
 - [X] T015 Tests that a measurement requires a sample, and that deleting a sample is refused while
   - **Reconciled done.** Code: `fairdm/core/measurement/models.py:71`. Test: `tests/test_core/test_measurement/test_models.py:308` — `with pytest.raises(ProtectedError): sample.delete()`
   any measurement refers to it.
@@ -98,7 +102,7 @@ adjudicated in `decisions.md` before it reached this list.
 - [ ] T025 Tests in `test_models.py` that creating a bare measurement belonging to no type is
   refused through validation, and tests in `test_forms.py` and `test_admin.py` that it is refused
   through a form and through the administrative interface.
-  - **Open:** built without tests — validation and the form are covered; nothing covers the administrative interface
+  - **Open:** built without tests — validation is covered; the form's refusal passes for an unrelated reason (see T029) and nothing covers the administrative interface
 - [ ] T026 Tests that creating one through the manager is refused, and that no fixture in the
   framework creates one.
   - **Open:** never built
@@ -106,8 +110,8 @@ adjudicated in `decisions.md` before it reached this list.
   - **Reconciled done.** Code: `fairdm/core/measurement/models.py:111`. Test: `tests/test_core/test_measurement/test_models.py:265` — `assert "subclass" in error_message or "directly" in error_message`
 - [ ] T028 The refusal in the manager, so that a direct create cannot bypass validation.
   - **Open:** never built — `Measurement.objects.create()` produces a bare record today
-- [X] T029 The refusal in the form.
-  - **Reconciled done.** Code: `fairdm/core/measurement/forms.py:168`. Test: `tests/test_core/test_measurement/test_forms.py:172` — `assert not form.is_valid()`
+- [ ] T029 The refusal in the form.
+  - **Reopened at design review:** the cited assertion is satisfied by an unrelated error. The form is built with a private dataset and no request, so the dataset choice alone invalidates it; deleting the refusal leaves the test passing. Close it by asserting on the message, and delete `MeasurementForm.clean()` — the model already raises the same error through `_post_clean`, which is why it currently renders twice.
 - [ ] T030 Tests in `tests/test_core/test_measurement/test_config.py` that registering a measurement
   type produces a form, a filter set, a table and an administrative entry, each carrying that type's
   own fields alongside those every measurement has, with none of them written by hand.
@@ -131,7 +135,9 @@ adjudicated in `decisions.md` before it reached this list.
 - [ ] T037 That validation in `fairdm/registry/config.py`, checking against the configured base.
   - **Open:** built differently — validation checks `fairdm.core.admin.MeasurementAdmin` (`fairdm/registry/config.py:377`), the two-line stub
 - [ ] T038 Exactly one administrative class for the measurement record and exactly one base for the
-  types beneath it, with no unreachable duplicate of either anywhere in the framework.
+  types beneath it, with no unreachable duplicate of either anywhere in the framework. Both registry
+  references are repointed: the validation in `fairdm/registry/config.py` and the generation in
+  `fairdm/registry/factories.py`.
   - **Open:** built differently — two administrative classes and two parent admins exist (`fairdm/core/admin.py:26`, `:33`)
 
 ## Phase 3 — Cross-dataset linking
@@ -142,8 +148,8 @@ adjudicated in `decisions.md` before it reached this list.
 - [ ] T040 Tests that a user holding editing rights on the measurement's dataset and not on the
   sample's may edit the measurement and may not edit the sample.
   - **Open:** never built — every test covering the cross-dataset rights boundary is skipped
-- [X] T041 Tests that deleting the measurement's dataset removes the measurement whatever dataset
-  - **Reconciled done.** Code: `fairdm/core/measurement/models.py:52`. Test: `tests/test_core/test_measurement/test_models.py:299` — `assert not Measurement.objects.filter(pk=measurement_pk).exists() / with pytest.raises(ProtectedError)`
+- [ ] T041 Tests that deleting the measurement's dataset removes the measurement whatever dataset
+  - **Reopened at design review:** same vacuous citation as T013. `test_models.py:784` covers both halves, including the cross-dataset sample.
   its sample belongs to, and that deleting the sample is refused while the measurement refers to it.
 
 ## Phase 4 — Descriptions, dates and identifiers
@@ -179,6 +185,10 @@ adjudicated in `decisions.md` before it reached this list.
 - [ ] T052 Tests in `test_filters.py` that a filter set inheriting the filter mixin carries every
   filter the mixin declares, named one by one.
   - **Open:** built differently — the only covering test asserts two measurements are present, which an empty filter set also satisfies
+- [ ] T115 The dataset choices offered by the filter mixin are scoped to what the requesting
+  reader may see, the way the form mixin already scopes them — the mixin currently assigns every
+  dataset in the portal unconditionally, so a private dataset's name is offered to a reader holding
+  no right over it, and T063 would carry that into every filter set the registry generates.
 - [ ] T053 `MeasurementFilterMixin` in `fairdm/core/measurement/filters.py` carrying those filters,
   built so that the filtering library collects them from an inheriting class, and with a `Meta` that
   names no model so no unused filter set is generated per subclass.
@@ -239,12 +249,12 @@ adjudicated in `decisions.md` before it reached this list.
   - **Open:** built differently — a date filter cleans input to a `date`, which the partial-date field refuses (`filters.py:125`)
 - [ ] T074 Tests that a reader entitled to a dataset that is not publicly visible finds it among the
   dataset choices, on a filter set built from the mixin as well as on one built by the registry.
-  - **Open:** built without tests — covered only through the concrete filter set, not through one built from the mixin or by the registry
+  - **Open:** built without tests — the mixin half is covered (`test_filters.py:352` builds a filter set from the mixin and validates against a private dataset); the registry-generated half is not
 - [X] T075 The dataset choices, widened on the mixin so that an inheriting filter set inherits the
   - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:59`. Test: `tests/test_core/test_measurement/test_filters.py:62` — `assert filterset.is_valid() - the test's datasets are deliberately left private (its own comment says so), so an unwidened choice field would fail validation`
   widening.
-- [X] T076 Tests that two filters applied together leave only measurements satisfying both.
-  - **Reconciled done.** Code: `fairdm/core/measurement/filters.py:88`. Test: `tests/test_core/test_measurement/test_filters.py:345` — `assert measurement2 not in filterset.qs  # Different sample`
+- [ ] T076 Tests that two filters applied together leave only measurements satisfying both.
+  - **Reopened at design review:** the second filter does no work — the only row the dataset filter would remove is assigned to a discarded name and never asserted (`test_filters.py:307`).
 
 ## Phase 7 — Access
 
@@ -284,7 +294,10 @@ adjudicated in `decisions.md` before it reached this list.
 - [ ] T088 Tests that where a type records an uncertainty alongside its value, the reported value
   carries the uncertainty.
   - **Open:** never built
-- [ ] T089 That behaviour on `Measurement`.
+- [ ] T089 That behaviour on `Measurement`, returning the value unchanged where it carries no
+  uncertainty arithmetic of its own. A type may nominate a plain number, which the specification's
+  assumptions allow, and the record's string representation calls this — so an unguarded call makes
+  such a type unrenderable everywhere it appears.
   - **Open:** built without tests — the branch has never executed
 - [ ] T090 Tests that rendering a value for a person shows the value and its uncertainty together
   with any units, asserted on the rendered string and executed outside any template.
@@ -303,11 +316,11 @@ adjudicated in `decisions.md` before it reached this list.
 
 ## Phase 9 — Administration
 
-- [X] T095 Tests in `test_admin.py` that the measurement list can be searched by name and by
-  - **Reconciled done.** Code: `fairdm/core/measurement/admin.py:164`. Test: `tests/test_core/test_measurement/test_admin.py:74` — `assert measurement2 not in queryset / assert measurement2 not in filtered`
+- [ ] T095 Tests in `test_admin.py` that the measurement list can be searched by name and by
+  - **Reopened at design review:** the search half is genuinely covered (`test_admin.py:61` calls `get_search_results`). The narrowing is not implemented at all: `list_filter` is `["added"]` on both classes (`admin.py:85`, `:163`), and the three filter tests call `Measurement.objects.filter(...)` directly without ever using the admin fixture they accept.
   generated identifier, and narrowed by dataset, by sample and by measurement type.
-- [X] T096 That search and those filters on the parent administrative class.
-  - **Reconciled done.** Code: `fairdm/core/measurement/admin.py:163`. Test: `tests/test_core/test_measurement/test_admin.py:147` — `assert icp not in filtered`
+- [ ] T096 That search and those filters on the parent administrative class.
+  - **Reopened at design review:** same as T095 — FR-040's narrowing by dataset and by sample is absent from `list_filter`.
 - [ ] T097 Tests that a measurement's descriptions, dates, identifiers and contributions can each be
   added and changed from the measurement's own page, and that none offers more rows than its
   vocabulary has types.
@@ -327,8 +340,8 @@ adjudicated in `decisions.md` before it reached this list.
 
 ## Phase 10 — Loading measurements
 
-- [X] T104 Tests in `test_models.py` that loading measurements together with their datasets, samples
-  - **Reconciled done.** Code: `fairdm/core/measurement/managers.py:56`. Test: `tests/test_core/test_measurement/test_models.py:532` — `assert num_queries <= 10  # 1000 measurements, so the count cannot be per-row`
+- [ ] T104 Tests in `test_models.py` that loading measurements together with their datasets, samples
+  - **Reopened at design review:** the cited test creates 100 rows, not the 1000 the evidence quoted, touches only the first ten, and counts once. A single measurement is not a growth bound.
   and contributors takes a number of queries that does not grow as the number of measurements grows,
   asserted by counting queries at two different sizes.
 - [X] T105 That loading on the measurement queryset in `fairdm/core/measurement/managers.py`.
@@ -336,10 +349,10 @@ adjudicated in `decisions.md` before it reached this list.
 - [ ] T106 Tests that loading measurements together with their descriptions, dates and identifiers
   takes a number of queries that does not grow with the number of measurements.
   - **Open:** built without tests — the covering test uses a single measurement, so it cannot establish non-growth
-- [X] T107 That loading on the queryset.
-  - **Reconciled done.** Code: `fairdm/core/measurement/managers.py:82`. Test: `tests/test_core/test_measurement/test_models.py:415` — `assert queries_with <= 4  # measurements, descriptions, dates, identifiers`
-- [X] T108 Tests that both compose with each other and with ordinary filtering and ordering.
-  - **Reconciled done.** Code: `fairdm/core/measurement/managers.py:56`. Test: `tests/test_core/test_measurement/test_models.py:486` — `assert chained.count() >= 3, then the filtered chain at :490`
+- [ ] T107 That loading on the queryset.
+  - **Reopened at design review:** tautological — one measurement, and the unoptimised path already meets the asserted bound. The test's own comment says the benefit only shows with several.
+- [ ] T108 Tests that both compose with each other and with ordinary filtering and ordering.
+  - **Reopened at design review:** the cited chain never orders, so half of FR-047 is unexercised.
 
 ## Phase 11 — Documentation
 

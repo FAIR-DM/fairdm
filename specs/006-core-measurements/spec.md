@@ -465,8 +465,11 @@ address resolves to that measurement.
   generated identifier, and MUST allow the list to be narrowed by dataset, by sample and by
   measurement type.
 - **FR-041**: The administrative interface MUST allow a measurement's descriptions, dates,
-  identifiers and contributions to be edited from the measurement's own page, offering no more rows
-  for each than its vocabulary has types.
+  identifiers and contributions to be edited from the measurement's own page. For the three records
+  whose type comes from a vocabulary, it MUST offer no more rows than that vocabulary has types.
+  Contributions MUST NOT be capped — a measurement may credit any number of people, and each is a
+  row of its own. *Amended at design review: the original wording applied the cap to all four, which
+  would have limited how many contributors a measurement can carry and contradicted FR-008.*
 - **FR-042**: Every registered measurement type MUST offer the same attached-record editors as every
   other.
 - **FR-043**: The administrative list MUST name the measurement type of each row.
