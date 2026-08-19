@@ -135,6 +135,73 @@ class TestMeasurementFormQuerysetFiltering:
 
 
 @pytest.mark.django_db
+class TestMeasurementFormDatasetChoices:
+    """T054/T055/T056 - a form inheriting MeasurementFormMixin and given the
+    requesting user offers exactly the datasets that user may add
+    measurements to, including ones that are not publicly visible; given no
+    user it offers no dataset at all. Asserted by comparing the offered set
+    to an expected set, not by checking an attribute exists."""
+
+    def test_form_with_a_user_offers_exactly_that_users_datasets(self):
+        """T054 - the offered datasets include one that is private, proving
+        the scoping is by entitlement rather than by visibility."""
+        user = UserFactory()
+        allowed = DatasetFactory()  # private by default
+        other = DatasetFactory()
+        assign_perm("change_dataset", user, allowed)
+
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = XRFMeasurementForm(request=_request_for(user))
+
+        offered = set(form.fields["dataset"].queryset)
+        assert offered == {allowed}
+        assert other not in offered
+
+    def test_form_with_no_user_offers_no_dataset_at_all(self):
+        """T055 - with no user on the request, the form is left holding the
+        privacy-first default manager. Both fixtures below are private (the
+        factory default), so it offers nothing."""
+        DatasetFactory()
+        DatasetFactory()
+
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = XRFMeasurementForm()
+
+        assert set(form.fields["dataset"].queryset) == set()
+
+    def test_scoping_derives_from_the_requests_own_user(self):
+        """T056 - the mixin scopes from the request's own user, not from
+        some other authenticated user's entitlement. Two users, each
+        entitled to a different private dataset: a form built with one
+        user's request must not offer the other user's dataset."""
+        user1 = UserFactory()
+        user2 = UserFactory()
+        dataset1 = DatasetFactory()
+        dataset2 = DatasetFactory()
+        assign_perm("change_dataset", user1, dataset1)
+        assign_perm("change_dataset", user2, dataset2)
+
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = XRFMeasurementForm(request=_request_for(user1))
+
+        offered = set(form.fields["dataset"].queryset)
+        assert offered == {dataset1}
+        assert dataset2 not in offered
+
+
+@pytest.mark.django_db
 class TestMeasurementFormValidation:
     """Test MeasurementForm validation logic."""
 
