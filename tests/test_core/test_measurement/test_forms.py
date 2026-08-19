@@ -350,3 +350,51 @@ class TestMeasurementFormRequestContext:
 
         # Verify request is stored
         assert form.request == request
+
+
+@pytest.mark.django_db
+class TestMeasurementFormHelpText:
+    """T057 - the guidance a form defines for a field reaches the rendered
+    field, asserted on the rendered field rather than on the form's
+    configuration."""
+
+    def test_meta_help_text_reaches_the_rendered_field(self):
+        from fairdm.core.measurement.forms import MeasurementForm
+
+        assert str(MeasurementForm.base_fields["name"].help_text) == (
+            "A unique, descriptive name for this measurement."
+        )
+        assert str(MeasurementForm.base_fields["dataset"].help_text) == (
+            "The dataset this measurement belongs to."
+        )
+        assert str(MeasurementForm.base_fields["sample"].help_text) == (
+            "The sample that was measured (can be from a different dataset)."
+        )
+        assert str(MeasurementForm.base_fields["tags"].help_text) == (
+            "Keywords or tags for categorization."
+        )
+
+
+@pytest.mark.django_db
+class TestMeasurementFormDatasetAddAnotherUrl:
+    """T059 - the "add another" widget on the dataset field must reverse to
+    a URL name the admin actually registers. `reverse_lazy` defers
+    evaluation, so a wrong name only surfaces once something forces it to
+    resolve - which is exactly what rendering the widget does."""
+
+    def test_add_related_url_resolves_to_the_dataset_admin_add_view(self):
+        from django.urls import reverse
+
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = XRFMeasurementForm()
+
+        # `str()` is what forces the lazy proxy to resolve, the same way
+        # template rendering would. The dataset app's label is "dataset",
+        # not "core", so "admin:core_dataset_add" raises `NoReverseMatch`
+        # here.
+        add_url = str(form.fields["dataset"].widget.add_related_url)
+        assert add_url == reverse("admin:dataset_dataset_add")
