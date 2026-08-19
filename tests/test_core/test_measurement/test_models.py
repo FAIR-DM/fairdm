@@ -23,6 +23,9 @@ from fairdm.core.measurement.models import (
 from fairdm.core.models import Measurement, Sample
 from fairdm.factories import (
     DatasetFactory,
+    MeasurementDateFactory,
+    MeasurementDescriptionFactory,
+    MeasurementIdentifierFactory,
     PersonFactory,
 )
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -268,13 +271,18 @@ class TestMeasurementVocabularyValidation:
         """Test that MeasurementDescription uses 'Measurement' vocabulary collection."""
         from fairdm.core.measurement.models import MeasurementDescription
 
-        # Create a description
+        # T044: "method" is not a member of the measurement description vocabulary
+        # (MeasurementConditions, MeasurementSetup, MeasurementTearDown, Other) - it
+        # only passed here because nothing validated `type` before T050/T051 closed
+        # that gap. "MeasurementSetup" is a real member.
         desc = MeasurementDescription.objects.create(
-            related=measurement, type="method", value="XRF spectroscopy analysis"
+            related=measurement,
+            type="MeasurementSetup",
+            value="XRF spectroscopy analysis",
         )
 
         # Verify the vocabulary type comes from Measurement collection
-        assert desc.type == "method"  # type field returns string value
+        assert desc.type == "MeasurementSetup"  # type field returns string value
         # The vocabulary should be from FairDMDescriptions "Measurement" collection
         assert desc.VOCABULARY is not None
 
@@ -282,13 +290,15 @@ class TestMeasurementVocabularyValidation:
         """Test that MeasurementDate uses 'Measurement' vocabulary collection."""
         from fairdm.core.measurement.models import MeasurementDate
 
-        # Create a date
+        # T046: "measured" is not a member of the measurement date vocabulary
+        # (Setup, TearDown) - it only passed here because nothing validated `type`
+        # before T050/T051 closed that gap. "Setup" is a real member.
         date = MeasurementDate.objects.create(
-            related=measurement, type="measured", value="2024-01-15"
+            related=measurement, type="Setup", value="2024-01-15"
         )
 
         # Verify the vocabulary type comes from Measurement collection
-        assert date.type == "measured"  # type field returns string value
+        assert date.type == "Setup"  # type field returns string value
         # The vocabulary should be from FairDMDates "Measurement" collection
         assert date.VOCABULARY is not None
 
@@ -316,6 +326,72 @@ class TestMeasurementIdentifierVocabulary:
                 "PROPOSAL_ID",
             }
         )
+
+
+@pytest.mark.django_db
+class TestMeasurementMetadataRelations:
+    """T042/T043 - a measurement's descriptions, dates and identifiers refer to it
+    directly, and are removed along with it."""
+
+    def test_description_date_and_identifier_refer_to_the_measurement_directly(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory(related=measurement)
+        date = MeasurementDateFactory(related=measurement)
+        identifier = MeasurementIdentifierFactory(related=measurement)
+
+        assert description.related == measurement
+        assert date.related == measurement
+        assert identifier.related == measurement
+
+    def test_deleting_the_measurement_deletes_its_description_date_and_identifier(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory(related=measurement)
+        date = MeasurementDateFactory(related=measurement)
+        identifier = MeasurementIdentifierFactory(related=measurement)
+
+        measurement.delete()
+
+        assert not MeasurementDescription.objects.filter(pk=description.pk).exists()
+        assert not MeasurementDate.objects.filter(pk=date.pk).exists()
+        assert not MeasurementIdentifier.objects.filter(pk=identifier.pk).exists()
+
+
+@pytest.mark.django_db
+class TestMeasurementDescriptionVocabularyMembers:
+    """T044/T045 - a description's type is drawn from the measurement description
+    vocabulary, asserted by naming its members rather than iterating whatever the
+    vocabulary happens to hold."""
+
+    def test_available_types_are_named_one_by_one(self):
+        assert set(MeasurementDescription.VOCABULARY.values) == {
+            "MeasurementConditions",
+            "MeasurementSetup",
+            "MeasurementTearDown",
+            "Other",
+        }
+
+    def test_a_description_type_is_drawn_from_the_measurement_collection(
+        self, measurement
+    ):
+        description = MeasurementDescriptionFactory(
+            related=measurement, type="MeasurementSetup"
+        )
+        assert description.type in MeasurementDescription.VOCABULARY.values
+
+
+@pytest.mark.django_db
+class TestMeasurementDateVocabularyMembers:
+    """T046/T047 - a date's type is drawn from the measurement date vocabulary,
+    asserted the same way."""
+
+    def test_available_types_are_named_one_by_one(self):
+        assert set(MeasurementDate.VOCABULARY.values) == {"Setup", "TearDown"}
+
+    def test_a_date_type_is_drawn_from_the_measurement_collection(self, measurement):
+        date = MeasurementDateFactory(related=measurement, type="TearDown")
+        assert date.type in MeasurementDate.VOCABULARY.values
 
 
 @pytest.mark.django_db
