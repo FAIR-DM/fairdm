@@ -1,0 +1,987 @@
+{
+ "$schema": "../../../engineering-org/kit/schemas/feature-state.schema.json",
+ "feature": "006-core-measurements",
+ "branch": "006-core-measurements",
+ "repo": "FAIR-DM/fairdm",
+ "state": "PLAN",
+ "state_history": [],
+ "gates": {
+  "spec": {
+   "approved_by": "sam",
+   "at": "2026-08-19T09:10:00Z"
+  },
+  "plan": {
+   "approved_by": null,
+   "at": null
+  },
+  "merge": {
+   "approved_by": null,
+   "at": null
+  }
+ },
+ "stories": [
+  {
+   "id": "US1",
+   "priority": "P1",
+   "issue": 215,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T023",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:27"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:137"
+      ]
+     }
+    },
+    {
+     "id": "T024",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:27"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:137"
+      ]
+     }
+    },
+    {
+     "id": "T025",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T026",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T027",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:111"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:265"
+      ]
+     }
+    },
+    {
+     "id": "T028",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T029",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/forms.py:168"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_forms.py:172"
+      ]
+     }
+    },
+    {
+     "id": "T030",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T031",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/registry/registry.py:281"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_config.py:29"
+      ]
+     }
+    },
+    {
+     "id": "T032",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T033",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T034",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T035",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/config.py:25"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_config.py:184"
+      ]
+     }
+    },
+    {
+     "id": "T036",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T037",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T038",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T109",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T111",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US2",
+   "priority": "P1",
+   "issue": 216,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T039",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:71"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:222",
+       "tests/test_core/test_measurement/test_forms.py:233"
+      ]
+     }
+    },
+    {
+     "id": "T040",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T041",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:52"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:299",
+       "tests/test_core/test_measurement/test_models.py:308"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "US3",
+   "priority": "P1",
+   "issue": 217,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T042",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T043",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T044",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T045",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T046",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T047",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T048",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:208"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:183"
+      ]
+     }
+    },
+    {
+     "id": "T049",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:208"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:183",
+       "tests/test_core/test_measurement/test_models.py:186"
+      ]
+     }
+    },
+    {
+     "id": "T050",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T051",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US4",
+   "priority": "P1",
+   "issue": 218,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T077",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T078",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T079",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T080",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T081",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T082",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T083",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T084",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T085",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US5",
+   "priority": "P2",
+   "issue": 219,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T052",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T053",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T054",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T055",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T056",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T057",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T058",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T059",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T060",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T061",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T062",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T063",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US6",
+   "priority": "P2",
+   "issue": 220,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T064",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:88"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:63",
+       "tests/test_core/test_measurement/test_filters.py:97"
+      ]
+     }
+    },
+    {
+     "id": "T065",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:88"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:63"
+      ]
+     }
+    },
+    {
+     "id": "T066",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T067",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T068",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:112"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:184"
+      ]
+     }
+    },
+    {
+     "id": "T069",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:155"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:184"
+      ]
+     }
+    },
+    {
+     "id": "T070",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:118"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:238"
+      ]
+     }
+    },
+    {
+     "id": "T071",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:118"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:238"
+      ]
+     }
+    },
+    {
+     "id": "T072",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T073",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T074",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T075",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:59"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:62"
+      ]
+     }
+    },
+    {
+     "id": "T076",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:88"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:345"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "US7",
+   "priority": "P2",
+   "issue": 221,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T086",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T087",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T088",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T089",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T090",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T091",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T092",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T093",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T094",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US8",
+   "priority": "P2",
+   "issue": 222,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T095",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/admin.py:164"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_admin.py:74",
+       "tests/test_core/test_measurement/test_admin.py:147"
+      ]
+     }
+    },
+    {
+     "id": "T096",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/admin.py:163"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_admin.py:147",
+       "tests/test_core/test_measurement/test_admin.py:204"
+      ]
+     }
+    },
+    {
+     "id": "T097",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T098",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T099",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T100",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T101",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T102",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/admin.py:87"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_admin.py:350"
+      ]
+     }
+    },
+    {
+     "id": "T103",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/admin.py:87"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_admin.py:350"
+      ]
+     }
+    },
+    {
+     "id": "T110",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US9",
+   "priority": "P2",
+   "issue": 223,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T104",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/managers.py:56"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:532"
+      ]
+     }
+    },
+    {
+     "id": "T105",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/managers.py:56"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:360"
+      ]
+     }
+    },
+    {
+     "id": "T106",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T107",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/managers.py:82"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:415"
+      ]
+     }
+    },
+    {
+     "id": "T108",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/managers.py:56"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:486"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "US10",
+   "priority": "P2",
+   "issue": 224,
+   "worktree": null,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T001",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T002",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T003",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T004",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T005",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T006",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T007",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T008",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:60"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:53"
+      ]
+     }
+    },
+    {
+     "id": "T009",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T010",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T011",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T012",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T013",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:52"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:299"
+      ]
+     }
+    },
+    {
+     "id": "T014",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:52"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:299"
+      ]
+     }
+    },
+    {
+     "id": "T015",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:71"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:308",
+       "tests/test_core/test_measurement/test_models.py:312"
+      ]
+     }
+    },
+    {
+     "id": "T016",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:71"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:308"
+      ]
+     }
+    },
+    {
+     "id": "T017",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T018",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/abstract.py:23"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:54"
+      ]
+     }
+    },
+    {
+     "id": "T019",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T020",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T021",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:155"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:637"
+      ]
+     }
+    },
+    {
+     "id": "T022",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/models.py:164",
+       "fairdm/core/measurement/urls.py:7"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_models.py:637"
+      ]
+     }
+    },
+    {
+     "id": "T112",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T113",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  }
+ ],
+ "budgets": {
+  "converge_cycles": {
+   "used": 0,
+   "max": 3
+  },
+  "review_cycles": {
+   "used": 0,
+   "max": 1
+  },
+  "design_review_cycles": {
+   "used": 0,
+   "max": 1
+  },
+  "tokens": {
+   "used": 0,
+   "max": 6000000
+  }
+ }
+}
