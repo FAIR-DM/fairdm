@@ -170,13 +170,17 @@ class FormFactory(ComponentFactory):
         return widgets
 
     def get_base_form_class(self) -> type[ModelForm]:
-        """The base ModelForm class to build a specimen type's form on.
+        """The base ModelForm class to build a specimen or measurement type's
+        form on.
 
-        Mirrors `TableFactory.get_base_table_class()`: a specimen type
-        supplying no form of its own still gets `SampleFormMixin`'s widget
-        configuration, dataset scoping and guidance text (FR-037) rather than
-        a bare `ModelForm`.
+        Mirrors `TableFactory.get_base_table_class()`: a specimen or
+        measurement type supplying no form of its own still gets
+        `SampleFormMixin`'s or `MeasurementFormMixin`'s widget configuration,
+        dataset scoping and guidance text (FR-037) rather than a bare
+        `ModelForm`.
         """
+        from fairdm.core.measurement.forms import MeasurementFormMixin
+        from fairdm.core.measurement.models import Measurement
         from fairdm.core.sample.forms import SampleFormMixin
         from fairdm.core.sample.models import Sample
 
@@ -184,6 +188,12 @@ class FormFactory(ComponentFactory):
             return cast(
                 type[ModelForm],
                 type("SampleFormBase", (SampleFormMixin, ModelForm), {}),
+            )
+
+        if issubclass(self.model, Measurement):
+            return cast(
+                type[ModelForm],
+                type("MeasurementFormBase", (MeasurementFormMixin, ModelForm), {}),
             )
 
         return ModelForm
@@ -477,19 +487,26 @@ class FilterFactory(ComponentFactory):
         return filter_overrides
 
     def get_base_filterset_class(self) -> type[FilterSet]:
-        """The base FilterSet class to build a specimen type's filter set on.
+        """The base FilterSet class to build a specimen or measurement
+        type's filter set on.
 
-        Mirrors `TableFactory.get_base_table_class()`: a specimen type's
-        generated filter set carries `SampleFilterMixin`'s declared filters
-        rather than a bare `FilterSet`. `SampleFilterMixin` is already a
-        `FilterSet` subclass (D-008), so - unlike the form factory, whose
-        mixin needs `ModelForm` mixed in - no wrapping is needed here.
+        Mirrors `TableFactory.get_base_table_class()`: a specimen or
+        measurement type's generated filter set carries `SampleFilterMixin`'s
+        or `MeasurementFilterMixin`'s declared filters rather than a bare
+        `FilterSet`. Both mixins are already `FilterSet` subclasses (D-008),
+        so - unlike the form factory, whose mixins need `ModelForm` mixed in
+        - no wrapping is needed here.
         """
+        from fairdm.core.measurement.filters import MeasurementFilterMixin
+        from fairdm.core.measurement.models import Measurement
         from fairdm.core.sample.filters import SampleFilterMixin
         from fairdm.core.sample.models import Sample
 
         if issubclass(self.model, Sample):
             return cast(type[FilterSet], SampleFilterMixin)
+
+        if issubclass(self.model, Measurement):
+            return cast(type[FilterSet], MeasurementFilterMixin)
 
         return cast(type[FilterSet], FilterSet)
 
