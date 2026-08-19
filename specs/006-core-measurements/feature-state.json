@@ -756,13 +756,31 @@
     },
     {
      "id": "T066",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:176"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:185",
+       "tests/test_core/test_measurement/test_filters.py:207"
+      ]
+     }
     },
     {
      "id": "T067",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:176"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:185",
+       "tests/test_core/test_measurement/test_filters.py:207"
+      ]
+     }
     },
     {
      "id": "T068",
@@ -818,18 +836,44 @@
     },
     {
      "id": "T072",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:102",
+       "fairdm/core/measurement/filters.py:108"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:332"
+      ]
+     }
     },
     {
      "id": "T073",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:102",
+       "fairdm/core/measurement/filters.py:108"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:332"
+      ]
+     }
     },
     {
      "id": "T074",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/registry/factories.py:489"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:567"
+      ]
+     }
     },
     {
      "id": "T075",
@@ -846,8 +890,16 @@
     },
     {
      "id": "T076",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/core/measurement/filters.py:58"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_filters.py:437"
+      ]
+     }
     }
    ]
   },
