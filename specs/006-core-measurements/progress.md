@@ -5169,13 +5169,13 @@ duplicate coverage.
 
 Did: Gave `ICP_MS_Measurement` (`fairdm_demo/models.py`) two new fields, `value` and
 `uncertainty`, both `fairdm.db.models.DecimalQuantityField` with base unit `microgram / liter`
-(D-019), nullable and optional, each with `help_text` and `verbose_name` through
+(D19), nullable and optional, each with `help_text` and `verbose_name` through
 `gettext_lazy`. This is the framework's first (and only) measurement type that nominates a
 value and records an uncertainty, which is what FR-039 requires and what makes T086, T088 and
 T090 assertable at all - no measurement type anywhere had a `value` attribute before this task,
 so `Measurement.get_value()` had only ever taken its fallback branch in this repository's
 history. Brought forward ahead of T086-T092 per this story's own rituals text, which
-pre-authorises the reordering; recorded as D-018.
+pre-authorises the reordering; recorded as D18.
 
 Verified: `poetry run ruff check fairdm_demo/models.py` → all checks passed. Import checked with
 `poetry run python -m manage check` (implicit in the next task's `makemigrations` run, which
@@ -5245,7 +5245,7 @@ than equality - not a defect, just how the test is written.
 
 ## 2026-08-19T14:19:00Z · Implementer US7 · T089
 
-Did: Added `TestGetValuePlainNumber` (two tests, via a `types.SimpleNamespace` stand-in - D-019
+Did: Added `TestGetValuePlainNumber` (two tests, via a `types.SimpleNamespace` stand-in - D19
 explains why) proving `get_value()` does not raise for a type nominating a plain number, with
 and without a non-`None` `uncertainty` present. Confirmed the first case failed for the right
 reason before the fix: `AttributeError: 'int' object has no attribute 'plus_minus'`, raised from
@@ -5275,7 +5275,7 @@ body and into a new `FairDMConfig._install_quantity_formatter()`, called from `r
 (`fairdm/apps.py`) - the framework's existing startup hook for this kind of wiring. The template
 tag module keeps the `MyFormatter` class and now only imports it. Landed in one commit with
 T090's test rather than T090 alone, because T092's own acceptance criterion names T090's test as
-the same proof it needs (D-018).
+the same proof it needs (D18).
 
 Verified: `poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly` →
 6 passed. `poetry run pytest tests/test_core/test_measurement/ -q -p no:randomly` → 218 passed,
@@ -5428,7 +5428,7 @@ Confirmed both parametrized cases failed for the right reason against the pre-fi
 `date_before` are now declared with `PartialDateFilter` instead of the bare `CharFilter` T073
 left them with. Re-ran `test_filter_by_date_range` on its own to confirm the year-only and
 year-and-month cases (T072/T073's whole point) still pass - a validator that rejected `"2024"`
-would have put the original bug back with a different face. Recorded as D-020 in `decisions.md`:
+would have put the original bug back with a different face. Recorded as D20 in `decisions.md`:
 reusing the model field's own parser rather than a second regex that could drift from it.
 
 Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
@@ -5574,13 +5574,13 @@ into the registry-generated form and filter set, the measurement's own address, 
 inheritance from a dataset, two form defects (a broken "add another dataset" link, inert field
 guidance text), bare-`Measurement` creation being refused including in the framework's own
 fixtures, and the two new `with_related()`/`with_metadata()` queryset methods. Read `decisions.md`
-(D-004, D-005, D-008 through D-014, D-020) for the underlying facts rather than restating requirement
+(D4, D5, D8 through D14, D20) for the underlying facts rather than restating requirement
 prose, and did not cite any requirement, task or story identifier in the entry itself.
 
 Verified: read the entry back against `decisions.md` and the earlier stories' `git log` history to
 confirm every claim matches a decision actually recorded or a commit actually landed on this branch,
 rather than restating specification language that might not have shipped as written. `grep -nE
-"FR-|SC-|T[0-9]{3}|US[0-9]|D-0" CHANGELOG.md` over the new section → no matches, confirming no
+"FR-|SC-|T[0-9]{3}|US[0-9]|D0" CHANGELOG.md` over the new section → no matches, confirming no
 internal identifier leaked into the public-facing text.
 
 Next: T113 (docstring audit).

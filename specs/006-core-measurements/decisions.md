@@ -18,7 +18,8 @@ settled, and why. It is the reason the specification now says what it says.
 Every decision was taken on 2026-08-19. Where one was settled without the maintainer present it is
 marked **self-resolved**, and it stands unless he says otherwise.
 
-## D-001 — Scope: the record and the reusable mixins, not the portal pages
+## D1 — Scope: the record and the reusable mixins, not the portal pages
+
 
 **Settled by the maintainer, 2026-08-19.**
 
@@ -44,7 +45,10 @@ The evidence is the same shape as it was for samples. `MeasurementFormMixin` and
 framework code at all — the one apparent reference, at `fairdm/views/base.py:262`, is a line inside
 a docstring example.
 
-## D-002 — Which samples a measurement may name: open, for now
+**ADR:** none — a scope boundary for this specification alone, superseded when the pages land
+
+## D2 — Which samples a measurement may name: open, for now
+
 
 **Settled by the maintainer, 2026-08-19.**
 
@@ -70,7 +74,10 @@ The capability itself — reusing another group's sample without taking ownershi
 want and is now tracked as issue #212. It is ordinary research practice to build on parts of an
 existing dataset, and the framework cannot express it.
 
-## D-003 — A measurement is a record with a page of its own
+**ADR:** none — an interim position, tracked as issue #212 rather than as a standing decision
+
+## D3 — A measurement is a record with a page of its own
+
 
 **Settled by the maintainer, 2026-08-19.**
 
@@ -90,12 +97,15 @@ needs a page of its own so that it can be audited, and having one keeps the edit
 uniform across record types.** The earlier ruling was made when the question was where plugins
 attach, and it generalised too far.
 
-The consequences divide along the D-001 line. This specification owns the requirement that a
+The consequences divide along the D1 line. This specification owns the requirement that a
 measurement has an address of its own rather than deflecting to its sample's (FR-009). The page
 behind that address is R16's work. R18's note needs rewriting, and plugins become attachable to
 measurements once R16 gives them pages — both routed out below.
 
-## D-004 — The value convention is kept, and proved
+**ADR:** docs/adr/0007-every-record-has-a-page-of-its-own.md
+
+## D4 — The value convention is kept, and proved
+
 
 **Settled by the maintainer, 2026-08-19. This is a defect.**
 
@@ -129,7 +139,10 @@ ran it.
 The methods are load-bearing for display: `fairdm/core/sample/templates/sample/sample_detail.html:26`
 and the measurement overview template both call `get_value`.
 
-## D-005 — One administrative base, not two
+**ADR:** docs/adr/0005-a-measurement-type-nominates-its-value.md
+
+## D5 — One administrative base, not two
+
 
 **Settled by the maintainer, 2026-08-19. This is a defect.**
 
@@ -162,7 +175,10 @@ The existing registry tests do not catch it, because they alias the two-line cla
 name to make their assertions (`tests/test_registry/test_config.py:641`) — a test passing for a
 reason other than the behaviour it names.
 
-## D-006 — Unmeasurable targets are dropped
+**ADR:** none — a defect adjudication; the configured base was always the intended one
+
+## D6 — Unmeasurable targets are dropped
+
 
 **Settled by the maintainer, 2026-08-19.**
 
@@ -179,7 +195,10 @@ What replaces them is the property actually worth holding: **the number of queri
 with the number of measurements** (FR-046, SC-010). That is checkable, it is what protects the page,
 and it fails loudly when someone reintroduces a query per row.
 
-## D-007 — Requirements about the tests are dropped
+**ADR:** none — a judgement about this document's own success criteria
+
+## D7 — Requirements about the tests are dropped
+
 
 **Settled by the maintainer, 2026-08-19.**
 
@@ -193,9 +212,12 @@ establish, and that is now SC-012: no test covering this behaviour is skipped, a
 the behaviour it names is removed.
 
 That criterion is not a formality here. Seventeen tests in the measurement suite are skipped, and
-thirteen of them are the permission tests — see D-011.
+thirteen of them are the permission tests — see D11.
 
-## D-008 — The registry does not wire the mixins into what it generates
+**ADR:** none — test structure is already governed by the constitution
+
+## D8 — The registry does not wire the mixins into what it generates
+
 
 **Self-resolved, 2026-08-19. This is a defect, and it is the largest omission this rewrite found.**
 
@@ -216,7 +238,10 @@ is precisely the group that needed them least.
 Settled in the specification's favour by FR-028 and SC-006, which are the measurement wording of the
 requirement the sample specification already carries.
 
-## D-009 — Guidance text on the measurement form does not reach the form
+**ADR:** docs/adr/0006-generated-components-carry-the-framework-mixins.md
+
+## D9 — Guidance text on the measurement form does not reach the form
+
 
 **Self-resolved, 2026-08-19. This is a defect, and the second instance of it.**
 
@@ -227,7 +252,10 @@ guidance string for `name`, and the other three fields fall back to what the mod
 The identical mistake was found in `SampleForm` during the sample rewrite and fixed there. Nobody
 looked for it anywhere else. FR-029 carries the requirement.
 
-## D-010 — A control on the measurement form refers to an address that does not exist
+**ADR:** none — a mistyped attribute name, fixed in place
+
+## D10 — A control on the measurement form refers to an address that does not exist
+
 
 **Self-resolved, 2026-08-19. This is a defect, and the second instance of it.**
 
@@ -243,7 +271,10 @@ across.
 
 FR-030 generalises it: every address a form's controls refer to must resolve.
 
-## D-011 — Thirteen permission tests are switched off against behaviour that works
+**ADR:** none — a broken address, fixed in place
+
+## D11 — Thirteen permission tests are switched off against behaviour that works
+
 
 **Self-resolved, 2026-08-19. This is a defect in the tests, not in the code.**
 
@@ -264,7 +295,10 @@ the sample rewrite landed. The tests were written against the wrong entry point 
 
 They are re-enabled against the framework's own function. SC-005 states what they must establish.
 
-## D-012 — The measurement type filter offers the wrong types
+**ADR:** none — the tests were switched off against working behaviour and are back on
+
+## D12 — The measurement type filter offers the wrong types
+
 
 **Self-resolved, 2026-08-19. This is a defect.**
 
@@ -277,14 +311,17 @@ types, which live in the portal's application, can never appear.
 The registry already knows which types are registered and the administrative interface already asks
 it. FR-032 requires the filter to ask it too.
 
-## D-013 — The filter mixin declares none of the filters it advertises
+**ADR:** none — follows from ADR 0006; the registry is the source for what is registered
+
+## D13 — The filter mixin declares none of the filters it advertises
+
 
 **Self-resolved, 2026-08-19. This is a defect.**
 
 `MeasurementFilterMixin` documents itself as providing filtering by dataset, by sample, by
 measurement type, a general search, description text and date ranges
 (`fairdm/core/measurement/filters.py:20`). It declares none of them. Every one is declared on the
-concrete `MeasurementFilter` below it, which D-001 places out of scope.
+concrete `MeasurementFilter` below it, which D1 places out of scope.
 
 A filter set built from the mixin alone carries three filters, all of them derived automatically
 from the model's fields. There is no general search, no description filter and no date range.
@@ -294,10 +331,13 @@ declared its filters and the library's metaclass never collected them, because a
 no declared filters for the metaclass to find. Here the mixin declares nothing to lose. Both leave a
 portal developer inheriting an extension point that does not extend anything.
 
-The filters move onto the mixin, which is what FR-026 requires and what D-001 makes necessary: the
+The filters move onto the mixin, which is what FR-026 requires and what D1 makes necessary: the
 substance has to live in the part that stays.
 
-## D-014 — The framework's own fixtures create a record the specification forbids
+**ADR:** none — the mixin now declares what its own documentation claimed
+
+## D14 — The framework's own fixtures create a record the specification forbids
+
 
 **Self-resolved, 2026-08-19. This is a defect.**
 
@@ -313,7 +353,10 @@ and the framework's fixtures do not create one. `SampleFactory` now refuses.
 
 The measurement wording is FR-011 and SC-002, matching it.
 
-## D-015 — What the old text called current issues, and what remains of them
+**ADR:** none — a fixture defect, fixed in place
+
+## D15 — What the old text called current issues, and what remains of them
+
 
 **Self-resolved, 2026-08-19.**
 
@@ -331,11 +374,14 @@ recorded here so that nobody re-opens them:
 - **The form's stale field exclusions are gone.** The form excludes nothing.
 
 Two are real and are carried as requirements: the filter that was empty is now populated but on the
-wrong class (D-013), and the queryset that did not exist now does (FR-046).
+wrong class (D13), and the queryset that did not exist now does (FR-046).
 
-The sixth, the address that deflected to the sample, is resolved and settled by D-003.
+The sixth, the address that deflected to the sample, is resolved and settled by D3.
 
-## D-016 — Fields the record carries that the old text never mentioned
+**ADR:** none — a reading of the previous document, not a decision about the code
+
+## D16 — Fields the record carries that the old text never mentioned
+
 
 **Self-resolved, 2026-08-19.**
 
@@ -355,11 +401,14 @@ Findings this rewrite turned up that are not this specification's work.
 | Finding | Where it goes |
 |---|---|
 | A sample cannot be reused by another dataset without its ownership moving, so provenance for shared material cannot be recorded | Issue #212, opened 2026-08-19 |
-| R18 states that a measurement is a component of its sample's page rather than a record with a page of its own, which D-003 reverses | The roadmap, when it is next revised |
+| R18 states that a measurement is a component of its sample's page rather than a record with a page of its own, which D3 reverses | The roadmap, when it is next revised |
 | Plugins become attachable to measurements once R16 gives them pages; the five removed on R18's reasoning may be worth restoring | R18, once R16 lands |
-| The concrete `MeasurementForm` and `MeasurementFilter`, and the placeholder detail page, view and template | The CRUD specification, R16 (D-001, D-003) |
+| The concrete `MeasurementForm` and `MeasurementFilter`, and the placeholder detail page, view and template | The CRUD specification, R16 (D1, D3) |
 
-## D-017 — What the design review changed
+**ADR:** none — a record of fields the old text omitted
+
+## D17 — What the design review changed
+
 
 **Reviewed 2026-08-19, one reviewer, four lenses. Verdict: changes requested, all applied.**
 
@@ -404,7 +453,10 @@ the top-level `notes` array the protocol asks for are both invalid. The reviewer
 schema and carried the lens as a prefix in each claim. The protocol and the schema disagree, and the
 protocol is the newer of the two.
 
-## D-018 — US7's task order was rebuilt around T093, and T090/T092 were merged
+**ADR:** none — a record of what the design review changed
+
+## D18 — US7's task order was rebuilt around T093, and T090/T092 were merged
+
 
 **Self-resolved, Implementer, 2026-08-19. Both are reorderings the brief pre-authorised, recorded
 here per its own instruction.**
@@ -439,7 +491,10 @@ running the full `test_value.py` file unchanged across the T091 commit boundary.
 rendering logic per type - at that point `print_value()`'s single `str()` delegation may need a
 per-type hook, and this decision's premise (one formatter, one code path) is the thing to revisit.
 
-## D-019 — Two smaller choices behind US7's tests
+**ADR:** none — a task ordering within one story
+
+## D19 — Two smaller choices behind US7's tests
+
 
 **Self-resolved, Implementer, 2026-08-19.**
 
@@ -461,7 +516,11 @@ real method against real data, rather than mocking framework behaviour - the `cr
 this satisfies is "real over fake over stub over mock." **Revisit if** a portal-contributed
 measurement type nominating a plain number ever lands in the framework's own demo app; the test
 should then move onto it instead.
-## D-020 — The date-range filters validate through the model field's own parser, not a second regex
+
+**ADR:** none — two local test-construction choices
+
+## D20 — The date-range filters validate through the model field's own parser, not a second regex
+
 
 **Self-resolved, 2026-08-19. This is a defect the T072/T073 fix introduced.**
 
@@ -489,3 +548,6 @@ filter set's contract, not a general-purpose form field a portal would reach for
 
 Revisit if: `fairdm.forms` grows a general-purpose partial-date form field of its own — at that
 point `PartialDateFilterField` is redundant with it and should be replaced, not kept alongside it.
+
+**ADR:** none — a filter validates through the field's own parser; local to this filter set
+

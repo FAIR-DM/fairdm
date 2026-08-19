@@ -42,32 +42,32 @@ document.
   behind the list? → A: It owns the record, and it owns `MeasurementFormMixin` and
   `MeasurementFilterMixin` because those are what a portal developer inherits from rather than what
   a page constructs. The pages and the concrete `MeasurementForm` and `MeasurementFilter` belong to
-  the CRUD specification (D-001).
+  the CRUD specification (D1).
 - Q: The original text requires a measurement's sample choices to be limited to samples "included in
   the measurement's dataset", while its own headline story exists so that a measurement can describe
   a sample from a different dataset. A sample belongs to exactly one dataset, so the two cannot both
   hold. Which is intended? → A: Neither restriction applies here. Sample selection stays open, and
   narrowing it is a later refinement that waits on a way to reuse another group's sample without
-  taking ownership of it (D-002).
+  taking ownership of it (D2).
 - Q: One roadmap item records that a measurement is a component of its sample's page rather than a
   record with a page of its own; another promises every registered measurement type a detail page.
   Which is intended? → A: A measurement gets its own page. Every record in the database needs one
   for auditing, and it keeps the editing interface uniform across record types. The page itself is
-  the CRUD specification's work; the address is this one's (D-003).
+  the CRUD specification's work; the address is this one's (D3).
 - Q: A measurement's value and uncertainty are reported by two methods that have never run — no
   measurement type anywhere defines a value, and the renderer reads an attribute the underlying
   library does not have. Keep the convention or drop it? → A: Keep it, and prove it. A demo type
-  defines a value with an uncertainty so the path is exercised rather than asserted (D-004).
+  defines a value with an uncertainty so the path is exercised rather than asserted (D4).
 - Q: The registry validates a supplied measurement admin against a two-line class, while the class
   the framework actually configures is a different one entirely, and a component the registry
   generates inherits the two-line one. Which is the real base? → A: The configured one. The
-  two-line class and the parent admin beside it are unreachable duplicates and go (D-005).
+  two-line class and the parent admin beside it are unreachable duplicates and go (D5).
 - Q: Should the requirements naming query-count reductions, registration times and boilerplate
   savings be kept? → A: No. None of them can be measured as stated. What replaces them is a query
-  count that does not grow with the number of rows (D-006).
+  count that does not grow with the number of rows (D6).
 - Q: Should the twelve requirements describing the tests be kept? → A: No. How tests are organised
   is settled by the project's own standards, and what matters here is that no test covering this
-  behaviour is skipped or passes vacuously — which is a success criterion (D-007).
+  behaviour is skipped or passes vacuously — which is a success criterion (D7).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -563,9 +563,9 @@ address resolves to that measurement.
 ## Out of scope
 
 - The measurement list, detail, create, edit and delete pages, and the concrete form and filter set
-  those pages would instantiate — the CRUD specification, roadmap item R16 (D-001, D-003).
+  those pages would instantiate — the CRUD specification, roadmap item R16 (D1, D3).
 - Restricting which samples a measurement may name. Selection stays open until a sample can be
-  reused across datasets without its ownership moving (D-002).
+  reused across datasets without its ownership moving (D2).
 - Reusing a sample across datasets without transferring ownership of it, which the data model does
   not yet support.
 - Import and export of measurement data beyond what the administrative interface offers.

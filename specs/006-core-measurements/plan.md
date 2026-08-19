@@ -118,8 +118,8 @@ suite runs once per group, at its report.
 
 ## What this plan does not do
 
-- The measurement pages, and the concrete form and filter set those pages would build (D-001, D-003).
-- Restricting which samples a measurement may name (D-002). Selection stays open.
+- The measurement pages, and the concrete form and filter set those pages would build (D1, D3).
+- Restricting which samples a measurement may name (D2). Selection stays open.
 - Building the mechanism for reusing a sample across datasets without moving its ownership. That is
   issue #212 and it is a data-model change, not a repair.
 - Correcting R18's note in the roadmap, or restoring the plugins removed on its reasoning. Both
