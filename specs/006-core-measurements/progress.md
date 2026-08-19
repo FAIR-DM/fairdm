@@ -5306,3 +5306,139 @@ full-suite verify remain before the completion report.
 Watch: the pre-existing skips this story's prohibitions name
 (`tests/test_core/test_measurement/test_models.py:530, :965, :1214`) were left untouched, as
 instructed.
+## 2026-08-19T14:06:54Z · Implementer US6 · T066/T067
+
+Did: Added `TestMeasurementFilterPolymorphicTypeChoices` to `test_filters.py`, proving the
+`polymorphic_ctype` filter's choices are exactly the content types of `registry.measurements` —
+by membership (every demo type, plus `tests.registry_models.ConcreteMeasurement` registered from
+outside the framework) and by exclusion (the polymorphic base `Measurement`, and
+`ConcreteSample`, a registered non-measurement) — and that narrowing by the outside-registered
+type leaves only measurements of that type. Confirmed both new tests failed for the right reason
+(`filterset.is_valid()` returned `False` because `ConcreteMeasurement`'s content type, app label
+`registry_models`, was outside the hardcoded `app_label__in=["fairdm_core", "fairdm_demo"]`
+list) before implementing T067: `MeasurementFilterMixin.__init__` now builds the
+`polymorphic_ctype` queryset from `ContentType.objects.get_for_models(*registry.measurements)`
+rather than the hardcoded list. `registry` imported locally in `__init__`, matching the existing
+local imports of `Dataset`/`Sample` in the same method (avoids a module-level import cycle
+between `fairdm.core.measurement.filters` and `fairdm.registry`).
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 13 passed, 1 skipped (the T072 skip, not yet removed). `poetry run ruff check
+fairdm/core/measurement/filters.py tests/test_core/test_measurement/test_filters.py` → all
+checks passed (one import-wrap auto-fix applied by ruff itself).
+
+Next: T072/T073 — the date-range filters and their skipped test.
+
+Watch: none.
+
+## 2026-08-19T14:20:00Z · Implementer US6 · T072/T073
+
+Did: Removed the `pytest.mark.skip` on `test_filter_by_date_range` and extended it with a
+year-and-month-only measurement date (`"2024-06"`) and a year-only one (`"2023"`), chosen well
+clear of the two range boundaries (`"2024-02-01"` / `"2024-02-28"`) so each comparison is
+unambiguous at its own precision — no reliance on the field's second-encoded precision as a
+tie-breaker. Also fixed `type="analysis"` on the pre-existing fixture data to `type="Setup"`, a
+real member of the Measurement date vocabulary (confirmed via `MeasurementDate.VOCABULARY.values`
+→ `['Setup', 'TearDown']`) — invisible while the test was skipped, since `MeasurementDate.save()`
+refuses an out-of-vocabulary `type`. Confirmed the un-skipped test failed for the reported reason
+before implementing T073: reverted the filter fix and re-ran, hitting
+`django.core.exceptions.ValidationError: ["'value' value must be a PartialDate instance, a valid
+partial date string (YYYY, YYYY-MM, YYYY-MM-DD) or None, not '2024-02-01'"]` raised from
+`PartialDateField.to_python` (`partial_date/fields.py:156`), reached via
+`get_prep_lookup`→`get_prep_value` on the `date_after`/`date_before` `gte`/`lte` lookups — the
+exact defect plan.md R2 names. Then reapplied T073: `date_after`/`date_before` changed from
+`django_filters.DateFilter` to `django_filters.CharFilter`, so the cleaned value stays the string
+django-filter received rather than being coerced to a `datetime.date` first; the string reaches
+`PartialDateField.get_prep_value` intact and the field parses it itself at whatever precision it
+carries.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 14 passed, 0 skipped. `poetry run ruff check fairdm/core/measurement/filters.py
+tests/test_core/test_measurement/test_filters.py` → all checks passed.
+
+Next: T074 — the registry-generated half of the dataset-choices coverage.
+
+Watch: none.
+
+## 2026-08-19T14:35:00Z · Implementer US6 · T074
+
+Did: Added `TestMeasurementFilterRegistryGeneratedDatasetPrivacy` to `test_filters.py`, proving
+the T115 dataset-choices widening also holds on the filter set the registry generates for a
+registered measurement type (`fairdm.registry.factories.FilterFactory(XRFMeasurement,
+fields=["dataset"]).generate()`), not only on `MeasurementFilter` built directly — the mixin half
+was already covered by `TestMeasurementFilterMixinDatasetPrivacy`. Built via `FilterFactory`
+rather than hand-assembled, matching `TestFilterFactoryMeasurementBranch`
+(tests/test_registry/test_factories.py), so the test proves the registry's own wiring rather
+than a stand-in. The behaviour was believed already correct going in — `FilterFactory` inherits
+`MeasurementFilterMixin` as its base (`get_base_filterset_class`) and doesn't override
+`__init__`, so the mixin's dataset-scoping logic runs unconditionally whether or not "dataset" is
+also present in the factory's smart-filter overrides. The new test passed on first run; per
+`craft-tdd`, confirmed it was not tautological by inverting the assertion (`offered == {other}`)
+and watching it fail with the correct two-dataset mismatch, then reverting to the correct
+assertion.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 15 passed. `poetry run ruff check tests/test_core/test_measurement/test_filters.py` → all
+checks passed.
+
+Next: T076 — make the combined-filters test load-bearing on both filters.
+
+Watch: none.
+
+## 2026-08-19T14:50:00Z · Implementer US6 · T076
+
+Did: Rewrote `TestMeasurementFilterCombinedFilters.test_combined_filters_dataset_and_sample`
+(named at the brief as this task's own to rewrite). The previous version's third measurement was
+bound to `_measurement3` and never asserted, so the dataset filter did no provable work —
+`sample` alone already excluded every other row. Replaced it with three measurements built so
+each filter excludes a row the other cannot: `measurement_wrong_dataset` shares `sample1` with
+`measurement_both` but is linked to `dataset2` (US-2 cross-dataset linking — a measurement's own
+`dataset` need not match its sample's, so this is a legitimate row, not a fixture artefact);
+`measurement_wrong_sample` shares `dataset1` with `measurement_both` but uses `sample2`. Filtering
+by both `dataset=dataset1` and `sample=sample1` together leaves only `measurement_both`.
+Confirmed each filter is load-bearing exactly as the brief asks: removed `"dataset"` from the
+filter data and watched `measurement_wrong_dataset not in filterset.qs` fail (it reappeared,
+alongside `measurement_both`), reverted; removed `"sample"` and watched `measurement_wrong_sample
+not in filterset.qs` fail the same way, reverted to the full combination.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 15 passed. `poetry run ruff check tests/test_core/test_measurement/test_filters.py
+fairdm/core/measurement/filters.py` → all checks passed.
+
+Next: none — all six tasks in this brief (US6: T066, T067, T072, T073, T074, T076) are complete.
+
+Watch: none.
+
+## 2026-08-19T15:15:00Z · Implementer US6 · T073 follow-up
+
+Did: Closed a defect the T073 fix introduced, reported by the coordinator against the delivered
+filter set directly: `MeasurementFilter(data={"date_after": "not-a-date"}, ...)` reported
+`is_valid() is True`, and evaluating `.qs` then raised an unhandled `django.core.exceptions.
+ValidationError` from `PartialDateField.to_python` - a public filter form must never surface a
+query-time exception as its error path. Added
+`TestMeasurementFilterDateRangeValidation` (`test_filters.py`) with a parametrized case
+(`"not-a-date"`, `"2024-13-45"`) asserting `is_valid() is False`, an error on `date_after`, and
+that `list(filterset.qs)` does not raise, plus a case confirming an empty string stays valid.
+Confirmed both parametrized cases failed for the right reason against the pre-fix code
+(`is_valid()` was `True`). Implemented `PartialDateFilterField` (`forms.CharField` subclass) and
+`PartialDateFilter` (`django_filters.CharFilter` subclass carrying it as `field_class`) in
+`filters.py`: `to_python` calls `partial_date.PartialDate.parseDate()` - the same static method
+`fairdm.db.fields.PartialDateField` itself uses - on the cleaned value, letting its
+`ValidationError` propagate as a form error rather than reaching the ORM. `date_after`/
+`date_before` are now declared with `PartialDateFilter` instead of the bare `CharFilter` T073
+left them with. Re-ran `test_filter_by_date_range` on its own to confirm the year-only and
+year-and-month cases (T072/T073's whole point) still pass - a validator that rejected `"2024"`
+would have put the original bug back with a different face. Recorded as D-020 in `decisions.md`:
+reusing the model field's own parser rather than a second regex that could drift from it.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q -p no:randomly`
+→ 18 passed. `poetry run pytest tests/test_core/test_measurement/test_filters.py::
+TestMeasurementFilterCrossRelationshipFiltering::test_filter_by_date_range -v -p no:randomly` →
+1 passed. `poetry run ruff check fairdm/core/measurement/filters.py tests/test_core/
+test_measurement/test_filters.py` → all checks passed. `poetry run pytest -q -p no:randomly` →
+full suite green (see completion report). `poetry run pre-commit run --all-files` → all hooks
+passed.
+
+Next: none.
+
+Watch: none.

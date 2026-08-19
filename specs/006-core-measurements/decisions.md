@@ -461,3 +461,31 @@ real method against real data, rather than mocking framework behaviour - the `cr
 this satisfies is "real over fake over stub over mock." **Revisit if** a portal-contributed
 measurement type nominating a plain number ever lands in the framework's own demo app; the test
 should then move onto it instead.
+## D-020 — The date-range filters validate through the model field's own parser, not a second regex
+
+**Self-resolved, 2026-08-19. This is a defect the T072/T073 fix introduced.**
+
+Decision: `date_after`/`date_before` swapped `django_filters.DateFilter` for a plain
+`django_filters.CharFilter` (T073, plan.md R2) so the three partial-date shapes could pass through
+to the ORM unconverted. That swap also removed all input validation: any string cleaned
+successfully as a `CharField`, `is_valid()` reported `True` for junk input, and the request then
+failed with an unhandled `ValidationError` — raised from `PartialDateField.to_python` — only when
+the queryset was evaluated. A public filter form must never surface a query-time exception as its
+error path. The fix is `PartialDateFilterField`, a `forms.CharField` subclass whose `to_python`
+calls `partial_date.PartialDate.parseDate()` on the cleaned value — the exact static method
+`fairdm.db.fields.PartialDateField` itself uses to parse a stored value — and lets its
+`ValidationError` propagate as a form error. `date_after`/`date_before` are now declared with a new
+`PartialDateFilter(django_filters.CharFilter)` carrying that field as `field_class`.
+
+Why: the alternative was a hand-written regex or a second call to `datetime.strptime` guessing at
+the three accepted shapes (`YYYY`, `YYYY-MM`, `YYYY-MM-DD`). `PartialDate.parseDate` already is that
+logic, is what the model field calls on every read and write, and already produces the exact message
+("... is not a valid date string (YYYY, YYYY-MM, YYYY-MM-DD)") a reader would need to correct their
+input. A second implementation could accept or reject a string the model field disagrees with,
+silently, the first time either one changes. Both classes are declared locally in
+`fairdm/core/measurement/filters.py` rather than added to `fairdm/forms/fields.py` or
+`fairdm/db/fields.py` — both out of this story's file scope, and the validation is specific to this
+filter set's contract, not a general-purpose form field a portal would reach for elsewhere.
+
+Revisit if: `fairdm.forms` grows a general-purpose partial-date form field of its own — at that
+point `PartialDateFilterField` is redundant with it and should be replaced, not kept alongside it.

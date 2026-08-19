@@ -10,10 +10,40 @@ This module provides FilterSet classes for filtering Measurement models with sup
 """
 
 import django_filters
+from django import forms
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from partial_date import PartialDate
 
 from fairdm.core.measurement.models import Measurement
+
+
+class PartialDateFilterField(forms.CharField):
+    """A `CharField` that validates its cleaned value as a partial date -
+    a year, a year and month, or a full date - using `PartialDate`'s own
+    parser rather than a second regex that could drift from it. Anything
+    else raises here, at clean time, and becomes a form error rather than
+    reaching the ORM unvalidated (T073 follow-up: a plain `CharFilter`
+    let any string through, and the request only failed later, with an
+    unhandled `ValidationError`, when the queryset was evaluated).
+    """
+
+    def to_python(self, value):
+        value = super().to_python(value)
+        if value:
+            # Raises django.core.exceptions.ValidationError (the same class
+            # as forms.ValidationError) for anything that isn't YYYY,
+            # YYYY-MM or YYYY-MM-DD; the parsed result itself is unused
+            # here - PartialDateField parses the string again at query time.
+            PartialDate.parseDate(value)
+        return value
+
+
+class PartialDateFilter(django_filters.CharFilter):
+    """A `CharFilter` whose form field validates a partial date string
+    before it reaches the ORM."""
+
+    field_class = PartialDateFilterField
 
 
 class MeasurementFilterMixin(django_filters.FilterSet):
@@ -91,14 +121,23 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         label=_("Description contains"),
     )
 
-    # Date range filters - cross-relationship filtering
-    date_after = django_filters.DateFilter(
+    # Date range filters - cross-relationship filtering. `MeasurementDate.value`
+    # is a `fairdm.db.fields.PartialDateField`: a year, a year and month, or a
+    # full date, stored as a string it parses itself (`partial_date.PartialDate`).
+    # A `django_filters.DateFilter` cleans its input to a `datetime.date`, which
+    # the field's `to_python` refuses outright - that mismatch is what the skip
+    # on `test_filter_by_date_range` was hiding (T072/T073, plan.md R2).
+    # `PartialDateFilter` validates the string against the same parser the
+    # model field uses before it ever reaches the ORM, so a reader gets a
+    # form error rather than an unhandled `ValidationError` at query time
+    # (T073 follow-up).
+    date_after = PartialDateFilter(
         field_name="dates__value",
         lookup_expr="gte",
         label=_("Date after"),
     )
 
-    date_before = django_filters.DateFilter(
+    date_before = PartialDateFilter(
         field_name="dates__value",
         lookup_expr="lte",
         label=_("Date before"),
@@ -144,6 +183,7 @@ class MeasurementFilterMixin(django_filters.FilterSet):
 
         from fairdm.core.models import Dataset
         from fairdm.core.sample.models import Sample
+        from fairdm.registry import registry
 
         if "dataset" in self.filters:
             if (
@@ -166,8 +206,11 @@ class MeasurementFilterMixin(django_filters.FilterSet):
             self.filters["sample"].queryset = Sample.objects.all()
 
         if "polymorphic_ctype" in self.filters:
+            registered_content_types = ContentType.objects.get_for_models(
+                *registry.measurements
+            ).values()
             self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(
-                app_label__in=["fairdm_core", "fairdm_demo"]
+                pk__in=[ct.pk for ct in registered_content_types]
             )
 
     class Meta:
