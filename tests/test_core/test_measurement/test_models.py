@@ -1174,28 +1174,21 @@ class TestMeasurementValueWithUncertainty:
 
     def test_polymorphic_measurement_get_value_with_value_field(self):
         """Test that polymorphic measurements with value fields return appropriate representations."""
-        # This test requires a polymorphic measurement type
-        # Using demo app's XRFMeasurement as example
-        try:
-            from fairdm_demo.models import XRFMeasurement
+        # Using the demo app's XRFMeasurement, which nominates no value of its own,
+        # so the report falls back to the record's name.
+        from fairdm_demo.models import XRFMeasurement
 
-            xrf = XRFMeasurement.objects.create(
-                name="Iron Analysis",
-                dataset=DatasetFactory(),
-                sample=RockSampleFactory(),
-                element="Fe",
-                concentration_ppm=45.2,
-            )
+        xrf = XRFMeasurement.objects.create(
+            name="Iron Analysis",
+            dataset=DatasetFactory(),
+            sample=RockSampleFactory(),
+            element="Fe",
+            concentration_ppm=45.2,
+        )
 
-            value = xrf.get_value()
+        value = xrf.get_value()
 
-            # Should return meaningful value representation (implementation-specific)
-            assert value is not None
-            # Value could be name, concentration, or formatted string depending on implementation
-            assert str(value) != ""
-
-        except ImportError:
-            pytest.skip("Demo XRFMeasurement not available")
+        assert value == "Iron Analysis"
 
     def test_value_display_consistent_across_polymorphic_types(self):
         """Test that value display is consistent across different measurement types."""
@@ -1400,37 +1393,30 @@ class TestMeasurementQuerySetOptimization:
             ExampleMeasurementFactory(sample=RockSampleFactory()) for _ in range(2)
         ]
 
-        # Create polymorphic measurements if available
-        try:
-            from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
+        from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
 
-            polymorphic_measurements = [
-                XRFMeasurement.objects.create(
-                    name=f"XRF {i}",
-                    dataset=DatasetFactory(),
-                    sample=RockSampleFactory(),
-                    element="Fe",
-                    concentration_ppm=10.0 + i,
-                )
-                for i in range(2)
-            ]
-
-            # Query all measurements
-            all_measurements = Measurement.objects.all()
-
-            # Verify polymorphic instances are returned as correct type
-            xrf_count = sum(
-                1 for m in all_measurements if isinstance(m, XRFMeasurement)
+        polymorphic_measurements = [
+            XRFMeasurement.objects.create(
+                name=f"XRF {i}",
+                dataset=DatasetFactory(),
+                sample=RockSampleFactory(),
+                element="Fe",
+                concentration_ppm=10.0 + i,
             )
-            example_count = sum(
-                1 for m in all_measurements if type(m) is ExampleMeasurement
-            )
+            for i in range(2)
+        ]
 
-            assert xrf_count >= 2
-            assert example_count >= 2
+        # Query all measurements
+        all_measurements = Measurement.objects.all()
 
-        except ImportError:
-            pytest.skip("Demo XRFMeasurement not available")
+        # Verify polymorphic instances are returned as correct type
+        xrf_count = sum(1 for m in all_measurements if isinstance(m, XRFMeasurement))
+        example_count = sum(
+            1 for m in all_measurements if type(m) is ExampleMeasurement
+        )
+
+        assert xrf_count >= 2
+        assert example_count >= 2
 
     def test_large_measurement_collection_loads_efficiently(self):
         """Test that large measurement collections (1000+) load efficiently with optimizations."""
