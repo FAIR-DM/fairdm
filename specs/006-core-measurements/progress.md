@@ -216,3 +216,23 @@ files → all checks passed / already formatted.
 Next: T099 - every registered measurement type offers the same attached-record editors.
 
 Watch: none outstanding.
+
+## 2026-08-19T12:45:00Z · Implementer US8 · T099
+
+Did: added `TestMeasurementAdminSharedInlines.test_every_registered_type_offers_the_same_inlines`,
+asserting that every registered measurement type's admin class (`ExampleMeasurementAdmin`,
+`XRFMeasurementAdmin`, `ICP_MS_MeasurementAdmin`, read from `registry.measurements` and the real
+`django.contrib.admin.site` registry) has `inlines == MeasurementChildAdmin.inlines`. No
+implementation change was needed: none of the concrete admin classes in `fairdm_demo/admin.py`
+override `inlines`, so they already inherit the shared set. Checked the assertion was not
+tautological by temporarily setting `inlines = []` on `XRFMeasurementAdmin` in
+`fairdm_demo/admin.py`, confirming the test fails with a clear diff, then reverting - `git diff`
+on that file is empty.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_admin.py -q -p no:randomly` →
+31 passed. `poetry run ruff check` / `ruff format --check` on the touched test file → all checks
+passed / already formatted.
+
+Next: T100/T101 - the administrative list names each row's measurement type.
+
+Watch: none outstanding.

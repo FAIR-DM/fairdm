@@ -362,6 +362,29 @@ class TestMeasurementAdminInlineRowCaps:
 
 
 @pytest.mark.django_db
+class TestMeasurementAdminSharedInlines:
+    """T099: every registered measurement type offers the same attached-record editors."""
+
+    def test_every_registered_type_offers_the_same_inlines(self):
+        from django.contrib import admin as django_admin
+
+        from fairdm.core.measurement.admin import MeasurementChildAdmin
+        from fairdm.registry import registry
+
+        measurement_types = registry.measurements
+        assert len(measurement_types) >= 2, (
+            "need at least two registered types to compare"
+        )
+
+        child_admins = [
+            django_admin.site._registry[model] for model in measurement_types
+        ]
+
+        for child_admin in child_admins:
+            assert child_admin.inlines == MeasurementChildAdmin.inlines
+
+
+@pytest.mark.django_db
 class TestMeasurementAdminVocabularyCorrectness:
     """Tests for vocabulary correctness in admin inlines."""
 
