@@ -30,6 +30,7 @@ from fairdm.factories import (
     SampleDateFactory,
     SampleDescriptionFactory,
     SampleIdentifierFactory,
+    SampleRelationFactory,
 )
 from fairdm_demo.factories import RockSampleFactory
 from fairdm_demo.models import RockSample, WaterSample
@@ -1403,26 +1404,16 @@ class TestSamplePolymorphicQueries:
         assert hasattr(result, "rock_type")
         assert result.rock_type == "igneous"
 
-    @pytest.mark.skip(
-        reason="select_subclasses() not exposed through custom manager - polymorphic queries work without it"
-    )
-    def test_polymorphic_query_with_select_subclasses(self):
-        """Test that select_subclasses() optimizes polymorphic queries."""
-        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
-
-        rock1 = RockSampleFactory()
-        water1 = WaterSampleFactory()
-
-        results = list(Sample.objects.select_subclasses())
-
-        rock_result = next((r for r in results if r.pk == rock1.pk), None)
-        water_result = next((r for r in results if r.pk == water1.pk), None)
-
-        assert rock_result.__class__.__name__ == "RockSample"
-        assert water_result.__class__.__name__ == "WaterSample"
-
     def test_polymorphic_query_without_select_subclasses_still_works(self):
-        """Test that polymorphic queries work correctly even without explicit select_subclasses()."""
+        """Test that polymorphic queries work correctly even without explicit select_subclasses().
+
+        T099/SC-011: the sibling test that called `Sample.objects.select_subclasses()`
+        was removed rather than un-skipped - the installed django-polymorphic (4.11.6)
+        never defines that method on `PolymorphicQuerySet`/`PolymorphicManager` at all, so
+        there is no API left to exercise. This test is the one that stands in its place:
+        it proves the behaviour the removed test was reaching for - correct subclass
+        typing without any explicit call - still holds.
+        """
         from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
 
         _rock1 = RockSampleFactory()
@@ -1735,6 +1726,146 @@ class TestComplexSampleHierarchies:
         assert samples[1] in all_descendants
         assert samples[2] in all_descendants
         assert samples[3] in all_descendants
+
+
+@pytest.mark.django_db
+class TestSampleHierarchy:
+    """T075 - FR-027: over a three-deep chain (grandparent <- parent <- child, each
+    ``child_of`` the previous), direct children, direct parents, all descendants and all
+    ancestors each return the right specimens and none from the wrong direction, checked
+    from both ends of the chain."""
+
+    def test_direct_children(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(grandparent.get_children()) == {parent}
+        assert set(parent.get_children()) == {child}
+        assert set(child.get_children()) == set()
+
+    def test_direct_parents(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(child.get_parents()) == {parent}
+        assert set(parent.get_parents()) == {grandparent}
+        assert set(grandparent.get_parents()) == set()
+
+    def test_all_descendants_from_the_top_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(grandparent.get_descendants()) == {parent, child}
+
+    def test_all_descendants_from_the_middle_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(parent.get_descendants()) == {child}
+
+    def test_all_ancestors_from_the_bottom_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(child.get_ancestors()) == {grandparent, parent}
+
+    def test_all_ancestors_from_the_middle_of_the_chain(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(parent.get_ancestors()) == {grandparent}
+
+    def test_nothing_from_the_wrong_direction_comes_back(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        # The leaf has no descendants, and the root has no ancestors.
+        assert set(child.get_descendants()) == set()
+        assert set(grandparent.get_ancestors()) == set()
+        # A middle specimen's ancestors never include its own descendants and vice versa.
+        assert child not in parent.get_ancestors()
+        assert grandparent not in parent.get_descendants()
+        # A specimen never appears among its own children, parents, descendants or
+        # ancestors.
+        assert parent not in parent.get_children()
+        assert parent not in parent.get_parents()
+        assert parent not in parent.get_descendants()
+        assert parent not in parent.get_ancestors()
+
+
+@pytest.mark.django_db
+class TestSampleHierarchyDepth:
+    """T076 - a depth limit of one on ``get_descendants()`` returns direct children only,
+    and the limit is respected at each further depth of a longer chain."""
+
+    @pytest.fixture
+    def four_level_chain(self, dataset):
+        root = RockSampleFactory(dataset=dataset, name="Root")
+        level1 = RockSampleFactory(dataset=dataset, name="Level1")
+        level2 = RockSampleFactory(dataset=dataset, name="Level2")
+        level3 = RockSampleFactory(dataset=dataset, name="Level3")
+        SampleRelationFactory(source=level1, target=root, type="child_of")
+        SampleRelationFactory(source=level2, target=level1, type="child_of")
+        SampleRelationFactory(source=level3, target=level2, type="child_of")
+        return root, level1, level2, level3
+
+    def test_depth_one_returns_direct_children_only(self, four_level_chain):
+        root, level1, level2, level3 = four_level_chain
+
+        assert set(root.get_descendants(depth=1)) == {level1}
+
+    def test_depth_limit_is_respected_at_each_further_depth(self, four_level_chain):
+        root, level1, level2, level3 = four_level_chain
+
+        assert set(root.get_descendants(depth=2)) == {level1, level2}
+        assert set(root.get_descendants(depth=3)) == {level1, level2, level3}
+        assert set(root.get_descendants()) == {level1, level2, level3}
+
+
+@pytest.mark.django_db
+class TestSampleRelationRefusals:
+    """T077 - FR-027: self-reference, a two-step loop and a duplicate link are each
+    refused when a ``SampleRelation`` is saved directly - ``.objects.create()`` /
+    ``.save()`` - not only when ``clean()`` is called by hand."""
+
+    def test_self_reference_is_refused_on_direct_save(self, rock_sample):
+        with pytest.raises(ValidationError):
+            SampleRelation.objects.create(
+                source=rock_sample, target=rock_sample, type="child_of"
+            )
+
+    def test_two_step_loop_is_refused_on_direct_save(self, dataset):
+        sample_a = RockSampleFactory(dataset=dataset)
+        sample_b = RockSampleFactory(dataset=dataset)
+        SampleRelation.objects.create(source=sample_a, target=sample_b, type="child_of")
+
+        with pytest.raises(ValidationError):
+            SampleRelation.objects.create(
+                source=sample_b, target=sample_a, type="child_of"
+            )
+
+    def test_duplicate_link_is_refused_on_direct_save(self, dataset):
+        sample_a = RockSampleFactory(dataset=dataset)
+        sample_b = RockSampleFactory(dataset=dataset)
+        SampleRelation.objects.create(source=sample_a, target=sample_b, type="child_of")
+
+        with pytest.raises(IntegrityError):
+            SampleRelation.objects.create(
+                source=sample_a, target=sample_b, type="child_of"
+            )
+
+
+@pytest.mark.django_db
+class TestSingleTraversalImplementation:
+    """T078 - the record's helpers and its queryset return the same specimens for the
+    same question, in the same direction."""
+
+    def test_get_descendants_matches_the_queryset(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(grandparent.get_descendants()) == set(
+            Sample.objects.get_descendants(grandparent)
+        )
+        assert set(grandparent.get_descendants()) == {parent, child}
+
+    def test_get_ancestors_matches_the_queryset(self, sample_hierarchy_chain):
+        grandparent, parent, child = sample_hierarchy_chain
+
+        assert set(child.get_ancestors()) == set(Sample.objects.get_ancestors(child))
+        assert set(child.get_ancestors()) == {grandparent, parent}
 
 
 @pytest.mark.django_db

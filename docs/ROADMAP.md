@@ -61,7 +61,7 @@ Serves G1.
 
 ### R5 — Samples
 
-*Delivered · needs verification · advances G1*
+*Delivered · advances G1*
 
 The polymorphic base every sample type inherits from, so a portal defines its own specimen types and the framework treats them uniformly.
 

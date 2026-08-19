@@ -19,28 +19,80 @@ from .models import (
 )
 
 
+class SampleDatasetListFilter(admin.RelatedFieldListFilter):
+    """The ``dataset`` list filter (FR-039, T082), listing every dataset rather than
+    only the ones visible through ``Dataset``'s privacy-first default manager.
+
+    The stock ``RelatedFieldListFilter`` populates its choices from
+    ``field.get_choices()``, which reads through ``Dataset._default_manager`` - the
+    same privacy-first manager ``DatasetAdmin.get_queryset()`` works around
+    (`fairdm/core/dataset/admin.py`). Since ``PRIVATE`` is a dataset's default
+    visibility, an unmodified filter would offer no choices - and therefore never
+    render at all - for the common case of a portal whose datasets have not yet been
+    published.
+    """
+
+    def field_choices(self, field, request, model_admin):
+        from fairdm.core.dataset.models import Dataset
+
+        ordering = self.field_admin_ordering(field, request, model_admin)
+        return [
+            (dataset.pk, str(dataset))
+            for dataset in Dataset.all_objects.order_by(*ordering)
+        ]
+
+
 class SampleDescriptionInline(admin.StackedInline):
-    """Inline admin for sample descriptions."""
+    """Inline admin for sample descriptions.
+
+    ``max_num`` is derived from ``SampleDescription.VOCABULARY`` (T084) rather than
+    hardcoded, the same dynamic-limit pattern as `DescriptionInline` in
+    `fairdm/core/dataset/admin.py` - a specimen cannot carry more descriptions than
+    there are description types to give them.
+    """
 
     model = SampleDescription
     extra = 0
-    max_num = 6
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Set ``max_num`` to the current size of the description vocabulary."""
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.max_num = len(SampleDescription.VOCABULARY.values)
+        return formset
 
 
 class SampleDateInline(admin.StackedInline):
-    """Inline admin for sample dates."""
+    """Inline admin for sample dates.
+
+    ``max_num`` is derived from ``SampleDate.VOCABULARY`` (T084), matching
+    `SampleDescriptionInline` above.
+    """
 
     model = SampleDate
     extra = 0
-    max_num = 6
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Set ``max_num`` to the current size of the date vocabulary."""
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.max_num = len(SampleDate.VOCABULARY.values)
+        return formset
 
 
 class SampleIdentifierInline(admin.StackedInline):
-    """Inline admin for sample identifiers."""
+    """Inline admin for sample identifiers.
+
+    ``max_num`` is derived from ``SampleIdentifier.VOCABULARY`` (T084), matching
+    `SampleDescriptionInline` above.
+    """
 
     model = SampleIdentifier
     extra = 0
-    max_num = 3
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Set ``max_num`` to the current size of the identifier vocabulary."""
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.max_num = len(SampleIdentifier.VOCABULARY.values)
+        return formset
 
 
 class SampleContributionInline(GenericTabularInline):
@@ -88,7 +140,7 @@ class SampleChildAdmin(PolymorphicChildModelAdmin):
         "added",
         "modified",
     ]
-    list_filter = ["status", "added"]
+    list_filter = [("dataset", SampleDatasetListFilter), "status", "added"]
     search_fields = ["name", "local_id", "uuid"]
     readonly_fields = ["uuid", "added", "modified"]
     autocomplete_fields = ["dataset", "location"]
@@ -100,6 +152,24 @@ class SampleChildAdmin(PolymorphicChildModelAdmin):
         SampleContributionInline,
         SampleRelationInline,
     ]
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Offer every dataset, not only the public ones.
+
+        The dataset field's choices default to `Dataset._default_manager`,
+        which is privacy-first, so a specimen belonging to a private dataset
+        could be opened but not saved: its own dataset was not among the
+        choices and validation rejected it. The administrative interface is
+        where a portal is repaired, so it has to reach the records that need
+        repairing — the same reason `DatasetAdmin.get_queryset()` reads
+        through `all_objects`, and the same reason `SampleDatasetListFilter`
+        above does.
+        """
+        if db_field.name == "dataset":
+            from fairdm.core.dataset.models import Dataset
+
+            kwargs["queryset"] = Dataset.all_objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     # Use base_fieldsets (tuple) instead of fieldsets (list) for polymorphic admin
     # This allows polymorphic admin to automatically add subclass-specific fields
@@ -165,7 +235,12 @@ class SampleParentAdmin(PolymorphicParentModelAdmin):
         "added",
         "modified",
     ]
-    list_filter = [PolymorphicChildModelFilter, "status", "added"]
+    list_filter = [
+        PolymorphicChildModelFilter,
+        ("dataset", SampleDatasetListFilter),
+        "status",
+        "added",
+    ]
     search_fields = ["name", "local_id", "uuid"]
 
     def sample_type(self, obj):

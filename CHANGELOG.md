@@ -128,6 +128,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   chainable with the others and with ordinary queryset methods, so a list of specimens loads with
   its dataset, location, descriptions, dates, identifiers, contributions and keywords in a number
   of queries that does not grow with how many specimens or related records there are.
+- **A specimen can be given an IGSN.** The identifier vocabulary for samples previously listed
+  identifiers for people, organisations and projects and contained no IGSN member at all, so the
+  format check below it was unreachable. It now offers an IGSN and a DOI and nothing else.
+- **Typed descriptions, dates and identifiers are validated.** A type outside the sample vocabulary
+  is refused with a message naming it. The validators had never run.
+- **A right granted on a specimen holds, and a right over a dataset reaches the specimens in it.**
+  Reading a dataset confers reading its specimens; changing one confers changing them, deleting
+  them and adding to it.
+- **`SampleFormMixin` and `SampleFilterMixin` deliver what they document**, and are what the
+  registry builds a specimen type's form and filter set from when the type supplies neither.
+- The administrative interface finds a specimen by name, laboratory identifier or generated
+  identifier, narrows by dataset, status or type, offers inline rows bounded by the vocabulary
+  rather than by a hardcoded number, and reaches specimens in private datasets.
 
 ### Changed
 
@@ -139,6 +152,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reference example — the same way a portal already subclasses `Sample` for its own specimen
   types. `MeasurementFactory.sample` and `SampleRelationFactory.source`/`target` have no default
   for the same reason and must be passed a concrete specimen instance.
+- **A sample's status describes where the specimen physically is.** The previous vocabulary was
+  fetched over plain HTTP from a third-party host while Django loaded its applications, and its
+  terms — complete, ongoing, planned, unknown — describe a data-collection activity rather than a
+  specimen. It is replaced by a local vocabulary of custody states: available, in use, stored,
+  destroyed, unknown. **Every existing status value is rewritten to unknown**, because none of the
+  previous terms maps onto a custody state; the previous values are discarded and cannot be
+  recovered. A portal that read a sample's status will find it reset.
+- **The sample identifier vocabulary is narrowed to IGSN and DOI.** A portal storing any other type
+  against a specimen will find it refused by validation.
+- **An IGSN is validated as a DataCite identifier, not against the legacy handle prefix.** IGSN
+  allocation moved to DataCite in 2023 and identifiers are now spread across dozens of registry
+  prefixes, so the previous pattern rejected essentially every identifier in circulation. The
+  legacy handle form is still accepted.
+- **An identifier value is unique across every record type, not merely within one.** The
+  uniqueness was declared on a shared abstract, which gives one index per table, so the same value
+  could name a specimen and a dataset at once. Projects and measurements inherit the check too.
+- **A sample's descriptions, keywords, key dates and edit pages require the right to change it.**
+  They previously opened for anyone holding the specimen's address, including a visitor who had
+  not signed in.
+- **Object-level permissions resolve for a portal-defined specimen type.** The right is declared on
+  the base record and the specimen lives in the portal's own application, so the check raised and
+  the grant looked for a permission filed under the wrong content type. A shared backend normalises
+  the record before the check, and `fairdm.core.utils.assign_perm` does the same when granting.
+  Measurements gain the same repair. `guardian.backends.ObjectPermissionBackend` is no longer in
+  `AUTHENTICATION_BACKENDS`; `fairdm.core.permissions.PolymorphicObjectPermissionBackend` replaces
+  it and a portal listing the backends by hand should follow.
+- **The specimen hierarchy has one traversal.** The queryset's ancestor and descendant walks ran
+  opposite to the record's own, so each returned what the other promised. Neither had a caller.
+- **A specimen cannot be its own parent, and two specimens cannot each descend from the other**,
+  when saved directly rather than only under validation.
 
 #### Portal configuration (Feature 001) — breaking
 

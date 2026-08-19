@@ -253,8 +253,8 @@ class Sample(BasePolymorphicModel):
     def get_descendants(self, depth=None):
         """Get all descendant samples with optional depth limit.
 
-        Uses iterative breadth-first traversal to find descendants. Prevents
-        infinite loops by tracking visited samples.
+        Delegates to :meth:`SampleQuerySet.get_descendants` (D-007) - the single
+        traversal implementation - rather than repeating the walk here.
 
         Args:
             depth: Maximum depth to traverse (None = unlimited). Depth 1 returns
@@ -268,34 +268,27 @@ class Sample(BasePolymorphicModel):
             >>> direct_children = root.get_descendants(depth=1)
             >>> all_descendants = root.get_descendants()
         """
-        if depth is not None and depth < 1:
-            return Sample.objects.none()
+        return Sample.objects.get_descendants(self, max_depth=depth)
 
-        descendants = set()
-        current_level = {self.id}
-        visited = {self.id}
-        current_depth = 0
+    def get_ancestors(self, depth=None):
+        """Get all ancestor samples with optional depth limit.
 
-        while current_level and (depth is None or current_depth < depth):
-            # Get children of current level
-            child_ids = set(
-                SampleRelation.objects.filter(
-                    target_id__in=current_level, type="child_of"
-                ).values_list("source_id", flat=True)
-            )
+        Delegates to :meth:`SampleQuerySet.get_ancestors` (D-007) - the single
+        traversal implementation.
 
-            # Remove already visited to prevent cycles
-            child_ids = child_ids - visited
+        Args:
+            depth: Maximum depth to traverse (None = unlimited). Depth 1 returns
+                  only direct parents, depth 2 includes grandparents, etc.
 
-            if not child_ids:
-                break
+        Returns:
+            QuerySet: All ancestor Sample objects within depth limit
 
-            descendants.update(child_ids)
-            visited.update(child_ids)
-            current_level = child_ids
-            current_depth += 1
-
-        return Sample.objects.filter(id__in=descendants)
+        Example:
+            >>> leaf = Sample.objects.get(uuid="s_abc123")
+            >>> direct_parents = leaf.get_ancestors(depth=1)
+            >>> all_ancestors = leaf.get_ancestors()
+        """
+        return Sample.objects.get_ancestors(self, max_depth=depth)
 
     @classproperty
     def type_of(self):
@@ -490,10 +483,12 @@ class SampleRelation(models.Model):
         """Return string representation of relationship."""
         return f"{self.source} {self.type} {self.target}"
 
-    def clean(self):
-        """Validate relationship to prevent self-reference and circular relationships."""
-        from django.core.exceptions import ValidationError
+    def _refuse_self_reference_and_loop(self):
+        """Raise if this relationship is a self-reference or a two-step loop.
 
+        FR-027: refused when saved directly, not only under validation - both
+        ``clean()`` and ``save()`` call this rather than each carrying its own copy.
+        """
         # 1. Prevent self-reference
         if self.source_id and self.target_id and self.source_id == self.target_id:
             raise ValidationError(_("Sample cannot relate to itself"))
@@ -514,3 +509,19 @@ class SampleRelation(models.Model):
                         f"has {self.type} relationship to {self.source}"
                     )
                 )
+
+    def clean(self):
+        """Validate relationship to prevent self-reference and circular relationships."""
+        self._refuse_self_reference_and_loop()
+
+    def save(self, *args, **kwargs):
+        """Refuse a self-reference or a two-step loop even when saved directly.
+
+        FR-027 requires the refusal to hold for ``SampleRelation.objects.create()`` and
+        ``.save()``, not only for callers that run ``clean()``/``full_clean()`` first -
+        forms and the admin already do, but the manager and a bare ``.save()`` do not.
+        The duplicate-link case stays enforced by the ``unique_together`` constraint at
+        the database, which every save route already goes through.
+        """
+        self._refuse_self_reference_and_loop()
+        super().save(*args, **kwargs)
