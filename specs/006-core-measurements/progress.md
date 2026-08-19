@@ -237,3 +237,39 @@ Watch: none outstanding. `DescriptionInline`/`DateInline` in `fairdm/core/admin.
 unreferenced outside that file (confirmed by grep) but are dataset-related and outside this
 story's scope - left untouched and not raised as a concern, since a plain unused-class question
 for a different domain isn't this story's finding to make.
+
+## 2026-08-19T12:18:16Z · Implementer US1 · T025/T032/T033
+
+Did: added `tests/test_core/test_measurement/test_admin_registry.py` rather than extending
+`tests/test_core/test_measurement/test_admin.py` - that file is on this story's prohibited list
+(owned by a concurrently running story) even though T025 and T032 name it in `tasks.md`. A new
+file carries zero merge-conflict risk with whatever that other story lands there, which is the
+concern the prohibition protects against.
+
+T033: `MeasurementParentAdmin.get_child_models()` already reads `registry.measurements`
+(`fairdm/core/measurement/admin.py:172-176`) - confirmed by monkeypatching the registry property
+to a sentinel list and observing the admin's child models change to match it, which the existing
+`assert len(child_models) > 0` coverage could not distinguish from a hardcoded non-empty list. No
+implementation change.
+
+T032: registered `tests.registry_models.models.ConcreteMeasurement` (a real, installed-app type,
+"the shape a portal actually registers" per its own docstring) via `registry.register()` inside
+the test, standing in for a type registered from outside the framework. Asserted it appears among
+`get_child_models()`, that a registered `ConcreteSample` (non-measurement) does not, and that the
+unregistered base `Measurement` does not. `tests/test_core/test_measurement/conftest.py`'s local
+`clean_registry` fixture only snapshots/restores `registry._registry` around the test rather than
+clearing it first (unlike `tests/test_registry/conftest.py`'s fixture of the same name, which
+empties it) - written the assertions to work with either registry state (framework types stay
+registered during the test) rather than assuming an empty registry.
+
+T025: the administrative-interface route was already refused - `Measurement` is never in
+`registry.measurements`, so the parent admin's add view 403s on the base content type the same
+way it would for any unregistered model. No implementation change; this route was untested.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_admin_registry.py -q -p
+no:randomly` → 6 passed. `poetry run ruff check` + `ruff format` (one file needed reformatting,
+applied and reconfirmed clean) on the new file.
+
+Next: T026/T028/T029 (the bare-measurement manager and form refusal routes).
+
+Watch: none outstanding.
