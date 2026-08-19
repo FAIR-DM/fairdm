@@ -1214,3 +1214,101 @@ a single pre-existing class's skip-removal and rewrite across two commits would 
 deleting methods in one commit and restoring them in the next - keeping each class whole within
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
+
+## 2026-08-19T13:11:00Z · Implementer US3 · T042/T043/T044/T045/T046/T047
+
+Did: `MeasurementDescription`/`MeasurementDate`/`MeasurementIdentifier` already carried a
+direct `related` FK to `Measurement` with `on_delete=CASCADE`, and their `VOCABULARY` bindings
+already existed - both open only for lack of a test. Added
+`TestMeasurementMetadataRelations` (direct relation + cascade-on-delete for all three, in
+`tests/test_core/test_measurement/test_models.py`) and
+`TestMeasurementDescriptionVocabularyMembers`/`TestMeasurementDateVocabularyMembers`
+(vocabulary members asserted by name: `MeasurementConditions`/`MeasurementSetup`/
+`MeasurementTearDown`/`Other` and `Setup`/`TearDown`), mirroring the existing
+`TestMeasurementIdentifierVocabulary` pattern (T048/T049).
+
+Corrected the two pre-existing tests T044/T046 name by number:
+`TestMeasurementVocabularyValidation.test_measurement_description_uses_measurement_vocabulary`
+asserted `desc.type == "method"` and `..._date_uses_measurement_vocabulary` asserted
+`date.type == "measured"` - neither is a member of its vocabulary; both passed only because
+nothing validated `type`. Swapped for real members (`"MeasurementSetup"`, `"Setup"`). No other
+pre-existing test touched.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly
+-k "TestMeasurementMetadataRelations or TestMeasurementDescriptionVocabularyMembers or
+TestMeasurementDateVocabularyMembers or TestMeasurementVocabularyValidation or
+TestMeasurementIdentifierVocabulary"` → 10 passed. `poetry run ruff check
+tests/test_core/test_measurement/test_models.py` → all checks passed.
+
+Next: T050/T051.
+
+Watch: none.
+
+## 2026-08-19T13:11:00Z · Implementer US3 · T050/T051
+
+Did: `GenericModel.__init_subclass__` (`fairdm/core/abstract.py`) already binds `type`'s
+`choices` to `VOCABULARY`, so `full_clean()` already refuses an out-of-vocabulary type via
+`clean_fields()`, naming the offending value in Django's own message - confirmed by test, no
+code change needed for that half (T050). Django validates `choices` only through
+`full_clean()`, though, so a direct `MeasurementDescription.objects.create(type="bogus", ...)`
+or a bare `.save()` reached the database untouched. Closed that route (T051) with a `save()`
+override on each of `MeasurementDescription`, `MeasurementDate` and `MeasurementIdentifier`
+(`fairdm/core/measurement/models.py`) that checks `type` against `VOCABULARY.values` before
+calling `super().save()`, raising `ValidationError` naming the offending type otherwise - the
+same shape `SampleRelation.save()` uses to close the equivalent "direct save must refuse too"
+gap for FR-027 (`fairdm/core/sample/models.py`). Did not touch `fairdm/core/abstract.py`,
+`fairdm/core/sample/models.py`, or any other domain's description/date/identifier models -
+duplicating the three-line check per class, matching the existing convention (Sample's own
+`SampleDescription`/`SampleDate`/`SampleIdentifier.clean()` already duplicate the equivalent
+vocabulary check three times) rather than generalising into shared, cross-domain infrastructure
+outside this story's scope.
+
+Added `TestMeasurementMetadataTypeValidation`: one test per record type (description, date,
+identifier) proving `full_clean()` refuses, and one proving a direct
+`MeasurementXFactory(type=...)` create (bypassing `full_clean()`) refuses too, asserting the
+offending type string appears in the raised message.
+
+RED confirmed for the right reason before implementing: `git stash` on
+`fairdm/core/measurement/models.py` alone, reran the three `..._is_refused_on_direct_save`
+tests - all three failed `Failed: DID NOT RAISE ValidationError` (not an import/fixture error),
+then `git stash pop` to restore the implementation.
+
+Consequence, not fixed (out of this story's authorized test-editing scope - only the two tests
+T044/T046 name may be corrected, per the brief's prohibitions): running
+`poetry run pytest tests/test_core/test_measurement -q -p no:randomly` after this change shows
+14 pre-existing tests failing because they created a `MeasurementDescription`/`MeasurementDate`
+with an out-of-vocabulary `type` (`"method"`, `"measured"`, `"instrument"`, `"calibrated"`) as
+incidental filler data, not as a test of the vocabulary itself:
+
+- `tests/test_core/test_measurement/test_models.py` (10, this story's own file, none named by
+  a brief task): `TestMeasurementQuerySetOptimizations::test_with_metadata_prefetches_descriptions_dates_identifiers`
+  (line 611); `TestMeasurementFAIRMetadata::test_measurement_description_uses_measurement_vocabulary`,
+  `::test_measurement_date_uses_measurement_vocabulary`,
+  `::test_measurement_vocabulary_types_differ_from_sample_vocabularies`,
+  `::test_measurement_can_have_multiple_descriptions_of_different_types`,
+  `::test_measurement_can_have_multiple_dates_of_different_types` (class at line 1218);
+  `TestMeasurementQuerySetOptimization::test_with_metadata_prefetches_descriptions_dates_identifiers`,
+  `::test_queryset_method_chaining_works_correctly`,
+  `::test_large_measurement_collection_loads_efficiently` (class at line 1306).
+- `tests/test_core/test_measurement/test_admin.py` (2, prohibited file - owned by a concurrent
+  story): `TestMeasurementAdminInlines::test_inline_metadata_can_be_created`,
+  `::test_inline_dates_can_be_created`;
+  `TestMeasurementAdminVocabularyCorrectness::test_measurement_description_uses_measurement_vocabulary`,
+  `::test_measurement_date_uses_measurement_vocabulary`.
+- `tests/test_core/test_measurement/test_filters.py` (1, prohibited file - owned by a concurrent
+  story): `TestMeasurementFilterCrossRelationshipFiltering::test_filter_by_description_text`.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly
+-k "TestMeasurementMetadataTypeValidation"` → 6 passed. `poetry run ruff check
+fairdm/core/measurement/models.py tests/test_core/test_measurement/test_models.py` → all checks
+passed. `poetry run python manage.py makemigrations --check --dry-run` → no migration needed
+for `measurement` (only an unrelated, pre-existing `identity` app migration surfaced, untouched
+by this story).
+
+Next: story-level final verify (`poetry run pytest tests/ -q`, `poetry run pre-commit run
+--all-files`) and completion report.
+
+Watch: the 14 tests listed above will keep failing until either their owning story/file corrects
+the filler `type` value, or a follow-up task does. This directly affects merge readiness for
+`test_models.py` (this story's own file, but the specific tests are unnamed by any brief task
+here) and cross-story for `test_admin.py`/`test_filters.py`.
