@@ -667,8 +667,7 @@ class ICP_MS_Measurement(Measurement):
         null=True,
         blank=True,
         help_text=_(
-            "The measured concentration, reported as a quantity carrying its own units "
-            "(FR-036 to FR-039)."
+            "The measured concentration, reported as a quantity carrying its own units."
         ),
     )
     uncertainty = models.DecimalQuantityField(

@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='icp_ms_measurement',
             name='value',
-            field=fairdm.db.fields.DecimalQuantityField(base_units='microgram / liter', blank=True, decimal_places=3, help_text='The measured concentration, reported as a quantity carrying its own units (FR-036 to FR-039).', max_digits=12, null=True, unit_choices=['microgram / liter'], verbose_name='Value'),
+            field=fairdm.db.fields.DecimalQuantityField(base_units='microgram / liter', blank=True, decimal_places=3, help_text='The measured concentration, reported as a quantity carrying its own units.', max_digits=12, null=True, unit_choices=['microgram / liter'], verbose_name='Value'),
         ),
     ]
