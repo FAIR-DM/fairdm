@@ -23,61 +23,6 @@ User = get_user_model()
 pytestmark = pytest.mark.django_db
 
 
-class TestSampleFilterStatusFiltering:
-    """Test status filtering functionality."""
-
-    @pytest.mark.skip(
-        reason="Status filtering requires populated SampleStatus vocabulary"
-    )
-    def test_filter_by_status(self, user, project, dataset):
-        """Test filtering samples by status field.
-
-        Note: This test requires the SampleStatus vocabulary to be populated with concepts.
-        The actual implementation uses ConceptField which filters by Concept instances,
-        not simple string choices.
-        """
-        # Get or create status concepts
-        from research_vocabs.models import Concept, Vocabulary
-
-        from fairdm.core.choices import SampleStatus
-
-        vocab, _ = Vocabulary.objects.get_or_create(name=SampleStatus._meta.name)
-        available_status, _ = Concept.objects.get_or_create(
-            vocabulary=vocab,
-            prefLabel="available",
-            defaults={"definition": "Sample is available"},
-        )
-        unavailable_status, _ = Concept.objects.get_or_create(
-            vocabulary=vocab,
-            prefLabel="unavailable",
-            defaults={"definition": "Sample is unavailable"},
-        )
-
-        # Create samples with different statuses
-        available_sample = RockSample.objects.create(
-            name="Available Rock",
-            dataset=dataset,
-            status=available_status,
-            collection_date="2024-01-01",
-            temperature_celsius=25,
-        )
-        unavailable_sample = RockSample.objects.create(
-            name="Unavailable Rock",
-            dataset=dataset,
-            status=unavailable_status,
-            collection_date="2024-01-01",
-            temperature_celsius=25,
-        )
-
-        # Filter by available status
-        filterset = SampleFilter(
-            data={"status": available_status.id}, queryset=RockSample.objects.all()
-        )
-        assert filterset.is_valid()
-        assert available_sample in filterset.qs
-        assert unavailable_sample not in filterset.qs
-
-
 class TestSampleFilterDatasetFiltering:
     """Test dataset filtering functionality."""
 

@@ -151,11 +151,11 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
             app_label__in=["fairdm_core", "fairdm_demo"]
         )
 
-        # Set status queryset (all Concepts from SampleStatus vocabulary)
-        from fairdm.core.choices import SampleStatus
+        # Set status queryset (all Concepts from the FairDMSampleStatus vocabulary)
+        from fairdm.core.vocabularies import FairDMSampleStatus
 
         self.filters["status"].queryset = Concept.objects.filter(
-            vocabulary__name=SampleStatus._meta.name
+            vocabulary__name=FairDMSampleStatus._meta.name
         )
 
     def filter_search(self, queryset, name, value):

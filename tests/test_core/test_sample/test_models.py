@@ -7,6 +7,7 @@ form/view integration, queryset optimization, and SampleRelation
 creation, validation, querying, and hierarchy traversal.
 """
 
+import itertools
 from datetime import date
 
 import pytest
@@ -22,6 +23,7 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
+from fairdm.core.vocabularies import FairDMSampleStatus
 from fairdm.factories import (
     DatasetFactory,
     PersonFactory,
@@ -142,24 +144,179 @@ class TestSampleModelValidation:
     """Test Sample model validation rules and field constraints."""
 
     def test_sample_status_transitions_unrestricted(self, rock_sample):
-        """Test that status transitions are unrestricted (FR-071)."""
-        # Set to complete
-        rock_sample.status = "complete"
+        """Test that status transitions are unrestricted (FR-023)."""
+        # Set to available
+        rock_sample.status = "available"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "complete"
+        assert rock_sample.status.name == "available"
 
-        # Status should allow transition from complete to ongoing
-        rock_sample.status = "ongoing"
+        # Status should allow transition from available to in_use
+        rock_sample.status = "in_use"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "ongoing"
+        assert rock_sample.status.name == "in_use"
 
-        # Status should allow transition back to planned
-        rock_sample.status = "planned"
+        # Status should allow transition back to stored
+        rock_sample.status = "stored"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "planned"
+        assert rock_sample.status.name == "stored"
+
+
+class TestSampleStatusVocabulary:
+    """T049 - FR-021: the sample status vocabulary names custody states, asserted by name."""
+
+    def test_members_are_custody_states(self):
+        assert set(Sample.status_vocab.values) == {
+            "available",
+            "in_use",
+            "stored",
+            "destroyed",
+            "unknown",
+        }
+
+    def test_vocabulary_class_is_fairdm_sample_status(self):
+        assert Sample.status_vocab.__class__ is FairDMSampleStatus
+
+
+@pytest.mark.django_db
+class TestSampleStatusDefault:
+    """T050 - FR-022: a specimen created with no status stated reads as unknown."""
+
+    def test_no_status_stated_reads_as_unknown(self, dataset):
+        sample = RockSample.objects.create(
+            name="Unstated Status Rock",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-15",
+        )
+        sample.refresh_from_db()
+
+        assert sample.status.name == "unknown"
+
+
+@pytest.mark.django_db
+class TestSampleStatusTransitions:
+    """T051 - FR-023: every transition between custody states is accepted, including out of
+    destroyed - a specimen recorded as destroyed can still be found again."""
+
+    STATES = ["available", "in_use", "stored", "destroyed", "unknown"]
+
+    @pytest.mark.parametrize("start, end", list(itertools.permutations(STATES, 2)))
+    def test_transition_is_accepted(self, rock_sample, start, end):
+        rock_sample.status = start
+        rock_sample.save()
+        rock_sample.refresh_from_db()
+        assert rock_sample.status.name == start
+
+        rock_sample.status = end
+        rock_sample.save()
+        rock_sample.refresh_from_db()
+        assert rock_sample.status.name == end
+
+
+@pytest.mark.django_db
+class TestNoRemoteVocabulary:
+    """T052 - the status vocabulary is declared locally, with no remote source. Loading a
+    sample record and creating a specimen both succeed with outbound network calls blocked,
+    proven by blocking the call rather than by reading the source."""
+
+    def test_reading_and_creating_a_specimen_succeed_with_network_blocked(
+        self, rock_sample, dataset, monkeypatch
+    ):
+        import socket
+
+        def _refuse_connect(*args, **kwargs):
+            raise AssertionError("an outbound network call was attempted")
+
+        monkeypatch.setattr(socket.socket, "connect", _refuse_connect)
+
+        loaded = Sample.objects.get(pk=rock_sample.pk)
+        assert loaded.status.name == "unknown"
+
+        created = RockSample.objects.create(
+            name="Offline Rock",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-15",
+        )
+        created.refresh_from_db()
+        assert created.status.name == "unknown"
+
+    def test_vocabulary_graph_builds_from_scratch_without_network(self, monkeypatch):
+        """`Sample.status_vocab`'s graph is already warm by the time a test runs, from
+        Django's own app loading, so reading it back proves nothing about whether *building*
+        it needs the network. Clearing the class-level cache and instantiating fresh under the
+        same block forces the real proof."""
+        import socket
+
+        def _refuse_connect(*args, **kwargs):
+            raise AssertionError("an outbound network call was attempted")
+
+        monkeypatch.setattr(socket.socket, "connect", _refuse_connect)
+        monkeypatch.setattr(FairDMSampleStatus, "graph", None)
+
+        vocab = FairDMSampleStatus()
+
+        assert set(vocab.values) == {
+            "available",
+            "in_use",
+            "stored",
+            "destroyed",
+            "unknown",
+        }
+
+
+@pytest.mark.django_db
+class TestStatusMigration:
+    """T053 - a row carrying a value from the previous ODM2 vocabulary reads unknown after the
+    forward data migration runs. Calls the migration's forward callable directly, because the
+    suite runs with ``--no-migrations`` and never replays the migration graph itself."""
+
+    def test_forward_rewrites_every_status_to_unknown(self, dataset):
+        import importlib
+
+        from django.apps import apps as django_apps
+        from django.db import connection
+
+        from fairdm_demo.models import WaterSample
+
+        rock = RockSample.objects.create(
+            name="Legacy Rock",
+            dataset=dataset,
+            rock_type="igneous",
+            collection_date="2024-01-15",
+        )
+        water = WaterSample.objects.create(
+            name="Legacy Water",
+            dataset=dataset,
+            water_source="river",
+            ph_level=7.0,
+            temperature_celsius=15.0,
+        )
+
+        # Bypass the ORM entirely for the mutation: reading these rows back through
+        # ConceptField.from_db_value would raise ValueError, the very defect this
+        # migration exists to fix, before the migration ever ran.
+        table = Sample._meta.db_table
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"UPDATE {table} SET status = %s WHERE id = %s",  # noqa: S608
+                ["complete", rock.pk],
+            )
+            cursor.execute(
+                f"UPDATE {table} SET status = %s WHERE id = %s",  # noqa: S608
+                ["ongoing", water.pk],
+            )
+
+        migration = importlib.import_module(
+            "fairdm.core.sample.migrations.0009_migrate_sample_status_to_unknown"
+        )
+        migration.migrate_status_to_unknown(django_apps, None)
+
+        assert Sample.objects.get(pk=rock.pk).status.name == "unknown"
+        assert Sample.objects.get(pk=water.pk).status.name == "unknown"
 
 
 @pytest.mark.django_db

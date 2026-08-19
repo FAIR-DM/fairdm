@@ -21,13 +21,13 @@ from ..abstract import (
     AbstractIdentifier,
     BasePolymorphicModel,
 )
-from ..choices import SampleStatus
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     FairDMDates,
     FairDMDescriptions,
     FairDMIdentifiers,
     FairDMRoles,
+    FairDMSampleStatus,
 )
 from .managers import SampleQuerySet
 
@@ -102,7 +102,7 @@ class Sample(BasePolymorphicModel):
     status = ConceptField(
         verbose_name=_("status"),
         help_text=_("The current custody status of the physical specimen."),
-        vocabulary=SampleStatus,
+        vocabulary=FairDMSampleStatus,
         default="unknown",
     )
 

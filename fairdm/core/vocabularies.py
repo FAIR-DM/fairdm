@@ -772,3 +772,61 @@ class FairDMRoles(VocabularyBuilder):
                 ],
             ),
         }
+
+
+class FairDMSampleStatus(VocabularyBuilder):
+    """Custody states for a physical specimen.
+
+    Replaces the vocabulary previously fetched from ``vocabulary.odm2.org``, which named
+    the state of a data-collection activity (Complete, Ongoing, Planned, Unknown) rather
+    than the physical custody of a specimen - calling a rock "ongoing" carries no meaning
+    (D-002, research.md R3). Declared locally, with no remote source, so a core model
+    field no longer depends on a third-party host being reachable at import time.
+
+    The ``unknown`` member's attribute name is lower case deliberately: a ``ConceptField``
+    stores the concept's attribute name as the value, and ``Sample.status``'s default
+    depends on this member being spelled exactly ``"unknown"``.
+    """
+
+    available = {
+        "skos:prefLabel": _("Available"),
+        "skos:definition": _(
+            "The specimen is accessible and not currently checked out, in storage, or "
+            "destroyed."
+        ),
+    }
+
+    in_use = {
+        "skos:prefLabel": _("In Use"),
+        "skos:definition": _(
+            "The specimen is currently checked out or otherwise in active use."
+        ),
+    }
+
+    stored = {
+        "skos:prefLabel": _("Stored"),
+        "skos:definition": _("The specimen is held in long-term storage."),
+    }
+
+    destroyed = {
+        "skos:prefLabel": _("Destroyed"),
+        "skos:definition": _(
+            "The specimen has been consumed, destroyed, or is otherwise no longer "
+            "physically available. This is not a terminal state - a specimen recorded "
+            "as destroyed can still be moved to any other status."
+        ),
+    }
+
+    unknown = {
+        "skos:prefLabel": _("Unknown"),
+        "skos:definition": _("The specimen's current custody status is not known."),
+    }
+
+    class Meta:
+        name = "fairdm-sample-status"
+        prefix = "FAIRDM"
+        namespace = "https://www.fairdm.org/vocabularies/"
+        scheme_attrs = {
+            "skos:prefLabel": _("FairDM Sample Status"),
+            "skos:definition": _("Custody states for a physical specimen."),
+        }
