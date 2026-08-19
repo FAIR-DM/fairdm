@@ -3,7 +3,7 @@
   "feature": "005-core-samples",
   "branch": "005-core-samples",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "gates": {
     "spec": {
       "approved_by": "sam",
@@ -31,6 +31,20 @@
         "plugin gating reversed back into scope as FR-033a, with D-015 recording why",
         "cross-record identifier uniqueness lifted onto the shared abstract",
         "T004 folded, T053 restated against the migration's forward function"
+      ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-08-19T08:30:00Z",
+      "self_resolved": [
+        "identifier vocabularies scoped per record type; makemigrations clean across all apps",
+        "normalisation extended to revoking, listing and queryset filtering",
+        "IGSN stored in its normalised form so uniqueness compares like with like",
+        "normalisation declines rather than raises for a polymorphic model without a declared base",
+        "status filter rebuilt on the working filter class and re-covered",
+        "refusal message returned to the translation catalogue",
+        "form status default matched to the record's",
+        "data migration renumbered to close the gap left by squashing"
       ]
     }
   },
@@ -1310,7 +1324,7 @@
       "max": 3
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
