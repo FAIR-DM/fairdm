@@ -5442,3 +5442,246 @@ passed.
 Next: none.
 
 Watch: none.
+
+## 2026-08-19T14:50:00Z · Implementer US10 · T109
+
+Did: Brought `docs/portal-development/measurements.md` to what the code does. Removed the
+`get_value()`-override convention throughout the page (Basic Structure, the former "get_value()
+Method" subsection, the ICP-MS advanced example, the Complete Example, the Testing section, Best
+Practices #1) and replaced it with the real convention: a type nominates `value` (and optionally
+`uncertainty`) as fields, and `Measurement.get_value()`/`print_value()` do the reporting and
+formatting. Pointed to `ICP_MS_Measurement` in `fairdm_demo/models.py` as the worked example, and
+replaced the invented `"Fe: 5000.0 ppm"`-style output with output actually produced by the model
+on this branch. Rewrote "Step 2: Register Your Measurement" against the real `ModelConfiguration`/
+`BaseMeasurementConfiguration` API (`fairdm/registry/config.py`): the doc previously named
+`list_fields`, `detail_fields` and `search_fields`, none of which exist on the class; replaced with
+`fields`, `form_fields`, `table_fields`, `filterset_fields`, `admin_list_display` and the four
+`*_class` overrides, and added the paragraph the brief asked for naming what registration produces
+(form, filter set, table, administrative entry — `fairdm/registry/factories.py`
+`FormFactory`/`FilterFactory`/`TableFactory`/`AdminFactory`). Rewrote "Step 4"'s two "what the
+mixin provides" bullet lists against `fairdm/core/measurement/forms.py` and `filters.py` as they
+stand today (Select2 + dataset scoping for the form; dataset/sample/type/search/description/
+date-range filters for the filter set), and added the paragraph stating that a registered type
+gets this behaviour without writing a form or filter class at all — `FormFactory.
+get_base_form_class()` and `FilterFactory.get_base_filterset_class()` return
+`MeasurementFormMixin`/`MeasurementFilterMixin`-based bases for any `Measurement` subclass. Also
+corrected two field-name errors surfaced while auditing the sections above: `Measurement` has no
+`created` field (it has `added`, from `fairdm.db.models.Model`) — fixed in the "What you get
+automatically" list and the Step 3 custom-admin example — and `with_related()` does not prefetch
+`sample.dataset` (only `sample`, `dataset`, `contributors` — `fairdm/core/measurement/
+managers.py`), fixed in the QuerySet method table.
+
+Verified: the worked example (`ICP_MS_Measurement.objects.create(..., value="5.000",
+uncertainty="0.300")` → `get_value()`, `print_value()`, `str()`) executed against this branch in a
+scratch pytest test (not committed — deleted after confirming output) using the `sample` fixture
+from `tests/test_core/test_measurement/conftest.py`; output matched what the doc now shows
+(`print_value() == "5.00 ± 0.30 µg/l"`), consistent with the existing
+`tests/test_core/test_measurement/test_value.py::TestPrintValue::
+test_renders_value_uncertainty_and_units_together`, which the baseline run already proved passing.
+`poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly` → 5 passed.
+
+Next: T110 (managing-measurements.md).
+
+Watch: none.
+
+## 2026-08-19T15:05:00Z · Implementer US10 · T110
+
+Did: Brought `docs/portal-administration/managing-measurements.md` to what
+`fairdm/core/measurement/admin.py` and the vocabulary modules it draws on
+(`fairdm/core/vocabularies.py`) actually offer. The page's "Adding Metadata"
+section named description types (Abstract/Methods/Other), date types
+(Collected/Available/Created) and identifier types (DOI/Analysis ID/Other) that
+do not exist for a measurement — `MeasurementDescription.VOCABULARY`,
+`MeasurementDate.VOCABULARY` and `MeasurementIdentifier.VOCABULARY` are each
+`from_collection("Measurement")`-scoped, and the real members are Conditions/
+Preparation/Tear Down/Other, Setup date/Tear down date, and DOI-only,
+respectively (each inline in `admin.py` is `max_num`-capped to exactly that
+count). Corrected all three, and the contributor "Roles" field, which the page
+described as free text — it is `Contribution.roles`, a
+`ConceptManyToManyField(vocabulary=FairDMRoles)`, and the measurement-scoped
+collection has exactly three members (Preparation/Collection/Support), not the
+invented "analyst/operator/reviewer/supervisor". Propagated the correction into
+the "Metadata Completeness" and "Quality Control" example blocks under Best
+Practices, which used the same invented vocabulary. Corrected "Text Search":
+`MeasurementChildAdmin.search_fields`/`MeasurementParentAdmin.search_fields` are
+`["name", "uuid"]` only — the page claimed a sample-name search that admin.py
+does not implement — and pointed readers at the Sample filter instead. Corrected
+"Measurement List Display": there is no "Value" column in `list_display`
+(`["name", "sample", "dataset", "measurement_type", "added", "modified"]`); added
+a paragraph explaining where `get_value()`/`print_value()` actually surface
+(string representations, e.g. breadcrumbs and related-object dropdowns) and
+linked it to the value-convention section T109 wrote. Fixed "Created" → "Added"
+in the Columns and Sorting lists — `Measurement`/`BaseModel` has no `created`
+field. Rewrote the "Measurement Value Not Displaying" troubleshooting section,
+which described a `get_value() returns None` failure mode against hypothetical
+required fields (`element`, `ph_value`, `microscope_type`) — the real base
+`get_value()` never returns `None`; it falls back to the record's `name` when no
+`value` field is nominated. Everything else on the page (type selection,
+cross-dataset creation, bulk actions, export/import, polymorphic behaviour,
+permissions) was checked against `admin.py` and found to already describe real
+behaviour; left unchanged.
+
+Verified: read `fairdm/core/measurement/admin.py` and
+`fairdm/core/vocabularies.py` (`FairDMDescriptions`/`FairDMDates`/
+`FairDMIdentifiers`/`FairDMRoles`, `"Measurement"` collections) directly for
+every correction above — no code changed, so no test run was needed to prove
+this page's claims; the vocabulary members and admin `list_display`/
+`search_fields` are read from source, not inferred.
+
+Next: T111 (using_the_registry.md, verify-only per the brief's note).
+
+Watch: none.
+
+## 2026-08-19T15:10:00Z · Implementer US10 · T111
+
+Did: Verified `docs/portal-development/using_the_registry.md` against the code
+rather than rewriting it, per the brief's explicit note that this task's premise
+inverted since it was written. Rule 1 ("Child admin must inherit from
+`MeasurementChildAdmin`") and every other reference to `MeasurementChildAdmin`
+on the page name the class the registry actually validates against —
+`fairdm/registry/config.py:377` (`ModelConfiguration._validate_admin_inheritance`)
+and `fairdm/registry/factories.py:820` (`AdminFactory._get_admin_base_class`)
+both import `fairdm.core.measurement.admin.MeasurementChildAdmin` by that path.
+Grepped the whole page for `MeasurementAdmin`/`MeasurementParentAdmin` — no
+stale reference to the deleted two-line stub or to `fairdm.core.admin` remains.
+No edit was needed.
+
+Verified: `poetry run pytest tests/test_registry/test_config.py -k
+"measurement_admin or MeasurementAdmin or measurement_with" -q -p no:randomly`
+→ 3 passed, including
+`test_measurement_with_correct_admin_class_passes` (supplying the documented
+`MeasurementChildAdmin`-based class to a configuration is accepted — the same
+call the class docstring records as previously raising),
+`test_measurement_with_wrong_admin_class_raises` (a class that does not inherit
+from it is refused), and
+`test_autogenerated_measurement_admin_inherits_from_child_admin` (the
+registry's own auto-generated admin also inherits from it).
+
+Next: T112 (CHANGELOG.md).
+
+Watch: none.
+
+## 2026-08-19T15:25:00Z · Implementer US10 · T112
+
+Did: Added a `CHANGELOG.md` entry for this feature, following the file's existing format (a
+`#### Core measurements (Feature 006)` subsection under `### Added`, matching how Feature 004 and
+Feature 005 are recorded, plus a `### Removed` subsection for the deleted duplicate admin class).
+Covered the five things the brief named as the minimum — the value/uncertainty convention, the
+formatter's startup registration, the type filter now asking the registry, partial-date filtering,
+and the registry validating against the configured administrative base — and added the other
+portal-facing behaviour changes this feature's decisions record turned up: the mixins now wiring
+into the registry-generated form and filter set, the measurement's own address, permission
+inheritance from a dataset, two form defects (a broken "add another dataset" link, inert field
+guidance text), bare-`Measurement` creation being refused including in the framework's own
+fixtures, and the two new `with_related()`/`with_metadata()` queryset methods. Read `decisions.md`
+(D-004, D-005, D-008 through D-014, D-020) for the underlying facts rather than restating requirement
+prose, and did not cite any requirement, task or story identifier in the entry itself.
+
+Verified: read the entry back against `decisions.md` and the earlier stories' `git log` history to
+confirm every claim matches a decision actually recorded or a commit actually landed on this branch,
+rather than restating specification language that might not have shipped as written. `grep -nE
+"FR-|SC-|T[0-9]{3}|US[0-9]|D-0" CHANGELOG.md` over the new section → no matches, confirming no
+internal identifier leaked into the public-facing text.
+
+Next: T113 (docstring audit).
+
+Watch: none.
+
+## 2026-08-19T15:35:00Z · Implementer US10 · T113
+
+Did: Audited every docstring on `fairdm/core/measurement/models.py`, `admin.py`, `forms.py`,
+`filters.py` and the measurement-scoped collections in `fairdm/core/vocabularies.py` against the
+code as it stands, correcting only what was false. Confirmed the two instances the brief named as
+already fixed in code: `MeasurementFilterMixin`'s docstring lists exactly the filters the class
+declares (dataset, sample, polymorphic_ctype, search, description, date_after/date_before), and
+`MeasurementForm.Meta` is spelled `help_texts` (the attribute Django actually reads), matching its
+own guidance text docstring — no further correction needed on either. Found and fixed two more:
+`Measurement.get_absolute_url()`'s docstring and inline comment called its return value "a
+placeholder for future implementation" — but this feature's own scope decision (see `decisions.md`)
+settled that this method returns the measurement's real, permanent address, and only the page that
+renders it is later work; corrected the docstring and removed the stale "Placeholder" comment.
+`MeasurementForm`'s class docstring stated "Measurement is an abstract polymorphic model" — false:
+`Measurement.Meta` carries no `abstract = True`, it has its own table via multi-table polymorphic
+inheritance, and direct instantiation is refused by `clean()` validation, not by Django's abstract
+mechanism (a model that were actually Django-abstract could never be instantiated or queried at
+all, so the validation guard would be unreachable dead code). Corrected the docstring to describe
+what actually happens. Read `fairdm/core/vocabularies.py` in full: it carries only two docstrings
+in the entire module, on `FairDMIdentifiers.choices` and `FairDMSampleStatus`, neither making a
+claim about `Measurement`'s behaviour — nothing to correct there; the `Collection`/`Concept`
+definitions themselves (verified against in T110) are data, not docstrings. Left every other
+docstring alone — each stated something true of the code as it stands.
+
+Verified: `poetry run ruff check fairdm/core/measurement/models.py fairdm/core/measurement/forms.py`
+→ all checks passed. `poetry run pytest tests/test_core/test_measurement/test_models.py
+tests/test_core/test_measurement/test_forms.py -q -p no:randomly` → 96 passed, 3 skipped (unrelated
+skips, present before this task). No behaviour changed — both fixes are docstring/comment text
+only, confirmed by re-reading the diff before committing.
+
+Next: T114 (replace the skip-swallowing test).
+
+Watch: none.
+
+## 2026-08-19T15:45:00Z · Implementer US10 · T114
+
+Did: Replaced `TestMeasurementViews.test_measurement_detail_view_accessible`, the only test of a
+measurement's own address, which wrapped a real request in a bare `try/except Exception:
+pytest.skip(...)` and so reported a skip whatever happened - a previous Implementer's investigation
+(recorded in this file) found that requesting the address directly raises `TemplateDoesNotExist` for
+a missing `cotton/pst/...` component while rendering `measurement/detail.html`, which the skip
+swallowed silently. Per the scope ruling in this brief, the detail page itself stays out of scope -
+this feature kept only the requirement that a measurement has an address of its own. Deleted the old
+test (explicitly authorised) and wrote two replacements that prove what is in scope, without ever
+calling the client: `test_get_absolute_url_is_the_measurements_own_address` (the URL
+`get_absolute_url()` returns is not the sample's own URL, and carries the measurement's UUID) and
+`test_get_absolute_url_resolves_to_the_measurement_detail_view` (`django.urls.resolve()` on that URL
+names `measurement:overview` with the measurement's UUID as its kwarg) - resolution, never
+rendering, and no skip anywhere. Confirmed RED before considering this correct: temporarily
+patched `Measurement.get_absolute_url()` to `return self.sample.get_absolute_url()` (the old,
+wrong, deflect-to-sample behaviour this feature's decision record replaced), ran the two new tests,
+and watched both fail for the right reason (`'sample:overview' == 'measurement:overview'` and the
+URL-equality assertion) rather than erroring or skipping. Reverted the patch with `git checkout --`
+(the change was never committed) and confirmed both tests pass again against the real
+implementation.
+
+Verified: `poetry run ruff check tests/test_core/test_measurement/test_models.py` → all checks
+passed (ruff's own `--fix` dropped the now-unused `reverse` import; `resolve` is the only
+`django.urls` symbol this file still needs). `poetry run pytest
+tests/test_core/test_measurement/test_models.py::TestMeasurementViews -v -p no:randomly` → 2
+passed. `poetry run pytest tests/test_core/test_measurement/test_models.py -q -p no:randomly` → 82
+passed, 2 skipped (both pre-existing, unrelated to this task, not touched).
+
+Next: run the full suite and pre-commit once, then write the completion report - all six tasks are
+now done.
+
+Watch: none.
+
+## 2026-08-19T17:10:00Z · Implementer US10 · follow-up (T109/T114)
+
+Did: Addressed a review follow-up on two pre-existing skipped tests in
+`tests/test_core/test_measurement/test_models.py`, explicitly authorised as in-scope
+(the same defect class T114 exists to remove). (1)
+`TestMeasurementURLPattern.test_get_absolute_url_returns_measurement_detail_pattern` carried
+`@pytest.mark.skip(reason="URL patterns not implemented yet - Phase 8")`, stale since T114 landed
+`get_absolute_url()`/`measurement:overview`. Removed the skip; stringified the uuid comparison
+(`str(xrf_measurement.uuid) in url`) per instruction, though a direct run showed
+`ShortUUIDField` (a `CharField` subclass, confirmed by reading `shortuuid/django_fields.py`)
+already returns a plain `str` — the unstringified comparison already passed, so this is a harmless
+defensive no-op rather than a required fix. Kept the test rather than treating it as a T114
+duplicate: it pins the literal URL shape (`/measurement/{uuid}/`), which T114's `resolve()`-based
+pair does not assert directly, and exercises a second polymorphic subtype (`XRFMeasurement` via
+the `xrf_measurement` fixture, vs `ExampleMeasurement` in the T114 pair). (2)
+`test_value_display_consistent_across_polymorphic_types` imported `ICPMSMeasurement`, which has
+never existed — the real class is `ICP_MS_Measurement` — and called `.create()` with
+`concentration=12.5` (not a model field) while omitting `counts_per_second` (required, non-null).
+The `try/except ImportError: pytest.skip(...)` swallowed all of this every run. Fixed the import,
+supplied real required fields, gave the type both `value` and `uncertainty`, and asserted the
+rendered string (`"12.50 ± 0.40 µg/l"`) rather than only non-emptiness. Dropped the try/except
+entirely.
+
+Verified: `poetry run pytest tests/test_core/test_measurement -q -rs -p no:randomly` → 229 passed,
+**zero skips**. `poetry run ruff check tests/test_core/test_measurement/test_models.py` → all
+checks passed. `poetry run pytest -q -p no:randomly` (full suite) → 2011 passed, 13 skipped (down
+from 15 in the prior report — the two fixed here — the remaining 13 are pre-existing and outside
+this file). `poetry run pre-commit run --all-files` → all hooks passed.
+
+Watch: none.

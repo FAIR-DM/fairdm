@@ -12,7 +12,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
+from django.urls import resolve
 
 from fairdm.core.measurement.forms import MeasurementForm
 from fairdm.core.measurement.models import (
@@ -527,14 +527,13 @@ class TestMeasurementDirectInstantiation:
 class TestMeasurementURLPattern:
     """Test get_absolute_url() returns correct pattern."""
 
-    @pytest.mark.skip(reason="URL patterns not implemented yet - Phase 8")
     def test_get_absolute_url_returns_measurement_detail_pattern(self, xrf_measurement):
         """Test that get_absolute_url() follows measurement:overview pattern with UUID."""
         url = xrf_measurement.get_absolute_url()
 
         # Should match pattern: /measurement/{uuid}/
         assert url.startswith("/measurement/")
-        assert xrf_measurement.uuid in url
+        assert str(xrf_measurement.uuid) in url
         assert url.endswith("/")
 
 
@@ -945,24 +944,34 @@ class TestMeasurementForm:
 
 @pytest.mark.django_db
 class TestMeasurementViews:
-    """Tests for Measurement views."""
+    """Tests for Measurement views.
 
-    def test_measurement_detail_view_accessible(self, client):
-        """Test that measurement detail view is accessible."""
+    The page that renders a measurement's own address is out of scope for this
+    feature (it is broken - rendering `measurement/detail.html` raises
+    `TemplateDoesNotExist` for a missing `cotton/pst/...` component, filed
+    separately) - only that the address itself is real, is the measurement's
+    own, and resolves to the right view. These tests prove resolution, not
+    rendering, and never touch the client.
+    """
+
+    def test_get_absolute_url_is_the_measurements_own_address(self):
+        """`get_absolute_url()` names the measurement, not its sample."""
+        sample = RockSampleFactory()
+        measurement = ExampleMeasurementFactory(sample=sample)
+
+        measurement_url = measurement.get_absolute_url()
+
+        assert measurement_url != sample.get_absolute_url()
+        assert str(measurement.uuid) in measurement_url
+
+    def test_get_absolute_url_resolves_to_the_measurement_detail_view(self):
+        """The address `get_absolute_url()` returns resolves to `measurement:overview`."""
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        # Note: URL pattern may vary, adjust as needed
-        try:
-            response = client.get(
-                reverse("measurement:overview", kwargs={"uuid": measurement.uuid})
-            )
-            assert response.status_code in [
-                200,
-                302,
-                404,
-            ]  # May vary based on permissions
-        except Exception:
-            # URL may not be configured or may require different namespace
-            pytest.skip("Measurement detail URL not configured")
+
+        match = resolve(measurement.get_absolute_url())
+
+        assert match.view_name == "measurement:overview"
+        assert match.kwargs["uuid"] == str(measurement.uuid)
 
 
 @pytest.mark.django_db
@@ -1194,24 +1203,22 @@ class TestMeasurementValueWithUncertainty:
         base_measurement = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Base Measurement")
         assert base_measurement.get_value() == "Base Measurement"
 
-        # Polymorphic types should provide type-specific value
-        try:
-            from fairdm_demo.models import ICPMSMeasurement
+        # A type that nominates a value and an uncertainty reports both, formatted
+        # together - this is the convention this feature built (see test_value.py).
+        from fairdm_demo.models import ICP_MS_Measurement
 
-            icp_ms = ICPMSMeasurement.objects.create(
-                name="Uranium Analysis",
-                dataset=DatasetFactory(),
-                sample=RockSampleFactory(),
-                isotope="U-238",
-                concentration=12.5,
-            )
+        icp_ms = ICP_MS_Measurement.objects.create(
+            name="Uranium Analysis",
+            dataset=DatasetFactory(),
+            sample=RockSampleFactory(),
+            isotope="U-238",
+            counts_per_second="12000.00",
+            value="12.500",
+            uncertainty="0.400",
+        )
+        icp_ms.refresh_from_db()
 
-            value = icp_ms.get_value()
-            assert value is not None
-            assert str(value) != ""
-
-        except ImportError:
-            pytest.skip("Demo ICPMSMeasurement not available")
+        assert icp_ms.print_value() == "12.50 ± 0.40 µg/l"
 
 
 @pytest.mark.django_db

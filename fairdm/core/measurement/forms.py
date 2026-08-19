@@ -108,9 +108,12 @@ class MeasurementFormMixin:
 class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
     """Base form for creating and editing Measurement instances.
 
-    This form should typically NOT be used directly since Measurement is an abstract
-    polymorphic model. Instead, create forms for concrete measurement types
-    (XRFMeasurement, ICP_MS_Measurement, etc.) that inherit from MeasurementFormMixin.
+    This form should typically NOT be used directly. `Measurement` is a concrete
+    polymorphic base model, not a Django-abstract one - it has its own table and
+    can be queried - but direct instantiation is refused by validation, both here
+    and on the model itself (`Measurement.clean()`). Create forms for concrete
+    measurement types (XRFMeasurement, ICP_MS_Measurement, etc.) that inherit from
+    MeasurementFormMixin instead.
 
     This class exists for registry auto-generation and as a reference
     implementation.
