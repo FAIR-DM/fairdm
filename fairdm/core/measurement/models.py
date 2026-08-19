@@ -83,6 +83,7 @@ class Measurement(BasePolymorphicModel):
         ),
         null=True,
         blank=True,
+        db_index=True,
     )
 
     class Meta:

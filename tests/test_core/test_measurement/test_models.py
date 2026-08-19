@@ -132,8 +132,16 @@ class TestMeasurementFieldMetadata:
 
 @pytest.mark.django_db
 class TestMeasurementLocalId:
-    """T011 - two measurements in different datasets may carry the same researcher's label, and
-    both save."""
+    """T011/T012 - the researcher's own label carries no uniqueness constraint and is indexed;
+    two measurements in different datasets may carry the same label."""
+
+    def test_local_id_has_no_uniqueness_constraint(self):
+        field = Measurement._meta.get_field("local_id")
+        assert field.unique is False
+
+    def test_local_id_is_indexed(self):
+        field = Measurement._meta.get_field("local_id")
+        assert field.db_index is True
 
     def test_the_same_local_id_is_valid_in_two_different_datasets(
         self, dataset, second_dataset, sample, second_sample
