@@ -26,6 +26,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sampleidentifier',
             name='type',
-            field=models.CharField(choices=[('CROSSREF_FUNDER_ID', 'Crossref Funder ID'), ('DOI', 'DOI'), ('GRANT_NUMBER', 'Grant Number'), ('ISNI', 'ISNI'), ('ORCID', 'ORCID iD'), ('PROPOSAL_ID', 'Proposal Identifier'), ('ROR', 'ROR'), ('RESEARCHER_ID', 'ResearcherID'), ('WIKIDATA', 'Wikidata')], max_length=50),
+            field=models.CharField(choices=[('IGSN', 'IGSN'), ('DOI', 'DOI')], max_length=50),
         ),
     ]

@@ -479,8 +479,12 @@ class TestSamplePrefetch:
             for i in range(n_related):
                 SampleDescriptionFactory(related=sample, type=description_types[i])
                 SampleDateFactory(related=sample, type=date_types[i])
-                SampleIdentifierFactory(related=sample, type=identifier_types[i])
                 sample.add_contributor(PersonFactory(), with_roles=[role_types[i]])
+            # The sample identifier collection has only two members (IGSN, DOI - D-003), and
+            # a sample can carry at most one identifier per type, so this is capped rather
+            # than indexed by `n_related` like the other related-record types above.
+            for i in range(min(n_related, len(identifier_types))):
+                SampleIdentifierFactory(related=sample, type=identifier_types[i])
 
         with CaptureQueriesContext(connection) as context:
             samples = list(
@@ -1545,6 +1549,235 @@ class TestComplexSampleHierarchies:
         assert samples[1] in all_descendants
         assert samples[2] in all_descendants
         assert samples[3] in all_descendants
+
+
+@pytest.mark.django_db
+class TestSampleDescriptions:
+    """T033 - US-2: a description of a type in the sample vocabulary is stored under that type
+    and retrievable by type."""
+
+    def test_description_is_stored_and_retrievable_by_type(self, rock_sample):
+        SampleDescriptionFactory(related=rock_sample, type="SampleCollection")
+
+        stored = SampleDescription.objects.get(related=rock_sample, type="SampleCollection")
+
+        assert stored.type == "SampleCollection"
+        assert rock_sample.descriptions.get(type="SampleCollection") == stored
+
+
+@pytest.mark.django_db
+class TestSampleDescriptionVocabulary:
+    """T034 - a type outside the sample vocabulary is refused by full validation with a message
+    naming the type, and the vocabulary's members are asserted by name rather than by iterating
+    whatever it holds."""
+
+    def test_vocabulary_members_are_the_sample_description_collection(self):
+        assert set(SampleDescription.VOCABULARY.values) == {
+            "SampleCollection",
+            "SamplePreparation",
+            "SampleStorage",
+            "SampleDestruction",
+            "Other",
+        }
+
+    def test_type_outside_the_vocabulary_is_refused_naming_the_type(self, rock_sample):
+        description = SampleDescription(
+            related=rock_sample, type="NotARealType", value="text"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            description.full_clean()
+
+        assert "type" in exc_info.value.error_dict
+        message = str(exc_info.value.error_dict["type"][0])
+        assert "NotARealType" in message
+
+
+@pytest.mark.django_db
+class TestSampleDescriptionValidationReturns:
+    """T035 - full validation of a description returns a verdict rather than raising an error
+    of its own. This is the test the current validator fails: it builds its valid-type list by
+    iterating the vocabulary, which raises ``TypeError`` before the membership check runs."""
+
+    def test_full_clean_of_a_valid_description_does_not_raise(self, rock_sample):
+        description = SampleDescription(
+            related=rock_sample, type="SampleCollection", value="text"
+        )
+
+        description.full_clean()  # must not raise
+
+
+@pytest.mark.django_db
+class TestSampleDates:
+    """T037 - US-3: a date of a type in the sample vocabulary is stored under that type."""
+
+    def test_date_is_stored_under_its_type(self, rock_sample):
+        SampleDateFactory(related=rock_sample, type="Collected")
+
+        stored = SampleDate.objects.get(related=rock_sample, type="Collected")
+
+        assert stored.type == "Collected"
+
+
+@pytest.mark.django_db
+class TestSampleDateVocabulary:
+    """T038 - a type outside the sample vocabulary is refused by full validation, and the
+    vocabulary's members are asserted by name."""
+
+    def test_vocabulary_members_are_the_sample_date_collection(self):
+        assert set(SampleDate.VOCABULARY.values) == {
+            "Created",
+            "Destroyed",
+            "Collected",
+            "Returned",
+            "Prepared",
+            "Archival",
+            "Restored",
+        }
+
+    def test_type_outside_the_vocabulary_is_refused(self, rock_sample):
+        date = SampleDate(related=rock_sample, type="NotARealType", value="2024-01-15")
+
+        with pytest.raises(ValidationError) as exc_info:
+            date.full_clean()
+
+        assert "type" in exc_info.value.error_dict
+
+
+@pytest.mark.django_db
+class TestSampleDateValidationReturns:
+    """T039 - full validation of a date returns a verdict rather than raising."""
+
+    def test_full_clean_of_a_valid_date_does_not_raise(self, rock_sample):
+        date = SampleDate(related=rock_sample, type="Collected", value="2024-01-15")
+
+        date.full_clean()  # must not raise
+
+
+@pytest.mark.django_db
+class TestSampleIdentifiers:
+    """T041 - US-4: an IGSN is stored under the IGSN type and a DOI under the DOI type."""
+
+    def test_igsn_is_stored_under_the_igsn_type(self, rock_sample):
+        identifier = SampleIdentifierFactory(
+            related=rock_sample, type="IGSN", value="10.60516/AU1101"
+        )
+
+        stored = SampleIdentifier.objects.get(pk=identifier.pk)
+
+        assert stored.type == "IGSN"
+        assert stored.value == "10.60516/AU1101"
+
+    def test_doi_is_stored_under_the_doi_type(self, rock_sample):
+        identifier = SampleIdentifierFactory(
+            related=rock_sample, type="DOI", value="10.1000/sample-doi"
+        )
+
+        stored = SampleIdentifier.objects.get(pk=identifier.pk)
+
+        assert stored.type == "DOI"
+        assert stored.value == "10.1000/sample-doi"
+
+
+@pytest.mark.django_db
+class TestSampleIdentifierVocabulary:
+    """T042 - the available types are asserted by name, and none of them names a person, an
+    organisation or a project."""
+
+    def test_available_types_are_igsn_and_doi_only(self):
+        assert set(SampleIdentifier.VOCABULARY.values) == {"IGSN", "DOI"}
+
+    def test_no_type_names_a_person_organisation_or_project(self):
+        assert set(SampleIdentifier.VOCABULARY.values).isdisjoint(
+            {
+                "ORCID",
+                "RESEARCHER_ID",
+                "ROR",
+                "WIKIDATA",
+                "ISNI",
+                "CROSSREF_FUNDER_ID",
+                "GRANT_NUMBER",
+                "PROPOSAL_ID",
+            }
+        )
+
+
+@pytest.mark.django_db
+class TestIGSNFormat:
+    """T043 - a malformed IGSN is refused with a message naming the expected format, and a
+    well-formed one is accepted. Values are real examples cited in research.md R1, not
+    invented ones, and are checked against the rule research establishes rather than the
+    prefix-anchored pattern the old code assumed."""
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "10.58052/SSH000SUA",
+            "10.60516/AU1101",  # six-character suffix
+            "10.25706/DIGITALCSIC-IGSN/622135",  # a slash inside the suffix
+            "10.71928/M-202600319-N00325",
+            "10273/BGRB5054RX05201",  # legacy handle form
+        ],
+    )
+    def test_well_formed_igsn_is_accepted(self, rock_sample, value):
+        identifier = SampleIdentifier(related=rock_sample, type="IGSN", value=value)
+
+        identifier.full_clean()  # must not raise
+
+    def test_malformed_igsn_is_refused_naming_the_expected_format(self, rock_sample):
+        identifier = SampleIdentifier(
+            related=rock_sample, type="IGSN", value="not-an-identifier"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            identifier.full_clean()
+
+        assert "value" in exc_info.value.error_dict
+        message = str(exc_info.value.error_dict["value"][0])
+        assert "IGSN" in message
+
+
+@pytest.mark.django_db
+class TestSampleIdentifierUniqueness:
+    """T045/T097 - the same identifier value cannot be attached to a second record of any type,
+    and a second identifier of a type the specimen already carries is refused. The check is
+    validation-only, so this uses ``full_clean()`` rather than creating a row."""
+
+    def test_value_already_used_by_a_dataset_is_refused(self, rock_sample, dataset):
+        from fairdm.core.dataset.models import DatasetIdentifier
+
+        DatasetIdentifier.objects.create(
+            related=dataset, type="DOI", value="10.5555/shared-across-records"
+        )
+
+        clashing = SampleIdentifier(
+            related=rock_sample, type="DOI", value="10.5555/shared-across-records"
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            clashing.full_clean()
+
+        assert "value" in exc_info.value.error_dict
+
+    def test_second_identifier_of_a_type_already_carried_is_refused(self, rock_sample):
+        SampleIdentifierFactory(related=rock_sample, type="DOI", value="10.1000/first")
+
+        second = SampleIdentifier(related=rock_sample, type="DOI", value="10.1000/second")
+
+        with pytest.raises(ValidationError):
+            second.full_clean()
+
+
+@pytest.mark.django_db
+class TestSampleIdentifierValidationReturns:
+    """T046 - full validation of an identifier returns a verdict rather than raising."""
+
+    def test_full_clean_of_a_valid_identifier_does_not_raise(self, rock_sample):
+        identifier = SampleIdentifier(
+            related=rock_sample, type="DOI", value="10.1000/valid-identifier"
+        )
+
+        identifier.full_clean()  # must not raise
 
 
 @pytest.mark.django_db

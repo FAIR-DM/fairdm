@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models as django_models
@@ -30,6 +32,23 @@ from ..vocabularies import (
 from .managers import SampleQuerySet
 
 BASE_SAMPLE_ERROR = "Cannot create base Sample instances directly. Please use a specific sample type subclass."
+
+# research.md R1: IGSN allocation moved to DataCite in 2023, and an IGSN today is an
+# ordinary DataCite DOI spread across at least 38 registry prefixes with no shared prefix
+# and no enforced suffix grammar. A prefix-anchored regex is structurally wrong, not merely
+# stale, so this normalises the display forms an IGSN is commonly pasted in as, then accepts
+# any DataCite DOI or the legacy pre-2023 handle form. Case carries no information and the
+# suffix is never constrained - a slash inside the suffix is normal (D-016).
+IGSN_DISPLAY_PREFIXES = (
+    "https://doi.org/",
+    "http://doi.org/",
+    "https://igsn.org/",
+    "hdl.handle.net/",
+    "doi:",
+    "igsn:",
+)
+IGSN_DOI_PATTERN = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
+IGSN_LEGACY_HANDLE_PATTERN = re.compile(r"^10273/\S+$", re.IGNORECASE)
 
 
 class Sample(BasePolymorphicModel):
@@ -320,16 +339,14 @@ class SampleDescription(AbstractDescription):
             ValidationError: If type is not in DESCRIPTION_TYPES vocabulary
         """
         super().clean()
-        from django.core.exceptions import ValidationError
 
         if self.type:
-            valid_types = [item["id"] for item in self.VOCABULARY]
+            valid_types = self.VOCABULARY.values
             if self.type not in valid_types:
                 raise ValidationError(
                     {
-                        "type": _(
-                            "Description type must be from FairDM Sample description vocabulary"
-                        )
+                        "type": _("'%(type)s' is not a valid Sample description type.")
+                        % {"type": self.type}
                     }
                 )
 
@@ -351,24 +368,26 @@ class SampleDate(AbstractDate):
             ValidationError: If type is not in DATE_TYPES vocabulary
         """
         super().clean()
-        from django.core.exceptions import ValidationError
 
         if self.type:
-            valid_types = [item["id"] for item in self.VOCABULARY]
+            valid_types = self.VOCABULARY.values
             if self.type not in valid_types:
                 raise ValidationError(
-                    {"type": _("Date type must be from FairDM Sample date vocabulary")}
+                    {
+                        "type": _("'%(type)s' is not a valid Sample date type.")
+                        % {"type": self.type}
+                    }
                 )
 
 
 class SampleIdentifier(AbstractIdentifier):
     """External identifiers for a Sample.
 
-    Links a sample to an external identifier system, drawn from ``VOCABULARY``, to support FAIR
-    data principles and cross-referencing.
+    Links a sample to an external identifier system, drawn from the sample identifier
+    collection (``FairDMIdentifiers.from_collection("Sample")``, IGSN and DOI - D-003, R3).
     """
 
-    VOCABULARY = FairDMIdentifiers()
+    VOCABULARY = FairDMIdentifiers.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
     def clean(self):
@@ -379,32 +398,49 @@ class SampleIdentifier(AbstractIdentifier):
                            or if IGSN format is invalid
         """
         super().clean()
-        import re
-
-        from django.core.exceptions import ValidationError
 
         if self.type:
-            valid_types = [item["id"] for item in self.VOCABULARY]
+            valid_types = self.VOCABULARY.values
             if self.type not in valid_types:
                 raise ValidationError(
                     {
-                        "type": _(
-                            "Identifier type must be from FairDM identifier vocabulary"
-                        )
+                        "type": _("'%(type)s' is not a valid Sample identifier type.")
+                        % {"type": self.type}
                     }
                 )
 
-        # Validate IGSN format: 10273/[A-Z0-9]{9,}
         if self.type == "IGSN" and self.value:
-            igsn_pattern = r"^10273/[A-Z0-9]{9,}$"
-            if not re.match(igsn_pattern, self.value):
-                raise ValidationError(
-                    {
-                        "value": _(
-                            "IGSN identifier must match format: 10273/[A-Z0-9]{{9,}} (e.g., 10273/ABCD123456789)"
-                        )
-                    }
+            self._validate_igsn_format()
+
+    def _validate_igsn_format(self):
+        """Validate ``self.value`` against the format research.md R1/D-016 settles on.
+
+        An IGSN today is an ordinary DataCite DOI with no shared prefix and no enforced
+        suffix grammar, so this normalises the display forms an IGSN is commonly pasted
+        in as, then accepts any DataCite DOI or the legacy pre-2023 handle form,
+        case-insensitively.
+        """
+        normalised = self.value
+        for prefix in IGSN_DISPLAY_PREFIXES:
+            if normalised.lower().startswith(prefix.lower()):
+                normalised = normalised[len(prefix) :]
+                break
+
+        if IGSN_DOI_PATTERN.match(normalised) or IGSN_LEGACY_HANDLE_PATTERN.match(
+            normalised
+        ):
+            return
+
+        raise ValidationError(
+            {
+                "value": _(
+                    "'%(value)s' is not a valid IGSN. Expected a DataCite DOI "
+                    "(e.g. 10.60516/AU1101) or a legacy IGSN handle "
+                    "(e.g. 10273/BGRB5054RX05201)."
                 )
+                % {"value": self.value}
+            }
+        )
 
 
 class SampleRelation(models.Model):

@@ -69,6 +69,15 @@ class FairDMIdentifiers(VocabularyBuilder):
         "dcterms:source": "https://www.doi.org/doi_handbook/",
     }
 
+    IGSN = {
+        "skos:prefLabel": _("IGSN"),
+        "skos:definition": _(
+            "The International Generic Sample Number, a persistent identifier for physical "
+            "specimens. Registration moved to DataCite in 2023; legacy handles still resolve."
+        ),
+        "dcterms:source": "https://igsn.org/",
+    }
+
     GRANT_NUMBER = {
         "skos:prefLabel": _("Grant Number"),
         "skos:definition": _(
@@ -143,6 +152,15 @@ class FairDMIdentifiers(VocabularyBuilder):
                 definition=_("Persistent identifiers for research datasets."),
                 ordered=True,
                 members=[
+                    "DOI",
+                ],
+            ),
+            "Sample": Collection(
+                prefLabel=_("Sample Identifiers"),
+                definition=_("Persistent identifiers for physical specimens."),
+                ordered=True,
+                members=[
+                    "IGSN",
                     "DOI",
                 ],
             ),

@@ -480,28 +480,9 @@ class DatasetIdentifier(AbstractIdentifier):
     `DatasetIdentifier` itself. FR-013 asks for more: the same identifier
     value must not name two things, whichever of the four
     `AbstractIdentifier` subclasses (dataset, project, sample, measurement)
-    carries it. `clean()` below checks across all of them.
+    carries it. That cross-record check lives on `AbstractIdentifier.clean()`
+    itself (005 T097), so every subclass inherits it rather than repeating it.
     """
 
     VOCABULARY = FairDMIdentifiers.from_collection("Dataset")
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
-
-    def clean(self):
-        """FR-013: an identifier value must be unique across every record
-        that carries identifiers, not merely within `DatasetIdentifier`'s
-        own table.
-        """
-        super().clean()
-        if not self.value:
-            return
-        for model in AbstractIdentifier.__subclasses__():
-            queryset = model.objects.filter(value=self.value)
-            if model is type(self) and self.pk:
-                queryset = queryset.exclude(pk=self.pk)
-            if queryset.exists():
-                raise ValidationError(
-                    {
-                        "value": _("The identifier '%(value)s' is already in use.")
-                        % {"value": self.value}
-                    }
-                )

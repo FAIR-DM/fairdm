@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db.models import Manager, Model, QuerySet
 from django.urls import reverse
 from django.utils.decorators import classonlymethod
@@ -311,6 +312,15 @@ class AbstractDate(GenericModel):
 
 
 class AbstractIdentifier(GenericModel):
+    """An external identifier attached to a record.
+
+    ``value`` carries ``unique=True``, which is a per-table constraint: since this model is
+    abstract, each concrete subclass (dataset, project, sample, measurement) gets its own
+    index, so the same value could otherwise name two different kinds of record at once.
+    ``clean()`` closes that gap by checking the value against every concrete subclass, not
+    only the one being validated.
+    """
+
     type = models.CharField(max_length=50)
     value = models.CharField(
         _("identifier"), max_length=255, db_index=True, unique=True
@@ -329,6 +339,25 @@ class AbstractIdentifier(GenericModel):
         ]
         verbose_name_plural = _("identifiers")
         default_related_name = "identifiers"
+
+    def clean(self):
+        """An identifier value must be unique across every record that carries
+        identifiers, not merely within this subclass's own table.
+        """
+        super().clean()
+        if not self.value:
+            return
+        for model in AbstractIdentifier.__subclasses__():
+            queryset = model.objects.filter(value=self.value)
+            if model is type(self) and self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+            if queryset.exists():
+                raise ValidationError(
+                    {
+                        "value": _("The identifier '%(value)s' is already in use.")
+                        % {"value": self.value}
+                    }
+                )
 
     def get_root_url(self):
         return IdentifierLookup.get(self.type)
