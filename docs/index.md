@@ -123,6 +123,7 @@ user-guide/index
 portal-development/index
 portal-administration/index
 contributing/index
+more/migration-guides
 more/glossary
 more/changelog
 more/support

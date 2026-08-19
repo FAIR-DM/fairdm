@@ -71,7 +71,9 @@ defining_models
 special_fields
 controlled_vocabularies
 model_configuration
+models/custom-samples
 measurements
+forms-and-filters/sample-mixins
 contributors
 using_the_registry
 ```

@@ -150,7 +150,7 @@ The heart of FairDM is its **registry system**. Define your models, register the
 
 ```python
 # myapp/models.py
-from fairdm.core import Sample
+from fairdm.core.models import Sample
 from django.db import models
 
 class RockSample(Sample):
@@ -159,21 +159,23 @@ class RockSample(Sample):
     rock_type = models.CharField(max_length=100)
     collection_date = models.DateField()
     weight_grams = models.DecimalField(max_digits=10, decimal_places=2)
-    location = models.CharField(max_length=200)
 
 
 # myapp/config.py
+from fairdm.core.sample.config import BaseSampleConfiguration
 from fairdm.registry import register
-from fairdm.registry.config import ModelConfiguration
 from .models import RockSample
 
 @register
-class RockSampleConfig(ModelConfiguration):
+class RockSampleConfig(BaseSampleConfiguration):
     model = RockSample
     fields = ["name", "rock_type", "collection_date", "weight_grams", "location"]
-    display_name = "Rock Sample"
-    description = "Geological rock samples with basic metadata"
 ```
+
+`BaseSampleConfiguration` is the recommended base for a specimen type's registry configuration —
+it declares the shared `fields` list every generated component falls back to, so you only state it
+once. A configuration that relies on the registry auto-detecting a different field list per
+component (table vs. form vs. filter set) should subclass the plain `ModelConfiguration` instead.
 
 That's it! You now have:
 

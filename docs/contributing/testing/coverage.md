@@ -344,7 +344,8 @@ def get_sample_access_level(user, sample):
 def test_get_sample_access_level__private_project_non_owner__returns_none():
     user = UserFactory()
     project = ProjectFactory(is_public=False)  # Not owned by user
-    sample = SampleFactory(project=project)
+    # fairdm.factories.SampleFactory is abstract - use a concrete specimen factory.
+    sample = RockSampleFactory(project=project)
 
     assert get_sample_access_level(user, sample) == "none"  # ✅ Covered
 ```

@@ -259,35 +259,31 @@ user = UserFactory.build()  # user.pk is None
 
 ## Polymorphic Factories
 
-FairDM uses polymorphic models for Samples and Measurements. Factory-boy supports this:
+FairDM uses polymorphic models for Samples and Measurements. The base `Sample` and `Measurement`
+models cannot be created directly — by any route, including a factory — so
+`fairdm.factories.SampleFactory` and `fairdm.factories.MeasurementFactory` are declared
+**abstract**. There is no base factory to instantiate; write a concrete factory for each of your
+own specimen or measurement types instead.
 
-### Base Polymorphic Factory
+### Abstract Base Factory
 
-```python
-from fairdm.core.models import Sample
-
-class SampleFactory(factory.django.DjangoModelFactory):
-    """
-    Base factory for Sample model.
-
-    Use child factories (RockSampleFactory, etc.) for specific types.
-    """
-
-    class Meta:
-        model = Sample
-
-    dataset = factory.SubFactory(DatasetFactory)
-    name = factory.Sequence(lambda n: f"Sample {n}")
-```
-
-### Child Factory with Inheritance
+`fairdm.factories.SampleFactory` already declares the fields every sample needs (`dataset`,
+`name`, and the opt-in `descriptions=`/`dates=` keywords described above) — you inherit it, you
+do not redeclare it:
 
 ```python
 from fairdm.factories import SampleFactory
+```
+
+### Concrete Factory for Your Own Sample Type
+
+```python
+from fairdm.factories import SampleFactory
+from myapp.models import RockSample
 
 class RockSampleFactory(SampleFactory):
     """
-    Factory for RockSample (inherits from Sample).
+    Factory for RockSample (inherits from the abstract Sample factory).
 
     Usage:
         rock = RockSampleFactory(rock_type="Granite")

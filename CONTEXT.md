@@ -30,8 +30,8 @@ Implemented by `Dataset` in `fairdm/core/dataset/models.py`.
 ### Sample
 
 The polymorphic base class every sample type inherits from. Portals define their own sample types
-by subclassing it and registering them. `Sample` is never meaningfully instantiated on its own. It
-is the shared schema, not a specimen.
+by subclassing it and registering them. `Sample` cannot be created at all — through the ORM, a
+form, the admin, or a factory; every route refuses it. It is the shared schema, not a specimen.
 
 Avoid "Base Sample" as a term. Earlier notes proposed renaming the class `BaseSample`; that rename
 never happened, and the class is `Sample` in `fairdm/core/sample/models.py`.
