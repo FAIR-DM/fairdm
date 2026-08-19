@@ -15,6 +15,7 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
+from fairdm.core.models import Measurement
 from fairdm.factories.core import (
     MeasurementDateFactory,
     MeasurementDescriptionFactory,
@@ -171,3 +172,33 @@ class TestFairdmFactoriesExports:
             "MeasurementIdentifierFactory",
         ):
             assert name in factories_module.__all__
+
+
+@pytest.mark.django_db
+class TestMeasurementFixtures:
+    """T005 - the measurement fixture yields a concrete measurement type, never a bare
+    Measurement, and fixtures exist for a second dataset with its own sample, and for a
+    user holding no rights at all."""
+
+    def test_measurement_fixture_yields_a_concrete_type_not_a_bare_measurement(
+        self, measurement
+    ):
+        assert type(measurement) is not Measurement
+        assert isinstance(measurement, Measurement)
+
+    def test_second_dataset_fixture_has_its_own_sample(
+        self, dataset, second_dataset, second_sample
+    ):
+        assert second_dataset != dataset
+        assert second_sample.dataset == second_dataset
+
+    def test_user_no_rights_fixture_holds_no_rights(self, measurement, user_no_rights):
+        assert not user_no_rights.has_perm(
+            "measurement.view_measurement", measurement
+        )
+        assert not user_no_rights.has_perm(
+            "measurement.change_measurement", measurement
+        )
+        assert not user_no_rights.has_perm(
+            "measurement.delete_measurement", measurement
+        )
