@@ -144,6 +144,7 @@ class MeasurementFilterMixin(django_filters.FilterSet):
 
         from fairdm.core.models import Dataset
         from fairdm.core.sample.models import Sample
+        from fairdm.registry import registry
 
         if "dataset" in self.filters:
             if (
@@ -166,8 +167,11 @@ class MeasurementFilterMixin(django_filters.FilterSet):
             self.filters["sample"].queryset = Sample.objects.all()
 
         if "polymorphic_ctype" in self.filters:
+            registered_content_types = ContentType.objects.get_for_models(
+                *registry.measurements
+            ).values()
             self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(
-                app_label__in=["fairdm_core", "fairdm_demo"]
+                pk__in=[ct.pk for ct in registered_content_types]
             )
 
     class Meta:

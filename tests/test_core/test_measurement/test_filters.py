@@ -12,14 +12,21 @@ comprehensive filtering capabilities for Measurement models including:
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from guardian.shortcuts import assign_perm
 
 from fairdm.core.measurement.filters import MeasurementFilter, MeasurementFilterMixin
-from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
+from fairdm.core.measurement.models import (
+    Measurement,
+    MeasurementDate,
+    MeasurementDescription,
+)
 from fairdm.factories import DatasetFactory, UserFactory
+from fairdm.registry import registry
 from fairdm_demo.factories import RockSampleFactory
 from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 User = get_user_model()
 
@@ -164,6 +171,69 @@ class TestMeasurementFilterPolymorphicTypeFiltering:
         )
         assert filterset.is_valid()
         assert icpms_measurement in filterset.qs
+        assert xrf_measurement not in filterset.qs
+
+
+class TestMeasurementFilterPolymorphicTypeChoices:
+    """T066/T067 - the `polymorphic_ctype` filter's choices are exactly the
+    registered measurement types, drawn from `registry.measurements` rather
+    than a hardcoded application list. `ConcreteMeasurement`
+    (`tests.registry_models`) stands in for a type registered from outside
+    the framework, the way `TestAdminOffersExactlyRegisteredMeasurementTypes`
+    proves the same shape for the admin (test_admin_registry.py)."""
+
+    def test_choices_are_exactly_the_registered_measurement_types(
+        self, clean_registry
+    ):
+        """The polymorphic base, every registered sample type and every
+        non-measurement record are absent - only registered measurement
+        types, named individually, are offered."""
+        registry.register(ConcreteMeasurement)
+        registry.register(ConcreteSample)
+
+        filterset = MeasurementFilter()
+        offered = set(filterset.filters["polymorphic_ctype"].queryset)
+
+        assert offered == {
+            ContentType.objects.get_for_model(model)
+            for model in registry.measurements
+        }
+        assert ContentType.objects.get_for_model(XRFMeasurement) in offered
+        assert ContentType.objects.get_for_model(ICP_MS_Measurement) in offered
+        assert ContentType.objects.get_for_model(ConcreteMeasurement) in offered
+        assert ContentType.objects.get_for_model(Measurement) not in offered
+        assert ContentType.objects.get_for_model(ConcreteSample) not in offered
+
+    def test_narrowing_by_a_registered_type_leaves_only_that_type(
+        self, clean_registry, dataset
+    ):
+        """Narrowing by one of the offered choices - including the type
+        registered from outside the framework - leaves only measurements of
+        that type."""
+        registry.register(ConcreteMeasurement)
+        sample = RockSampleFactory(dataset=dataset)
+
+        concrete_measurement = ConcreteMeasurement.objects.create(
+            name="Concrete Measurement",
+            dataset=dataset,
+            sample=sample,
+            reading=1.0,
+        )
+        xrf_measurement = XRFMeasurement.objects.create(
+            name="XRF Measurement",
+            dataset=dataset,
+            sample=sample,
+            element="Fe",
+            concentration_ppm=25.5,
+        )
+
+        concrete_ct = ContentType.objects.get_for_model(ConcreteMeasurement)
+        filterset = MeasurementFilter(
+            data={"polymorphic_ctype": concrete_ct.id},
+            queryset=Measurement.objects.all(),
+        )
+        assert filterset.is_valid()
+        assert concrete_measurement in filterset.qs
         assert xrf_measurement not in filterset.qs
 
 
