@@ -16,30 +16,21 @@ from ..utils import documentation_link
 from .models import Sample
 
 
-def check_has_edit_permission(request, instance, **kwargs):
-    return True
-
-
 @plugins.register(Sample, label=_("Overview"), icon="view", order=0)
 class Overview(OverviewPlugin):
     # Was declared at module scope, outside the class it belongs to, so it configured nothing.
     fieldsets: list[tuple[str | None, dict[str, Any]]] = []
 
 
-class SampleManagementMixin:
-    """
-    SampleManagementMixin is a mixin class that provides management functionality for sample objects.
-    It includes methods for managing sample metadata, configuration, and other related tasks.
-    """
-
-    check = check_has_edit_permission
-
-
 # ======== Management Plugins ======== #
+# Each of these is an editing surface. A plugin with no declared `permission` admits every
+# request, anonymous included (FR-033a) - so, matching the dataset plugins one app over
+# (`fairdm/core/dataset/plugins.py`), each names the right it needs.
 @plugins.register(Sample, label=_("Edit"), icon="pencil", order=10)
-class Edit(SampleManagementMixin, UpdatePlugin):
+class Edit(UpdatePlugin):
     """Plugin for editing basic sample information."""
 
+    permission = "sample.change_sample"
     title = _("Basic Information")
     model = Sample
     fields = ["image", "name"]
@@ -51,7 +42,8 @@ class Edit(SampleManagementMixin, UpdatePlugin):
 
 
 @plugins.register(Sample, label=_("Descriptions"), icon="description", order=510)
-class Descriptions(SampleManagementMixin, DescriptionsPlugin):
+class Descriptions(DescriptionsPlugin):
+    permission = "sample.change_sample"
     name = "basic-information"
     title = _("Basic Information")
     heading_config = {
@@ -65,7 +57,8 @@ class Descriptions(SampleManagementMixin, DescriptionsPlugin):
 
 
 @plugins.register(Sample, label=_("Keywords"), icon="keywords", order=520)
-class Keywords(SampleManagementMixin, KeywordsPlugin):
+class Keywords(KeywordsPlugin):
+    permission = "sample.change_sample"
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
@@ -75,7 +68,8 @@ class Keywords(SampleManagementMixin, KeywordsPlugin):
 
 
 @plugins.register(Sample, label=_("Key Dates"), icon="date", order=530)
-class KeyDates(SampleManagementMixin, KeyDatesPlugin):
+class KeyDates(KeyDatesPlugin):
+    permission = "sample.change_sample"
     heading_config = {
         "description": _(
             "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."

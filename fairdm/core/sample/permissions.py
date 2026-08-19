@@ -4,21 +4,22 @@ Custom permission backends for Sample model.
 Provides guardian integration with permission inheritance from Dataset.
 """
 
-from guardian.backends import ObjectPermissionBackend
+from fairdm.core.permissions import PolymorphicObjectPermissionBackend
 
 
-class SamplePermissionBackend(ObjectPermissionBackend):
+class SamplePermissionBackend(PolymorphicObjectPermissionBackend):
     """
     Custom permission backend for Sample model that inherits permissions from parent Dataset.
 
-    This backend extends django-guardian's ObjectPermissionBackend to support:
-    1. Object-level permissions on Sample instances (FR-059)
-    2. Permission inheritance from parent Dataset (FR-060)
+    This backend extends the shared ``PolymorphicObjectPermissionBackend`` (which normalises a
+    specimen instance to its base ``Sample`` before the object-level check, see
+    ``fairdm/core/permissions.py``) to support:
+    1. Object-level permissions on Sample instances (FR-032)
+    2. Permission inheritance from parent Dataset (FR-031)
 
     Permission Mapping:
     - view_dataset → view_sample
-    - change_dataset → change_sample
-    - delete_dataset → delete_sample
+    - change_dataset → change_sample, delete_sample, add_sample
 
     Usage:
         Add to settings.AUTHENTICATION_BACKENDS:
@@ -31,15 +32,17 @@ class SamplePermissionBackend(ObjectPermissionBackend):
 
     Examples:
         ```python
-        from guardian.shortcuts import assign_perm
+        from fairdm.core.utils import assign_perm
 
-        # Direct sample permission
+        # Direct sample permission - a specimen type such as ``RockSample`` works the same as
+        # the base ``Sample``; ``assign_perm`` normalises it to the base instance that actually
+        # owns the permission (FR-033b).
         assign_perm("view_sample", user, sample)
-        user.has_perm("view_sample", sample)  # True
+        user.has_perm("sample.view_sample", sample)  # True
 
         # Inherited from dataset
         assign_perm("view_dataset", user, dataset)
-        user.has_perm("view_sample", sample)  # True (inherited)
+        user.has_perm("sample.view_sample", sample)  # True (inherited)
         ```
     """
 
@@ -80,10 +83,14 @@ class SamplePermissionBackend(ObjectPermissionBackend):
         # Check inherited dataset permission
         if obj.dataset:
             # Map sample permissions to dataset permissions
+            # FR-031: changing a dataset confers changing AND deleting its samples, and adding
+            # samples to it - not the dataset's own delete permission, which the specification
+            # never mentions and which would otherwise leave a change_dataset-only user unable
+            # to delete a sample they can freely edit.
             permission_map = {
                 "sample.view_sample": "dataset.view_dataset",
                 "sample.change_sample": "dataset.change_dataset",
-                "sample.delete_sample": "dataset.delete_dataset",
+                "sample.delete_sample": "dataset.change_dataset",
                 "sample.add_sample": "dataset.change_dataset",  # Adding samples requires dataset change permission
                 "sample.import_data": "dataset.import_data",
             }

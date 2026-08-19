@@ -47,7 +47,12 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
-    "guardian.backends.ObjectPermissionBackend",
+    # Replaces raw guardian: normalises a polymorphic instance (Sample, Measurement,
+    # Organization/Person) to its base before the object-level check. Registered directly, not
+    # reached by delegation through one of the record-specific backends below, so datasets,
+    # projects and organisations keep resolving even if one of those backends is ever narrowed to
+    # answer only for its own record type (decisions.md D-018).
+    "fairdm.core.permissions.PolymorphicObjectPermissionBackend",
     "fairdm.contrib.contributors.permissions.OrganizationPermissionBackend",  # Organization ownership via OWNER affiliation
     "fairdm.core.sample.permissions.SamplePermissionBackend",  # Sample permission inheritance
     "fairdm.core.measurement.permissions.MeasurementPermissionBackend",  # Measurement permission inheritance

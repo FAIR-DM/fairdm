@@ -23,8 +23,15 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    """Create a test user."""
-    return PersonFactory()
+    """Create a test user.
+
+    ``is_active`` pinned to ``True``: ``PersonFactory`` draws it from
+    ``Faker("boolean", chance_of_getting_true=80)`` for realism elsewhere, but an inactive user is
+    refused every permission check regardless of what is granted (``guardian.core.ObjectPermissionChecker.has_perm``),
+    which made every permission test in this package that expects a grant to hold flake at
+    roughly the factory's 1-in-5 rate.
+    """
+    return PersonFactory(is_active=True)
 
 
 @pytest.fixture

@@ -1,159 +1,143 @@
 """
 Unit tests for Sample model permissions.
 
-Tests verify that Sample integrates with django-guardian for object-level
-permissions and inherits permissions from parent Dataset.
-
-NOTE: Direct permission assignment tests are skipped due to a known limitation
-with django-guardian and polymorphic models. Guardian expects the app label of
-permissions to match the app label of the content type, but polymorphic subclasses
-have different app labels than their base class. Permission inheritance from
-Dataset (the recommended pattern) works correctly.
+Tests verify that Sample integrates with django-guardian for object-level permissions and
+inherits permissions from its parent Dataset - across a concrete specimen type, never the base
+``Sample`` record, which cannot be instantiated directly (005-core-samples T030).
 """
 
 import pytest
-from django.contrib.auth import get_user_model
-from guardian.shortcuts import assign_perm, get_perms, remove_perm
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
-User = get_user_model()
+from fairdm.core.sample.models import Sample
+from fairdm.core.utils import assign_perm, remove_perm
 
 
-@pytest.mark.skip(
-    reason="Guardian does not support direct permission assignment to polymorphic subclass instances. "
-    "Permissions are defined on base Sample model (app: 'sample') but polymorphic subclass instances "
-    "(RockSample, WaterSample) have different app labels ('fairdm_demo'). This causes WrongAppError. "
-    "Permission inheritance from Dataset (see TestSamplePermissionInheritance) is the correct pattern."
-)
 @pytest.mark.django_db
-class TestSampleGuardianIntegration:
-    """Test Sample model integrates with django-guardian for object-level permissions."""
+class TestSampleDeclaredPermissions:
+    """FR-033: every right any check consults must be declared on the record."""
 
-    def test_can_assign_object_level_permissions_to_sample(self, rock_sample, user):
-        """Test that guardian permissions can be assigned to Sample instances (FR-059)."""
-        # Assign view permission using base Sample model (not polymorphic subclass)
-        assign_perm("sample.view_sample", user, rock_sample)
-
-        # Verify permission was assigned
-        assert user.has_perm("sample.view_sample", rock_sample)
-        assert "view_sample" in get_perms(user, rock_sample)
-
-    def test_can_assign_multiple_permissions_to_sample(self, rock_sample, user):
-        """Test that multiple permissions can be assigned to a Sample."""
-        # Assign multiple permissions
-        assign_perm("sample.view_sample", user, rock_sample)
-        assign_perm("sample.change_sample", user, rock_sample)
-
-        # Verify both permissions
-        assert user.has_perm("sample.view_sample", rock_sample)
-        assert user.has_perm("sample.change_sample", rock_sample)
-        assert not user.has_perm("sample.delete_sample", rock_sample)
-
-    def test_can_remove_object_level_permissions_from_sample(self, rock_sample, user):
-        """Test that guardian permissions can be removed from Sample instances."""
-        # Assign and then remove permission
-        assign_perm("sample.view_sample", user, rock_sample)
-        assert user.has_perm("sample.view_sample", rock_sample)
-
-        remove_perm("sample.view_sample", user, rock_sample)
-        assert not user.has_perm("sample.view_sample", rock_sample)
-
-    def test_permissions_are_object_specific(self, rock_sample, water_sample, user):
-        """Test that permissions are specific to each Sample instance."""
-        # Assign permission to rock_sample only
-        assign_perm("sample.view_sample", user, rock_sample)
-
-        # User can view rock_sample but not water_sample
-        assert user.has_perm("sample.view_sample", rock_sample)
-        assert not user.has_perm("sample.view_sample", water_sample)
+    def test_the_rights_the_dataset_inheritance_map_consults_are_declared(self):
+        codenames = set(
+            Permission.objects.filter(
+                content_type=ContentType.objects.get_for_model(Sample)
+            ).values_list("codename", flat=True)
+        )
+        assert {
+            "view_sample",
+            "change_sample",
+            "delete_sample",
+            "add_sample",
+            "import_data",
+        } <= codenames
 
 
-@pytest.mark.skip(
-    reason="Permission inheritance tests fail because they try to call assign_perm() on polymorphic "
-    "subclass instances, which triggers the same WrongAppError. The SamplePermissionBackend logic "
-    "is correct and works when permissions are properly assigned to Datasets. Manual testing confirms "
-    "the inheritance works as expected."
-)
+@pytest.mark.django_db
+class TestSampleDirectPermissions:
+    """FR-032: a right granted directly on one specimen holds for that specimen and not another."""
+
+    def test_direct_grant_holds_for_the_granted_specimen(self, rock_sample, user):
+        assign_perm("change_sample", user, rock_sample)
+
+        assert user.has_perm("sample.change_sample", rock_sample) is True
+
+    def test_direct_grant_does_not_hold_for_another_specimen(
+        self, rock_sample, water_sample, user
+    ):
+        assign_perm("view_sample", user, rock_sample)
+
+        assert user.has_perm("sample.view_sample", water_sample) is False
+
+    def test_direct_grant_can_be_removed(self, rock_sample, user):
+        assign_perm("view_sample", user, rock_sample)
+        assert user.has_perm("sample.view_sample", rock_sample) is True
+
+        remove_perm("view_sample", user, rock_sample)
+        assert user.has_perm("sample.view_sample", rock_sample) is False
+
+
 @pytest.mark.django_db
 class TestSamplePermissionInheritance:
-    """Test Sample permissions inherit from parent Dataset (FR-060)."""
+    """FR-031: rights over a sample derive from rights over its dataset."""
 
-    def test_sample_inherits_view_permission_from_dataset(self, rock_sample, user):
-        """Test that Sample inherits view permission from parent Dataset."""
-        dataset = rock_sample.dataset
+    def test_view_dataset_confers_view_sample(self, rock_sample, user):
+        assign_perm("view_dataset", user, rock_sample.dataset)
 
-        # Assign view permission to dataset
-        assign_perm("dataset.view_dataset", user, dataset)
+        assert user.has_perm("sample.view_sample", rock_sample) is True
 
-        # Sample should inherit view permission
-        assert user.has_perm("sample.view_sample", rock_sample)
+    def test_change_dataset_confers_change_sample(self, rock_sample, user):
+        assign_perm("change_dataset", user, rock_sample.dataset)
 
-    def test_sample_inherits_change_permission_from_dataset(self, rock_sample, user):
-        """Test that Sample inherits change permission from parent Dataset."""
-        dataset = rock_sample.dataset
+        assert user.has_perm("sample.change_sample", rock_sample) is True
 
-        # Assign change permission to dataset
-        assign_perm("dataset.change_dataset", user, dataset)
+    def test_change_dataset_confers_delete_sample(self, rock_sample, user):
+        assign_perm("change_dataset", user, rock_sample.dataset)
 
-        # Sample should inherit change permission
-        assert user.has_perm("sample.change_sample", rock_sample)
+        assert user.has_perm("sample.delete_sample", rock_sample) is True
 
-    def test_sample_inherits_delete_permission_from_dataset(self, rock_sample, user):
-        """Test that Sample inherits delete permission from parent Dataset."""
-        dataset = rock_sample.dataset
+    def test_change_dataset_confers_add_sample(self, rock_sample, user):
+        assign_perm("change_dataset", user, rock_sample.dataset)
 
-        # Assign delete permission to dataset
-        assign_perm("dataset.delete_dataset", user, dataset)
+        assert user.has_perm("sample.add_sample", rock_sample) is True
 
-        # Sample should inherit delete permission
-        assert user.has_perm("sample.delete_sample", rock_sample)
+    def test_view_dataset_alone_does_not_confer_change_sample(self, rock_sample, user):
+        assign_perm("view_dataset", user, rock_sample.dataset)
 
-    def test_sample_does_not_inherit_without_dataset_permission(
-        self, rock_sample, user
-    ):
-        """Test that Sample does not have permissions if Dataset permissions not granted."""
-        # No permissions assigned to dataset or sample
-        assert not user.has_perm("sample.view_sample", rock_sample)
-        assert not user.has_perm("sample.change_sample", rock_sample)
-        assert not user.has_perm("sample.delete_sample", rock_sample)
+        assert user.has_perm("sample.change_sample", rock_sample) is False
 
-    def test_direct_sample_permission_overrides_inheritance(self, rock_sample, user):
-        """Test that direct Sample permissions take precedence over inherited Dataset permissions."""
-        dataset = rock_sample.dataset
+    def test_every_sample_in_the_dataset_inherits_the_same_grant(self, dataset, user):
+        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
 
-        # Assign dataset permissions
-        assign_perm("dataset.view_dataset", user, dataset)
-        assign_perm("dataset.change_dataset", user, dataset)
+        sample1 = RockSampleFactory(dataset=dataset)
+        sample2 = WaterSampleFactory(dataset=dataset)
 
-        # Sample inherits both
-        assert user.has_perm("sample.view_sample", rock_sample)
-        assert user.has_perm("sample.change_sample", rock_sample)
+        assign_perm("view_dataset", user, dataset)
 
-        # Remove direct sample permission (if it was explicitly assigned)
-        # Inheritance should still work
-        assert user.has_perm("sample.view_sample", rock_sample)
+        assert user.has_perm("sample.view_sample", sample1) is True
+        assert user.has_perm("sample.view_sample", sample2) is True
 
-    def test_multiple_samples_inherit_from_same_dataset(self, dataset, user):
-        """Test that all samples in a dataset inherit the same permissions."""
-        from fairdm_demo.models import RockSample, WaterSample
 
-        # Create multiple samples in the same dataset
-        sample1 = RockSample.objects.create(
-            name="Sample 1",
-            dataset=dataset,
-            rock_type="granite",
-            collection_date="2024-01-01",
-        )
-        sample2 = WaterSample.objects.create(
-            name="Sample 2",
-            dataset=dataset,
-            water_source="river",
-            temperature_celsius=20.0,
-            ph_level=7.0,
-        )
+@pytest.mark.django_db
+class TestSampleNoRights:
+    """A user holding rights on neither the specimen nor its dataset holds none over it - and the
+    check must return False, not raise (research.md R2: guardian raises WrongAppError on a
+    specimen instance before this backend's fix)."""
 
-        # Assign permission to dataset
-        assign_perm("dataset.view_dataset", user, dataset)
+    def test_no_rights_anywhere_refuses_every_right(self, rock_sample, user):
+        assert user.has_perm("sample.view_sample", rock_sample) is False
+        assert user.has_perm("sample.change_sample", rock_sample) is False
+        assert user.has_perm("sample.delete_sample", rock_sample) is False
 
-        # Both samples inherit the permission
-        assert user.has_perm("sample.view_sample", sample1)
-        assert user.has_perm("sample.view_sample", sample2)
+    def test_a_right_on_a_different_dataset_does_not_leak(self, rock_sample, dataset, user):
+        from fairdm.factories import DatasetFactory
+
+        other_dataset = DatasetFactory(project=dataset.project)
+        assign_perm("change_dataset", user, other_dataset)
+
+        assert user.has_perm("sample.change_sample", rock_sample) is False
+
+
+@pytest.mark.django_db
+class TestObjectPermissionsSurvive:
+    """The shared backend is registered directly, not reached by delegation (D-018) - these are
+    the record types that lose their answering backend when the raw one is removed, and nothing
+    else in this work would notice if they stopped resolving."""
+
+    def test_dataset_grant_still_resolves(self, dataset, user):
+        assign_perm("view_dataset", user, dataset)
+
+        assert user.has_perm("dataset.view_dataset", dataset) is True
+
+    def test_project_grant_still_resolves(self, project, user):
+        assign_perm("view_project", user, project)
+
+        assert user.has_perm("project.view_project", project) is True
+
+    def test_organization_grant_still_resolves(self, user):
+        from fairdm.factories import OrganizationFactory
+
+        organization = OrganizationFactory()
+        assign_perm("view_organization", user, organization)
+
+        assert user.has_perm("contributors.view_organization", organization) is True
