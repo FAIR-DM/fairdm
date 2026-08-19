@@ -79,3 +79,22 @@ class TestGetValuePlainNumber:
         record = SimpleNamespace(name="Plain Reading", value=42)
 
         assert Measurement.get_value(record) == 42
+
+
+@pytest.mark.django_db
+class TestPrintValue:
+    """`Measurement.print_value()` renders a value for a person (FR-038).
+
+    Executed without ever importing `fairdm.templatetags.fairdm` or rendering a
+    template. The formatter that produces this format must be installed at
+    application startup (T092), not as a side effect of loading a template tag
+    module - this test is the proof that it is.
+    """
+
+    def test_renders_value_uncertainty_and_units_together(self, sample):
+        measurement = ICP_MS_MeasurementFactory(
+            sample=sample, value="5.000", uncertainty="0.300"
+        )
+        measurement.refresh_from_db()
+
+        assert measurement.print_value() == "5.00 ± 0.30 µg/l"

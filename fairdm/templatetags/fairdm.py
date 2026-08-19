@@ -41,9 +41,6 @@ class MyFormatter(PrettyFormatter):
         return result
 
 
-ureg.formatter = MyFormatter(registry=ureg)
-
-
 @register.simple_tag(takes_context=True)
 def is_active(context, url):
     if context["request"].path.startswith(url):
