@@ -38,11 +38,20 @@ class TestRegistryAutoGenerateForms:
         form_class = config.get_form_class()
         form = form_class()
 
-        # Check that configured base fields are present (from BaseMeasurementConfiguration)
-        # Note: Child-specific fields like 'element' are not auto-configured
+        # Check that fields every measurement has are present (from BaseMeasurementConfiguration)
         assert "name" in form.fields
         assert "sample" in form.fields
         assert "dataset" in form.fields
+
+    def test_auto_generated_form_includes_the_type_s_own_fields(self, clean_registry):
+        """T030: the form also carries fields declared only on XRFMeasurementConfig itself."""
+        from fairdm_demo.models import XRFMeasurement
+
+        config = registry.get_for_model(XRFMeasurement)
+        form = config.get_form_class()()
+
+        assert "element" in form.fields
+        assert "concentration_ppm" in form.fields
 
 
 @pytest.mark.django_db
@@ -72,6 +81,16 @@ class TestRegistryAutoGenerateFilters:
         # Check that filterset has expected attributes
         assert hasattr(filterset_class, "Meta")
         assert filterset_class.Meta.model == XRFMeasurement
+
+    def test_auto_generated_filter_includes_the_type_s_own_fields(self, clean_registry):
+        """T030: the filterset also carries fields declared only on XRFMeasurementConfig."""
+        from fairdm_demo.models import XRFMeasurement
+
+        config = registry.get_for_model(XRFMeasurement)
+        filterset = config.get_filterset_class()()
+
+        assert "element" in filterset.filters
+        assert "concentration_ppm" in filterset.filters
 
 
 @pytest.mark.django_db
@@ -103,6 +122,17 @@ class TestRegistryAutoGenerateTables:
         # Check that table has some columns
         assert len(table.columns) > 0
 
+    def test_auto_generated_table_includes_the_type_s_own_fields(self, clean_registry):
+        """T030: the table also carries columns for fields declared only on XRFMeasurementConfig."""
+        from fairdm_demo.models import XRFMeasurement
+
+        config = registry.get_for_model(XRFMeasurement)
+        table = config.get_table_class()(XRFMeasurement.objects.none())
+
+        column_names = list(table.columns.columns.keys())
+        assert "element" in column_names
+        assert "concentration_ppm" in column_names
+
 
 @pytest.mark.django_db
 class TestRegistryAutoGenerateAdmin:
@@ -131,6 +161,15 @@ class TestRegistryAutoGenerateAdmin:
         # Admin should have some basic attributes
         # (Actual attributes depend on registry implementation)
         assert admin_class is not None
+
+    def test_auto_generated_admin_includes_the_type_s_own_fields(self, clean_registry):
+        """T030: the admin's list_display carries fields declared only on XRFMeasurementConfig."""
+        from fairdm_demo.models import XRFMeasurement
+
+        config = registry.get_for_model(XRFMeasurement)
+        admin_class = config.get_admin_class()
+
+        assert "element" in admin_class.list_display
 
 
 @pytest.mark.django_db
@@ -184,12 +223,20 @@ class TestBaseMeasurementConfigurationIntegration:
         assert isinstance(config, BaseMeasurementConfiguration)
 
     def test_base_config_provides_standard_fields(self, clean_registry):
-        """Test that BaseMeasurementConfiguration provides standard field sets."""
+        """T034: a type inheriting BaseMeasurementConfiguration receives the fields every
+        measurement has, asserted by name rather than by ``hasattr`` - ``hasattr`` is true
+        of an empty list too, and establishes nothing about what it contains."""
         from fairdm_demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
-        # Should have standard field configurations
-        assert hasattr(config, "table_fields")
-        assert hasattr(config, "form_fields")
-        assert hasattr(config, "filterset_fields")
+        assert "name" in config.table_fields
+        assert "sample" in config.table_fields
+        assert "dataset" in config.table_fields
+
+        assert "name" in config.form_fields
+        assert "sample" in config.form_fields
+        assert "dataset" in config.form_fields
+
+        assert "sample" in config.filterset_fields
+        assert "dataset" in config.filterset_fields
