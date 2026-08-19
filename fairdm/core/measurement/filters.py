@@ -125,10 +125,18 @@ class MeasurementFilterMixin(django_filters.FilterSet):
 
         On the mixin rather than on `MeasurementFilter` alone, because this is the
         published extension point: a portal's own filter inherits this behaviour
-        directly, including a "dataset" choice field whose choices come from the
-        model's default manager. That manager is privacy-first, so without this a
-        portal developer's filter would reject every private dataset - which is
-        every dataset until someone publishes it.
+        directly, including a "dataset" choice field.
+
+        T115: `Dataset.all_objects` bypasses the privacy-first default manager
+        entirely, so assigning it unconditionally offered the title of every
+        private dataset in the portal to any reader who could reach this filter
+        set - and, once the registry builds every measurement type's filter set
+        on this mixin, that reached the whole portal. `FilterSet` accepts
+        `request` as a constructor keyword natively, so - matching
+        `MeasurementFormMixin`'s own dataset scoping (forms.py) - this scopes
+        through the requesting reader's entitlement when there is one, and
+        otherwise leaves the privacy-first default manager alone rather than
+        falling back to `all_objects`.
         """
         super().__init__(*args, **kwargs)
 
@@ -138,7 +146,21 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         from fairdm.core.sample.models import Sample
 
         if "dataset" in self.filters:
-            self.filters["dataset"].queryset = Dataset.all_objects.all()
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user is not None
+                and self.request.user.is_authenticated
+            ):
+                from guardian.shortcuts import get_objects_for_user
+
+                self.filters["dataset"].queryset = get_objects_for_user(
+                    self.request.user,
+                    "dataset.change_dataset",
+                    klass=Dataset.all_objects.all(),
+                )
+            else:
+                self.filters["dataset"].queryset = Dataset.objects.all()
 
         if "sample" in self.filters:
             self.filters["sample"].queryset = Sample.objects.all()
