@@ -403,3 +403,61 @@ sets `additionalProperties: false` on each finding and on the root, so a per-fin
 the top-level `notes` array the protocol asks for are both invalid. The reviewer conformed to the
 schema and carried the lens as a prefix in each claim. The protocol and the schema disagree, and the
 protocol is the newer of the two.
+
+## D-018 — US7's task order was rebuilt around T093, and T090/T092 were merged
+
+**Self-resolved, Implementer, 2026-08-19. Both are reorderings the brief pre-authorised, recorded
+here per its own instruction.**
+
+**Decision.** Tasks were built in this order: T093, T094, T086, T087, T088, T089, T090+T092
+(one commit), T091. The brief's own numbering runs T086 through T094 in a straight line; two
+departures from it are recorded.
+
+**Why.** T086, T088 and T090 each need a measurement type that nominates a value and records an
+uncertainty to be assertable at all - before T093 landed, no such type existed anywhere in the
+framework, and `Measurement.get_value()` had only ever taken its fallback branch. The brief's own
+rituals text says as much and pre-authorises bringing T093 forward. T094 (the migration) follows it
+immediately, because a model change and its migration cannot be split across a commit boundary
+without leaving `makemigrations --check` dirty in between.
+
+T090 and T092 were merged into a single commit for a narrower reason: T092's own acceptance
+criterion asks for "a test that renders a value without any template involved (this is the same
+proof T090 needs)" - the brief states directly that the two tasks share one proof. Landing T090's
+test alone would commit a task with a test that stays red until a second, unrelated-looking commit
+arrives to turn it green, which is the state `craft-increments` asks not to leave between slices.
+Confirmed instead: the test was run red against the code before T092's change (formatter absent,
+wrong output - `(5.00 +/- 0.30) microgram / liter`, not a crash) and green after, within the same
+commit.
+
+T091 (removing `print_value()`'s dead `.err`-reading branch) was kept as its own commit, last,
+because it is a true refactor - it changes no test outcome. `hasattr(value, "err")` was already
+always `False` against a real pint object, so the branch never executed on any live path; both
+before and after T091, `print_value()` was behaviourally `str(self.get_value())`. Confirmed by
+running the full `test_value.py` file unchanged across the T091 commit boundary.
+
+**Revisit if.** A future story adds a `value` attribute type that legitimately needs different
+rendering logic per type - at that point `print_value()`'s single `str()` delegation may need a
+per-type hook, and this decision's premise (one formatter, one code path) is the thing to revisit.
+
+## D-019 — Two smaller choices behind US7's tests
+
+**Self-resolved, Implementer, 2026-08-19.**
+
+**Decision 1: `ICP_MS_Measurement.value` and `.uncertainty` use `microgram / liter` as their base
+unit.** ICP-MS concentration results are conventionally reported in µg/L (roughly equivalent to the
+demo type's existing `concentration_ppb`), so the unit is the domain-natural one for the type R8
+names, and it exercises the framework's abbreviated-unit rendering (`µg/l`) rather than a unit whose
+abbreviation is its full name. **Revisit if** a future story wants the demo type's quantity fields to
+demonstrate `unit_choices` (multiple accepted input units) - none are declared here, because nothing
+in this story's acceptance criteria calls for them.
+
+**Decision 2: `TestGetValuePlainNumber` uses a `types.SimpleNamespace`, not a Django model or a
+mock.** `get_value()`'s guard (T089) needs a record whose `value` is a plain number and whose
+`uncertainty` is set and non-`None` - a shape no registered measurement type has, and this story's
+file scope does not extend to declaring a new one (`fairdm_demo/models.py` is in scope only for
+`ICP_MS_Measurement`'s two new fields). `Measurement.get_value()` reads exactly three attributes
+(`name`, `value`, `uncertainty`) and touches no ORM machinery, so a duck-typed stand-in exercises the
+real method against real data, rather than mocking framework behaviour - the `craft-tdd` preference
+this satisfies is "real over fake over stub over mock." **Revisit if** a portal-contributed
+measurement type nominating a plain number ever lands in the framework's own demo app; the test
+should then move onto it instead.

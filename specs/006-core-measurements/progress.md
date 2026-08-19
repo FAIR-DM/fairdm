@@ -5164,3 +5164,145 @@ ground to this story's T040; `test_models.py` carries `TestMeasurementCRUDWorkfl
 class covering ground close to T041. Both files are owned by other concurrently-running stories
 per this story's brief, so left untouched; noted here in case a later pass wants to consolidate
 duplicate coverage.
+
+## 2026-08-19T14:19:00Z · Implementer US7 · T093
+
+Did: Gave `ICP_MS_Measurement` (`fairdm_demo/models.py`) two new fields, `value` and
+`uncertainty`, both `fairdm.db.models.DecimalQuantityField` with base unit `microgram / liter`
+(D-019), nullable and optional, each with `help_text` and `verbose_name` through
+`gettext_lazy`. This is the framework's first (and only) measurement type that nominates a
+value and records an uncertainty, which is what FR-039 requires and what makes T086, T088 and
+T090 assertable at all - no measurement type anywhere had a `value` attribute before this task,
+so `Measurement.get_value()` had only ever taken its fallback branch in this repository's
+history. Brought forward ahead of T086-T092 per this story's own rituals text, which
+pre-authorises the reordering; recorded as D-018.
+
+Verified: `poetry run ruff check fairdm_demo/models.py` → all checks passed. Import checked with
+`poetry run python -m manage check` (implicit in the next task's `makemigrations` run, which
+requires the app registry to load cleanly).
+
+Next: T094 - the migration for these two fields.
+
+Watch: the model change alone leaves `makemigrations --check` dirty for `fairdm_demo` until
+T094's commit lands immediately after this one.
+
+## 2026-08-19T14:19:00Z · Implementer US7 · T094
+
+Did: Generated `fairdm_demo/migrations/0003_icp_ms_measurement_uncertainty_and_more.py` with
+`poetry run python -m manage makemigrations fairdm_demo`. Two `AddField` operations, both
+nullable with no default required - additive, no data migration, matching the plan's data-model
+section.
+
+Verified: read the generated migration before committing - two `AddField` ops on
+`icp_ms_measurement`, `null=True` on both. `poetry run python -m manage makemigrations --check
+--dry-run` → clean for `fairdm_demo`. The check also names two unrelated apps, `identity` and
+`orbit`; confirmed pre-existing via a stashed-baseline diff (both appear identically with this
+story's changes reverted), unrelated to this story's file scope, left untouched - noted in
+concerns.
+
+Next: T086 - tests for the value report, now that a type nominating a value exists.
+
+Watch: none.
+
+## 2026-08-19T14:19:00Z · Implementer US7 · T086/T087
+
+Did: Added `tests/test_core/test_measurement/test_value.py` (new file, this story's tests) with
+`TestGetValue`, proving both halves of FR-036: `test_type_nominating_a_value_reports_that_value`
+(against `ICP_MS_Measurement.value`, now that T093 gives the framework one) and
+`test_type_nominating_none_reports_the_record_name` (against `ExampleMeasurement`, which has no
+`value` attribute). Both passed immediately against the existing `Measurement.get_value()`
+(models.py:125) with no code change - the brief's own acceptance note for T086/T087 says the
+fallback path was already correct and only untested; the nominated-value path only needed T093
+to exist to become assertable.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly` →
+2 passed. `poetry run ruff check tests/test_core/test_measurement/test_value.py` → all checks
+passed.
+
+Next: T088 - the uncertainty-carrying case.
+
+Watch: none.
+
+## 2026-08-19T14:19:00Z · Implementer US7 · T088
+
+Did: Extended `test_value.py` with `TestGetValueWithUncertainty::test_uncertainty_is_carried_with_the_value`,
+proving FR-037: a type recording an uncertainty (`ICP_MS_Measurement.uncertainty`) gets it
+carried into the reported value via `get_value()`'s existing `plus_minus()` branch
+(models.py:140-142). Asserted the result is a `pint.Measurement` whose attributes are `.value`
+and `.error` - verified directly against the installed pint (0.25.3) that no such object carries
+`.err`, which is what `print_value()` (T091) was reading. Passed immediately with no code
+change to `get_value()`.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly` →
+3 passed. `poetry run ruff check tests/test_core/test_measurement/test_value.py` → all checks
+passed.
+
+Next: T089 - the plain-number guard.
+
+Watch: comparing `Decimal` magnitudes through `plus_minus()` loses exact precision (pint
+converts to `float` internally), so the test compares magnitudes with `pytest.approx` rather
+than equality - not a defect, just how the test is written.
+
+## 2026-08-19T14:19:00Z · Implementer US7 · T089
+
+Did: Added `TestGetValuePlainNumber` (two tests, via a `types.SimpleNamespace` stand-in - D-019
+explains why) proving `get_value()` does not raise for a type nominating a plain number, with
+and without a non-`None` `uncertainty` present. Confirmed the first case failed for the right
+reason before the fix: `AttributeError: 'int' object has no attribute 'plus_minus'`, raised from
+`self.value.plus_minus(self.uncertainty)` in `get_value()` (models.py:141) whenever `uncertainty`
+was set regardless of whether `value` supported the call. Fixed by adding
+`hasattr(self.value, "plus_minus")` to the existing guard, so a plain number falls through to
+`return self.value` unchanged - the spec's Assumptions section explicitly allows a type not to
+use the unit-and-uncertainty library.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly` →
+5 passed. `poetry run ruff check tests/test_core/test_measurement/test_value.py
+fairdm/core/measurement/models.py` → all checks passed.
+
+Next: T090/T092 - rendering, and where the formatter that does it gets installed.
+
+Watch: none.
+
+## 2026-08-19T14:19:00Z · Implementer US7 · T090/T092
+
+Did: Added `TestPrintValue::test_renders_value_uncertainty_and_units_together`
+(`5.00 ± 0.30 µg/l`), executed without ever importing `fairdm.templatetags.fairdm` or rendering
+a template - deliberately, since that is the whole point of T092. Confirmed it failed for the
+right reason first: `(5.00 +/- 0.30) microgram / liter` (pint's default formatter, not the
+framework's `MyFormatter`), not a crash. Moved the formatter's installation
+(`ureg.formatter = MyFormatter(registry=ureg)`) out of `fairdm/templatetags/fairdm.py`'s module
+body and into a new `FairDMConfig._install_quantity_formatter()`, called from `ready()`
+(`fairdm/apps.py`) - the framework's existing startup hook for this kind of wiring. The template
+tag module keeps the `MyFormatter` class and now only imports it. Landed in one commit with
+T090's test rather than T090 alone, because T092's own acceptance criterion names T090's test as
+the same proof it needs (D-018).
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_value.py -q -p no:randomly` →
+6 passed. `poetry run pytest tests/test_core/test_measurement/ -q -p no:randomly` → 218 passed,
+4 skipped (up from the 212 passed, 4 skipped baseline). `poetry run ruff check
+tests/test_core/test_measurement/test_value.py fairdm/apps.py fairdm/templatetags/fairdm.py` →
+all checks passed.
+
+Next: T091 - clean up `print_value()`'s dead branch now that the formatter installs correctly.
+
+Watch: none.
+
+## 2026-08-19T14:19:00Z · Implementer US7 · T091
+
+Did: Simplified `Measurement.print_value()` (models.py:151) to `return str(self.get_value())`,
+removing the `hasattr(value, "err")` branch that built its own `"{value} ± {err}"` string. No
+pint object carries `.err` (confirmed at T088), so that branch was dead code on every real path
+and `print_value()` was already behaviourally `str(get_value())` before this change - this is a
+pure simplification per plan.md's decision that the rendering moves out of the model rather than
+being repaired in it, with no assertion in `test_value.py` changing as a result.
+
+Verified: `poetry run pytest tests/test_core/test_measurement/ -q -p no:randomly` → 218 passed,
+4 skipped, unchanged from the previous task. `poetry run ruff check
+fairdm/core/measurement/models.py` → all checks passed.
+
+Next: none - all nine tasks in this brief (US7: T086-T094) are complete. Documentation and the
+full-suite verify remain before the completion report.
+
+Watch: the pre-existing skips this story's prohibitions name
+(`tests/test_core/test_measurement/test_models.py:530, :965, :1214`) were left untouched, as
+instructed.
