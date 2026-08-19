@@ -40,31 +40,49 @@ class MeasurementDatasetListFilter(admin.RelatedFieldListFilter):
 
 
 class MeasurementDescriptionInline(admin.StackedInline):
-    """Inline admin for measurement descriptions."""
+    """Inline admin for measurement descriptions.
+
+    Capped to the number of members its vocabulary carries: a description's
+    type is drawn from `MeasurementDescription.VOCABULARY`, so no measurement
+    can ever need more rows than that vocabulary has types.
+    """
 
     model = MeasurementDescription
     extra = 0
-    max_num = 6
+    max_num = len(MeasurementDescription.VOCABULARY.values)
 
 
 class MeasurementDateInline(admin.StackedInline):
-    """Inline admin for measurement dates."""
+    """Inline admin for measurement dates.
+
+    Capped to the number of members its vocabulary carries, for the same
+    reason as `MeasurementDescriptionInline`.
+    """
 
     model = MeasurementDate
     extra = 0
-    max_num = 6
+    max_num = len(MeasurementDate.VOCABULARY.values)
 
 
 class MeasurementIdentifierInline(admin.StackedInline):
-    """Inline admin for measurement identifiers."""
+    """Inline admin for measurement identifiers.
+
+    Capped to the number of members its vocabulary carries, for the same
+    reason as `MeasurementDescriptionInline`.
+    """
 
     model = MeasurementIdentifier
     extra = 0
-    max_num = 3
+    max_num = len(MeasurementIdentifier.VOCABULARY.values)
 
 
 class MeasurementContributionInline(GenericTabularInline):
-    """Inline admin for measurement contributions."""
+    """Inline admin for measurement contributions.
+
+    Deliberately uncapped: a contribution credits a person or organisation,
+    not a vocabulary member, and a measurement may credit any number of
+    contributors, one row each (design review correction).
+    """
 
     model = Contribution
     extra = 0

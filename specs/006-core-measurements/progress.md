@@ -186,3 +186,33 @@ Next: T097/T098 - inline row caps.
 Watch: `MeasurementDatasetListFilter` is scoped to the `dataset` FK only; if a future filter is
 added on another privacy-managed relation, the same silent-drop failure mode applies and needs the
 same treatment.
+
+## 2026-08-19T12:35:00Z · Implementer US8 · T097/T098
+
+Did: inline row caps for descriptions, dates and identifiers were hard-coded to 6, 6 and 3,
+but the specification requires each to offer no more rows than its own vocabulary has member
+types - measured: descriptions 4 (`MeasurementConditions`, `MeasurementSetup`,
+`MeasurementTearDown`, `Other`), dates 2 (`Setup`, `TearDown`), identifiers 1 (`DOI`). Changed
+`MeasurementDescriptionInline.max_num`, `MeasurementDateInline.max_num` and
+`MeasurementIdentifierInline.max_num` in `fairdm/core/measurement/admin.py` to
+`len(<Model>.VOCABULARY.values)` each, so the cap tracks the vocabulary rather than repeating a
+number by hand. Left `MeasurementContributionInline` with no `max_num` at all - contributions are
+NOT capped, per the design review correction in the brief: a contribution credits a person or
+organisation, not a vocabulary member, and capping it at a role vocabulary's size would limit how
+many contributors a measurement can have.
+
+Added `TestMeasurementAdminInlineRowCaps` asserting each of the three capped inlines' `max_num`
+equals its vocabulary's member count, and a fourth test asserting
+`MeasurementContributionInline.max_num is None`. Also added
+`test_inline_contribution_can_be_added_and_changed` to `TestMeasurementAdminInlines` - the
+existing inline tests covered creation for descriptions, dates and identifiers but nothing at all
+for contributions, and T097's acceptance names all four record kinds and both "added and changed".
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_admin.py -q -p no:randomly` →
+30 passed (was 3 failing for the expected reason - `max_num` mismatched the vocabulary count -
+before the admin.py change). `poetry run ruff check` and `ruff format --check` on both touched
+files → all checks passed / already formatted.
+
+Next: T099 - every registered measurement type offers the same attached-record editors.
+
+Watch: none outstanding.

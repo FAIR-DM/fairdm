@@ -312,6 +312,54 @@ class TestMeasurementAdminInlines:
         assert identifier.related == measurement
         assert measurement.identifiers.count() == 1
 
+    def test_inline_contribution_can_be_added_and_changed(self, measurement):
+        """Test that a contribution can be credited on a measurement, and then changed."""
+        from fairdm.factories import PersonFactory
+
+        contributor = PersonFactory()
+        contribution = measurement.contributors.create(contributor=contributor)
+
+        assert contribution.contributor == contributor
+        assert measurement.contributors.count() == 1
+
+        new_contributor = PersonFactory()
+        contribution.contributor = new_contributor
+        contribution.save()
+        contribution.refresh_from_db()
+
+        assert contribution.contributor == new_contributor
+
+
+@pytest.mark.django_db
+class TestMeasurementAdminInlineRowCaps:
+    """Tests for T098: an inline editor whose type is drawn from a vocabulary offers no
+    more rows than that vocabulary has members. Contributions are NOT capped - a
+    measurement may credit any number of people, one row each (design review correction)."""
+
+    def test_description_inline_row_cap_matches_vocabulary(self):
+        from fairdm.core.measurement.admin import MeasurementDescriptionInline
+
+        assert MeasurementDescriptionInline.max_num == len(
+            MeasurementDescription.VOCABULARY.values
+        )
+
+    def test_date_inline_row_cap_matches_vocabulary(self):
+        from fairdm.core.measurement.admin import MeasurementDateInline
+
+        assert MeasurementDateInline.max_num == len(MeasurementDate.VOCABULARY.values)
+
+    def test_identifier_inline_row_cap_matches_vocabulary(self):
+        from fairdm.core.measurement.admin import MeasurementIdentifierInline
+
+        assert MeasurementIdentifierInline.max_num == len(
+            MeasurementIdentifier.VOCABULARY.values
+        )
+
+    def test_contribution_inline_is_not_row_capped(self):
+        from fairdm.core.measurement.admin import MeasurementContributionInline
+
+        assert MeasurementContributionInline.max_num is None
+
 
 @pytest.mark.django_db
 class TestMeasurementAdminVocabularyCorrectness:
