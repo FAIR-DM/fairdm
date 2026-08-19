@@ -356,21 +356,11 @@ class TestMeasurementURLPattern:
 
 @pytest.mark.django_db
 class TestMeasurementCascadeBehavior:
-    """Test CASCADE and PROTECT deletion behavior."""
-
-    def test_deleting_dataset_cascades_to_measurements(self, xrf_measurement):
-        """Test that deleting a dataset cascades to its measurements (CASCADE)."""
-        dataset = xrf_measurement.dataset
-        measurement_pk = xrf_measurement.pk
-
-        # Delete measurement first (to avoid Sample.dataset PROTECT blocking)
-        xrf_measurement.delete()
-
-        # Delete dataset
-        dataset.delete()
-
-        # Measurement should be deleted
-        assert not Measurement.objects.filter(pk=measurement_pk).exists()
+    """Test PROTECT deletion behavior. T013/T014 - the CASCADE-on-dataset-delete case
+    previously asserted here deleted the measurement before the dataset, so its assertion held
+    whatever ``on_delete`` said; that coverage now lives at
+    ``TestMeasurementCRUDWorkflow.test_deleting_dataset_cascades_to_measurements``, which deletes
+    the dataset while the measurement still exists."""
 
     def test_deleting_sample_protects_measurements(self, xrf_measurement):
         """Test that measurements prevent sample deletion (PROTECT)."""
