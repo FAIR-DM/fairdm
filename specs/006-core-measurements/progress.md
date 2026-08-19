@@ -144,3 +144,45 @@ passed. `poetry run pytest tests/test_factories/test_core.py -q -p no:randomly` 
 Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
+
+## 2026-08-19T12:10:00Z · Implementer US8 · T095/T096
+
+Did: FR-040 required the measurement admin list to be narrowable by dataset, sample and
+measurement type; `list_filter` carried only `"added"` on both the child and parent admin classes,
+and the three tests that looked like coverage (`TestMeasurementAdminFilters.test_filter_by_dataset`,
+`test_filter_by_sample`, `test_filter_by_polymorphic_type`) accepted the `measurement_admin` fixture
+and never used it, asserting `Measurement.objects.filter(...)` directly instead. Rewrote all three
+to exercise the real registered `MeasurementParentAdmin` instance
+(`django.contrib.admin.site._registry[Measurement]`) via `get_changelist_instance(request)` with
+the filter's query-string parameter set, per FR-040's own acceptance wording ("asserted THROUGH the
+administrative interface, not by querying the model directly"). Added two further tests asserting
+`"dataset"` and `"sample"` are present in `list_filter` on both `MeasurementChildAdmin` and
+`MeasurementParentAdmin` directly (T096's own acceptance: "the administrative classes are read").
+Added `"dataset"` and `"sample"` to `list_filter` on both classes in `fairdm/core/measurement/admin.py`.
+
+While proving `test_filter_by_dataset` green, found that Django's default `RelatedFieldListFilter`
+draws its choices from `Dataset`'s default manager, which excludes private datasets (FR-019,
+`fairdm/core/dataset/models.py:159` `DatasetManager`) - and a dataset's own model default is
+private (documented in `tests/test_core/test_measurement/conftest.py`'s `dataset` fixture). With
+only private datasets present, `has_output()` is `False` for fewer than two choices, and Django
+silently drops the filter entirely rather than degrading to "no visible choices" - the query
+parameter is consumed and discarded during filter construction regardless, so a hand-built
+`?dataset__id__exact=` URL is silently ignored too. That would have made FR-040's dataset narrowing
+fail in the ordinary case. Added `MeasurementDatasetListFilter(admin.RelatedFieldListFilter)` in
+`admin.py`, overriding `field_choices` to draw from `Dataset.all_objects` instead - the same
+reasoning `DatasetAdmin.get_queryset` already documents for itself ("the administrative interface
+is where a portal is repaired and needs to see everything", FR-019a). `sample` needed no equivalent
+fix: `Sample`'s own default manager carries no visibility exclusion (visibility is a `Dataset`-level
+concept).
+
+Verified: `poetry run pytest tests/test_core/test_measurement/test_admin.py -q -p no:randomly` →
+25 passed. `poetry run ruff check fairdm/core/measurement/admin.py
+tests/test_core/test_measurement/test_admin.py` → all checks passed. `poetry run ruff format --check`
+on both files → already formatted (after one `ruff format` pass that only re-wrapped two
+pre-existing search tests' argument lists, no content change).
+
+Next: T097/T098 - inline row caps.
+
+Watch: `MeasurementDatasetListFilter` is scoped to the `dataset` FK only; if a future filter is
+added on another privacy-managed relation, the same silent-drop failure mode applies and needs the
+same treatment.

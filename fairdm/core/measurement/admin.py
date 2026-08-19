@@ -18,6 +18,27 @@ from .models import (
 )
 
 
+class MeasurementDatasetListFilter(admin.RelatedFieldListFilter):
+    """A `dataset` list filter offering every dataset, private ones included.
+
+    `Dataset`'s default manager excludes private datasets (FR-019, see
+    `fairdm.core.dataset.models.DatasetManager`), and the built-in related
+    field filter draws its choices from that manager - so without this
+    override, filtering by a private dataset (the model's own default, see
+    `tests/test_core/test_measurement/conftest.py`) would silently be
+    unavailable. The administrative interface is where a portal is repaired
+    and needs to see everything, the same reasoning `DatasetAdmin.get_queryset`
+    already applies (FR-019a).
+    """
+
+    def field_choices(self, field, request, model_admin):
+        ordering = self.field_admin_ordering(field, request, model_admin)
+        return [
+            (obj.pk, str(obj))
+            for obj in field.remote_field.model.all_objects.order_by(*ordering)
+        ]
+
+
 class MeasurementDescriptionInline(admin.StackedInline):
     """Inline admin for measurement descriptions."""
 
@@ -82,7 +103,7 @@ class MeasurementChildAdmin(PolymorphicChildModelAdmin):
         "added",
         "modified",
     ]
-    list_filter = ["added"]
+    list_filter = [("dataset", MeasurementDatasetListFilter), "sample", "added"]
     search_fields = ["name", "uuid"]
     readonly_fields = ["uuid", "added", "modified"]
     autocomplete_fields = ["dataset", "sample"]
@@ -160,7 +181,12 @@ class MeasurementParentAdmin(PolymorphicParentModelAdmin):
         "added",
         "modified",
     ]
-    list_filter = [PolymorphicChildModelFilter, "added"]
+    list_filter = [
+        PolymorphicChildModelFilter,
+        ("dataset", MeasurementDatasetListFilter),
+        "sample",
+        "added",
+    ]
     search_fields = ["name", "uuid"]
 
     def measurement_type(self, obj):

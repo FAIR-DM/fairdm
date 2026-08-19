@@ -59,9 +59,15 @@ class TestMeasurementAdminSearch:
 
     def test_search_by_name(self, measurement_admin, admin_user, request_factory):
         """Test that admin search finds measurements by name."""
-        measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="XRF Analysis")
-        measurement2 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="ICP-MS Analysis")
-        _measurement3 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Spectroscopy")
+        measurement1 = ExampleMeasurementFactory(
+            sample=RockSampleFactory(), name="XRF Analysis"
+        )
+        measurement2 = ExampleMeasurementFactory(
+            sample=RockSampleFactory(), name="ICP-MS Analysis"
+        )
+        _measurement3 = ExampleMeasurementFactory(
+            sample=RockSampleFactory(), name="Spectroscopy"
+        )
 
         request = request_factory.get("/admin/measurement/measurement/", {"q": "XRF"})
         request.user = admin_user
@@ -92,7 +98,9 @@ class TestMeasurementAdminSearch:
         self, measurement_admin, admin_user, request_factory
     ):
         """Test that admin search returns empty queryset when no matches found."""
-        _measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory(), name="Test Measurement")
+        _measurement1 = ExampleMeasurementFactory(
+            sample=RockSampleFactory(), name="Test Measurement"
+        )
 
         request = request_factory.get(
             "/admin/measurement/measurement/", {"q": "NonExistent"}
@@ -108,19 +116,20 @@ class TestMeasurementAdminSearch:
 
 @pytest.mark.django_db
 class TestMeasurementAdminFilters:
-    """Tests for admin filtering functionality."""
+    """Tests for admin filtering functionality (FR-040), exercised through the
+    administrative interface itself rather than by querying the model directly."""
 
-    def test_filter_by_dataset(self, measurement_admin, sample):
-        """Test that admin can filter measurements by dataset."""
+    def test_filter_by_dataset(self, admin_user, request_factory):
+        """Narrowing the parent changelist by dataset leaves only that dataset's rows."""
+        from django.contrib import admin as django_admin
+
         from fairdm.factories import DatasetFactory
+        from fairdm_demo.models import XRFMeasurement
 
         dataset1 = DatasetFactory(name="Dataset A")
         dataset2 = DatasetFactory(name="Dataset B")
-        sample1 = sample  # Use fixture sample
-        sample1.dataset = dataset1
-        sample1.save()
-
-        from fairdm_demo.models import XRFMeasurement
+        sample1 = RockSampleFactory(dataset=dataset1)
+        sample2 = RockSampleFactory(dataset=dataset2)
 
         measurement1 = XRFMeasurement.objects.create(
             name="XRF 1",
@@ -129,9 +138,6 @@ class TestMeasurementAdminFilters:
             element="Si",
             concentration_ppm=250000.0,
         )
-
-        # Create sample in dataset2 for measurement2
-        sample2 = RockSampleFactory(dataset=dataset2)
         measurement2 = XRFMeasurement.objects.create(
             name="XRF 2",
             sample=sample2,
@@ -140,14 +146,22 @@ class TestMeasurementAdminFilters:
             concentration_ppm=50000.0,
         )
 
-        # Simulate filtering by dataset1
-        filtered = Measurement.objects.filter(dataset=dataset1)
+        parent_admin = django_admin.site._registry[Measurement]
+        request = request_factory.get(
+            "/admin/core/measurement/", {"dataset__id__exact": str(dataset1.pk)}
+        )
+        request.user = admin_user
 
-        assert measurement1 in filtered
-        assert measurement2 not in filtered
+        changelist = parent_admin.get_changelist_instance(request)
 
-    def test_filter_by_sample(self, measurement_admin, sample):
-        """Test that admin can filter measurements by sample."""
+        result_pks = set(changelist.queryset.values_list("pk", flat=True))
+        assert measurement1.pk in result_pks
+        assert measurement2.pk not in result_pks
+
+    def test_filter_by_sample(self, admin_user, request_factory, sample):
+        """Narrowing the parent changelist by sample leaves only that sample's rows."""
+        from django.contrib import admin as django_admin
+
         from fairdm_demo.models import XRFMeasurement
 
         sample2 = RockSampleFactory(dataset=sample.dataset)
@@ -167,14 +181,21 @@ class TestMeasurementAdminFilters:
             concentration_ppm=50000.0,
         )
 
-        # Simulate filtering by sample
-        filtered = Measurement.objects.filter(sample=sample)
+        parent_admin = django_admin.site._registry[Measurement]
+        request = request_factory.get(
+            "/admin/core/measurement/", {"sample__id__exact": str(sample.pk)}
+        )
+        request.user = admin_user
 
-        assert measurement1 in filtered
-        assert measurement2 not in filtered
+        changelist = parent_admin.get_changelist_instance(request)
 
-    def test_filter_by_polymorphic_type(self, measurement_admin, sample):
-        """Test that admin can filter measurements by polymorphic type."""
+        result_pks = set(changelist.queryset.values_list("pk", flat=True))
+        assert measurement1.pk in result_pks
+        assert measurement2.pk not in result_pks
+
+    def test_filter_by_measurement_type(self, admin_user, request_factory, sample):
+        """Narrowing the parent changelist by measurement type leaves only that type's rows."""
+        from django.contrib import admin as django_admin
         from django.contrib.contenttypes.models import ContentType
 
         from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
@@ -197,15 +218,44 @@ class TestMeasurementAdminFilters:
 
         xrf_type = ContentType.objects.get_for_model(XRFMeasurement)
 
-        # Simulate filtering by polymorphic content type
-        filtered = Measurement.objects.filter(polymorphic_ctype=xrf_type)
+        parent_admin = django_admin.site._registry[Measurement]
+        request = request_factory.get(
+            "/admin/core/measurement/", {"polymorphic_ctype": str(xrf_type.pk)}
+        )
+        request.user = admin_user
 
-        assert xrf in filtered
-        assert icp not in filtered
+        changelist = parent_admin.get_changelist_instance(request)
+
+        result_pks = set(changelist.queryset.values_list("pk", flat=True))
+        assert xrf.pk in result_pks
+        assert icp.pk not in result_pks
 
     def test_list_filter_configuration(self, measurement_admin):
         """Test that list_filter is configured correctly."""
         assert "added" in measurement_admin.list_filter
+
+    def test_child_admin_list_filter_includes_dataset_and_sample(
+        self, measurement_admin
+    ):
+        """FR-040: the child admin's list can be narrowed by dataset and by sample."""
+        filtered_field_names = {
+            entry[0] if isinstance(entry, tuple) else entry
+            for entry in measurement_admin.list_filter
+        }
+        assert "dataset" in filtered_field_names
+        assert "sample" in filtered_field_names
+
+    def test_parent_admin_list_filter_includes_dataset_and_sample(self):
+        """FR-040: the parent admin's list can be narrowed by dataset and by sample."""
+        from fairdm.core.measurement.admin import MeasurementParentAdmin
+
+        parent_admin = MeasurementParentAdmin(Measurement, AdminSite())
+        filtered_field_names = {
+            entry[0] if isinstance(entry, tuple) else entry
+            for entry in parent_admin.list_filter
+        }
+        assert "dataset" in filtered_field_names
+        assert "sample" in filtered_field_names
 
 
 @pytest.mark.django_db
