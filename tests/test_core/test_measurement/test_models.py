@@ -157,6 +157,27 @@ class TestMeasurementLocalId:
 
 
 @pytest.mark.django_db
+class TestMeasurementTimestamps:
+    """T017 - creation and modification times are recorded; modification time advances on a
+    change while creation time does not."""
+
+    def test_creation_and_modification_times_are_recorded(self, measurement):
+        assert measurement.added is not None
+        assert measurement.modified is not None
+
+    def test_modification_time_advances_on_change(self, measurement):
+        original_added = measurement.added
+        original_modified = measurement.modified
+
+        measurement.name = "Renamed"
+        measurement.save()
+        measurement.refresh_from_db()
+
+        assert measurement.modified > original_modified
+        assert measurement.added == original_added
+
+
+@pytest.mark.django_db
 class TestMeasurementPolymorphicInheritance:
     """Test polymorphic inheritance behavior for Measurement model."""
 
