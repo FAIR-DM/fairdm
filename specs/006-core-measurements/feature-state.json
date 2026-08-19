@@ -3,8 +3,14 @@
  "feature": "006-core-measurements",
  "branch": "006-core-measurements",
  "repo": "FAIR-DM/fairdm",
- "state": "PLAN",
- "state_history": [],
+ "state": "IMPLEMENT",
+ "state_history": [
+  {
+   "state": "IMPLEMENT",
+   "at": "2026-08-19T11:05:00Z",
+   "note": "group 0 foundations merged"
+  }
+ ],
  "gates": {
   "spec": {
    "approved_by": "sam",
@@ -728,33 +734,110 @@
    "tasks": [
     {
      "id": "T001",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/factories/core.py:596"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_factories.py:38",
+       "tests/test_core/test_measurement/test_factories.py:68",
+       "tests/test_core/test_measurement/test_factories.py:89"
+      ],
+      "commands": [
+       "poetry run pytest tests/ -q",
+       "poetry run pre-commit run --all-files"
+      ]
+     }
     },
     {
      "id": "T002",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/factories/core.py:635"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_factories.py:113"
+      ],
+      "commands": [
+       "poetry run pytest tests/ -q",
+       "poetry run pre-commit run --all-files"
+      ]
+     }
     },
     {
      "id": "T003",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm_demo/factories.py:160",
+       "fairdm_demo/factories.py:179"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_factories.py:131",
+       "tests/test_core/test_measurement/test_factories.py:139"
+      ],
+      "commands": [
+       "poetry run pytest tests/ -q",
+       "poetry run pre-commit run --all-files"
+      ]
+     }
     },
     {
      "id": "T004",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "fairdm/factories/__init__.py:91"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_factories.py:152",
+       "tests/test_core/test_measurement/test_factories.py:165"
+      ],
+      "commands": [
+       "poetry run pytest tests/ -q",
+       "poetry run pre-commit run --all-files"
+      ]
+     }
     },
     {
      "id": "T005",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "tests/test_core/test_measurement/conftest.py:83"
+      ],
+      "tests": [
+       "tests/test_core/test_measurement/test_factories.py:123"
+      ],
+      "commands": [
+       "poetry run pytest tests/ -q",
+       "poetry run pre-commit run --all-files"
+      ]
+     }
     },
     {
      "id": "T006",
-     "status": "todo",
-     "attempts": 0
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "code": [
+       "tests/test_core/test_measurement/conftest.py:83"
+      ],
+      "tests": [
+       "tests/test_factories/test_core.py:1"
+      ],
+      "commands": [
+       "poetry run pytest tests/ -q",
+       "poetry run pre-commit run --all-files"
+      ]
+     }
     },
     {
      "id": "T007",
