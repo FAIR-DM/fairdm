@@ -13,8 +13,7 @@ comprehensive filtering capabilities for Measurement models including:
 import pytest
 from django.contrib.auth import get_user_model
 
-from fairdm.core.dataset.models import Dataset
-from fairdm.core.measurement.filters import MeasurementFilter
+from fairdm.core.measurement.filters import MeasurementFilter, MeasurementFilterMixin
 from fairdm.core.measurement.models import MeasurementDate, MeasurementDescription
 from fairdm.factories import DatasetFactory
 from fairdm_demo.factories import RockSampleFactory
@@ -344,6 +343,40 @@ class TestMeasurementFilterCombinedFilters:
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
         assert measurement2 not in filterset.qs  # Different sample
+
+
+class TestMeasurementFilterMixinInheritance:
+    """T052 - a filter set inheriting MeasurementFilterMixin carries every
+    filter the mixin declares, named one by one rather than merely
+    established by a query that an empty filter set would also satisfy."""
+
+    def test_inheriting_filter_set_carries_the_mixins_declared_filters(self):
+        """MeasurementFilter inherits MeasurementFilterMixin, so its own
+        filters must include every filter the mixin declares, named
+        individually."""
+        filterset = MeasurementFilter()
+
+        assert "dataset" in filterset.filters
+        assert "sample" in filterset.filters
+        assert "polymorphic_ctype" in filterset.filters
+        assert "search" in filterset.filters
+        assert "description" in filterset.filters
+        assert "date_after" in filterset.filters
+        assert "date_before" in filterset.filters
+
+    def test_mixin_declares_all_six(self):
+        """Confirms the mixin's own declared filters are exactly the ones
+        its docstring advertises, not merely inherited from the concrete
+        MeasurementFilter below it."""
+        assert set(MeasurementFilterMixin.declared_filters) == {
+            "dataset",
+            "sample",
+            "polymorphic_ctype",
+            "search",
+            "description",
+            "date_after",
+            "date_before",
+        }
 
 
 class TestMeasurementFilterMixinUsage:
