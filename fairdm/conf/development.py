@@ -113,6 +113,17 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
+
+# The baseline names these cookies with the ``__Secure-`` prefix, which a
+# browser only honours on a cookie actually sent with the ``Secure``
+# attribute (RFC 6265bis, section 4.1.3). Turning that attribute off above
+# without also dropping the prefix leaves a header every browser discards in
+# silence — the page still renders its hidden CSRF token, no cookie is ever
+# stored to match it, and the next POST is rejected as though the token were
+# missing. Relaxing the flag and relaxing the name are one change.
+CSRF_COOKIE_NAME = "csrftoken"
+SESSION_COOKIE_NAME = "sessionid"
+
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False

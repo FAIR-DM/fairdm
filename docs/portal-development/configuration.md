@@ -178,6 +178,8 @@ Whenever the settings in force are the production baseline, FairDM runs its prod
 
 That is decided the same way the override layers are: by which module was found. `development` is the one environment FairDM ships a non-production module for, so it is the one environment where these checks do not run and nothing is emitted about them. Every other value of `DJANGO_ENV` — a typo, a case variant, an empty string, or a `staging` name your portal supplies its own module for — runs on the production baseline, so it is checked against production standards.
 
+One check sits outside that arrangement, because the fault it catches only happens away from production: `fairdm.E006` refuses a cookie named with the `__Secure-` or `__Host-` prefix while the matching `*_COOKIE_SECURE` setting is off. It runs in every environment, on the plain `check` command as well as `--deploy`.
+
 The full check set stays available on demand, and always assesses configuration against production standards regardless of the current environment:
 
 ```bash
@@ -215,6 +217,17 @@ export DJANGO_ENV=development  # falls back to SQLite
 ```bash
 export DJANGO_ALLOWED_HOSTS="example.com,www.example.com"
 ```
+
+### "CSRF verification failed" when logging in over plain HTTP
+
+The hidden token in the form comes from the request, not from a stored cookie, so it renders
+whether or not the browser kept the cookie that has to match it. Seeing the field in developer
+tools therefore tells you nothing about why the POST was rejected — look at the cookie instead.
+
+The usual cause is a cookie named with the `__Secure-` or `__Host-` prefix while the matching
+`*_COOKIE_SECURE` setting is off, which browsers discard without reporting anything.
+`manage.py check` names this as `fairdm.E006`. The fix is in
+{doc}`/portal-administration/configuration-checks`.
 
 ### My override module isn't being applied
 

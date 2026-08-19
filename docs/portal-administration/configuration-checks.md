@@ -46,8 +46,11 @@ python manage.py check --deploy
 python manage.py check
 ```
 
-Plain `check` (no `--deploy`) runs every check *not* tagged as a deployment check — FairDM's
-configuration checks are all deployment checks, so use `--deploy` to see them.
+Plain `check` (no `--deploy`) runs every check *not* tagged as a deployment check. Nearly all of
+FairDM's configuration checks are deployment checks, so use `--deploy` to see them. The exception
+is `fairdm.E006`, which is deliberately not one — the misconfiguration it catches is harmless in
+production and breaks login outright anywhere served over plain HTTP, so a check only `--deploy`
+ran would never fire where the fault occurs.
 
 **Recommendation:** run `check --deploy` in CI and again during deployment, in addition to (not
 instead of) the automatic production boot guard — the guard only fires once a process has
@@ -99,7 +102,7 @@ reads — `CACHE_URL` is not consulted.
 REDIS_URL=redis://localhost:6379/1
 ```
 
-### Security Checks (fairdm.E001, E003-E005)
+### Security Checks (fairdm.E001, E003-E006)
 
 #### E001: SECRET_KEY Not Set or Insecure
 
@@ -145,6 +148,33 @@ DJANGO_DEBUG=False
 **Note:** Django also provides security.W018 for DEBUG checks. For cookie security
 (SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE), Django provides security.W012 and security.W016
 respectively.
+
+#### E006: Cookie Named with a Prefix the Browser Will Not Accept
+
+**Error:** A cookie is named with the `__Secure-` or `__Host-` prefix while the setting deciding
+whether that cookie is sent with the `Secure` attribute is `False`. Browsers only honour those
+prefixes on a cookie that actually carries the attribute, so the `Set-Cookie` header is discarded
+and nothing is stored. Checked for `CSRF_COOKIE_NAME`, `SESSION_COOKIE_NAME` and
+`LANGUAGE_COOKIE_NAME`, each against its own `*_COOKIE_SECURE` setting.
+
+Nothing in the response reports the rejection, which is what makes it hard to read. A login page
+still renders its hidden CSRF token, because that value comes from the request rather than from a
+stored cookie. The form therefore looks correct in developer tools while every POST is rejected
+with "CSRF verification failed. Request aborted."
+
+**Fix:** Either send the cookie securely, or take the prefix off the name for environments served
+over plain HTTP.
+
+```python
+# config/development.py
+CSRF_COOKIE_NAME = "csrftoken"
+SESSION_COOKIE_NAME = "sessionid"
+```
+
+Unlike the other checks here, this one is not a deployment check: it runs on plain
+`manage.py check` and at `runserver`, because the fault it catches occurs away from production.
+FairDM's own `development` module already pairs unprefixed names with its relaxed cookie settings —
+this check is for a portal's own override module doing the same thing.
 
 ### Celery Checks (fairdm.E300-E399)
 

@@ -366,6 +366,69 @@ class TestDebugChecks:
         assert errors == []
 
 
+class TestSecureCookiePrefixChecks:
+    """Tests for the cookie-name prefix check (fairdm.E006)."""
+
+    @override_settings(CSRF_COOKIE_NAME="__Secure-csrftoken", CSRF_COOKIE_SECURE=False)
+    def test_check_reports_a_prefixed_name_on_an_insecure_cookie(self):
+        from fairdm.conf.checks import check_secure_cookie_prefixes_match_secure_flag
+
+        errors = check_secure_cookie_prefixes_match_secure_flag(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E006"
+        assert "CSRF_COOKIE_NAME" in errors[0].msg
+        assert "__Secure-" in errors[0].msg
+
+    @override_settings(CSRF_COOKIE_NAME="__Secure-csrftoken", CSRF_COOKIE_SECURE=True)
+    def test_check_passes_when_the_prefixed_cookie_is_secure(self):
+        from fairdm.conf.checks import check_secure_cookie_prefixes_match_secure_flag
+
+        assert check_secure_cookie_prefixes_match_secure_flag(app_configs=None) == []
+
+    @override_settings(CSRF_COOKIE_NAME="csrftoken", CSRF_COOKIE_SECURE=False)
+    def test_check_passes_when_an_insecure_cookie_is_unprefixed(self):
+        from fairdm.conf.checks import check_secure_cookie_prefixes_match_secure_flag
+
+        assert check_secure_cookie_prefixes_match_secure_flag(app_configs=None) == []
+
+    @override_settings(SESSION_COOKIE_NAME="__Host-sessionid", SESSION_COOKIE_SECURE=False)
+    def test_check_covers_the_host_prefix_and_the_session_cookie(self):
+        from fairdm.conf.checks import check_secure_cookie_prefixes_match_secure_flag
+
+        errors = check_secure_cookie_prefixes_match_secure_flag(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E006"]
+        assert "SESSION_COOKIE_NAME" in errors[0].msg
+        assert "__Host-" in errors[0].msg
+
+    @override_settings(
+        CSRF_COOKIE_NAME="__Secure-csrftoken",
+        CSRF_COOKIE_SECURE=False,
+        SESSION_COOKIE_NAME="__Secure-sessionid",
+        SESSION_COOKIE_SECURE=False,
+    )
+    def test_check_reports_every_mismatched_cookie_not_just_the_first(self):
+        from fairdm.conf.checks import check_secure_cookie_prefixes_match_secure_flag
+
+        errors = check_secure_cookie_prefixes_match_secure_flag(app_configs=None)
+
+        assert len(errors) == 2
+        reported = " ".join(error.msg for error in errors)
+        assert "CSRF_COOKIE_NAME" in reported
+        assert "SESSION_COOKIE_NAME" in reported
+
+    @override_settings(CSRF_COOKIE_NAME="__Secure-csrftoken", CSRF_COOKIE_SECURE=False)
+    def test_check_runs_without_the_deploy_flag(self):
+        """The fault it catches only occurs off production, so a check the
+        plain command does not run would never fire where it matters."""
+        with pytest.raises(SystemCheckError) as excinfo:
+            call_command("check", "--tag", "security", "--fail-level", "ERROR")
+
+        assert "fairdm.E006" in str(excinfo.value)
+
+
 class TestCeleryChecks:
     """Tests for Celery configuration checks."""
 
