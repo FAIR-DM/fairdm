@@ -178,6 +178,31 @@ class TestMeasurementTimestamps:
 
 
 @pytest.mark.django_db
+class TestMeasurementContributions:
+    """T019/T020 - a contribution records a contributor and one or more roles, drawn from the
+    measurement contributor vocabulary and no other; the vocabulary's members are asserted by
+    name, never by iterating whatever it holds."""
+
+    def test_measurement_role_vocabulary_members(self):
+        assert Measurement.CONTRIBUTOR_ROLES.values == [
+            "MeasurementPreparation",
+            "MeasurementCollection",
+            "Support",
+        ]
+
+    def test_contribution_records_contributor_and_roles(self, measurement):
+        contributor = PersonFactory()
+
+        contribution = measurement.add_contributor(
+            contributor, with_roles=["MeasurementCollection", "Support"]
+        )
+
+        assert contribution.contributor == contributor
+        role_names = set(contribution.roles.values_list("name", flat=True))
+        assert role_names == {"MeasurementCollection", "Support"}
+
+
+@pytest.mark.django_db
 class TestMeasurementPolymorphicInheritance:
     """Test polymorphic inheritance behavior for Measurement model."""
 
