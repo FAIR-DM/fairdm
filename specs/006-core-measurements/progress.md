@@ -5654,3 +5654,34 @@ Next: run the full suite and pre-commit once, then write the completion report -
 now done.
 
 Watch: none.
+
+## 2026-08-19T17:10:00Z · Implementer US10 · follow-up (T109/T114)
+
+Did: Addressed a review follow-up on two pre-existing skipped tests in
+`tests/test_core/test_measurement/test_models.py`, explicitly authorised as in-scope
+(the same defect class T114 exists to remove). (1)
+`TestMeasurementURLPattern.test_get_absolute_url_returns_measurement_detail_pattern` carried
+`@pytest.mark.skip(reason="URL patterns not implemented yet - Phase 8")`, stale since T114 landed
+`get_absolute_url()`/`measurement:overview`. Removed the skip; stringified the uuid comparison
+(`str(xrf_measurement.uuid) in url`) per instruction, though a direct run showed
+`ShortUUIDField` (a `CharField` subclass, confirmed by reading `shortuuid/django_fields.py`)
+already returns a plain `str` — the unstringified comparison already passed, so this is a harmless
+defensive no-op rather than a required fix. Kept the test rather than treating it as a T114
+duplicate: it pins the literal URL shape (`/measurement/{uuid}/`), which T114's `resolve()`-based
+pair does not assert directly, and exercises a second polymorphic subtype (`XRFMeasurement` via
+the `xrf_measurement` fixture, vs `ExampleMeasurement` in the T114 pair). (2)
+`test_value_display_consistent_across_polymorphic_types` imported `ICPMSMeasurement`, which has
+never existed — the real class is `ICP_MS_Measurement` — and called `.create()` with
+`concentration=12.5` (not a model field) while omitting `counts_per_second` (required, non-null).
+The `try/except ImportError: pytest.skip(...)` swallowed all of this every run. Fixed the import,
+supplied real required fields, gave the type both `value` and `uncertainty`, and asserted the
+rendered string (`"12.50 ± 0.40 µg/l"`) rather than only non-emptiness. Dropped the try/except
+entirely.
+
+Verified: `poetry run pytest tests/test_core/test_measurement -q -rs -p no:randomly` → 229 passed,
+**zero skips**. `poetry run ruff check tests/test_core/test_measurement/test_models.py` → all
+checks passed. `poetry run pytest -q -p no:randomly` (full suite) → 2011 passed, 13 skipped (down
+from 15 in the prior report — the two fixed here — the remaining 13 are pre-existing and outside
+this file). `poetry run pre-commit run --all-files` → all hooks passed.
+
+Watch: none.
