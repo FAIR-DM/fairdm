@@ -131,6 +131,24 @@ class TestMeasurementFieldMetadata:
 
 
 @pytest.mark.django_db
+class TestMeasurementLocalId:
+    """T011 - two measurements in different datasets may carry the same researcher's label, and
+    both save."""
+
+    def test_the_same_local_id_is_valid_in_two_different_datasets(
+        self, dataset, second_dataset, sample, second_sample
+    ):
+        one = ExampleMeasurementFactory(dataset=dataset, sample=sample, local_id="LAB-001")
+        two = ExampleMeasurementFactory(
+            dataset=second_dataset, sample=second_sample, local_id="LAB-001"
+        )
+
+        one.full_clean()
+        two.full_clean()
+        assert one.local_id == two.local_id == "LAB-001"
+
+
+@pytest.mark.django_db
 class TestMeasurementPolymorphicInheritance:
     """Test polymorphic inheritance behavior for Measurement model."""
 
