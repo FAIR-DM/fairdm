@@ -273,3 +273,45 @@ applied and reconfirmed clean) on the new file.
 Next: T026/T028/T029 (the bare-measurement manager and form refusal routes).
 
 Watch: none outstanding.
+
+## 2026-08-19T12:20:49Z · Implementer US1 · T026/T028
+
+Did: closed the manager route around the base-Measurement refusal. `Measurement.objects.create()`
+produced a bare record, because `clean()` (`models.py:111`) only runs when something calls it or
+`full_clean()` - forms and the admin do, the manager and a bare `.save()` do not.
+
+The natural home for this guard is `models.py`/`managers.py` (the working pattern already landed
+for `Sample`: `fairdm/core/sample/models.py`'s `block_base_sample_creation`, a `pre_save` receiver
+declared right beside `Sample.clean()`), but both files are on this story's prohibited list (owned
+by a concurrently running story). Added the equivalent guard,
+`block_base_measurement_creation`, to `fairdm/core/measurement/apps.py` instead, connected via
+`AppConfig.ready()` with `sender=Measurement` - the one mechanism that also covers Django fixture
+deserialization (`django.core.serializers` sends `pre_save` on every raw object before saving it),
+and is scoped so a registered subclass's own save is untouched (a subclass instance sends its own
+class on save, never `Measurement`). The message text mirrors `Measurement.clean()`'s exactly;
+declared as a new module-level constant in `apps.py` rather than imported from `models.py`, for the
+same file-scope reason.
+
+New file `tests/test_core/test_measurement/test_managers.py` (mirrors `managers.py`; `test_models.py`
+is prohibited) proves three routes: `Measurement.objects.create()`, a bare `Measurement().save()`,
+and deserializing a raw fixture row for the base model (T026's "no fixture in the framework creates
+one", read as Django fixture loading rather than a pytest fixture, matching the Sample precedent's
+`test_fixture_loading_refuses_a_bare_sample`).
+
+Verified: confirmed RED for the right reason before implementing - `poetry run pytest
+tests/test_core/test_measurement/test_managers.py -q -p no:randomly` → first two tests "DID NOT
+RAISE ValidationError" (the bug), third hit an unrelated `IntegrityError: NOT NULL constraint
+failed: measurement_measurement.added` (the fixture-loading route skips `auto_now_add`, and would
+never be reached once the guard fires before the INSERT). After the `apps.py` change: same command
+→ 3 passed. `poetry run pytest tests/test_core/test_measurement tests/test_registry
+tests/test_factories -q -p no:randomly` → 458 passed, 17 skipped, no regressions from a
+framework-wide `pre_save` receiver. `poetry run ruff check` + `ruff format` (one auto-fix, an
+f-string for a percent-format lint) on both touched files → clean.
+
+Next: T029 (the form's refusal message).
+
+Watch: the natural, single-file location for this guard is `fairdm/core/measurement/models.py`,
+alongside `Measurement.clean()` (the exact shape already used for `Sample`). If the story owning
+`models.py` lands its own change there before this merges, Forge's convergence pass may want to
+fold `apps.py`'s guard into `models.py` to match the Sample precedent - flagging so it isn't
+mistaken for a second, competing mechanism.
