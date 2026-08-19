@@ -63,9 +63,27 @@ class FairDMConfig(AppConfig):
 
         compat.is_crispy = lambda: False
 
+        self._install_quantity_formatter()
+
         self._check_production_configuration()
 
         return super().ready()
+
+    def _install_quantity_formatter(self) -> None:
+        """Install the framework's quantity formatter on the shared pint unit
+        registry at startup (FR-038).
+
+        Previously this happened as an import side effect of
+        ``fairdm/templatetags/fairdm.py``, and Django imports template tag
+        modules lazily - only once a template does ``{% load fairdm %}``. A
+        value rendered outside a template (a management command, an API view,
+        a test) could therefore be formatted with pint's default formatter
+        instead of the framework's. ``ready()`` runs once, at application
+        startup, regardless of whether any template is ever rendered.
+        """
+        from fairdm.templatetags.fairdm import MyFormatter, ureg
+
+        ureg.formatter = MyFormatter(registry=ureg)
 
     def _check_production_configuration(self) -> None:
         """

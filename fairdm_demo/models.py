@@ -1,3 +1,5 @@
+from django.utils.translation import gettext_lazy as _
+
 from fairdm.core.models import Measurement, Sample
 from fairdm.db import models
 
@@ -656,6 +658,30 @@ class ICP_MS_Measurement(Measurement):
         null=True,
         blank=True,
         help_text="Date and time of ICP-MS analysis",
+    )
+    value = models.DecimalQuantityField(
+        "microgram / liter",
+        verbose_name=_("Value"),
+        max_digits=12,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text=_(
+            "The measured concentration, reported as a quantity carrying its own units "
+            "(FR-036 to FR-039)."
+        ),
+    )
+    uncertainty = models.DecimalQuantityField(
+        "microgram / liter",
+        verbose_name=_("Uncertainty"),
+        max_digits=12,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text=_(
+            "The analytical uncertainty of the measured concentration, in the same "
+            "units as the value."
+        ),
     )
 
     class Meta:

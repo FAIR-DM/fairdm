@@ -132,26 +132,36 @@ class Measurement(BasePolymorphicModel):
 
         Note:
             Requires subclass to define 'value' and optionally 'uncertainty' attributes.
+            A type is not obliged to nominate a pint quantity for 'value' - a plain
+            number is allowed (spec Assumptions) - so uncertainty arithmetic is only
+            attempted where the value actually supports it.
         """
         # Handle base Measurement class that doesn't have value/uncertainty fields
         if not hasattr(self, "value"):
             return self.name
 
-        if hasattr(self, "uncertainty") and self.uncertainty is not None:
+        if (
+            hasattr(self, "uncertainty")
+            and self.uncertainty is not None
+            and hasattr(self.value, "plus_minus")
+        ):
             return self.value.plus_minus(self.uncertainty)
         return self.value
 
     def print_value(self):
         """Get a human-readable string representation of the value with uncertainty.
 
+        Delegates to the framework's quantity formatter (``MyFormatter``,
+        installed on the shared pint unit registry at application startup -
+        see ``FairDMConfig.ready()``) rather than building a string by hand.
+        That formatter already renders a pint ``Measurement`` as
+        "value ± error unit"; a plain value or a plain number renders through
+        its own ``str()``.
+
         Returns:
-            String formatted as "value ± error" if uncertainty exists,
-            otherwise just the value as a string.
+            The value, formatted for a person.
         """
-        value = self.get_value()
-        if hasattr(value, "err"):
-            return f"{value.value} ± {value.err}"
-        return str(value)
+        return str(self.get_value())
 
     def get_absolute_url(self):
         """Get the absolute URL for this measurement.
