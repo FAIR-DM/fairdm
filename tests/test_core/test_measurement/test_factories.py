@@ -7,6 +7,7 @@ concrete demo measurement factories in ``fairdm_demo/factories.py``, and their
 exports from ``fairdm.factories``.
 """
 
+import factory
 import pytest
 
 from fairdm.core.measurement.models import (
@@ -17,6 +18,7 @@ from fairdm.core.measurement.models import (
 from fairdm.factories.core import (
     MeasurementDateFactory,
     MeasurementDescriptionFactory,
+    MeasurementFactory,
     MeasurementIdentifierFactory,
 )
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -94,3 +96,13 @@ class TestMeasurementIdentifierFactory:
 
         assert first.value != second.value
         assert MeasurementIdentifier.objects.filter(related=measurement).count() == 1
+
+
+@pytest.mark.django_db
+class TestMeasurementFactoryIsAbstract:
+    """T002 - MeasurementFactory refuses direct use; the bare Measurement record is
+    what FR-011 forbids."""
+
+    def test_calling_it_directly_refuses(self):
+        with pytest.raises(factory.errors.FactoryError):
+            MeasurementFactory(sample=RockSampleFactory())
