@@ -80,6 +80,15 @@ class TestMeasurementModelCreation:
         assert xrf_measurement.uuid.startswith("m")
         assert icp_ms_measurement.uuid.startswith("m")
 
+    def test_uuid_is_not_editable_afterwards(self, measurement):
+        """T007 - ``editable=False`` is what makes it unchangeable: excluded from a generated
+        ``ModelForm`` and presented read-only in the admin (mirrors
+        ``TestSampleIdentity.test_uuid_is_not_editable_afterwards``)."""
+        from fairdm.core.measurement.admin import MeasurementChildAdmin
+
+        assert "uuid" not in MeasurementForm.base_fields
+        assert "uuid" in MeasurementChildAdmin.readonly_fields
+
 
 @pytest.mark.django_db
 class TestMeasurementPolymorphicInheritance:
