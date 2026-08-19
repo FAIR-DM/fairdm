@@ -1,6 +1,6 @@
 # Progress — 006-core-measurements, Group 0
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -15,7 +15,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -35,7 +35,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -50,7 +50,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -64,7 +64,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -82,7 +82,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -107,7 +107,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -145,7 +145,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:14:00Z · Implementer US10 · T007
+## 2026-08-19T12:14:00Z · US10 · T007
 
 Did: Added `TestMeasurementModelCreation.test_uuid_is_not_editable_afterwards`, mirroring
 `TestSampleIdentity.test_uuid_is_not_editable_afterwards` on the sample side - asserts `uuid` is
@@ -159,7 +159,7 @@ Next: T009.
 
 Watch: none.
 
-## 2026-08-19T12:16:00Z · Implementer US10 · T009
+## 2026-08-19T12:16:00Z · US10 · T009
 
 Did: Added `TestMeasurementFields` with `test_name_is_required` (asserts `full_clean()` raises with
 `"name"` in `message_dict` for a bare `ExampleMeasurement`) and
@@ -174,7 +174,7 @@ Next: T010.
 
 Watch: none.
 
-## 2026-08-19T12:18:00Z · Implementer US10 · T010
+## 2026-08-19T12:18:00Z · US10 · T010
 
 Did: Added `TestMeasurementFieldMetadata.test_field_verbose_names_and_help_text_are_lazy`,
 iterating `["dataset", "sample", "local_id"]` and asserting `verbose_name`/`help_text` are
@@ -189,7 +189,7 @@ Next: T011.
 
 Watch: none.
 
-## 2026-08-19T12:20:00Z · Implementer US10 · T011
+## 2026-08-19T12:20:00Z · US10 · T011
 
 Did: Added `TestMeasurementLocalId.test_the_same_local_id_is_valid_in_two_different_datasets`,
 creating two measurements with the same `local_id` in two different datasets and asserting both
@@ -202,7 +202,7 @@ Next: T012.
 
 Watch: none.
 
-## 2026-08-19T12:24:00Z · Implementer US10 · T012
+## 2026-08-19T12:24:00Z · US10 · T012
 
 Did: Added `test_local_id_has_no_uniqueness_constraint` and `test_local_id_is_indexed` to
 `TestMeasurementLocalId`. The index assertion failed red first (`field.db_index is False`).
@@ -226,7 +226,7 @@ brief. Flagged in the completion report's `concerns` for Forge to reconcile. (An
 wrote a stray migration into the *installed* `orbit` package under site-packages, outside this git
 worktree entirely; left alone, it is untracked and has no effect on this repo.)
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T013/T014
+## 2026-08-19T12:30:00Z · US10 · T013/T014
 
 Did: Deleted the vacuous `TestMeasurementCascadeBehavior.test_deleting_dataset_cascades_to_measurements`
 (it deleted the measurement before the dataset, so its assertion held whatever `on_delete` said -
@@ -243,7 +243,7 @@ Next: T017.
 
 Watch: none.
 
-## 2026-08-19T12:33:00Z · Implementer US10 · T017
+## 2026-08-19T12:33:00Z · US10 · T017
 
 Did: Added `TestMeasurementTimestamps` with `test_creation_and_modification_times_are_recorded`
 and `test_modification_time_advances_on_change` (asserts `modified` moves forward and `added`
@@ -257,7 +257,7 @@ Next: T019/T020.
 
 Watch: none.
 
-## 2026-08-19T12:36:00Z · Implementer US10 · T019/T020
+## 2026-08-19T12:36:00Z · US10 · T019/T020
 
 Did: Added `TestMeasurementContributions` with `test_measurement_role_vocabulary_members`
 (asserts `Measurement.CONTRIBUTOR_ROLES.values == ["MeasurementPreparation",
@@ -274,7 +274,7 @@ Next: T114.
 
 Watch: none.
 
-## 2026-08-19T12:45:00Z · Implementer US10 · T114 (blocked)
+## 2026-08-19T12:45:00Z · US10 · T114 (blocked)
 
 Did: Investigated rather than edited. The existing
 `TestMeasurementViews.test_measurement_detail_view_accessible` wraps `client.get(reverse(
@@ -316,7 +316,7 @@ same plugin-based template chain `sample:overview` already uses) before the meas
 page is reachable at all. Out of scope for this test-writing task and touches shared
 cotton-component/template territory this story doesn't own.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -331,7 +331,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -351,7 +351,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -366,7 +366,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -380,7 +380,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -398,7 +398,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -423,7 +423,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -461,7 +461,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:12:16Z · Implementer US1 · T030/T034
+## 2026-08-19T12:12:16Z · US1 · T030/T034
 
 Did: `BaseMeasurementConfiguration` declared fixed `form_fields`/`table_fields`/`filterset_fields`,
 which meant `ModelConfiguration.resolve_fields()` never fell back to a registered type's own
@@ -492,7 +492,7 @@ Watch: `fairdm/core/measurement/config.py` and its test file are not in this sto
 list, so this was in scope; flagging here in case another concurrent story also touches
 `BaseMeasurementConfiguration`.
 
-## 2026-08-19T12:15:20Z · Implementer US1 · T036/T037/T038
+## 2026-08-19T12:15:20Z · US1 · T036/T037/T038
 
 Did: the audit's largest finding for this story - two administrative base classes existed for
 measurement types, and the registry enforced the wrong one. `fairdm/core/measurement/admin.py`
@@ -554,7 +554,7 @@ unreferenced outside that file (confirmed by grep) but are dataset-related and o
 story's scope - left untouched and not raised as a concern, since a plain unused-class question
 for a different domain isn't this story's finding to make.
 
-## 2026-08-19T12:18:16Z · Implementer US1 · T025/T032/T033
+## 2026-08-19T12:18:16Z · US1 · T025/T032/T033
 
 Did: added `tests/test_core/test_measurement/test_admin_registry.py` rather than extending
 `tests/test_core/test_measurement/test_admin.py` - that file is on this story's prohibited list
@@ -590,7 +590,7 @@ Next: T026/T028/T029 (the bare-measurement manager and form refusal routes).
 
 Watch: none outstanding.
 
-## 2026-08-19T12:20:49Z · Implementer US1 · T026/T028
+## 2026-08-19T12:20:49Z · US1 · T026/T028
 
 Did: closed the manager route around the base-Measurement refusal. `Measurement.objects.create()`
 produced a bare record, because `clean()` (`models.py:111`) only runs when something calls it or
@@ -632,7 +632,7 @@ alongside `Measurement.clean()` (the exact shape already used for `Sample`). If 
 fold `apps.py`'s guard into `models.py` to match the Sample precedent - flagging so it isn't
 mistaken for a second, competing mechanism.
 
-## 2026-08-19T12:22:22Z · Implementer US1 · T029
+## 2026-08-19T12:22:22Z · US1 · T029
 
 Did: `test_form_prevents_base_measurement_instantiation`
 (`tests/test_core/test_measurement/test_forms.py`) only asserted `not form.is_valid()`. Probed the
@@ -665,7 +665,7 @@ message twice), but it is dead logic once a form's `_post_clean()` runs, and `ta
 already names the fix. Left alone because `forms.py` is out of this story's scope; flagging for
 whichever story owns it.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -680,7 +680,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -700,7 +700,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -715,7 +715,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -729,7 +729,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -747,7 +747,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -772,7 +772,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -810,7 +810,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:10:00Z · Implementer US8 · T095/T096
+## 2026-08-19T12:10:00Z · US8 · T095/T096
 
 Did: FR-040 required the measurement admin list to be narrowable by dataset, sample and
 measurement type; `list_filter` carried only `"added"` on both the child and parent admin classes,
@@ -852,7 +852,7 @@ Watch: `MeasurementDatasetListFilter` is scoped to the `dataset` FK only; if a f
 added on another privacy-managed relation, the same silent-drop failure mode applies and needs the
 same treatment.
 
-## 2026-08-19T12:35:00Z · Implementer US8 · T097/T098
+## 2026-08-19T12:35:00Z · US8 · T097/T098
 
 Did: inline row caps for descriptions, dates and identifiers were hard-coded to 6, 6 and 3,
 but the specification requires each to offer no more rows than its own vocabulary has member
@@ -882,7 +882,7 @@ Next: T099 - every registered measurement type offers the same attached-record e
 
 Watch: none outstanding.
 
-## 2026-08-19T12:45:00Z · Implementer US8 · T099
+## 2026-08-19T12:45:00Z · US8 · T099
 
 Did: added `TestMeasurementAdminSharedInlines.test_every_registered_type_offers_the_same_inlines`,
 asserting that every registered measurement type's admin class (`ExampleMeasurementAdmin`,
@@ -902,7 +902,7 @@ Next: T100/T101 - the administrative list names each row's measurement type.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:55:00Z · Implementer US8 · T100/T101
+## 2026-08-19T12:55:00Z · US8 · T100/T101
 
 Did: `measurement_type` was already in `list_display` on both `MeasurementChildAdmin` and
 `MeasurementParentAdmin`, and the `measurement_type()` method existed (`admin.py:164`/`:211`), but
@@ -925,7 +925,7 @@ this story (T095-T101) are now done.
 
 Watch: none outstanding.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -940,7 +940,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -960,7 +960,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -975,7 +975,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -989,7 +989,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -1007,7 +1007,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -1032,7 +1032,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -1070,7 +1070,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:43:00Z · Implementer US4 · T077-T078
+## 2026-08-19T12:43:00Z · US4 · T077-T078
 
 Did: Read tests/test_core/test_measurement/test_permissions.py in full and
 fairdm/core/measurement/permissions.py, fairdm/core/permissions.py, fairdm/core/utils.py per
@@ -1090,7 +1090,7 @@ Next: T079-T080 (TestMeasurementGuardianIntegration).
 Watch: none yet - the assign-then-check pattern in this file later turned out to intermittently
 fail for an unrelated reason; see the T085 entry.
 
-## 2026-08-19T12:45:00Z · Implementer US4 · T079-T080
+## 2026-08-19T12:45:00Z · US4 · T079-T080
 
 Did: Removed TestMeasurementGuardianIntegration's skip and ran it unmodified first (RED,
 observed for the right reason): all 4 tests failed with `django.contrib.auth.models.Permission.DoesNotExist`
@@ -1106,7 +1106,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T081 (TestCrossDatasetPermissionBoundaries).
 
-## 2026-08-19T12:47:00Z · Implementer US4 · T081
+## 2026-08-19T12:47:00Z · US4 · T081
 
 Did: Removed TestCrossDatasetPermissionBoundaries's skip. Its reason claimed the factory fails
 building a Measurement whose sample belongs to a different dataset - confirmed false directly:
@@ -1122,7 +1122,7 @@ under T085 - not a defect in the isolation logic itself.
 
 Next: T082-T083 (registered-type grant/consult).
 
-## 2026-08-19T12:50:00Z · Implementer US4 · T082-T083
+## 2026-08-19T12:50:00Z · US4 · T082-T083
 
 Did: Added TestMeasurementRegisteredTypePermissions (new class, not a re-enable): a grant via
 fairdm.core.utils.assign_perm on a registered type (ExampleMeasurement) reads back identically on
@@ -1138,7 +1138,7 @@ T085.
 
 Next: T084 (backend registration).
 
-## 2026-08-19T12:52:00Z · Implementer US4 · T084
+## 2026-08-19T12:52:00Z · US4 · T084
 
 Did: Added TestMeasurementPermissionBackendRegistration - a settings-only test (no DB) asserting
 `fairdm.core.measurement.permissions.MeasurementPermissionBackend`'s dotted path is present in
@@ -1150,7 +1150,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T085 (final skip count + suite check).
 
-## 2026-08-19T12:55:00Z · Implementer US4 · T085
+## 2026-08-19T12:55:00Z · US4 · T085
 
 Did: Confirmed zero `@pytest.mark.skip` remain in test_permissions.py. Ran
 `poetry run pytest tests/test_core/test_measurement -q -p no:randomly -rs` repeatedly while
@@ -1188,10 +1188,10 @@ failure. Flagged in this story's completion report `concerns` rather than fixed,
 `fairdm/factories/contributors.py` and the directory conftest are shared, high-blast-radius files
 outside this story's scope.
 
-## 2026-08-19T12:58:00Z · Implementer US4 · decisions (recorded here, not in decisions.md)
+## 2026-08-19T12:58:00Z · US4 · decisions (recorded here, not in decisions.md)
 
 The brief's prohibitions list forbids editing `decisions.md` for this story (it is not one of
-the files the standard Implementer protocol's "append a decisions.md mini-ADR" step gets to
+the files the standard "append a decisions.md mini-ADR" step gets to
 override). Recording the two non-obvious choices here instead.
 
 **D-US4-1: `PersonFactory(is_active=True)` overridden locally in test_permissions.py, not fixed
@@ -1215,7 +1215,7 @@ deleting methods in one commit and restoring them in the next - keeping each cla
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
 
-## 2026-08-19T13:11:00Z · Implementer US3 · T042/T043/T044/T045/T046/T047
+## 2026-08-19T13:11:00Z · US3 · T042/T043/T044/T045/T046/T047
 
 Did: `MeasurementDescription`/`MeasurementDate`/`MeasurementIdentifier` already carried a
 direct `related` FK to `Measurement` with `on_delete=CASCADE`, and their `VOCABULARY` bindings
@@ -1244,7 +1244,7 @@ Next: T050/T051.
 
 Watch: none.
 
-## 2026-08-19T13:11:00Z · Implementer US3 · T050/T051
+## 2026-08-19T13:11:00Z · US3 · T050/T051
 
 Did: `GenericModel.__init_subclass__` (`fairdm/core/abstract.py`) already binds `type`'s
 `choices` to `VOCABULARY`, so `full_clean()` already refuses an out-of-vocabulary type via
@@ -1313,7 +1313,7 @@ the filler `type` value, or a follow-up task does. This directly affects merge r
 `test_models.py` (this story's own file, but the specific tests are unnamed by any brief task
 here) and cross-story for `test_admin.py`/`test_filters.py`.
 
-## 2026-08-19T13:16:00Z · Implementer US3 · story-level final verify
+## 2026-08-19T13:16:00Z · US3 · story-level final verify
 
 Did: ran `poetry run pytest tests/ -q` (once, per protocol). Result: 16 failed, 1957 passed, 17
 skipped. 14 are the ones logged in the T050/T051 entry above. Two more, outside
@@ -1335,7 +1335,7 @@ report.
 
 `poetry run pre-commit run --all-files` next, then the completion report.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -1350,7 +1350,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -1370,7 +1370,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -1385,7 +1385,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -1399,7 +1399,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -1417,7 +1417,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -1442,7 +1442,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -1480,7 +1480,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:14:00Z · Implementer US10 · T007
+## 2026-08-19T12:14:00Z · US10 · T007
 
 Did: Added `TestMeasurementModelCreation.test_uuid_is_not_editable_afterwards`, mirroring
 `TestSampleIdentity.test_uuid_is_not_editable_afterwards` on the sample side - asserts `uuid` is
@@ -1494,7 +1494,7 @@ Next: T009.
 
 Watch: none.
 
-## 2026-08-19T12:16:00Z · Implementer US10 · T009
+## 2026-08-19T12:16:00Z · US10 · T009
 
 Did: Added `TestMeasurementFields` with `test_name_is_required` (asserts `full_clean()` raises with
 `"name"` in `message_dict` for a bare `ExampleMeasurement`) and
@@ -1509,7 +1509,7 @@ Next: T010.
 
 Watch: none.
 
-## 2026-08-19T12:18:00Z · Implementer US10 · T010
+## 2026-08-19T12:18:00Z · US10 · T010
 
 Did: Added `TestMeasurementFieldMetadata.test_field_verbose_names_and_help_text_are_lazy`,
 iterating `["dataset", "sample", "local_id"]` and asserting `verbose_name`/`help_text` are
@@ -1524,7 +1524,7 @@ Next: T011.
 
 Watch: none.
 
-## 2026-08-19T12:20:00Z · Implementer US10 · T011
+## 2026-08-19T12:20:00Z · US10 · T011
 
 Did: Added `TestMeasurementLocalId.test_the_same_local_id_is_valid_in_two_different_datasets`,
 creating two measurements with the same `local_id` in two different datasets and asserting both
@@ -1537,7 +1537,7 @@ Next: T012.
 
 Watch: none.
 
-## 2026-08-19T12:24:00Z · Implementer US10 · T012
+## 2026-08-19T12:24:00Z · US10 · T012
 
 Did: Added `test_local_id_has_no_uniqueness_constraint` and `test_local_id_is_indexed` to
 `TestMeasurementLocalId`. The index assertion failed red first (`field.db_index is False`).
@@ -1561,7 +1561,7 @@ brief. Flagged in the completion report's `concerns` for Forge to reconcile. (An
 wrote a stray migration into the *installed* `orbit` package under site-packages, outside this git
 worktree entirely; left alone, it is untracked and has no effect on this repo.)
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T013/T014
+## 2026-08-19T12:30:00Z · US10 · T013/T014
 
 Did: Deleted the vacuous `TestMeasurementCascadeBehavior.test_deleting_dataset_cascades_to_measurements`
 (it deleted the measurement before the dataset, so its assertion held whatever `on_delete` said -
@@ -1578,7 +1578,7 @@ Next: T017.
 
 Watch: none.
 
-## 2026-08-19T12:33:00Z · Implementer US10 · T017
+## 2026-08-19T12:33:00Z · US10 · T017
 
 Did: Added `TestMeasurementTimestamps` with `test_creation_and_modification_times_are_recorded`
 and `test_modification_time_advances_on_change` (asserts `modified` moves forward and `added`
@@ -1592,7 +1592,7 @@ Next: T019/T020.
 
 Watch: none.
 
-## 2026-08-19T12:36:00Z · Implementer US10 · T019/T020
+## 2026-08-19T12:36:00Z · US10 · T019/T020
 
 Did: Added `TestMeasurementContributions` with `test_measurement_role_vocabulary_members`
 (asserts `Measurement.CONTRIBUTOR_ROLES.values == ["MeasurementPreparation",
@@ -1609,7 +1609,7 @@ Next: T114.
 
 Watch: none.
 
-## 2026-08-19T12:45:00Z · Implementer US10 · T114 (blocked)
+## 2026-08-19T12:45:00Z · US10 · T114 (blocked)
 
 Did: Investigated rather than edited. The existing
 `TestMeasurementViews.test_measurement_detail_view_accessible` wraps `client.get(reverse(
@@ -1651,7 +1651,7 @@ same plugin-based template chain `sample:overview` already uses) before the meas
 page is reachable at all. Out of scope for this test-writing task and touches shared
 cotton-component/template territory this story doesn't own.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -1666,7 +1666,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -1686,7 +1686,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -1701,7 +1701,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -1715,7 +1715,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -1733,7 +1733,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -1758,7 +1758,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -1796,7 +1796,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:12:16Z · Implementer US1 · T030/T034
+## 2026-08-19T12:12:16Z · US1 · T030/T034
 
 Did: `BaseMeasurementConfiguration` declared fixed `form_fields`/`table_fields`/`filterset_fields`,
 which meant `ModelConfiguration.resolve_fields()` never fell back to a registered type's own
@@ -1827,7 +1827,7 @@ Watch: `fairdm/core/measurement/config.py` and its test file are not in this sto
 list, so this was in scope; flagging here in case another concurrent story also touches
 `BaseMeasurementConfiguration`.
 
-## 2026-08-19T12:15:20Z · Implementer US1 · T036/T037/T038
+## 2026-08-19T12:15:20Z · US1 · T036/T037/T038
 
 Did: the audit's largest finding for this story - two administrative base classes existed for
 measurement types, and the registry enforced the wrong one. `fairdm/core/measurement/admin.py`
@@ -1889,7 +1889,7 @@ unreferenced outside that file (confirmed by grep) but are dataset-related and o
 story's scope - left untouched and not raised as a concern, since a plain unused-class question
 for a different domain isn't this story's finding to make.
 
-## 2026-08-19T12:18:16Z · Implementer US1 · T025/T032/T033
+## 2026-08-19T12:18:16Z · US1 · T025/T032/T033
 
 Did: added `tests/test_core/test_measurement/test_admin_registry.py` rather than extending
 `tests/test_core/test_measurement/test_admin.py` - that file is on this story's prohibited list
@@ -1925,7 +1925,7 @@ Next: T026/T028/T029 (the bare-measurement manager and form refusal routes).
 
 Watch: none outstanding.
 
-## 2026-08-19T12:20:49Z · Implementer US1 · T026/T028
+## 2026-08-19T12:20:49Z · US1 · T026/T028
 
 Did: closed the manager route around the base-Measurement refusal. `Measurement.objects.create()`
 produced a bare record, because `clean()` (`models.py:111`) only runs when something calls it or
@@ -1967,7 +1967,7 @@ alongside `Measurement.clean()` (the exact shape already used for `Sample`). If 
 fold `apps.py`'s guard into `models.py` to match the Sample precedent - flagging so it isn't
 mistaken for a second, competing mechanism.
 
-## 2026-08-19T12:22:22Z · Implementer US1 · T029
+## 2026-08-19T12:22:22Z · US1 · T029
 
 Did: `test_form_prevents_base_measurement_instantiation`
 (`tests/test_core/test_measurement/test_forms.py`) only asserted `not form.is_valid()`. Probed the
@@ -2000,7 +2000,7 @@ message twice), but it is dead logic once a form's `_post_clean()` runs, and `ta
 already names the fix. Left alone because `forms.py` is out of this story's scope; flagging for
 whichever story owns it.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -2015,7 +2015,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -2035,7 +2035,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -2050,7 +2050,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -2064,7 +2064,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -2082,7 +2082,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -2107,7 +2107,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -2145,7 +2145,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:10:00Z · Implementer US8 · T095/T096
+## 2026-08-19T12:10:00Z · US8 · T095/T096
 
 Did: FR-040 required the measurement admin list to be narrowable by dataset, sample and
 measurement type; `list_filter` carried only `"added"` on both the child and parent admin classes,
@@ -2187,7 +2187,7 @@ Watch: `MeasurementDatasetListFilter` is scoped to the `dataset` FK only; if a f
 added on another privacy-managed relation, the same silent-drop failure mode applies and needs the
 same treatment.
 
-## 2026-08-19T12:35:00Z · Implementer US8 · T097/T098
+## 2026-08-19T12:35:00Z · US8 · T097/T098
 
 Did: inline row caps for descriptions, dates and identifiers were hard-coded to 6, 6 and 3,
 but the specification requires each to offer no more rows than its own vocabulary has member
@@ -2217,7 +2217,7 @@ Next: T099 - every registered measurement type offers the same attached-record e
 
 Watch: none outstanding.
 
-## 2026-08-19T12:45:00Z · Implementer US8 · T099
+## 2026-08-19T12:45:00Z · US8 · T099
 
 Did: added `TestMeasurementAdminSharedInlines.test_every_registered_type_offers_the_same_inlines`,
 asserting that every registered measurement type's admin class (`ExampleMeasurementAdmin`,
@@ -2237,7 +2237,7 @@ Next: T100/T101 - the administrative list names each row's measurement type.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:55:00Z · Implementer US8 · T100/T101
+## 2026-08-19T12:55:00Z · US8 · T100/T101
 
 Did: `measurement_type` was already in `list_display` on both `MeasurementChildAdmin` and
 `MeasurementParentAdmin`, and the `measurement_type()` method existed (`admin.py:164`/`:211`), but
@@ -2260,7 +2260,7 @@ this story (T095-T101) are now done.
 
 Watch: none outstanding.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -2275,7 +2275,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -2295,7 +2295,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -2310,7 +2310,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -2324,7 +2324,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -2342,7 +2342,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -2367,7 +2367,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -2405,7 +2405,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:43:00Z · Implementer US4 · T077-T078
+## 2026-08-19T12:43:00Z · US4 · T077-T078
 
 Did: Read tests/test_core/test_measurement/test_permissions.py in full and
 fairdm/core/measurement/permissions.py, fairdm/core/permissions.py, fairdm/core/utils.py per
@@ -2425,7 +2425,7 @@ Next: T079-T080 (TestMeasurementGuardianIntegration).
 Watch: none yet - the assign-then-check pattern in this file later turned out to intermittently
 fail for an unrelated reason; see the T085 entry.
 
-## 2026-08-19T12:45:00Z · Implementer US4 · T079-T080
+## 2026-08-19T12:45:00Z · US4 · T079-T080
 
 Did: Removed TestMeasurementGuardianIntegration's skip and ran it unmodified first (RED,
 observed for the right reason): all 4 tests failed with `django.contrib.auth.models.Permission.DoesNotExist`
@@ -2441,7 +2441,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T081 (TestCrossDatasetPermissionBoundaries).
 
-## 2026-08-19T12:47:00Z · Implementer US4 · T081
+## 2026-08-19T12:47:00Z · US4 · T081
 
 Did: Removed TestCrossDatasetPermissionBoundaries's skip. Its reason claimed the factory fails
 building a Measurement whose sample belongs to a different dataset - confirmed false directly:
@@ -2457,7 +2457,7 @@ under T085 - not a defect in the isolation logic itself.
 
 Next: T082-T083 (registered-type grant/consult).
 
-## 2026-08-19T12:50:00Z · Implementer US4 · T082-T083
+## 2026-08-19T12:50:00Z · US4 · T082-T083
 
 Did: Added TestMeasurementRegisteredTypePermissions (new class, not a re-enable): a grant via
 fairdm.core.utils.assign_perm on a registered type (ExampleMeasurement) reads back identically on
@@ -2473,7 +2473,7 @@ T085.
 
 Next: T084 (backend registration).
 
-## 2026-08-19T12:52:00Z · Implementer US4 · T084
+## 2026-08-19T12:52:00Z · US4 · T084
 
 Did: Added TestMeasurementPermissionBackendRegistration - a settings-only test (no DB) asserting
 `fairdm.core.measurement.permissions.MeasurementPermissionBackend`'s dotted path is present in
@@ -2485,7 +2485,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T085 (final skip count + suite check).
 
-## 2026-08-19T12:55:00Z · Implementer US4 · T085
+## 2026-08-19T12:55:00Z · US4 · T085
 
 Did: Confirmed zero `@pytest.mark.skip` remain in test_permissions.py. Ran
 `poetry run pytest tests/test_core/test_measurement -q -p no:randomly -rs` repeatedly while
@@ -2523,10 +2523,10 @@ failure. Flagged in this story's completion report `concerns` rather than fixed,
 `fairdm/factories/contributors.py` and the directory conftest are shared, high-blast-radius files
 outside this story's scope.
 
-## 2026-08-19T12:58:00Z · Implementer US4 · decisions (recorded here, not in decisions.md)
+## 2026-08-19T12:58:00Z · US4 · decisions (recorded here, not in decisions.md)
 
 The brief's prohibitions list forbids editing `decisions.md` for this story (it is not one of
-the files the standard Implementer protocol's "append a decisions.md mini-ADR" step gets to
+the files the standard "append a decisions.md mini-ADR" step gets to
 override). Recording the two non-obvious choices here instead.
 
 **D-US4-1: `PersonFactory(is_active=True)` overridden locally in test_permissions.py, not fixed
@@ -2550,7 +2550,7 @@ deleting methods in one commit and restoring them in the next - keeping each cla
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
 
-## 2026-08-19T13:15:00Z · Implementer US5 · T052/T053
+## 2026-08-19T13:15:00Z · US5 · T052/T053
 
 Did: Moved every filter `MeasurementFilterMixin`'s docstring advertises (dataset, sample,
 polymorphic_ctype, search, description, date_after, date_before) onto the mixin itself, and made
@@ -2563,7 +2563,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_filters.py -q
 Next: T054-T056 (form dataset-scoping tests).
 Watch: none.
 
-## 2026-08-19T13:15:00Z · Implementer US5 · T054/T055/T056
+## 2026-08-19T13:15:00Z · US5 · T054/T055/T056
 
 Did: Added `TestMeasurementFormDatasetChoices` to test_forms.py - an entitled user offers exactly
 their entitled (private) dataset, no user offers no dataset at all, and scoping derives from the
@@ -2574,7 +2574,7 @@ TestMeasurementFormDatasetChoices -q -p no:randomly` - 3 passed.
 Next: T057/T058 (help_text typo).
 Watch: none.
 
-## 2026-08-19T13:15:00Z · Implementer US5 · T057/T058 and T059/T060
+## 2026-08-19T13:15:00Z · US5 · T057/T058 and T059/T060
 
 Did: `MeasurementForm.Meta` declared `help_text = {...}`; Django reads `help_texts` (plural), so
 all four guidance strings were silently dropped. Renamed the attribute. Separately,
@@ -2587,7 +2587,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_forms.py -q -
 Next: T061-T063 (registry wiring).
 Watch: none.
 
-## 2026-08-19T13:15:00Z · Implementer US5 · T061/T062/T063
+## 2026-08-19T13:15:00Z · US5 · T061/T062/T063
 
 Did: `FormFactory.get_base_form_class()` and `FilterFactory.get_base_filterset_class()`
 (`fairdm/registry/factories.py:172`, `:479`) had a Sample branch only; a measurement type
@@ -2608,7 +2608,7 @@ registry paths - none found).
 Next: T115 (dataset-choice privacy fix).
 Watch: none.
 
-## 2026-08-19T13:15:00Z · Implementer US5 · T115
+## 2026-08-19T13:15:00Z · US5 · T115
 
 Did: `MeasurementFilterMixin.__init__` assigned `Dataset.all_objects.all()` to the "dataset"
 filter's choices unconditionally, with no reference to the requesting reader - offering the title
@@ -2630,7 +2630,7 @@ test_custom_filter_inherits_from_mixin` (all in test_filters.py) each build a fi
 private dataset and no request at all, and assert `filterset.is_valid()`. That assertion now fails
 for exactly the reason T115 exists: an anonymous reader is no longer offered a private dataset as
 a filter choice. None of the three is named by any task in this story as one to replace, and I did
-not author them, so per the Implementer protocol they are left exactly as they stood rather than
+not author them, so they are left exactly as they stood rather than
 edited to fit the fix. They are stale evidence of the old (insecure) contract, now correctly red.
 The mechanical fix is to pass `request=<entitled user's request>` through each of the three call
 sites; flagged in this report's `concerns` rather than done here, since none of the three tasks
@@ -2647,7 +2647,7 @@ completion report.
 Watch: the three failing pre-existing tests named above; not fixed in this story, reported in
 `concerns`.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -2662,7 +2662,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -2682,7 +2682,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -2697,7 +2697,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -2711,7 +2711,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -2729,7 +2729,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -2754,7 +2754,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -2792,7 +2792,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:14:00Z · Implementer US10 · T007
+## 2026-08-19T12:14:00Z · US10 · T007
 
 Did: Added `TestMeasurementModelCreation.test_uuid_is_not_editable_afterwards`, mirroring
 `TestSampleIdentity.test_uuid_is_not_editable_afterwards` on the sample side - asserts `uuid` is
@@ -2806,7 +2806,7 @@ Next: T009.
 
 Watch: none.
 
-## 2026-08-19T12:16:00Z · Implementer US10 · T009
+## 2026-08-19T12:16:00Z · US10 · T009
 
 Did: Added `TestMeasurementFields` with `test_name_is_required` (asserts `full_clean()` raises with
 `"name"` in `message_dict` for a bare `ExampleMeasurement`) and
@@ -2821,7 +2821,7 @@ Next: T010.
 
 Watch: none.
 
-## 2026-08-19T12:18:00Z · Implementer US10 · T010
+## 2026-08-19T12:18:00Z · US10 · T010
 
 Did: Added `TestMeasurementFieldMetadata.test_field_verbose_names_and_help_text_are_lazy`,
 iterating `["dataset", "sample", "local_id"]` and asserting `verbose_name`/`help_text` are
@@ -2836,7 +2836,7 @@ Next: T011.
 
 Watch: none.
 
-## 2026-08-19T12:20:00Z · Implementer US10 · T011
+## 2026-08-19T12:20:00Z · US10 · T011
 
 Did: Added `TestMeasurementLocalId.test_the_same_local_id_is_valid_in_two_different_datasets`,
 creating two measurements with the same `local_id` in two different datasets and asserting both
@@ -2849,7 +2849,7 @@ Next: T012.
 
 Watch: none.
 
-## 2026-08-19T12:24:00Z · Implementer US10 · T012
+## 2026-08-19T12:24:00Z · US10 · T012
 
 Did: Added `test_local_id_has_no_uniqueness_constraint` and `test_local_id_is_indexed` to
 `TestMeasurementLocalId`. The index assertion failed red first (`field.db_index is False`).
@@ -2873,7 +2873,7 @@ brief. Flagged in the completion report's `concerns` for Forge to reconcile. (An
 wrote a stray migration into the *installed* `orbit` package under site-packages, outside this git
 worktree entirely; left alone, it is untracked and has no effect on this repo.)
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T013/T014
+## 2026-08-19T12:30:00Z · US10 · T013/T014
 
 Did: Deleted the vacuous `TestMeasurementCascadeBehavior.test_deleting_dataset_cascades_to_measurements`
 (it deleted the measurement before the dataset, so its assertion held whatever `on_delete` said -
@@ -2890,7 +2890,7 @@ Next: T017.
 
 Watch: none.
 
-## 2026-08-19T12:33:00Z · Implementer US10 · T017
+## 2026-08-19T12:33:00Z · US10 · T017
 
 Did: Added `TestMeasurementTimestamps` with `test_creation_and_modification_times_are_recorded`
 and `test_modification_time_advances_on_change` (asserts `modified` moves forward and `added`
@@ -2904,7 +2904,7 @@ Next: T019/T020.
 
 Watch: none.
 
-## 2026-08-19T12:36:00Z · Implementer US10 · T019/T020
+## 2026-08-19T12:36:00Z · US10 · T019/T020
 
 Did: Added `TestMeasurementContributions` with `test_measurement_role_vocabulary_members`
 (asserts `Measurement.CONTRIBUTOR_ROLES.values == ["MeasurementPreparation",
@@ -2921,7 +2921,7 @@ Next: T114.
 
 Watch: none.
 
-## 2026-08-19T12:45:00Z · Implementer US10 · T114 (blocked)
+## 2026-08-19T12:45:00Z · US10 · T114 (blocked)
 
 Did: Investigated rather than edited. The existing
 `TestMeasurementViews.test_measurement_detail_view_accessible` wraps `client.get(reverse(
@@ -2963,7 +2963,7 @@ same plugin-based template chain `sample:overview` already uses) before the meas
 page is reachable at all. Out of scope for this test-writing task and touches shared
 cotton-component/template territory this story doesn't own.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -2978,7 +2978,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -2998,7 +2998,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -3013,7 +3013,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -3027,7 +3027,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -3045,7 +3045,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -3070,7 +3070,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -3108,7 +3108,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:12:16Z · Implementer US1 · T030/T034
+## 2026-08-19T12:12:16Z · US1 · T030/T034
 
 Did: `BaseMeasurementConfiguration` declared fixed `form_fields`/`table_fields`/`filterset_fields`,
 which meant `ModelConfiguration.resolve_fields()` never fell back to a registered type's own
@@ -3139,7 +3139,7 @@ Watch: `fairdm/core/measurement/config.py` and its test file are not in this sto
 list, so this was in scope; flagging here in case another concurrent story also touches
 `BaseMeasurementConfiguration`.
 
-## 2026-08-19T12:15:20Z · Implementer US1 · T036/T037/T038
+## 2026-08-19T12:15:20Z · US1 · T036/T037/T038
 
 Did: the audit's largest finding for this story - two administrative base classes existed for
 measurement types, and the registry enforced the wrong one. `fairdm/core/measurement/admin.py`
@@ -3201,7 +3201,7 @@ unreferenced outside that file (confirmed by grep) but are dataset-related and o
 story's scope - left untouched and not raised as a concern, since a plain unused-class question
 for a different domain isn't this story's finding to make.
 
-## 2026-08-19T12:18:16Z · Implementer US1 · T025/T032/T033
+## 2026-08-19T12:18:16Z · US1 · T025/T032/T033
 
 Did: added `tests/test_core/test_measurement/test_admin_registry.py` rather than extending
 `tests/test_core/test_measurement/test_admin.py` - that file is on this story's prohibited list
@@ -3237,7 +3237,7 @@ Next: T026/T028/T029 (the bare-measurement manager and form refusal routes).
 
 Watch: none outstanding.
 
-## 2026-08-19T12:20:49Z · Implementer US1 · T026/T028
+## 2026-08-19T12:20:49Z · US1 · T026/T028
 
 Did: closed the manager route around the base-Measurement refusal. `Measurement.objects.create()`
 produced a bare record, because `clean()` (`models.py:111`) only runs when something calls it or
@@ -3279,7 +3279,7 @@ alongside `Measurement.clean()` (the exact shape already used for `Sample`). If 
 fold `apps.py`'s guard into `models.py` to match the Sample precedent - flagging so it isn't
 mistaken for a second, competing mechanism.
 
-## 2026-08-19T12:22:22Z · Implementer US1 · T029
+## 2026-08-19T12:22:22Z · US1 · T029
 
 Did: `test_form_prevents_base_measurement_instantiation`
 (`tests/test_core/test_measurement/test_forms.py`) only asserted `not form.is_valid()`. Probed the
@@ -3312,7 +3312,7 @@ message twice), but it is dead logic once a form's `_post_clean()` runs, and `ta
 already names the fix. Left alone because `forms.py` is out of this story's scope; flagging for
 whichever story owns it.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -3327,7 +3327,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -3347,7 +3347,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -3362,7 +3362,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -3376,7 +3376,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -3394,7 +3394,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -3419,7 +3419,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -3457,7 +3457,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:10:00Z · Implementer US8 · T095/T096
+## 2026-08-19T12:10:00Z · US8 · T095/T096
 
 Did: FR-040 required the measurement admin list to be narrowable by dataset, sample and
 measurement type; `list_filter` carried only `"added"` on both the child and parent admin classes,
@@ -3499,7 +3499,7 @@ Watch: `MeasurementDatasetListFilter` is scoped to the `dataset` FK only; if a f
 added on another privacy-managed relation, the same silent-drop failure mode applies and needs the
 same treatment.
 
-## 2026-08-19T12:35:00Z · Implementer US8 · T097/T098
+## 2026-08-19T12:35:00Z · US8 · T097/T098
 
 Did: inline row caps for descriptions, dates and identifiers were hard-coded to 6, 6 and 3,
 but the specification requires each to offer no more rows than its own vocabulary has member
@@ -3529,7 +3529,7 @@ Next: T099 - every registered measurement type offers the same attached-record e
 
 Watch: none outstanding.
 
-## 2026-08-19T12:45:00Z · Implementer US8 · T099
+## 2026-08-19T12:45:00Z · US8 · T099
 
 Did: added `TestMeasurementAdminSharedInlines.test_every_registered_type_offers_the_same_inlines`,
 asserting that every registered measurement type's admin class (`ExampleMeasurementAdmin`,
@@ -3549,7 +3549,7 @@ Next: T100/T101 - the administrative list names each row's measurement type.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:55:00Z · Implementer US8 · T100/T101
+## 2026-08-19T12:55:00Z · US8 · T100/T101
 
 Did: `measurement_type` was already in `list_display` on both `MeasurementChildAdmin` and
 `MeasurementParentAdmin`, and the `measurement_type()` method existed (`admin.py:164`/`:211`), but
@@ -3572,7 +3572,7 @@ this story (T095-T101) are now done.
 
 Watch: none outstanding.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -3587,7 +3587,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -3607,7 +3607,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -3622,7 +3622,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -3636,7 +3636,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -3654,7 +3654,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -3679,7 +3679,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -3717,7 +3717,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:43:00Z · Implementer US4 · T077-T078
+## 2026-08-19T12:43:00Z · US4 · T077-T078
 
 Did: Read tests/test_core/test_measurement/test_permissions.py in full and
 fairdm/core/measurement/permissions.py, fairdm/core/permissions.py, fairdm/core/utils.py per
@@ -3737,7 +3737,7 @@ Next: T079-T080 (TestMeasurementGuardianIntegration).
 Watch: none yet - the assign-then-check pattern in this file later turned out to intermittently
 fail for an unrelated reason; see the T085 entry.
 
-## 2026-08-19T12:45:00Z · Implementer US4 · T079-T080
+## 2026-08-19T12:45:00Z · US4 · T079-T080
 
 Did: Removed TestMeasurementGuardianIntegration's skip and ran it unmodified first (RED,
 observed for the right reason): all 4 tests failed with `django.contrib.auth.models.Permission.DoesNotExist`
@@ -3753,7 +3753,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T081 (TestCrossDatasetPermissionBoundaries).
 
-## 2026-08-19T12:47:00Z · Implementer US4 · T081
+## 2026-08-19T12:47:00Z · US4 · T081
 
 Did: Removed TestCrossDatasetPermissionBoundaries's skip. Its reason claimed the factory fails
 building a Measurement whose sample belongs to a different dataset - confirmed false directly:
@@ -3769,7 +3769,7 @@ under T085 - not a defect in the isolation logic itself.
 
 Next: T082-T083 (registered-type grant/consult).
 
-## 2026-08-19T12:50:00Z · Implementer US4 · T082-T083
+## 2026-08-19T12:50:00Z · US4 · T082-T083
 
 Did: Added TestMeasurementRegisteredTypePermissions (new class, not a re-enable): a grant via
 fairdm.core.utils.assign_perm on a registered type (ExampleMeasurement) reads back identically on
@@ -3785,7 +3785,7 @@ T085.
 
 Next: T084 (backend registration).
 
-## 2026-08-19T12:52:00Z · Implementer US4 · T084
+## 2026-08-19T12:52:00Z · US4 · T084
 
 Did: Added TestMeasurementPermissionBackendRegistration - a settings-only test (no DB) asserting
 `fairdm.core.measurement.permissions.MeasurementPermissionBackend`'s dotted path is present in
@@ -3797,7 +3797,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T085 (final skip count + suite check).
 
-## 2026-08-19T12:55:00Z · Implementer US4 · T085
+## 2026-08-19T12:55:00Z · US4 · T085
 
 Did: Confirmed zero `@pytest.mark.skip` remain in test_permissions.py. Ran
 `poetry run pytest tests/test_core/test_measurement -q -p no:randomly -rs` repeatedly while
@@ -3835,10 +3835,10 @@ failure. Flagged in this story's completion report `concerns` rather than fixed,
 `fairdm/factories/contributors.py` and the directory conftest are shared, high-blast-radius files
 outside this story's scope.
 
-## 2026-08-19T12:58:00Z · Implementer US4 · decisions (recorded here, not in decisions.md)
+## 2026-08-19T12:58:00Z · US4 · decisions (recorded here, not in decisions.md)
 
 The brief's prohibitions list forbids editing `decisions.md` for this story (it is not one of
-the files the standard Implementer protocol's "append a decisions.md mini-ADR" step gets to
+the files the standard "append a decisions.md mini-ADR" step gets to
 override). Recording the two non-obvious choices here instead.
 
 **D-US4-1: `PersonFactory(is_active=True)` overridden locally in test_permissions.py, not fixed
@@ -3862,7 +3862,7 @@ deleting methods in one commit and restoring them in the next - keeping each cla
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
 
-## 2026-08-19T13:05:20Z · Implementer US9 · T104/T106/T107/T108
+## 2026-08-19T13:05:20Z · US9 · T104/T106/T107/T108
 
 Did: added `tests/test_core/test_measurement/test_querysets.py` (new file — does not touch
 `test_models.py`, owned by a concurrently running story) with four test classes:
@@ -3901,7 +3901,7 @@ called with `is_active=True` explicitly.
 Next: story-level final verify (`poetry run pytest tests/ -q`, `poetry run pre-commit run
 --all-files`) and completion report.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -3916,7 +3916,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -3936,7 +3936,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -3951,7 +3951,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -3965,7 +3965,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -3983,7 +3983,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -4008,7 +4008,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -4046,7 +4046,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:14:00Z · Implementer US10 · T007
+## 2026-08-19T12:14:00Z · US10 · T007
 
 Did: Added `TestMeasurementModelCreation.test_uuid_is_not_editable_afterwards`, mirroring
 `TestSampleIdentity.test_uuid_is_not_editable_afterwards` on the sample side - asserts `uuid` is
@@ -4060,7 +4060,7 @@ Next: T009.
 
 Watch: none.
 
-## 2026-08-19T12:16:00Z · Implementer US10 · T009
+## 2026-08-19T12:16:00Z · US10 · T009
 
 Did: Added `TestMeasurementFields` with `test_name_is_required` (asserts `full_clean()` raises with
 `"name"` in `message_dict` for a bare `ExampleMeasurement`) and
@@ -4075,7 +4075,7 @@ Next: T010.
 
 Watch: none.
 
-## 2026-08-19T12:18:00Z · Implementer US10 · T010
+## 2026-08-19T12:18:00Z · US10 · T010
 
 Did: Added `TestMeasurementFieldMetadata.test_field_verbose_names_and_help_text_are_lazy`,
 iterating `["dataset", "sample", "local_id"]` and asserting `verbose_name`/`help_text` are
@@ -4090,7 +4090,7 @@ Next: T011.
 
 Watch: none.
 
-## 2026-08-19T12:20:00Z · Implementer US10 · T011
+## 2026-08-19T12:20:00Z · US10 · T011
 
 Did: Added `TestMeasurementLocalId.test_the_same_local_id_is_valid_in_two_different_datasets`,
 creating two measurements with the same `local_id` in two different datasets and asserting both
@@ -4103,7 +4103,7 @@ Next: T012.
 
 Watch: none.
 
-## 2026-08-19T12:24:00Z · Implementer US10 · T012
+## 2026-08-19T12:24:00Z · US10 · T012
 
 Did: Added `test_local_id_has_no_uniqueness_constraint` and `test_local_id_is_indexed` to
 `TestMeasurementLocalId`. The index assertion failed red first (`field.db_index is False`).
@@ -4127,7 +4127,7 @@ brief. Flagged in the completion report's `concerns` for Forge to reconcile. (An
 wrote a stray migration into the *installed* `orbit` package under site-packages, outside this git
 worktree entirely; left alone, it is untracked and has no effect on this repo.)
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T013/T014
+## 2026-08-19T12:30:00Z · US10 · T013/T014
 
 Did: Deleted the vacuous `TestMeasurementCascadeBehavior.test_deleting_dataset_cascades_to_measurements`
 (it deleted the measurement before the dataset, so its assertion held whatever `on_delete` said -
@@ -4144,7 +4144,7 @@ Next: T017.
 
 Watch: none.
 
-## 2026-08-19T12:33:00Z · Implementer US10 · T017
+## 2026-08-19T12:33:00Z · US10 · T017
 
 Did: Added `TestMeasurementTimestamps` with `test_creation_and_modification_times_are_recorded`
 and `test_modification_time_advances_on_change` (asserts `modified` moves forward and `added`
@@ -4158,7 +4158,7 @@ Next: T019/T020.
 
 Watch: none.
 
-## 2026-08-19T12:36:00Z · Implementer US10 · T019/T020
+## 2026-08-19T12:36:00Z · US10 · T019/T020
 
 Did: Added `TestMeasurementContributions` with `test_measurement_role_vocabulary_members`
 (asserts `Measurement.CONTRIBUTOR_ROLES.values == ["MeasurementPreparation",
@@ -4175,7 +4175,7 @@ Next: T114.
 
 Watch: none.
 
-## 2026-08-19T12:45:00Z · Implementer US10 · T114 (blocked)
+## 2026-08-19T12:45:00Z · US10 · T114 (blocked)
 
 Did: Investigated rather than edited. The existing
 `TestMeasurementViews.test_measurement_detail_view_accessible` wraps `client.get(reverse(
@@ -4217,7 +4217,7 @@ same plugin-based template chain `sample:overview` already uses) before the meas
 page is reachable at all. Out of scope for this test-writing task and touches shared
 cotton-component/template territory this story doesn't own.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -4232,7 +4232,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -4252,7 +4252,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -4267,7 +4267,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -4281,7 +4281,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -4299,7 +4299,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -4324,7 +4324,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -4362,7 +4362,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:12:16Z · Implementer US1 · T030/T034
+## 2026-08-19T12:12:16Z · US1 · T030/T034
 
 Did: `BaseMeasurementConfiguration` declared fixed `form_fields`/`table_fields`/`filterset_fields`,
 which meant `ModelConfiguration.resolve_fields()` never fell back to a registered type's own
@@ -4393,7 +4393,7 @@ Watch: `fairdm/core/measurement/config.py` and its test file are not in this sto
 list, so this was in scope; flagging here in case another concurrent story also touches
 `BaseMeasurementConfiguration`.
 
-## 2026-08-19T12:15:20Z · Implementer US1 · T036/T037/T038
+## 2026-08-19T12:15:20Z · US1 · T036/T037/T038
 
 Did: the audit's largest finding for this story - two administrative base classes existed for
 measurement types, and the registry enforced the wrong one. `fairdm/core/measurement/admin.py`
@@ -4455,7 +4455,7 @@ unreferenced outside that file (confirmed by grep) but are dataset-related and o
 story's scope - left untouched and not raised as a concern, since a plain unused-class question
 for a different domain isn't this story's finding to make.
 
-## 2026-08-19T12:18:16Z · Implementer US1 · T025/T032/T033
+## 2026-08-19T12:18:16Z · US1 · T025/T032/T033
 
 Did: added `tests/test_core/test_measurement/test_admin_registry.py` rather than extending
 `tests/test_core/test_measurement/test_admin.py` - that file is on this story's prohibited list
@@ -4491,7 +4491,7 @@ Next: T026/T028/T029 (the bare-measurement manager and form refusal routes).
 
 Watch: none outstanding.
 
-## 2026-08-19T12:20:49Z · Implementer US1 · T026/T028
+## 2026-08-19T12:20:49Z · US1 · T026/T028
 
 Did: closed the manager route around the base-Measurement refusal. `Measurement.objects.create()`
 produced a bare record, because `clean()` (`models.py:111`) only runs when something calls it or
@@ -4533,7 +4533,7 @@ alongside `Measurement.clean()` (the exact shape already used for `Sample`). If 
 fold `apps.py`'s guard into `models.py` to match the Sample precedent - flagging so it isn't
 mistaken for a second, competing mechanism.
 
-## 2026-08-19T12:22:22Z · Implementer US1 · T029
+## 2026-08-19T12:22:22Z · US1 · T029
 
 Did: `test_form_prevents_base_measurement_instantiation`
 (`tests/test_core/test_measurement/test_forms.py`) only asserted `not form.is_valid()`. Probed the
@@ -4566,7 +4566,7 @@ message twice), but it is dead logic once a form's `_post_clean()` runs, and `ta
 already names the fix. Left alone because `forms.py` is out of this story's scope; flagging for
 whichever story owns it.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -4581,7 +4581,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -4601,7 +4601,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -4616,7 +4616,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -4630,7 +4630,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -4648,7 +4648,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -4673,7 +4673,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -4711,7 +4711,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:10:00Z · Implementer US8 · T095/T096
+## 2026-08-19T12:10:00Z · US8 · T095/T096
 
 Did: FR-040 required the measurement admin list to be narrowable by dataset, sample and
 measurement type; `list_filter` carried only `"added"` on both the child and parent admin classes,
@@ -4753,7 +4753,7 @@ Watch: `MeasurementDatasetListFilter` is scoped to the `dataset` FK only; if a f
 added on another privacy-managed relation, the same silent-drop failure mode applies and needs the
 same treatment.
 
-## 2026-08-19T12:35:00Z · Implementer US8 · T097/T098
+## 2026-08-19T12:35:00Z · US8 · T097/T098
 
 Did: inline row caps for descriptions, dates and identifiers were hard-coded to 6, 6 and 3,
 but the specification requires each to offer no more rows than its own vocabulary has member
@@ -4783,7 +4783,7 @@ Next: T099 - every registered measurement type offers the same attached-record e
 
 Watch: none outstanding.
 
-## 2026-08-19T12:45:00Z · Implementer US8 · T099
+## 2026-08-19T12:45:00Z · US8 · T099
 
 Did: added `TestMeasurementAdminSharedInlines.test_every_registered_type_offers_the_same_inlines`,
 asserting that every registered measurement type's admin class (`ExampleMeasurementAdmin`,
@@ -4803,7 +4803,7 @@ Next: T100/T101 - the administrative list names each row's measurement type.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:55:00Z · Implementer US8 · T100/T101
+## 2026-08-19T12:55:00Z · US8 · T100/T101
 
 Did: `measurement_type` was already in `list_display` on both `MeasurementChildAdmin` and
 `MeasurementParentAdmin`, and the `measurement_type()` method existed (`admin.py:164`/`:211`), but
@@ -4826,7 +4826,7 @@ this story (T095-T101) are now done.
 
 Watch: none outstanding.
 
-## 2026-08-19T10:00:00Z · Implementer US10 · T001
+## 2026-08-19T10:00:00Z · US10 · T001
 
 Did: Added `MeasurementIdentifierFactory` (never existed) and fixed the invalid vocabulary
 defaults on `MeasurementDescriptionFactory` (`"Abstract"` → `"MeasurementConditions"`) and
@@ -4841,7 +4841,7 @@ Next: T002 — make `MeasurementFactory` abstract.
 
 Watch: none.
 
-## 2026-08-19T10:10:00Z · Implementer US10 · T002
+## 2026-08-19T10:10:00Z · US10 · T002
 
 Did: Set `abstract = True` on `MeasurementFactory.Meta` in `fairdm/factories/core.py`, mirroring
 `SampleFactory`'s shape, and rewrote its docstring (and the module docstring's factory list) to
@@ -4861,7 +4861,7 @@ directories (`tests/test_factories/test_core.py`, `tests/test_factories/test_con
 story's file scope and are expected to fail until a follow-up retargets them too - see the
 completion report's `concerns`.
 
-## 2026-08-19T10:20:00Z · Implementer US10 · T003
+## 2026-08-19T10:20:00Z · US10 · T003
 
 Did: Added `XRFMeasurementFactory` and `ICP_MS_MeasurementFactory` to `fairdm_demo/factories.py`,
 each supplying its model's required (non-null) fields — `element`/`concentration_ppm` for XRF,
@@ -4876,7 +4876,7 @@ Next: T004 — export the metadata factories from `fairdm.factories`.
 
 Watch: none.
 
-## 2026-08-19T10:30:00Z · Implementer US10 · T004
+## 2026-08-19T10:30:00Z · US10 · T004
 
 Did: Exported `MeasurementDescriptionFactory`, `MeasurementDateFactory` and
 `MeasurementIdentifierFactory` from `fairdm/factories/__init__.py` (import + `__all__`), alongside
@@ -4890,7 +4890,7 @@ Next: T005 — shared fixtures.
 
 Watch: none.
 
-## 2026-08-19T10:40:00Z · Implementer US10 · T005
+## 2026-08-19T10:40:00Z · US10 · T005
 
 Did: In `tests/test_core/test_measurement/conftest.py`: retargeted the `measurement` fixture onto
 `ExampleMeasurementFactory` (it previously called the now-abstract `MeasurementFactory` directly);
@@ -4908,7 +4908,7 @@ pre-existing failures in `test_admin.py`, `test_models.py` and `test_permissions
 direct `MeasurementFactory(...)` call sites now hitting the T002 abstract guard. That is exactly
 T006's job, next.
 
-## 2026-08-19T11:00:00Z · Implementer US10 · T006
+## 2026-08-19T11:00:00Z · US10 · T006
 
 Did: Retargeted every direct `MeasurementFactory(...)` / `MeasurementFactory.create(...)` call site
 in `tests/test_core/test_measurement/test_admin.py`, `test_models.py` and `test_permissions.py`
@@ -4933,7 +4933,7 @@ this story's declared file scope, all direct `MeasurementFactory(...)` call site
 was not permitted to touch. Reported as a concern in the completion report for Forge to reconcile
 (a follow-up task/group, or a scope amendment).
 
-## 2026-08-19T12:30:00Z · Implementer US10 · T006 (scope widened)
+## 2026-08-19T12:30:00Z · US10 · T006 (scope widened)
 
 Did: Forge confirmed the scope-gap concern was its own error in the brief - the prohibition list
 named only `tests/test_core/test_measurement/*.py`, but T006 itself says "retarget every
@@ -4971,7 +4971,7 @@ Next: run the full repo suite once more for the follow-up completion report.
 
 Watch: none outstanding.
 
-## 2026-08-19T12:43:00Z · Implementer US4 · T077-T078
+## 2026-08-19T12:43:00Z · US4 · T077-T078
 
 Did: Read tests/test_core/test_measurement/test_permissions.py in full and
 fairdm/core/measurement/permissions.py, fairdm/core/permissions.py, fairdm/core/utils.py per
@@ -4991,7 +4991,7 @@ Next: T079-T080 (TestMeasurementGuardianIntegration).
 Watch: none yet - the assign-then-check pattern in this file later turned out to intermittently
 fail for an unrelated reason; see the T085 entry.
 
-## 2026-08-19T12:45:00Z · Implementer US4 · T079-T080
+## 2026-08-19T12:45:00Z · US4 · T079-T080
 
 Did: Removed TestMeasurementGuardianIntegration's skip and ran it unmodified first (RED,
 observed for the right reason): all 4 tests failed with `django.contrib.auth.models.Permission.DoesNotExist`
@@ -5007,7 +5007,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T081 (TestCrossDatasetPermissionBoundaries).
 
-## 2026-08-19T12:47:00Z · Implementer US4 · T081
+## 2026-08-19T12:47:00Z · US4 · T081
 
 Did: Removed TestCrossDatasetPermissionBoundaries's skip. Its reason claimed the factory fails
 building a Measurement whose sample belongs to a different dataset - confirmed false directly:
@@ -5023,7 +5023,7 @@ under T085 - not a defect in the isolation logic itself.
 
 Next: T082-T083 (registered-type grant/consult).
 
-## 2026-08-19T12:50:00Z · Implementer US4 · T082-T083
+## 2026-08-19T12:50:00Z · US4 · T082-T083
 
 Did: Added TestMeasurementRegisteredTypePermissions (new class, not a re-enable): a grant via
 fairdm.core.utils.assign_perm on a registered type (ExampleMeasurement) reads back identically on
@@ -5039,7 +5039,7 @@ T085.
 
 Next: T084 (backend registration).
 
-## 2026-08-19T12:52:00Z · Implementer US4 · T084
+## 2026-08-19T12:52:00Z · US4 · T084
 
 Did: Added TestMeasurementPermissionBackendRegistration - a settings-only test (no DB) asserting
 `fairdm.core.measurement.permissions.MeasurementPermissionBackend`'s dotted path is present in
@@ -5051,7 +5051,7 @@ Verified: `poetry run pytest tests/test_core/test_measurement/test_permissions.p
 
 Next: T085 (final skip count + suite check).
 
-## 2026-08-19T12:55:00Z · Implementer US4 · T085
+## 2026-08-19T12:55:00Z · US4 · T085
 
 Did: Confirmed zero `@pytest.mark.skip` remain in test_permissions.py. Ran
 `poetry run pytest tests/test_core/test_measurement -q -p no:randomly -rs` repeatedly while
@@ -5089,10 +5089,10 @@ failure. Flagged in this story's completion report `concerns` rather than fixed,
 `fairdm/factories/contributors.py` and the directory conftest are shared, high-blast-radius files
 outside this story's scope.
 
-## 2026-08-19T12:58:00Z · Implementer US4 · decisions (recorded here, not in decisions.md)
+## 2026-08-19T12:58:00Z · US4 · decisions (recorded here, not in decisions.md)
 
 The brief's prohibitions list forbids editing `decisions.md` for this story (it is not one of
-the files the standard Implementer protocol's "append a decisions.md mini-ADR" step gets to
+the files the standard "append a decisions.md mini-ADR" step gets to
 override). Recording the two non-obvious choices here instead.
 
 **D-US4-1: `PersonFactory(is_active=True)` overridden locally in test_permissions.py, not fixed
@@ -5116,7 +5116,7 @@ deleting methods in one commit and restoring them in the next - keeping each cla
 one commit was judged safer than following task numbering literally. Every commit subject names
 every task it covers. Revisit if: a reviewer wants literal one-task-one-commit granularity.
 
-## 2026-08-19T13:02:35Z · Implementer US2 · T040
+## 2026-08-19T13:02:35Z · US2 · T040
 
 Did: Added `tests/test_core/test_measurement/test_cross_dataset.py` (new file, per the brief —
 `test_models.py` and `test_permissions.py` belong to other concurrently-running stories) with
@@ -5136,7 +5136,7 @@ Next: T041 — cross-dataset deletion boundaries, same file.
 
 Watch: none.
 
-## 2026-08-19T13:20:00Z · Implementer US2 · T041
+## 2026-08-19T13:20:00Z · US2 · T041
 
 Did: Extended `tests/test_core/test_measurement/test_cross_dataset.py` with
 `TestCrossDatasetDeletionBoundaries`, proving both halves of FR-004/FR-005 for the
@@ -5165,7 +5165,7 @@ class covering ground close to T041. Both files are owned by other concurrently-
 per this story's brief, so left untouched; noted here in case a later pass wants to consolidate
 duplicate coverage.
 
-## 2026-08-19T14:19:00Z · Implementer US7 · T093
+## 2026-08-19T14:19:00Z · US7 · T093
 
 Did: Gave `ICP_MS_Measurement` (`fairdm_demo/models.py`) two new fields, `value` and
 `uncertainty`, both `fairdm.db.models.DecimalQuantityField` with base unit `microgram / liter`
@@ -5186,7 +5186,7 @@ Next: T094 - the migration for these two fields.
 Watch: the model change alone leaves `makemigrations --check` dirty for `fairdm_demo` until
 T094's commit lands immediately after this one.
 
-## 2026-08-19T14:19:00Z · Implementer US7 · T094
+## 2026-08-19T14:19:00Z · US7 · T094
 
 Did: Generated `fairdm_demo/migrations/0003_icp_ms_measurement_uncertainty_and_more.py` with
 `poetry run python -m manage makemigrations fairdm_demo`. Two `AddField` operations, both
@@ -5204,7 +5204,7 @@ Next: T086 - tests for the value report, now that a type nominating a value exis
 
 Watch: none.
 
-## 2026-08-19T14:19:00Z · Implementer US7 · T086/T087
+## 2026-08-19T14:19:00Z · US7 · T086/T087
 
 Did: Added `tests/test_core/test_measurement/test_value.py` (new file, this story's tests) with
 `TestGetValue`, proving both halves of FR-036: `test_type_nominating_a_value_reports_that_value`
@@ -5223,7 +5223,7 @@ Next: T088 - the uncertainty-carrying case.
 
 Watch: none.
 
-## 2026-08-19T14:19:00Z · Implementer US7 · T088
+## 2026-08-19T14:19:00Z · US7 · T088
 
 Did: Extended `test_value.py` with `TestGetValueWithUncertainty::test_uncertainty_is_carried_with_the_value`,
 proving FR-037: a type recording an uncertainty (`ICP_MS_Measurement.uncertainty`) gets it
@@ -5243,7 +5243,7 @@ Watch: comparing `Decimal` magnitudes through `plus_minus()` loses exact precisi
 converts to `float` internally), so the test compares magnitudes with `pytest.approx` rather
 than equality - not a defect, just how the test is written.
 
-## 2026-08-19T14:19:00Z · Implementer US7 · T089
+## 2026-08-19T14:19:00Z · US7 · T089
 
 Did: Added `TestGetValuePlainNumber` (two tests, via a `types.SimpleNamespace` stand-in - D19
 explains why) proving `get_value()` does not raise for a type nominating a plain number, with
@@ -5263,7 +5263,7 @@ Next: T090/T092 - rendering, and where the formatter that does it gets installed
 
 Watch: none.
 
-## 2026-08-19T14:19:00Z · Implementer US7 · T090/T092
+## 2026-08-19T14:19:00Z · US7 · T090/T092
 
 Did: Added `TestPrintValue::test_renders_value_uncertainty_and_units_together`
 (`5.00 ± 0.30 µg/l`), executed without ever importing `fairdm.templatetags.fairdm` or rendering
@@ -5287,7 +5287,7 @@ Next: T091 - clean up `print_value()`'s dead branch now that the formatter insta
 
 Watch: none.
 
-## 2026-08-19T14:19:00Z · Implementer US7 · T091
+## 2026-08-19T14:19:00Z · US7 · T091
 
 Did: Simplified `Measurement.print_value()` (models.py:151) to `return str(self.get_value())`,
 removing the `hasattr(value, "err")` branch that built its own `"{value} ± {err}"` string. No
@@ -5306,7 +5306,7 @@ full-suite verify remain before the completion report.
 Watch: the pre-existing skips this story's prohibitions name
 (`tests/test_core/test_measurement/test_models.py:530, :965, :1214`) were left untouched, as
 instructed.
-## 2026-08-19T14:06:54Z · Implementer US6 · T066/T067
+## 2026-08-19T14:06:54Z · US6 · T066/T067
 
 Did: Added `TestMeasurementFilterPolymorphicTypeChoices` to `test_filters.py`, proving the
 `polymorphic_ctype` filter's choices are exactly the content types of `registry.measurements` —
@@ -5331,7 +5331,7 @@ Next: T072/T073 — the date-range filters and their skipped test.
 
 Watch: none.
 
-## 2026-08-19T14:20:00Z · Implementer US6 · T072/T073
+## 2026-08-19T14:20:00Z · US6 · T072/T073
 
 Did: Removed the `pytest.mark.skip` on `test_filter_by_date_range` and extended it with a
 year-and-month-only measurement date (`"2024-06"`) and a year-only one (`"2023"`), chosen well
@@ -5360,7 +5360,7 @@ Next: T074 — the registry-generated half of the dataset-choices coverage.
 
 Watch: none.
 
-## 2026-08-19T14:35:00Z · Implementer US6 · T074
+## 2026-08-19T14:35:00Z · US6 · T074
 
 Did: Added `TestMeasurementFilterRegistryGeneratedDatasetPrivacy` to `test_filters.py`, proving
 the T115 dataset-choices widening also holds on the filter set the registry generates for a
@@ -5385,7 +5385,7 @@ Next: T076 — make the combined-filters test load-bearing on both filters.
 
 Watch: none.
 
-## 2026-08-19T14:50:00Z · Implementer US6 · T076
+## 2026-08-19T14:50:00Z · US6 · T076
 
 Did: Rewrote `TestMeasurementFilterCombinedFilters.test_combined_filters_dataset_and_sample`
 (named at the brief as this task's own to rewrite). The previous version's third measurement was
@@ -5409,7 +5409,7 @@ Next: none — all six tasks in this brief (US6: T066, T067, T072, T073, T074, T
 
 Watch: none.
 
-## 2026-08-19T15:15:00Z · Implementer US6 · T073 follow-up
+## 2026-08-19T15:15:00Z · US6 · T073 follow-up
 
 Did: Closed a defect the T073 fix introduced, reported by the coordinator against the delivered
 filter set directly: `MeasurementFilter(data={"date_after": "not-a-date"}, ...)` reported
@@ -5443,7 +5443,7 @@ Next: none.
 
 Watch: none.
 
-## 2026-08-19T14:50:00Z · Implementer US10 · T109
+## 2026-08-19T14:50:00Z · US10 · T109
 
 Did: Brought `docs/portal-development/measurements.md` to what the code does. Removed the
 `get_value()`-override convention throughout the page (Basic Structure, the former "get_value()
@@ -5484,7 +5484,7 @@ Next: T110 (managing-measurements.md).
 
 Watch: none.
 
-## 2026-08-19T15:05:00Z · Implementer US10 · T110
+## 2026-08-19T15:05:00Z · US10 · T110
 
 Did: Brought `docs/portal-administration/managing-measurements.md` to what
 `fairdm/core/measurement/admin.py` and the vocabulary modules it draws on
@@ -5532,7 +5532,7 @@ Next: T111 (using_the_registry.md, verify-only per the brief's note).
 
 Watch: none.
 
-## 2026-08-19T15:10:00Z · Implementer US10 · T111
+## 2026-08-19T15:10:00Z · US10 · T111
 
 Did: Verified `docs/portal-development/using_the_registry.md` against the code
 rather than rewriting it, per the brief's explicit note that this task's premise
@@ -5561,7 +5561,7 @@ Next: T112 (CHANGELOG.md).
 
 Watch: none.
 
-## 2026-08-19T15:25:00Z · Implementer US10 · T112
+## 2026-08-19T15:25:00Z · US10 · T112
 
 Did: Added a `CHANGELOG.md` entry for this feature, following the file's existing format (a
 `#### Core measurements (Feature 006)` subsection under `### Added`, matching how Feature 004 and
@@ -5587,7 +5587,7 @@ Next: T113 (docstring audit).
 
 Watch: none.
 
-## 2026-08-19T15:35:00Z · Implementer US10 · T113
+## 2026-08-19T15:35:00Z · US10 · T113
 
 Did: Audited every docstring on `fairdm/core/measurement/models.py`, `admin.py`, `forms.py`,
 `filters.py` and the measurement-scoped collections in `fairdm/core/vocabularies.py` against the
@@ -5621,11 +5621,11 @@ Next: T114 (replace the skip-swallowing test).
 
 Watch: none.
 
-## 2026-08-19T15:45:00Z · Implementer US10 · T114
+## 2026-08-19T15:45:00Z · US10 · T114
 
 Did: Replaced `TestMeasurementViews.test_measurement_detail_view_accessible`, the only test of a
 measurement's own address, which wrapped a real request in a bare `try/except Exception:
-pytest.skip(...)` and so reported a skip whatever happened - a previous Implementer's investigation
+pytest.skip(...)` and so reported a skip whatever happened - a previous implementation's investigation
 (recorded in this file) found that requesting the address directly raises `TemplateDoesNotExist` for
 a missing `cotton/pst/...` component while rendering `measurement/detail.html`, which the skip
 swallowed silently. Per the scope ruling in this brief, the detail page itself stays out of scope -
@@ -5655,7 +5655,7 @@ now done.
 
 Watch: none.
 
-## 2026-08-19T17:10:00Z · Implementer US10 · follow-up (T109/T114)
+## 2026-08-19T17:10:00Z · US10 · follow-up (T109/T114)
 
 Did: Addressed a review follow-up on two pre-existing skipped tests in
 `tests/test_core/test_measurement/test_models.py`, explicitly authorised as in-scope

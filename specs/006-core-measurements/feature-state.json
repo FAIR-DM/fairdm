@@ -3,12 +3,17 @@
  "feature": "006-core-measurements",
  "branch": "006-core-measurements",
  "repo": "FAIR-DM/fairdm",
- "state": "IMPLEMENT",
+ "state": "PR_READY",
  "state_history": [
   {
    "state": "IMPLEMENT",
    "at": "2026-08-19T11:05:00Z",
    "note": "group 0 foundations merged"
+  },
+  {
+   "state": "PR_READY",
+   "at": "2026-08-19T16:10:00Z",
+   "note": "review findings applied, verify green"
   }
  ],
  "gates": {
@@ -248,7 +253,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "docs/portal-development/measurements.md"
+       "docs/portal-development/measurements.md:1"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_value.py"
@@ -973,7 +978,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "fairdm/core/measurement/models.py:140-149"
+       "fairdm/core/measurement/models.py:140"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_value.py::TestGetValueWithUncertainty"
@@ -986,7 +991,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "fairdm/core/measurement/models.py:143-149"
+       "fairdm/core/measurement/models.py:143"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_value.py::TestGetValuePlainNumber"
@@ -999,8 +1004,8 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "fairdm/apps.py:70-86",
-       "fairdm/templatetags/fairdm.py:17-19"
+       "fairdm/apps.py:70",
+       "fairdm/templatetags/fairdm.py:17"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_value.py::TestPrintValue"
@@ -1013,7 +1018,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "fairdm/core/measurement/models.py:151-161"
+       "fairdm/core/measurement/models.py:151"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_value.py"
@@ -1026,8 +1031,8 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "fairdm/apps.py:70-86",
-       "fairdm/templatetags/fairdm.py:17-19"
+       "fairdm/apps.py:70",
+       "fairdm/templatetags/fairdm.py:17"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_value.py::TestPrintValue"
@@ -1040,7 +1045,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "fairdm_demo/models.py"
+       "fairdm_demo/models.py:1"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_value.py::TestGetValue",
@@ -1054,7 +1059,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "fairdm_demo/migrations/0003_icp_ms_measurement_uncertainty_and_more.py"
+       "fairdm_demo/migrations/0003_icp_ms_measurement_uncertainty_and_more.py:1"
       ],
       "commands": [
        "poetry run python -m manage makemigrations fairdm_demo",
@@ -1188,9 +1193,9 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "docs/portal-administration/managing-measurements.md",
-       "fairdm/core/measurement/admin.py",
-       "fairdm/core/vocabularies.py"
+       "docs/portal-administration/managing-measurements.md:1",
+       "fairdm/core/measurement/admin.py:1",
+       "fairdm/core/vocabularies.py:1"
       ],
       "verified_by_ci": false
      }
@@ -1589,7 +1594,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "CHANGELOG.md"
+       "CHANGELOG.md:1"
       ],
       "verified_by_ci": false
      }
@@ -1616,7 +1621,7 @@
      "attempts": 1,
      "evidence": {
       "code": [
-       "tests/test_core/test_measurement/test_models.py"
+       "tests/test_core/test_measurement/test_models.py:1"
       ],
       "tests": [
        "tests/test_core/test_measurement/test_models.py::TestMeasurementViews::test_get_absolute_url_is_the_measurements_own_address",
@@ -1639,7 +1644,7 @@
    "max": 3
   },
   "review_cycles": {
-   "used": 0,
+   "used": 1,
    "max": 1
   },
   "design_review_cycles": {
@@ -1650,5 +1655,9 @@
    "used": 0,
    "max": 6000000
   }
+ },
+ "pr": {
+  "number": 225,
+  "draft": false
  }
 }

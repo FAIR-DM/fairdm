@@ -458,7 +458,7 @@ protocol is the newer of the two.
 ## D18 — US7's task order was rebuilt around T093, and T090/T092 were merged
 
 
-**Self-resolved, Implementer, 2026-08-19. Both are reorderings the brief pre-authorised, recorded
+**Self-resolved during implementation, 2026-08-19. Both are reorderings that were pre-authorised, recorded
 here per its own instruction.**
 
 **Decision.** Tasks were built in this order: T093, T094, T086, T087, T088, T089, T090+T092
@@ -496,7 +496,7 @@ per-type hook, and this decision's premise (one formatter, one code path) is the
 ## D19 — Two smaller choices behind US7's tests
 
 
-**Self-resolved, Implementer, 2026-08-19.**
+**Self-resolved during implementation, 2026-08-19.**
 
 **Decision 1: `ICP_MS_Measurement.value` and `.uncertainty` use `microgram / liter` as their base
 unit.** ICP-MS concentration results are conventionally reported in µg/L (roughly equivalent to the
@@ -582,3 +582,5 @@ must decide indexing for a consumer who cannot add their own. What the review wa
 asymmetry — the sample record's equivalent field carries no index, and nothing explains why the two
 differ. That is a real inconsistency and it belongs to the sample record rather than this one, so it
 is noted here and left alone rather than resolved by quietly indexing another feature's field.
+
+**ADR:** none — a record of what the review changed in this run, not a standing decision
