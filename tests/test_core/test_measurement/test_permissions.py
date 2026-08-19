@@ -17,9 +17,13 @@ matching row.
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from guardian.shortcuts import assign_perm as guardian_assign_perm
 
+from fairdm.core.measurement.models import Measurement
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.core.utils import get_perms as fairdm_get_perms
+from fairdm.core.utils import get_permission_target
 from fairdm.core.utils import remove_perm as fairdm_remove_perm
 from fairdm.factories import DatasetFactory
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -243,6 +247,45 @@ class TestCrossDatasetPermissionBoundaries:
         # User cannot view or edit sample B (no permissions on dataset B)
         assert not user.has_perm("sample.view_sample", sample_b)
         assert not user.has_perm("sample.change_sample", sample_b)
+
+
+@pytest.mark.django_db
+class TestMeasurementRegisteredTypePermissions:
+    """A right can be granted over a measurement of a registered type as well as consulted on
+    it, and the answers match those for the bare record (T082) - because
+    ``fairdm.core.utils.assign_perm`` normalises the grant onto the base ``Measurement`` row
+    first, so a registered type is never treated as a record of its own (T083).
+    """
+
+    def test_grant_on_registered_type_matches_the_bare_record(self, user):
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        fairdm_assign_perm("measurement.change_measurement", user, measurement)
+
+        bare_record = Measurement.objects.non_polymorphic().get(pk=measurement.pk)
+        assert user.has_perm("measurement.change_measurement", measurement)
+        assert user.has_perm("measurement.change_measurement", bare_record)
+        assert fairdm_get_perms(user, measurement) == fairdm_get_perms(user, bare_record)
+
+    def test_guardian_raw_assign_perm_cannot_grant_on_the_registered_type_directly(self, user):
+        """Confirms why the normalisation in T083 is needed, rather than assuming it: without
+        it, guardian's own ``assign_perm`` cannot grant this permission at all, because it is
+        declared on ``Measurement``'s content type while the registered-type instance carries
+        its own."""
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        with pytest.raises(Permission.DoesNotExist):
+            guardian_assign_perm("measurement.change_measurement", user, measurement)
+
+    def test_assign_perm_normalises_the_grant_target_to_the_base_record(self, user):
+        """Unit-tests the normalisation itself (T083), not just its downstream effect."""
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        target = get_permission_target(measurement, "measurement.change_measurement")
+
+        assert type(measurement) is not Measurement
+        assert type(target) is Measurement
+        assert target.pk == measurement.pk
 
 
 @pytest.mark.django_db
