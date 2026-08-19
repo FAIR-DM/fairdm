@@ -91,6 +91,32 @@ class TestMeasurementModelCreation:
 
 
 @pytest.mark.django_db
+class TestMeasurementFields:
+    """T009 - a name is required; a measurement's own label, image, controlled keywords and
+    free-form tags are each optional."""
+
+    def test_name_is_required(self, sample):
+        from fairdm_demo.models import ExampleMeasurement
+
+        instance = ExampleMeasurement(sample=sample, dataset=sample.dataset)
+
+        with pytest.raises(ValidationError) as exc_info:
+            instance.full_clean()
+
+        assert "name" in exc_info.value.message_dict
+
+    def test_label_image_keywords_and_tags_are_all_optional(self, sample):
+        instance = ExampleMeasurementFactory(sample=sample, local_id=None, image=None)
+
+        instance.full_clean()  # does not raise
+
+        assert not instance.local_id
+        assert not instance.image
+        assert instance.keywords.count() == 0
+        assert instance.tags.count() == 0
+
+
+@pytest.mark.django_db
 class TestMeasurementPolymorphicInheritance:
     """Test polymorphic inheritance behavior for Measurement model."""
 
