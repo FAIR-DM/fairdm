@@ -1089,7 +1089,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
 
     def clean(self):
         """Refuse a second credit for the same contributor/object pairing, with the same
-        message the named UniqueConstraint carries (FR-031, Article IX)."""
+        message the named UniqueConstraint carries (FR-031, Article IX), and refuse a role
+        drawn from any vocabulary other than the framework's roles vocabulary (FR-032,
+        design review SPEC-001)."""
         from django.core.exceptions import ValidationError
 
         super().clean()
@@ -1105,6 +1107,14 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         )
         if duplicate:
             raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
+
+        if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
+            raise ValidationError(
+                _(
+                    "A contribution's roles must be drawn from the framework's roles "
+                    "vocabulary."
+                )
+            )
 
     @classmethod
     def add_to(cls, contributor, obj, roles=None, affiliation=None):

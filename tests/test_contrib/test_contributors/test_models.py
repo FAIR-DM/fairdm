@@ -690,6 +690,45 @@ class TestContributionUniqueness:
         assert role_names == {"DataCollector", "Researcher"}
 
 
+# ── T090: Contribution roles vocabulary ──────────────────────────────────────
+
+
+class TestContributionRoles:
+    """FR-032: a credit's roles are drawn from the framework's controlled roles vocabulary
+    (fairdm-roles); a concept from another vocabulary is refused."""
+
+    @pytest.mark.django_db
+    def test_role_from_the_roles_vocabulary_is_accepted(self, contribution):
+        from research_vocabs.models import Concept
+
+        role = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        contribution.roles.add(role)
+
+        contribution.full_clean()
+
+        assert role in contribution.roles.all()
+
+    @pytest.mark.django_db
+    def test_role_from_outside_the_roles_vocabulary_is_refused(self, contribution):
+        from research_vocabs.models import Concept, Vocabulary
+
+        other_vocabulary = Vocabulary.objects.create(
+            name="not-fairdm-roles",
+            label="Not FairDM Roles",
+            uri="https://example.com/vocabularies/not-fairdm-roles",
+        )
+        outside_role = Concept.objects.create(
+            vocabulary=other_vocabulary,
+            uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
+            name="Outsider",
+            label="Outsider",
+        )
+        contribution.roles.add(outside_role)
+
+        with pytest.raises(ValidationError, match="roles vocabulary"):
+            contribution.full_clean()
+
+
 # ── T017: ContributorIdentifier uniqueness ───────────────────────────────────
 
 
@@ -810,7 +849,13 @@ class TestMultipleRolesPerContribution:
 
     @pytest.mark.django_db
     def test_contribution_multiple_roles(self, db):
-        """A contribution can have multiple roles from Fair DM vocabulary."""
+        """A contribution can have multiple roles from the FairDM roles vocabulary.
+
+        The vocabulary is guaranteed seeded for every test by the session-scoped
+        ``django_db_setup`` fixture (``tests/conftest.py``), which calls
+        ``Concept.preload()`` once per session - so this no longer defends against an
+        unseeded vocabulary by skipping. A test that may silently skip is not coverage.
+        """
         from research_vocabs.models import Concept
 
         project = ProjectFactory()
@@ -820,27 +865,13 @@ class TestMultipleRolesPerContribution:
             contributor=person,
         )
 
-        # Get role concepts from the database (they should exist from fixtures/migrations)
-        # Use the legacy vocabulary filter approach
-        try:
-            roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
-            if roles_qs.count() < 2:
-                # If vocabulary not initialized, skip test
-                import pytest
+        roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
+        author_role = roles_qs.first()
+        editor_role = roles_qs.last()
 
-                pytest.skip("fairdm-roles vocabulary not initialized")
+        contribution.roles.add(author_role, editor_role)
 
-            author_role = roles_qs.first()
-            editor_role = roles_qs.last()
-
-            # Assign multiple roles
-            contribution.roles.add(author_role, editor_role)
-
-            assert contribution.roles.count() == 2
-        except Concept.DoesNotExist:
-            import pytest
-
-            pytest.skip("fairdm-roles vocabulary not initialized")
+        assert contribution.roles.count() == 2
         assert author_role in contribution.roles.all()
         assert editor_role in contribution.roles.all()
 
