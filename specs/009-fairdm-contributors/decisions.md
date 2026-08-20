@@ -519,3 +519,23 @@ the regression net for it instead, and they stayed green through the refactor.
 caller needs a queryset, not an instance, and `primary()` would need either a rename (e.g.
 `primary_qs()`) or a genuine return-type change with its callers updated, which this story does not
 do.
+
+## D24 — T122 and T123 needed no code change
+
+**Self-resolved.**
+
+T122 ("Add the real-contributors filter to `PersonQuerySet`") and T123 ("Add the active-accounts
+filter to `PersonQuerySet`") both carry a "built-without-tests" annotation, not a "never-built" one.
+`real()` already existed at `managers.py:16` (excluding `is_superuser=True` and the anonymous
+placeholder, exactly FR-041's real-contributors filter) and `active()` already existed at
+`managers.py:27` (`is_active=True`, exactly FR-041's active-accounts filter) before this story
+touched anything. Neither method's substance needed to change - only the missing tests, which T119
+and T120 add.
+
+Per the brief's prohibition against rewriting code that already exists, T122 and T123 are recorded
+as `done` with no accompanying commit: their evidence points at the pre-existing code and at
+T119's/T120's test commits, rather than at a commit that does not exist for a change that was never
+required.
+
+**Revisit if:** a future review finds `real()` or `active()` do not in fact match FR-041's wording -
+that would mean the "built-without-tests" annotation was wrong, not that this decision was.
