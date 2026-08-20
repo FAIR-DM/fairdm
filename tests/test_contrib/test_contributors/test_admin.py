@@ -11,9 +11,10 @@ Tests cover:
 """
 
 import pytest
+from django.contrib import admin
 from django.urls import reverse
 
-from fairdm.contrib.contributors.models import Affiliation
+from fairdm.contrib.contributors.models import Affiliation, Person
 
 # ── T046: Person admin changelist loads ─────────────────────────────────────
 
@@ -321,3 +322,41 @@ class TestClaimingAuditLogAdminView:
         )
         response = admin_client.get(url)
         assert response.status_code == 403
+
+
+# ── T126: Person admin merges account and profile fields (US10, FR-043) ─────
+
+
+def _fieldset_field_names(fieldsets):
+    """Flatten a ModelAdmin fieldsets structure into a flat set of field names."""
+    names = set()
+    for _, opts in fieldsets:
+        for field in opts["fields"]:
+            if isinstance(field, (list, tuple)):
+                names.update(field)
+            else:
+                names.add(field)
+    return names
+
+
+@pytest.mark.django_db
+class TestPersonAdmin:
+    """Verify the Person admin presents one merged screen, not a split account model (T126, T131)."""
+
+    def test_fieldsets_present_account_and_profile_fields_together(self):
+        """Account fields (auth) and profile fields (contributor) share the same fieldsets."""
+        model_admin = admin.site._registry[Person]
+        field_names = _fieldset_field_names(model_admin.fieldsets)
+
+        account_fields = {"password", "is_active", "is_staff", "is_superuser"}
+        profile_fields = {"name", "email", "profile", "image"}
+
+        assert account_fields <= field_names
+        assert profile_fields <= field_names
+
+    def test_no_separate_account_model_is_registered(self):
+        """The polymorphic Contributor base is not registered as its own admin screen."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        assert Person in admin.site._registry
+        assert Contributor not in admin.site._registry
