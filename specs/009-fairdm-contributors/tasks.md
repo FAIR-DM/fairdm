@@ -18,7 +18,10 @@ of this feature. It was then walked against the code. A task is ticked only wher
 satisfies it can be cited **and** an existing test genuinely exercises the behaviour — code with no
 test leaves its task open, and the remaining work is the test.
 
-**36 of 143 reconciled done. 105 remain open. 2 were struck as wrong tasks.**
+**30 of 143 reconciled done. 110 remain open. 3 were struck as wrong tasks.**
+
+Those numbers are after the design review, which challenged every tick under a lens of its own and
+un-ticked six of them. Its findings are recorded in `decisions.md` under D21.
 
 Every open task carries the reason it is open and, where something exists, the nearest code. The
 two struck tasks ask for a stored permission record, which FR-027 forbids and a migration already
@@ -185,10 +188,10 @@ Covers FR-008 to FR-011, FR-015, SC-003 and SC-005.
   already in use, refused at validation and at the database, while any number of people may carry
   no address at all (FR-009, SC-005).
   - **Open — never-built.** Nearest code `fairdm/contrib/contributors/models.py:525`. No test asserts a duplicate address is refused.
-- [X] T027 [US2] Add `TestClaimedPersonEmailRemoval` to
+- [ ] T027 [US2] Add `TestClaimedPersonEmailRemoval` to
   `tests/test_contrib/test_contributors/test_models.py`: a claimed person clearing their email
   address is refused by `full_clean()` with a message attached to the email field (FR-015, SC-005).
-  - **Reconciled done.** Code `fairdm/contrib/contributors/models.py:572` · test `tests/test_contrib/test_contributors/test_models.py:122 TestPersonClaimedUnclaimedSemantics::test_person_clean_prevents_claimed_email_null`
+  - **Open — built-differently.** Nearest code `fairdm/contrib/contributors/models.py:572`. The refusal reads `has_usable_password()` and `is_active` rather than the stored claim value, and the existing test never claims anyone, so it passes either way (design review RECON-001).
 - [ ] T028 [P] [US2] Add `TestPersonManagerCreation` to
   `tests/test_contrib/test_contributors/test_managers.py`: `create_user`, `create_superuser` and
   the attribution-only creation path each produce the account shape they promise, and email
@@ -210,9 +213,11 @@ Covers FR-008 to FR-011, FR-015, SC-003 and SC-005.
   `fairdm/contrib/contributors/models.py` — a case-insensitive `UniqueConstraint` with a
   `condition` excluding null, so that attribution-only people do not collide (FR-009, Article IX).
   - **Open — built-differently.** Nearest code `fairdm/contrib/contributors/models.py:525`. Uniqueness is a field flag; case-insensitivity relies on clean() lowercasing, which a direct create bypasses.
-- [X] T032 [US2] Add `Person.clean()` to `fairdm/contrib/contributors/models.py` refusing removal of
-  the email address of a claimed account, raising a field-keyed `ValidationError` (FR-015).
-  - **Reconciled done.** Code `fairdm/contrib/contributors/models.py:572` · test `tests/test_contrib/test_contributors/test_models.py:122 TestPersonClaimedUnclaimedSemantics::test_person_clean_prevents_claimed_email_null`
+- [ ] T032 [US2] Add `Person.clean()` to `fairdm/contrib/contributors/models.py` refusing removal of
+  the email address when `Person.is_claimed` is true — not when the account merely has a usable
+  password and is active, which is what it reads today — raising a field-keyed `ValidationError`
+  (FR-015).
+  - **Open — built-differently.** Nearest code `fairdm/contrib/contributors/models.py:572`. A fourth site deciding claim status from something other than the stored value (design review RECON-001).
 - [ ] T033 [US2] Add `fairdm/contrib/contributors/migrations/0002_create_person.py` creating the
   person table, its email constraint and the permissions Django's auth app expects of a swapped
   user model.
@@ -404,8 +409,8 @@ Covers FR-020 to FR-025 and SC-008.
   on the flag, so a concurrent write cannot slip past the save-time demotion (FR-024, Article IX).
   - **Open — never-built.** No database constraint protects the primary-membership invariant.
 - [X] T072 [US5] Add `AffiliationQuerySet` with `current()` and `past()` to
-  `fairdm/contrib/contributors/managers.py` and compose it onto an `AffiliationManager` with
-  `Manager.from_queryset` (FR-022, FR-040, FR-042).
+  `fairdm/contrib/contributors/managers.py` (FR-022, FR-042). Composing them onto the manager
+  belongs to T124.
   - **Reconciled done.** Code `fairdm/contrib/contributors/managers.py:173` · test `tests/test_contrib/test_contributors/test_managers.py:302 TestAffiliationQuerysetMethods::test_affiliation_past_method`
 - [ ] T073 [US5] Add `fairdm/contrib/contributors/migrations/0005_create_affiliation.py` creating
   the membership table and both of its constraints.
@@ -437,11 +442,11 @@ Covers FR-026 to FR-029 and SC-009.
   `tests/test_contrib/test_contributors/test_permissions.py`: the owner of one organisation holds
   nothing over a different one (FR-026, SC-009).
   - **Open — built-without-tests.** Nearest code `fairdm/contrib/contributors/permissions.py:102`. No test puts an owner against a second organisation.
-- [X] T079 [US6] Add `TestOwnershipDemotion` to
+- [ ] T079 [US6] Add `TestOwnershipDemotion` to
   `tests/test_contrib/test_contributors/test_permissions.py`: demoting the owner withdraws the
   right on the very next check with no intervening revocation step, and no object-permission row is
   written at any point (FR-027, SC-009).
-  - **Reconciled done.** Code `fairdm/contrib/contributors/permissions.py:102` · test `tests/test_contrib/test_contributors/test_permissions.py:38 TestAssignOrganizationOwner::test_removing_owner_type_revokes_permission`
+  - **Open — partial.** Nearest code `fairdm/contrib/contributors/permissions.py:102`. The demotion half is covered at `tests/test_contrib/test_contributors/test_permissions.py:38`; the clause proving FR-027 — that no object-permission row is ever written — is asserted nowhere, and it is the requirement on which two tasks were struck (design review RECON-005).
 - [X] T080 [US6] Add `TestOrganizationWithNoOwner` to
   `tests/test_contrib/test_contributors/test_permissions.py`: an organisation with no owner confers
   management rights on nobody by membership, and no member is promoted automatically (FR-028,
@@ -488,15 +493,15 @@ Covers FR-030 to FR-036, SC-010, SC-011 and SC-012.
 
 ### Tests
 
-- [X] T088 [US7] Add `TestContributionTargets` to
+- [ ] T088 [US7] Add `TestContributionTargets` to
   `tests/test_contrib/test_contributors/test_models.py`: a contributor of either kind is creditable
   on a project, a dataset, a sample and a measurement through the one generic entry (FR-030).
-  - **Reconciled done.** Code `fairdm/contrib/contributors/models.py:1074` · test `tests/test_core/test_sample/test_models.py:626 TestSampleContributions::test_contribution_records_contributor_and_roles`
-- [X] T089 [US7] Add `TestContributionUniqueness` to
+  - **Open — partial.** The sample case is covered at `tests/test_core/test_sample/test_models.py:626` and can be cited rather than rewritten. The dataset, measurement and organisation-as-contributor cases are not covered (design review RECON-004).
+- [ ] T089 [US7] Add `TestContributionUniqueness` to
   `tests/test_contrib/test_contributors/test_models.py`: one credit per contributor per object; a
   second entry for the same pairing is refused, and a further role accumulates on the existing
   entry so a person who both collected and analysed appears once (FR-031, SC-010).
-  - **Reconciled done.** Code `fairdm/contrib/contributors/models.py:1109` · test `tests/test_contrib/test_contributors/test_models.py:305 TestContributionGFKRelationships::test_contribution_unique_per_entity_contributor`
+  - **Open — partial.** Nearest code `fairdm/contrib/contributors/models.py:1109`. The uniqueness half is covered; the accumulation half is not, and the code contradicts it (design review SPEC-001).
 - [ ] T090 [US7] Add `TestContributionRoles` to
   `tests/test_contrib/test_contributors/test_models.py`: roles come from the framework's controlled
   role vocabulary and a concept outside it is refused (FR-032).
@@ -517,7 +522,7 @@ Covers FR-030 to FR-036, SC-010, SC-011 and SC-012.
 - [X] T094 [P] [US7] Add `TestCreditWithdrawal` to
   `tests/test_contrib/test_contributors/test_receivers.py`: an object-level right a person holds is
   checked before and after their credit on that object is deleted, and is gone afterwards
-  (FR-036, SC-012).
+  (FR-036, SC-012). Include a queryset-delete case, not only an instance delete.
   - **Reconciled done.** Code `fairdm/contrib/contributors/models.py:1168` · test `tests/test_core/test_sample/test_permissions.py:186 TestContributionRevocationIsNormalised::test_deleting_the_contribution_removes_the_grant`
 - [X] T095 [P] [US7] Add `TestContributionRoleFilter` to
   `tests/test_contrib/test_contributors/test_managers.py`: filtering credits by role returns only
@@ -526,9 +531,9 @@ Covers FR-030 to FR-036, SC-010, SC-011 and SC-012.
 ### Implementation
 
 - [X] T096 [US7] Define `Contribution` in `fairdm/contrib/contributors/models.py` with a foreign key
-  to `Contributor`, a content type and object id generic foreign key, and a
-  `Meta.default_related_name` matching the `GenericRelation("contributors.Contribution")` the core
-  models declare (FR-030).
+  to `Contributor`, a content type and object id generic foreign key (FR-030). The reverse accessor is
+  supplied explicitly on the contributor foreign key, so no `Meta.default_related_name` is needed
+  (design review RECON-006).
   - **Reconciled done.** Code `fairdm/contrib/contributors/models.py:1068` · test `tests/test_contrib/test_contributors/test_models.py:297 TestContributionGFKRelationships::test_contribution_links_person_to_project`
 - [ ] T097 [US7] Add the content-type, object-id and contributor `UniqueConstraint` and its
   supporting composite index to `Contribution.Meta`, with the matching `clean()` message, in
@@ -536,7 +541,7 @@ Covers FR-030 to FR-036, SC-010, SC-011 and SC-012.
   - **Open — partial.** Nearest code `fairdm/contrib/contributors/models.py:1109`. Unique_together rather than a named constraint; no clean() message.
 - [ ] T098 [US7] Add the roles many-to-many from `Contribution` to `research_vocabs.Concept` in
   `fairdm/contrib/contributors/models.py`, bound to the framework's roles vocabulary, with
-  validation refusing a concept from outside it (FR-032).
+  validation refusing a concept from outside it (FR-032). Crediting MUST **accumulate** roles rather than replace them: both entry points call `roles.set()` (`models.py:470` and `models.py:1127`), which silently discards a role recorded earlier, against FR-031 and `CONTEXT.md`. Change both (design review SPEC-001).
   - **Open — partial.** Nearest code `fairdm/contrib/contributors/models.py:1088`. The vocabulary binding exists; the validation does not.
 - [X] T099 [US7] Add the crediting-organisation foreign key to `Contribution` and the save-time
   default taken from the person's primary membership when none is named, in
@@ -550,13 +555,13 @@ Covers FR-030 to FR-036, SC-010, SC-011 and SC-012.
   `fairdm/contrib/contributors/models.py`, returning the contributors credited alongside it ordered
   most frequent first (FR-035).
   - **Open — built-without-tests.** Nearest code `fairdm/contrib/contributors/models.py:417`.
-- [X] T102 [US7] Add the post-delete receiver withdrawing a person's object-level rights over an
+- [ ] T102 [US7] Add the post-delete receiver withdrawing a person's object-level rights over an
   object when their credit on it is deleted to `fairdm/contrib/contributors/receivers.py`, and
-  connect it from `ContributorsConfig.ready()` in `fairdm/contrib/contributors/apps.py` (FR-036).
-  - **Reconciled done.** Code `fairdm/contrib/contributors/models.py:1168` · test `tests/test_core/test_sample/test_permissions.py:186 TestContributionRevocationIsNormalised::test_deleting_the_contribution_removes_the_grant`
+  connect it from `ContributorsConfig.ready()` in `fairdm/contrib/contributors/apps.py` (FR-036). The withdrawal must also fire when credits are deleted through the queryset.
+  - **Open — partial.** Nearest code `fairdm/contrib/contributors/models.py:1168`. The behaviour exists and is tested for an instance delete, but a lifecycle hook runs from the model's own `delete()` and so never fires for a queryset delete, which a post-delete receiver would (design review RECON-002).
 - [X] T103 [US7] Add `ContributionQuerySet` with the role filter to
-  `fairdm/contrib/contributors/managers.py` and compose it onto a `ContributionManager` with
-  `Manager.from_queryset` (FR-040, FR-042).
+  `fairdm/contrib/contributors/managers.py` (FR-042). Composing it onto the manager belongs to
+  T124.
   - **Reconciled done.** Code `fairdm/contrib/contributors/managers.py:242` · test `tests/test_contrib/test_contributors/test_managers.py:83 TestContributionByRole::test_by_role_filters_correctly`
 - [X] T104 [US7] Add `fairdm/contrib/contributors/migrations/0007_create_contribution.py` creating
   the credit table, its roles join table and its uniqueness constraint.
@@ -596,11 +601,11 @@ Covers FR-037 to FR-039 and SC-013.
   - **Open — built-without-tests.** Nearest code `fairdm/contrib/contributors/models.py:240`. Nothing calls the default-identifier accessor.
 ### Implementation
 
-- [ ] T111 [US8] Add the identifier resolver lookup to
+- [ ] ~~T111~~ [US8] Add the identifier resolver lookup to
   `fairdm/contrib/contributors/choices.py`, mapping each identifier type to its resolver root URL —
   this is the mapping `fairdm.core.abstract.AbstractIdentifier.get_root_url()` imports, so the core
   identifier records depend on it existing.
-  - **Open — built-without-tests.** Nearest code `fairdm/contrib/contributors/choices.py:39`.
+  - **Struck.** No requirement asks for it and the mapping already exists. Not built, not counted (design review SPEC-002).
 - [X] T112 [US8] Define `ContributorIdentifier` in `fairdm/contrib/contributors/models.py` with a
   foreign key to `Contributor`, a type drawn from the framework identifier vocabulary
   (`FairDMIdentifiers`, `fairdm/core/vocabularies.py`) and an indexed value (FR-037, Article IX).
@@ -662,7 +667,7 @@ Covers FR-040 to FR-042 and SC-014.
 - [ ] T124 [US9] Sweep `fairdm/contrib/contributors/managers.py` and
   `fairdm/contrib/contributors/models.py` so that every query in FR-041 and FR-042 is defined once
   on its queryset and reaches the manager through `Manager.from_queryset`, matching the pattern
-  `fairdm/core/dataset/models.py` uses, with no manager-side reimplementation left behind (FR-040).
+  `fairdm/core/dataset/models.py` uses, with no manager-side reimplementation left behind (FR-040). `AffiliationQuerySet.primary()` (`managers.py:180`) returns `.first()` rather than a queryset, so it cannot be composed as it stands.
   - **Open — built-differently.** Nearest code `fairdm/contrib/contributors/managers.py:76`. Twelve hand-written forwarding methods across three managers; from_queryset appears nowhere.
 - [ ] T125 [US9] Document the manager and queryset API in
   `docs/portal-development/contributors.md`, one minimal working example per query, describing each
@@ -719,11 +724,12 @@ Covers FR-043 to FR-046 and SC-015.
   - **Open — built-differently.** Nearest code `fairdm/contrib/contributors/admin.py:23`. Filters on the email address and offers two lookups rather than four states.
 - [ ] T135 [US10] Add the ownership transfer admin action to
   `fairdm/contrib/contributors/admin.py`, calling `Organization.transfer_ownership()` and reporting
-  the outcome through `django.contrib.messages` (FR-046).
+  the outcome through `django.contrib.messages` (FR-046). Preserve the existing object-level check `request.user.has_perm("contributors.manage_organization", org)` (`admin.py:451`) before the transfer runs — without it any account holding the model-level change permission could transfer any organisation (design review SEC-001).
   - **Open — built-differently.** Nearest code `fairdm/contrib/contributors/admin.py:425`. The action emits an instruction and performs no transfer.
-- [ ] T136 [US10] Add `AffiliationAdmin`, `ContributionAdmin` and `ContributorIdentifierAdmin` to
-  `fairdm/contrib/contributors/admin.py`, one maintenance screen per remaining record type, with
-  autocomplete on their contributor and organisation relations (US10).
+- [ ] T136 [US10] Add `AffiliationAdmin` to `fairdm/contrib/contributors/admin.py`, with
+  autocomplete on its person and organisation relations (US10). No requirement asks for a credit or
+  an identifier screen, and a credit screen would add a bulk-delete surface reaching the gap T102
+  closes (design review SPEC-002).
   - **Open — never-built.** No administrative entry for affiliations, credits or identifiers.
 - [ ] T137 [US10] Document the administrative screens in
   `docs/portal-administration/managing_contributors.md` — what each screen presents, the

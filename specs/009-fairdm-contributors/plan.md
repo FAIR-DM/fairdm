@@ -65,9 +65,10 @@ different files. Three constraints order them:
   the default-seeding branch both need somewhere correct to read from.
 - **The configuration field (US-1) precedes anything else touching `Contributor.save`**, because
   removing the privacy-seeding branch changes that method.
-- **The migrations are written by one hand.** Four schema changes across two models, landing in
-  parallel, is how a repository acquires two migration leaves. They are done first, in one task, and
-  everything else builds on them.
+- **Migrations are written per story, and never by two stories at once.** Four schema changes
+  across two models, generated concurrently, is how a repository acquires two migration leaves.
+  Each story writes its own migration inside its own phase, the phases do not overlap, and T139
+  consolidates them at convergence.
 
 After that the stories run in parallel. US-4 and US-6 both touch organisations but not the same
 concern — one is the record, the other is the permission backend.

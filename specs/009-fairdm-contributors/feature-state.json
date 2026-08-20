@@ -3,7 +3,7 @@
   "feature": "009-fairdm-contributors",
   "branch": "009-fairdm-contributors",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -19,6 +19,11 @@
       "state": "PLAN",
       "at": "2026-08-20T10:00:00Z",
       "note": "greenfield task list reconciled: 36 done, 105 open, 2 struck"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-20T11:00:00Z",
+      "note": "one reviewer, four lenses; ten findings, three high; six ticks withdrawn and one task struck"
     }
   ],
   "gates": {
@@ -33,6 +38,11 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-20T11:00:00Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -242,16 +252,8 @@
         },
         {
           "id": "T027",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/contrib/contributors/models.py:572"
-            ],
-            "tests": [
-              "tests/test_contrib/test_contributors/test_models.py:122 TestPersonClaimedUnclaimedSemantics::test_person_clean_prevents_claimed_email_null"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T028",
@@ -275,16 +277,8 @@
         },
         {
           "id": "T032",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/contrib/contributors/models.py:572"
-            ],
-            "tests": [
-              "tests/test_contrib/test_contributors/test_models.py:122 TestPersonClaimedUnclaimedSemantics::test_person_clean_prevents_claimed_email_null"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T033",
@@ -670,16 +664,8 @@
         },
         {
           "id": "T079",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/contrib/contributors/permissions.py:102"
-            ],
-            "tests": [
-              "tests/test_contrib/test_contributors/test_permissions.py:38 TestAssignOrganizationOwner::test_removing_owner_type_revokes_permission"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T080",
@@ -747,29 +733,13 @@
       "tasks": [
         {
           "id": "T088",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/contrib/contributors/models.py:1074"
-            ],
-            "tests": [
-              "tests/test_core/test_sample/test_models.py:626 TestSampleContributions::test_contribution_records_contributor_and_roles"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T089",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/contrib/contributors/models.py:1109"
-            ],
-            "tests": [
-              "tests/test_contrib/test_contributors/test_models.py:305 TestContributionGFKRelationships::test_contribution_unique_per_entity_contributor"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T090",
@@ -873,16 +843,8 @@
         },
         {
           "id": "T102",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/contrib/contributors/models.py:1168"
-            ],
-            "tests": [
-              "tests/test_core/test_sample/test_permissions.py:186 TestContributionRevocationIsNormalised::test_deleting_the_contribution_removes_the_grant"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T103",
@@ -971,11 +933,6 @@
         },
         {
           "id": "T110",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T111",
           "status": "todo",
           "attempts": 0
         },

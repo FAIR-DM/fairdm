@@ -405,3 +405,56 @@ Findings that are real and are not this specification's work.
 - **A registered plugin with no content and an empty module.** The Network tab
   (`plugins/person.py:118`) renders an empty page, and `plugins/organisation.py` is a zero-byte file
   that `plugins/__init__.py:1` imports. Deferred by D1.
+
+---
+
+## D21 — What the design review changed
+
+**One reviewer, four lenses, one round.** The fourth lens exists to challenge the reconciliation,
+because deciding a task is already done is the judgement in this work most likely to be wrong and
+the only one whose error is silent. It found six ticks that should not have been there, and both of
+the two judgement calls it was asked to test came back with an answer worth having.
+
+**Three findings that are defects in the code, not in the plan.**
+
+- **Crediting replaces roles instead of accumulating them.** Both entry points call
+  `roles.set()` (`models.py:470` and `models.py:1127`). Crediting the same person a second time
+  under a new role silently discards the role recorded the first time. FR-031 requires
+  accumulation, `CONTEXT.md` states it as a standing principle, and the test ticked against it
+  asserted only that a duplicate pairing raises. Folded into the task that owns the roles field.
+- **A fourth site decides claim status from the wrong thing.** D8 listed three; `Person.clean()`
+  (`models.py:572`) is a fourth, refusing removal of an email address when the account has a usable
+  password and is active rather than when it is claimed. A person who claimed through social login
+  can therefore clear their address, and a ghost who was given a password cannot. The test named
+  for this behaviour never claims anyone, so it passes whichever way the code reads.
+- **The lifecycle hook that withdraws rights does not fire on a queryset delete.** django-lifecycle
+  runs `AFTER_DELETE` from the model's own `delete()`, which `QuerySet.delete()` bypasses
+  altogether. FR-036 does not qualify how the credit is deleted. Verified in the installed library
+  rather than assumed.
+
+**One finding that would have widened access.** The task rewriting the ownership-transfer
+administrative action named no authorisation check, while the code it replaces gates on the
+object-level right (`admin.py:451`). An implementer working from a task list deliberately written as
+though the repository were empty would have dropped the gate. The clause is now in the task.
+
+**Both judgement calls, answered.**
+
+- Striking the two tasks that asked for a stored permission record was **right**. The reviewer
+  traced every consumer of the permission name: nothing performs a database lookup of the
+  permission row, and nothing assigns it, so re-declaring it would reintroduce precisely what
+  FR-027 forbids.
+- Ticking the credit-withdrawal task was **half right**. The argument that renaming working code to
+  match an invented file name is churn holds. The argument that a lifecycle hook and a signal
+  receiver are the same mechanism does not, which is the finding above.
+
+**And three that removed work**, which is the direction this review is cheap in: a task asking for
+an identifier mapping that already exists and that no requirement asks for is struck; a task adding
+three administrative screens is narrowed to the one the story actually describes, which also removes
+the bulk-delete surface that made the lifecycle gap reachable; and a clause asking for a related-name
+default is dropped from a task that is otherwise complete, because the accessor is already declared
+explicitly.
+
+The plan's ordering paragraph said migrations were written first in a single task while the task
+list wrote one per story. The task list was right and the paragraph is corrected.
+
+**After the review: 30 of 143 reconciled done, 110 open, 3 struck.**
