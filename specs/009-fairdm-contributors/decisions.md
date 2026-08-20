@@ -621,3 +621,28 @@ silently.
 **Revisit if:** a future story owning `fairdm/core/abstract.py` (or a dedicated fix) applies the
 same `roles.set()` → `roles.add()` change there. Recorded as a concern in this story's completion
 report so Forge can triage it.
+
+---
+
+## D28 — `test_contribution_multiple_roles` edited under the story brief's explicit direction
+
+**Self-resolved, US7.**
+
+**Decision:** `TestMultipleRolesPerContribution::test_contribution_multiple_roles`
+(`tests/test_contrib/test_contributors/test_models.py`), a pre-existing test not authored this
+story, is edited to remove a `try`/`except Concept.DoesNotExist`/`pytest.skip` block that skipped
+the test whenever fewer than two `fairdm-roles` concepts existed in the database.
+
+**Why:** the story brief's `prohibitions` array named this exact test by file and approximate line
+number and instructed directly: "Use the conftest fixture that seeds the vocabulary instead of
+skipping, and say what you did." The general Implementer prohibition against editing a test not
+authored this story is real, but the brief - "the contract, and it is self-sufficient" per the
+Implementer protocol - is the more specific and more recent instruction for this exact test, not a
+license to edit other pre-existing tests found along the way. Verified the premise before acting:
+the session-scoped `django_db_setup` fixture (`tests/conftest.py`) calls `Concept.preload()` for
+every test in the suite, so the skip path defended against a scenario (`fairdm-roles` vocabulary
+absent from the database) that cannot occur in this test suite - the skip was dead code, not a
+guard against a real gap.
+
+**Revisit if:** a future change makes vocabulary preloading conditional or optional, at which
+point the skip path this decision removed would need to come back in some form.
