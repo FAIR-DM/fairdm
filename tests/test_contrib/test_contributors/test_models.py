@@ -1030,6 +1030,31 @@ class TestPrimaryAffiliationDemotionIsAtomic:
         assert first.is_primary is True
 
 
+# ── T071: database-level primary-membership constraint ──────────────────────
+
+
+class TestPrimaryAffiliationDatabaseConstraint:
+    """FR-024, Article IX: a partial UniqueConstraint protects the
+    primary-membership invariant so a concurrent write cannot slip past the
+    save-time demotion."""
+
+    @pytest.mark.django_db
+    def test_database_refuses_two_primary_memberships_written_directly(
+        self, person
+    ):
+        """Marking two memberships primary directly at the database - bypassing
+        Affiliation.save() - is refused by the constraint."""
+        org1 = OrganizationFactory(name="Org 1")
+        org2 = OrganizationFactory(name="Org 2")
+        first = AffiliationFactory(person=person, organization=org1, is_primary=False)
+        second = AffiliationFactory(person=person, organization=org2, is_primary=False)
+
+        Affiliation.objects.filter(pk=first.pk).update(is_primary=True)
+
+        with pytest.raises(IntegrityError):
+            Affiliation.objects.filter(pk=second.pk).update(is_primary=True)
+
+
 # ── T046: ClaimingAuditLog immutability and manager ─────────────────────────
 
 

@@ -774,6 +774,11 @@ class Affiliation(models.Model):
                 fields=["person", "organization"],
                 name="unique_affiliation_person_organization",
             ),
+            models.UniqueConstraint(
+                fields=["person"],
+                condition=models.Q(is_primary=True),
+                name="unique_primary_affiliation_per_person",
+            ),
         ]
 
     def clean(self):
