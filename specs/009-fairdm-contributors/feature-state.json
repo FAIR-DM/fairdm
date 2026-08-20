@@ -1,0 +1,1161 @@
+{
+  "$schema": "../../../.forge/feature-state.schema.json",
+  "feature": "009-fairdm-contributors",
+  "branch": "009-fairdm-contributors",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-20T08:00:00Z",
+      "note": "specification rewritten against the code"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-20T09:00:00Z",
+      "note": "epic #233, ten stories, draft PR #251"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-20T10:00:00Z",
+      "note": "greenfield task list reconciled: 36 done, 105 open, 2 struck"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "sam",
+      "at": "2026-08-20T09:30:00Z"
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US0",
+      "priority": "P1",
+      "issue": null,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_contributors/__init__.py:1"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:38 TestPersonClaimedUnclaimedSemantics::test_claimed_person_has_email_and_is_active"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T138",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T139",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T140",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T141",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T142",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T143",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 234,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:48"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:108 TestPersonClaimedUnclaimedSemantics::test_person_polymorphic_query"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 235,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:572"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:122 TestPersonClaimedUnclaimedSemantics::test_person_clean_prevents_claimed_email_null"
+            ]
+          }
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:572"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:122 TestPersonClaimedUnclaimedSemantics::test_person_clean_prevents_claimed_email_null"
+            ]
+          }
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_contributors/conftest.py:31"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:42 TestPersonClaimedUnclaimedSemantics::test_claimed_person_has_email_and_is_active"
+            ]
+          }
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 236,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T044",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T045",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T046",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 237,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T047",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T049",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:894"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:184 TestOrganizationCreationAndValidation::test_organization_parent_child"
+            ]
+          }
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T055",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T056",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/factories/contributors.py:75"
+            ],
+            "tests": [
+              "tests/test_factories/test_contributors.py:82 TestContributorFactoryCreation::test_organization_factory_creates_organization"
+            ]
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_contributors/conftest.py:70"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:145 TestOrganizationCreationAndValidation::test_create_organization"
+            ]
+          }
+        },
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 238,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:778"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:238 TestAffiliationUniqueConstraints::test_affiliation_start_end_dates"
+            ]
+          }
+        },
+        {
+          "id": "T061",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:194"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:267 TestAffiliationQuerysetMethods::test_affiliation_current_method"
+            ]
+          }
+        },
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:838"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:602 TestPartialDatePrecision::test_affiliation_year_month_precision"
+            ]
+          }
+        },
+        {
+          "id": "T064",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:859"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:653 TestPrimaryAffiliationConstraint::test_setting_new_primary_unsetsolds"
+            ]
+          }
+        },
+        {
+          "id": "T065",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:799"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:229 TestAffiliationUniqueConstraints::test_affiliation_type_choices"
+            ]
+          }
+        },
+        {
+          "id": "T066",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:799"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:229 TestAffiliationUniqueConstraints::test_affiliation_type_choices"
+            ]
+          }
+        },
+        {
+          "id": "T067",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T068",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:838"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:238 TestAffiliationUniqueConstraints::test_affiliation_start_end_dates"
+            ]
+          }
+        },
+        {
+          "id": "T069",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T070",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T071",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T072",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:173"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:302 TestAffiliationQuerysetMethods::test_affiliation_past_method"
+            ]
+          }
+        },
+        {
+          "id": "T073",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T074",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T075",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_contributors/conftest.py:96"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:238 TestAffiliationUniqueConstraints::test_affiliation_start_end_dates"
+            ]
+          }
+        },
+        {
+          "id": "T076",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P2",
+      "issue": 239,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:102"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py:24 TestAssignOrganizationOwner::test_owner_affiliation_grants_manage_permission"
+            ]
+          }
+        },
+        {
+          "id": "T078",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:102"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py:38 TestAssignOrganizationOwner::test_removing_owner_type_revokes_permission"
+            ]
+          }
+        },
+        {
+          "id": "T080",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:102"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py:161 TestNonOwnerCannotEdit::test_non_owner_lacks_permission"
+            ]
+          }
+        },
+        {
+          "id": "T081",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T083",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:10"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py:24 TestAssignOrganizationOwner::test_owner_affiliation_grants_manage_permission"
+            ]
+          }
+        },
+        {
+          "id": "T084",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/conf/settings/auth.py:56"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py:24 TestAssignOrganizationOwner::test_owner_affiliation_grants_manage_permission"
+            ]
+          }
+        },
+        {
+          "id": "T085",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T087",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US7",
+      "priority": "P1",
+      "issue": 240,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T088",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1074"
+            ],
+            "tests": [
+              "tests/test_core/test_sample/test_models.py:626 TestSampleContributions::test_contribution_records_contributor_and_roles"
+            ]
+          }
+        },
+        {
+          "id": "T089",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1109"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:305 TestContributionGFKRelationships::test_contribution_unique_per_entity_contributor"
+            ]
+          }
+        },
+        {
+          "id": "T090",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T091",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1151"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:321 TestContributionGFKRelationships::test_contribution_default_affiliation"
+            ]
+          }
+        },
+        {
+          "id": "T092",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T093",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T094",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1168"
+            ],
+            "tests": [
+              "tests/test_core/test_sample/test_permissions.py:186 TestContributionRevocationIsNormalised::test_deleting_the_contribution_removes_the_grant"
+            ]
+          }
+        },
+        {
+          "id": "T095",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:245"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:83 TestContributionByRole::test_by_role_filters_correctly"
+            ]
+          }
+        },
+        {
+          "id": "T096",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1068"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:297 TestContributionGFKRelationships::test_contribution_links_person_to_project"
+            ]
+          }
+        },
+        {
+          "id": "T097",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T098",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T099",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1094"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:321 TestContributionGFKRelationships::test_contribution_default_affiliation"
+            ]
+          }
+        },
+        {
+          "id": "T100",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T101",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T102",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1168"
+            ],
+            "tests": [
+              "tests/test_core/test_sample/test_permissions.py:186 TestContributionRevocationIsNormalised::test_deleting_the_contribution_removes_the_grant"
+            ]
+          }
+        },
+        {
+          "id": "T103",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:242"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:83 TestContributionByRole::test_by_role_filters_correctly"
+            ]
+          }
+        },
+        {
+          "id": "T104",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/migrations/0001_initial.py:565"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:305 TestContributionGFKRelationships::test_contribution_unique_per_entity_contributor"
+            ]
+          }
+        },
+        {
+          "id": "T105",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/factories/contributors.py:96"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:305 TestContributionGFKRelationships::test_contribution_unique_per_entity_contributor"
+            ]
+          }
+        },
+        {
+          "id": "T106",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_contributors/conftest.py:126"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:297 TestContributionGFKRelationships::test_contribution_links_person_to_project"
+            ]
+          }
+        },
+        {
+          "id": "T107",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US8",
+      "priority": "P2",
+      "issue": 241,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T108",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1200"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:374 TestContributorIdentifierUniqueness::test_create_ror_identifier"
+            ]
+          }
+        },
+        {
+          "id": "T109",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T110",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T111",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T112",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1200"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:391 TestContributorIdentifierVocabulary::test_available_types_are_the_union_of_person_and_organization_types"
+            ]
+          }
+        },
+        {
+          "id": "T113",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T114",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T115",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T116",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T117",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US9",
+      "priority": "P2",
+      "issue": 242,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T118",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T119",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T120",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T121",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T122",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T123",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T124",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T125",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US10",
+      "priority": "P2",
+      "issue": 243,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T126",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T127",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T128",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T129",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T130",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T131",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T132",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T133",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T134",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T135",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T136",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T137",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 3
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  }
+}
