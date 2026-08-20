@@ -33,7 +33,6 @@ from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
-    UserFactory,
 )
 
 # ── FS-009 US1 T008: Contributor public identifier ──────────────────────────
@@ -414,20 +413,51 @@ class TestPersonClaimedUnclaimedSemantics:
         assert isinstance(result, Person)
 
     @pytest.mark.django_db
-    def test_person_clean_prevents_claimed_email_null(self, db):
-        """A claimed person cannot null their email via clean()."""
-        p = UserFactory(email="test@example.com", is_active=True)
-        p.set_password("testpass123")
-        p.save()
-        # Try to set email to None
-        p.email = None
-        with pytest.raises(ValidationError):
-            p.clean()
-
-    @pytest.mark.django_db
     def test_backward_compatible_alias(self):
         """OrganizationMember alias points to Affiliation."""
         assert OrganizationMember is Affiliation
+
+
+# ── T027 (US2): Claimed person email removal ─────────────────────────────────
+#
+# Replaces test_person_clean_prevents_claimed_email_null (design review RECON-001,
+# decisions.md D21): that test set has_usable_password() and is_active True together
+# with is_claimed True, so it passed whichever of the two the refusal actually read.
+# The second test below is the differentiator - it fails against the old
+# password/active check and only passes once clean() reads is_claimed (T032).
+
+
+class TestClaimedPersonEmailRemoval:
+    """Verify email removal is refused by the stored claim value, not by password or
+    active state (FR-015, SC-005, design review RECON-001)."""
+
+    @pytest.mark.django_db
+    def test_claimed_person_cannot_remove_email(self):
+        """A person who has claimed their account cannot null their email address."""
+        person = PersonFactory(email="claimed@example.com", is_active=True, is_claimed=True)
+        person.set_password("testpass123")
+        person.save()
+
+        person.email = None
+        with pytest.raises(ValidationError) as exc_info:
+            person.full_clean()
+
+        assert "email" in exc_info.value.message_dict
+
+    @pytest.mark.django_db
+    def test_unclaimed_person_with_usable_password_may_remove_email(self):
+        """A ghost given a password by some other route is not, on that account
+        alone, claimed - clearing the email is not refused."""
+        person = PersonFactory(
+            email="ghost-with-password@example.com", is_active=True, is_claimed=False
+        )
+        person.set_password("testpass123")
+        person.save()
+
+        person.email = None
+        person.full_clean()  # must not raise
+
+        assert person.email is None
 
 
 # ── T014: Organization creation and validation ──────────────────────────────
