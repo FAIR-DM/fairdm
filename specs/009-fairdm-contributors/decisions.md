@@ -583,3 +583,25 @@ tables straight from the models and every test in this story passes with no migr
 **Revisit if:** convergence's consolidated migration is generated and `makemigrations --check`
 still reports a pending change for `contributors.Person.is_claimed` afterward - that would mean the
 index was missed rather than deferred.
+## D27 — Primary-membership atomicity is tested by patching the base `Model.save`
+
+**Ruled (US5, T070).**
+
+`TestPrimaryAffiliationDemotionIsAtomic` needs to prove that the demotion of a person's old
+primary affiliation and the save of the new one either both happen or neither does. There is no
+natural way to make the second half of `Affiliation.save()` fail without a real, unrelated
+database error, so the test monkeypatches `django.db.models.Model.save` - confirmed by walking
+`Affiliation.__mro__` to be the first `save()` actually reached below `Affiliation`'s own override,
+since `fairdm.db.models.Model` (via `LifecycleModelMixin`) does not define its own `save()` - to
+raise `IntegrityError`, then asserts the demotion `.update()` was rolled back with it.
+
+This is a legitimate use of a mock under `craft-tdd` ("mock only what is slow, non-deterministic,
+or has side effects you cannot control"): the alternative was forcing a real constraint violation
+mid-save, which would have meant asserting a specific unrelated failure mode rather than the
+atomicity property itself. The test asserts an outcome (the old primary is still primary after the
+failed save), not a call sequence.
+
+**Revisit if:** `Affiliation` or its base classes ever define their own `save()` between
+`Affiliation.save()` and `django.db.models.Model.save()` in the MRO - the patch target would need
+to move with it, and a silently-unpatched `save()` would make the test pass without exercising
+anything.

@@ -760,6 +760,7 @@ class Affiliation(models.Model):
         _("type"),
         choices=MembershipType,
         default=MembershipType.MEMBER,
+        db_index=True,
         help_text=_(
             "The verification state / role of the person within the organization."
         ),
@@ -792,16 +793,60 @@ class Affiliation(models.Model):
     class Meta:
         verbose_name = _("affiliation")
         verbose_name_plural = _("affiliations")
-        unique_together = ("person", "organization")
+        default_related_name = "affiliations"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["person", "organization"],
+                name="unique_affiliation_person_organization",
+            ),
+            models.UniqueConstraint(
+                fields=["person"],
+                condition=models.Q(is_primary=True),
+                name="unique_primary_affiliation_per_person",
+            ),
+        ]
+
+    def clean(self):
+        """Refuse a second membership of the same organisation with a readable
+        message, rather than leaving the person to discover it as a database
+        error (FR-021)."""
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.person_id and self.organization_id:
+            duplicates = Affiliation.objects.filter(
+                person=self.person, organization=self.organization
+            )
+            if self.pk:
+                duplicates = duplicates.exclude(pk=self.pk)
+            if duplicates.exists():
+                raise ValidationError(
+                    {
+                        "organization": _(
+                            "%(person)s is already a member of %(organization)s."
+                        )
+                        % {"person": self.person, "organization": self.organization}
+                    }
+                )
 
     def save(self, *args, **kwargs):
-        """Ensure only one primary affiliation per person."""
+        """Ensure only one primary affiliation per person.
+
+        The demotion of any other primary affiliation and this save happen
+        inside one transaction (FR-024): if the save fails, the demotion is
+        rolled back too, rather than leaving the person with none marked
+        primary.
+        """
         if self.is_primary:
-            # Unset other primary affiliations for this person
-            Affiliation.objects.filter(person=self.person, is_primary=True).exclude(
-                pk=self.pk
-            ).update(is_primary=False)
-        super().save(*args, **kwargs)
+            from django.db import transaction
+
+            with transaction.atomic():
+                Affiliation.objects.filter(person=self.person, is_primary=True).exclude(
+                    pk=self.pk
+                ).update(is_primary=False)
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.person} - {self.organization}"

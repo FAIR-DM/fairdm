@@ -655,6 +655,21 @@ class TestOwnershipTransfer:
 # ── T015: Affiliation unique constraints ─────────────────────────────────────
 
 
+class TestAffiliationSchema:
+    """FR-020, FR-025, Article IX: the membership type is a real query path for
+    ownership lookups and is indexed; reverse access from person/organization
+    has a deliberate default related name."""
+
+    def test_membership_type_is_indexed(self):
+        """Affiliation.type is indexed because ownership lookups filter on it."""
+        field = Affiliation._meta.get_field("type")
+        assert field.db_index is True
+
+    def test_default_related_name_is_affiliations(self):
+        """Affiliation.Meta declares a default related name."""
+        assert Affiliation._meta.default_related_name == "affiliations"
+
+
 class TestAffiliationUniqueConstraints:
     """Verify Affiliation model constraints and behavior."""
 
@@ -725,6 +740,38 @@ class TestAffiliationUniqueConstraints:
         """__str__ returns 'Person - Organization'."""
         result = str(affiliation)
         assert " - " in result
+
+
+# ── T061: Affiliation uniqueness is refused with a readable message ─────────
+
+
+class TestAffiliationUniqueness:
+    """FR-021, SC-008: a second membership of the same organisation by the same
+    person is refused, at validation with a readable message and at the
+    database by constraint."""
+
+    @pytest.mark.django_db
+    def test_duplicate_membership_refused_at_validation_with_readable_message(
+        self, person, organization
+    ):
+        """A second membership fails full_clean() with a readable message, not
+        only a database error."""
+        AffiliationFactory(person=person, organization=organization)
+        duplicate = Affiliation(person=person, organization=organization)
+
+        with pytest.raises(ValidationError) as excinfo:
+            duplicate.full_clean()
+
+        assert "already a member" in str(excinfo.value)
+
+    @pytest.mark.django_db
+    def test_duplicate_membership_refused_at_database(self, person, organization):
+        """A second membership that bypasses validation is still refused by the
+        database constraint."""
+        AffiliationFactory(person=person, organization=organization)
+
+        with pytest.raises(IntegrityError):
+            Affiliation.objects.create(person=person, organization=organization)
 
 
 # ── T016: Contribution GFK relationships ─────────────────────────────────────
@@ -1132,6 +1179,62 @@ class TestPrimaryAffiliationConstraint:
 
         assert person.affiliations.filter(is_primary=False).count() == 3
         assert person.affiliations.filter(is_primary=True).count() == 0
+
+
+# ── T070: primary-membership demotion is atomic ──────────────────────────────
+
+
+class TestPrimaryAffiliationDemotionIsAtomic:
+    """FR-024: promoting a new primary and demoting the old one happen together
+    or not at all."""
+
+    @pytest.mark.django_db
+    def test_demotion_and_save_roll_back_together_on_failure(self, person, monkeypatch):
+        """If the save that promotes the new primary fails, the demotion of the
+        old primary is rolled back too, not left half-applied."""
+        import django.db.models as django_db_models
+
+        org1 = OrganizationFactory(name="Org 1")
+        org2 = OrganizationFactory(name="Org 2")
+        first = AffiliationFactory(person=person, organization=org1, is_primary=True)
+        second = AffiliationFactory(person=person, organization=org2, is_primary=False)
+
+        def failing_save(self, *args, **kwargs):
+            raise IntegrityError("simulated failure during save")
+
+        monkeypatch.setattr(django_db_models.Model, "save", failing_save)
+
+        second.is_primary = True
+        with pytest.raises(IntegrityError):
+            second.save()
+
+        first.refresh_from_db()
+        assert first.is_primary is True
+
+
+# ── T071: database-level primary-membership constraint ──────────────────────
+
+
+class TestPrimaryAffiliationDatabaseConstraint:
+    """FR-024, Article IX: a partial UniqueConstraint protects the
+    primary-membership invariant so a concurrent write cannot slip past the
+    save-time demotion."""
+
+    @pytest.mark.django_db
+    def test_database_refuses_two_primary_memberships_written_directly(
+        self, person
+    ):
+        """Marking two memberships primary directly at the database - bypassing
+        Affiliation.save() - is refused by the constraint."""
+        org1 = OrganizationFactory(name="Org 1")
+        org2 = OrganizationFactory(name="Org 2")
+        first = AffiliationFactory(person=person, organization=org1, is_primary=False)
+        second = AffiliationFactory(person=person, organization=org2, is_primary=False)
+
+        Affiliation.objects.filter(pk=first.pk).update(is_primary=True)
+
+        with pytest.raises(IntegrityError):
+            Affiliation.objects.filter(pk=second.pk).update(is_primary=True)
 
 
 # ── T046: ClaimingAuditLog immutability and manager ─────────────────────────
