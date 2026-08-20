@@ -100,6 +100,92 @@ class TestPersonAdminClaimFilter:
         assert person.email not in content or "0 persons" in content.lower()
 
 
+# ── T128: Claim-status filter reads the stored claim value (US10, FR-045) ───
+
+
+@pytest.mark.django_db
+class TestClaimStatusFilter:
+    """Verify the claim-status filter agrees with each of the four account states.
+
+    The filter previously derived "claimed" from email presence
+    (admin.py:23), which misclassifies an invited person (has an email, not
+    claimed) as claimed. It now reads is_claimed and is_active directly, with
+    the same precedence Person.account_state would use: inactive overrides
+    claimed (D8). Person.account_state itself is US3's work and does not
+    exist yet, so this filters on the stored fields directly.
+    """
+
+    @pytest.fixture
+    def ghost(self):
+        from fairdm.factories import PersonFactory
+
+        return PersonFactory(email=None, is_claimed=False, is_active=True)
+
+    @pytest.fixture
+    def invited(self):
+        from fairdm.factories import PersonFactory
+
+        return PersonFactory(
+            email="invited@example.org", is_claimed=False, is_active=True
+        )
+
+    @pytest.fixture
+    def claimed(self):
+        from fairdm.factories import PersonFactory
+
+        return PersonFactory(
+            email="claimed-state@example.org", is_claimed=True, is_active=True
+        )
+
+    @pytest.fixture
+    def inactive_claimed(self):
+        """A previously-claimed account that has since been deactivated."""
+        from fairdm.factories import PersonFactory
+
+        return PersonFactory(
+            email="inactive@example.org", is_claimed=True, is_active=False
+        )
+
+    def _claim_filter(self, value):
+        from fairdm.contrib.contributors.admin import ClaimedStatusFilter
+
+        return ClaimedStatusFilter(
+            request=None,
+            params={"is_claimed": [value]},
+            model=Person,
+            model_admin=None,
+        )
+
+    def _states(self, ghost, invited, claimed, inactive_claimed):
+        """Scope the queryset to just the four fixtures under test.
+
+        django-guardian seeds an anonymous-user Person row (unclaimed,
+        active) ahead of every test; scoping avoids a false positive from
+        that infrastructure record leaking into the "unclaimed" bucket.
+        """
+        return Person.objects.filter(
+            pk__in=[ghost.pk, invited.pk, claimed.pk, inactive_claimed.pk]
+        )
+
+    def test_claimed_bucket_holds_only_the_claimed_and_active_state(
+        self, ghost, invited, claimed, inactive_claimed
+    ):
+        filter_instance = self._claim_filter("claimed")
+        queryset = self._states(ghost, invited, claimed, inactive_claimed)
+        result = {p.pk for p in filter_instance.queryset(None, queryset)}
+
+        assert result == {claimed.pk}
+
+    def test_unclaimed_bucket_holds_ghost_invited_and_inactive_states(
+        self, ghost, invited, claimed, inactive_claimed
+    ):
+        filter_instance = self._claim_filter("unclaimed")
+        queryset = self._states(ghost, invited, claimed, inactive_claimed)
+        result = {p.pk for p in filter_instance.queryset(None, queryset)}
+
+        assert result == {ghost.pk, invited.pk, inactive_claimed.pk}
+
+
 # ── T048: Inline affiliation management ─────────────────────────────────────
 
 

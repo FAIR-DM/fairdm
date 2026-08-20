@@ -2,7 +2,6 @@ from allauth.account.models import EmailAddress
 from dal import autocomplete
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
@@ -21,7 +20,16 @@ from .resources import PersonResource
 
 
 class ClaimedStatusFilter(admin.SimpleListFilter):
-    """Filter persons by claimed/unclaimed status."""
+    """Filter persons by claimed/unclaimed status.
+
+    Reads the stored claim value (``is_claimed``), not the email address
+    (D8): an invited person has an email but has not claimed their account,
+    so email presence alone misclassifies them. "Claimed" also respects the
+    same precedence Person.account_state would use -- an account that has
+    since been deactivated no longer counts as claimed, even though
+    is_claimed is still True. Person.account_state itself is US3's work and
+    does not exist yet, so this reads is_claimed/is_active directly.
+    """
 
     title = _("Claimed Status")
     parameter_name = "is_claimed"
@@ -29,16 +37,16 @@ class ClaimedStatusFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         """Return filter options."""
         return (
-            ("claimed", _("Claimed (has email)")),
-            ("unclaimed", _("Unclaimed (no email)")),
+            ("claimed", _("Claimed")),
+            ("unclaimed", _("Unclaimed")),
         )
 
     def queryset(self, request, queryset):
         """Apply filter to queryset."""
         if self.value() == "claimed":
-            return queryset.exclude(email__isnull=True).exclude(email="")
+            return queryset.filter(is_active=True, is_claimed=True)
         elif self.value() == "unclaimed":
-            return queryset.filter(Q(email__isnull=True) | Q(email=""))
+            return queryset.exclude(is_active=True, is_claimed=True)
         return queryset
 
 
