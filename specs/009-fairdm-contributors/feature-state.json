@@ -624,13 +624,37 @@
       "tasks": [
         {
           "id": "T047",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/choices.py:18"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_choices.py:11 TestOrganizationTypeVocabulary::test_organization_type_has_every_ror_schema_2_1_value"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_choices.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T048",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:798"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:411 TestOrganizationTypeValidation::test_type_outside_the_ror_set_is_refused"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationTypeValidation -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T049",
@@ -651,38 +675,118 @@
         },
         {
           "id": "T050",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:822"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:448 TestOrganizationParentDeletion::test_deleting_the_parent_leaves_the_child_with_no_parent"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationParentDeletion -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T051",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:831"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:476 TestOrganizationLocation::test_city_and_country_are_optional"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationLocation -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T052",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/choices.py:18"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_choices.py:11 TestOrganizationTypeVocabulary::test_organization_type_has_every_ror_schema_2_1_value"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_choices.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T053",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:798",
+              "fairdm/contrib/contributors/models.py:862"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:411 TestOrganizationTypeValidation"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationTypeValidation -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T054",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:822"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:448 TestOrganizationParentDeletion::test_deleting_the_parent_leaves_the_child_with_no_parent"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationParentDeletion -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T055",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:831",
+              "fairdm/contrib/contributors/models.py:840"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:476 TestOrganizationLocation"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationLocation -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T056",
-          "status": "todo",
-          "attempts": 0
+          "status": "blocked",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run python manage.py makemigrations --check --dry-run contributors"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T057",
@@ -720,8 +824,18 @@
         },
         {
           "id": "T059",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/data_models/contributors.md:82"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run pytest -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
