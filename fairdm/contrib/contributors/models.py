@@ -769,7 +769,35 @@ class Affiliation(models.Model):
         verbose_name = _("affiliation")
         verbose_name_plural = _("affiliations")
         default_related_name = "affiliations"
-        unique_together = ("person", "organization")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["person", "organization"],
+                name="unique_affiliation_person_organization",
+            ),
+        ]
+
+    def clean(self):
+        """Refuse a second membership of the same organisation with a readable
+        message, rather than leaving the person to discover it as a database
+        error (FR-021)."""
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.person_id and self.organization_id:
+            duplicates = Affiliation.objects.filter(
+                person=self.person, organization=self.organization
+            )
+            if self.pk:
+                duplicates = duplicates.exclude(pk=self.pk)
+            if duplicates.exists():
+                raise ValidationError(
+                    {
+                        "organization": _(
+                            "%(person)s is already a member of %(organization)s."
+                        )
+                        % {"person": self.person, "organization": self.organization}
+                    }
+                )
 
     def save(self, *args, **kwargs):
         """Ensure only one primary affiliation per person."""
