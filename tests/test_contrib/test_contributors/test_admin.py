@@ -445,6 +445,40 @@ class TestOrganizationAdmin:
         assert "Synchronisation" in content
 
 
+# ── T136: Affiliation admin, with autocomplete on its relations (US10) ──────
+
+
+@pytest.mark.django_db
+class TestAffiliationAdmin:
+    """Verify the Affiliation admin registration.
+
+    No requirement asks for a Contribution or ContributorIdentifier screen,
+    and a credit screen would add a bulk-delete surface reaching the
+    lifecycle-hook gap T102 closes (design review SPEC-002), so this is
+    scoped to AffiliationAdmin only.
+    """
+
+    def test_affiliation_is_registered_with_autocomplete_relations(self):
+        model_admin = admin.site._registry[Affiliation]
+        assert set(model_admin.autocomplete_fields) == {"person", "organization"}
+
+    def test_no_contribution_or_identifier_admin_is_registered(self):
+        from fairdm.contrib.contributors.models import (
+            Contribution,
+            ContributorIdentifier,
+        )
+
+        assert Contribution not in admin.site._registry
+        assert ContributorIdentifier not in admin.site._registry
+
+    def test_changelist_loads(self, admin_client, affiliation):
+        url = reverse("admin:contributors_affiliation_changelist")
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        assert affiliation.person.name in response.content.decode()
+
+
 # ── T046: ClaimingAuditLog admin view ────────────────────────────────────────
 
 

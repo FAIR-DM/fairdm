@@ -514,6 +514,15 @@ class OrganizationAdmin(admin.ModelAdmin):
         return redirect(url)
 
 
+@admin.register(Affiliation)
+class AffiliationAdmin(admin.ModelAdmin):
+    """Administer affiliations directly, outside the person/organisation inlines (US10)."""
+
+    list_display = ["person", "organization", "type", "is_primary"]
+    list_filter = ["type", "is_primary"]
+    autocomplete_fields = ["person", "organization"]
+
+
 @admin.register(ClaimingAuditLog)
 class ClaimingAuditLogAdmin(admin.ModelAdmin):
     """Read-only admin view for ClaimingAuditLog entries.
