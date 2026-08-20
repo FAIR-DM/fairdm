@@ -178,27 +178,54 @@ To link with ROR:
 - **PENDING**: Membership pending verification (no permissions)
 - **MEMBER**: Regular member (read-only org access)
 - **ADMIN**: Administrator (can manage memberships)
-- **OWNER**: Owner (full control, automatically grants `manage_organization` permission)
+- **OWNER**: Owner — holding an OWNER affiliation on an organisation is what
+  `manage_organization` on that organisation *means*
 
-**⚠️ Important**: Only ONE owner per organization. Setting a new owner automatically demotes the previous owner to ADMIN.
+### Ownership is derived, not stored
+
+`manage_organization` is not a permission record. `OrganizationPermissionBackend`
+answers `user.has_perm("manage_organization", organization)` by checking, at
+the moment of the call, whether the user holds an OWNER affiliation on that
+organization. Nothing is granted, revoked or written when an affiliation's
+type changes — there is no permission row to fall out of step with the
+affiliation, because there is no permission row.
+
+One consequence: a demotion takes effect on the very next permission check,
+with no separate revocation step. Editing an affiliation's type from OWNER to
+MEMBER or ADMIN in the inline above is enough on its own.
+
+Another: the model does not enforce a single owner. Nothing stops two
+affiliations on the same organisation both being OWNER, and each of those
+people independently holds `manage_organization`. Editing an affiliation's
+type to OWNER by hand, on its own, does **not** demote whoever already holds
+it — it adds a second owner. Use `transfer_ownership()` (below) when the
+intent is to hand the role to someone else rather than add them alongside
+the incumbent.
 
 ### Transferring Organization Ownership
 
-To transfer ownership:
+**Via Admin Action**: Select a single organization in the admin changelist
+and choose "Transfer Ownership". The action does not perform the transfer
+itself — it points you at the members inline to make the change described
+below.
 
-**Method 1: Via Admin Action**
-1. Select organization in admin changelist
-2. Choose "Transfer Ownership" action
-3. Follow instructions to set new owner
+**Via `Organization.transfer_ownership()`**: the model method that performs
+an actual transfer — demoting the incumbent owner to ADMIN and promoting the
+named person to OWNER in one atomic operation, refusing the call if that
+person is not already a member:
 
-**Method 2: Via Affiliation Type**
-1. Edit the organization
-2. Find the affiliation for the new owner
-3. Change type to "OWNER"
-4. Save
-5. Old owner is automatically demoted to ADMIN
+```python
+from fairdm.contrib.contributors.models import Organization, Person
 
-The `manage_organization` permission is automatically synced via lifecycle hooks.
+organization = Organization.objects.get(name="Example University")
+new_owner = Person.objects.get(email="new.owner@example.edu")
+
+organization.transfer_ownership(new_owner)
+# new_owner now holds `manage_organization`; the previous owner is now ADMIN.
+```
+
+Calling it with someone who holds no affiliation on the organisation raises
+`ValidationError` and changes nothing.
 
 ## Affiliation Verification Workflow
 
@@ -552,9 +579,9 @@ def export_person_data(person):
 ### Permission Boundaries
 
 **Organization Ownership**:
-- Only one OWNER per organization
 - OWNER has `manage_organization` permission
-- Permission synced automatically via Affiliation lifecycle hooks
+- The permission is derived from the OWNER affiliation at the moment it is
+  checked, not stored — see [Ownership is derived, not stored](#ownership-is-derived-not-stored)
 
 **Admin Access**:
 - Django staff/superuser can access all records
