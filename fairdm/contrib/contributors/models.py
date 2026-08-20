@@ -1163,17 +1163,21 @@ class Contribution(LifecycleModelMixin, OrderedModel):
 
         super().clean()
 
-        duplicate = (
-            Contribution.objects.exclude(pk=self.pk)
-            .filter(
-                content_type=self.content_type,
-                object_id=self.object_id,
-                contributor=self.contributor,
+        # clean() also runs on partially-bound instances — a generic inline formset
+        # validates its forms before the parent object supplies the content type — so
+        # the pairing can only be checked once all three of its parts are present.
+        if self.content_type_id and self.object_id and self.contributor_id:
+            duplicate = (
+                Contribution.objects.exclude(pk=self.pk)
+                .filter(
+                    content_type_id=self.content_type_id,
+                    object_id=self.object_id,
+                    contributor_id=self.contributor_id,
+                )
+                .exists()
             )
-            .exists()
-        )
-        if duplicate:
-            raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
+            if duplicate:
+                raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
 
         if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
             raise ValidationError(
