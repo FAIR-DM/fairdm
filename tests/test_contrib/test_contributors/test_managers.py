@@ -11,7 +11,7 @@ Tests correspond to tasks T100-T103.
 
 import pytest
 
-from fairdm.contrib.contributors.models import Contribution, Person
+from fairdm.contrib.contributors.models import Affiliation, Contribution, Person
 from fairdm.contrib.contributors.tasks import detect_duplicate_contributors
 
 # ── T100: claimed/unclaimed querysets ────────────────────────────────────────
@@ -375,3 +375,93 @@ class TestAffiliationQuerysetMethods:
 
         # No overlap
         assert set(current) & set(past) == set()
+
+
+# ── T119 (US9): real contributors ────────────────────────────────────────────
+
+
+class TestRealContributors:
+    """Person.objects.real() / PersonQuerySet.real() - FR-041, SC-014."""
+
+    @pytest.mark.django_db
+    def test_excludes_superusers_and_the_anonymous_placeholder(
+        self, contributor_population
+    ):
+        """real() drops the superuser and the django-guardian anonymous user."""
+        real = Person.objects.real()
+
+        assert contributor_population.superuser not in real
+        assert contributor_population.anonymous not in real
+
+    @pytest.mark.django_db
+    def test_keeps_every_other_account_state(self, contributor_population):
+        """real() keeps every genuine person regardless of account state."""
+        real = Person.objects.real()
+
+        assert contributor_population.ghost in real
+        assert contributor_population.invited in real
+        assert contributor_population.claimed in real
+        assert contributor_population.inactive in real
+
+
+# ── T120 (US9): active accounts ──────────────────────────────────────────────
+
+
+class TestActiveAccounts:
+    """Person.objects.active() / PersonQuerySet.active() - FR-041, SC-014."""
+
+    @pytest.mark.django_db
+    def test_returns_only_active_people(self, contributor_population):
+        """active() keeps every is_active=True person and drops the inactive one."""
+        active = Person.objects.active()
+
+        assert contributor_population.ghost in active
+        assert contributor_population.invited in active
+        assert contributor_population.claimed in active
+        assert contributor_population.inactive not in active
+
+
+# ── T121 (US9): queryset/manager parity ──────────────────────────────────────
+
+
+class TestQuerysetManagerParity:
+    """Every query FR-041 and FR-042 name is reachable from both the queryset
+    and the manager, and returns the same rows from each - FR-040, SC-014.
+    """
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "method_name",
+        ["real", "active", "claimed", "unclaimed", "ghost", "invited"],
+    )
+    def test_person_query_matches_between_queryset_and_manager(
+        self, contributor_population, method_name
+    ):
+        from_manager = set(getattr(Person.objects, method_name)())
+        from_queryset = set(getattr(Person.objects.all(), method_name)())
+
+        assert from_manager == from_queryset
+        assert from_manager  # the population guarantees a non-empty result
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("method_name", ["current", "past"])
+    def test_membership_query_matches_between_queryset_and_manager(
+        self, contributor_population, method_name
+    ):
+        from_manager = set(getattr(Affiliation.objects, method_name)())
+        from_queryset = set(getattr(Affiliation.objects.all(), method_name)())
+
+        assert from_manager == from_queryset
+        assert from_manager
+
+    @pytest.mark.django_db
+    def test_credit_by_role_query_matches_between_queryset_and_manager(
+        self, contributor_population
+    ):
+        role_name = contributor_population.creator_role.name
+
+        from_manager = set(Contribution.objects.by_role(role_name))
+        from_queryset = set(Contribution.objects.all().by_role(role_name))
+
+        assert from_manager == from_queryset
+        assert from_manager

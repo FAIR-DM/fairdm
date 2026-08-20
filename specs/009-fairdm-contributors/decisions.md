@@ -489,3 +489,53 @@ covered:
 **What is not covered:** whether the implementer loaded its craft skills. That is unprovable now,
 and no receipt is recorded rather than a receipt being assumed. Every later story in this feature
 carries its receipts normally.
+
+## D23 — `AffiliationQuerySet.primary()` composes onto the manager despite returning an instance
+
+**Self-resolved**, per T124's brief prohibition to decide deliberately rather than silently.
+
+`AffiliationQuerySet.primary()` (`managers.py`) returns `.filter(is_primary=True).first()` - an
+`Affiliation` instance or `None`, not a queryset. The brief's prohibition read this as meaning
+`primary()` "cannot be composed by `from_queryset` as it stands" and required a deliberate choice:
+make it return a queryset and adjust its callers, or leave it as a manager method and say why.
+
+Checked directly rather than assumed: `Manager._get_queryset_methods` (`django/db/models/manager.py`)
+copies any public function defined on the queryset class and wraps it as
+`getattr(self.get_queryset(), name)(*args, **kwargs)` — it never inspects the return type. A
+`python -c` probe building `models.Manager.from_queryset(DummyQuerySet)` against a queryset whose
+method returns `.first()` confirmed the wrapper is copied and callable exactly like any other. So
+`primary()` **can** be composed via `from_queryset`, and `AffiliationManager` now is
+`models.Manager.from_queryset(AffiliationQuerySet)` like the other two managers this story
+touches — no special case.
+
+What does not change: `primary()`'s return type, or any of its three callers (`managers.py`'s own
+docstring, `docs/portal-development/contributors.md`, and the two tests in
+`TestAffiliationQuerysetMethods` that already asserted `person.affiliations.primary()` returns an
+instance or `None`). FR-042 does not name `primary()` — only "current" and "ended" memberships — so
+it is outside T121's parity test scope; `TestAffiliationQuerysetMethods`'s pre-existing tests are
+the regression net for it instead, and they stayed green through the refactor.
+
+**Revisit if:** a future caller wants to chain a further queryset method after `.primary()` — that
+caller needs a queryset, not an instance, and `primary()` would need either a rename (e.g.
+`primary_qs()`) or a genuine return-type change with its callers updated, which this story does not
+do.
+
+## D24 — T122 and T123 needed no code change
+
+**Self-resolved.**
+
+T122 ("Add the real-contributors filter to `PersonQuerySet`") and T123 ("Add the active-accounts
+filter to `PersonQuerySet`") both carry a "built-without-tests" annotation, not a "never-built" one.
+`real()` already existed at `managers.py:16` (excluding `is_superuser=True` and the anonymous
+placeholder, exactly FR-041's real-contributors filter) and `active()` already existed at
+`managers.py:27` (`is_active=True`, exactly FR-041's active-accounts filter) before this story
+touched anything. Neither method's substance needed to change - only the missing tests, which T119
+and T120 add.
+
+Per the brief's prohibition against rewriting code that already exists, T122 and T123 are recorded
+as `done` with no accompanying commit: their evidence points at the pre-existing code and at
+T119's/T120's test commits, rather than at a commit that does not exist for a change that was never
+required.
+
+**Revisit if:** a future review finds `real()` or `active()` do not in fact match FR-041's wording -
+that would mean the "built-without-tests" annotation was wrong, not that this decision was.

@@ -6,104 +6,11 @@ from ordered_model.models import OrderedModelManager, OrderedModelQuerySet
 from fairdm.db.models import PrefetchPolymorphicManager, PrefetchPolymorphicQuerySet
 
 
-class UserManager(BaseUserManager, PrefetchPolymorphicManager):
-    """Define a model manager for User model with no username field.
-
-    This manager is unified with PersonQuerySet to provide both user creation
-    methods and state-based filtering. See research.md D8 for manager unification
-    rationale.
-    """
-
-    use_in_migrations = False
-
-    def get_queryset(self):
-        """Return PersonQuerySet for unified manager functionality."""
-        return PersonQuerySet(self.model, using=self._db)
-
-    def _create_user(self, email, password, **extra_fields):
-        """Create and save a User with the given email and password."""
-        if not email:
-            raise ValueError("The given email must be set")
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, password, **extra_fields):
-        """Create and save a SuperUser with the given email and password."""
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
-
-        return self._create_user(email, password, **extra_fields)
-
-    def create_unclaimed(self, first_name: str, last_name: str, **extra_fields):
-        """Create an unclaimed (Ghost state) Person record.
-
-        Creates a provenance-only attribution record with:
-        - email=None (no email address)
-        - is_claimed=False (not owned by a user)
-        - is_active=True (allows future claiming via invitation)
-        - set_unusable_password() (cannot log in until claimed)
-
-        This implements the Ghost state in the 4-state machine. See research.md D3.
-
-        Args:
-            first_name: Given name (required).
-            last_name: Family name (required).
-            **extra_fields: Any other Contributor/Person fields.
-
-        Returns:
-            Person instance (saved, Ghost state).
-        """
-        extra_fields["email"] = None
-        extra_fields["is_claimed"] = False
-        extra_fields["is_active"] = True
-        extra_fields["first_name"] = first_name
-        extra_fields["last_name"] = last_name
-        extra_fields.setdefault("name", f"{first_name} {last_name}".strip())
-
-        user = self.model(**extra_fields)
-        user.set_unusable_password()
-        user.save(using=self._db)
-        return user
-
-    # Proxy methods for PersonQuerySet
-    def real(self):
-        """Proxy to queryset real() method."""
-        return self.get_queryset().real()
-
-    def active(self):
-        """Proxy to queryset active() method."""
-        return self.get_queryset().active()
-
-    def claimed(self):
-        """Proxy to queryset claimed() method."""
-        return self.get_queryset().claimed()
-
-    def unclaimed(self):
-        """Proxy to queryset unclaimed() method."""
-        return self.get_queryset().unclaimed()
-
-    def ghost(self):
-        """Proxy to queryset ghost() method."""
-        return self.get_queryset().ghost()
-
-    def invited(self):
-        """Proxy to queryset invited() method."""
-        return self.get_queryset().invited()
-
-
 class PersonQuerySet(PrefetchPolymorphicQuerySet):
     """QuerySet for Person model with state-based filtering methods.
 
     Provides methods for querying persons based on their claim status and account state.
-    See research.md D3 for the complete 4-state machine (Ghost→Invited→Claimed→Banned).
+    See decisions.md D8 for the account-state derivation.
     """
 
     def real(self):
@@ -170,6 +77,72 @@ class PersonQuerySet(PrefetchPolymorphicQuerySet):
         return self.filter(is_claimed=False, email__isnull=False)
 
 
+class UserManager(BaseUserManager, PrefetchPolymorphicManager.from_queryset(PersonQuerySet)):
+    """Manager for the Person model with no username field.
+
+    `real()`, `active()`, `claimed()`, `unclaimed()`, `ghost()` and `invited()`
+    are defined once on `PersonQuerySet` above and reach this manager through
+    `PrefetchPolymorphicManager.from_queryset()` (FR-040, D14), matching the
+    pattern `fairdm.core.dataset.models.DatasetManager` uses - no manager-side
+    reimplementation is kept here.
+    """
+
+    use_in_migrations = False
+
+    def _create_user(self, email, password, **extra_fields):
+        """Create and save a User with the given email and password."""
+        if not email:
+            raise ValueError("The given email must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        """Create and save a SuperUser with the given email and password."""
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self._create_user(email, password, **extra_fields)
+
+    def create_unclaimed(self, first_name: str, last_name: str, **extra_fields):
+        """Create an unclaimed (Ghost state) Person record.
+
+        Creates a provenance-only attribution record with:
+        - email=None (no email address)
+        - is_claimed=False (not owned by a user)
+        - is_active=True (allows future claiming via invitation)
+        - set_unusable_password() (cannot log in until claimed)
+
+        This implements the Ghost state in the 4-state machine. See decisions.md D8.
+
+        Args:
+            first_name: Given name (required).
+            last_name: Family name (required).
+            **extra_fields: Any other Contributor/Person fields.
+
+        Returns:
+            Person instance (saved, Ghost state).
+        """
+        extra_fields["email"] = None
+        extra_fields["is_claimed"] = False
+        extra_fields["is_active"] = True
+        extra_fields["first_name"] = first_name
+        extra_fields["last_name"] = last_name
+        extra_fields.setdefault("name", f"{first_name} {last_name}".strip())
+
+        user = self.model(**extra_fields)
+        user.set_unusable_password()
+        user.save(using=self._db)
+        return user
+
+
 class AffiliationQuerySet(models.QuerySet):
     """QuerySet for Affiliation model with time-based filtering methods.
 
@@ -219,24 +192,17 @@ class AffiliationQuerySet(models.QuerySet):
         return self.filter(end_date__isnull=False)
 
 
-class AffiliationManager(models.Manager):
-    """Manager for Affiliation model using PersonQuerySet methods."""
+class AffiliationManager(models.Manager.from_queryset(AffiliationQuerySet)):
+    """Manager for the Affiliation model.
 
-    def get_queryset(self):
-        """Return AffiliationQuerySet."""
-        return AffiliationQuerySet(self.model, using=self._db)
-
-    def primary(self):
-        """Proxy to queryset primary() method."""
-        return self.get_queryset().primary()
-
-    def current(self):
-        """Proxy to queryset current() method."""
-        return self.get_queryset().current()
-
-    def past(self):
-        """Proxy to queryset past() method."""
-        return self.get_queryset().past()
+    `primary()`, `current()` and `past()` are defined once on
+    `AffiliationQuerySet` above and reach this manager through
+    `Manager.from_queryset()` (FR-040, D14). `primary()` returns a single
+    `Affiliation` or `None` rather than a queryset - `from_queryset` copies a
+    method's forwarding call regardless of its return type, so this does not
+    prevent composition; it only means `.primary()` cannot be chained with a
+    further queryset method, which no caller in this codebase does.
+    """
 
 
 class ContributionQuerySet(OrderedModelQuerySet):
@@ -264,17 +230,13 @@ class ContributionQuerySet(OrderedModelQuerySet):
         return self.filter(contributor=contributor)
 
 
-class ContributionManager(OrderedModelManager):
-    """Manager for Contribution model."""
+class ContributionManager(OrderedModelManager.from_queryset(ContributionQuerySet)):
+    """Manager for the Contribution model.
 
-    def get_queryset(self):
-        return ContributionQuerySet(self.model, using=self._db)
-
-    def by_role(self, role_name: str):
-        return self.get_queryset().by_role(role_name)
-
-    def for_entity(self, obj):
-        return self.get_queryset().for_entity(obj)
-
-    def by_contributor(self, contributor):
-        return self.get_queryset().by_contributor(contributor)
+    `by_role()`, `for_entity()` and `by_contributor()` are defined once on
+    `ContributionQuerySet` above and reach this manager through
+    `OrderedModelManager.from_queryset()` (FR-040, D14) - `OrderedModelManager`
+    is itself `models.Manager.from_queryset(OrderedModelQuerySet)`, so this
+    keeps the ordered-model queryset methods (`get_max_order()`, `above()`,
+    etc.) alongside the contribution-specific ones.
+    """
