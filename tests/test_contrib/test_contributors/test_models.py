@@ -12,10 +12,10 @@ Tests cover:
 """
 
 import pytest
-from django.contrib.contenttypes.models import ContentType
 from django.apps import apps
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
@@ -1319,6 +1319,55 @@ class TestContributorIdentifierUniqueness:
     def test_person_default_identifier_is_orcid(self):
         """Person.DEFAULT_IDENTIFIER is 'ORCID'."""
         assert Person.DEFAULT_IDENTIFIER == "ORCID"
+
+
+# ── T109: A contributor cannot carry two identifiers of the same type ───────
+
+
+class TestIdentifierUniquePerType:
+    """A second identifier of a type the contributor already carries is refused, both
+    at validation and at the database (FR-038, SC-013)."""
+
+    @pytest.mark.django_db
+    def test_second_identifier_of_same_type_refused_at_the_database(
+        self, orcid_identifier, person
+    ):
+        """Bypassing clean() entirely - inserted straight through the manager - the
+        database constraint still refuses a second identifier of a type the
+        contributor already carries."""
+        with pytest.raises(IntegrityError):
+            ContributorIdentifier.objects.create(
+                related=person, type="ORCID", value="0000-0001-9999-9999"
+            )
+
+    @pytest.mark.django_db
+    def test_second_identifier_of_same_type_refused_at_clean(
+        self, orcid_identifier, person
+    ):
+        """clean() refuses it too, and the message names the type."""
+        duplicate = ContributorIdentifier(
+            related=person, type="ORCID", value="0000-0001-9999-9999"
+        )
+
+        with pytest.raises(ValidationError) as excinfo:
+            duplicate.clean()
+
+        assert "ORCID" in str(excinfo.value)
+
+    @pytest.mark.django_db
+    def test_a_second_type_on_the_same_contributor_is_unaffected(
+        self, orcid_identifier, person
+    ):
+        """The constraint is per type, not per contributor - a person may carry an
+        ORCID and a different identifier type at once."""
+        second = ContributorIdentifier(
+            related=person, type="RESEARCHER_ID", value="A-1234-2020"
+        )
+
+        second.clean()
+        second.save()
+
+        assert person.identifiers.count() == 2
 
 
 class TestContributorIdentifierVocabulary:
