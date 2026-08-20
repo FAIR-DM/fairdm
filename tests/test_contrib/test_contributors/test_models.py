@@ -15,7 +15,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
-from fairdm.contrib.contributors.choices import AccountState
+from fairdm.contrib.contributors.choices import AccountState, OrganizationType
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
@@ -489,6 +489,101 @@ class TestOrganizationCreationAndValidation:
     def test_organization_default_identifier_is_ror(self):
         """Organization.DEFAULT_IDENTIFIER is 'ROR'."""
         assert Organization.DEFAULT_IDENTIFIER == "ROR"
+
+
+# ── FS-009 US4 T048/T053: Organisation type field and validation ────────────
+
+
+class TestOrganizationTypeValidation:
+    """Verify Organization.type only accepts ROR schema 2.1 values (FR-016, SC-006)."""
+
+    @pytest.mark.django_db
+    def test_type_outside_the_ror_set_is_refused(self, organization):
+        """A type outside ROR's set is refused by full_clean()."""
+        organization.type = "museum"
+        with pytest.raises(ValidationError):
+            organization.full_clean()
+
+    @pytest.mark.django_db
+    def test_every_ror_type_is_accepted(self):
+        """Each member of the ROR set is accepted, asserted by name."""
+        for value in (
+            OrganizationType.EDUCATION,
+            OrganizationType.FUNDER,
+            OrganizationType.HEALTHCARE,
+            OrganizationType.COMPANY,
+            OrganizationType.ARCHIVE,
+            OrganizationType.NONPROFIT,
+            OrganizationType.GOVERNMENT,
+            OrganizationType.FACILITY,
+            OrganizationType.OTHER,
+        ):
+            organization = OrganizationFactory(type=value)
+            organization.full_clean()
+            assert organization.type == value
+
+    def test_type_field_is_indexed(self):
+        """The type field is indexed, since listing and filtering by institution
+        kind is its purpose (Article IX)."""
+        assert Organization._meta.get_field("type").db_index is True
+
+
+# ── FS-009 US4 T050/T054: Organisation parent deletion ───────────────────────
+
+
+class TestOrganizationParentDeletion:
+    """Verify deleting a parent organisation does not delete its children (FR-018, SC-007)."""
+
+    @pytest.mark.django_db
+    def test_deleting_the_parent_leaves_the_child_with_no_parent(self, person):
+        """A department outlives its university, its members and credits untouched."""
+        university = OrganizationFactory(name="Test University")
+        department = OrganizationFactory(name="Test Department", parent=university)
+        AffiliationFactory(
+            person=person,
+            organization=department,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+        contribution = ContributionFactory(contributor=department)
+
+        university.delete()
+
+        department.refresh_from_db()
+        assert department.parent is None
+        assert department.affiliations.count() == 1
+        assert department.contributions.count() == 1
+        contribution.refresh_from_db()
+        assert contribution.contributor_id == department.pk
+
+
+# ── FS-009 US4 T051/T055: Organisation location fields ───────────────────────
+
+
+class TestOrganizationLocation:
+    """Verify Organization city/country fields are optional and round-trip (FR-019)."""
+
+    @pytest.mark.django_db
+    def test_city_and_country_are_optional(self):
+        """An organisation with neither city nor country passes validation."""
+        organization = OrganizationFactory(name="Unspecified Institute")
+        organization.full_clean()
+        assert not organization.city
+        assert not organization.country
+
+    @pytest.mark.django_db
+    def test_city_and_country_round_trip(self):
+        """City and country survive a save and a reload from the database."""
+        organization = OrganizationFactory(name="GFZ", city="Potsdam", country="DE")
+
+        organization.refresh_from_db()
+
+        assert organization.city == "Potsdam"
+        assert organization.country == "DE"
+
+    def test_city_and_country_are_indexed(self):
+        """City and country are indexed, since both are listing filters (Article IX)."""
+        assert Organization._meta.get_field("city").db_index is True
+        assert Organization._meta.get_field("country").db_index is True
 
 
 # ── T081/T085: Ownership transfer ────────────────────────────────────────────

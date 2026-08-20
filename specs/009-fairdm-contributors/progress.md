@@ -266,3 +266,111 @@ Watch: `fairdm/contrib/contributors/admin.py`'s claim-status filter and `account
 method duplicate logic this story now provides on the model; recommend a follow-up story sweep
 `admin.py` to call `Person.account_state` directly instead. Left untouched - `admin.py` is owned by
 US10, out of this story's scope.
+## 2026-08-20T11:48:00Z · Implementer US4 · T047/T052
+
+Did: Added `OrganizationType(models.TextChoices)` to `fairdm/contrib/contributors/choices.py`
+with the nine ROR schema 2.1 organisation types (`education`, `funder`, `healthcare`, `company`,
+`archive`, `nonprofit`, `government`, `facility`, `other`), read from research.md R1 rather than
+re-derived. Cited the schema as the source in the module docstring. Added
+`TestOrganizationTypeVocabulary` (`tests/test_contrib/test_contributors/test_choices.py`, new
+file), asserting every member by name and a count bound, not by iterating the class.
+
+Verified:
+- `poetry run pytest tests/test_contrib/test_contributors/test_choices.py -q -p no:randomly` →
+  first run (before the class existed) failed on `ImportError`, the right reason; after adding the
+  class, 2 passed.
+- `poetry run ruff check fairdm/contrib/contributors/choices.py
+  tests/test_contrib/test_contributors/test_choices.py` → all checks passed.
+
+Next: T048/T053 — the `type` field on `Organization` itself.
+
+Watch: none.
+
+## 2026-08-20T11:48:00Z · Implementer US4 · T048/T053
+
+Did: Added `Organization.type` — `CharField`, `choices=OrganizationType.choices`, `null=True`,
+`blank=True`, `db_index=True` — plus `Meta.default_related_name = "organizations"` on
+`Organization` (FR-016, Article IX). Added `TestOrganizationTypeValidation`
+(`tests/test_contrib/test_contributors/test_models.py`): a type outside the ROR set is refused by
+`full_clean()`, every ROR member is accepted (asserted by name, not iterated), and the field
+carries the index.
+
+Verified:
+- `poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationTypeValidation
+  tests/test_contrib/test_contributors/test_models.py::TestOrganizationCreationAndValidation -q
+  -p no:randomly` → first run (before the field existed) failed on `FieldDoesNotExist`, the right
+  reason; after adding the field, 10 passed.
+- `poetry run ruff check fairdm/contrib/contributors/models.py
+  tests/test_contrib/test_contributors/test_models.py` → all checks passed.
+
+Next: T050/T054 — the parent-deletion defect.
+
+Watch: none.
+
+## 2026-08-20T11:48:00Z · Implementer US4 · T050/T054
+
+Did: Reproduced the data-loss defect named in the brief — `Organization.parent` was
+`on_delete=CASCADE`, so deleting a university deleted every department beneath it, their
+affiliations and their credits (decisions.md D12). Changed to `SET_NULL` (the field was already
+`null=True`, nothing else changed). Added `TestOrganizationParentDeletion`
+(`tests/test_contrib/test_contributors/test_models.py`): a department with a member (affiliation)
+and a credit (contribution) survives its university's deletion with no parent, its affiliation and
+its contribution untouched.
+
+Verified:
+- `poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationParentDeletion
+  tests/test_contrib/test_contributors/test_models.py::TestOrganizationCreationAndValidation -q
+  -p no:randomly` → first run (against CASCADE) failed reproducing the exact defect
+  (`Organization.DoesNotExist` on the child after the parent's deletion); after `SET_NULL`, 8
+  passed.
+- `poetry run ruff check fairdm/contrib/contributors/models.py
+  tests/test_contrib/test_contributors/test_models.py` → all checks passed.
+
+Next: T051/T055 — location field indexing.
+
+Watch: none.
+
+## 2026-08-20T11:48:00Z · Implementer US4 · T051/T055
+
+Did: Added `db_index=True` to `Organization.city` and `Organization.country` (FR-019, Article IX
+— neither was indexed). Added `TestOrganizationLocation`
+(`tests/test_contrib/test_contributors/test_models.py`): city and country are optional (an
+organisation with neither still validates), round-trip through a save and a `refresh_from_db()`,
+and both are indexed.
+
+Verified:
+- `poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationLocation
+  tests/test_contrib/test_contributors/test_models.py::TestOrganizationCreationAndValidation -q
+  -p no:randomly` → the optional/round-trip cases passed immediately against the pre-existing
+  fields (T051 is a test-only gap); the index assertion failed first (`db_index` was `False`), the
+  right reason, then passed after adding `db_index=True`. 10 passed overall.
+- `poetry run ruff check fairdm/contrib/contributors/models.py
+  tests/test_contrib/test_contributors/test_models.py` → all checks passed.
+
+Next: T056 (skipped, see Watch) and T059 — documentation.
+
+Watch: T056 asked for a new migration file
+(`fairdm/contrib/contributors/migrations/0004_create_organization.py`). Per the brief's
+prohibition, no migration file was added — test settings stub `MIGRATION_MODULES`, and Forge
+generates one consolidated migration across all four concurrent stories at convergence. Confirmed
+the model changes are migration-consistent with
+`poetry run python manage.py makemigrations --check --dry-run contributors`, which reports exactly
+the expected operations (`Add field type`, `Alter field city/country/parent`, `Change Meta options`)
+against `0027_alter_organization_options_organization_type_and_more.py` — not written to disk.
+
+## 2026-08-20T11:48:00Z · Implementer US4 · T059
+
+Did: Added an "Organization" section to `docs/data_models/contributors.md`: the `type` field and
+the ROR set it draws from (and the deliberate single-value narrowing), the `parent`/
+`sub_organizations` hierarchy, what happens to a sub-organisation when its parent is deleted, and
+the `city`/`country` location fields. Worked example: a department under a university, the
+university then deleted, the department left with no parent.
+
+Verified: the worked example was copied into a throwaway test file inside
+`tests/test_contrib/test_contributors/` (not committed), run with
+`poetry run pytest -q -p no:randomly` → 1 passed, then deleted.
+
+Next: none — all ten tasks (T047, T048, T050-T056, T059) addressed. Full-suite verify remains for
+the completion report.
+
+Watch: none.
