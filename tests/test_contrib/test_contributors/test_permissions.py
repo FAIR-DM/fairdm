@@ -84,6 +84,31 @@ class TestAssignOrganizationOwner:
         assert person2_fresh.has_perm("manage_organization", organization)
 
 
+# ── T078: Ownership is scoped to the organisation it was granted on ─────────
+
+
+@pytest.mark.django_db
+class TestOwnershipIsScoped:
+    """Verify an owner membership confers rights on that organisation only (FR-026)."""
+
+    def test_owner_of_one_organization_holds_nothing_on_another(self, person):
+        """Owning organisation A grants no rights over unrelated organisation B."""
+        from fairdm.factories import OrganizationFactory
+
+        owned_org = OrganizationFactory(name="Owned University")
+        other_org = OrganizationFactory(name="Unrelated University")
+
+        Affiliation.objects.create(
+            person=person,
+            organization=owned_org,
+            type=Affiliation.MembershipType.OWNER,
+            is_primary=True,
+        )
+
+        assert person.has_perm("manage_organization", owned_org)
+        assert not person.has_perm("manage_organization", other_org)
+
+
 # ── T062: Owner can edit organization ───────────────────────────────────────
 
 
