@@ -545,6 +545,38 @@ class TestAffiliationUniqueConstraints:
         assert " - " in result
 
 
+# ── T061: Affiliation uniqueness is refused with a readable message ─────────
+
+
+class TestAffiliationUniqueness:
+    """FR-021, SC-008: a second membership of the same organisation by the same
+    person is refused, at validation with a readable message and at the
+    database by constraint."""
+
+    @pytest.mark.django_db
+    def test_duplicate_membership_refused_at_validation_with_readable_message(
+        self, person, organization
+    ):
+        """A second membership fails full_clean() with a readable message, not
+        only a database error."""
+        AffiliationFactory(person=person, organization=organization)
+        duplicate = Affiliation(person=person, organization=organization)
+
+        with pytest.raises(ValidationError) as excinfo:
+            duplicate.full_clean()
+
+        assert "already a member" in str(excinfo.value)
+
+    @pytest.mark.django_db
+    def test_duplicate_membership_refused_at_database(self, person, organization):
+        """A second membership that bypasses validation is still refused by the
+        database constraint."""
+        AffiliationFactory(person=person, organization=organization)
+
+        with pytest.raises(IntegrityError):
+            Affiliation.objects.create(person=person, organization=organization)
+
+
 # ── T016: Contribution GFK relationships ─────────────────────────────────────
 
 
