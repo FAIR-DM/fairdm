@@ -6,6 +6,7 @@ and ownership transfer functionality.
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from partial_date import PartialDate
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
@@ -107,6 +108,48 @@ class TestOwnershipIsScoped:
 
         assert person.has_perm("manage_organization", owned_org)
         assert not person.has_perm("manage_organization", other_org)
+
+
+# ── T079: Demotion withdraws the right with no stored permission row ────────
+
+
+@pytest.mark.django_db
+class TestOwnershipDemotion:
+    """Verify the management right is derived, never stored (FR-027).
+
+    ``test_removing_owner_type_revokes_permission`` above already covers the
+    right being withdrawn on demotion; this class adds the clause that test
+    does not: at no point — owner or demoted — does a guardian object
+    permission row exist for the organisation.
+    """
+
+    def test_no_guardian_row_is_ever_written_across_promotion_and_demotion(
+        self, organization, person
+    ):
+        """No UserObjectPermission row exists while owner, nor after demotion."""
+        from guardian.models import UserObjectPermission
+
+        def guardian_rows_for_organization():
+            content_type = ContentType.objects.get_for_model(Organization)
+            return UserObjectPermission.objects.filter(
+                content_type=content_type, object_pk=str(organization.pk)
+            )
+
+        affiliation = Affiliation.objects.create(
+            person=person,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+            is_primary=True,
+        )
+
+        assert person.has_perm("manage_organization", organization)
+        assert not guardian_rows_for_organization().exists()
+
+        affiliation.type = Affiliation.MembershipType.MEMBER
+        affiliation.save()
+
+        assert not person.has_perm("manage_organization", organization)
+        assert not guardian_rows_for_organization().exists()
 
 
 # ── T062: Owner can edit organization ───────────────────────────────────────
