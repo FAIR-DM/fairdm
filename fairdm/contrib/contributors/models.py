@@ -8,6 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
+from django.db.models.functions import Lower
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
@@ -511,7 +512,6 @@ class Person(AbstractUser, Contributor):
             "The person's email address. Null for an unclaimed profile created for "
             "attribution alone."
         ),
-        unique=True,
         null=True,
         blank=True,
     )
@@ -528,9 +528,21 @@ class Person(AbstractUser, Contributor):
     )
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name", "last_name"]
+    REQUIRED_FIELDS = []
 
-    username = Contributor.__str__
+    username = None
+
+    class Meta(AbstractUser.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                Lower("email"),
+                name="unique_person_email_ci",
+                condition=models.Q(email__isnull=False),
+                violation_error_message=_(
+                    "A person with this email address already exists."
+                ),
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -575,14 +587,12 @@ class Person(AbstractUser, Contributor):
         if self.email == "":
             self.email = None
 
-        # Prevent claimed users from nulling their email
-        # A claimed user has a usable password and is active (was previously claimed)
-        if (
-            self.pk
-            and self.has_usable_password()
-            and self.is_active
-            and self.email is None
-        ):
+        # Prevent claimed users from nulling their email. Reads the stored claim
+        # value (is_claimed) rather than has_usable_password()/is_active - those
+        # describe something else and reading them here was a fourth site
+        # deciding claim status from the wrong thing (design review RECON-001,
+        # decisions.md D8, D21).
+        if self.pk and self.is_claimed and self.email is None:
             raise ValidationError(
                 {"email": _("Claimed users cannot remove their email address.")}
             )

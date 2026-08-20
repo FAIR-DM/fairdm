@@ -122,6 +122,66 @@ class TestAccountStateFilters:
                 state for state, qs in state_to_queryset.items() if person in qs
             ]
             assert matching_states == [person.account_state]
+# ── T028 (US2): Person manager creation ──────────────────────────────────────
+
+
+class TestPersonManagerCreation:
+    """Verify create_user, create_superuser and create_unclaimed each produce the
+    account shape they promise, and email addresses are normalised (FR-009, FR-010)."""
+
+    @pytest.mark.django_db
+    def test_create_user_normalises_email_and_sets_usable_password(self):
+        person = Person.objects.create_user(
+            email="New.Person@EXAMPLE.com",
+            password="s3cret-pass",
+            first_name="New",
+            last_name="Person",
+        )
+
+        assert person.pk is not None
+        assert person.email == "New.Person@example.com"  # domain lowercased, local part kept
+        assert person.has_usable_password() is True
+        assert person.check_password("s3cret-pass") is True
+        assert person.is_staff is False
+        assert person.is_superuser is False
+
+    @pytest.mark.django_db
+    def test_create_user_without_password_sets_unusable_password(self):
+        person = Person.objects.create_user(
+            email="nopassword@example.com", first_name="No", last_name="Password"
+        )
+
+        assert person.has_usable_password() is False
+
+    @pytest.mark.django_db
+    def test_create_superuser_sets_staff_and_superuser_flags(self):
+        superuser = Person.objects.create_superuser(
+            email="admin@example.com",
+            password="s3cret-pass",
+            first_name="Admin",
+            last_name="User",
+        )
+
+        assert superuser.is_staff is True
+        assert superuser.is_superuser is True
+        assert superuser.has_usable_password() is True
+
+    @pytest.mark.django_db
+    def test_create_superuser_refuses_is_staff_false(self):
+        with pytest.raises(ValueError):
+            Person.objects.create_superuser(
+                email="notstaff@example.com", password="s3cret-pass", is_staff=False
+            )
+
+    @pytest.mark.django_db
+    def test_create_unclaimed_produces_attribution_only_shape(self):
+        person = Person.objects.create_unclaimed(first_name="Ghost", last_name="Person")
+
+        assert person.pk is not None
+        assert person.email is None
+        assert person.is_claimed is False
+        assert person.is_active is True
+        assert person.has_usable_password() is False
 
 
 # ── T101: ContributionManager.by_role() ──────────────────────────────────────

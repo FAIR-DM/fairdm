@@ -109,7 +109,12 @@ class UserManager(BaseUserManager, PrefetchPolymorphicManager.from_queryset(Pers
     use_in_migrations = False
 
     def _create_user(self, email, password, **extra_fields):
-        """Create and save a User with the given email and password."""
+        """Create and save a User with the given email and password.
+
+        A `None` password (the default `create_user`/`create_superuser` pass
+        through) sets an unusable one - `AbstractBaseUser.set_password(None)`
+        already does this, so no separate branch is needed here (FR-009, FR-010).
+        """
         if not email:
             raise ValueError("The given email must be set")
         email = self.normalize_email(email)
@@ -118,7 +123,16 @@ class UserManager(BaseUserManager, PrefetchPolymorphicManager.from_queryset(Pers
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
+        """Create and save a Person with the given email and password.
+
+        Sets an unusable password when none is supplied (FR-010).
+        """
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
+        return self._create_user(email, password, **extra_fields)
+
+    def create_superuser(self, email, password=None, **extra_fields):
         """Create and save a SuperUser with the given email and password."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)

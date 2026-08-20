@@ -711,3 +711,68 @@ guard against a real gap.
 
 **Revisit if:** a future change makes vocabulary preloading conditional or optional, at which
 point the skip path this decision removed would need to come back in some form.
+## D30 — `username = None`, accepting the fallback-display side effect it exposes
+
+**Self-resolved.**
+
+T029 called the pre-existing `username = Contributor.__str__` "shadowed rather than removed" and
+asked for removal. Both already remove the field from the model (`Person._meta.get_fields()`
+already excluded `username` before this change — Django's `ModelBase` treats any non-`Field`
+override the same way), so the substantive requirement was already met. The difference is what
+the *class attribute* resolves to: `Contributor.__str__` is a function, and Django templates
+auto-call a zero-arg callable attribute, so `contributor.username` in
+`fairdm/templates/cotton/components/object_card.html:50` and `self.request.user.username` in
+`fairdm/views/generic.py:26` were both silently reading `self.name` through it as a fallback.
+
+Changed it to the documented Django pattern (`username = None`) anyway, because that is what T029
+and the design review actually asked for, and the alternative — leaving a function sitting in a
+field-shaped attribute so that two out-of-scope call sites keep working by accident — is worse than
+the risk. Both files are under D1's templates/views deferral and out of this story's reach to fix
+directly.
+
+**Effect:** for a `Person` whose `first_name`/`last_name` are both blank, `contributor.username`
+and `self.request.user.username` now resolve to `None` (renders empty) instead of falling back to
+`.name`. No existing test asserts on `.username` in either location, and the full suite run for
+this story's completion report is the check that nothing broke.
+
+**Revisit if:** the empty-name edge case turns out to matter in practice - the two call sites
+should read `.name`/`.get_full_name_display()` directly rather than lean on `.username`, which is
+a one-line fix in each file, filed as a concern rather than made here.
+
+## D31 — Email uniqueness moves from a field flag to a `Meta.constraint`, not alongside it
+
+**Self-resolved.**
+
+T031 asked for a case-insensitive `UniqueConstraint`. The field already carried `unique=True`
+(case-sensitive). Removed the field flag rather than keeping both, because a case-sensitive index
+and a case-insensitive functional index over the same column would both exist to answer the same
+question, and Article II asks for the simplest design that satisfies the spec — one mechanism, not
+two overlapping ones.
+
+Declared `Person`'s new `Meta` as `class Meta(AbstractUser.Meta):` rather than a bare `class Meta:`.
+`Person` declares no `Meta` today and so implicitly inherits `AbstractUser.Meta`
+(`verbose_name`/`verbose_name_plural` = "user"/"users") because `AbstractUser` is abstract — verified
+directly: `Person._meta.verbose_name` reads `"user"` before this change. A bare `Meta` would have
+silently reset both to Django's `Person`-derived defaults ("person"/"persons"), a behaviour change
+no task asked for. Subclassing preserves them; verified unchanged after the edit with the same
+read.
+
+**Revisit if:** a later story wants `Person`'s admin/API-facing label to read "person" instead of
+"user" — that is a one-line `verbose_name` override on this same `Meta`, not a reason to revisit
+the constraint.
+
+## D32 — `UserManager` keeps its name; `create_user` is the only addition
+
+**Self-resolved.**
+
+T030 describes "a `PersonManager` built with `Manager.from_queryset(PersonQuerySet)` and mixing in
+`BaseUserManager`". The class that exists — `UserManager(BaseUserManager,
+PrefetchPolymorphicManager.from_queryset(PersonQuerySet))` — already does exactly this; its
+`from_queryset` composition landed in the US9/US10 manager-rewrite (`efeefa9`, merged into this
+branch ahead of this story), after this story's task list and its "hand-written proxies" annotation
+were written. Per the brief's prohibition against renaming to match a task's wording when the
+substance already matches, and against touching `managers.py` beyond what T028/T030 name, it keeps
+its existing name. The one genuine gap — no `create_user` — is the only addition this task makes.
+
+**Revisit if:** a future story renames the manager for an unrelated reason; there is no standing
+reason to rename it for this one.

@@ -472,63 +472,212 @@
       "tasks": [
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:430"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:257 TestPersonIsTheAccount::test_get_user_model_is_person",
+              "tests/test_contrib/test_contributors/test_models.py:262 TestPersonIsTheAccount::test_no_separate_account_model_registered"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestPersonIsTheAccount -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:114"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:287 TestAttributionOnlyPerson::test_attribution_only_person_has_no_usable_password",
+              "tests/test_contrib/test_contributors/test_models.py:292 TestAttributionOnlyPerson::test_authenticate_fails_for_attribution_only_person"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestAttributionOnlyPerson -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:135"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:307 TestPersonActivationEligibility::test_attribution_only_person_is_active",
+              "tests/test_contrib/test_contributors/test_models.py:312 TestPersonActivationEligibility::test_invited_attribution_only_person_is_found_by_password_reset"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestPersonActivationEligibility -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:437"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:335 TestPersonEmailUniqueness::test_duplicate_email_refused_at_validation",
+              "tests/test_contrib/test_contributors/test_models.py:343 TestPersonEmailUniqueness::test_duplicate_email_refused_at_the_database",
+              "tests/test_contrib/test_contributors/test_models.py:352 TestPersonEmailUniqueness::test_multiple_people_may_have_no_email"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestPersonEmailUniqueness -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:500"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:466 TestClaimedPersonEmailRemoval::test_claimed_person_cannot_remove_email",
+              "tests/test_contrib/test_contributors/test_models.py:479 TestClaimedPersonEmailRemoval::test_unclaimed_person_with_usable_password_may_remove_email"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestClaimedPersonEmailRemoval -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:107"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:84 TestPersonManagerCreation::test_create_user_normalises_email_and_sets_usable_password",
+              "tests/test_contrib/test_contributors/test_managers.py:100 TestPersonManagerCreation::test_create_user_without_password_sets_unusable_password",
+              "tests/test_contrib/test_contributors/test_managers.py:108 TestPersonManagerCreation::test_create_superuser_sets_staff_and_superuser_flags",
+              "tests/test_contrib/test_contributors/test_managers.py:121 TestPersonManagerCreation::test_create_superuser_refuses_is_staff_false",
+              "tests/test_contrib/test_contributors/test_managers.py:128 TestPersonManagerCreation::test_create_unclaimed_produces_attribution_only_shape"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py -k TestPersonManagerCreation -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:457",
+              "fairdm/contrib/contributors/models.py:459"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:269 TestPersonIsTheAccount::test_no_required_fields_beyond_the_username_field",
+              "tests/test_contrib/test_contributors/test_models.py:274 TestPersonIsTheAccount::test_username_field_is_removed_not_shadowed"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestPersonIsTheAccount -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:107"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:84 TestPersonManagerCreation::test_create_user_normalises_email_and_sets_usable_password",
+              "tests/test_contrib/test_contributors/test_managers.py:100 TestPersonManagerCreation::test_create_user_without_password_sets_unusable_password"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py -k TestPersonManagerCreation -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:461"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:361 TestPersonEmailUniqueness::test_duplicate_email_refused_case_insensitively",
+              "tests/test_contrib/test_contributors/test_models.py:371 TestPersonEmailUniqueness::test_duplicate_email_refused_case_insensitively_via_manager"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestPersonEmailUniqueness -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:500"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:466 TestClaimedPersonEmailRemoval::test_claimed_person_cannot_remove_email",
+              "tests/test_contrib/test_contributors/test_models.py:479 TestClaimedPersonEmailRemoval::test_unclaimed_person_with_usable_password_may_remove_email"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -k TestClaimedPersonEmailRemoval -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T033",
-          "status": "todo",
+          "status": "blocked",
           "attempts": 0
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/contributors.py:78",
+              "fairdm/factories/contributors.py:81"
+            ],
+            "tests": [
+              "tests/test_factories/test_contributors.py:82 TestContributorFactoryCreation::test_person_factory_defaults_to_unusable_password_and_unclaimed",
+              "tests/test_factories/test_contributors.py:91 TestContributorFactoryCreation::test_person_factory_accepts_an_explicit_password"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_factories/test_contributors.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T035",
@@ -549,8 +698,18 @@
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/contributors.md:36",
+              "docs/portal-development/contributors.md:39"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

@@ -13,6 +13,9 @@ Tests cover:
 
 import pytest
 from django.contrib.contenttypes.models import ContentType
+from django.apps import apps
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
@@ -33,7 +36,6 @@ from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
-    UserFactory,
 )
 
 # ── FS-009 US1 T008: Contributor public identifier ──────────────────────────
@@ -249,6 +251,137 @@ class TestFieldMetadata:
         assert not failures, f"Missing or non-lazy verbose_name/help_text: {failures}"
 
 
+# ── T023 (US2): Person is the account ────────────────────────────────────────
+
+
+class TestPersonIsTheAccount:
+    """Verify Person is Django's account model, and the only one (FR-008, SC-003)."""
+
+    def test_get_user_model_is_person(self):
+        """django.contrib.auth.get_user_model() resolves to Person, by name."""
+        assert get_user_model() is Person
+        assert get_user_model().__name__ == "Person"
+
+    def test_no_separate_account_model_registered(self):
+        """No other installed model declares a USERNAME_FIELD alongside Person."""
+        username_field_models = [
+            model for model in apps.get_models() if hasattr(model, "USERNAME_FIELD")
+        ]
+        assert username_field_models == [Person]
+
+    def test_no_required_fields_beyond_the_username_field(self):
+        """REQUIRED_FIELDS is empty: email and password are the whole account-creation
+        contract, since a person may exist with neither a name resolved yet."""
+        assert Person.REQUIRED_FIELDS == []
+
+    def test_username_field_is_removed_not_shadowed(self):
+        """AbstractUser's username field is removed outright (Django's documented
+        `username = None` pattern), not shadowed by an unrelated callable."""
+        assert Person.username is None
+
+
+# ── T024 (US2): Attribution-only person cannot authenticate ─────────────────
+
+
+class TestAttributionOnlyPerson:
+    """Verify a person added for attribution alone cannot authenticate (FR-010, SC-003)."""
+
+    @pytest.mark.django_db
+    def test_attribution_only_person_has_no_usable_password(self, unclaimed_person):
+        assert unclaimed_person.email is None
+        assert unclaimed_person.has_usable_password() is False
+
+    @pytest.mark.django_db
+    def test_authenticate_fails_for_attribution_only_person(self, unclaimed_person):
+        """Even a lookup that matches the attribution-only record's NULL email fails
+        the password check, because create_unclaimed() sets an unusable password."""
+        result = authenticate(request=None, email=unclaimed_person.email, password="whatever")
+        assert result is None
+
+
+# ── T025 (US2): Attribution-only person stays reachable ─────────────────────
+
+
+class TestPersonActivationEligibility:
+    """Verify an attribution-only person remains reachable by a later invitation
+    or password reset (FR-011, SC-003)."""
+
+    @pytest.mark.django_db
+    def test_attribution_only_person_is_active(self, unclaimed_person):
+        """create_unclaimed() leaves is_active True so the ghost can later be invited."""
+        assert unclaimed_person.is_active is True
+
+    @pytest.mark.django_db
+    def test_invited_attribution_only_person_is_found_by_password_reset(
+        self, unclaimed_person
+    ):
+        """Once given an email, the person's active state makes them eligible for
+        Django's password reset flow, which silently excludes inactive accounts."""
+        unclaimed_person.email = "invited@example.com"
+        unclaimed_person.set_password("some-temporary-password")
+        unclaimed_person.save()
+
+        form = PasswordResetForm()
+        found = list(form.get_users("invited@example.com"))
+
+        assert unclaimed_person in found
+
+
+# ── T026 (US2): Person email uniqueness ──────────────────────────────────────
+
+
+class TestPersonEmailUniqueness:
+    """Verify a second person cannot take an address already in use, while any
+    number of people may carry no address at all (FR-009, SC-005)."""
+
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_at_validation(self):
+        PersonFactory(email="duplicate@example.com")
+        second = PersonFactory.build(email="duplicate@example.com")
+
+        with pytest.raises(ValidationError):
+            second.full_clean()
+
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_at_the_database(self):
+        PersonFactory(email="duplicate@example.com")
+
+        with pytest.raises(IntegrityError):
+            Person.objects.create(
+                email="duplicate@example.com", first_name="Second", last_name="Person"
+            )
+
+    @pytest.mark.django_db
+    def test_multiple_people_may_have_no_email(self):
+        first = Person.objects.create_unclaimed(first_name="A", last_name="One")
+        second = Person.objects.create_unclaimed(first_name="B", last_name="Two")
+
+        assert first.email is None
+        assert second.email is None
+        assert first.pk != second.pk
+
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_case_insensitively(self):
+        """A case-insensitive collision is refused at full_clean() too - the
+        constraint, not clean()'s own lowercasing, is what catches it (T031)."""
+        PersonFactory(email="Case@Example.com")
+        second = PersonFactory.build(email="case@example.com")
+
+        with pytest.raises(ValidationError):
+            second.full_clean()
+
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_case_insensitively_via_manager(self):
+        """Created directly through the manager, which never calls clean() and so
+        never lowercases - only the database-level constraint can catch this."""
+        Person.objects.create_user(email="Manager@Example.com", password="pw")
+
+        with pytest.raises(IntegrityError):
+            Person.objects.create(
+                email="manager@example.com", first_name="Second", last_name="Person"
+            )
+
+
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 
 
@@ -312,17 +445,6 @@ class TestPersonClaimedUnclaimedSemantics:
         p = PersonFactory()
         result = Contributor.objects.filter(pk=p.pk).first()
         assert isinstance(result, Person)
-
-    @pytest.mark.django_db
-    def test_person_clean_prevents_claimed_email_null(self, db):
-        """A claimed person cannot null their email via clean()."""
-        p = UserFactory(email="test@example.com", is_active=True)
-        p.set_password("testpass123")
-        p.save()
-        # Try to set email to None
-        p.email = None
-        with pytest.raises(ValidationError):
-            p.clean()
 
     @pytest.mark.django_db
     def test_backward_compatible_alias(self):
@@ -414,6 +536,46 @@ class TestClaimIsStoredOnce:
     def test_account_state_is_a_plain_property_not_stored_state(self):
         """`account_state` is computed on read, not held in an attribute set at save time."""
         assert isinstance(Person.__dict__["account_state"], property)
+# ── T027 (US2): Claimed person email removal ─────────────────────────────────
+#
+# Replaces test_person_clean_prevents_claimed_email_null (design review RECON-001,
+# decisions.md D21): that test set has_usable_password() and is_active True together
+# with is_claimed True, so it passed whichever of the two the refusal actually read.
+# The second test below is the differentiator - it fails against the old
+# password/active check and only passes once clean() reads is_claimed (T032).
+
+
+class TestClaimedPersonEmailRemoval:
+    """Verify email removal is refused by the stored claim value, not by password or
+    active state (FR-015, SC-005, design review RECON-001)."""
+
+    @pytest.mark.django_db
+    def test_claimed_person_cannot_remove_email(self):
+        """A person who has claimed their account cannot null their email address."""
+        person = PersonFactory(email="claimed@example.com", is_active=True, is_claimed=True)
+        person.set_password("testpass123")
+        person.save()
+
+        person.email = None
+        with pytest.raises(ValidationError) as exc_info:
+            person.full_clean()
+
+        assert "email" in exc_info.value.message_dict
+
+    @pytest.mark.django_db
+    def test_unclaimed_person_with_usable_password_may_remove_email(self):
+        """A ghost given a password by some other route is not, on that account
+        alone, claimed - clearing the email is not refused."""
+        person = PersonFactory(
+            email="ghost-with-password@example.com", is_active=True, is_claimed=False
+        )
+        person.set_password("testpass123")
+        person.save()
+
+        person.email = None
+        person.full_clean()  # must not raise
+
+        assert person.email is None
 
 
 # ── T014: Organization creation and validation ──────────────────────────────

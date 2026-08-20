@@ -33,16 +33,17 @@ from fairdm.contrib.contributors.models import Person
 person = Person.objects.create_unclaimed(
     first_name="Jane",
     last_name="Doe",
-    # email is None, is_active=False, is_claimed=False
+    # email is None, is_active=True (so a later invitation can reach them), is_claimed=False
 )
 
-# Claimed person (full user account)
+# Create a person directly with a password (does NOT set is_claimed - claiming
+# is a workflow of its own, see Feature 010 below)
 person = Person.objects.create_user(
     email="jane@example.com",
     first_name="Jane",
     last_name="Doe",
     password="secure_password",
-    # is_active=True, is_claimed=True automatically set
+    # is_active=True by default; password omitted entirely sets an unusable one
 )
 ```
 
