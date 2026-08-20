@@ -14,6 +14,7 @@ Tests cover:
 import pytest
 from django.apps import apps
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
@@ -284,6 +285,34 @@ class TestAttributionOnlyPerson:
         the password check, because create_unclaimed() sets an unusable password."""
         result = authenticate(request=None, email=unclaimed_person.email, password="whatever")
         assert result is None
+
+
+# ── T025 (US2): Attribution-only person stays reachable ─────────────────────
+
+
+class TestPersonActivationEligibility:
+    """Verify an attribution-only person remains reachable by a later invitation
+    or password reset (FR-011, SC-003)."""
+
+    @pytest.mark.django_db
+    def test_attribution_only_person_is_active(self, unclaimed_person):
+        """create_unclaimed() leaves is_active True so the ghost can later be invited."""
+        assert unclaimed_person.is_active is True
+
+    @pytest.mark.django_db
+    def test_invited_attribution_only_person_is_found_by_password_reset(
+        self, unclaimed_person
+    ):
+        """Once given an email, the person's active state makes them eligible for
+        Django's password reset flow, which silently excludes inactive accounts."""
+        unclaimed_person.email = "invited@example.com"
+        unclaimed_person.set_password("some-temporary-password")
+        unclaimed_person.save()
+
+        form = PasswordResetForm()
+        found = list(form.get_users("invited@example.com"))
+
+        assert unclaimed_person in found
 
 
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
