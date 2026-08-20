@@ -832,3 +832,26 @@ named in this story's `concerns` for whoever next touches `Contributor`.
 
 **Revisit if**: a future story adds a second caller of `default_identifier` (the property), or is
 explicitly asked to consolidate the two.
+## D40 — The ownership transfer action's new-owner field is a Django ActionForm, not an intermediate page
+
+**Self-resolved**, US10/T135.
+
+`transfer_ownership_action` is a bulk `@admin.action` on `OrganizationAdmin`, selecting from the
+organisation changelist. Once it actually performs the transfer (rather than redirecting with an
+instruction), it needs to know which member becomes the new owner - information a queryset of
+selected organisations does not carry.
+
+The obvious pattern for that shape of problem is an intermediate confirmation page (the same shape
+`merge_view` already uses for merging people), but that needs a new form class and a new template,
+and both `forms/` and `templates/` are out of scope for this feature (D1). `ModelAdmin.action_form`
+is the mechanism Django ships for exactly this: it renders extra fields inline in the existing
+action bar (`admin/actions.html` already loops over `action_form`'s fields), so a plain
+`forms.ModelChoiceField` declared in `admin.py` is enough - no new file anywhere. The action reads
+`request.POST["new_owner"]` directly rather than binding and validating the form, which is how
+Django's own action-form examples do it; validation is `Organization.transfer_ownership()`'s job
+(it already raises `ValidationError` if the chosen person is not a member), not this field's.
+
+Revisit if: the action ever needs to filter the `new_owner` choices down to the selected
+organisation's own members before submission - `action_form` fields are static across the whole
+changelist and cannot see which rows are checked, so that would need JS or a real intermediate page
+after all.

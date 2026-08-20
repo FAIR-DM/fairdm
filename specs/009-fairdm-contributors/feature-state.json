@@ -2336,8 +2336,19 @@
         },
         {
           "id": "T129",
-          "status": "blocked",
-          "attempts": 1
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:415"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestOwnershipTransferAction -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:487"
+            ]
+          }
         },
         {
           "id": "T130",
@@ -2422,8 +2433,20 @@
         },
         {
           "id": "T135",
-          "status": "blocked",
-          "attempts": 1
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:415"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestOwnershipTransferAction -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:487",
+              "fairdm/contrib/contributors/admin.py:395"
+            ]
+          }
         },
         {
           "id": "T136",
