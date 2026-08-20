@@ -29,6 +29,21 @@ class OrganizationalIdentifiers(models.TextChoices):
     CROSSREF_FUNDER_ID = "Crossref Funder ID", "Crossref Funder ID"
 
 
+class AccountState(models.TextChoices):
+    """The four states a Person's account can be in (decisions.md D8).
+
+    Never stored: `Person.account_state` derives one of these members from
+    `is_active`, `is_claimed` and `email`, and `PersonQuerySet` carries a
+    matching filter for each. "Inactive" takes precedence over every other
+    signal, "banned" having been reworded to describe what the flag means.
+    """
+
+    GHOST = "ghost", _("Ghost")
+    INVITED = "invited", _("Invited")
+    CLAIMED = "claimed", _("Claimed")
+    INACTIVE = "inactive", _("Inactive")
+
+
 class FairDMIdentifiers(VocabularyBuilder):
     ORCID = Concept(
         prefLabel=_("ORCID"),

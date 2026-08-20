@@ -564,53 +564,176 @@
       "tasks": [
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:475"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:334 TestAccountState @ 58d6e28"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestAccountState -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:475"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:374 TestAccountStatePrecedence @ 58d6e28"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestAccountStatePrecedence -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:452",
+              "fairdm/contrib/contributors/models.py:475"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:395 TestClaimIsStoredOnce @ 58d6e28"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py::TestClaimIsStoredOnce -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:35",
+              "fairdm/contrib/contributors/managers.py:47",
+              "fairdm/contrib/contributors/managers.py:70",
+              "fairdm/contrib/contributors/managers.py:84"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:80 TestAccountStateFilters @ 94da8c0"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py::TestAccountStateFilters -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T041",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/choices.py:32"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:334 TestAccountState @ 58d6e28"
+            ],
+            "commands": [
+              "poetry run ruff check fairdm/contrib/contributors/choices.py"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:452"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:181 TestFieldMetadata @ 9042fe9"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T043",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:475"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:334 TestAccountState @ 58d6e28"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T044",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:35",
+              "fairdm/contrib/contributors/managers.py:47",
+              "fairdm/contrib/contributors/managers.py:70",
+              "fairdm/contrib/contributors/managers.py:84"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:80 TestAccountStateFilters @ 94da8c0"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T045",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "specs/009-fairdm-contributors/decisions.md:571"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T046",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-administration/managing-unclaimed-profiles.md:23"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

@@ -20,6 +20,33 @@ As an administrator you can:
 
 ---
 
+## Account States
+
+Every Person is in exactly one of four states. None of them is stored as a
+state of its own — each is derived from three stored fields (`is_active`,
+`is_claimed` and `email`) every time it is read, so there is nothing to fall
+out of step with the fields it derives from (decisions.md D8).
+
+| State | How a person arrives here | Reading it |
+|-------|---------------------------|------------|
+| **Inactive** | The **Active** checkbox has been unchecked, whatever the claim status. | `Person.objects.inactive()` |
+| **Claimed** | Has claimed the account and can sign in. | `Person.objects.claimed()` |
+| **Invited** | Has an email address on record but has not yet claimed the account through ORCID, email verification, or a claim link. | `Person.objects.invited()` |
+| **Ghost** | Created without an email address — typically via `Person.objects.create_unclaimed()` for attribution alone. | `Person.objects.ghost()` |
+
+The table is in precedence order, highest first: a deactivated profile is
+always **Inactive**, even one that was claimed before it was deactivated.
+`person.account_state` returns the state as a single value, and each of the
+four querysets above returns exactly the people in that state — together
+they cover every Person exactly once.
+
+```{tip}
+The Django admin's **Contributors → Persons** list offers a **Claimed
+Status** filter that reads the same stored fields.
+```
+
+---
+
 ## Claim Pathways
 
 FairDM supports three automatic pathways plus manual admin tools:
@@ -149,11 +176,13 @@ page for that person.
 
 ---
 
-## Banned Profiles
+## Inactive Profiles
 
-A profile whose `is_active` flag is set to `False` is considered **banned**. All
-claiming pathways (ORCID, email, token) will reject a claim attempt for a banned profile
-and log the failure with reason `"Person is banned (is_active=False)."`.
+A profile whose `is_active` flag is set to `False` is in the **Inactive** account
+state described above (formerly called "banned"). All claiming pathways (ORCID,
+email, token) reject a claim attempt for an inactive profile and log the failure
+with reason `"Person is banned (is_active=False)."` — the claiming service has
+not yet been updated to the current wording.
 
 To allow claiming again, re-enable the profile:
 
