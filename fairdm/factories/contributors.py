@@ -60,7 +60,13 @@ class ContributorFactory(DjangoModelFactory):
 
 
 class PersonFactory(ContributorFactory):
-    """Factory for creating Person instances."""
+    """Factory for creating Person instances.
+
+    Defaults to an unclaimed instance with an unusable password - a contributor
+    added for attribution alone is the common case (Article X, issue #227). Pass
+    `password=...` for a claimed-looking instance, or set `is_claimed`/`is_active`
+    explicitly.
+    """
 
     class Meta:
         model = Person
@@ -69,7 +75,18 @@ class PersonFactory(ContributorFactory):
     email = LazyAttribute(lambda o: f"{o.first_name}.{o.last_name}@fakeuser.org")
     first_name = Faker("first_name")
     last_name = Faker("last_name")
-    is_active = Faker("boolean", chance_of_getting_true=80)
+    is_active = True
+
+    @factory.post_generation
+    def password(obj, create, extracted, **kwargs):
+        """Set the given password, or leave the instance with an unusable one."""
+        if not create:
+            return
+        if extracted:
+            obj.set_password(extracted)
+        else:
+            obj.set_unusable_password()
+        obj.save()
 
 
 class OrganizationFactory(ContributorFactory):

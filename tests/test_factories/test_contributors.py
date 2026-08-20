@@ -79,6 +79,22 @@ class TestContributorFactoryCreation:
         assert person1.pk == person2.pk
         assert Person.objects.filter(email=email).count() == 1
 
+    def test_person_factory_defaults_to_unusable_password_and_unclaimed(self):
+        """T034: the default PersonFactory instance is the common case - a
+        contributor added for attribution alone (Article X, issue #227)."""
+        person = PersonFactory()
+
+        assert person.has_usable_password() is False
+        assert person.is_claimed is False
+        assert person.is_active is True
+
+    def test_person_factory_accepts_an_explicit_password(self):
+        """Passing password=... produces a genuinely usable, checkable password."""
+        person = PersonFactory(password="s3cret-pass")
+
+        assert person.has_usable_password() is True
+        assert person.check_password("s3cret-pass") is True
+
     def test_organization_factory_creates_organization(self):
         """Test OrganizationFactory creates a valid Organization instance."""
         org = OrganizationFactory()
