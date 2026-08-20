@@ -80,6 +80,50 @@ class TestContributorIdentity:
             OrganizationFactory(uuid=person.uuid)
 
 
+# ── FS-009 US1 T009: Contributor profile fields ──────────────────────────────
+
+
+class TestContributorProfileFields:
+    """Verify the optional profile fields round-trip and the name is required (FR-003)."""
+
+    @pytest.mark.django_db
+    def test_preferred_name_is_required(self):
+        """A contributor without a preferred name is refused."""
+        organization = OrganizationFactory.build(name="")
+        with pytest.raises(ValidationError):
+            organization.full_clean()
+
+    @pytest.mark.django_db
+    def test_optional_profile_fields_round_trip(self):
+        """Other names, description, links, location and language preferences round-trip."""
+        from fairdm.factories import PointFactory
+
+        location = PointFactory()
+        organization = OrganizationFactory(
+            alternative_names=["Also Known As Inc."],
+            profile="A description of the organization.",
+            links=["https://example.org"],
+            lang=["en", "fr"],
+            location=location,
+        )
+        organization.refresh_from_db()
+
+        assert organization.alternative_names == ["Also Known As Inc."]
+        assert organization.profile == "A description of the organization."
+        assert organization.links == ["https://example.org"]
+        assert organization.lang == ["en", "fr"]
+        assert organization.location == location
+
+    @pytest.mark.django_db
+    def test_optional_profile_fields_default_empty(self):
+        """The optional profile fields are genuinely optional."""
+        organization = OrganizationFactory(
+            alternative_names=None, links=None, lang=None, location=None
+        )
+        organization.full_clean()
+        assert organization.location is None
+
+
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 
 
