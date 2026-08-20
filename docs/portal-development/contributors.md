@@ -59,27 +59,36 @@ Person accounts follow this state machine:
 
 ### Unified Manager Approach
 
-The `Person` model uses Django's `objects` manager instead of a separate `contributors` manager:
+The `Person` model uses Django's `objects` manager instead of a separate `contributors` manager.
+Every method below (FR-041) is defined once on `PersonQuerySet` and reaches `Person.objects`
+through `Manager.from_queryset` (FR-040), so `Person.objects.<method>()` and
+`Person.objects.all().<method>()` always agree:
 
 ```python
 from fairdm.contrib.contributors.models import Person
 
 # ✅ CORRECT: Use objects manager
-real_people = Person.objects.real()  # Exclude ghosts (unclaimed provenance records)
-claimed = Person.objects.claimed()    # Active claimed accounts
-unclaimed = Person.objects.unclaimed()  # Provenance-only records
-ghosts = Person.objects.ghost()       # Unclaimed with no email
-invited = Person.objects.invited()    # Unclaimed with email
+real_people = Person.objects.real()     # every Person except is_superuser=True and the anonymous
+                                         # placeholder (email="AnonymousUser") - superusers and the
+                                         # placeholder are excluded, nothing else is
+active = Person.objects.active()        # every Person with is_active=True
+claimed = Person.objects.claimed()      # every Person with is_claimed=True
+unclaimed = Person.objects.unclaimed()  # every Person with is_claimed=False
+ghosts = Person.objects.ghost()         # is_claimed=False and email is NULL: provenance-only records
+invited = Person.objects.invited()      # is_claimed=False and email is set: invited but not yet claimed
 
 # ❌ WRONG: Old API (removed)
 # Person.contributors.claimed()
 ```
 
-**Portal Queries**: Always use `Person.objects.real()` to exclude ghost/provenance-only records from public searches:
+**Portal Queries**: Use `Person.objects.real()` to keep superusers and the anonymous placeholder out
+of public-facing searches. It does not exclude ghost or invited profiles - combine it with
+`unclaimed()`/`ghost()`/`invited()`/`claimed()` if a query also needs to say something about claim
+status:
 
 ```python
-# Search for active portal members
-active_members = Person.objects.real().filter(
+# Portal members with a claimed account, excluding superusers and the placeholder
+active_members = Person.objects.real().claimed().filter(
     affiliations__organization=my_org
 )
 ```
@@ -270,6 +279,11 @@ contribution = Contribution.objects.create(
 author_role = Concept.objects.get(vocabulary=FairDMRoles, label="Author")
 contribution.roles.add(author_role)
 
+# Query credits by role (FR-042): every Contribution whose roles include the
+# named Concept - defined once on ContributionQuerySet, reachable from both
+# Contribution.objects and Contribution.objects.all() (FR-040)
+author_credits = Contribution.objects.by_role("Author")
+
 # Query contributions
 project_contributions = Contribution.objects.filter(
     content_type=ContentType.objects.get_for_model(Project),
@@ -415,9 +429,10 @@ Use these manager methods for querying Person records:
 | Method | Purpose | Use Case |
 |--------|---------|----------|
 | `Person.objects.all()` | All Person records | Admin/data migration |
-| `Person.objects.real()` | Exclude ghosts | **Portal queries (RECOMMENDED)** |
-| `Person.objects.claimed()` | Active user accounts | User listings |
-| `Person.objects.unclaimed()` | Provenance records | Data import cleanup |
+| `Person.objects.real()` | Exclude superusers and the anonymous placeholder | **Portal queries (RECOMMENDED)** |
+| `Person.objects.active()` | `is_active=True` accounts | Excluding deactivated accounts |
+| `Person.objects.claimed()` | `is_claimed=True` accounts | User listings |
+| `Person.objects.unclaimed()` | `is_claimed=False` accounts | Data import cleanup |
 | `Person.objects.ghost()` | Unclaimed, no email | Orphaned records |
 | `Person.objects.invited()` | Unclaimed, has email | Pending invitations |
 
