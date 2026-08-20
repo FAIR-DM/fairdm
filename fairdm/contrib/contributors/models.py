@@ -735,6 +735,7 @@ class Affiliation(models.Model):
         _("type"),
         choices=MembershipType,
         default=MembershipType.MEMBER,
+        db_index=True,
         help_text=_(
             "The verification state / role of the person within the organization."
         ),
@@ -767,6 +768,7 @@ class Affiliation(models.Model):
     class Meta:
         verbose_name = _("affiliation")
         verbose_name_plural = _("affiliations")
+        default_related_name = "affiliations"
         unique_together = ("person", "organization")
 
     def save(self, *args, **kwargs):

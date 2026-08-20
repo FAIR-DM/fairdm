@@ -473,6 +473,21 @@ class TestOwnershipTransfer:
 # ── T015: Affiliation unique constraints ─────────────────────────────────────
 
 
+class TestAffiliationSchema:
+    """FR-020, FR-025, Article IX: the membership type is a real query path for
+    ownership lookups and is indexed; reverse access from person/organization
+    has a deliberate default related name."""
+
+    def test_membership_type_is_indexed(self):
+        """Affiliation.type is indexed because ownership lookups filter on it."""
+        field = Affiliation._meta.get_field("type")
+        assert field.db_index is True
+
+    def test_default_related_name_is_affiliations(self):
+        """Affiliation.Meta declares a default related name."""
+        assert Affiliation._meta.default_related_name == "affiliations"
+
+
 class TestAffiliationUniqueConstraints:
     """Verify Affiliation model constraints and behavior."""
 
