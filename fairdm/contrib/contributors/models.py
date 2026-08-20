@@ -834,6 +834,7 @@ class Organization(Contributor):
         help_text=_("The city where the organization is based."),
         null=True,
         blank=True,
+        db_index=True,
     )
 
     country = CountryField(
@@ -842,6 +843,7 @@ class Organization(Contributor):
         help_text=_("The country where the organization is based."),
         null=True,
         blank=True,
+        db_index=True,
     )
 
     @property

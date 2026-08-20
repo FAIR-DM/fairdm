@@ -470,6 +470,36 @@ class TestOrganizationParentDeletion:
         assert contribution.contributor_id == department.pk
 
 
+# ── FS-009 US4 T051/T055: Organisation location fields ───────────────────────
+
+
+class TestOrganizationLocation:
+    """Verify Organization city/country fields are optional and round-trip (FR-019)."""
+
+    @pytest.mark.django_db
+    def test_city_and_country_are_optional(self):
+        """An organisation with neither city nor country passes validation."""
+        organization = OrganizationFactory(name="Unspecified Institute")
+        organization.full_clean()
+        assert not organization.city
+        assert not organization.country
+
+    @pytest.mark.django_db
+    def test_city_and_country_round_trip(self):
+        """City and country survive a save and a reload from the database."""
+        organization = OrganizationFactory(name="GFZ", city="Potsdam", country="DE")
+
+        organization.refresh_from_db()
+
+        assert organization.city == "Potsdam"
+        assert organization.country == "DE"
+
+    def test_city_and_country_are_indexed(self):
+        """City and country are indexed, since both are listing filters (Article IX)."""
+        assert Organization._meta.get_field("city").db_index is True
+        assert Organization._meta.get_field("country").db_index is True
+
+
 # ── T081/T085: Ownership transfer ────────────────────────────────────────────
 
 
