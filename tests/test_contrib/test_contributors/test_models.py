@@ -266,6 +266,16 @@ class TestPersonIsTheAccount:
         ]
         assert username_field_models == [Person]
 
+    def test_no_required_fields_beyond_the_username_field(self):
+        """REQUIRED_FIELDS is empty: email and password are the whole account-creation
+        contract, since a person may exist with neither a name resolved yet."""
+        assert Person.REQUIRED_FIELDS == []
+
+    def test_username_field_is_removed_not_shadowed(self):
+        """AbstractUser's username field is removed outright (Django's documented
+        `username = None` pattern), not shadowed by an unrelated callable."""
+        assert Person.username is None
+
 
 # ── T024 (US2): Attribution-only person cannot authenticate ─────────────────
 
