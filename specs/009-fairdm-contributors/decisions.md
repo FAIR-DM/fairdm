@@ -539,3 +539,47 @@ required.
 
 **Revisit if:** a future review finds `real()` or `active()` do not in fact match FR-041's wording -
 that would mean the "built-without-tests" annotation was wrong, not that this decision was.
+
+## D25 — `ghost()`, `invited()` and `claimed()` were corrected in place, not replaced
+
+**Self-resolved**, per T044's brief prohibition against renaming existing methods merely because a
+task names them differently.
+
+T044 needed a filter for every one of `account_state`'s four states, mirroring its precedence
+exactly. Three of the four names already existed (`ghost()`, `invited()`, `claimed()`), and D8 had
+already named their defect: none of them checked `is_active`, so a deactivated person with an
+email, for example, matched `invited()` as well as (now) `inactive()` - not the mutually exclusive
+partition FR-014 and T040 require. Rather than leave these three as they were and add three more
+differently-named methods, `is_active=True` was added to each of the three, and `inactive()` was
+added as the fourth, new method. This is the same correction D8 names for `claimed()`
+(`managers.py:132`) applied consistently to its two siblings, not a new decision.
+
+What did not change: `real()`, `active()` and `unclaimed()`. None of the three belongs to the
+four-state partition - `unclaimed()` is a coarser, two-way claim split that several other tests
+still rely on (`tests/.../test_managers.py::TestPersonQuerysets`), and narrowing it would have
+changed behaviour no task in this story asked for.
+
+The pre-existing test `test_claimed_excludes_inactive_with_email`
+(`tests/test_contrib/test_contributors/test_managers.py`) was not touched - it happened to pass
+before this change for the wrong reason (its inactive fixture defaulted `is_claimed=False`, so
+`is_claimed=True` alone already excluded it) and continues to pass for the right one now.
+
+**Revisit if:** a future story wants `unclaimed()` to also respect deactivation - that is a
+deliberate widening of its contract, not a bug in this one, because nothing today asks `unclaimed()`
+to be part of the four-state partition.
+
+## D26 — No migration generated for the indexed claim flag
+
+**Self-resolved**, per the brief's explicit prohibition (T045).
+
+T045 asked for a migration adding the claim column and its index. The column already exists
+(migration 0014); only `db_index=True` (T042) is new, and the brief forbids generating a migration
+for it — four sibling US stories are changing contributor models concurrently in their own
+worktrees, and one migration per story would produce a fan of leaves Forge would otherwise have to
+merge by hand. The consolidated migration is Forge's work at convergence (plan.md "Ordering and
+parallelism", T139). The test settings stub `MIGRATION_MODULES` for this app, so the suite builds
+tables straight from the models and every test in this story passes with no migration present.
+
+**Revisit if:** convergence's consolidated migration is generated and `makemigrations --check`
+still reports a pending change for `contributors.Person.is_claimed` afterward - that would mean the
+index was missed rather than deferred.

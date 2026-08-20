@@ -144,3 +144,125 @@ Next: none — all eight tasks complete. Full-suite verify remains for the compl
 
 Watch: T122 and T123 required no code change (see the entry above) - `feature-state.json` records
 that explicitly rather than pointing at a commit that does not exist.
+
+## 2026-08-20T13:00:00Z · Implementer US3 · T041
+
+Did: Added `AccountState(models.TextChoices)` to `fairdm/contrib/contributors/choices.py` - GHOST,
+INVITED, CLAIMED, INACTIVE, each with a translatable label (D8). No test file targets choices
+classes directly in this app; the class is exercised through `Person.account_state` (T043) and
+`PersonQuerySet`'s filters (T044).
+
+Verified: `poetry run ruff check fairdm/contrib/contributors/choices.py` → all checks passed.
+
+Next: T042 - index the stored claim flag.
+
+Watch: none.
+
+## 2026-08-20T13:05:00Z · Implementer US3 · T042
+
+Did: Added `db_index=True` to `Person.is_claimed` (`fairdm/contrib/contributors/models.py`) and
+extended its `help_text` to say why (Article IX - the state filters and the admin claim-status
+filter both read it). No migration generated (see T045 below).
+
+Verified: `poetry run pytest tests/test_contrib/test_contributors/test_models.py -q -p no:randomly`
+→ 74 passed (`TestFieldMetadata` continues to see a non-empty verbose_name/help_text on the field).
+
+Next: T037/T038/T039/T043 - derive `Person.account_state` against a failing test first.
+
+Watch: none.
+
+## 2026-08-20T13:20:00Z · Implementer US3 · T037/T038/T039/T043
+
+Did: Wrote `TestAccountState`, `TestAccountStatePrecedence` and `TestClaimIsStoredOnce` in
+`tests/test_contrib/test_contributors/test_models.py` against the not-yet-existing
+`Person.account_state` and ran them - 8 failures, all `AttributeError`/`KeyError` on
+`account_state`, confirming RED for the right reason. Then added `Person.account_state` as a
+`@property` on `fairdm/contrib/contributors/models.py`, deriving `AccountState.INACTIVE` /
+`.CLAIMED` / `.INVITED` / `.GHOST` from `is_active`, `is_claimed` and `email` in that fixed
+precedence (D8) - no new field, no `state_history`, nothing written on save. `TestAccountState`
+uses the `contributor_population` fixture (already covers all four states, built in US9);
+`TestAccountStatePrecedence` builds its own two persons because it needs a deactivated+claimed
+combination the population fixture does not carry. `TestClaimIsStoredOnce` asserts `is_claimed` is
+a concrete `BooleanField`, `"account_state"` is absent from `Person._meta.get_fields()`, and
+`Person.__dict__["account_state"]` is a `property` object, not an attribute set in `__init__`/`save`.
+
+Verified:
+- Pre-implementation: `poetry run pytest tests/test_contrib/test_contributors/test_models.py -k
+  "TestAccountState or TestClaimIsStoredOnce" -q -p no:randomly` → 8 failed, 2 passed (RED).
+- Post-implementation: `poetry run ruff check fairdm/contrib/contributors/models.py` → all checks
+  passed. `poetry run pytest tests/test_contrib/test_contributors/test_models.py -q -p no:randomly`
+  → 84 passed.
+
+Next: T040/T044 - the matching queryset filters.
+
+Watch: `fairdm/contrib/contributors/admin.py:206`'s `PersonAdmin.account_state` display method
+already duplicates this exact precedence by hand, with a comment saying it is standing in until
+US3 lands. `admin.py` is out of this story's scope (owned by US10) - flagged as a `concern`, not
+touched.
+
+## 2026-08-20T13:45:00Z · Implementer US3 · T040/T044
+
+Did: Wrote `TestAccountStateFilters` in `tests/test_contrib/test_contributors/test_managers.py`
+and ran it against the pre-existing queryset - 3 of 5 cases failed: `inactive` with
+`AttributeError` (no such method), `claimed` because `Person.objects.claimed()` (`is_claimed=True`
+alone) wrongly included the population's deactivated-but-claimed member - exactly the defect D8
+names at `managers.py:132`. `ghost`/`invited` happened to pass pre-fix only because the
+population's ghost/invited members are both active. Confirmed RED for the right reason, then
+added `PersonQuerySet.inactive()` (`is_active=False`) and added `is_active=True` to `ghost()`,
+`invited()` and `claimed()` so all four now mirror `account_state`'s precedence exactly -
+deactivation decided first. Left `real()`, `active()` and `unclaimed()` untouched; they are not
+part of the four-state partition. `UserManager` already composes from `PersonQuerySet` via
+`from_queryset` (D14, US9's T124), so no manager-side change was needed - `inactive()` reaches
+`Person.objects` for free.
+
+Verified:
+- Pre-fix: `poetry run pytest tests/test_contrib/test_contributors/test_managers.py -k
+  TestAccountStateFilters -q -p no:randomly` → 3 failed, 2 passed (RED).
+- Post-fix: `poetry run ruff check fairdm/contrib/contributors/managers.py` → all checks passed.
+  `poetry run pytest tests/test_contrib/test_contributors/test_managers.py -q -p no:randomly` → 31
+  passed. `poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly` → 261 passed
+  (no regression in `test_admin.py` or elsewhere from narrowing `ghost`/`invited`/`claimed`).
+
+Next: T045 (skip - no migration) and T046 (docs).
+
+Watch: none.
+
+## 2026-08-20T13:55:00Z · Implementer US3 · T045
+
+Did: Skipped. The brief prohibits generating a migration this story: four sibling stories are
+changing contributor models concurrently and Forge consolidates one migration per model at
+convergence. `is_claimed` already exists as a column (migration 0014); only its index is new, and
+the test settings stub `MIGRATION_MODULES` so the suite builds tables straight from the models
+without one. No code change, no commit.
+
+Verified: N/A - nothing to run.
+
+Next: T046 - documentation.
+
+Watch: The task's literal text names a migration filename
+(`migrations/0003_person_claim_flag.py`) that doesn't match this repository's actual migration
+sequence (currently at 0026) - the task list was written as though the app were empty (brief,
+prohibitions). Not acted on beyond skipping the migration itself.
+
+## 2026-08-20T14:05:00Z · Implementer US3 · T046
+
+Did: Added an "Account States" section to
+`docs/portal-administration/managing-unclaimed-profiles.md` (already in the toctree, so no index.md
+change needed): a table of the four states in precedence order, how a person arrives in each, and
+the queryset method that filters for it. Reworded the existing "Banned Profiles" section to
+"Inactive Profiles", pointing at the new section and D8's renaming, while leaving the literal
+`"Person is banned (is_active=False)."` failure-reason string untouched and explicitly noted as
+not yet updated - that string is emitted by `services/claiming.py`, out of this story's scope
+(D2/D3/D11-adjacent prohibition).
+
+Verified: read through the rendered Markdown; every code sample (`Person.objects.ghost()`,
+`.invited()`, `.claimed()`, `.inactive()`, `person.account_state`) matches a name this story just
+tested. `poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly` → 261 passed
+(doc-only change).
+
+Next: none - all ten tasks complete. Full-suite verify remains for the completion report.
+
+Watch: `fairdm/contrib/contributors/admin.py`'s claim-status filter and `account_state` display
+method duplicate logic this story now provides on the model; recommend a follow-up story sweep
+`admin.py` to call `Person.account_state` directly instead. Left untouched - `admin.py` is owned by
+US10, out of this story's scope.
