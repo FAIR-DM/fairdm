@@ -28,6 +28,7 @@ from fairdm.contrib.contributors.models import (
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
+    DatasetFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
@@ -615,6 +616,49 @@ class TestContributionGFKRelationships:
         """ContributionManager.by_contributor() filters by contributor."""
         qs = Contribution.objects.by_contributor(person)
         assert qs.count() >= 1
+
+
+# ── T088: Contribution targets ───────────────────────────────────────────────
+
+
+class TestContributionTargets:
+    """FR-030: a contributor of either kind is creditable on a project, a dataset, a sample
+    or a measurement through the one generic Contribution entry. The sample case is already
+    covered at tests/test_core/test_sample/test_models.py::TestSampleContributions and is
+    cited rather than rewritten here (design review RECON-004)."""
+
+    @pytest.mark.django_db
+    def test_person_creditable_on_a_project(self, person, project_for_contributions):
+        contribution = person.add_to(project_for_contributions)
+
+        assert contribution.content_object == project_for_contributions
+
+    @pytest.mark.django_db
+    def test_person_creditable_on_a_dataset(self, person):
+        dataset = DatasetFactory()
+
+        contribution = person.add_to(dataset)
+
+        assert contribution.content_object == dataset
+
+    @pytest.mark.django_db
+    def test_person_creditable_on_a_measurement(self, person):
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        contribution = person.add_to(measurement)
+
+        assert contribution.content_object == measurement
+
+    @pytest.mark.django_db
+    def test_organization_creditable_as_a_contributor(
+        self, organization, project_for_contributions
+    ):
+        contribution = organization.add_to(project_for_contributions)
+
+        assert contribution.content_object == project_for_contributions
+        assert contribution.contributor == organization
 
 
 # ── T089: Contribution uniqueness and role accumulation ─────────────────────
