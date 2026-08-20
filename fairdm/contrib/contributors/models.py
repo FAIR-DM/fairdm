@@ -448,8 +448,11 @@ class Person(AbstractUser, Contributor):
     is_claimed = models.BooleanField(
         _("is claimed"),
         default=False,
+        db_index=True,
         help_text=_(
-            "True if this person has claimed their account. False for ghost/invited profiles."
+            "True if this person has claimed their account. False for ghost/invited profiles. "
+            "Indexed because the account-state filters and the administrative claim-status "
+            "filter both read it (decisions.md D8, Article IX)."
         ),
     )
 
