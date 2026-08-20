@@ -60,3 +60,27 @@ class TestAuth:
         os.environ["DJANGO_ENV"] = "qa"
 
         settings_module()  # must not raise
+
+
+class TestAccountModel:
+    """T003: the person record is the account, and no second account model
+    exists (FR-008). Asserted by name against the setting itself, not by
+    calling ``get_user_model()`` and trusting whatever it happens to
+    return."""
+
+    def test_auth_user_model_names_the_person_record(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module()
+
+        assert module.AUTH_USER_MODEL == "contributors.Person"
+
+    def test_auth_user_model_resolves_to_the_real_person_class(self, db):
+        from django.apps import apps
+        from django.conf import settings
+
+        from fairdm.contrib.contributors.models import Person
+
+        assert apps.get_model(settings.AUTH_USER_MODEL) is Person
