@@ -36,6 +36,7 @@ from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
 from .managers import AffiliationManager, ContributionManager, UserManager
+from .validators import validate_iso_639_1_language_codes
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +144,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         blank=True,
         null=True,
         default=list,
+        validators=[validate_iso_639_1_language_codes],
     )
 
     last_synced = models.DateField(

@@ -203,3 +203,15 @@ def validate_iso_639_1_language_code(value):
             "'%(value)s' is not a valid ISO 639-1 language code. Please use a two-letter code (e.g., 'en', 'es', 'fr')."
         )
         raise ValidationError(msg, params={"value": value})
+
+
+def validate_iso_639_1_language_codes(value):
+    """
+    Validate that every element of a list is a valid ISO 639-1 language code.
+
+    Field validators receive the field's whole value; for ``Contributor.lang``, a
+    JSONField holding a list of codes, that means validating each element in turn
+    so an invalid code anywhere in the list is refused.
+    """
+    for code in value or []:
+        validate_iso_639_1_language_code(code)
