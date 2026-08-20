@@ -569,3 +569,78 @@ class TestPersonAdmin:
         assert "account_state" in model_admin.list_display
         assert str(model_admin.account_state(person)) == "Claimed"
         assert str(model_admin.account_state(unclaimed_person)) == "Ghost"
+
+
+# ── T130: Every registered model's changelist/add/change return the expected
+# status for a superuser (US10, Article I) ───────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestContributorAdminSmoke:
+    """Smoke-test every model the contributors app registers.
+
+    Expected statuses are named explicitly per model rather than derived,
+    since ClaimingAuditLog deliberately blocks add and change (immutable
+    audit trail) while the others allow both for a superuser.
+    """
+
+    EXPECTED_ADD_STATUS = {
+        "person": 200,
+        "organization": 200,
+        "affiliation": 200,
+        "claimingauditlog": 403,
+    }
+    EXPECTED_CHANGE_STATUS = {
+        "person": 200,
+        "organization": 200,
+        "affiliation": 200,
+        "claimingauditlog": 403,
+    }
+
+    def _registered_app_models(self):
+        from django.apps import apps
+
+        app_models = set(apps.get_app_config("contributors").get_models())
+        return [model for model in admin.site._registry if model in app_models]
+
+    def test_every_registered_model_is_covered_by_the_expectation_maps(self):
+        """A model registered later must be added to this test's expectations too."""
+        registered_names = {
+            model._meta.model_name for model in self._registered_app_models()
+        }
+        assert registered_names == set(self.EXPECTED_ADD_STATUS)
+        assert registered_names == set(self.EXPECTED_CHANGE_STATUS)
+
+    def test_every_registered_model_changelist_loads(self, admin_client):
+        for model in self._registered_app_models():
+            opts = model._meta
+            url = reverse(f"admin:{opts.app_label}_{opts.model_name}_changelist")
+            response = admin_client.get(url)
+            assert response.status_code == 200, f"{model.__name__} changelist"
+
+    def test_add_view_matches_expectation(self, admin_client):
+        for model in self._registered_app_models():
+            opts = model._meta
+            url = reverse(f"admin:{opts.app_label}_{opts.model_name}_add")
+            response = admin_client.get(url)
+            expected = self.EXPECTED_ADD_STATUS[opts.model_name]
+            assert response.status_code == expected, f"{model.__name__} add"
+
+    def test_change_view_matches_expectation(
+        self, admin_client, person, organization, affiliation, audit_log_entry
+    ):
+        instances = {
+            "person": person,
+            "organization": organization,
+            "affiliation": affiliation,
+            "claimingauditlog": audit_log_entry,
+        }
+        for model in self._registered_app_models():
+            opts = model._meta
+            obj = instances[opts.model_name]
+            url = reverse(
+                f"admin:{opts.app_label}_{opts.model_name}_change", args=[obj.pk]
+            )
+            response = admin_client.get(url)
+            expected = self.EXPECTED_CHANGE_STATUS[opts.model_name]
+            assert response.status_code == expected, f"{model.__name__} change"
