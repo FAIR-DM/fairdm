@@ -102,7 +102,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         "last_name",
         "email",
         "is_staff",
-        "is_active",
+        "account_state",
     ]
     list_filter = (
         ClaimedStatusFilter,
@@ -128,7 +128,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         # },
         # models.JSONField: {"widget": FlatJSONWidget},
     }
-    readonly_fields = ["synced_data", "last_synced"]
+    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
     # fieldsets for modifying user
     fieldsets = (
         (
@@ -142,7 +142,9 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     # "alternative_names",
                     # "links",
                     "profile",
+                    "uuid",
                     "last_synced",
+                    ("added", "modified"),
                 )
             },
         ),
@@ -183,9 +185,25 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         ),
     )
 
-    search_fields = ("email", "id", "name")
+    search_fields = ("email", "name", "uuid")
     ordering = ("last_name",)
     actions = ["generate_claim_link_action", "merge_person_action"]
+
+    @admin.display(description=_("Account state"))
+    def account_state(self, obj):
+        """Report the account state derived from the stored claim/active fields (D8).
+
+        A total function so the four states cannot overlap: inactive if the
+        account is deactivated, otherwise claimed, otherwise invited if an
+        email address is present, otherwise ghost.
+        """
+        if not obj.is_active:
+            return _("Inactive")
+        if obj.is_claimed:
+            return _("Claimed")
+        if obj.email:
+            return _("Invited")
+        return _("Ghost")
 
     @admin.action(description=_("Merge selected Person into another"))
     def merge_person_action(self, request, queryset):

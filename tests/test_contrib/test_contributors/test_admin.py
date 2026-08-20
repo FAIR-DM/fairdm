@@ -360,3 +360,25 @@ class TestPersonAdmin:
 
         assert Person in admin.site._registry
         assert Contributor not in admin.site._registry
+
+    def test_public_identifier_and_timestamps_are_readonly(self):
+        """The uuid and the added/modified timestamps are visible but not editable (FR-043)."""
+        model_admin = admin.site._registry[Person]
+        assert "uuid" in model_admin.readonly_fields
+        assert "added" in model_admin.readonly_fields
+        assert "modified" in model_admin.readonly_fields
+        assert {"uuid", "added", "modified"} <= _fieldset_field_names(
+            model_admin.fieldsets
+        )
+
+    def test_search_fields_cover_name_email_and_public_identifier(self):
+        """Search targets name, email and the public identifier, not the numeric pk (FR-043)."""
+        model_admin = admin.site._registry[Person]
+        assert set(model_admin.search_fields) == {"email", "name", "uuid"}
+
+    def test_list_display_reports_account_state(self, person, unclaimed_person):
+        """The changelist reports the account state derived from the stored fields (FR-043)."""
+        model_admin = admin.site._registry[Person]
+        assert "account_state" in model_admin.list_display
+        assert str(model_admin.account_state(person)) == "Claimed"
+        assert str(model_admin.account_state(unclaimed_person)) == "Ghost"
