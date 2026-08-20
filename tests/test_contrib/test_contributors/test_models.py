@@ -773,6 +773,139 @@ class TestContributionRoles:
             contribution.full_clean()
 
 
+# ── T092/T100: Credited-outputs reporting ────────────────────────────────────
+
+
+class TestContributorCredits:
+    """FR-034, SC-011: a contributor credited across all four kinds of research output
+    reports each of them and reports counts by kind, each resolved in a bounded number of
+    queries."""
+
+    @pytest.mark.django_db
+    def test_reports_each_kind_of_credited_output(self, person):
+        from fairdm.utils.choices import Visibility
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        project = ProjectFactory()
+        # Dataset.objects (the manager Contributor.datasets reads) excludes PRIVATE
+        # datasets, DatasetFactory's own default - make this one visible so the property
+        # under test can find it.
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        sample = RockSampleFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        person.add_to(project)
+        person.add_to(dataset)
+        person.add_to(sample)
+        person.add_to(measurement)
+
+        assert project in person.projects
+        assert dataset in person.datasets
+        assert sample in person.samples
+        assert measurement in person.measurements
+
+    @pytest.mark.django_db
+    def test_reports_counts_by_kind(self, person):
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.project.models import Project
+
+        person.add_to(ProjectFactory())
+        person.add_to(DatasetFactory())
+        person.add_to(DatasetFactory())
+
+        counts = person.get_credit_counts()
+
+        assert counts[Project._meta.verbose_name_plural] == 1
+        assert counts[Dataset._meta.verbose_name_plural] == 2
+
+    @pytest.mark.django_db
+    def test_counts_by_kind_resolved_in_a_bounded_number_of_queries(
+        self, person, django_assert_max_num_queries
+    ):
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        person.add_to(ProjectFactory())
+        person.add_to(DatasetFactory())
+        person.add_to(RockSampleFactory())
+        person.add_to(ExampleMeasurementFactory(sample=RockSampleFactory()))
+
+        with django_assert_max_num_queries(6):
+            person.get_credit_counts()
+
+
+# ── T093/T101: Co-contributor reporting ──────────────────────────────────────
+
+
+class TestCoContributors:
+    """FR-035, SC-011: the contributors credited alongside a given contributor come back
+    most frequent first - and only contributors who actually share a credited object, not
+    anyone who merely shares a content type or an object id with a different one of it."""
+
+    @pytest.mark.django_db
+    def test_orders_co_contributors_most_frequent_first(self, person):
+        frequent = PersonFactory()
+        occasional = PersonFactory()
+        projects = ProjectFactory.create_batch(3)
+        for project in projects:
+            person.add_to(project)
+            frequent.add_to(project)
+        occasional.add_to(projects[0])
+
+        co_contributors = list(person.get_co_contributors())
+
+        assert co_contributors[0] == frequent
+        assert occasional in co_contributors
+        assert co_contributors.index(frequent) < co_contributors.index(occasional)
+
+    @pytest.mark.django_db
+    def test_excludes_the_contributor_credited_on_an_unrelated_object(self, person):
+        shared_project = ProjectFactory()
+        person.add_to(shared_project)
+        collaborator = PersonFactory()
+        collaborator.add_to(shared_project)
+
+        stranger = PersonFactory()
+        stranger.add_to(ProjectFactory())
+
+        co_contributors = list(person.get_co_contributors())
+
+        assert collaborator in co_contributors
+        assert stranger not in co_contributors
+
+    @pytest.mark.django_db
+    def test_a_contributor_matching_content_type_and_object_id_separately_is_not_a_false_positive(
+        self, person
+    ):
+        """The naive implementation filtered on
+        ``contributions__content_type_id__in=[...]`` and
+        ``contributions__object_id__in=[...]`` as two separate calls, so a contributor
+        whose *own* credits happened to reuse one of person's content types on one object
+        and one of person's object ids on a *different* object read as a co-contributor,
+        despite sharing no object with person at all."""
+        project = ProjectFactory()
+        dataset = DatasetFactory()
+        person.add_to(project)
+
+        false_positive = PersonFactory()
+        other_project = ProjectFactory()
+        # Same content type as person's credit (Project), but a different object.
+        Contribution.objects.create(
+            contributor=false_positive,
+            content_type=ContentType.objects.get_for_model(other_project),
+            object_id=other_project.pk,
+        )
+        # Same object id as person's credit, but a different content type (Dataset).
+        Contribution.objects.create(
+            contributor=false_positive,
+            content_type=ContentType.objects.get_for_model(dataset),
+            object_id=str(project.pk),
+        )
+
+        co_contributors = list(person.get_co_contributors())
+
+        assert false_positive not in co_contributors
+
+
 # ── T017: ContributorIdentifier uniqueness ───────────────────────────────────
 
 
