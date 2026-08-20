@@ -404,6 +404,72 @@ class TestOrganizationCreationAndValidation:
         assert Organization.DEFAULT_IDENTIFIER == "ROR"
 
 
+# ── T081/T085: Ownership transfer ────────────────────────────────────────────
+
+
+class TestOwnershipTransfer:
+    """Verify Organization.transfer_ownership() (FR-029, SC-009)."""
+
+    @pytest.mark.django_db
+    def test_transfer_demotes_incumbent_and_promotes_successor(
+        self, organization, owner_affiliation
+    ):
+        """Transfer leaves the incumbent an administrator and the successor the owner."""
+        incumbent = owner_affiliation.person
+        successor = AffiliationFactory(
+            person=PersonFactory(email="successor@example.com"),
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        ).person
+
+        organization.transfer_ownership(successor)
+
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.ADMIN
+        assert organization.owner() == successor
+        assert successor.has_perm("manage_organization", organization)
+        assert not incumbent.has_perm("manage_organization", organization)
+
+    @pytest.mark.django_db
+    def test_transfer_refuses_a_person_who_is_not_a_member(
+        self, organization, owner_affiliation
+    ):
+        """Transfer to someone with no affiliation is refused, and nothing changes."""
+        stranger = PersonFactory(email="stranger@example.com")
+
+        with pytest.raises(ValidationError):
+            organization.transfer_ownership(stranger)
+
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+        assert not organization.affiliations.filter(person=stranger).exists()
+
+    @pytest.mark.django_db
+    def test_transfer_is_atomic(self, organization, owner_affiliation, monkeypatch):
+        """A failure mid-transfer leaves neither the demotion nor the promotion applied."""
+        successor = AffiliationFactory(
+            person=PersonFactory(email="atomic-successor@example.com"),
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        ).person
+
+        def boom(self, *args, **kwargs):
+            raise RuntimeError("simulated failure during promotion")
+
+        monkeypatch.setattr(Affiliation, "save", boom, raising=True)
+
+        with pytest.raises(RuntimeError):
+            organization.transfer_ownership(successor)
+
+        monkeypatch.undo()
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+        assert (
+            organization.affiliations.get(person=successor).type
+            == Affiliation.MembershipType.MEMBER
+        )
+
+
 # ── T015: Affiliation unique constraints ─────────────────────────────────────
 
 

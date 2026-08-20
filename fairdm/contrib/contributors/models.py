@@ -947,6 +947,40 @@ class Organization(Contributor):
             return membership.person
         return None
 
+    def transfer_ownership(self, new_owner):
+        """Transfer ownership of this organization to an existing member.
+
+        Demotes the incumbent owner to administrator and promotes ``new_owner``
+        to owner in one atomic operation (FR-029). Management rights are
+        derived from the affiliation's type at check time (D13) rather than
+        stored, so this method changes only the affiliation records: no
+        permission is granted, revoked or written anywhere.
+
+        Args:
+            new_owner: The Person to become the organization's owner. Must
+                already hold an affiliation with this organization.
+
+        Raises:
+            ValidationError: If ``new_owner`` is not a member of this
+                organization.
+        """
+        from django.core.exceptions import ValidationError
+        from django.db import transaction
+
+        new_owner_affiliation = self.affiliations.filter(person=new_owner).first()
+        if new_owner_affiliation is None:
+            raise ValidationError(
+                _("%(person)s is not a member of %(organization)s.")
+                % {"person": new_owner, "organization": self}
+            )
+
+        with transaction.atomic():
+            self.affiliations.filter(type=Affiliation.MembershipType.OWNER).update(
+                type=Affiliation.MembershipType.ADMIN
+            )
+            new_owner_affiliation.type = Affiliation.MembershipType.OWNER
+            new_owner_affiliation.save()
+
     def as_geojson(self):
         """Returns the organization as a GeoJSON object."""
         if not self.location:
