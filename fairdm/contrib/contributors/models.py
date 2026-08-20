@@ -111,7 +111,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     name = models.CharField(
         max_length=512,
         verbose_name=_("preferred name"),
-        # help_text=_("This name is displayed publicly within the website."),
+        help_text=_("The name by which the contributor is publicly known."),
     )
 
     alternative_names = models.JSONField(
@@ -122,7 +122,12 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         default=list,
     )
 
-    profile = models.TextField(_("profile"), null=True, blank=True)
+    profile = models.TextField(
+        verbose_name=_("profile"),
+        help_text=_("A free-text description of the contributor."),
+        null=True,
+        blank=True,
+    )
 
     links = models.JSONField(
         verbose_name=_("links"),
