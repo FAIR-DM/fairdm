@@ -19,53 +19,63 @@ The Person admin combines Django's user management with contributor-specific fie
 
 ### Key Admin Sections
 
-**Personal Information Tab**:
-- Name fields (first_name, last_name, auto-generates display name)
+**Basic info**:
+- Avatar image
+- Name fields (first_name, last_name, auto-generates the display name)
 - Email address (required for claimed accounts, NULL for unclaimed)
 - Profile/biography
-- Avatar image
-- Keywords (research interests)
+- Public identifier (`uuid`) and the added/modified timestamps — shown, read-only
+- Last synced date
 
-**Account Status Tab**:
-- `is_claimed`: Boolean indicating if this person has claimed their account
-- `is_active`: Standard Django active status
+**Account**:
+- Password
+- `is_active`: standard Django active status
 - `is_staff`: Django admin access
-- `is_superuser`: Full system access
+- `is_superuser`: full system access
 
-**Privacy Settings Tab**:
-- `privacy_settings`: JSON field controlling field visibility
-- Default: Email private for claimed users, all fields public for unclaimed
+**Permissions**:
+- Django groups
 
-**Identifiers Tab**:
-- ORCID (via ContributorIdentifier inline)
-- Other external identifiers
+**Inline sections**:
+- Account emails (via allauth)
+- Affiliations
+- External identifiers (ORCID, etc.)
 
-**Permissions Tab**:
-- Django groups and permissions
-- Object-level permissions (via django-guardian)
+The changelist reports each person's derived account state (`account_state`
+in `list_display`) alongside name, email and staff status, and search
+covers name, email and the public identifier.
 
 ### State Machine Overview
 
-Person accounts follow this lifecycle:
+Person accounts occupy exactly one of four states, in this precedence —
+inactive overrides claimed, claimed overrides invited, invited overrides
+ghost (D8):
 
-1. **Ghost** (unclaimed, no email):
-   - `is_claimed=False`, `email=None`, `is_active=False`
-   - Created automatically during data import for attribution
-   - Not searchable in portal member listings
+1. **Inactive**: `is_active=False`, regardless of `is_claimed`. Account
+   disabled but data preserved.
 
-2. **Invited** (unclaimed, has email):
-   - `is_claimed=False`, `email` set, `is_active=False`
-   - Invitation sent but not yet accepted
-   - Invitation workflows in Feature 010 (not yet released)
+2. **Claimed**: `is_active=True`, `is_claimed=True`. Full user account with
+   authentication; appears in portal member listings.
 
-3. **Claimed** (active account):
-   - `is_claimed=True`, `is_active=True`
-   - Full user account with authentication
-   - Appears in portal member listings
+3. **Invited**: `is_active=True`, `is_claimed=False`, `email` set.
+   Invitation sent but not yet accepted. Invitation workflows are Feature
+   010 (not yet released).
 
-4. **Banned** (deactivated):
-   - `is_claimed=True`, `is_active=False`
-   - Account disabled but data preserved
+4. **Ghost**: `is_active=True`, `is_claimed=False`, `email=None`. Created
+   automatically during data import for attribution; not searchable in
+   portal member listings.
+
+### Claim-Status Filter
+
+The **Claimed Status** filter in the Person changelist reads `is_claimed`
+and `is_active` directly, not the email address — an invited person has an
+email but has not claimed their account, so email presence alone cannot
+tell the two apart.
+
+- **Claimed** shows only accounts with `is_active=True` and
+  `is_claimed=True` — state 2 above.
+- **Unclaimed** shows everything else — inactive, invited and ghost
+  accounts (states 1, 3 and 4).
 
 ### Creating Person Records
 
@@ -131,6 +141,22 @@ Organizations represent institutions, companies, research groups, and other orga
 - View and edit affiliations directly within organization admin
 - Add new members inline
 - Assign roles (PENDING, MEMBER, ADMIN, OWNER)
+
+**Sub-organizations**:
+- Sub-organizations (children by the self-referencing `parent` field) are
+  listed in their own inline on the organization change screen, alongside
+  the member inline
+
+**Fieldsets and filters**:
+- The change form groups fields into Basic info, Location and
+  Synchronisation sections
+- The changelist can be filtered by country
+- The public identifier (`uuid`) is shown and read-only
+
+**Affiliation Admin**:
+- Affiliations also have their own top-level admin screen (list, add,
+  change), independent of the person/organization inlines, with
+  autocomplete on the person and organization fields
 
 **ROR Synchronization**:
 - Admin action: "Sync from ROR"
@@ -250,12 +276,12 @@ Calling it with someone who holds no affiliation on the organisation raises
 
 ### Affiliation Admin List Filters
 
-Use filters to find affiliations:
-- **By organization**: Filter by organization name
-- **By person**: Filter by person name
-- **By type**: PENDING, MEMBER, ADMIN, OWNER
-- **By status**: Current (end_date=NULL) vs Past (end_date set)
-- **Primary only**: Show only is_primary=True
+The Affiliation changelist filters on:
+- **Type**: PENDING, MEMBER, ADMIN, OWNER
+- **Primary only**: `is_primary`
+
+The person and organization fields use autocomplete widgets rather than a
+list filter.
 
 ### Bulk Affiliation Management
 

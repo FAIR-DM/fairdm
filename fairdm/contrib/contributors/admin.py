@@ -2,7 +2,6 @@ from allauth.account.models import EmailAddress
 from dal import autocomplete
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
@@ -21,7 +20,16 @@ from .resources import PersonResource
 
 
 class ClaimedStatusFilter(admin.SimpleListFilter):
-    """Filter persons by claimed/unclaimed status."""
+    """Filter persons by claimed/unclaimed status.
+
+    Reads the stored claim value (``is_claimed``), not the email address
+    (D8): an invited person has an email but has not claimed their account,
+    so email presence alone misclassifies them. "Claimed" also respects the
+    same precedence Person.account_state would use -- an account that has
+    since been deactivated no longer counts as claimed, even though
+    is_claimed is still True. Person.account_state itself is US3's work and
+    does not exist yet, so this reads is_claimed/is_active directly.
+    """
 
     title = _("Claimed Status")
     parameter_name = "is_claimed"
@@ -29,16 +37,16 @@ class ClaimedStatusFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         """Return filter options."""
         return (
-            ("claimed", _("Claimed (has email)")),
-            ("unclaimed", _("Unclaimed (no email)")),
+            ("claimed", _("Claimed")),
+            ("unclaimed", _("Unclaimed")),
         )
 
     def queryset(self, request, queryset):
         """Apply filter to queryset."""
         if self.value() == "claimed":
-            return queryset.exclude(email__isnull=True).exclude(email="")
+            return queryset.filter(is_active=True, is_claimed=True)
         elif self.value() == "unclaimed":
-            return queryset.filter(Q(email__isnull=True) | Q(email=""))
+            return queryset.exclude(is_active=True, is_claimed=True)
         return queryset
 
 
@@ -83,10 +91,15 @@ class IdentifierInline(admin.StackedInline):
     extra = 0
 
 
-# class OrganizationInline(admin.StackedInline):
-#     model = Organization
-#     fields = ["profile"]
-#     extra = 0
+class SubOrganizationInline(admin.TabularInline):
+    """Inline listing an organization's sub-organizations (self-referencing parent FK)."""
+
+    model = Organization
+    fk_name = "parent"
+    fields = ["name"]
+    extra = 0
+    verbose_name = _("Sub-organization")
+    verbose_name_plural = _("Sub-organizations")
 
 
 @admin.register(Person)
@@ -102,7 +115,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         "last_name",
         "email",
         "is_staff",
-        "is_active",
+        "account_state",
     ]
     list_filter = (
         ClaimedStatusFilter,
@@ -128,7 +141,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         # },
         # models.JSONField: {"widget": FlatJSONWidget},
     }
-    readonly_fields = ["synced_data", "last_synced"]
+    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
     # fieldsets for modifying user
     fieldsets = (
         (
@@ -142,7 +155,9 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     # "alternative_names",
                     # "links",
                     "profile",
+                    "uuid",
                     "last_synced",
+                    ("added", "modified"),
                 )
             },
         ),
@@ -183,9 +198,25 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         ),
     )
 
-    search_fields = ("email", "id", "name")
+    search_fields = ("email", "name", "uuid")
     ordering = ("last_name",)
     actions = ["generate_claim_link_action", "merge_person_action"]
+
+    @admin.display(description=_("Account state"))
+    def account_state(self, obj):
+        """Report the account state derived from the stored claim/active fields (D8).
+
+        A total function so the four states cannot overlap: inactive if the
+        account is deactivated, otherwise claimed, otherwise invited if an
+        email address is present, otherwise ghost.
+        """
+        if not obj.is_active:
+            return _("Inactive")
+        if obj.is_claimed:
+            return _("Claimed")
+        if obj.email:
+            return _("Invited")
+        return _("Ghost")
 
     @admin.action(description=_("Merge selected Person into another"))
     def merge_person_action(self, request, queryset):
@@ -363,15 +394,27 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 class OrganizationAdmin(admin.ModelAdmin):
     base_model = Contributor
     show_in_index = True
-    inlines = [MemberInline]  # Add inline for managing members
+    inlines = [MemberInline, SubOrganizationInline]
     list_display = ["name", "city", "country", "lat", "lon"]
+    list_filter = ["country"]
     search_fields = ["name"]
-    readonly_fields = ["synced_data", "last_synced"]
-    exclude = (
-        "alternative_names",
-        "links",
-        "lang",
-    )  # Exclude JSON array fields to avoid widget issues
+    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
+    # alternative_names, links and lang are JSON array fields that trigger widget
+    # issues; they are simply left out of the fieldsets below rather than excluded.
+    fieldsets = (
+        (
+            None,
+            {"fields": ("image", "name", "profile", "parent", "uuid")},
+        ),
+        (
+            _("Location"),
+            {"fields": ("city", "country", "location")},
+        ),
+        (
+            _("Synchronisation"),
+            {"fields": ("last_synced", "synced_data", ("added", "modified"))},
+        ),
+    )
     actions = [
         "sync_from_ror",
         "transfer_ownership_action",
@@ -469,6 +512,15 @@ class OrganizationAdmin(admin.ModelAdmin):
         # Redirect to organization change page
         url = reverse("admin:contributors_organization_change", args=[org.pk])
         return redirect(url)
+
+
+@admin.register(Affiliation)
+class AffiliationAdmin(admin.ModelAdmin):
+    """Administer affiliations directly, outside the person/organisation inlines (US10)."""
+
+    list_display = ["person", "organization", "type", "is_primary"]
+    list_filter = ["type", "is_primary"]
+    autocomplete_fields = ["person", "organization"]
 
 
 @admin.register(ClaimingAuditLog)
