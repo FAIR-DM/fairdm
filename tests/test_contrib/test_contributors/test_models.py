@@ -1,6 +1,8 @@
 """Tests for contributor data models (User Story 1).
 
 Tests cover:
+- The Contributor base: public identifier, profile fields, timestamps,
+  configuration store, field metadata (FS-009 US1 T008-T013)
 - Person claimed/unclaimed semantics (T013)
 - Organization creation and validation (T014)
 - Affiliation unique constraints (T015)
@@ -30,6 +32,53 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
+
+# ── FS-009 US1 T008: Contributor public identifier ──────────────────────────
+
+
+class TestContributorIdentity:
+    """Verify the contributor public identifier (FR-002, SC-001)."""
+
+    @pytest.mark.django_db
+    def test_person_identifier_carries_contributor_prefix(self):
+        """A person's identifier is generated on first save with the 'c' prefix."""
+        person = PersonFactory()
+        assert person.uuid
+        assert person.uuid.startswith("c")
+
+    @pytest.mark.django_db
+    def test_organization_identifier_carries_contributor_prefix(self):
+        """An organization's identifier is generated on first save with the 'c' prefix."""
+        organization = OrganizationFactory()
+        assert organization.uuid
+        assert organization.uuid.startswith("c")
+
+    @pytest.mark.django_db
+    def test_identifier_unchanged_on_second_save(self):
+        """Saving a contributor a second time leaves its identifier unchanged."""
+        person = PersonFactory()
+        original_uuid = person.uuid
+        person.name = "Changed Name"
+        person.save()
+        person.refresh_from_db()
+        assert person.uuid == original_uuid
+
+    @pytest.mark.django_db
+    def test_identifier_unique_across_both_concrete_types(self):
+        """No two contributors, of either concrete type, share an identifier."""
+        person = PersonFactory()
+        organization = OrganizationFactory()
+        assert person.uuid != organization.uuid
+        assert Contributor.objects.filter(uuid=person.uuid).count() == 1
+        assert Contributor.objects.filter(uuid=organization.uuid).count() == 1
+
+    @pytest.mark.django_db
+    def test_identifier_uniqueness_enforced_across_types(self):
+        """The database refuses a second contributor carrying a used identifier."""
+        person = PersonFactory()
+        with pytest.raises(IntegrityError):
+            OrganizationFactory(uuid=person.uuid)
+
 
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 
