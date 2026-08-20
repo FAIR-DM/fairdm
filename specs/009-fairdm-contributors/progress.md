@@ -901,3 +901,58 @@ Watch: see concerns in the completion report for the Privacy Controls doc stalen
 template/view call sites (`object_card.html`, `views/generic.py`) whose `.username` fallback
 behaviour changed now that `username = None` genuinely removes the field (T029) rather than
 shadowing it with a callable.
+
+## 2026-08-20T12:47:00Z · Implementer US10 · T129
+
+Did: Added `TestOwnershipTransferAction` to
+`tests/test_contrib/test_contributors/test_admin.py`, covering the ownership transfer admin
+action on `OrganizationAdmin` (`admin.py:486`). One test posts the action as a superuser with a
+member selected as the new owner and asserts the affiliation records actually move (incumbent to
+`ADMIN`, successor to `OWNER`) and that the success message names the successor rather than
+repeating the old "use the member management inline below" instruction. The other posts the same
+action as a staff user who holds only the ordinary `change_organization` Django permission - not
+an `OWNER` affiliation - and asserts the transfer is refused and nothing changes, covering the
+design-review finding (SEC-001) that the object-level check must gate the transfer regardless of
+whether the acting account can reach the action at all.
+
+Verified: watched both tests against the pre-fix action (`git stash` the not-yet-committed
+`admin.py` edit) - the first failed with `owner_affiliation.type == 3`, not `ADMIN`, confirming it
+was red for the transfer never happening; the second already passed, since the permission check
+was pre-existing. `poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q -p
+no:randomly` → 2 failed, then (after restoring the fix) `poetry run pytest
+tests/test_contrib/test_contributors/test_admin.py::TestOwnershipTransferAction -q -p no:randomly`
+→ 2 passed. `poetry run ruff check tests/test_contrib/test_contributors/test_admin.py` → all
+checks passed.
+
+Next: T135.
+
+Watch: none.
+
+## 2026-08-20T12:52:00Z · Implementer US10 · T135
+
+Did: Rewrote `transfer_ownership_action` (`admin.py:486`) to perform the transfer instead of
+redirecting with an instruction. `Organization.transfer_ownership()` (landed by the US6 sibling
+story, `models.py:1122`) now does the demotion/promotion; the action's job is choosing the new
+owner and reporting the outcome. Since the action operates on a bulk-selected `Organization`
+queryset with no per-row extra input, the new-owner selection is a `new_owner` field on a new
+`OrganizationActionForm(ActionForm)`, which Django's own `admin/actions.html` renders alongside
+the action dropdown with no new template required - the action reads `request.POST["new_owner"]`
+directly, matching how Django's own action-form examples do it. The existing object-level check
+(`request.user.has_perm("contributors.manage_organization", org)`) is untouched in place and still
+runs before the transfer call; `Organization.transfer_ownership()`'s own `ValidationError` (raised
+if `new_owner` is not actually a member) is caught and reported through `messages`, not
+propagated.
+
+Verified: `poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q -p no:randomly`
+→ 39 passed. `poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly` → 180
+passed (also covers test_permissions.py and test_models.py, since both exercise
+`has_perm("manage_organization", ...)` and `transfer_ownership()` directly - no regression from
+touching the admin action that wraps them). `poetry run ruff check
+fairdm/contrib/contributors/admin.py` → all checks passed.
+
+Next: none - both of this story's tasks are complete. Full-suite verify remains for the completion
+report.
+
+Watch: the pre-existing `views/organization.py:58` `transfer_ownership` view still reimplements the
+demotion/promotion inline rather than calling the model method - out of scope here (D1, views/ is
+prohibited), noted for whoever picks that view back up.
