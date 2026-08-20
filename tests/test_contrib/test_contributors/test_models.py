@@ -12,6 +12,8 @@ Tests cover:
 """
 
 import pytest
+from django.apps import apps
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
@@ -244,6 +246,25 @@ class TestFieldMetadata:
                     failures.append(f"{model.__name__}.{field.name}: help_text")
 
         assert not failures, f"Missing or non-lazy verbose_name/help_text: {failures}"
+
+
+# ── T023 (US2): Person is the account ────────────────────────────────────────
+
+
+class TestPersonIsTheAccount:
+    """Verify Person is Django's account model, and the only one (FR-008, SC-003)."""
+
+    def test_get_user_model_is_person(self):
+        """django.contrib.auth.get_user_model() resolves to Person, by name."""
+        assert get_user_model() is Person
+        assert get_user_model().__name__ == "Person"
+
+    def test_no_separate_account_model_registered(self):
+        """No other installed model declares a USERNAME_FIELD alongside Person."""
+        username_field_models = [
+            model for model in apps.get_models() if hasattr(model, "USERNAME_FIELD")
+        ]
+        assert username_field_models == [Person]
 
 
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
