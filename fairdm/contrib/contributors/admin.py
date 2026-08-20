@@ -1,6 +1,8 @@
 from allauth.account.models import EmailAddress
 from dal import autocomplete
+from django import forms
 from django.contrib import admin
+from django.contrib.admin.helpers import ActionForm
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
@@ -390,11 +392,28 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         )
 
 
+class OrganizationActionForm(ActionForm):
+    """Adds the new-owner selector to the organisation changelist's action bar (T135, FR-046).
+
+    Django renders every visible field on ``action_form`` alongside the action dropdown
+    (``admin/actions.html``), so this needs no new template. The transfer action reads the
+    value straight off ``request.POST`` rather than validating the form, matching how the
+    Django admin's own action-form examples do it.
+    """
+
+    new_owner = forms.ModelChoiceField(
+        queryset=Person.objects.all(),
+        required=False,
+        label=_("New owner"),
+    )
+
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     base_model = Contributor
     show_in_index = True
     inlines = [MemberInline, SubOrganizationInline]
+    action_form = OrganizationActionForm
     list_display = ["name", "city", "country", "lat", "lon"]
     list_filter = ["country"]
     search_fields = ["name"]
@@ -466,9 +485,16 @@ class OrganizationAdmin(admin.ModelAdmin):
 
     @admin.action(description="Transfer Ownership")
     def transfer_ownership_action(self, request, queryset):
-        """Transfer ownership for selected organization (single selection only)."""
-        from django.shortcuts import redirect
-        from django.urls import reverse
+        """Transfer ownership of the selected organization to the chosen member (FR-046).
+
+        The affiliation-record change (demoting the incumbent, promoting the new owner) is
+        ``Organization.transfer_ownership()``'s job, not this action's -- it is not
+        reimplemented here (T135). The object-level ``manage_organization`` check below must
+        run, and must run before the transfer: without it, any account holding the
+        model-level ``change_organization`` permission could transfer any organisation
+        (design review SEC-001).
+        """
+        from django.core.exceptions import ValidationError
 
         # Validate single selection
         if queryset.count() != 1:
@@ -490,7 +516,8 @@ class OrganizationAdmin(admin.ModelAdmin):
             )
             return
 
-        # Check user has manage_organization permission
+        # Check user has manage_organization permission -- object-level, not the model-level
+        # change permission that merely got them into this action (SEC-001).
         if not request.user.has_perm("contributors.manage_organization", org):
             self.message_user(
                 request,
@@ -499,19 +526,28 @@ class OrganizationAdmin(admin.ModelAdmin):
             )
             return
 
-        # Redirect to organization change page with info message about ownership transfer
-        # The actual transfer should be done via the transfer_ownership view or through
-        # a custom admin intermediate page (not implemented here for simplicity)
+        new_owner_pk = request.POST.get("new_owner")
+        new_owner = Person.objects.filter(pk=new_owner_pk).first() if new_owner_pk else None
+        if new_owner is None:
+            self.message_user(
+                request,
+                "Select a new owner from the action bar before running this action.",
+                level="error",
+            )
+            return
+
+        try:
+            org.transfer_ownership(new_owner)
+        except ValidationError as exc:
+            self.message_user(request, "; ".join(exc.messages), level="error")
+            return
+
         self.message_user(
             request,
-            f"To transfer ownership of '{org.name}', use the member management inline below. "
-            f"Promote a member to OWNER role - the current owner will be automatically demoted to ADMIN.",
-            level="info",
+            f"Transferred ownership of '{org.name}' to {new_owner}. "
+            f"The previous owner is now an administrator.",
+            level="success",
         )
-
-        # Redirect to organization change page
-        url = reverse("admin:contributors_organization_change", args=[org.pk])
-        return redirect(url)
 
 
 @admin.register(Affiliation)
