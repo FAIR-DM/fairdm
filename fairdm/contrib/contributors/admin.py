@@ -396,13 +396,25 @@ class OrganizationAdmin(admin.ModelAdmin):
     show_in_index = True
     inlines = [MemberInline, SubOrganizationInline]
     list_display = ["name", "city", "country", "lat", "lon"]
+    list_filter = ["country"]
     search_fields = ["name"]
-    readonly_fields = ["synced_data", "last_synced"]
-    exclude = (
-        "alternative_names",
-        "links",
-        "lang",
-    )  # Exclude JSON array fields to avoid widget issues
+    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
+    # alternative_names, links and lang are JSON array fields that trigger widget
+    # issues; they are simply left out of the fieldsets below rather than excluded.
+    fieldsets = (
+        (
+            None,
+            {"fields": ("image", "name", "profile", "parent", "uuid")},
+        ),
+        (
+            _("Location"),
+            {"fields": ("city", "country", "location")},
+        ),
+        (
+            _("Synchronisation"),
+            {"fields": ("last_synced", "synced_data", ("added", "modified"))},
+        ),
+    )
     actions = [
         "sync_from_ror",
         "transfer_ownership_action",

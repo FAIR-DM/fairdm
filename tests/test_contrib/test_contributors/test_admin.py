@@ -407,6 +407,44 @@ class TestOrganizationAdminRORSync:
         mock_task.assert_called_once_with(ror_id.pk)
 
 
+# ── T133: Organization admin fieldsets, filters and read-only identifier
+# (US10, FR-044) ─────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestOrganizationAdmin:
+    """Verify the organisation admin's fieldsets, filters and read-only identifier.
+
+    Organization.type (the nine-value ROR classification, US4) does not
+    exist on this branch yet, so the "list filters on type and country"
+    part of T133 is satisfied for country only; see the completion report's
+    concerns.
+    """
+
+    def test_public_identifier_is_readonly(self):
+        from fairdm.contrib.contributors.models import Organization
+
+        model_admin = admin.site._registry[Organization]
+        assert "uuid" in model_admin.readonly_fields
+        assert "uuid" in _fieldset_field_names(model_admin.fieldsets)
+
+    def test_list_filter_includes_country(self):
+        from fairdm.contrib.contributors.models import Organization
+
+        model_admin = admin.site._registry[Organization]
+        assert "country" in model_admin.list_filter
+
+    def test_fieldsets_present(self, admin_client, organization):
+        """The change form renders with the new fieldsets, not the field-dump default."""
+        url = reverse("admin:contributors_organization_change", args=[organization.pk])
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "Location" in content
+        assert "Synchronisation" in content
+
+
 # ── T046: ClaimingAuditLog admin view ────────────────────────────────────────
 
 
