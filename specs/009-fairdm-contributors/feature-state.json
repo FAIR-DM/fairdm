@@ -3,7 +3,7 @@
   "feature": "009-fairdm-contributors",
   "branch": "009-fairdm-contributors",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -29,6 +29,16 @@
       "state": "IMPLEMENT",
       "at": "2026-08-20T12:00:00Z",
       "note": "US1 accepted on independent verification; receipts unobtainable, see D22"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-08-20T18:00:00Z",
+      "note": "ten stories merged; one migration; verify green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-20T18:30:00Z",
+      "note": "141 of 142 tasks done; T143 left to CI"
     }
   ],
   "gates": {
@@ -181,8 +191,18 @@
         },
         {
           "id": "T139",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/migrations/0020_contributors_audit.py:1"
+            ],
+            "commands": [
+              "poetry run python manage.py makemigrations contributors --check --dry-run",
+              "poetry run python manage.py migrate --no-input (fresh database)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T140",
@@ -2068,7 +2088,7 @@
       "priority": "P2",
       "issue": 241,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -2384,7 +2404,7 @@
       "priority": "P2",
       "issue": 243,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
