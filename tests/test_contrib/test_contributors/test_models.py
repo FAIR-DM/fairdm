@@ -175,6 +175,77 @@ class TestContributorConfiguration:
         }
 
 
+# ── FS-009 US1 T013: Field metadata ──────────────────────────────────────────
+
+
+class TestFieldMetadata:
+    """Every concrete field on every model this app defines is translatable (FR-007, Articles VIII, IX)."""
+
+    def _concrete_fields(self, model):
+        return [f for f in model._meta.get_fields() if getattr(f, "concrete", False)]
+
+    def test_every_field_has_verbose_name_and_help_text(self):
+        """Every concrete field declares a non-empty, translatable verbose_name and help_text.
+
+        Scoped to the models this specification's data model owns (plan.md "Data
+        model"): Contributor, Person, Organization, Affiliation, Contribution and
+        ContributorIdentifier. ClaimingAuditLog lives in this app's models.py but
+        belongs to profile claiming (specs/010-profile-claiming), which this story's
+        brief places out of scope.
+        """
+        from django.utils.functional import Promise
+
+        models_to_check = [
+            Contributor,
+            Person,
+            Organization,
+            Affiliation,
+            Contribution,
+            ContributorIdentifier,
+        ]
+        # Fields whose identity *is* their name, and fields owned entirely by a
+        # third-party base class this app does not redeclare (Django's AbstractUser,
+        # django-ordered_model's OrderedModel).
+        exempt_fields = {
+            "id",
+            "polymorphic_ctype",
+            "contributor_ptr",
+            "password",
+            "last_login",
+            "first_name",
+            "last_name",
+            "date_joined",
+            "order",
+        }
+        # Affiliation.added/modified are inherited from fairdm.db.models.Model, which
+        # imports gettext eagerly rather than lazily (fairdm/db/models.py:14) -- a
+        # pre-existing defect in a shared framework base well outside this app, out
+        # of this story's scope to fix. Contributor declares its own added/modified
+        # directly and is not affected. ContributorIdentifier.type/value are inherited
+        # from fairdm.core.abstract.AbstractIdentifier, shared by every identifier
+        # model in the codebase (dataset, project, sample, measurement); also out of
+        # this app's scope.
+        exempt_by_model = {
+            Affiliation: {"added", "modified"},
+            ContributorIdentifier: {"type", "value"},
+        }
+
+        failures = []
+        for model in models_to_check:
+            model_exempt = exempt_fields | exempt_by_model.get(model, set())
+            for field in self._concrete_fields(model):
+                if field.name in model_exempt:
+                    continue
+                verbose_name = getattr(field, "verbose_name", None)
+                help_text = getattr(field, "help_text", None)
+                if not verbose_name or not isinstance(verbose_name, Promise):
+                    failures.append(f"{model.__name__}.{field.name}: verbose_name")
+                if not help_text or not isinstance(help_text, Promise):
+                    failures.append(f"{model.__name__}.{field.name}: help_text")
+
+        assert not failures, f"Missing or non-lazy verbose_name/help_text: {failures}"
+
+
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 
 

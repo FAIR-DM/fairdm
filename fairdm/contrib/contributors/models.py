@@ -89,7 +89,8 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         editable=False,
         unique=True,
         prefix="c",
-        verbose_name="UUID",
+        verbose_name=_("UUID"),
+        help_text=_("The contributor's public identifier."),
     )
 
     image = ThumbnailerImageField(
@@ -433,7 +434,16 @@ class Person(AbstractUser, Contributor):
 
     # null is allowed for the email field, as a Person object/User account can be created by someone else. E.g. when
     # adding a new contributor to a database entry.
-    email = models.EmailField(_("email address"), unique=True, null=True, blank=True)
+    email = models.EmailField(
+        _("email address"),
+        help_text=_(
+            "The person's email address. Null for an unclaimed profile created for "
+            "attribution alone."
+        ),
+        unique=True,
+        null=True,
+        blank=True,
+    )
 
     is_claimed = models.BooleanField(
         _("is claimed"),
@@ -974,8 +984,17 @@ class Contribution(LifecycleModelMixin, OrderedModel):
 
     ROLES_VOCAB = FairDMRoles()
     objects = ContributionManager()
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.CharField(max_length=23)
+    content_type = models.ForeignKey(
+        ContentType,
+        verbose_name=_("content type"),
+        help_text=_("The type of object this contribution is attributed to."),
+        on_delete=models.CASCADE,
+    )
+    object_id = models.CharField(
+        verbose_name=_("object id"),
+        help_text=_("The id of the object this contribution is attributed to."),
+        max_length=23,
+    )
     content_object = GenericForeignKey("content_type", "object_id")
     contributor = models.ForeignKey(
         "contributors.Contributor",
@@ -1110,7 +1129,12 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
     """
 
     VOCABULARY = FairDMIdentifiers.from_collection("Contributor")
-    related = models.ForeignKey("Contributor", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Contributor",
+        verbose_name=_("contributor"),
+        help_text=_("The contributor this identifier belongs to."),
+        on_delete=models.CASCADE,
+    )
 
     @hook(AFTER_CREATE)
     def dispatch_sync_task(self):
