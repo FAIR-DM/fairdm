@@ -80,13 +80,20 @@ class OrganizationFactory(ContributorFactory):
 
 
 class AffiliationFactory(DjangoModelFactory):
-    """Factory for creating Affiliation instances."""
+    """Factory for creating Affiliation instances.
+
+    Defaults to a current, plain member membership: a start date is set and
+    no end date, and the type is the plain member level rather than pending,
+    admin or owner.
+    """
 
     class Meta:
         model = Affiliation
 
     person = SubFactory(PersonFactory)
     organization = SubFactory(OrganizationFactory)
+    type = Affiliation.MembershipType.MEMBER
+    start_date = "2020"
 
 
 class ContributionFactory(DjangoModelFactory):

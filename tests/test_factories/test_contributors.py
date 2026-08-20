@@ -7,8 +7,14 @@ with the core model factories (Project, Dataset, Sample, Measurement).
 import pytest
 from django.test import TestCase
 
-from fairdm.contrib.contributors.models import Contribution, Organization, Person
+from fairdm.contrib.contributors.models import (
+    Affiliation,
+    Contribution,
+    Organization,
+    Person,
+)
 from fairdm.factories import (
+    AffiliationFactory,
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
@@ -87,6 +93,27 @@ class TestContributorFactoryCreation:
         assert org.pk is not None
         assert org.name
         assert org.profile
+
+
+@pytest.mark.django_db
+class TestAffiliationFactory:
+    """T074: AffiliationFactory defaults to a current, plain member period."""
+
+    def test_default_type_is_member(self):
+        """AffiliationFactory defaults to a plain member type, not pending,
+        admin or owner."""
+        affiliation = AffiliationFactory()
+
+        assert affiliation.type == Affiliation.MembershipType.MEMBER
+
+    def test_default_period_is_current(self):
+        """AffiliationFactory defaults to a current period: a start date is
+        set and no end date, so the membership passes the current() filter."""
+        affiliation = AffiliationFactory()
+
+        assert affiliation.start_date is not None
+        assert affiliation.end_date is None
+        assert affiliation in Affiliation.objects.current()
 
 
 @pytest.mark.django_db
