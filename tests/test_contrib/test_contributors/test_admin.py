@@ -12,6 +12,7 @@ Tests cover:
 
 import pytest
 from django.contrib import admin
+from django.contrib.messages import get_messages
 from django.urls import reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Person
@@ -405,6 +406,108 @@ class TestOrganizationAdminRORSync:
 
         # Verify task was called for the ROR identifier
         mock_task.assert_called_once_with(ror_id.pk)
+
+
+# ── T129/T135: Ownership transfer admin action (US10, FR-046, SC-015) ───────
+
+
+@pytest.mark.django_db
+class TestOwnershipTransferAction:
+    """Verify the ownership transfer admin action performs the transfer.
+
+    The action used to redirect with a message telling the administrator how
+    to do it by hand; it must now call ``Organization.transfer_ownership()``
+    and change the affiliation records itself.
+    """
+
+    def _post_transfer(self, admin_client, organization, new_owner):
+        url = reverse("admin:contributors_organization_changelist")
+        return admin_client.post(
+            url,
+            {
+                "action": "transfer_ownership_action",
+                "_selected_action": [organization.pk],
+                "new_owner": new_owner.pk,
+            },
+        )
+
+    def test_action_transfers_ownership_rather_than_instructing(
+        self, admin_client, organization, owner_affiliation
+    ):
+        """A superuser running the action moves ownership; incumbent becomes admin."""
+        from fairdm.factories import AffiliationFactory, PersonFactory
+
+        incumbent = owner_affiliation.person
+        successor = AffiliationFactory(
+            person=PersonFactory(email="successor@example.com"),
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        ).person
+
+        response = self._post_transfer(admin_client, organization, successor)
+
+        assert response.status_code in (200, 302)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.ADMIN
+        assert organization.affiliations.get(person=successor).type == (
+            Affiliation.MembershipType.OWNER
+        )
+
+        messages_text = " ".join(
+            str(m) for m in get_messages(response.wsgi_request)
+        )
+        assert "use the member management inline" not in messages_text
+        assert successor.name in messages_text
+
+    def test_action_is_refused_without_the_object_level_right(
+        self, organization, owner_affiliation, client
+    ):
+        """Model-level change permission alone must not be enough (SEC-001).
+
+        The acting user here holds Django's ordinary ``change_organization``
+        permission -- enough to reach the admin action -- but has no OWNER
+        affiliation on this organisation, so the object-level check at
+        ``request.user.has_perm("contributors.manage_organization", org)``
+        must refuse the transfer.
+        """
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+
+        from fairdm.contrib.contributors.models import Organization
+        from fairdm.factories import AffiliationFactory, PersonFactory
+
+        incumbent = owner_affiliation.person
+        successor = AffiliationFactory(
+            person=PersonFactory(email="unauthorized-successor@example.com"),
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        ).person
+
+        acting_user = PersonFactory(
+            email="acting-staff@example.com", is_staff=True
+        )
+        change_perm = Permission.objects.get(
+            content_type=ContentType.objects.get_for_model(Organization),
+            codename="change_organization",
+        )
+        acting_user.user_permissions.add(change_perm)
+        assert not acting_user.has_perm("contributors.manage_organization", organization)
+
+        client.force_login(acting_user)
+        response = self._post_transfer(client, organization, successor)
+
+        assert response.status_code in (200, 302)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+        assert organization.affiliations.get(person=successor).type == (
+            Affiliation.MembershipType.MEMBER
+        )
+        assert incumbent.has_perm("manage_organization", organization)
+
+        messages_text = " ".join(
+            str(m) for m in get_messages(response.wsgi_request)
+        )
+        assert "don't have permission" in messages_text
 
 
 # ── T133: Organization admin fieldsets, filters and read-only identifier
