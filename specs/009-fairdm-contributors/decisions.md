@@ -458,3 +458,34 @@ The plan's ordering paragraph said migrations were written first in a single tas
 list wrote one per story. The task list was right and the paragraph is corrected.
 
 **After the review: 30 of 143 reconciled done, 110 open, 3 struck.**
+
+## D22 — US1 accepted on independent verification, without receipts
+
+**Self-resolved**, and recorded because it is a gap rather than a clean pass.
+
+The process running US1 was killed after its last commit and before it wrote its completion report,
+so the story produced no craft-skill receipts and no self-reported evidence. Re-running the story
+would discard seventeen commits of sound work; accepting it on the strength of those commits would
+be accepting a story on its own say-so, which is the one thing the reporting gate exists to prevent.
+
+So it was verified independently instead, and this entry records exactly what that verification
+covered:
+
+- The full suite: **2016 passed, 13 skipped**, against a baseline of 2011 passed, 13 skipped.
+- `tamper-check` raised one flag, on `tests/test_contrib/test_contributors/test_models.py`. It is
+  fully accounted for: fifteen tests were removed and all fifteen are the privacy tests T144
+  authorises by name, D9 having removed the behaviour they cover. Comparing every test function
+  present in both `main` and the branch, **no surviving test body changed** — so nothing was
+  weakened, only the dead set deleted. The flag is approved on that basis, per the tamper-check
+  contract's provision for a legitimate refactor.
+- `makemigrations --check` reports no changes for the contributors application. The seven
+  migrations the story added are consistent with the models, and T139 consolidates them at
+  convergence.
+- The two removals were confirmed in the source: the configuration store exists at `models.py:180`,
+  and `privacy_settings`, `get_visible_fields`, `weight`, `calculate_weight` and
+  `calculate_profile_completion` are gone from a file that carried sixteen references to the first
+  two on `main`.
+
+**What is not covered:** whether the implementer loaded its craft skills. That is unprovable now,
+and no receipt is recorded rather than a receipt being assumed. Every later story in this feature
+carries its receipts normally.
