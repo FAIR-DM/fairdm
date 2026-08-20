@@ -207,6 +207,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         ordering = ["name"]
         verbose_name = _("contributor")
         verbose_name_plural = _("contributors")
+        default_related_name = "contributors"
 
     def save(self, *args, **kwargs):
         """
