@@ -1149,7 +1149,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         indexes = [
             models.Index(
                 fields=["content_type", "object_id"],
-                name="contribution_content_object_idx",
+                name="contribution_object_idx",
             ),
         ]
         ordering = ["object_id", "order"]
