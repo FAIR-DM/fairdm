@@ -147,88 +147,229 @@
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:88-96 (uuid)",
+              "fairdm/contrib/contributors/models.py (default_related_name, T015 @ cc40ecf)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorIdentity @ 2302bf8"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py (profile fields, T016 @ 8011293)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorProfileFields @ 1780823"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/validators.py @ 700ae9b"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_validators.py TestISO6391Validator, TestISO6391ListValidator, TestContributorLanguageFieldValidation @ 0d9a3e5"
+            ]
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py (added/modified, T018 @ 326b401)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorTimestamps @ c400cf2"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py (config field, T144 @ 37f7ced)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorConfiguration @ ad958d0"
+            ]
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py (field metadata fixes) @ 20576aa"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestFieldMetadata @ 20576aa"
+            ]
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/validators.py:7 validate_iso_639_1_language_code (already built, unchanged)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_validators.py TestISO6391Validator @ 0d9a3e5"
+            ],
+            "note": "No separate commit: implementation already complete, only lacked coverage. See T010."
+          }
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py Contributor.Meta.default_related_name @ cc40ecf"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorIdentity @ 2302bf8"
+            ]
+          }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py (name, profile help_text) @ 8011293"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorProfileFields @ 1780823"
+            ]
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/validators.py, models.py (lang validators=) @ 700ae9b"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_validators.py TestContributorLanguageFieldValidation @ 0d9a3e5"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py Contributor.modified db_index @ 326b401"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorTimestamps @ c400cf2"
+            ]
+          }
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py Contributor.config @ 37f7ced (same field as T144)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py TestContributorConfiguration @ ad958d0"
+            ],
+            "note": "No separate commit: same field T144 produces by renaming privacy_settings; building it twice would duplicate the model."
+          }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/migrations/0001_initial.py, 0008_migrate_to_location_model.py (pre-existing table + location FK)",
+              "fairdm/contrib/contributors/migrations/0020-0026 (incremental migrations for T015-T019/T144/T145)"
+            ],
+            "tests": [
+              "makemigrations --check --dry-run clean for contributors app (verified, not committed as a test)"
+            ],
+            "note": "No separate commit: table and location FK already exist under 0001/0008; new schema/state changes were added as part of the migration each producing task, not deferred here."
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/contributors.py @ 6b46821"
+            ],
+            "tests": [
+              "tests/test_factories/test_contributors.py, tests/test_factories/test_core.py (pre-existing, verified still green); factories exercised throughout tests/test_contrib/test_contributors/test_models.py new classes"
+            ]
+          }
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/data_models/contributors.md, docs/data_models/index.md @ f849a9b"
+            ],
+            "tests": [
+              "sphinx-build -b dummy docs docs/_build/dummy (verified, not a pytest test); examples verified against a scratch pytest test, not committed"
+            ]
+          }
         },
         {
           "id": "T144",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py, migrations/0024_rename_privacy_settings_to_config.py @ 37f7ced"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py (deletions) @ 37f7ced; tests/test_contrib/test_contributors/test_models.py TestContributorConfiguration @ ad958d0"
+            ]
+          }
         },
         {
           "id": "T145",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py, migrations/0025_remove_contributor_weight.py @ f68c797"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors (full suite green, no test referenced weight/calculate_weight/calculate_profile_completion before or after)"
+            ]
+          }
         }
       ]
     },
