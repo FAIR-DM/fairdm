@@ -1081,3 +1081,159 @@ report.
 Watch: the pre-existing `views/organization.py:58` `transfer_ownership` view still reimplements the
 demotion/promotion inline rather than calling the model method - out of scope here (D1, views/ is
 prohibited), noted for whoever picks that view back up.
+## 2026-08-20T13:03:00Z · Implementer US0 · T001/T002/T003
+
+Did: Checked each annotation against the current code before believing it. The app package,
+its migrations package, its `INSTALLED_APPS` registration and `AUTH_USER_MODEL` all already
+existed and `manage.py check` was already clean with them - the annotations' "built-without-
+tests" was accurate, "no default_auto_field" was not: Django's `AppConfig.default_auto_field`
+already resolves from the project-wide `DEFAULT_AUTO_FIELD` setting
+(`fairdm/conf/settings/database.py:26`) when an app doesn't declare its own, verified by
+reverting the declaration and re-running the new test - it still passed. Added the declaration
+anyway for consistency with every sibling FairDM app, which does declare it explicitly. Added
+a comment to `AUTH_USER_MODEL` recording FR-008. What was genuinely missing in all three cases
+was the test.
+
+Verified: `poetry run pytest -q -p no:randomly tests/test_contrib/test_contributors/test_apps.py
+tests/test_conf/test_settings/test_apps.py tests/test_conf/test_settings/test_auth.py` → 16
+passed.
+
+Next: T005.
+
+Watch: none.
+
+## 2026-08-20T13:10:00Z · Implementer US0 · T005
+
+Did: The substance T005 asks for - "credit tests have real concepts to attach" - was already
+true suite-wide before this task: `tests/conftest.py:33`'s session-scoped `Concept.preload()`
+seeds the `fairdm-roles` vocabulary once for the whole run, and several existing tests
+(`TestContributionRoles`, `TestMultipleRolesPerContribution`) already rely on it directly.
+Added the `contribution_roles` fixture anyway, per the task's literal text and because it is
+genuinely additive (a convenience wrapper naming the query, not a competing mechanism) - I did
+not retrofit it onto the existing tests that predate it, since editing tests I did not author
+is prohibited. Added one new test proving the fixture holds more than one concept and that a
+role drawn from it round-trips through `full_clean()`.
+
+Verified: `poetry run pytest -q -p no:randomly
+tests/test_contrib/test_contributors/test_models.py::TestContributionRoles` → 3 passed.
+
+Next: T006.
+
+Watch: none.
+
+## 2026-08-20T13:15:00Z · Implementer US0 · T006
+
+Did: `fairdm/factories/__init__.py` already exports every contributor factory and lists them in
+`__all__` - only the module docstring named by the task was actually missing. Added one matching
+`fairdm/factories/core.py`'s layout: purpose, the six factories the module provides, and the
+"defaults satisfy full_clean()" convention T138 then verifies.
+
+Verified: `poetry run ruff check fairdm/factories/contributors.py` → all checks passed. Smoke-
+imported the module and every re-export directly (not committed).
+
+Next: T138.
+
+Watch: none.
+
+## 2026-08-20T13:25:00Z · Implementer US0 · T138
+
+Did: Added `TestContributorFactoriesPassFullClean` (one test per factory - `UserFactory`,
+`ContributorFactory`, `PersonFactory`, `OrganizationFactory`, `AffiliationFactory`,
+`ContributionFactory` - all six in `fairdm/factories/contributors.py`) and
+`TestContributorFactoryBatchUniqueness` (`UserFactory`/`PersonFactory`, the only two factories
+whose model carries a database-level uniqueness constraint - `Person.email`) to
+`tests/test_factories/test_contributors.py`. All eight passed on the first run; the annotation's
+"never calls full_clean; three factories untouched" held exactly - grepped the file first and
+confirmed zero existing `full_clean()` calls anywhere in it.
+
+Verified: `poetry run pytest -q -p no:randomly tests/test_factories/test_contributors.py` → 30
+passed (22 pre-existing + 8 new).
+
+Next: T140.
+
+Watch: none.
+
+## 2026-08-20T13:30:00Z · Implementer US0 · T140
+
+Did: Ran both commands the task names. `manage.py check` is clean (1 silenced, unrelated to
+this app). `makemigrations --check --dry-run` scoped to `contributors` is clean (exit 0, "No
+changes detected"). Run unscoped across every app it is **not** clean (exit 1): `identity` and
+the third-party `orbit` package both show drift. Neither is caused by this feature or touched by
+any of its nine landed stories - `fairdm/contrib/identity` was last touched at `a1a39f4`, long
+before `009-fairdm-contributors` existed, and `orbit`'s migration lives inside the installed
+package's own site-packages directory, outside this repository's version control entirely.
+Reproduced on the branch point commit before any of this story's own commits, to confirm it
+predates this story. No code changed; nothing to fix within this story's scope. Recorded as a
+concern for the completion report rather than a task deviation, since T140's own annotation
+("They currently are [clean]") is the thing that turned out stale, not the code.
+
+Verified: `poetry run python manage.py check` → clean. `poetry run python manage.py
+makemigrations --check --dry-run contributors` → exit 0. `poetry run python manage.py
+makemigrations --check --dry-run` (unscoped) → exit 1, `identity` and `orbit` only.
+
+Next: T141.
+
+Watch: the identity/orbit migration drift, for whichever lane owns those apps.
+
+## 2026-08-20T13:40:00Z · Implementer US0 · T141
+
+Did: `CHANGELOG.md` had no Feature 009 entry at all - confirmed by grep, not just by the task
+annotation. Added one, in the file's own established format (bold names, prose bullets, one
+`#### <Feature> (Feature NNN)` block per section): Added names every model, field and public
+method this app introduces; Changed and Removed name the behaviour changes and the two removed
+surfaces (`privacy_settings`/`get_visible_fields`, `weight`/`calculate_weight`) against the
+actual current code, not the original spec's aspirations - grepped the whole app for both pairs
+of names first and confirmed zero production references remain.
+
+Verified: read the new entry back against `models.py`, `managers.py`, `choices.py` and
+`permissions.py` line by line for accuracy. No test scope applies to a changelog.
+
+Next: T142.
+
+Watch: none.
+
+## 2026-08-20T13:55:00Z · Implementer US0 · T142
+
+Did: Opened every page under `docs/` that mentions a contributor concept
+(`grep -rl -i "contributor\|Person\b\|Organization\b\|Affiliation\b\|Contribution\b" docs`) and
+checked each against the current models, managers, choices, permissions and transforms modules.
+`docs/data_models/contributors.md`, `docs/overview/contributors.md` and
+`docs/portal-administration/managing-unclaimed-profiles.md` were already true - the first two
+were written accurately already, and the third's `is_claimed` explanation and exact failure-
+reason strings were verified word for word against `services/claiming.py`.
+
+The two pages the brief named as most likely wrong were: both still documented
+`privacy_settings`/`get_visible_fields` (removed by an earlier, already-merged story per D9;
+`US2 T036`'s progress entry above explicitly left this section for "whoever owns that page
+next"). Beyond that specific defect, found and fixed, in `docs/portal-development/
+contributors.md`: `person.orcid` called as a property when it is a method;
+`get_full_name_display`'s format list named a format (`family_given_comma`) that does not
+exist; the Organization Ownership section described a lifecycle hook syncing
+`manage_organization` and pointed at a views import, when the permission is derived
+(`permissions.py`, D13) and the real entry point is `Organization.transfer_ownership()`; the
+TransformRegistry section documented a `to_internal`/`to_external` classmethod interface that
+was never built (D11) instead of the real `export()`/`import_data()` instance contract; a role-
+lookup example passed a vocabulary class where the ORM expects `vocabulary__name=` and `label=`
+where the field is `name=`; a stale line reference. In `docs/portal-administration/
+managing_contributors.md`: the "Creating Claimed User Accounts" workflow claimed the admin's
+Add-person form both leaves email blank and auto-sets `is_claimed=True` - verified against
+`admin.py`'s `add_fieldsets` and `AdminUserCreationForm` that neither is true, and rewrote the
+whole subsection; the Affiliation Verification Workflow's "lifecycle hooks sync permissions"
+directly contradicted the correct "Ownership is derived, not stored" section later in the same
+file; the Manual Sync section used the same never-built transform API; the Bulk Privacy
+Settings Update section used the removed field entirely (removed the section); the Database
+Indexing list claimed `Person.is_active` and `Affiliation.end_date` carry an index - neither
+does, verified against Django's `AbstractUser` source and the field declarations; the Security
+Considerations section repeated the same removed-privacy claims.
+
+Verified: `poetry run sphinx-build -b html docs <out>` before and after these edits - zero
+warnings against either file in both runs. The build's own exit code (2) is an unrelated,
+pre-existing `pydata-sphinx-theme` `TemplateNotFound` error on `index.html`; reproduced
+identically with these two files stashed back to their pre-story state, and `docs/conf.py` was
+last touched at `cb3df2f`, long before this feature - not in this story's scope to fix.
+
+Next: full-suite verify for the completion report.
+
+Watch: the pre-existing `identity`/`orbit` migration drift (T140) and the pre-existing Sphinx
+theme build failure (T142) are both environment/tooling issues outside every one of this
+feature's ten stories, not just this one.

@@ -1,6 +1,6 @@
 # Contributors System
 
-The Contributors system provides flexible person and organization management for research portals, with built-in support for ORCID and ROR integration, ownership workflows, and privacy controls.
+The Contributors system provides flexible person and organization management for research portals, with built-in support for ORCID and ROR integration and derived organisation ownership.
 
 ## Overview
 
@@ -49,12 +49,22 @@ person = Person.objects.create_user(
 
 ### State Machine
 
-Person accounts follow this state machine:
+Every `Person` is in exactly one of four states, derived from `is_active`, `is_claimed` and
+`email` rather than stored (decisions.md D8). `Person.account_state` returns the value, and
+each state below has a matching `Person.objects` queryset method:
 
-1. **Ghost**: Unclaimed, no email, no credentials (`is_claimed=False`, `email=None`)
-2. **Invited**: Has email but not claimed (`is_claimed=False`, `email` set)
-3. **Claimed**: Active user account (`is_claimed=True`, `is_active=True`)
-4. **Banned**: Deactivated account (`is_claimed=True`, `is_active=False`)
+1. **Ghost**: Unclaimed, no email, no credentials (`is_claimed=False`, `email=None`) —
+   `Person.objects.ghost()`
+2. **Invited**: Has email but not claimed (`is_claimed=False`, `email` set) —
+   `Person.objects.invited()`
+3. **Claimed**: Active user account (`is_claimed=True`, `is_active=True`) —
+   `Person.objects.claimed()`
+4. **Inactive**: Deactivated account (`is_active=False`, whatever `is_claimed` holds — this
+   takes precedence over every other state) — `Person.objects.inactive()`
+
+```python
+person.account_state  # one of AccountState.GHOST/INVITED/CLAIMED/INACTIVE
+```
 
 **Note**: Invitation and claiming workflows are implemented in Feature 010 (not yet released).
 
@@ -94,25 +104,23 @@ active_members = Person.objects.real().claimed().filter(
 )
 ```
 
-### Privacy Controls
+### Configuration Store
 
-The `privacy_settings` JSONField controls field visibility:
+Every `Contributor` (both `Person` and `Organization`) carries a general-purpose `config`
+JSONField. This app does not define what belongs in it or enforce anything from its
+contents — including field-level visibility, which nothing in this app reads or checks:
 
 ```python
-person.privacy_settings = {
-    "email": "private",      # Options: "public", "authenticated", "private"
-    "phone": "authenticated",  # Visible to logged-in users
-    "location": "public"      # Visible to everyone
-}
+person.config = {"anything": "this app does not define"}
+person.save()
 
-# Get visible fields for a viewer
-visible = person.get_visible_fields(viewer=request.user)
-# Returns dict with only fields viewer can see
+person.refresh_from_db()
+assert person.config == {"anything": "this app does not define"}
 ```
 
-**Default Behavior:**
-- **Unclaimed persons** (ghost/invited): All fields public (email is NULL anyway)
-- **Claimed persons**: Email private by default, other fields public
+It defaults to an empty dict. A portal that wants field-level visibility rules enforces them
+itself, at whatever boundary (a view, a serializer, a template) it chooses to check — this app
+grants no default behaviour to build on.
 
 ### ORCID Integration
 
@@ -125,7 +133,7 @@ person = Person.from_orcid("0000-0002-1825-0097")
 
 # Check ORCID authentication status
 if person.orcid_is_authenticated:
-    orcid_id = person.orcid  # Property returns ORCID identifier
+    orcid_identifier = person.orcid()  # Method returns the ContributorIdentifier, or None
 ```
 
 ### Person Properties
@@ -138,7 +146,8 @@ person.name           # Full name (auto-generated from first_name + last_name)
 
 # Name formatting
 display_name = person.get_full_name_display(name_format="family_given")
-# Supports: "given_family", "family_given", "family_given_comma"
+# Supports: "given_family" (default, "John Doe"), "family_given" ("Doe, John"),
+# "family_initial" ("Doe, J."), "initials_family" ("J. Doe")
 
 # Affiliations
 primary_aff = person.primary_affiliation()  # Returns Affiliation or None
@@ -172,7 +181,10 @@ ror_id = org.identifiers.filter(type="ROR").first()
 
 ### Organization Ownership
 
-Organizations use the `manage_organization` permission (via django-guardian) with a role-based system:
+`manage_organization` is **derived, not stored** (decisions.md D13). No django-guardian row is
+granted or revoked when an affiliation's type changes — `OrganizationPermissionBackend`
+answers `user.has_perm("contributors.manage_organization", org)` by checking, at the moment of
+the call, whether the user holds an `OWNER` affiliation on that organisation:
 
 ```python
 from fairdm.contrib.contributors.models import Affiliation, Organization
@@ -184,21 +196,29 @@ org = Organization.objects.create(name="University of Example")
 Affiliation.objects.create(
     person=owner_person,
     organization=org,
-    type=Affiliation.MembershipType.OWNER  # Automatically grants manage_organization
+    type=Affiliation.MembershipType.OWNER,
 )
 
-# Ownership transfer (demotes current owner to ADMIN)
-from fairdm.contrib.contributors.views.organization import transfer_ownership
-# See admin interface for ownership transfer UI
+owner_person.has_perm("contributors.manage_organization", org)  # True - derived, not stored
+```
+
+Editing the affiliation's `type` away from `OWNER` (and saving) is enough on its own to remove
+the permission on the next check - nothing else needs to run. Nothing stops two affiliations on
+the same organisation both being `OWNER`; use `transfer_ownership()` when the intent is to hand
+the role to someone else rather than add them alongside the incumbent:
+
+```python
+# Transfer ownership: demotes the incumbent owner to ADMIN, promotes new_owner to OWNER,
+# in one atomic operation. Raises ValidationError if new_owner holds no affiliation on org.
+org.transfer_ownership(new_owner)
 ```
 
 **Affiliation Type State Machine:**
 - `PENDING`: Pending verification
 - `MEMBER`: Regular member
 - `ADMIN`: Administrator (can manage memberships)
-- `OWNER`: Owner (full control, only one per organization)
-
-Lifecycle hooks automatically sync the `manage_organization` permission when affiliation type changes.
+- `OWNER`: Owner (full control; holding an `OWNER` affiliation is what `manage_organization`
+  *means* - more than one per organisation is possible, see above)
 
 ### Organization Properties
 
@@ -282,7 +302,7 @@ Affiliation.objects.create(
 
 The primary affiliation is more than a label: `Contribution.set_default_affiliation` reads it
 to fill in the crediting organisation whenever a person is credited without one being given
-explicitly (`fairdm/contrib/contributors/models.py:1153`).
+explicitly (`fairdm/contrib/contributors/models.py:1335`).
 
 ### Worked example: a person moving between two institutions
 
@@ -410,49 +430,45 @@ Contributions use Django's GenericForeignKey to link to:
 - `fairdm.core.Sample`
 - `fairdm.core.Measurement`
 
-## TransformRegistry API
+## Transform API
 
-The Transform system provides bidirectional data conversion between FairDM models and external formats.
+The transform classes in `fairdm.contrib.contributors.utils.transforms` provide bidirectional
+data conversion between `Contributor` instances and external formats. Every transform is an
+instance, not a namespace of classmethods - `BaseTransform.export()` and
+`BaseTransform.import_data()` are the whole contract:
 
 ### BaseTransform Interface
 
 ```python
+from fairdm.contrib.contributors.models import Contributor
 from fairdm.contrib.contributors.utils.transforms import BaseTransform
+
 
 class MyTransform(BaseTransform):
     """Custom transformer for MyFormat."""
-    
-    @classmethod
-    def to_internal(cls, external_data: dict) -> dict:
-        """Convert external format to FairDM internal format."""
+
+    def export(self, contributor: Contributor) -> dict:
+        """Convert a Contributor instance to external format."""
         return {
-            "name": external_data["fullName"],
-            "email": external_data["emailAddress"],
+            "fullName": contributor.name,
+            "emailAddress": getattr(contributor, "email", None),
             # ... map fields
         }
-    
-    @classmethod
-    def to_external(cls, person: Person) -> dict:
-        """Convert Person to external format."""
-        return {
-            "fullName": person.name,
-            "emailAddress": person.email,
-            # ... map fields
-        }
-    
-    @classmethod
-    def update_or_create(cls, external_id: str, commit=True) -> Person:
-        """Fetch external data and create/update Person."""
-        # Fetch from external API
-        data = fetch_my_api(external_id)
-        internal = cls.to_internal(data)
-        
-        person, created = Person.objects.update_or_create(
-            # ... matching logic
-            defaults=internal
-        )
-        return person
+
+    def import_data(
+        self, data: dict, instance: Contributor | None = None, save: bool = True
+    ) -> Contributor:
+        """Convert external format data into a Contributor instance."""
+        contributor = instance or Contributor()
+        contributor.name = data["fullName"]
+        if save:
+            contributor.save()
+        return contributor
 ```
+
+`update_or_create()` and `fetch_from_api()` are not part of `BaseTransform` itself - they exist
+only on `ORCIDTransform` and `RORTransform`, the two transforms that talk to a live external API
+(below).
 
 ### Built-in Transforms
 
@@ -461,12 +477,11 @@ class MyTransform(BaseTransform):
 ```python
 from fairdm.contrib.contributors.utils.transforms import DataCiteTransform
 
-# Export to DataCite format
-datacite_json = DataCiteTransform.to_external(person)
-# Returns DataCite Contributor schema JSON
+# Export to DataCite Contributor schema JSON
+datacite_json = DataCiteTransform().export(person)
 
-# Import from DataCite
-internal_data = DataCiteTransform.to_internal(datacite_json)
+# Import from DataCite format
+person = DataCiteTransform().import_data(datacite_json)
 ```
 
 #### Schema.org Transform
@@ -474,12 +489,11 @@ internal_data = DataCiteTransform.to_internal(datacite_json)
 ```python
 from fairdm.contrib.contributors.utils.transforms import SchemaOrgTransform
 
-# Export to Schema.org Person
-schema_org_json = SchemaOrgTransform.to_external(person)
-# Returns JSON-LD with @context
+# Export to Schema.org Person/Organization JSON-LD
+schema_org_json = SchemaOrgTransform().export(person)
 
-# Import from Schema.org
-internal_data = SchemaOrgTransform.to_internal(schema_org_json)
+# Import from Schema.org format
+person = SchemaOrgTransform().import_data(schema_org_json)
 ```
 
 #### ORCID Transform
@@ -487,9 +501,10 @@ internal_data = SchemaOrgTransform.to_internal(schema_org_json)
 ```python
 from fairdm.contrib.contributors.utils.transforms import ORCIDTransform
 
-# Import from ORCID
-person = ORCIDTransform.update_or_create("0000-0002-1825-0097")
-# Fetches ORCID API and creates/updates Person
+# Fetches the ORCID API and creates/updates a Person, returning (person, created)
+person, created = ORCIDTransform.update_or_create("0000-0002-1825-0097")
+
+# Person.from_orcid() wraps this for the common case (see "ORCID Integration" above)
 ```
 
 #### ROR Transform
@@ -497,9 +512,10 @@ person = ORCIDTransform.update_or_create("0000-0002-1825-0097")
 ```python
 from fairdm.contrib.contributors.utils.transforms import RORTransform
 
-# Import from ROR
-org = RORTransform.update_or_create("https://ror.org/04aj4c181")
-# Fetches ROR API and creates/updates Organization
+# Fetches the ROR API and creates/updates an Organization, returning (org, created)
+org, created = RORTransform.update_or_create("https://ror.org/04aj4c181")
+
+# Organization.from_ror() wraps this for the common case (see "ROR Integration" above)
 ```
 
 ## Important Recommendations
@@ -541,6 +557,7 @@ Use these manager methods for querying Person records:
 | `Person.objects.unclaimed()` | `is_claimed=False` accounts | Data import cleanup |
 | `Person.objects.ghost()` | Unclaimed, no email | Orphaned records |
 | `Person.objects.invited()` | Unclaimed, has email | Pending invitations |
+| `Person.objects.inactive()` | `is_active=False` accounts | Excluding deactivated accounts, highest precedence (D8) |
 
 ## Migration Guide
 
@@ -634,33 +651,20 @@ contributions = Contribution.objects.filter(
     object_id=project.pk
 ).select_related('contributor')
 
-# Get contributors by role
+# Get contributors by role - concepts are looked up by the vocabulary's name
+# (research_vocabs.vocabularies.VocabularyBuilder subclasses aren't themselves
+# passed as a `vocabulary=` value), and by the concept's own `name`, not a `label`.
 from research_vocabs.models import Concept
-from fairdm.core.vocabularies import FairDMRoles
 
-author_role = Concept.objects.get(vocabulary=FairDMRoles, label="Author")
-authors = Contribution.objects.filter(
+creator_role = Concept.objects.get(vocabulary__name="fairdm-roles", name="Creator")
+creators = Contribution.objects.filter(
     content_type=ContentType.objects.get_for_model(Project),
     object_id=project.pk,
-    roles=author_role
+    roles=creator_role
 ).select_related('contributor')
-```
 
-### Privacy-Aware Person Display
-
-```python
-def show_person_profile(request, person_pk):
-    person = Person.objects.get(pk=person_pk)
-    
-    # Get fields visible to current viewer
-    visible_data = person.get_visible_fields(viewer=request.user)
-    
-    context = {
-        "person": person,
-        "visible_data": visible_data,
-        "can_see_email": "email" in visible_data,
-    }
-    return render(request, "person_profile.html", context)
+# Or, equivalently, using ContributionQuerySet.by_role() (FR-042):
+creators = Contribution.objects.for_entity(project).by_role("Creator")
 ```
 
 ## Next Steps

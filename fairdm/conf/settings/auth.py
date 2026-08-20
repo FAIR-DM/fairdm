@@ -15,7 +15,8 @@ env = globals()["env"]
 
 # ========== Django Core Authentication ==========
 
-# User model
+# User model. The person record *is* the account - there is no second,
+# separate account model anywhere in the framework (FR-008, decisions.md D8).
 AUTH_USER_MODEL = "contributors.Person"
 
 # Login/logout URLs

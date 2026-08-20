@@ -1,3 +1,15 @@
+"""Contributor model factories for FairDM testing.
+
+This module provides factory_boy factories for creating test instances of
+the contributors app's models: the account (``UserFactory``), the two
+concrete contributor types (``PersonFactory``, ``OrganizationFactory``) and
+the generic base (``ContributorFactory``), an organisation membership
+(``AffiliationFactory``), and a credit linking a contributor to a research
+object (``ContributionFactory``). Layout matches ``fairdm.factories.core``:
+one class per model, defaults that satisfy ``full_clean()`` with no further
+arguments, and every factory re-exported from ``fairdm.factories``.
+"""
+
 import factory
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType

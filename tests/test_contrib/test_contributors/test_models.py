@@ -1163,6 +1163,22 @@ class TestContributionRoles:
         with pytest.raises(ValidationError, match="roles vocabulary"):
             contribution.full_clean()
 
+    @pytest.mark.django_db
+    def test_contribution_roles_fixture_has_real_concepts_to_attach(
+        self, contribution, contribution_roles
+    ):
+        """T005: the ``contribution_roles`` fixture (conftest.py) is a real,
+        non-empty queryset of the framework's controlled roles vocabulary -
+        exactly the concepts a credit test attaches to a contribution."""
+        assert contribution_roles.count() > 1
+
+        role = contribution_roles.get(name="Creator")
+        contribution.roles.add(role)
+
+        contribution.full_clean()
+
+        assert role in contribution.roles.all()
+
 
 # ── T092/T100: Credited-outputs reporting ────────────────────────────────────
 

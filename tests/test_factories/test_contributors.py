@@ -25,6 +25,7 @@ from fairdm.factories.contributors import (
     ContributionFactory,
     ContributorFactory,
     ContributorIdentifierFactory,
+    UserFactory,
 )
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
@@ -413,3 +414,51 @@ class TestFactoryIntegration(TestCase):
 
         # They should have different polymorphic types
         self.assertNotEqual(person.polymorphic_ctype, organization.polymorphic_ctype)
+
+
+# ── T138: every contributor factory passes full_clean() ─────────────────────
+
+
+@pytest.mark.django_db
+class TestContributorFactoriesPassFullClean:
+    """Every factory in ``fairdm/factories/contributors.py`` produces an
+    instance that satisfies ``full_clean()`` with no arguments beyond the
+    factory's own defaults (Article X)."""
+
+    def test_user_factory_instance_passes_full_clean(self):
+        UserFactory().full_clean()
+
+    def test_contributor_factory_instance_passes_full_clean(self):
+        ContributorFactory().full_clean()
+
+    def test_person_factory_instance_passes_full_clean(self):
+        PersonFactory().full_clean()
+
+    def test_organization_factory_instance_passes_full_clean(self):
+        OrganizationFactory().full_clean()
+
+    def test_affiliation_factory_instance_passes_full_clean(self):
+        AffiliationFactory().full_clean()
+
+    def test_contribution_factory_instance_passes_full_clean(self):
+        ContributionFactory().full_clean()
+
+
+@pytest.mark.django_db
+class TestContributorFactoryBatchUniqueness:
+    """``create_batch`` stays unique where a field is uniqueness-guarded
+    (Article X). ``Person.email`` (and, since ``AUTH_USER_MODEL`` swaps in
+    ``Person``, ``UserFactory``'s email too) is the one field in this app
+    carrying a database-level uniqueness constraint."""
+
+    def test_user_factory_batch_has_unique_emails_and_rows(self):
+        users = UserFactory.create_batch(5)
+
+        assert len({u.pk for u in users}) == 5
+        assert len({u.email for u in users}) == 5
+
+    def test_person_factory_batch_has_unique_emails_and_rows(self):
+        people = PersonFactory.create_batch(5)
+
+        assert len({p.pk for p in people}) == 5
+        assert len({p.email for p in people}) == 5
