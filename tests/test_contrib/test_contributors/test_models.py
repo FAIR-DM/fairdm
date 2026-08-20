@@ -999,6 +999,37 @@ class TestPrimaryAffiliationConstraint:
         assert person.affiliations.filter(is_primary=True).count() == 0
 
 
+# ── T070: primary-membership demotion is atomic ──────────────────────────────
+
+
+class TestPrimaryAffiliationDemotionIsAtomic:
+    """FR-024: promoting a new primary and demoting the old one happen together
+    or not at all."""
+
+    @pytest.mark.django_db
+    def test_demotion_and_save_roll_back_together_on_failure(self, person, monkeypatch):
+        """If the save that promotes the new primary fails, the demotion of the
+        old primary is rolled back too, not left half-applied."""
+        import django.db.models as django_db_models
+
+        org1 = OrganizationFactory(name="Org 1")
+        org2 = OrganizationFactory(name="Org 2")
+        first = AffiliationFactory(person=person, organization=org1, is_primary=True)
+        second = AffiliationFactory(person=person, organization=org2, is_primary=False)
+
+        def failing_save(self, *args, **kwargs):
+            raise IntegrityError("simulated failure during save")
+
+        monkeypatch.setattr(django_db_models.Model, "save", failing_save)
+
+        second.is_primary = True
+        with pytest.raises(IntegrityError):
+            second.save()
+
+        first.refresh_from_db()
+        assert first.is_primary is True
+
+
 # ── T046: ClaimingAuditLog immutability and manager ─────────────────────────
 
 

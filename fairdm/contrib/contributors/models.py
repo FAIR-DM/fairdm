@@ -800,13 +800,23 @@ class Affiliation(models.Model):
                 )
 
     def save(self, *args, **kwargs):
-        """Ensure only one primary affiliation per person."""
+        """Ensure only one primary affiliation per person.
+
+        The demotion of any other primary affiliation and this save happen
+        inside one transaction (FR-024): if the save fails, the demotion is
+        rolled back too, rather than leaving the person with none marked
+        primary.
+        """
         if self.is_primary:
-            # Unset other primary affiliations for this person
-            Affiliation.objects.filter(person=self.person, is_primary=True).exclude(
-                pk=self.pk
-            ).update(is_primary=False)
-        super().save(*args, **kwargs)
+            from django.db import transaction
+
+            with transaction.atomic():
+                Affiliation.objects.filter(person=self.person, is_primary=True).exclude(
+                    pk=self.pk
+                ).update(is_primary=False)
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.person} - {self.organization}"
