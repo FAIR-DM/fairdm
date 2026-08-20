@@ -1,6 +1,6 @@
 # Contributors System
 
-The Contributors system provides flexible person and organization management for research portals, with built-in support for ORCID and ROR integration, ownership workflows, and privacy controls.
+The Contributors system provides flexible person and organization management for research portals, with built-in support for ORCID and ROR integration and derived organisation ownership.
 
 ## Overview
 
@@ -33,76 +33,94 @@ from fairdm.contrib.contributors.models import Person
 person = Person.objects.create_unclaimed(
     first_name="Jane",
     last_name="Doe",
-    # email is None, is_active=False, is_claimed=False
+    # email is None, is_active=True (so a later invitation can reach them), is_claimed=False
 )
 
-# Claimed person (full user account)
+# Create a person directly with a password (does NOT set is_claimed - claiming
+# is a workflow of its own, see Feature 010 below)
 person = Person.objects.create_user(
     email="jane@example.com",
     first_name="Jane",
     last_name="Doe",
     password="secure_password",
-    # is_active=True, is_claimed=True automatically set
+    # is_active=True by default; password omitted entirely sets an unusable one
 )
 ```
 
 ### State Machine
 
-Person accounts follow this state machine:
+Every `Person` is in exactly one of four states, derived from `is_active`, `is_claimed` and
+`email` rather than stored (decisions.md D8). `Person.account_state` returns the value, and
+each state below has a matching `Person.objects` queryset method:
 
-1. **Ghost**: Unclaimed, no email, no credentials (`is_claimed=False`, `email=None`)
-2. **Invited**: Has email but not claimed (`is_claimed=False`, `email` set)
-3. **Claimed**: Active user account (`is_claimed=True`, `is_active=True`)
-4. **Banned**: Deactivated account (`is_claimed=True`, `is_active=False`)
+1. **Ghost**: Unclaimed, no email, no credentials (`is_claimed=False`, `email=None`) —
+   `Person.objects.ghost()`
+2. **Invited**: Has email but not claimed (`is_claimed=False`, `email` set) —
+   `Person.objects.invited()`
+3. **Claimed**: Active user account (`is_claimed=True`, `is_active=True`) —
+   `Person.objects.claimed()`
+4. **Inactive**: Deactivated account (`is_active=False`, whatever `is_claimed` holds — this
+   takes precedence over every other state) — `Person.objects.inactive()`
+
+```python
+person.account_state  # one of AccountState.GHOST/INVITED/CLAIMED/INACTIVE
+```
 
 **Note**: Invitation and claiming workflows are implemented in Feature 010 (not yet released).
 
 ### Unified Manager Approach
 
-The `Person` model uses Django's `objects` manager instead of a separate `contributors` manager:
+The `Person` model uses Django's `objects` manager instead of a separate `contributors` manager.
+Every method below (FR-041) is defined once on `PersonQuerySet` and reaches `Person.objects`
+through `Manager.from_queryset` (FR-040), so `Person.objects.<method>()` and
+`Person.objects.all().<method>()` always agree:
 
 ```python
 from fairdm.contrib.contributors.models import Person
 
 # ✅ CORRECT: Use objects manager
-real_people = Person.objects.real()  # Exclude ghosts (unclaimed provenance records)
-claimed = Person.objects.claimed()    # Active claimed accounts
-unclaimed = Person.objects.unclaimed()  # Provenance-only records
-ghosts = Person.objects.ghost()       # Unclaimed with no email
-invited = Person.objects.invited()    # Unclaimed with email
+real_people = Person.objects.real()     # every Person except is_superuser=True and the anonymous
+                                         # placeholder (email="AnonymousUser") - superusers and the
+                                         # placeholder are excluded, nothing else is
+active = Person.objects.active()        # every Person with is_active=True
+claimed = Person.objects.claimed()      # every Person with is_claimed=True
+unclaimed = Person.objects.unclaimed()  # every Person with is_claimed=False
+ghosts = Person.objects.ghost()         # is_claimed=False and email is NULL: provenance-only records
+invited = Person.objects.invited()      # is_claimed=False and email is set: invited but not yet claimed
 
 # ❌ WRONG: Old API (removed)
 # Person.contributors.claimed()
 ```
 
-**Portal Queries**: Always use `Person.objects.real()` to exclude ghost/provenance-only records from public searches:
+**Portal Queries**: Use `Person.objects.real()` to keep superusers and the anonymous placeholder out
+of public-facing searches. It does not exclude ghost or invited profiles - combine it with
+`unclaimed()`/`ghost()`/`invited()`/`claimed()` if a query also needs to say something about claim
+status:
 
 ```python
-# Search for active portal members
-active_members = Person.objects.real().filter(
+# Portal members with a claimed account, excluding superusers and the placeholder
+active_members = Person.objects.real().claimed().filter(
     affiliations__organization=my_org
 )
 ```
 
-### Privacy Controls
+### Configuration Store
 
-The `privacy_settings` JSONField controls field visibility:
+Every `Contributor` (both `Person` and `Organization`) carries a general-purpose `config`
+JSONField. This app does not define what belongs in it or enforce anything from its
+contents — including field-level visibility, which nothing in this app reads or checks:
 
 ```python
-person.privacy_settings = {
-    "email": "private",      # Options: "public", "authenticated", "private"
-    "phone": "authenticated",  # Visible to logged-in users
-    "location": "public"      # Visible to everyone
-}
+person.config = {"anything": "this app does not define"}
+person.save()
 
-# Get visible fields for a viewer
-visible = person.get_visible_fields(viewer=request.user)
-# Returns dict with only fields viewer can see
+person.refresh_from_db()
+assert person.config == {"anything": "this app does not define"}
 ```
 
-**Default Behavior:**
-- **Unclaimed persons** (ghost/invited): All fields public (email is NULL anyway)
-- **Claimed persons**: Email private by default, other fields public
+It defaults to an empty dict. A portal that wants field-level visibility rules enforces them
+itself, at whatever boundary (a view, a serializer, a template) it chooses to check — this app
+grants no default behaviour to build on.
 
 ### ORCID Integration
 
@@ -115,7 +133,7 @@ person = Person.from_orcid("0000-0002-1825-0097")
 
 # Check ORCID authentication status
 if person.orcid_is_authenticated:
-    orcid_id = person.orcid  # Property returns ORCID identifier
+    orcid_identifier = person.orcid()  # Method returns the ContributorIdentifier, or None
 ```
 
 ### Person Properties
@@ -128,7 +146,8 @@ person.name           # Full name (auto-generated from first_name + last_name)
 
 # Name formatting
 display_name = person.get_full_name_display(name_format="family_given")
-# Supports: "given_family", "family_given", "family_given_comma"
+# Supports: "given_family" (default, "John Doe"), "family_given" ("Doe, John"),
+# "family_initial" ("Doe, J."), "initials_family" ("J. Doe")
 
 # Affiliations
 primary_aff = person.primary_affiliation()  # Returns Affiliation or None
@@ -140,8 +159,9 @@ project_contribs = person.get_contributions_by_type("project")
 has_contrib = person.has_contribution_to(some_project)
 co_contributors = person.get_co_contributors(limit=10)
 
-# Add person to object
-person.add_to(my_project, roles=["Author", "Data Collector"])
+# Add person to object - role names must be members of the fairdm-roles vocabulary
+# (fairdm.core.vocabularies.FairDMRoles), e.g. "Creator" or "DataCollector"
+person.add_to(my_project, roles=["Creator", "DataCollector"])
 ```
 
 ## Organization Model
@@ -161,7 +181,10 @@ ror_id = org.identifiers.filter(type="ROR").first()
 
 ### Organization Ownership
 
-Organizations use the `manage_organization` permission (via django-guardian) with a role-based system:
+`manage_organization` is **derived, not stored** (decisions.md D13). No django-guardian row is
+granted or revoked when an affiliation's type changes — `OrganizationPermissionBackend`
+answers `user.has_perm("contributors.manage_organization", org)` by checking, at the moment of
+the call, whether the user holds an `OWNER` affiliation on that organisation:
 
 ```python
 from fairdm.contrib.contributors.models import Affiliation, Organization
@@ -173,21 +196,29 @@ org = Organization.objects.create(name="University of Example")
 Affiliation.objects.create(
     person=owner_person,
     organization=org,
-    type=Affiliation.MembershipType.OWNER  # Automatically grants manage_organization
+    type=Affiliation.MembershipType.OWNER,
 )
 
-# Ownership transfer (demotes current owner to ADMIN)
-from fairdm.contrib.contributors.views.organization import transfer_ownership
-# See admin interface for ownership transfer UI
+owner_person.has_perm("contributors.manage_organization", org)  # True - derived, not stored
+```
+
+Editing the affiliation's `type` away from `OWNER` (and saving) is enough on its own to remove
+the permission on the next check - nothing else needs to run. Nothing stops two affiliations on
+the same organisation both being `OWNER`; use `transfer_ownership()` when the intent is to hand
+the role to someone else rather than add them alongside the incumbent:
+
+```python
+# Transfer ownership: demotes the incumbent owner to ADMIN, promotes new_owner to OWNER,
+# in one atomic operation. Raises ValidationError if new_owner holds no affiliation on org.
+org.transfer_ownership(new_owner)
 ```
 
 **Affiliation Type State Machine:**
 - `PENDING`: Pending verification
 - `MEMBER`: Regular member
 - `ADMIN`: Administrator (can manage memberships)
-- `OWNER`: Owner (full control, only one per organization)
-
-Lifecycle hooks automatically sync the `manage_organization` permission when affiliation type changes.
+- `OWNER`: Owner (full control; holding an `OWNER` affiliation is what `manage_organization`
+  *means* - more than one per organisation is possible, see above)
 
 ### Organization Properties
 
@@ -203,6 +234,11 @@ geojson = org.as_geojson()
 ## Affiliation Model
 
 ### Time-Bound Relationships
+
+An `Affiliation` links a `Person` to an `Organization` with a period and a membership type
+(pending, member, admin or owner). A membership is **current** when it has no `end_date` -
+that is the only rule; a membership with an `end_date` is past, regardless of how far in the
+future that date is.
 
 ```python
 from fairdm.contrib.contributors.models import Affiliation
@@ -223,6 +259,16 @@ past = person.affiliations.past()        # end_date IS NOT NULL
 primary = person.affiliations.primary()  # is_primary=True
 ```
 
+A person cannot be a member of the same organisation twice. Attempting to create a second
+membership is refused with a readable message at validation, and by a database constraint if
+validation is bypassed:
+
+```python
+duplicate = Affiliation(person=person, organization=org)
+duplicate.full_clean()
+# ValidationError: {'organization': ['<person> is already a member of <org>.']}
+```
+
 ### PartialDateField
 
 The `start_date` and `end_date` fields use `PartialDateField` supporting three precision levels:
@@ -240,7 +286,10 @@ affiliation.start_date = "2020-03-15"
 
 ### Primary Affiliation Constraint
 
-Only one affiliation per person can be marked `is_primary=True`:
+Only one affiliation per person can be marked `is_primary=True`. Setting a new primary demotes
+the person's existing primary in the same transaction - the demotion and the save happen
+together or not at all - and a partial database constraint refuses two primary rows for the
+same person even for a write that bypasses `Affiliation.save()`, such as a queryset `.update()`.
 
 ```python
 # Setting a new primary automatically unsets the old one
@@ -251,36 +300,127 @@ Affiliation.objects.create(
 )
 ```
 
+The primary affiliation is more than a label: `Contribution.set_default_affiliation` reads it
+to fill in the crediting organisation whenever a person is credited without one being given
+explicitly (`fairdm/contrib/contributors/models.py:1335`).
+
+### Worked example: a person moving between two institutions
+
+A researcher joins a university in 2018, later moves to a research institute in 2022, and the
+institute affiliation becomes their primary one for citation:
+
+```python
+university = Organization.objects.get(name="Example University")
+institute = Organization.objects.get(name="Example Research Institute")
+
+# Original affiliation: full precision, now ended
+university_membership = Affiliation.objects.create(
+    person=researcher,
+    organization=university,
+    type=Affiliation.MembershipType.MEMBER,
+    start_date="2018-09-01",
+    end_date="2022-01-31",
+)
+
+# Current affiliation: year-month precision, no end date, marked primary
+institute_membership = Affiliation.objects.create(
+    person=researcher,
+    organization=institute,
+    type=Affiliation.MembershipType.MEMBER,
+    start_date="2022-02",
+    is_primary=True,
+)
+
+researcher.affiliations.current()   # [institute_membership]
+researcher.affiliations.past()      # [university_membership]
+researcher.affiliations.primary()   # institute_membership
+```
+
 ## Contribution Model
 
-### Linking Contributors to Research Objects
+### One Credit Per Contributor Per Object
+
+A `Contribution` links a contributor (person or organisation) to a project, dataset,
+sample or measurement through Django's `GenericForeignKey`. There is exactly one
+`Contribution` row per contributor per object - a named `UniqueConstraint` refuses a
+second row for the same pairing at the database level, and `Contribution.clean()`
+refuses it too, with a matching message, so a form validating before save is refused the
+same way a raw duplicate insert would be (FR-031).
+
+Crediting the same contributor again under a further role does not create a second row -
+the role **accumulates** on the existing credit, so a person who both collected and
+analysed a dataset appears once, carrying both roles:
 
 ```python
 from fairdm.contrib.contributors.models import Contribution
-from research_vocabs.models import Concept
-from fairdm.core.vocabularies import FairDMRoles
 
-# Create contribution
-contribution = Contribution.objects.create(
-    contributor=person,
-    content_object=my_project,  # GenericForeignKey supports any model
-)
+# Contributor.add_to() and the Contribution.add_to() classmethod are the two entry
+# points, and both accumulate roles rather than replace them.
+contribution = person.add_to(my_project, roles=["DataCollector"])
+same_contribution = person.add_to(my_project, roles=["Researcher"])
+assert contribution.pk == same_contribution.pk
+assert {r.name for r in same_contribution.roles.all()} == {"DataCollector", "Researcher"}
 
-# Add roles from FairDMRoles vocabulary
-author_role = Concept.objects.get(vocabulary=FairDMRoles, label="Author")
-contribution.roles.add(author_role)
-
-# Query contributions
-project_contributions = Contribution.objects.filter(
-    content_type=ContentType.objects.get_for_model(Project),
-    object_id=my_project.pk
-)
-
-# Reverse query
-person_projects = person.contributions.filter(
-    content_type=ContentType.objects.get_for_model(Project)
-)
+# The classmethod form also accepts the crediting organisation explicitly.
+Contribution.add_to(person, my_project, roles=["ProjectLeader"], affiliation=some_org)
 ```
+
+### Roles
+
+Roles are drawn from the framework's controlled roles vocabulary (`fairdm-roles`,
+`fairdm.core.vocabularies.FairDMRoles`). A role from any other vocabulary is refused by
+`Contribution.clean()` (FR-032):
+
+```python
+from research_vocabs.models import Concept
+
+role = Concept.objects.get(vocabulary__name="fairdm-roles", name="DataCollector")
+contribution.roles.add(role)
+contribution.full_clean()  # passes; raises ValidationError for an off-vocabulary role
+
+# Query credits by role (FR-042): every Contribution whose roles include the
+# named Concept - defined once on ContributionQuerySet, reachable from both
+# Contribution.objects and Contribution.objects.all() (FR-040)
+data_collector_credits = Contribution.objects.by_role("DataCollector")
+```
+
+### Crediting Organisation Default
+
+Where a person is credited and no organisation is named on the credit, their primary
+membership's organisation is recorded against it automatically (FR-033):
+
+```python
+contribution = person.add_to(my_project)
+contribution.affiliation  # person's primary Affiliation's organisation, if any
+```
+
+### Reporting a Contributor's Credits
+
+```python
+# What a contributor is credited on (FR-034) - each resolves through the concrete
+# type a credit actually names, not the polymorphic base, which can never be
+# instantiated directly for Sample and Measurement.
+person.projects
+person.datasets
+person.samples
+person.measurements
+
+# Counts by kind, in a bounded number of queries
+person.get_credit_counts()
+# {'projects': 2, 'datasets': 1}
+
+# The contributors credited alongside this one, most frequent first (FR-035)
+person.get_co_contributors(limit=5)
+```
+
+### Deleting a Credit Withdraws Rights - Creating One Grants None
+
+Deleting a person's credit on an object withdraws every object-level right that person
+holds over that object, whether the credit is deleted on the instance or in bulk through
+a queryset (FR-036). **Creating a credit grants nothing** - crediting someone confers no
+permission by itself, so there is no corresponding grant to mirror the withdrawal. A
+portal that wants a credited contributor to also gain a right over the object must grant
+it separately.
 
 ### Supported Content Types
 
@@ -290,49 +430,45 @@ Contributions use Django's GenericForeignKey to link to:
 - `fairdm.core.Sample`
 - `fairdm.core.Measurement`
 
-## TransformRegistry API
+## Transform API
 
-The Transform system provides bidirectional data conversion between FairDM models and external formats.
+The transform classes in `fairdm.contrib.contributors.utils.transforms` provide bidirectional
+data conversion between `Contributor` instances and external formats. Every transform is an
+instance, not a namespace of classmethods - `BaseTransform.export()` and
+`BaseTransform.import_data()` are the whole contract:
 
 ### BaseTransform Interface
 
 ```python
+from fairdm.contrib.contributors.models import Contributor
 from fairdm.contrib.contributors.utils.transforms import BaseTransform
+
 
 class MyTransform(BaseTransform):
     """Custom transformer for MyFormat."""
-    
-    @classmethod
-    def to_internal(cls, external_data: dict) -> dict:
-        """Convert external format to FairDM internal format."""
+
+    def export(self, contributor: Contributor) -> dict:
+        """Convert a Contributor instance to external format."""
         return {
-            "name": external_data["fullName"],
-            "email": external_data["emailAddress"],
+            "fullName": contributor.name,
+            "emailAddress": getattr(contributor, "email", None),
             # ... map fields
         }
-    
-    @classmethod
-    def to_external(cls, person: Person) -> dict:
-        """Convert Person to external format."""
-        return {
-            "fullName": person.name,
-            "emailAddress": person.email,
-            # ... map fields
-        }
-    
-    @classmethod
-    def update_or_create(cls, external_id: str, commit=True) -> Person:
-        """Fetch external data and create/update Person."""
-        # Fetch from external API
-        data = fetch_my_api(external_id)
-        internal = cls.to_internal(data)
-        
-        person, created = Person.objects.update_or_create(
-            # ... matching logic
-            defaults=internal
-        )
-        return person
+
+    def import_data(
+        self, data: dict, instance: Contributor | None = None, save: bool = True
+    ) -> Contributor:
+        """Convert external format data into a Contributor instance."""
+        contributor = instance or Contributor()
+        contributor.name = data["fullName"]
+        if save:
+            contributor.save()
+        return contributor
 ```
+
+`update_or_create()` and `fetch_from_api()` are not part of `BaseTransform` itself - they exist
+only on `ORCIDTransform` and `RORTransform`, the two transforms that talk to a live external API
+(below).
 
 ### Built-in Transforms
 
@@ -341,12 +477,11 @@ class MyTransform(BaseTransform):
 ```python
 from fairdm.contrib.contributors.utils.transforms import DataCiteTransform
 
-# Export to DataCite format
-datacite_json = DataCiteTransform.to_external(person)
-# Returns DataCite Contributor schema JSON
+# Export to DataCite Contributor schema JSON
+datacite_json = DataCiteTransform().export(person)
 
-# Import from DataCite
-internal_data = DataCiteTransform.to_internal(datacite_json)
+# Import from DataCite format
+person = DataCiteTransform().import_data(datacite_json)
 ```
 
 #### Schema.org Transform
@@ -354,12 +489,11 @@ internal_data = DataCiteTransform.to_internal(datacite_json)
 ```python
 from fairdm.contrib.contributors.utils.transforms import SchemaOrgTransform
 
-# Export to Schema.org Person
-schema_org_json = SchemaOrgTransform.to_external(person)
-# Returns JSON-LD with @context
+# Export to Schema.org Person/Organization JSON-LD
+schema_org_json = SchemaOrgTransform().export(person)
 
-# Import from Schema.org
-internal_data = SchemaOrgTransform.to_internal(schema_org_json)
+# Import from Schema.org format
+person = SchemaOrgTransform().import_data(schema_org_json)
 ```
 
 #### ORCID Transform
@@ -367,9 +501,10 @@ internal_data = SchemaOrgTransform.to_internal(schema_org_json)
 ```python
 from fairdm.contrib.contributors.utils.transforms import ORCIDTransform
 
-# Import from ORCID
-person = ORCIDTransform.update_or_create("0000-0002-1825-0097")
-# Fetches ORCID API and creates/updates Person
+# Fetches the ORCID API and creates/updates a Person, returning (person, created)
+person, created = ORCIDTransform.update_or_create("0000-0002-1825-0097")
+
+# Person.from_orcid() wraps this for the common case (see "ORCID Integration" above)
 ```
 
 #### ROR Transform
@@ -377,9 +512,10 @@ person = ORCIDTransform.update_or_create("0000-0002-1825-0097")
 ```python
 from fairdm.contrib.contributors.utils.transforms import RORTransform
 
-# Import from ROR
-org = RORTransform.update_or_create("https://ror.org/04aj4c181")
-# Fetches ROR API and creates/updates Organization
+# Fetches the ROR API and creates/updates an Organization, returning (org, created)
+org, created = RORTransform.update_or_create("https://ror.org/04aj4c181")
+
+# Organization.from_ror() wraps this for the common case (see "ROR Integration" above)
 ```
 
 ## Important Recommendations
@@ -415,11 +551,13 @@ Use these manager methods for querying Person records:
 | Method | Purpose | Use Case |
 |--------|---------|----------|
 | `Person.objects.all()` | All Person records | Admin/data migration |
-| `Person.objects.real()` | Exclude ghosts | **Portal queries (RECOMMENDED)** |
-| `Person.objects.claimed()` | Active user accounts | User listings |
-| `Person.objects.unclaimed()` | Provenance records | Data import cleanup |
+| `Person.objects.real()` | Exclude superusers and the anonymous placeholder | **Portal queries (RECOMMENDED)** |
+| `Person.objects.active()` | `is_active=True` accounts | Excluding deactivated accounts |
+| `Person.objects.claimed()` | `is_claimed=True` accounts | User listings |
+| `Person.objects.unclaimed()` | `is_claimed=False` accounts | Data import cleanup |
 | `Person.objects.ghost()` | Unclaimed, no email | Orphaned records |
 | `Person.objects.invited()` | Unclaimed, has email | Pending invitations |
+| `Person.objects.inactive()` | `is_active=False` accounts | Excluding deactivated accounts, highest precedence (D8) |
 
 ## Migration Guide
 
@@ -513,33 +651,20 @@ contributions = Contribution.objects.filter(
     object_id=project.pk
 ).select_related('contributor')
 
-# Get contributors by role
+# Get contributors by role - concepts are looked up by the vocabulary's name
+# (research_vocabs.vocabularies.VocabularyBuilder subclasses aren't themselves
+# passed as a `vocabulary=` value), and by the concept's own `name`, not a `label`.
 from research_vocabs.models import Concept
-from fairdm.core.vocabularies import FairDMRoles
 
-author_role = Concept.objects.get(vocabulary=FairDMRoles, label="Author")
-authors = Contribution.objects.filter(
+creator_role = Concept.objects.get(vocabulary__name="fairdm-roles", name="Creator")
+creators = Contribution.objects.filter(
     content_type=ContentType.objects.get_for_model(Project),
     object_id=project.pk,
-    roles=author_role
+    roles=creator_role
 ).select_related('contributor')
-```
 
-### Privacy-Aware Person Display
-
-```python
-def show_person_profile(request, person_pk):
-    person = Person.objects.get(pk=person_pk)
-    
-    # Get fields visible to current viewer
-    visible_data = person.get_visible_fields(viewer=request.user)
-    
-    context = {
-        "person": person,
-        "visible_data": visible_data,
-        "can_see_email": "email" in visible_data,
-    }
-    return render(request, "person_profile.html", context)
+# Or, equivalently, using ContributionQuerySet.by_role() (FR-042):
+creators = Contribution.objects.for_entity(project).by_role("Creator")
 ```
 
 ## Next Steps

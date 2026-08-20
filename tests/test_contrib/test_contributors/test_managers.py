@@ -11,7 +11,8 @@ Tests correspond to tasks T100-T103.
 
 import pytest
 
-from fairdm.contrib.contributors.models import Contribution, Person
+from fairdm.contrib.contributors.choices import AccountState
+from fairdm.contrib.contributors.models import Affiliation, Contribution, Person
 from fairdm.contrib.contributors.tasks import detect_duplicate_contributors
 
 # ── T100: claimed/unclaimed querysets ────────────────────────────────────────
@@ -71,6 +72,116 @@ class TestPersonQuerysets:
 
         # Inactive person with email should NOT be in claimed queryset
         assert inactive not in claimed_persons
+
+
+# ── T040 (US3): account state filters ────────────────────────────────────────
+
+
+class TestAccountStateFilters:
+    """The four state filters return exactly the people in that state, and
+    together return the whole population exactly once (FR-014, SC-004).
+    """
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("filter_name", ["ghost", "invited", "claimed", "inactive"])
+    def test_filter_returns_exactly_the_matching_population_member(
+        self, contributor_population, filter_name
+    ):
+        pop = contributor_population
+        by_state = {
+            "ghost": pop.ghost,
+            "invited": pop.invited,
+            "claimed": pop.claimed,
+            "inactive": pop.inactive,
+        }
+        expected = by_state.pop(filter_name)
+        result = getattr(Person.objects, filter_name)()
+
+        assert expected in result
+        for other in by_state.values():
+            assert other not in result
+
+    @pytest.mark.django_db
+    def test_filters_partition_the_whole_table_exactly_once(self, contributor_population):
+        """Every row matches exactly one filter, and it is the one its own
+        `account_state` names - the property and the filters cannot drift
+        apart because this test checks them against each other directly.
+        """
+        state_to_queryset = {
+            AccountState.GHOST: Person.objects.ghost(),
+            AccountState.INVITED: Person.objects.invited(),
+            AccountState.CLAIMED: Person.objects.claimed(),
+            AccountState.INACTIVE: Person.objects.inactive(),
+        }
+
+        all_people = list(Person.objects.all())
+        assert all_people  # contributor_population guarantees a non-empty table
+
+        for person in all_people:
+            matching_states = [
+                state for state, qs in state_to_queryset.items() if person in qs
+            ]
+            assert matching_states == [person.account_state]
+# ── T028 (US2): Person manager creation ──────────────────────────────────────
+
+
+class TestPersonManagerCreation:
+    """Verify create_user, create_superuser and create_unclaimed each produce the
+    account shape they promise, and email addresses are normalised (FR-009, FR-010)."""
+
+    @pytest.mark.django_db
+    def test_create_user_normalises_email_and_sets_usable_password(self):
+        person = Person.objects.create_user(
+            email="New.Person@EXAMPLE.com",
+            password="s3cret-pass",
+            first_name="New",
+            last_name="Person",
+        )
+
+        assert person.pk is not None
+        assert person.email == "New.Person@example.com"  # domain lowercased, local part kept
+        assert person.has_usable_password() is True
+        assert person.check_password("s3cret-pass") is True
+        assert person.is_staff is False
+        assert person.is_superuser is False
+
+    @pytest.mark.django_db
+    def test_create_user_without_password_sets_unusable_password(self):
+        person = Person.objects.create_user(
+            email="nopassword@example.com", first_name="No", last_name="Password"
+        )
+
+        assert person.has_usable_password() is False
+
+    @pytest.mark.django_db
+    def test_create_superuser_sets_staff_and_superuser_flags(self):
+        superuser = Person.objects.create_superuser(
+            email="admin@example.com",
+            password="s3cret-pass",
+            first_name="Admin",
+            last_name="User",
+        )
+
+        assert superuser.is_staff is True
+        assert superuser.is_superuser is True
+        assert superuser.has_usable_password() is True
+
+    @pytest.mark.django_db
+    def test_create_superuser_refuses_is_staff_false(self):
+        with pytest.raises(ValueError):
+            Person.objects.create_superuser(
+                email="notstaff@example.com", password="s3cret-pass", is_staff=False
+            )
+
+    @pytest.mark.django_db
+    def test_create_unclaimed_produces_attribution_only_shape(self):
+        person = Person.objects.create_unclaimed(first_name="Ghost", last_name="Person")
+
+        assert person.pk is not None
+        assert person.email is None
+        assert person.is_claimed is False
+        assert person.is_active is True
+        assert person.has_usable_password() is False
 
 
 # ── T101: ContributionManager.by_role() ──────────────────────────────────────
@@ -375,3 +486,93 @@ class TestAffiliationQuerysetMethods:
 
         # No overlap
         assert set(current) & set(past) == set()
+
+
+# ── T119 (US9): real contributors ────────────────────────────────────────────
+
+
+class TestRealContributors:
+    """Person.objects.real() / PersonQuerySet.real() - FR-041, SC-014."""
+
+    @pytest.mark.django_db
+    def test_excludes_superusers_and_the_anonymous_placeholder(
+        self, contributor_population
+    ):
+        """real() drops the superuser and the django-guardian anonymous user."""
+        real = Person.objects.real()
+
+        assert contributor_population.superuser not in real
+        assert contributor_population.anonymous not in real
+
+    @pytest.mark.django_db
+    def test_keeps_every_other_account_state(self, contributor_population):
+        """real() keeps every genuine person regardless of account state."""
+        real = Person.objects.real()
+
+        assert contributor_population.ghost in real
+        assert contributor_population.invited in real
+        assert contributor_population.claimed in real
+        assert contributor_population.inactive in real
+
+
+# ── T120 (US9): active accounts ──────────────────────────────────────────────
+
+
+class TestActiveAccounts:
+    """Person.objects.active() / PersonQuerySet.active() - FR-041, SC-014."""
+
+    @pytest.mark.django_db
+    def test_returns_only_active_people(self, contributor_population):
+        """active() keeps every is_active=True person and drops the inactive one."""
+        active = Person.objects.active()
+
+        assert contributor_population.ghost in active
+        assert contributor_population.invited in active
+        assert contributor_population.claimed in active
+        assert contributor_population.inactive not in active
+
+
+# ── T121 (US9): queryset/manager parity ──────────────────────────────────────
+
+
+class TestQuerysetManagerParity:
+    """Every query FR-041 and FR-042 name is reachable from both the queryset
+    and the manager, and returns the same rows from each - FR-040, SC-014.
+    """
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "method_name",
+        ["real", "active", "claimed", "unclaimed", "ghost", "invited"],
+    )
+    def test_person_query_matches_between_queryset_and_manager(
+        self, contributor_population, method_name
+    ):
+        from_manager = set(getattr(Person.objects, method_name)())
+        from_queryset = set(getattr(Person.objects.all(), method_name)())
+
+        assert from_manager == from_queryset
+        assert from_manager  # the population guarantees a non-empty result
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("method_name", ["current", "past"])
+    def test_membership_query_matches_between_queryset_and_manager(
+        self, contributor_population, method_name
+    ):
+        from_manager = set(getattr(Affiliation.objects, method_name)())
+        from_queryset = set(getattr(Affiliation.objects.all(), method_name)())
+
+        assert from_manager == from_queryset
+        assert from_manager
+
+    @pytest.mark.django_db
+    def test_credit_by_role_query_matches_between_queryset_and_manager(
+        self, contributor_population
+    ):
+        role_name = contributor_population.creator_role.name
+
+        from_manager = set(Contribution.objects.by_role(role_name))
+        from_queryset = set(Contribution.objects.all().by_role(role_name))
+
+        assert from_manager == from_queryset
+        assert from_manager

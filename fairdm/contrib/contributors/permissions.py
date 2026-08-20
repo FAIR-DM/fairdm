@@ -94,7 +94,8 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
         if perm not in ("contributors.manage_organization", "manage_organization"):
             return super().has_perm(user_obj, perm, obj)
 
-        # Check if user is staff/superuser (handled by parent ModelBackend)
+        # Check if user is a superuser (handled by parent ModelBackend); staff
+        # who are not superusers get no shortcut here (D10)
         if super().has_perm(user_obj, perm, obj):
             return True
 

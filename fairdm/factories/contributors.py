@@ -1,3 +1,15 @@
+"""Contributor model factories for FairDM testing.
+
+This module provides factory_boy factories for creating test instances of
+the contributors app's models: the account (``UserFactory``), the two
+concrete contributor types (``PersonFactory``, ``OrganizationFactory``) and
+the generic base (``ContributorFactory``), an organisation membership
+(``AffiliationFactory``), and a credit linking a contributor to a research
+object (``ContributionFactory``). Layout matches ``fairdm.factories.core``:
+one class per model, defaults that satisfy ``full_clean()`` with no further
+arguments, and every factory re-exported from ``fairdm.factories``.
+"""
+
 import factory
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
@@ -8,6 +20,8 @@ from factory.faker import Faker
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
+    Contributor,
+    ContributorIdentifier,
     Organization,
     Person,
 )
@@ -43,54 +57,89 @@ class UserFactory(DjangoModelFactory):
 
 
 class ContributorFactory(DjangoModelFactory):
-    """Factory for creating Contributor instances (creates Person as default)."""
+    """Factory for the fields common to every concrete contributor type.
+
+    PersonFactory and OrganizationFactory build on this rather than duplicating
+    these declarations; the preferred name is a sequence, not a random Faker
+    value, so that ordering by name is stable across a test run.
+    """
 
     class Meta:
-        model = Person  # Use Person as the concrete implementation
+        model = Contributor
 
     image = factory.django.ImageField(width=400, height=400, color="blue")
-    name = Faker("name")
+    name = factory.Sequence(lambda n: f"Contributor {n}")
     profile = Faker("text", max_nb_chars=300)
-    first_name = Faker("first_name")
-    last_name = Faker("last_name")
-    email = LazyAttribute(lambda o: f"{o.first_name}.{o.last_name}@fakeuser.org")
 
 
-class PersonFactory(DjangoModelFactory):
-    """Factory for creating Person instances."""
+class PersonFactory(ContributorFactory):
+    """Factory for creating Person instances.
+
+    Defaults to an unclaimed instance with an unusable password - a contributor
+    added for attribution alone is the common case (Article X, issue #227). Pass
+    `password=...` for a claimed-looking instance, or set `is_claimed`/`is_active`
+    explicitly.
+    """
 
     class Meta:
         model = Person
         django_get_or_create = ["email"]
 
-    image = factory.django.ImageField(width=400, height=400, color="blue")
-    profile = Faker("text", max_nb_chars=300)
-    name = LazyAttribute(lambda o: f"{o.first_name} {o.last_name}")
     email = LazyAttribute(lambda o: f"{o.first_name}.{o.last_name}@fakeuser.org")
     first_name = Faker("first_name")
     last_name = Faker("last_name")
-    is_active = Faker("boolean", chance_of_getting_true=80)
+    is_active = True
+
+    @factory.post_generation
+    def password(obj, create, extracted, **kwargs):
+        """Set the given password, or leave the instance with an unusable one."""
+        if not create:
+            return
+        if extracted:
+            obj.set_password(extracted)
+        else:
+            obj.set_unusable_password()
+        obj.save()
 
 
-class OrganizationFactory(DjangoModelFactory):
+class OrganizationFactory(ContributorFactory):
     """Factory for creating Organization instances."""
 
     class Meta:
         model = Organization
 
-    image = factory.django.ImageField(width=400, height=400, color="blue")
-    profile = Faker("text", max_nb_chars=300)
-    name = Faker("company")
+
+class ContributorIdentifierFactory(DjangoModelFactory):
+    """Factory for creating ContributorIdentifier instances.
+
+    ``AbstractIdentifier.value`` carries a database-level uniqueness constraint across
+    every identifier-bearing record, not just other ContributorIdentifiers, so it is a
+    sequence rather than a fixed or random value (Article X).
+    """
+
+    class Meta:
+        model = ContributorIdentifier
+
+    type = "ORCID"  # Default identifier type - a member of the contributor identifier collection
+    value = factory.Sequence(lambda n: f"0000-0001-{n:04d}-{n:04d}")
+    # related field has no default - pass e.g. ContributorIdentifierFactory(related=person)
 
 
 class AffiliationFactory(DjangoModelFactory):
-    """Factory for creating Affiliation instances."""
+    """Factory for creating Affiliation instances.
+
+    Defaults to a current, plain member membership: a start date is set and
+    no end date, and the type is the plain member level rather than pending,
+    admin or owner.
+    """
 
     class Meta:
         model = Affiliation
 
     person = SubFactory(PersonFactory)
     organization = SubFactory(OrganizationFactory)
+    type = Affiliation.MembershipType.MEMBER
+    start_date = "2020"
 
 
 class ContributionFactory(DjangoModelFactory):

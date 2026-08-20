@@ -19,81 +19,94 @@ The Person admin combines Django's user management with contributor-specific fie
 
 ### Key Admin Sections
 
-**Personal Information Tab**:
-- Name fields (first_name, last_name, auto-generates display name)
+**Basic info**:
+- Avatar image
+- Name fields (first_name, last_name, auto-generates the display name)
 - Email address (required for claimed accounts, NULL for unclaimed)
 - Profile/biography
-- Avatar image
-- Keywords (research interests)
+- Public identifier (`uuid`) and the added/modified timestamps — shown, read-only
+- Last synced date
 
-**Account Status Tab**:
-- `is_claimed`: Boolean indicating if this person has claimed their account
-- `is_active`: Standard Django active status
+**Account**:
+- Password
+- `is_active`: standard Django active status
 - `is_staff`: Django admin access
-- `is_superuser`: Full system access
+- `is_superuser`: full system access
 
-**Privacy Settings Tab**:
-- `privacy_settings`: JSON field controlling field visibility
-- Default: Email private for claimed users, all fields public for unclaimed
+**Permissions**:
+- Django groups
 
-**Identifiers Tab**:
-- ORCID (via ContributorIdentifier inline)
-- Other external identifiers
+**Inline sections**:
+- Account emails (via allauth)
+- Affiliations
+- External identifiers (ORCID, etc.)
 
-**Permissions Tab**:
-- Django groups and permissions
-- Object-level permissions (via django-guardian)
+The changelist reports each person's derived account state (`account_state`
+in `list_display`) alongside name, email and staff status, and search
+covers name, email and the public identifier.
 
 ### State Machine Overview
 
-Person accounts follow this lifecycle:
+Person accounts occupy exactly one of four states, in this precedence —
+inactive overrides claimed, claimed overrides invited, invited overrides
+ghost (D8):
 
-1. **Ghost** (unclaimed, no email):
-   - `is_claimed=False`, `email=None`, `is_active=False`
-   - Created automatically during data import for attribution
-   - Not searchable in portal member listings
+1. **Inactive**: `is_active=False`, regardless of `is_claimed`. Account
+   disabled but data preserved.
 
-2. **Invited** (unclaimed, has email):
-   - `is_claimed=False`, `email` set, `is_active=False`
-   - Invitation sent but not yet accepted
-   - Invitation workflows in Feature 010 (not yet released)
+2. **Claimed**: `is_active=True`, `is_claimed=True`. Full user account with
+   authentication; appears in portal member listings.
 
-3. **Claimed** (active account):
-   - `is_claimed=True`, `is_active=True`
-   - Full user account with authentication
-   - Appears in portal member listings
+3. **Invited**: `is_active=True`, `is_claimed=False`, `email` set.
+   Invitation sent but not yet accepted. Invitation workflows are Feature
+   010 (not yet released).
 
-4. **Banned** (deactivated):
-   - `is_claimed=True`, `is_active=False`
-   - Account disabled but data preserved
+4. **Ghost**: `is_active=True`, `is_claimed=False`, `email=None`. Created
+   automatically during data import for attribution; not searchable in
+   portal member listings.
+
+### Claim-Status Filter
+
+The **Claimed Status** filter in the Person changelist reads `is_claimed`
+and `is_active` directly, not the email address — an invited person has an
+email but has not claimed their account, so email presence alone cannot
+tell the two apart.
+
+- **Claimed** shows only accounts with `is_active=True` and
+  `is_claimed=True` — state 2 above.
+- **Unclaimed** shows everything else — inactive, invited and ghost
+  accounts (states 1, 3 and 4).
 
 ### Creating Person Records
 
-**Creating Claimed User Accounts**:
+**Via the Django Admin ("Add person")**:
 
 1. Navigate to **Contributors > Persons > Add person**
-2. Fill required fields:
-   - Email address
-   - First name
-   - Last name
-   - Password (or use "Set password" link after creation)
-3. Check `is_active` (auto-checked for claimed accounts)
-4. Save
+2. Fill required fields: email address, first name, last name (a password is optional —
+   leaving it blank creates the account with an unusable password)
+3. Save
 
-The system automatically:
-- Sets `is_claimed=True`
-- Generates `name` from first_name + last_name
-- Sets default privacy (email private)
+The system automatically generates `name` from first_name + last_name. `is_claimed` is **not**
+on this form and is not set by creating a record here — it stays `False`, so a person created
+this way is **Invited** (has an email, not yet claimed), not **Claimed**. Actually claiming an
+account happens through one of the pathways in
+[Managing Unclaimed Profiles](managing-unclaimed-profiles.md#claim-pathways).
 
-**Creating Unclaimed Records** (for data attribution):
+**Creating Unclaimed ("Ghost") Records** (for data attribution):
 
-1. Navigate to **Contributors > Persons > Add person**
-2. Fill name fields only (leave email NULL)
-3. Leave `is_active` unchecked
-4. Leave `is_claimed` unchecked
-5. Save
+The admin's "Add person" form requires an email address, so a ghost record — no email at all —
+cannot be created there. Use the manager method instead, from the Django shell or an import
+script:
 
-Use for attributing data to people who haven't registered yet.
+```python
+from fairdm.contrib.contributors.models import Person
+
+Person.objects.create_unclaimed(first_name="Jane", last_name="Doe")
+# email=None, is_active=True, is_claimed=False, unusable password
+```
+
+Use for attributing data to people who haven't registered yet — this is also the path bulk data
+import uses.
 
 ### Bulk ORCID Import
 
@@ -132,6 +145,22 @@ Organizations represent institutions, companies, research groups, and other orga
 - Add new members inline
 - Assign roles (PENDING, MEMBER, ADMIN, OWNER)
 
+**Sub-organizations**:
+- Sub-organizations (children by the self-referencing `parent` field) are
+  listed in their own inline on the organization change screen, alongside
+  the member inline
+
+**Fieldsets and filters**:
+- The change form groups fields into Basic info, Location and
+  Synchronisation sections
+- The changelist can be filtered by country
+- The public identifier (`uuid`) is shown and read-only
+
+**Affiliation Admin**:
+- Affiliations also have their own top-level admin screen (list, add,
+  change), independent of the person/organization inlines, with
+  autocomplete on the person and organization fields
+
 **ROR Synchronization**:
 - Admin action: "Sync from ROR"
 - Select organizations with ROR identifiers
@@ -140,9 +169,10 @@ Organizations represent institutions, companies, research groups, and other orga
 
 **Ownership Transfer**:
 - Admin action: "Transfer Ownership"
-- Select single organization
-- Redirects to organization page with instructions
-- Ownership transfer via Affiliation type change
+- Select a single organization, choose the new owner from the "New owner"
+  field in the action bar, then run the action
+- Performs the transfer directly — demotes the incumbent owner to ADMIN and
+  promotes the chosen member to OWNER
 
 ### Creating Organizations
 
@@ -178,27 +208,59 @@ To link with ROR:
 - **PENDING**: Membership pending verification (no permissions)
 - **MEMBER**: Regular member (read-only org access)
 - **ADMIN**: Administrator (can manage memberships)
-- **OWNER**: Owner (full control, automatically grants `manage_organization` permission)
+- **OWNER**: Owner — holding an OWNER affiliation on an organisation is what
+  `manage_organization` on that organisation *means*
 
-**⚠️ Important**: Only ONE owner per organization. Setting a new owner automatically demotes the previous owner to ADMIN.
+### Ownership is derived, not stored
+
+`manage_organization` is not a permission record. `OrganizationPermissionBackend`
+answers `user.has_perm("manage_organization", organization)` by checking, at
+the moment of the call, whether the user holds an OWNER affiliation on that
+organization. Nothing is granted, revoked or written when an affiliation's
+type changes — there is no permission row to fall out of step with the
+affiliation, because there is no permission row.
+
+One consequence: a demotion takes effect on the very next permission check,
+with no separate revocation step. Editing an affiliation's type from OWNER to
+MEMBER or ADMIN in the inline above is enough on its own.
+
+Another: the model does not enforce a single owner. Nothing stops two
+affiliations on the same organisation both being OWNER, and each of those
+people independently holds `manage_organization`. Editing an affiliation's
+type to OWNER by hand, on its own, does **not** demote whoever already holds
+it — it adds a second owner. Use `transfer_ownership()` (below) when the
+intent is to hand the role to someone else rather than add them alongside
+the incumbent.
 
 ### Transferring Organization Ownership
 
-To transfer ownership:
+**Via Admin Action**: Select a single organization in the admin changelist,
+pick the new owner from the "New owner" field next to the action dropdown,
+and choose "Transfer Ownership". The action calls
+`Organization.transfer_ownership()` itself and reports the outcome — the
+incumbent owner is demoted to ADMIN and the chosen member becomes OWNER. It
+requires the acting user to hold `manage_organization` on that organisation
+(an OWNER affiliation, or superuser); holding only the ordinary
+`change_organization` permission that gets an account into the admin at all
+is not enough.
 
-**Method 1: Via Admin Action**
-1. Select organization in admin changelist
-2. Choose "Transfer Ownership" action
-3. Follow instructions to set new owner
+**Via `Organization.transfer_ownership()`**: the model method that performs
+an actual transfer — demoting the incumbent owner to ADMIN and promoting the
+named person to OWNER in one atomic operation, refusing the call if that
+person is not already a member:
 
-**Method 2: Via Affiliation Type**
-1. Edit the organization
-2. Find the affiliation for the new owner
-3. Change type to "OWNER"
-4. Save
-5. Old owner is automatically demoted to ADMIN
+```python
+from fairdm.contrib.contributors.models import Organization, Person
 
-The `manage_organization` permission is automatically synced via lifecycle hooks.
+organization = Organization.objects.get(name="Example University")
+new_owner = Person.objects.get(email="new.owner@example.edu")
+
+organization.transfer_ownership(new_owner)
+# new_owner now holds `manage_organization`; the previous owner is now ADMIN.
+```
+
+Calling it with someone who holds no affiliation on the organisation raises
+`ValidationError` and changes nothing.
 
 ## Affiliation Verification Workflow
 
@@ -217,18 +279,20 @@ The `manage_organization` permission is automatically synced via lifecycle hooks
    - **Approve**: Change type to MEMBER (or ADMIN if appropriate)
    - **Reject**: Delete affiliation or leave as PENDING with note
 
-4. **Permission Sync**:
-   - Lifecycle hooks automatically update object-level permissions
-   - OWNER affiliations grant `manage_organization` permission
+4. **Permission Effect**:
+   - No permission row is written anywhere — `manage_organization` is derived, not stored (see
+     [Ownership is derived, not stored](#ownership-is-derived-not-stored) below)
+   - An OWNER affiliation makes `user.has_perm("contributors.manage_organization", org)` true on
+     the very next check, with nothing further to run
 
 ### Affiliation Admin List Filters
 
-Use filters to find affiliations:
-- **By organization**: Filter by organization name
-- **By person**: Filter by person name
-- **By type**: PENDING, MEMBER, ADMIN, OWNER
-- **By status**: Current (end_date=NULL) vs Past (end_date set)
-- **Primary only**: Show only is_primary=True
+The Affiliation changelist filters on:
+- **Type**: PENDING, MEMBER, ADMIN, OWNER
+- **Primary only**: `is_primary`
+
+The person and organization fields use autocomplete widgets rather than a
+list filter.
 
 ### Bulk Affiliation Management
 
@@ -354,35 +418,26 @@ Fix:
 
 ### Manual Sync (No Celery)
 
-To sync without Celery (development only):
+To sync without Celery (development only), call the transform's own `update_or_create()` —
+the same classmethod `Person.from_orcid()` and `Organization.from_ror()` schedule
+asynchronously — directly and synchronously:
 
 ```python
 from fairdm.contrib.contributors.utils.transforms import ORCIDTransform, RORTransform
 
-# ORCID sync
+# ORCID sync — force=True re-fetches even if last_synced is recent
 person = Person.objects.get(email="example@example.com")
-orcid_id = person.identifiers.filter(type="ORCID").first()
-if orcid_id:
-    # Fetch and apply ORCID data
-    orcid_data = ORCIDTransform.fetch(orcid_id.value)
-    internal_data = ORCIDTransform.to_internal(orcid_data)
-    for key, value in internal_data.items():
-        setattr(person, key, value)
-    person.synced_data = orcid_data
-    person.last_synced = timezone.now()
-    person.save()
+if person.identifiers.filter(type="ORCID").exists():
+    person, _created = ORCIDTransform.update_or_create(
+        person.identifiers.get(type="ORCID").value, force=True
+    )
 
-# ROR sync (similar pattern)
+# ROR sync (same pattern)
 org = Organization.objects.get(pk=123)
-ror_id = org.identifiers.filter(type="ROR").first()
-if ror_id:
-    ror_data = RORTransform.fetch(ror_id.value)
-    internal_data = RORTransform.to_internal(ror_data)
-    for key, value in internal_data.items():
-        setattr(org, key, value)
-    org.synced_data = ror_data
-    org.last_synced = timezone.now()
-    org.save()
+if org.identifiers.filter(type="ROR").exists():
+    org, _created = RORTransform.update_or_create(
+        org.identifiers.get(type="ROR").value, force=True
+    )
 ```
 
 ## Data Cleanup & Maintenance
@@ -405,6 +460,12 @@ ghosts_without_data = Person.objects.ghost().filter(
 ```
 
 ### Merging Duplicate Persons
+
+The Person admin's **"Merge selected Person into another…"** action does this transactionally,
+including identifiers, allauth accounts and guardian permissions, and is the recommended route —
+see [Merging Two Person Records](managing-unclaimed-profiles.md#merging-two-person-records). The
+manual approach below only reassigns contributions and affiliations, and is a narrower fallback
+for the pieces the admin action does not cover:
 
 If duplicate person records exist:
 
@@ -432,20 +493,6 @@ If duplicate person records exist:
    canonical.contributions.count()  # Should include old duplicate's contributions
    ```
 
-### Bulk Privacy Settings Update
-
-To update privacy settings for multiple unclaimed persons:
-
-```python
-from fairdm.contrib.contributors.models import Person
-
-# Make all unclaimed persons' emails public (they're NULL anyway)
-unclaimed_persons = Person.objects.unclaimed()
-for person in unclaimed_persons:
-    person.privacy_settings = {"email": "public"}
-    person.save()
-```
-
 ## Performance Optimization
 
 ### Large Contributor Databases
@@ -471,15 +518,19 @@ people_with_counts = Person.objects.real().annotate(
 
 **Database Indexing**:
 
-Ensure indexes exist on:
-- `Person.email` (automatically indexed via unique=True)
-- `Person.is_claimed`
-- `Person.is_active`
-- `Affiliation.type`
-- `Affiliation.end_date`
-- `Affiliation.is_primary`
+Already indexed, no action needed:
+- `Person.email` (`unique=True`, plus the case-insensitive constraint)
+- `Person.is_claimed` (`db_index=True` — the account-state filters and the admin's Claimed
+  Status filter both read it)
+- `Affiliation.type` (`db_index=True`)
+- `Affiliation.is_primary` (via the partial unique constraint, one row per person)
 
-Check via:
+**Not indexed** — `Person.is_active` (inherited from Django's `AbstractUser` unchanged) and
+`Affiliation.end_date`. A query filtering on either alone scans; combine with an indexed field
+(`Person.objects.real().active()`, or filter `Affiliation` by `type` first) where that matters
+at scale.
+
+Check what exists via:
 ```bash
 poetry run python manage.py sqlmigrate contributors 0001
 # Look for CREATE INDEX statements
@@ -510,14 +561,19 @@ def get_person_profile(person_pk):
 ### Protecting Personal Data
 
 **Email Privacy**:
-- By default, claimed user emails are private
-- Unclaimed persons have NULL emails (safe to display)
-- Use `person.get_visible_fields(viewer)` in templates
+- This app enforces no field-level visibility rule of any kind — nothing reads or checks
+  `Contributor.config`, and there is no `email`-is-private-by-default behaviour. A portal that
+  wants email addresses (or any other field) hidden from some viewers implements and enforces
+  that itself, at whichever boundary — view, serializer, template — it chooses to check.
+- Unclaimed persons (ghost/invited) commonly have `email=None` for a ghost record, which is
+  safe to display by construction; an invited person's email is a real address and is exposed
+  exactly like a claimed person's unless the portal hides it.
 
 **GDPR Compliance**:
 - Person records contain personal data
 - Implement data export/deletion on request
-- Use privacy_settings to let users control visibility
+- `config` is a general-purpose JSON store this app assigns no meaning to — build any visibility
+  policy on top of it explicitly, rather than assuming one already exists
 
 **Sample GDPR Export**:
 ```python
@@ -552,9 +608,9 @@ def export_person_data(person):
 ### Permission Boundaries
 
 **Organization Ownership**:
-- Only one OWNER per organization
 - OWNER has `manage_organization` permission
-- Permission synced automatically via Affiliation lifecycle hooks
+- The permission is derived from the OWNER affiliation at the moment it is
+  checked, not stored — see [Ownership is derived, not stored](#ownership-is-derived-not-stored)
 
 **Admin Access**:
 - Django staff/superuser can access all records

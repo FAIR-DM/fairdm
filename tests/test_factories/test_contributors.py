@@ -7,14 +7,26 @@ with the core model factories (Project, Dataset, Sample, Measurement).
 import pytest
 from django.test import TestCase
 
-from fairdm.contrib.contributors.models import Contribution, Organization, Person
+from fairdm.contrib.contributors.models import (
+    Affiliation,
+    Contribution,
+    ContributorIdentifier,
+    Organization,
+    Person,
+)
 from fairdm.factories import (
+    AffiliationFactory,
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
 )
-from fairdm.factories.contributors import ContributionFactory, ContributorFactory
+from fairdm.factories.contributors import (
+    ContributionFactory,
+    ContributorFactory,
+    ContributorIdentifierFactory,
+    UserFactory,
+)
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
@@ -79,6 +91,22 @@ class TestContributorFactoryCreation:
         assert person1.pk == person2.pk
         assert Person.objects.filter(email=email).count() == 1
 
+    def test_person_factory_defaults_to_unusable_password_and_unclaimed(self):
+        """T034: the default PersonFactory instance is the common case - a
+        contributor added for attribution alone (Article X, issue #227)."""
+        person = PersonFactory()
+
+        assert person.has_usable_password() is False
+        assert person.is_claimed is False
+        assert person.is_active is True
+
+    def test_person_factory_accepts_an_explicit_password(self):
+        """Passing password=... produces a genuinely usable, checkable password."""
+        person = PersonFactory(password="s3cret-pass")
+
+        assert person.has_usable_password() is True
+        assert person.check_password("s3cret-pass") is True
+
     def test_organization_factory_creates_organization(self):
         """Test OrganizationFactory creates a valid Organization instance."""
         org = OrganizationFactory()
@@ -87,6 +115,27 @@ class TestContributorFactoryCreation:
         assert org.pk is not None
         assert org.name
         assert org.profile
+
+
+@pytest.mark.django_db
+class TestAffiliationFactory:
+    """T074: AffiliationFactory defaults to a current, plain member period."""
+
+    def test_default_type_is_member(self):
+        """AffiliationFactory defaults to a plain member type, not pending,
+        admin or owner."""
+        affiliation = AffiliationFactory()
+
+        assert affiliation.type == Affiliation.MembershipType.MEMBER
+
+    def test_default_period_is_current(self):
+        """AffiliationFactory defaults to a current period: a start date is
+        set and no end date, so the membership passes the current() filter."""
+        affiliation = AffiliationFactory()
+
+        assert affiliation.start_date is not None
+        assert affiliation.end_date is None
+        assert affiliation in Affiliation.objects.current()
 
 
 @pytest.mark.django_db
@@ -116,6 +165,25 @@ class TestContributionFactory:
         assert contribution.pk is not None
         assert contribution.contributor == org
         assert contribution.content_object == dataset
+
+
+@pytest.mark.django_db
+class TestContributorIdentifierFactory:
+    """T116 - ContributorIdentifierFactory defaults to a real vocabulary member and a
+    unique value (Article X)."""
+
+    def test_default_type_is_a_contributor_identifier_vocabulary_member(self):
+        person = PersonFactory()
+
+        identifier = ContributorIdentifierFactory(related=person)
+
+        assert identifier.type in ContributorIdentifier.VOCABULARY.values
+
+    def test_identifier_values_are_unique_across_instances(self):
+        first = ContributorIdentifierFactory(related=PersonFactory())
+        second = ContributorIdentifierFactory(related=PersonFactory())
+
+        assert first.value != second.value
 
 
 class TestFactoryIntegration(TestCase):
@@ -346,3 +414,51 @@ class TestFactoryIntegration(TestCase):
 
         # They should have different polymorphic types
         self.assertNotEqual(person.polymorphic_ctype, organization.polymorphic_ctype)
+
+
+# ── T138: every contributor factory passes full_clean() ─────────────────────
+
+
+@pytest.mark.django_db
+class TestContributorFactoriesPassFullClean:
+    """Every factory in ``fairdm/factories/contributors.py`` produces an
+    instance that satisfies ``full_clean()`` with no arguments beyond the
+    factory's own defaults (Article X)."""
+
+    def test_user_factory_instance_passes_full_clean(self):
+        UserFactory().full_clean()
+
+    def test_contributor_factory_instance_passes_full_clean(self):
+        ContributorFactory().full_clean()
+
+    def test_person_factory_instance_passes_full_clean(self):
+        PersonFactory().full_clean()
+
+    def test_organization_factory_instance_passes_full_clean(self):
+        OrganizationFactory().full_clean()
+
+    def test_affiliation_factory_instance_passes_full_clean(self):
+        AffiliationFactory().full_clean()
+
+    def test_contribution_factory_instance_passes_full_clean(self):
+        ContributionFactory().full_clean()
+
+
+@pytest.mark.django_db
+class TestContributorFactoryBatchUniqueness:
+    """``create_batch`` stays unique where a field is uniqueness-guarded
+    (Article X). ``Person.email`` (and, since ``AUTH_USER_MODEL`` swaps in
+    ``Person``, ``UserFactory``'s email too) is the one field in this app
+    carrying a database-level uniqueness constraint."""
+
+    def test_user_factory_batch_has_unique_emails_and_rows(self):
+        users = UserFactory.create_batch(5)
+
+        assert len({u.pk for u in users}) == 5
+        assert len({u.email for u in users}) == 5
+
+    def test_person_factory_batch_has_unique_emails_and_rows(self):
+        people = PersonFactory.create_batch(5)
+
+        assert len({p.pk for p in people}) == 5
+        assert len({p.email for p in people}) == 5

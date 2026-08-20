@@ -150,6 +150,30 @@ def test_with_specific_organization():
     assert project.owner.name == "Research Institute"
 ```
 
+`OrganizationFactory` and `PersonFactory` both build on a shared `ContributorFactory`,
+which declares what every contributor has — the preferred name, the profile image and
+the free-text profile. Keyword arguments such as `name` above are accepted by either,
+because the declaration lives on the base.
+
+**Give a contributor an external identifier**:
+
+```python
+from fairdm.factories.contributors import ContributorIdentifierFactory, PersonFactory
+
+
+@pytest.mark.django_db
+def test_person_with_an_orcid():
+    person = PersonFactory()
+    identifier = ContributorIdentifierFactory(related=person, value="0000-0002-1825-0097")
+
+    assert person.identifiers.get(type="ORCID").value == "0000-0002-1825-0097"
+```
+
+`ContributorIdentifierFactory` defaults to an ORCID and generates a unique value, because
+an identifier's value is unique across every record that carries one, not just across
+contributors. It does not choose a contributor for you — pass `related` yourself, in
+keeping with the other identifier factories.
+
 ## Opt-In Metadata Pattern
 
 ### Why Opt-In?

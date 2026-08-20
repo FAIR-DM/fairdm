@@ -189,6 +189,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   descriptions, dates and identifiers in a number of queries that does not grow with how many
   measurements there are.
 
+#### Contributors and Contributions (Feature 009)
+
+- **`fairdm.contrib.contributors`**, a new app holding every contributor record.
+  `Contributor` is a polymorphic base with two concrete types: `Person` — the account a user
+  logs in with (`AUTH_USER_MODEL = "contributors.Person"`) — and `Organization`. Both share a
+  public identifier (`uuid`, prefixed `c`), a name, alternative names, a profile, a profile
+  image, links, language preferences, a location and a general-purpose `config` JSON store.
+- **`Affiliation`** (aliased `OrganizationMember`) links a `Person` to an `Organization` with a
+  membership type (`PENDING`, `MEMBER`, `ADMIN`, `OWNER`), a primary flag and partial-precision
+  start/end dates. A person cannot hold two affiliations with the same organisation, and at
+  most one of a person's affiliations is primary at a time — both enforced by validation and by
+  a database constraint.
+- **`Contribution`** credits a contributor on a `Project`, `Dataset`, `Sample` or `Measurement`
+  through a `GenericForeignKey`, carrying roles drawn from the framework's `fairdm-roles`
+  vocabulary. Crediting the same contributor again under a further role accumulates the role on
+  the existing credit rather than replacing it (`Contributor.add_to()`, the `Contribution.add_to()`
+  classmethod).
+- **`ContributorIdentifier`** holds a contributor's external identifiers (ORCID for a person,
+  ROR and others for an organisation), each syncing in the background on creation.
+- **`Organization.type`**, drawn from ROR schema 2.1's institution types (`OrganizationType`):
+  education, funder, healthcare, company, archive, nonprofit, government, facility, other.
+- **Derived account state.** `Person.account_state` (`AccountState`: `GHOST`, `INVITED`,
+  `CLAIMED`, `INACTIVE`) is computed from `is_active`, `is_claimed` and `email` rather than
+  stored, and `Person.objects` carries a matching queryset method for each state — `ghost()`,
+  `invited()`, `claimed()`, `inactive()` — plus `real()` (excludes superusers and the
+  django-guardian anonymous placeholder) and `unclaimed()`.
+- **Derived organisation ownership.** `manage_organization` is not a stored permission —
+  `OrganizationPermissionBackend` answers it from whether the user holds an `OWNER` affiliation
+  on the organisation at the moment of the check. `Organization.transfer_ownership()` demotes
+  the incumbent owner to `ADMIN` and promotes the named member to `OWNER` in one atomic
+  operation.
+- **`ClaimingAuditLog`**, an immutable record of every profile-claiming event (method, source
+  and target person, success, failure reason), with `ClaimingAuditLogManager` filters —
+  `for_person()`, `failures()`, `by_method()`, `recent()`.
+- Reporting methods on `Contributor`: `projects`, `datasets`, `samples`, `measurements`,
+  `get_credit_counts()`, `get_co_contributors()`, `has_contribution_to()`,
+  `get_recent_contributions()`, `get_contributions_by_type()`.
+- Export helpers `Contributor.to_datacite()` and `.to_schema_org()`, backed by
+  `DataCiteTransform`, `SchemaOrgTransform`, `CSLJSONTransform`, `ORCIDTransform` and
+  `RORTransform` (`fairdm.contrib.contributors.utils.transforms`) — each a transform instance
+  with `export()`/`import_data()` methods.
+
 ### Changed
 
 #### Core samples (Feature 005) — breaking
@@ -261,6 +303,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A dataset a user may not see answers 404 rather than 403, so a page no longer confirms that a
   private dataset exists.
 
+#### Contributors and Contributions (Feature 009)
+
+- **Deleting a parent organisation no longer deletes its children.** `Organization.parent` is
+  `on_delete=SET_NULL`; a surviving sub-organisation loses its parent link, keeping its own
+  members and credits.
+- **Crediting the same contributor a second time accumulates the new role onto the existing
+  credit instead of discarding the roles recorded the first time.**
+- **Deleting a credit withdraws every object-level right it granted, whether the credit is
+  deleted on the instance or in bulk through a queryset.** The lifecycle hook alone only
+  covered the instance path; a `post_delete` signal receiver now covers the bulk one too.
+- **`UserManager` gains `create_user()`.** The queryset methods on `PersonQuerySet`,
+  `AffiliationQuerySet` and `ContributionQuerySet` are composed onto their managers with
+  `Manager.from_queryset()`, matching the pattern the rest of the framework uses, rather than
+  hand-written proxy methods.
+- **`Person.email` keeps its field-level `unique=True`** alongside the case-insensitive
+  database constraint that actually enforces uniqueness, so Django's own `USERNAME_FIELD`
+  check (`auth.W004`) is satisfied by the means Django reads.
+
 ### Removed
 
 #### Portal configuration (Feature 001)
@@ -302,6 +362,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mistake (see Changed, above). A portal's own measurement admin classes inherit from
   `fairdm.core.measurement.admin.MeasurementChildAdmin`, which is what the developer guide has
   always named.
+
+#### Contributors and Contributions (Feature 009)
+
+- **`Contributor.privacy_settings`** and **`Contributor.get_visible_fields()`**. Nothing in the
+  codebase called `get_visible_fields` outside its own tests, and the field it read had no
+  enforcement anywhere. `privacy_settings` is renamed to a general-purpose `config` JSON store
+  whose contents this feature does not define; existing data is cleared in the migration.
+- **`Contributor.weight`** and `calculate_weight()`, a stored ranking score nothing computed.
 
 ### Migration Guide
 

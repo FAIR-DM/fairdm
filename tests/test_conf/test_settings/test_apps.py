@@ -58,6 +58,36 @@ class TestInstalledApps:
         settings_module()  # must not raise
 
 
+class TestContributorsAppRegistration:
+    """T002: the account model's own app is installed, and system checks pass
+    with it in its current position — the generic relations the core apps
+    (project/dataset/sample/measurement) hold back to it are declared as
+    string references (``GenericRelation("contributors.Contribution")``), so
+    Django resolves them once the whole registry is populated rather than at
+    import time, and app order does not gate that resolution."""
+
+    def test_contributors_app_is_installed(self, isolated_env, settings_module):
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module()
+
+        assert "fairdm.contrib.contributors" in module.INSTALLED_APPS
+
+    def test_contributors_app_loads_behind_django_contrib_auth(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module()
+
+        contributors_index = module.INSTALLED_APPS.index(
+            "fairdm.contrib.contributors"
+        )
+        auth_index = module.INSTALLED_APPS.index("django.contrib.auth")
+
+        assert contributors_index > auth_index
+
+
 class TestTemplateAndStaticPrecedence:
     """When a portal and FairDM both define a template or static file at the
     same path, the portal's earlier app position makes its file win

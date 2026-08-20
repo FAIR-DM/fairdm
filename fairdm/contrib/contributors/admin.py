@@ -1,8 +1,9 @@
 from allauth.account.models import EmailAddress
 from dal import autocomplete
+from django import forms
 from django.contrib import admin
+from django.contrib.admin.helpers import ActionForm
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
@@ -21,7 +22,16 @@ from .resources import PersonResource
 
 
 class ClaimedStatusFilter(admin.SimpleListFilter):
-    """Filter persons by claimed/unclaimed status."""
+    """Filter persons by claimed/unclaimed status.
+
+    Reads the stored claim value (``is_claimed``), not the email address
+    (D8): an invited person has an email but has not claimed their account,
+    so email presence alone misclassifies them. "Claimed" also respects the
+    same precedence Person.account_state would use -- an account that has
+    since been deactivated no longer counts as claimed, even though
+    is_claimed is still True. Person.account_state itself is US3's work and
+    does not exist yet, so this reads is_claimed/is_active directly.
+    """
 
     title = _("Claimed Status")
     parameter_name = "is_claimed"
@@ -29,16 +39,16 @@ class ClaimedStatusFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         """Return filter options."""
         return (
-            ("claimed", _("Claimed (has email)")),
-            ("unclaimed", _("Unclaimed (no email)")),
+            ("claimed", _("Claimed")),
+            ("unclaimed", _("Unclaimed")),
         )
 
     def queryset(self, request, queryset):
         """Apply filter to queryset."""
         if self.value() == "claimed":
-            return queryset.exclude(email__isnull=True).exclude(email="")
+            return queryset.filter(is_active=True, is_claimed=True)
         elif self.value() == "unclaimed":
-            return queryset.filter(Q(email__isnull=True) | Q(email=""))
+            return queryset.exclude(is_active=True, is_claimed=True)
         return queryset
 
 
@@ -83,10 +93,15 @@ class IdentifierInline(admin.StackedInline):
     extra = 0
 
 
-# class OrganizationInline(admin.StackedInline):
-#     model = Organization
-#     fields = ["profile"]
-#     extra = 0
+class SubOrganizationInline(admin.TabularInline):
+    """Inline listing an organization's sub-organizations (self-referencing parent FK)."""
+
+    model = Organization
+    fk_name = "parent"
+    fields = ["name"]
+    extra = 0
+    verbose_name = _("Sub-organization")
+    verbose_name_plural = _("Sub-organizations")
 
 
 @admin.register(Person)
@@ -102,7 +117,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         "last_name",
         "email",
         "is_staff",
-        "is_active",
+        "account_state",
     ]
     list_filter = (
         ClaimedStatusFilter,
@@ -128,7 +143,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         # },
         # models.JSONField: {"widget": FlatJSONWidget},
     }
-    readonly_fields = ["synced_data", "last_synced"]
+    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
     # fieldsets for modifying user
     fieldsets = (
         (
@@ -142,7 +157,9 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     # "alternative_names",
                     # "links",
                     "profile",
+                    "uuid",
                     "last_synced",
+                    ("added", "modified"),
                 )
             },
         ),
@@ -183,9 +200,25 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         ),
     )
 
-    search_fields = ("email", "id", "name")
+    search_fields = ("email", "name", "uuid")
     ordering = ("last_name",)
     actions = ["generate_claim_link_action", "merge_person_action"]
+
+    @admin.display(description=_("Account state"))
+    def account_state(self, obj):
+        """Report the account state derived from the stored claim/active fields (D8).
+
+        A total function so the four states cannot overlap: inactive if the
+        account is deactivated, otherwise claimed, otherwise invited if an
+        email address is present, otherwise ghost.
+        """
+        if not obj.is_active:
+            return _("Inactive")
+        if obj.is_claimed:
+            return _("Claimed")
+        if obj.email:
+            return _("Invited")
+        return _("Ghost")
 
     @admin.action(description=_("Merge selected Person into another"))
     def merge_person_action(self, request, queryset):
@@ -359,19 +392,48 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         )
 
 
+class OrganizationActionForm(ActionForm):
+    """Adds the new-owner selector to the organisation changelist's action bar (T135, FR-046).
+
+    Django renders every visible field on ``action_form`` alongside the action dropdown
+    (``admin/actions.html``), so this needs no new template. The transfer action reads the
+    value straight off ``request.POST`` rather than validating the form, matching how the
+    Django admin's own action-form examples do it.
+    """
+
+    new_owner = forms.ModelChoiceField(
+        queryset=Person.objects.all(),
+        required=False,
+        label=_("New owner"),
+    )
+
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     base_model = Contributor
     show_in_index = True
-    inlines = [MemberInline]  # Add inline for managing members
+    inlines = [MemberInline, SubOrganizationInline]
+    action_form = OrganizationActionForm
     list_display = ["name", "city", "country", "lat", "lon"]
+    list_filter = ["country"]
     search_fields = ["name"]
-    readonly_fields = ["synced_data", "last_synced"]
-    exclude = (
-        "alternative_names",
-        "links",
-        "lang",
-    )  # Exclude JSON array fields to avoid widget issues
+    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
+    # alternative_names, links and lang are JSON array fields that trigger widget
+    # issues; they are simply left out of the fieldsets below rather than excluded.
+    fieldsets = (
+        (
+            None,
+            {"fields": ("image", "name", "profile", "parent", "uuid")},
+        ),
+        (
+            _("Location"),
+            {"fields": ("city", "country", "location")},
+        ),
+        (
+            _("Synchronisation"),
+            {"fields": ("last_synced", "synced_data", ("added", "modified"))},
+        ),
+    )
     actions = [
         "sync_from_ror",
         "transfer_ownership_action",
@@ -423,9 +485,16 @@ class OrganizationAdmin(admin.ModelAdmin):
 
     @admin.action(description="Transfer Ownership")
     def transfer_ownership_action(self, request, queryset):
-        """Transfer ownership for selected organization (single selection only)."""
-        from django.shortcuts import redirect
-        from django.urls import reverse
+        """Transfer ownership of the selected organization to the chosen member (FR-046).
+
+        The affiliation-record change (demoting the incumbent, promoting the new owner) is
+        ``Organization.transfer_ownership()``'s job, not this action's -- it is not
+        reimplemented here (T135). The object-level ``manage_organization`` check below must
+        run, and must run before the transfer: without it, any account holding the
+        model-level ``change_organization`` permission could transfer any organisation
+        (design review SEC-001).
+        """
+        from django.core.exceptions import ValidationError
 
         # Validate single selection
         if queryset.count() != 1:
@@ -447,7 +516,8 @@ class OrganizationAdmin(admin.ModelAdmin):
             )
             return
 
-        # Check user has manage_organization permission
+        # Check user has manage_organization permission -- object-level, not the model-level
+        # change permission that merely got them into this action (SEC-001).
         if not request.user.has_perm("contributors.manage_organization", org):
             self.message_user(
                 request,
@@ -456,19 +526,39 @@ class OrganizationAdmin(admin.ModelAdmin):
             )
             return
 
-        # Redirect to organization change page with info message about ownership transfer
-        # The actual transfer should be done via the transfer_ownership view or through
-        # a custom admin intermediate page (not implemented here for simplicity)
+        new_owner_pk = request.POST.get("new_owner")
+        new_owner = (
+            Person.objects.filter(pk=new_owner_pk).first() if new_owner_pk else None
+        )
+        if new_owner is None:
+            self.message_user(
+                request,
+                "Select a new owner from the action bar before running this action.",
+                level="error",
+            )
+            return
+
+        try:
+            org.transfer_ownership(new_owner)
+        except ValidationError as exc:
+            self.message_user(request, "; ".join(exc.messages), level="error")
+            return
+
         self.message_user(
             request,
-            f"To transfer ownership of '{org.name}', use the member management inline below. "
-            f"Promote a member to OWNER role - the current owner will be automatically demoted to ADMIN.",
-            level="info",
+            f"Transferred ownership of '{org.name}' to {new_owner}. "
+            f"The previous owner is now an administrator.",
+            level="success",
         )
 
-        # Redirect to organization change page
-        url = reverse("admin:contributors_organization_change", args=[org.pk])
-        return redirect(url)
+
+@admin.register(Affiliation)
+class AffiliationAdmin(admin.ModelAdmin):
+    """Administer affiliations directly, outside the person/organisation inlines (US10)."""
+
+    list_display = ["person", "organization", "type", "is_primary"]
+    list_filter = ["type", "is_primary"]
+    autocomplete_fields = ["person", "organization"]
 
 
 @admin.register(ClaimingAuditLog)
