@@ -752,8 +752,22 @@
         },
         {
           "id": "T061",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:772",
+              "fairdm/contrib/contributors/models.py:784"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:566 TestAffiliationUniqueness::test_duplicate_membership_refused_at_validation_with_readable_message",
+              "tests/test_contrib/test_contributors/test_models.py:586 TestAffiliationUniqueness::test_duplicate_membership_refused_at_database"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T062",
@@ -842,8 +856,22 @@
         },
         {
           "id": "T067",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:738",
+              "fairdm/contrib/contributors/models.py:771"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:476 TestAffiliationSchema::test_membership_type_is_indexed",
+              "tests/test_contrib/test_contributors/test_models.py:486 TestAffiliationSchema::test_default_related_name_is_affiliations"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T068",
@@ -864,18 +892,57 @@
         },
         {
           "id": "T069",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:772",
+              "fairdm/contrib/contributors/models.py:784"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:566 TestAffiliationUniqueness::test_duplicate_membership_refused_at_validation_with_readable_message",
+              "tests/test_contrib/test_contributors/test_models.py:586 TestAffiliationUniqueness::test_duplicate_membership_refused_at_database"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T070",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:807"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1005 TestPrimaryAffiliationDemotionIsAtomic::test_demotion_and_save_roll_back_together_on_failure"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T071",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:772",
+              "fairdm/contrib/contributors/models.py:780"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1036 TestPrimaryAffiliationDatabaseConstraint::test_database_refuses_two_primary_memberships_written_directly"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T072",
@@ -901,8 +968,22 @@
         },
         {
           "id": "T074",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/contributors.py:95",
+              "fairdm/factories/contributors.py:96"
+            ],
+            "tests": [
+              "tests/test_factories/test_contributors.py:102 TestAffiliationFactory::test_default_type_is_member",
+              "tests/test_factories/test_contributors.py:109 TestAffiliationFactory::test_default_period_is_current"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_factories -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T075",
@@ -923,8 +1004,17 @@
         },
         {
           "id": "T076",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/contributors.md:212"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
