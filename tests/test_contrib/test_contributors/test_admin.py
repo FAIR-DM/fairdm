@@ -243,6 +243,28 @@ class TestOrganizationAdminInlines:
         model_admin = admin.site._registry[Organization]
         assert MemberInline in model_admin.inlines
 
+    def test_sub_organization_inline_is_registered(self):
+        from fairdm.contrib.contributors.admin import SubOrganizationInline
+        from fairdm.contrib.contributors.models import Organization
+
+        model_admin = admin.site._registry[Organization]
+        assert SubOrganizationInline in model_admin.inlines
+        assert SubOrganizationInline.model is Organization
+        assert SubOrganizationInline.fk_name == "parent"
+
+    def test_sub_organizations_are_listed_on_the_organization_screen(
+        self, admin_client, organization
+    ):
+        """A sub-organisation shows up in the parent's change view via the inline."""
+        from fairdm.factories import OrganizationFactory
+
+        child = OrganizationFactory(name="Sub-department", parent=organization)
+        url = reverse("admin:contributors_organization_change", args=[organization.pk])
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        assert child.name in response.content.decode()
+
 
 # ── T056: ROR sync admin action ─────────────────────────────────────────────
 

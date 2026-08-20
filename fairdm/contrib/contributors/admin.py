@@ -83,10 +83,15 @@ class IdentifierInline(admin.StackedInline):
     extra = 0
 
 
-# class OrganizationInline(admin.StackedInline):
-#     model = Organization
-#     fields = ["profile"]
-#     extra = 0
+class SubOrganizationInline(admin.TabularInline):
+    """Inline listing an organization's sub-organizations (self-referencing parent FK)."""
+
+    model = Organization
+    fk_name = "parent"
+    fields = ["name"]
+    extra = 0
+    verbose_name = _("Sub-organization")
+    verbose_name_plural = _("Sub-organizations")
 
 
 @admin.register(Person)
@@ -381,7 +386,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 class OrganizationAdmin(admin.ModelAdmin):
     base_model = Contributor
     show_in_index = True
-    inlines = [MemberInline]  # Add inline for managing members
+    inlines = [MemberInline, SubOrganizationInline]
     list_display = ["name", "city", "country", "lat", "lon"]
     search_fields = ["name"]
     readonly_fields = ["synced_data", "last_synced"]
