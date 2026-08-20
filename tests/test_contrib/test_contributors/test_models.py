@@ -357,6 +357,27 @@ class TestPersonEmailUniqueness:
         assert second.email is None
         assert first.pk != second.pk
 
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_case_insensitively(self):
+        """A case-insensitive collision is refused at full_clean() too - the
+        constraint, not clean()'s own lowercasing, is what catches it (T031)."""
+        PersonFactory(email="Case@Example.com")
+        second = PersonFactory.build(email="case@example.com")
+
+        with pytest.raises(ValidationError):
+            second.full_clean()
+
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_case_insensitively_via_manager(self):
+        """Created directly through the manager, which never calls clean() and so
+        never lowercases - only the database-level constraint can catch this."""
+        Person.objects.create_user(email="Manager@Example.com", password="pw")
+
+        with pytest.raises(IntegrityError):
+            Person.objects.create(
+                email="manager@example.com", first_name="Second", last_name="Person"
+            )
+
 
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 

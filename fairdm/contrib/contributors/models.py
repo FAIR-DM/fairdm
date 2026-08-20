@@ -8,6 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
+from django.db.models.functions import Lower
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
@@ -440,7 +441,6 @@ class Person(AbstractUser, Contributor):
             "The person's email address. Null for an unclaimed profile created for "
             "attribution alone."
         ),
-        unique=True,
         null=True,
         blank=True,
     )
@@ -457,6 +457,18 @@ class Person(AbstractUser, Contributor):
     REQUIRED_FIELDS = []
 
     username = None
+
+    class Meta(AbstractUser.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                Lower("email"),
+                name="unique_person_email_ci",
+                condition=models.Q(email__isnull=False),
+                violation_error_message=_(
+                    "A person with this email address already exists."
+                ),
+            ),
+        ]
 
     def __str__(self):
         return self.name
