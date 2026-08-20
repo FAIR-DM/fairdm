@@ -119,3 +119,28 @@ Verified:
 Next: T125 — document the manager/queryset API.
 
 Watch: none.
+
+## 2026-08-20T11:35:00Z · US9 · T125
+
+Did: Fixed `docs/portal-development/contributors.md`'s "Unified Manager Approach" section, which
+described `real()` as excluding "ghosts" in two places (the code comment and the "Portal Queries"
+callout) - it excludes `is_superuser=True` and the anonymous placeholder, and says nothing about
+claim status. Rewrote both with testable one-line comments, added the missing `active()` example
+(it existed in code but nowhere in the doc), fixed the same "Exclude ghosts" claim in the "Manager
+Method Summary" table and added its `active()` row, and added a `Contribution.objects.by_role()`
+example to the Contribution section (FR-042's credits-by-role query had no example anywhere in the
+page). Left the Affiliation section's `current()`/`past()`/`primary()` examples as they were -
+already accurate. Left the state-machine/privacy sections untouched - out of this task's scope
+(US3/D9's territory) even though they carry their own known drift.
+
+Verified: every rewritten/added example run directly against a throwaway pytest against this
+branch (not committed) - `real()`, `active()`, `claimed()`, `unclaimed()`, `ghost()`, `invited()`,
+`real().claimed()` chaining, `Affiliation.objects.current()`/`.past()`/`person.affiliations.primary()`,
+and `Contribution.objects.by_role("Creator")` all ran without error and returned what the prose
+says. `poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly` → 222 passed
+(doc-only change, no production code touched).
+
+Next: none — all eight tasks complete. Full-suite verify remains for the completion report.
+
+Watch: T122 and T123 required no code change (see the entry above) - `feature-state.json` records
+that explicitly rather than pointing at a commit that does not exist.

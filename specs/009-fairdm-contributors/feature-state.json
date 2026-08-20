@@ -1338,43 +1338,140 @@
       "tasks": [
         {
           "id": "T118",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_contributors/conftest.py:193"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/conftest.py:193 contributor_population @ 9a00fb9"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T119",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:16"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:383 TestRealContributors @ af11d94"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py::TestRealContributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T120",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:27"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:410 TestActiveAccounts @ 57c0709"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py::TestActiveAccounts -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T121",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:80"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:427 TestQuerysetManagerParity @ 786bdac"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T122",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:16"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:383 TestRealContributors @ af11d94"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py::TestRealContributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T123",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:27"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py:410 TestActiveAccounts @ 57c0709"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_managers.py::TestActiveAccounts -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T124",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/managers.py:80",
+              "fairdm/contrib/contributors/managers.py:195",
+              "fairdm/contrib/contributors/managers.py:233"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_managers.py @ efeefa9"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly",
+              "poetry run ruff check fairdm/contrib/contributors/managers.py"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T125",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/contributors.md:60"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
