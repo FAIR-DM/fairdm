@@ -1388,63 +1388,169 @@
       "tasks": [
         {
           "id": "T126",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:530"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestPersonAdmin -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:106"
+            ]
+          }
         },
         {
           "id": "T127",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:316"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestOrganizationAdminInlines -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:394"
+            ]
+          }
         },
         {
           "id": "T128",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:107"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestClaimStatusFilter -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:22"
+            ]
+          }
         },
         {
           "id": "T129",
-          "status": "todo",
-          "attempts": 0
+          "status": "blocked",
+          "attempts": 1
         },
         {
           "id": "T130",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:579"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestContributorAdminSmoke -q -p no:randomly"
+            ],
+            "code": []
+          }
         },
         {
           "id": "T131",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:551"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestPersonAdmin -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:144",
+              "fairdm/contrib/contributors/admin.py:201",
+              "fairdm/contrib/contributors/admin.py:206"
+            ]
+          }
         },
         {
           "id": "T132",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:341"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestOrganizationAdminInlines -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:94"
+            ]
+          }
         },
         {
           "id": "T133",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:415"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestOrganizationAdmin -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:399",
+              "fairdm/contrib/contributors/admin.py:404"
+            ]
+          }
         },
         {
           "id": "T134",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:107"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestClaimStatusFilter -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:22"
+            ]
+          }
         },
         {
           "id": "T135",
-          "status": "todo",
-          "attempts": 0
+          "status": "blocked",
+          "attempts": 1
         },
         {
           "id": "T136",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py:452"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestAffiliationAdmin -q -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:518"
+            ]
+          }
         },
         {
           "id": "T137",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [],
+            "code": [
+              "docs/portal-administration/managing_contributors.md:68"
+            ]
+          }
         }
       ]
     }
