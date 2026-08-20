@@ -213,6 +213,11 @@ geojson = org.as_geojson()
 
 ### Time-Bound Relationships
 
+An `Affiliation` links a `Person` to an `Organization` with a period and a membership type
+(pending, member, admin or owner). A membership is **current** when it has no `end_date` -
+that is the only rule; a membership with an `end_date` is past, regardless of how far in the
+future that date is.
+
 ```python
 from fairdm.contrib.contributors.models import Affiliation
 from fairdm.db.fields import PartialDateField
@@ -232,6 +237,16 @@ past = person.affiliations.past()        # end_date IS NOT NULL
 primary = person.affiliations.primary()  # is_primary=True
 ```
 
+A person cannot be a member of the same organisation twice. Attempting to create a second
+membership is refused with a readable message at validation, and by a database constraint if
+validation is bypassed:
+
+```python
+duplicate = Affiliation(person=person, organization=org)
+duplicate.full_clean()
+# ValidationError: {'organization': ['<person> is already a member of <org>.']}
+```
+
 ### PartialDateField
 
 The `start_date` and `end_date` fields use `PartialDateField` supporting three precision levels:
@@ -249,7 +264,10 @@ affiliation.start_date = "2020-03-15"
 
 ### Primary Affiliation Constraint
 
-Only one affiliation per person can be marked `is_primary=True`:
+Only one affiliation per person can be marked `is_primary=True`. Setting a new primary demotes
+the person's existing primary in the same transaction - the demotion and the save happen
+together or not at all - and a partial database constraint refuses two primary rows for the
+same person even for a write that bypasses `Affiliation.save()`, such as a queryset `.update()`.
 
 ```python
 # Setting a new primary automatically unsets the old one
@@ -258,6 +276,42 @@ Affiliation.objects.create(
     organization=new_org,
     is_primary=True  # Old primary is automatically set to False
 )
+```
+
+The primary affiliation is more than a label: `Contribution.set_default_affiliation` reads it
+to fill in the crediting organisation whenever a person is credited without one being given
+explicitly (`fairdm/contrib/contributors/models.py:1153`).
+
+### Worked example: a person moving between two institutions
+
+A researcher joins a university in 2018, later moves to a research institute in 2022, and the
+institute affiliation becomes their primary one for citation:
+
+```python
+university = Organization.objects.get(name="Example University")
+institute = Organization.objects.get(name="Example Research Institute")
+
+# Original affiliation: full precision, now ended
+university_membership = Affiliation.objects.create(
+    person=researcher,
+    organization=university,
+    type=Affiliation.MembershipType.MEMBER,
+    start_date="2018-09-01",
+    end_date="2022-01-31",
+)
+
+# Current affiliation: year-month precision, no end date, marked primary
+institute_membership = Affiliation.objects.create(
+    person=researcher,
+    organization=institute,
+    type=Affiliation.MembershipType.MEMBER,
+    start_date="2022-02",
+    is_primary=True,
+)
+
+researcher.affiliations.current()   # [institute_membership]
+researcher.affiliations.past()      # [university_membership]
+researcher.affiliations.primary()   # institute_membership
 ```
 
 ## Contribution Model
