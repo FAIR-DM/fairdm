@@ -35,6 +35,7 @@ from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
+from .choices import OrganizationType
 from .managers import AffiliationManager, ContributionManager, UserManager
 from .validators import validate_iso_639_1_language_codes
 
@@ -794,6 +795,19 @@ class Organization(Contributor):
 
     DEFAULT_IDENTIFIER = "ROR"
 
+    type = models.CharField(
+        max_length=32,
+        choices=OrganizationType.choices,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name=_("organization type"),
+        help_text=_(
+            "The kind of institution this organization is, drawn from ROR's set of "
+            "organization types."
+        ),
+    )
+
     members = models.ManyToManyField(
         to="contributors.Person",
         through="contributors.Affiliation",
@@ -843,6 +857,7 @@ class Organization(Contributor):
     class Meta:
         verbose_name = _("organization")
         verbose_name_plural = _("organizations")
+        default_related_name = "organizations"
 
     def __str__(self):
         return self.name

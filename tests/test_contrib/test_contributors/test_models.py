@@ -15,6 +15,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
+from fairdm.contrib.contributors.choices import OrganizationType
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
@@ -402,6 +403,43 @@ class TestOrganizationCreationAndValidation:
     def test_organization_default_identifier_is_ror(self):
         """Organization.DEFAULT_IDENTIFIER is 'ROR'."""
         assert Organization.DEFAULT_IDENTIFIER == "ROR"
+
+
+# ── FS-009 US4 T048/T053: Organisation type field and validation ────────────
+
+
+class TestOrganizationTypeValidation:
+    """Verify Organization.type only accepts ROR schema 2.1 values (FR-016, SC-006)."""
+
+    @pytest.mark.django_db
+    def test_type_outside_the_ror_set_is_refused(self, organization):
+        """A type outside ROR's set is refused by full_clean()."""
+        organization.type = "museum"
+        with pytest.raises(ValidationError):
+            organization.full_clean()
+
+    @pytest.mark.django_db
+    def test_every_ror_type_is_accepted(self):
+        """Each member of the ROR set is accepted, asserted by name."""
+        for value in (
+            OrganizationType.EDUCATION,
+            OrganizationType.FUNDER,
+            OrganizationType.HEALTHCARE,
+            OrganizationType.COMPANY,
+            OrganizationType.ARCHIVE,
+            OrganizationType.NONPROFIT,
+            OrganizationType.GOVERNMENT,
+            OrganizationType.FACILITY,
+            OrganizationType.OTHER,
+        ):
+            organization = OrganizationFactory(type=value)
+            organization.full_clean()
+            assert organization.type == value
+
+    def test_type_field_is_indexed(self):
+        """The type field is indexed, since listing and filtering by institution
+        kind is its purpose (Article IX)."""
+        assert Organization._meta.get_field("type").db_index is True
 
 
 # ── T081/T085: Ownership transfer ────────────────────────────────────────────
