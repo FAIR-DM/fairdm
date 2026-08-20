@@ -315,6 +315,40 @@ class TestPersonActivationEligibility:
         assert unclaimed_person in found
 
 
+# ── T026 (US2): Person email uniqueness ──────────────────────────────────────
+
+
+class TestPersonEmailUniqueness:
+    """Verify a second person cannot take an address already in use, while any
+    number of people may carry no address at all (FR-009, SC-005)."""
+
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_at_validation(self):
+        PersonFactory(email="duplicate@example.com")
+        second = PersonFactory.build(email="duplicate@example.com")
+
+        with pytest.raises(ValidationError):
+            second.full_clean()
+
+    @pytest.mark.django_db
+    def test_duplicate_email_refused_at_the_database(self):
+        PersonFactory(email="duplicate@example.com")
+
+        with pytest.raises(IntegrityError):
+            Person.objects.create(
+                email="duplicate@example.com", first_name="Second", last_name="Person"
+            )
+
+    @pytest.mark.django_db
+    def test_multiple_people_may_have_no_email(self):
+        first = Person.objects.create_unclaimed(first_name="A", last_name="One")
+        second = Person.objects.create_unclaimed(first_name="B", last_name="Two")
+
+        assert first.email is None
+        assert second.email is None
+        assert first.pk != second.pk
+
+
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 
 
