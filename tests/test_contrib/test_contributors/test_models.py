@@ -13,7 +13,7 @@ Tests cover:
 
 import pytest
 from django.apps import apps
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
@@ -265,6 +265,25 @@ class TestPersonIsTheAccount:
             model for model in apps.get_models() if hasattr(model, "USERNAME_FIELD")
         ]
         assert username_field_models == [Person]
+
+
+# ── T024 (US2): Attribution-only person cannot authenticate ─────────────────
+
+
+class TestAttributionOnlyPerson:
+    """Verify a person added for attribution alone cannot authenticate (FR-010, SC-003)."""
+
+    @pytest.mark.django_db
+    def test_attribution_only_person_has_no_usable_password(self, unclaimed_person):
+        assert unclaimed_person.email is None
+        assert unclaimed_person.has_usable_password() is False
+
+    @pytest.mark.django_db
+    def test_authenticate_fails_for_attribution_only_person(self, unclaimed_person):
+        """Even a lookup that matches the attribution-only record's NULL email fails
+        the password check, because create_unclaimed() sets an unusable password."""
+        result = authenticate(request=None, email=unclaimed_person.email, password="whatever")
+        assert result is None
 
 
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
