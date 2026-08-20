@@ -402,3 +402,20 @@ class TestRealContributors:
         assert contributor_population.invited in real
         assert contributor_population.claimed in real
         assert contributor_population.inactive in real
+
+
+# ── T120 (US9): active accounts ──────────────────────────────────────────────
+
+
+class TestActiveAccounts:
+    """Person.objects.active() / PersonQuerySet.active() - FR-041, SC-014."""
+
+    @pytest.mark.django_db
+    def test_returns_only_active_people(self, contributor_population):
+        """active() keeps every is_active=True person and drops the inactive one."""
+        active = Person.objects.active()
+
+        assert contributor_population.ghost in active
+        assert contributor_population.invited in active
+        assert contributor_population.claimed in active
+        assert contributor_population.inactive not in active
