@@ -27,6 +27,25 @@ from fairdm.factories import (
     UserFactory,
 )
 
+# ── Roles Vocabulary Fixture ─────────────────────────────────────────────────
+
+
+@pytest.fixture
+def contribution_roles(db):
+    """The framework's controlled roles vocabulary (``fairdm-roles``,
+    ``fairdm.core.vocabularies.FairDMRoles``), as a plain queryset of its
+    concepts, so credit tests have real concepts to attach without repeating
+    the vocabulary name.
+
+    The concepts themselves are already seeded once per session by
+    ``Concept.preload()`` (``tests/conftest.py``); this fixture only names
+    that queryset for tests in this module.
+    """
+    from research_vocabs.models import Concept
+
+    return Concept.objects.filter(vocabulary__name="fairdm-roles")
+
+
 # ── Person Fixtures ──────────────────────────────────────────────────────────
 
 
