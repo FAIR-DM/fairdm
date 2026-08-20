@@ -820,7 +820,7 @@ class Organization(Contributor):
 
     parent = models.ForeignKey(
         to="self",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="sub_organizations",
         verbose_name=_("parent organization"),
         help_text=_("The organization that this organization is a part of."),

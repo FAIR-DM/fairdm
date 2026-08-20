@@ -442,6 +442,34 @@ class TestOrganizationTypeValidation:
         assert Organization._meta.get_field("type").db_index is True
 
 
+# ── FS-009 US4 T050/T054: Organisation parent deletion ───────────────────────
+
+
+class TestOrganizationParentDeletion:
+    """Verify deleting a parent organisation does not delete its children (FR-018, SC-007)."""
+
+    @pytest.mark.django_db
+    def test_deleting_the_parent_leaves_the_child_with_no_parent(self, person):
+        """A department outlives its university, its members and credits untouched."""
+        university = OrganizationFactory(name="Test University")
+        department = OrganizationFactory(name="Test Department", parent=university)
+        AffiliationFactory(
+            person=person,
+            organization=department,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+        contribution = ContributionFactory(contributor=department)
+
+        university.delete()
+
+        department.refresh_from_db()
+        assert department.parent is None
+        assert department.affiliations.count() == 1
+        assert department.contributions.count() == 1
+        contribution.refresh_from_db()
+        assert contribution.contributor_id == department.pk
+
+
 # ── T081/T085: Ownership transfer ────────────────────────────────────────────
 
 
