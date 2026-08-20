@@ -121,6 +121,51 @@ department.refresh_from_db()
 assert department.parent is None
 ```
 
+## External identifiers
+
+Either concrete type may carry external identifiers —
+`ContributorIdentifier` (`fairdm.contrib.contributors.models.ContributorIdentifier`), a record
+with a `type` and a `value`, linked to the contributor it belongs to:
+
+```python
+from fairdm.contrib.contributors.models import ContributorIdentifier, Person
+
+person = Person.objects.create_unclaimed(first_name="Jane", last_name="Doe")
+ContributorIdentifier.objects.create(related=person, type="ORCID", value="0000-0001-2345-6789")
+
+assert person.identifiers.count() == 1
+```
+
+A contributor never carries two identifiers of the same type. It is refused at the database and
+at `clean()`, whose message names the type:
+
+```python
+from django.core.exceptions import ValidationError
+
+duplicate = ContributorIdentifier(related=person, type="ORCID", value="0000-0001-0000-0000")
+try:
+    duplicate.clean()
+except ValidationError as exc:
+    assert "ORCID" in str(exc)
+```
+
+Each concrete type expects one identifier type by default — `Person.DEFAULT_IDENTIFIER` is
+`"ORCID"`, `Organization.DEFAULT_IDENTIFIER` is `"ROR"` — and reports the identifier of that type
+as its default through `get_default_identifier()`, returning nothing when it carries none:
+
+```python
+from fairdm.contrib.contributors.models import Organization
+
+assert person.get_default_identifier().value == "0000-0001-2345-6789"
+
+organization = Organization.objects.create(name="Example University")
+assert organization.get_default_identifier() is None
+```
+
+Fetching an identifier's contents from ORCID or ROR, and keeping them current, belongs to the
+external identifier synchronisation specification, not this one — this record only carries the
+type and the value.
+
 ## See also
 
 - [`Person`](../portal-development/contributors.md) — the account a user logs in with, and

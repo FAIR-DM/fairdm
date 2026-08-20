@@ -9,6 +9,7 @@ from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
     Contributor,
+    ContributorIdentifier,
     Organization,
     Person,
 )
@@ -94,6 +95,22 @@ class OrganizationFactory(ContributorFactory):
 
     class Meta:
         model = Organization
+
+
+class ContributorIdentifierFactory(DjangoModelFactory):
+    """Factory for creating ContributorIdentifier instances.
+
+    ``AbstractIdentifier.value`` carries a database-level uniqueness constraint across
+    every identifier-bearing record, not just other ContributorIdentifiers, so it is a
+    sequence rather than a fixed or random value (Article X).
+    """
+
+    class Meta:
+        model = ContributorIdentifier
+
+    type = "ORCID"  # Default identifier type - a member of the contributor identifier collection
+    value = factory.Sequence(lambda n: f"0000-0001-{n:04d}-{n:04d}")
+    # related field has no default - pass e.g. ContributorIdentifierFactory(related=person)
 
 
 class AffiliationFactory(DjangoModelFactory):

@@ -1397,6 +1397,33 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
         on_delete=models.CASCADE,
     )
 
+    def clean(self):
+        """A contributor must not carry two identifiers of the same type (FR-038).
+
+        The database constraint (``contributoridentifier_unique_type``) already
+        refuses this; this adds a message naming the type so a form or admin caller
+        sees why, ahead of the constraint's own generic message.
+        """
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.related_id and self.type:
+            duplicates = ContributorIdentifier.objects.filter(
+                related_id=self.related_id, type=self.type
+            )
+            if self.pk:
+                duplicates = duplicates.exclude(pk=self.pk)
+            if duplicates.exists():
+                raise ValidationError(
+                    {
+                        "type": _(
+                            "This contributor already has an identifier of type "
+                            "'%(type)s'."
+                        )
+                        % {"type": self.type}
+                    }
+                )
+
     @hook(AFTER_CREATE)
     def dispatch_sync_task(self):
         """Dispatch async Celery task to sync data from external API.

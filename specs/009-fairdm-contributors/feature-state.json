@@ -1989,13 +1989,43 @@
         },
         {
           "id": "T109",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1400"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1332 TestIdentifierUniquePerType::test_second_identifier_of_same_type_refused_at_the_database",
+              "tests/test_contrib/test_contributors/test_models.py:1344 TestIdentifierUniquePerType::test_second_identifier_of_same_type_refused_at_clean",
+              "tests/test_contrib/test_contributors/test_models.py:1358 TestIdentifierUniquePerType::test_a_second_type_on_the_same_contributor_is_unaffected"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_contrib/test_contributors/test_models.py -k \"TestIdentifierUniquePerType or TestContributorIdentifierUniqueness\""
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T110",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:241",
+              "fairdm/contrib/contributors/models.py:503",
+              "fairdm/contrib/contributors/models.py:951"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1381 TestDefaultIdentifier::test_person_default_identifier_is_its_orcid",
+              "tests/test_contrib/test_contributors/test_models.py:1385 TestDefaultIdentifier::test_organization_default_identifier_is_its_ror",
+              "tests/test_contrib/test_contributors/test_models.py:1391 TestDefaultIdentifier::test_default_identifier_is_none_without_any_identifiers"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_contrib/test_contributors/test_models.py -k TestDefaultIdentifier"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T112",
@@ -2016,28 +2046,88 @@
         },
         {
           "id": "T113",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1400"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1344 TestIdentifierUniquePerType::test_second_identifier_of_same_type_refused_at_clean"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_contrib/test_contributors/test_models.py -k TestIdentifierUniquePerType"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T114",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:241",
+              "fairdm/contrib/contributors/models.py:503",
+              "fairdm/contrib/contributors/models.py:951"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1381 TestDefaultIdentifier::test_person_default_identifier_is_its_orcid",
+              "tests/test_contrib/test_contributors/test_models.py:1385 TestDefaultIdentifier::test_organization_default_identifier_is_its_ror"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_contrib/test_contributors/test_models.py -k TestDefaultIdentifier"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T115",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/migrations/0007_add_unique_type_constraints.py:13"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1332 TestIdentifierUniquePerType::test_second_identifier_of_same_type_refused_at_the_database"
+            ],
+            "commands": [
+              "poetry run python manage.py makemigrations contributors --check --dry-run"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T116",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/contributors.py:100"
+            ],
+            "tests": [
+              "tests/test_factories/test_contributors.py:174 TestContributorIdentifierFactory::test_default_type_is_a_contributor_identifier_vocabulary_member",
+              "tests/test_factories/test_contributors.py:181 TestContributorIdentifierFactory::test_identifier_values_are_unique_across_instances"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_factories/test_contributors.py -k TestContributorIdentifierFactory"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T117",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/data_models/contributors.md:124"
+            ],
+            "tests": [],
+            "commands": [],
+            "verified_by_ci": false
+          }
         }
       ]
     },

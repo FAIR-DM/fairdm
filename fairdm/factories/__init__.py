@@ -45,6 +45,7 @@ Contributors:
     - PersonFactory - Create Person contributor instances
     - OrganizationFactory - Create Organization contributor instances
     - ContributorFactory - Generic contributor factory
+    - ContributorIdentifierFactory - Create contributor identifiers (ORCID, ROR, ...)
 
 Relations:
     - SampleIdentifierFactory - Create sample identifiers
@@ -74,6 +75,7 @@ from .contributors import (
     AffiliationFactory,
     ContributionFactory,
     ContributorFactory,
+    ContributorIdentifierFactory,
     OrganizationFactory,
     PersonFactory,
     UserFactory,
@@ -104,6 +106,7 @@ __all__ = [
     "AffiliationFactory",
     "ContributionFactory",
     "ContributorFactory",
+    "ContributorIdentifierFactory",
     "DatasetDateFactory",
     "DatasetDescriptionFactory",
     "DatasetFactory",

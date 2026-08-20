@@ -812,3 +812,23 @@ indexes, and four named constraints. `makemigrations --check` is clean and the s
 
 This is what Article IX asks for anyway — migrations consolidated per pull request — reached by
 withholding them rather than by squashing afterwards.
+
+## D34 — US8: the duplicate default-identifier accessor is left in place, not merged
+
+**Self-resolved.**
+
+`Contributor` carries two accessors that run the identical query -
+`get_default_identifier()` (`models.py:241`) and a `default_identifier` property
+(`models.py:244-247`). Only the method is called anywhere else in the codebase - every template
+(`cotton/contributor/icon.html`, `person/identifier.html`, `organization_card.html`) and every
+call site in `utils/transforms.py` uses `get_default_identifier()`; the property has no caller.
+
+T110 and T114 ask for a test of "the accessor" and confirmation that it is declared, not for the
+two to be reconciled into one. Neither task names the property, and US8's brief prohibits touching
+`utils/transforms.py` and prohibits renaming an existing method to match a task's wording where the
+substance already matches under another name - the reverse of that same discipline argues against
+quietly deleting a second one on my own initiative. Both are left in place; the dead property is
+named in this story's `concerns` for whoever next touches `Contributor`.
+
+**Revisit if**: a future story adds a second caller of `default_identifier` (the property), or is
+explicitly asked to consolidate the two.
