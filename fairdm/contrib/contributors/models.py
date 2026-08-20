@@ -188,10 +188,11 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         blank=True,
     )
 
-    privacy_settings = models.JSONField(
-        verbose_name=_("privacy settings"),
+    config = models.JSONField(
+        verbose_name=_("configuration"),
         help_text=_(
-            "Per-field privacy controls. Keys: field names. Values: 'public' or 'private'."
+            "General-purpose configuration data for this contributor. This specification "
+            "does not define its contents."
         ),
         default=dict,
         blank=True,
@@ -479,50 +480,6 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             contribution.roles.set(roles_qs)
         return contribution
 
-    def get_visible_fields(self, viewer=None):
-        """Return field values respecting privacy_settings.
-
-        Args:
-            viewer: The person viewing. None = anonymous/public.
-                    If viewer is self or staff, all fields returned.
-
-        Returns:
-            Dict of field_name → value for visible fields only.
-        """
-        # Always-public fields (FAIR compliance)
-        always_public = {"name", "uuid", "alternative_names", "added", "modified"}
-        # Always-private fields (internal)
-        always_private = {"password", "last_login", "is_superuser", "is_staff"}
-        # Toggleable fields
-        toggleable = {"email", "location", "profile", "links", "lang", "image"}
-
-        result = {}
-
-        # Staff and self see everything
-        if viewer is not None:
-            is_self = hasattr(viewer, "pk") and viewer.pk == self.pk
-            is_staff = hasattr(viewer, "is_staff") and viewer.is_staff
-            if is_self or is_staff:
-                for field in self._meta.get_fields():
-                    if hasattr(field, "attname") and field.name not in always_private:
-                        result[field.name] = getattr(self, field.name, None)
-                return result
-
-        # Always include public fields
-        for field_name in always_public:
-            result[field_name] = getattr(self, field_name, None)
-
-        # Check toggleable fields against privacy_settings
-        for field_name in toggleable:
-            privacy = self.privacy_settings.get(field_name, "public")
-            if privacy == "public":
-                result[field_name] = getattr(self, field_name, None)
-            elif privacy == "authenticated" and viewer is not None:
-                # Authenticated users can see "authenticated" fields
-                result[field_name] = getattr(self, field_name, None)
-
-        return result
-
 
 class Person(AbstractUser, Contributor):
     DEFAULT_IDENTIFIER = "ORCID"
@@ -553,14 +510,6 @@ class Person(AbstractUser, Contributor):
         """Save Person, auto-populating name from first/last if blank."""
         if not self.name:
             self.name = f"{self.first_name} {self.last_name}".strip()
-        # Set default privacy for unclaimed persons
-        if not self.privacy_settings:
-            if self.email is None or not self.is_active:
-                # Unclaimed: all fields public by convention (email is NULL anyway)
-                self.privacy_settings = {"email": "public"}
-            else:
-                # Claimed: email private by default
-                self.privacy_settings = {"email": "private"}
         super().save(*args, **kwargs)
 
     def clean(self):
