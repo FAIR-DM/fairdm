@@ -492,14 +492,12 @@ class Person(AbstractUser, Contributor):
         if self.email == "":
             self.email = None
 
-        # Prevent claimed users from nulling their email
-        # A claimed user has a usable password and is active (was previously claimed)
-        if (
-            self.pk
-            and self.has_usable_password()
-            and self.is_active
-            and self.email is None
-        ):
+        # Prevent claimed users from nulling their email. Reads the stored claim
+        # value (is_claimed) rather than has_usable_password()/is_active - those
+        # describe something else and reading them here was a fourth site
+        # deciding claim status from the wrong thing (design review RECON-001,
+        # decisions.md D8, D21).
+        if self.pk and self.is_claimed and self.email is None:
             raise ValidationError(
                 {"email": _("Claimed users cannot remove their email address.")}
             )
