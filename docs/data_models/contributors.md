@@ -79,6 +79,48 @@ person.refresh_from_db()
 assert person.config == {"anything": "this specification does not define"}
 ```
 
+## Organization
+
+`Organization` is the institutional concrete type — a university, research institute, funding
+body, company or similar. In addition to the fields every `Contributor` carries, it has:
+
+| Field | Type | Notes |
+|---|---|---|
+| `type` | `CharField`, choices `OrganizationType` | The kind of institution. Optional. Refused if set to anything outside ROR schema 2.1's nine values: `education`, `funder`, `healthcare`, `company`, `archive`, `nonprofit`, `government`, `facility`, `other`. Indexed, since listing and filtering by institution kind is its purpose. |
+| `parent` | `ForeignKey` to `Organization` | The organisation this one is a part of, such as a department's university. Optional. |
+| `city` | `CharField` | The city the organisation is based in. Optional, indexed. |
+| `country` | `CountryField` | The country the organisation is based in. Optional, indexed. |
+
+ROR itself permits an organisation several types at once. This model deliberately narrows that
+to a single selection — a portal displaying and filtering by institution kind wants one answer.
+
+### Hierarchy, and what happens when a parent is deleted
+
+An organisation may name another organisation as its parent, and is reachable from that parent
+through `sub_organizations`:
+
+```python
+from fairdm.contrib.contributors.models import Organization
+
+university = Organization.objects.create(name="Example University", type="education")
+department = Organization.objects.create(
+    name="Department of Geology", parent=university, type="education"
+)
+
+assert department.parent == university
+assert department in university.sub_organizations.all()
+```
+
+Deleting a parent organisation does **not** delete its sub-organisations, their members or
+their credits. A surviving sub-organisation simply loses its parent:
+
+```python
+university.delete()
+
+department.refresh_from_db()
+assert department.parent is None
+```
+
 ## See also
 
 - [`Person`](../portal-development/contributors.md) — the account a user logs in with, and
