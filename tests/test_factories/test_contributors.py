@@ -10,6 +10,7 @@ from django.test import TestCase
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
+    ContributorIdentifier,
     Organization,
     Person,
 )
@@ -20,7 +21,11 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
 )
-from fairdm.factories.contributors import ContributionFactory, ContributorFactory
+from fairdm.factories.contributors import (
+    ContributionFactory,
+    ContributorFactory,
+    ContributorIdentifierFactory,
+)
 from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
@@ -159,6 +164,25 @@ class TestContributionFactory:
         assert contribution.pk is not None
         assert contribution.contributor == org
         assert contribution.content_object == dataset
+
+
+@pytest.mark.django_db
+class TestContributorIdentifierFactory:
+    """T116 - ContributorIdentifierFactory defaults to a real vocabulary member and a
+    unique value (Article X)."""
+
+    def test_default_type_is_a_contributor_identifier_vocabulary_member(self):
+        person = PersonFactory()
+
+        identifier = ContributorIdentifierFactory(related=person)
+
+        assert identifier.type in ContributorIdentifier.VOCABULARY.values
+
+    def test_identifier_values_are_unique_across_instances(self):
+        first = ContributorIdentifierFactory(related=PersonFactory())
+        second = ContributorIdentifierFactory(related=PersonFactory())
+
+        assert first.value != second.value
 
 
 class TestFactoryIntegration(TestCase):
