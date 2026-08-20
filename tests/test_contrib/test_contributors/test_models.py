@@ -124,6 +124,33 @@ class TestContributorProfileFields:
         assert organization.location is None
 
 
+# ── FS-009 US1 T011: Contributor timestamps ──────────────────────────────────
+
+
+class TestContributorTimestamps:
+    """Verify the creation and modification timestamps (FR-005)."""
+
+    @pytest.mark.django_db
+    def test_created_timestamp_set_once(self):
+        """The creation timestamp is set on first save and does not move."""
+        person = PersonFactory()
+        original_added = person.added
+        person.name = "Changed Name"
+        person.save()
+        person.refresh_from_db()
+        assert person.added == original_added
+
+    @pytest.mark.django_db
+    def test_modified_timestamp_moves_on_later_save(self):
+        """The modification timestamp moves on a later save."""
+        person = PersonFactory()
+        original_modified = person.modified
+        person.name = "Changed Name"
+        person.save()
+        person.refresh_from_db()
+        assert person.modified > original_modified
+
+
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 
 
