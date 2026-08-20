@@ -18,7 +18,7 @@ of this feature. It was then walked against the code. A task is ticked only wher
 satisfies it can be cited **and** an existing test genuinely exercises the behaviour — code with no
 test leaves its task open, and the remaining work is the test.
 
-**30 of 143 reconciled done. 110 remain open. 3 were struck as wrong tasks.**
+**30 of 145 reconciled done. 112 remain open. 3 were struck as wrong tasks.**
 
 Those numbers are after the design review, which challenged every tick under a lens of its own and
 un-ticked six of them. Its findings are recorded in `decisions.md` under D21.
@@ -161,6 +161,29 @@ Covers FR-001 to FR-007, SC-001 and SC-002.
   minimal working example, and list the page in the toctree in `docs/data_models/index.md`
   (Articles VI and XVII).
   - **Open — never-built.** Docs/data_models/ holds only index and samples.
+
+### Removals the greenfield list could not contain
+
+A task list written as though the repository were empty cannot ask for anything to be deleted. Two
+of the settled decisions require exactly that, so these two tasks were added after reconciliation
+rather than derived from the specification.
+
+- [ ] T144 [US1] Replace `Contributor.privacy_settings` with the general-purpose `config` store in
+  `fairdm/contrib/contributors/models.py` — a `RenameField` and an `AlterField` for the new help
+  text, plus a data migration clearing the column, per research R3. Remove
+  `Contributor.get_visible_fields` (`models.py:473`) and the privacy-seeding branch in
+  `Person.save()` (`models.py:546`), and delete the tests that cover them
+  (`test_models.py:86`, `:93`, `:115`, `:825`, `:840`, `:854`, `:881`, `:924`) — these are tests of
+  behaviour this specification removes, so deleting them is the task, not tampering (D9).
+  - **Open — never-built.** Added after reconciliation; a greenfield list cannot express a deletion.
+- [ ] T145 [US1] Remove `Contributor.weight` (`models.py:165`), `calculate_weight`
+  (`models.py:305`) and `calculate_profile_completion` (`models.py:292`) from
+  `fairdm/contrib/contributors/models.py`, with a `RemoveField` migration, and correct the class
+  docstring (`models.py:60`), which advertises an `avatar` field, a `keywords` field, an `owner`
+  field, a `permissions` field, a `created` field and an `update_weight` lifecycle hook, none of
+  which exist (D16).
+  - **Open — never-built.** Added after reconciliation; a greenfield list cannot express a deletion.
+
 ---
 
 ## Phase 3: US2 — A person is also the account
