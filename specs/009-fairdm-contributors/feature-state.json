@@ -955,13 +955,37 @@
         },
         {
           "id": "T078",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:102"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py:95 TestOwnershipIsScoped::test_owner_of_one_organization_holds_nothing_on_another"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T079",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:102"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py:126 TestOwnershipDemotion::test_no_guardian_row_is_ever_written_across_promotion_and_demotion"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T080",
@@ -982,8 +1006,22 @@
         },
         {
           "id": "T081",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:950"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:414 TestOwnershipTransfer::test_transfer_demotes_incumbent_and_promotes_successor",
+              "tests/test_contrib/test_contributors/test_models.py:434 TestOwnershipTransfer::test_transfer_refuses_a_person_who_is_not_a_member",
+              "tests/test_contrib/test_contributors/test_models.py:448 TestOwnershipTransfer::test_transfer_is_atomic"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T083",
@@ -1021,13 +1059,39 @@
         },
         {
           "id": "T085",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:950"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:414 TestOwnershipTransfer::test_transfer_demotes_incumbent_and_promotes_successor",
+              "tests/test_contrib/test_contributors/test_models.py:434 TestOwnershipTransfer::test_transfer_refuses_a_person_who_is_not_a_member",
+              "tests/test_contrib/test_contributors/test_models.py:448 TestOwnershipTransfer::test_transfer_is_atomic"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T087",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "docs/portal-administration/managing_contributors.md:184"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:414 TestOwnershipTransfer::test_transfer_demotes_incumbent_and_promotes_successor"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
