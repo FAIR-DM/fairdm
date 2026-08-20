@@ -375,3 +375,30 @@ class TestAffiliationQuerysetMethods:
 
         # No overlap
         assert set(current) & set(past) == set()
+
+
+# ── T119 (US9): real contributors ────────────────────────────────────────────
+
+
+class TestRealContributors:
+    """Person.objects.real() / PersonQuerySet.real() - FR-041, SC-014."""
+
+    @pytest.mark.django_db
+    def test_excludes_superusers_and_the_anonymous_placeholder(
+        self, contributor_population
+    ):
+        """real() drops the superuser and the django-guardian anonymous user."""
+        real = Person.objects.real()
+
+        assert contributor_population.superuser not in real
+        assert contributor_population.anonymous not in real
+
+    @pytest.mark.django_db
+    def test_keeps_every_other_account_state(self, contributor_population):
+        """real() keeps every genuine person regardless of account state."""
+        real = Person.objects.real()
+
+        assert contributor_population.ghost in real
+        assert contributor_population.invited in real
+        assert contributor_population.claimed in real
+        assert contributor_population.inactive in real
