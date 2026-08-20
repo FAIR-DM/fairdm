@@ -96,7 +96,9 @@ class PersonQuerySet(PrefetchPolymorphicQuerySet):
         return self.filter(is_active=True, is_claimed=False, email__isnull=False)
 
 
-class UserManager(BaseUserManager, PrefetchPolymorphicManager.from_queryset(PersonQuerySet)):
+class UserManager(
+    BaseUserManager, PrefetchPolymorphicManager.from_queryset(PersonQuerySet)
+):
     """Manager for the Person model with no username field.
 
     `real()`, `active()`, `claimed()`, `unclaimed()`, `ghost()`, `invited()`

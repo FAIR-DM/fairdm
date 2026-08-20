@@ -32,6 +32,31 @@ Every field below is declared once on `Contributor` and shared by both concrete 
 identifier synchronisation, a separate specification — see
 [`portal-development/contributors.md`](../portal-development/contributors.md) for that surface.
 
+### Language preferences
+
+`lang` holds a list of ISO 639-1 codes, and every element is checked by
+`validate_iso_639_1_language_codes`, which is attached to the field. A code outside the
+standard is refused, and the message names the offending value rather than the whole list:
+
+```python
+from django.core.exceptions import ValidationError
+
+from fairdm.contrib.contributors.models import Person
+
+person = Person.objects.create_unclaimed(first_name="Ada", last_name="Lovelace")
+person.lang = ["en", "fr"]
+person.full_clean()          # accepted
+
+person.lang = ["en", "xx"]
+try:
+    person.full_clean()
+except ValidationError as error:
+    assert "xx" in str(error)
+```
+
+The validator is exported from `fairdm.contrib.contributors.validators` and can be reused
+on a portal's own model if it holds language codes of its own.
+
 ## The public identifier
 
 `uuid` is generated the first time a contributor is saved and never changes after that,

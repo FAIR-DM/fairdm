@@ -289,8 +289,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             content_type_id
             for content_type_id in content_type_ids
             if issubclass(
-                ContentType.objects.get_for_id(content_type_id).model_class()
-                or object,
+                ContentType.objects.get_for_id(content_type_id).model_class() or object,
                 base_model,
             )
         ]

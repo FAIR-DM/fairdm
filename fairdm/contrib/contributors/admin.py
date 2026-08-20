@@ -527,7 +527,9 @@ class OrganizationAdmin(admin.ModelAdmin):
             return
 
         new_owner_pk = request.POST.get("new_owner")
-        new_owner = Person.objects.filter(pk=new_owner_pk).first() if new_owner_pk else None
+        new_owner = (
+            Person.objects.filter(pk=new_owner_pk).first() if new_owner_pk else None
+        )
         if new_owner is None:
             self.message_user(
                 request,
