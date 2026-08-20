@@ -901,3 +901,129 @@ Watch: see concerns in the completion report for the Privacy Controls doc stalen
 template/view call sites (`object_card.html`, `views/generic.py`) whose `.username` fallback
 behaviour changed now that `username = None` genuinely removes the field (T029) rather than
 shadowing it with a callable.
+
+## 2026-08-20T12:35:00Z · Implementer US8 · T109
+
+Did: Added `TestIdentifierUniquePerType` to `test_models.py` - a second identifier of a type the
+contributor already carries is refused at the database (inserted straight through the manager,
+bypassing `clean()`) and at `clean()`, whose message names the type. Ran the new tests before any
+implementation existed: the database-constraint test passed immediately (migration 0007/0027's
+constraint already bites); the `clean()`-message test failed with "DID NOT RAISE ValidationError" -
+the right reason, since no such check existed yet. A third test proves the constraint is per type,
+not per contributor.
+
+Verified: `poetry run pytest tests/test_contrib/test_contributors/test_models.py -k
+"TestIdentifierUniquePerType or TestContributorIdentifierUniqueness" -p no:randomly` → 5 passed, 1
+failed for the right reason (before T113), 6 passed (after T113).
+
+Next: T113 (the implementation this test's second assertion needs).
+
+Watch: this task's commit lands with one of its three new tests red - the corresponding
+implementation task (T113) is the very next commit, immediately after.
+
+## 2026-08-20T12:37:00Z · Implementer US8 · T113
+
+Did: Added `clean()` to `ContributorIdentifier` (`fairdm/contrib/contributors/models.py`), checking
+for an existing identifier of the same type on the same contributor and raising `ValidationError`
+naming the type. Did not touch the `UniqueConstraint` - it is inherited from
+`AbstractIdentifier.Meta` and already applied by migration 0007/0027 (`contributoridentifier_
+unique_type`); the prohibition against re-adding it was followed.
+
+Verified: `poetry run pytest tests/test_contrib/test_contributors/test_models.py -k
+"TestIdentifierUniquePerType or TestContributorIdentifierUniqueness" -p no:randomly` → 6 passed.
+`poetry run ruff check fairdm/contrib/contributors/models.py` → all checks passed.
+
+Next: T110.
+
+Watch: none.
+
+## 2026-08-20T12:40:00Z · Implementer US8 · T110
+
+Did: Added `TestDefaultIdentifier` to `test_models.py` - a person's default identifier is its
+ORCID, an organisation's is its ROR, and a contributor with none reports `None`. All three tests
+passed on the first run: `Contributor.get_default_identifier()`, `Person.DEFAULT_IDENTIFIER` and
+`Organization.DEFAULT_IDENTIFIER` were already built (matches D21's note that the accessor was
+already declared explicitly). No implementation change was needed for T114 - see that task's
+annotation being stale, below.
+
+Verified: `poetry run pytest tests/test_contrib/test_contributors/test_models.py -k
+TestDefaultIdentifier -p no:randomly` → 3 passed. `poetry run ruff check
+tests/test_contrib/test_contributors/test_models.py` → all checks passed.
+
+Next: T114 (reconciled - no code change), T115 (reconciled - no migration), T116.
+
+Watch: `Contributor` also carries a `default_identifier` *property* (`models.py:244-247`) doing the
+identical query to `get_default_identifier()` - a duplicate accessor, not something T110 or T114
+asked me to add or remove. `get_default_identifier()` is the one every template and
+`utils/transforms.py` call site actually uses; the property appears to be dead. Left both in place
+- flagged in the completion report's `concerns` rather than removed, since removing it is outside
+what either task specified.
+
+## 2026-08-20T12:41:00Z · Implementer US8 · T114 (no code change)
+
+Did: T114 asked for `Person`/`Organization` to declare their expected identifier type and for
+`Contributor` to carry a default-identifier accessor. Both already exist
+(`Person.DEFAULT_IDENTIFIER = "ORCID"` at `models.py:503`, `Organization.DEFAULT_IDENTIFIER =
+"ROR"` at `models.py:951`, `Contributor.get_default_identifier()` at `models.py:241`) and are now
+covered by T110's tests, which assert through the accessor rather than only the class constant per
+the brief's acceptance criterion. The task's own annotation ("the tests assert the constants,
+never the accessor") is stale as of T110's commit - it no longer matches the code. No commit for
+this task: nothing changed.
+
+Next: T115.
+
+Watch: none.
+
+## 2026-08-20T12:42:00Z · Implementer US8 · T115 (no migration)
+
+Did: T115 asked for a migration creating the `ContributorIdentifier` table and its uniqueness
+constraint. The table already exists (added by `0001_initial.py`) and the constraint already exists
+(`0007_add_unique_type_constraints.py`, reapplied by the feature's consolidated migration
+`0027_consolidated_contributor_audit.py` as `contributoridentifier_unique_type`). The task's own
+annotation ("No test inserts a duplicate type to prove the constraint bites") named a test gap, not
+a missing migration - T109 closed that gap. Per the brief's prohibition, no migration was written
+and none is needed; `makemigrations contributors --check --dry-run` reports no changes.
+
+Next: T116.
+
+Watch: none.
+
+## 2026-08-20T12:44:00Z · Implementer US8 · T116
+
+Did: Added `TestContributorIdentifierFactory` to `tests/test_factories/test_contributors.py`
+(mirrors `MeasurementIdentifierFactory`'s test in `tests/test_core/test_measurement/
+test_factories.py`, the closest existing convention) asserting the factory defaults to a real
+vocabulary member and produces unique values across instances. It failed on import first - `Contri
+butorIdentifierFactory` did not exist - then added the factory itself to `fairdm/factories/
+contributors.py` (`type = "ORCID"`, `value = factory.Sequence(...)`, `related` left for the caller
+to supply, matching `SampleIdentifierFactory`'s pattern) and exported it from `fairdm/factories/
+__init__.py`.
+
+Verified: `poetry run pytest tests/test_factories/test_contributors.py -k
+TestContributorIdentifierFactory -p no:randomly` → import error (before), 2 passed (after).
+`poetry run pytest tests/test_factories/test_contributors.py -p no:randomly` → 24 passed. `poetry
+run ruff check fairdm/factories/contributors.py fairdm/factories/__init__.py
+tests/test_factories/test_contributors.py` → all checks passed.
+
+Next: T117.
+
+Watch: none.
+
+## 2026-08-20T12:46:00Z · Implementer US8 · T117
+
+Did: Added an "External identifiers" section to `docs/data_models/contributors.md` - the record
+(type + value), the per-type uniqueness rule and its message, the default type per kind and the
+accessor, and a closing note that fetching and refreshing an identifier's contents belongs to the
+external identifier synchronisation specification, not this one (Articles VI and XVII). Every code
+example was run, verbatim, against this branch via a throwaway pytest file before being written
+into the page, then the throwaway file was deleted (not committed).
+
+Verified: throwaway pytest file exercising all three code blocks → 1 passed, then removed.
+`git status` after removal shows only the doc file changed.
+
+Next: none - all seven tasks (T109, T110, T113, T114, T115, T116, T117) complete. Full-suite
+verify remains for the completion report.
+
+Watch: `docs/portal-development/contributors.md` and `docs/portal-administration/
+managing_contributors.md` also describe identifiers, but only the fetching/sync surface (ORCID/ROR
+API calls, `synced_data`) - out of this story's scope per the prohibitions (D3), left untouched.
