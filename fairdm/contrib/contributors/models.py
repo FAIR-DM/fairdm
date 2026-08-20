@@ -423,7 +423,10 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             roles_qs = Concept.objects.filter(
                 vocabulary__name="fairdm-roles", name__in=roles
             )
-            contribution.roles.set(roles_qs)
+            # accumulate, don't replace (FR-031, design review SPEC-001): a second
+            # credit under a new role must add to the roles already recorded, not
+            # discard them.
+            contribution.roles.add(*roles_qs)
         return contribution
 
 
@@ -1080,7 +1083,10 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             roles_qs = Concept.objects.filter(
                 vocabulary__name="fairdm-roles", name__in=roles
             )
-            contribution.roles.set(roles_qs)
+            # accumulate, don't replace (FR-031, design review SPEC-001): a second
+            # credit under a new role must add to the roles already recorded, not
+            # discard them.
+            contribution.roles.add(*roles_qs)
         return contribution
 
     def save(self, *args, **kwargs):

@@ -616,6 +616,63 @@ class TestContributionGFKRelationships:
         assert qs.count() >= 1
 
 
+# ── T089: Contribution uniqueness and role accumulation ─────────────────────
+
+
+class TestContributionUniqueness:
+    """FR-031, SC-010: exactly one credit per contributor per object. A second entry for the
+    same pairing is refused, and a further role accumulates on the existing entry rather than
+    replacing it - a person who both collected and analysed appears once, carrying both roles."""
+
+    @pytest.mark.django_db
+    def test_second_contribution_for_the_same_pairing_is_refused(
+        self, person, project_for_contributions
+    ):
+        ContributionFactory(contributor=person, content_object=project_for_contributions)
+        with pytest.raises(IntegrityError):
+            ContributionFactory(
+                contributor=person, content_object=project_for_contributions
+            )
+
+    @pytest.mark.django_db
+    def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
+        self, person, project_for_contributions
+    ):
+        """design review SPEC-001: Contributor.add_to used roles.set(), which replaced the
+        first role rather than accumulating a second one."""
+        person.add_to(project_for_contributions, roles=["DataCollector"])
+        contribution = person.add_to(project_for_contributions, roles=["Researcher"])
+
+        assert (
+            Contribution.objects.filter(
+                contributor=person, object_id=project_for_contributions.pk
+            ).count()
+            == 1
+        )
+        role_names = set(contribution.roles.values_list("name", flat=True))
+        assert role_names == {"DataCollector", "Researcher"}
+
+    @pytest.mark.django_db
+    def test_crediting_again_under_a_new_role_accumulates_via_contribution_add_to(
+        self, person, project_for_contributions
+    ):
+        """design review SPEC-001: Contribution.add_to used roles.set(), which replaced the
+        first role rather than accumulating a second one."""
+        Contribution.add_to(person, project_for_contributions, roles=["DataCollector"])
+        contribution = Contribution.add_to(
+            person, project_for_contributions, roles=["Researcher"]
+        )
+
+        assert (
+            Contribution.objects.filter(
+                contributor=person, object_id=project_for_contributions.pk
+            ).count()
+            == 1
+        )
+        role_names = set(contribution.roles.values_list("name", flat=True))
+        assert role_names == {"DataCollector", "Researcher"}
+
+
 # ── T017: ContributorIdentifier uniqueness ───────────────────────────────────
 
 
