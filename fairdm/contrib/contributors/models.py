@@ -35,6 +35,7 @@ from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
+from .choices import AccountState
 from .managers import AffiliationManager, ContributionManager, UserManager
 from .validators import validate_iso_639_1_language_codes
 
@@ -469,6 +470,27 @@ class Person(AbstractUser, Contributor):
         if not self.name:
             self.name = f"{self.first_name} {self.last_name}".strip()
         super().save(*args, **kwargs)
+
+    @property
+    def account_state(self) -> AccountState:
+        """The person's account state, derived rather than stored (decisions.md D8).
+
+        Computed from `is_active`, `is_claimed` and `email` in a fixed
+        precedence, so it can never disagree with the fields it reads:
+        inactive if the account is deactivated, otherwise claimed, otherwise
+        invited if an email address is present, otherwise ghost.
+        `PersonQuerySet`'s four state filters mirror this exact ordering.
+
+        Returns:
+            AccountState: exactly one of INACTIVE, CLAIMED, INVITED or GHOST.
+        """
+        if not self.is_active:
+            return AccountState.INACTIVE
+        if self.is_claimed:
+            return AccountState.CLAIMED
+        if self.email:
+            return AccountState.INVITED
+        return AccountState.GHOST
 
     def clean(self):
         """Validate Person fields including email, URLs, and ORCID format."""

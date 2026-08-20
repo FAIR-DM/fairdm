@@ -15,6 +15,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
+from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
@@ -325,6 +326,92 @@ class TestPersonClaimedUnclaimedSemantics:
     def test_backward_compatible_alias(self):
         """OrganizationMember alias points to Affiliation."""
         assert OrganizationMember is Affiliation
+
+
+# ── T037 (US3): account state derivation ─────────────────────────────────────
+
+
+class TestAccountState:
+    """Person.account_state reports exactly one of the four D8 states (FR-013, SC-004)."""
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "member_name,expected_state",
+        [
+            ("ghost", AccountState.GHOST),
+            ("invited", AccountState.INVITED),
+            ("claimed", AccountState.CLAIMED),
+            ("inactive", AccountState.INACTIVE),
+        ],
+    )
+    def test_person_in_each_state_reports_that_state(
+        self, contributor_population, member_name, expected_state
+    ):
+        person = getattr(contributor_population, member_name)
+        assert person.account_state == expected_state
+
+    @pytest.mark.django_db
+    def test_no_person_reports_two_states(self, contributor_population):
+        """The four states are mutually exclusive - one person, one state."""
+        pop = contributor_population
+        states = {
+            pop.ghost.account_state,
+            pop.invited.account_state,
+            pop.claimed.account_state,
+            pop.inactive.account_state,
+        }
+        assert states == {
+            AccountState.GHOST,
+            AccountState.INVITED,
+            AccountState.CLAIMED,
+            AccountState.INACTIVE,
+        }
+
+
+# ── T038 (US3): account state precedence ─────────────────────────────────────
+
+
+class TestAccountStatePrecedence:
+    """Deactivation outranks every other signal (D8, FR-013, SC-004)."""
+
+    @pytest.mark.django_db
+    def test_deactivated_and_claimed_reports_inactive(self, db):
+        """A deactivated person who has also claimed their account is inactive."""
+        person = PersonFactory(
+            email="deactivated-claimed@example.com", is_active=False, is_claimed=True
+        )
+        assert person.account_state == AccountState.INACTIVE
+
+    @pytest.mark.django_db
+    def test_deactivated_without_email_still_reports_inactive(self, db):
+        """Deactivation wins even for a person who would otherwise be a ghost."""
+        person = PersonFactory(email=None, is_active=False, is_claimed=False)
+        assert person.account_state == AccountState.INACTIVE
+
+
+# ── T039 (US3): the claim flag is the only stored expression ────────────────
+
+
+class TestClaimIsStoredOnce:
+    """`is_claimed` is the only stored claim signal; `account_state` has no
+    database column of its own (D8, FR-012, FR-013).
+    """
+
+    def test_is_claimed_is_a_concrete_database_field(self):
+        """The stored claim flag is a real column on Person."""
+        field = Person._meta.get_field("is_claimed")
+        from django.db import models as django_models
+
+        assert isinstance(field, django_models.BooleanField)
+
+    def test_account_state_has_no_database_column(self):
+        """`account_state` never appears among Person's concrete fields."""
+        field_names = {f.name for f in Person._meta.get_fields()}
+        assert "account_state" not in field_names
+
+    def test_account_state_is_a_plain_property_not_stored_state(self):
+        """`account_state` is computed on read, not held in an attribute set at save time."""
+        assert isinstance(Person.__dict__["account_state"], property)
 
 
 # ── T014: Organization creation and validation ──────────────────────────────
