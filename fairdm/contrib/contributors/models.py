@@ -204,6 +204,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     )
     modified = models.DateTimeField(
         auto_now=True,
+        db_index=True,
         verbose_name=_("Last modified"),
         help_text=_("The date and time this record was last modified."),
     )
