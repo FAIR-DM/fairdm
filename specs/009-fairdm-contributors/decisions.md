@@ -539,3 +539,85 @@ required.
 
 **Revisit if:** a future review finds `real()` or `active()` do not in fact match FR-041's wording -
 that would mean the "built-without-tests" annotation was wrong, not that this decision was.
+
+---
+
+## D25 — T102's receiver is additive, not a replacement for the lifecycle hook
+
+**Self-resolved, US7.**
+
+**Decision:** `withdraw_rights_on_credit_deletion` (`receivers.py`) is added alongside
+`Contribution.remove_user_perms` (the existing `AFTER_DELETE` lifecycle hook), not in place of it.
+On an ordinary instance delete both now run and both call `remove_all_model_perms`, which is
+idempotent (it iterates `get_perms()` and removes each; the second call iterates nothing).
+
+**Why:** the lifecycle hook is real, working code that RECON-002 only faulted for the path it
+cannot cover (`QuerySet.delete()`), and `TestContributionRevocationIsNormalised`
+(`tests/test_core/test_sample/test_permissions.py:186`, T094's cited test, not authored this
+story) exercises exactly the instance-delete path the hook already handles. Removing the hook
+would touch a test file outside T102's scope to keep it green, for a consolidation that buys
+nothing beyond one fewer method - the duplicate work it costs is a single idempotent function
+call, not a correctness risk. The story brief's own framing ("THIS FEATURE IS ALREADY LARGELY BUILT...
+rewriting existing code is the worst outcome") reads as pushing toward the additive option here.
+
+**Revisit if:** the lifecycle hook and the receiver are ever found to disagree (e.g. one gets a
+scope the other doesn't), or if a future story wants a single canonical place for this
+policy - at which point consolidating onto the receiver alone (it is the strict superset) and
+updating T094's test to match becomes the right move.
+
+---
+
+## D26 — `Contributor.samples`/`.measurements` fixed for polymorphic content types, in scope
+
+**Self-resolved, US7.**
+
+**Decision:** T092's test for FR-034 ("a contributor credited across all four kinds... reports
+each of them") surfaced that `Contributor.samples` and `.measurements` were always empty for any
+real credit, because `Sample`/`Measurement` can only be instantiated as a concrete subclass (the
+polymorphic base cannot be created directly - see `fairdm/factories/core.py`'s own factory
+docstrings), so every real credit is stored under that subclass's content type, and a
+`GenericRelation` reverse query from the polymorphic base only matches its own content type, never
+a subclass's. Fixed via `Contributor.credited_object_ids(base_model)`, checking each of the
+contributor's distinct content types against the base model with `issubclass()` and relying on
+Django's multi-table inheritance sharing one primary key across the hierarchy. `projects` and
+`datasets` were untouched - `Project` and `Dataset` have no polymorphic subclasses, so their
+existing `Model.objects.filter(contributors__contributor=self)` form is already correct.
+
+**Why in scope, not routed out:** T100's task text is literally "the projects, datasets, samples
+and measurements it is credited on" against FR-034, in `fairdm/contrib/contributors/models.py` -
+the exact method and the exact file this story owns. The design review's "Open" annotation for
+T100 only named the missing counts-by-kind method, not this bug, most likely because nobody had
+previously tested crediting a concrete specimen/measurement type through these properties. Per
+`craft-tdd`'s defect protocol (reproduce before fix), a genuine defect surfaced by a test this
+story was already writing, in this story's own target method, is this story's to fix - not a
+finding to route to an issue.
+
+**Revisit if:** a future story finds this pattern (polymorphic subclass credited, base-class
+`GenericRelation` reverse query) recurring elsewhere - `credited_object_ids` could become a
+shared utility rather than a `Contributor`-only method.
+
+---
+
+## D27 — `fairdm/core/abstract.py`'s `add_contributor` keeps the same `roles.set()` defect, left alone
+
+**Self-resolved, US7.**
+
+**Decision:** `BaseModel.add_contributor` (`fairdm/core/abstract.py:81`) - a third entry point
+alongside `Contributor.add_to` and `Contribution.add_to` for crediting a contributor, used by
+`Sample`/`Measurement`/`Dataset`/`Project` test suites as `obj.add_contributor(contributor,
+with_roles=[...])` - calls `contribution.roles.set(roles_qs.filter(name__in=with_roles))`, the
+identical SPEC-001 pattern this story fixed in the two named entry points. Not touched here.
+
+**Why:** the design review (D21) named exactly two call sites - `models.py:470` and
+`models.py:1127` (now `models.py:478` and `models.py:1187` after this story's edits) - and the
+story brief's prohibition text mirrors those two, line for line. `fairdm/core/abstract.py` is
+outside `fairdm/contrib/contributors/`, a shared base class consumed by every core record type
+(`Project`, `Dataset`, `Sample`, `Measurement`), several of which belong to other stories/features
+entirely. Fixing it here would be undirected scope expansion into a file this story was never
+briefed on, for a defect the design review may have deliberately left for whichever story owns
+`fairdm/core/abstract.py`, or may simply have missed - either way, not this story's call to make
+silently.
+
+**Revisit if:** a future story owning `fairdm/core/abstract.py` (or a dedicated fix) applies the
+same `roles.set()` → `roles.add()` change there. Recorded as a concern in this story's completion
+report so Forge can triage it.
