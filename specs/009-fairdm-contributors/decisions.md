@@ -812,3 +812,41 @@ indexes, and four named constraints. `makemigrations --check` is clean and the s
 
 This is what Article IX asks for anyway — migrations consolidated per pull request — reached by
 withholding them rather than by squashing afterwards.
+
+## D34 — T005's fixture is added despite the substance already existing
+
+**Self-resolved.**
+
+T005 asks for a `contribution_roles` fixture "so credit tests have real concepts to attach".
+That substance was already true for every test in the suite before this task: `Concept.preload()`
+runs once per session (`tests/conftest.py:33`), and existing tests
+(`TestContributionRoles`, `TestMultipleRolesPerContribution`) already read
+`Concept.objects.filter(vocabulary__name="fairdm-roles")` directly, with one of them
+(`test_contribution_multiple_roles`) documenting in its own docstring why no per-file fixture is
+needed to avoid a false-skip.
+
+Added the fixture anyway. It is genuinely additive — a named queryset, not a second seeding
+mechanism — and the brief's own rule ("where the substance matches under another name, satisfy
+the substance and say so") is about not renaming existing things, not about refusing to add a
+harmless convenience the task asks for by name. Did not retrofit it onto the tests that predate
+it, since editing a test authored by an earlier story is prohibited regardless of how small the
+change.
+
+**Revisit if:** a reviewer judges the fixture an unjustified duplicate of the global seed and
+asks for it removed — nothing currently depends on it besides the one new test that proves it
+works.
+
+## D35 — T001's `default_auto_field` declaration is cosmetic, not functional
+
+**Self-resolved.**
+
+The task and its annotation both treat `ContributorsConfig` lacking `default_auto_field` as a
+gap. It is not, functionally: Django's `AppConfig.default_auto_field` already falls back to the
+project-wide `DEFAULT_AUTO_FIELD` setting (`fairdm/conf/settings/database.py:26`) for any app
+that does not declare its own — verified by removing the declaration and re-running the new
+test asserting it, which still passed.
+
+Declared it anyway, to match every sibling FairDM app (`autocomplete`, `theme`, `plugins`,
+`collections`), which all declare it explicitly despite the same fallback applying to them. The
+value is convention and defence against a future change to the global setting, not a present
+defect fixed.

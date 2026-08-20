@@ -61,18 +61,55 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/apps.py:6"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_apps.py:23 TestContributorsConfig::test_app_config_declares_a_default_auto_field"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_contrib/test_contributors/test_apps.py"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/settings/apps.py:62"
+            ],
+            "tests": [
+              "tests/test_conf/test_settings/test_apps.py:69 TestContributorsAppRegistration::test_contributors_app_is_installed"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_conf/test_settings/test_apps.py"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/conf/settings/auth.py:20"
+            ],
+            "tests": [
+              "tests/test_conf/test_settings/test_auth.py:71 TestAccountModel::test_auth_user_model_names_the_person_record",
+              "tests/test_conf/test_settings/test_auth.py:80 TestAccountModel::test_auth_user_model_resolves_to_the_real_person_class"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_conf/test_settings/test_auth.py"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T004",
@@ -93,18 +130,54 @@
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_contributors/conftest.py:34"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:1167 TestContributionRoles::test_contribution_roles_fixture_has_real_concepts_to_attach"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_contrib/test_contributors/test_models.py::TestContributionRoles"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/factories/contributors.py:1"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run ruff check fairdm/factories/contributors.py"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T138",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_factories/test_contributors.py:402",
+              "tests/test_factories/test_contributors.py:427"
+            ],
+            "tests": [
+              "tests/test_factories/test_contributors.py:402 TestContributorFactoriesPassFullClean",
+              "tests/test_factories/test_contributors.py:427 TestContributorFactoryBatchUniqueness"
+            ],
+            "commands": [
+              "poetry run pytest -q -p no:randomly tests/test_factories/test_contributors.py"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T139",
@@ -113,18 +186,46 @@
         },
         {
           "id": "T140",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [],
+            "tests": [],
+            "commands": [
+              "poetry run python manage.py check",
+              "poetry run python manage.py makemigrations --check --dry-run contributors"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T141",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "CHANGELOG.md:192"
+            ],
+            "tests": [],
+            "commands": [],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T142",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/contributors.md:107",
+              "docs/portal-administration/managing_contributors.md:95"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run sphinx-build -b html docs /tmp/docs_build_out4"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T143",
