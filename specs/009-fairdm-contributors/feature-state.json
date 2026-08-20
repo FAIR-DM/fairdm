@@ -1432,18 +1432,55 @@
       "tasks": [
         {
           "id": "T088",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:478"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:631 TestContributionTargets::test_person_creditable_on_a_project"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T089",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:478",
+              "fairdm/contrib/contributors/models.py:1187"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:699 TestContributionUniqueness::test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T090",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1177"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:756 TestContributionRoles::test_role_from_outside_the_roles_vocabulary_is_refused"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T091",
@@ -1464,13 +1501,38 @@
         },
         {
           "id": "T092",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:271",
+              "fairdm/contrib/contributors/models.py:322"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:785 TestContributorCredits::test_reports_each_kind_of_credited_output"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T093",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:427"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:876 TestCoContributors::test_a_contributor_matching_content_type_and_object_id_separately_is_not_a_false_positive"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T094",
@@ -1525,13 +1587,40 @@
         },
         {
           "id": "T097",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:1143"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:683 TestContributionUniqueness::test_duplicate_pairing_raises_a_validation_error_with_a_clear_message"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T098",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:478",
+              "fairdm/contrib/contributors/models.py:1187",
+              "fairdm/contrib/contributors/models.py:1177"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:699 TestContributionUniqueness::test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to",
+              "tests/test_contrib/test_contributors/test_models.py:756 TestContributionRoles::test_role_from_outside_the_roles_vocabulary_is_refused"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T099",
@@ -1552,18 +1641,56 @@
         },
         {
           "id": "T100",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:271",
+              "fairdm/contrib/contributors/models.py:322"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:822 TestContributorCredits::test_counts_by_kind_resolved_in_a_bounded_number_of_queries"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T101",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/models.py:427"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py:845 TestCoContributors::test_orders_co_contributors_most_frequent_first"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T102",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/receivers.py:20",
+              "fairdm/contrib/contributors/apps.py:19"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_receivers.py:19 TestWithdrawRightsOnCreditDeletion::test_queryset_delete_withdraws_the_right"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T103",
@@ -1635,8 +1762,20 @@
         },
         {
           "id": "T107",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/contributors.md:264"
+            ],
+            "tests": [
+              "examples verified against a scratch pytest test, not committed"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors -q -p no:randomly"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

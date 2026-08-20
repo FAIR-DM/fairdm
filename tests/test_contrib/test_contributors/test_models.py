@@ -12,6 +12,7 @@ Tests cover:
 """
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
@@ -28,6 +29,7 @@ from fairdm.contrib.contributors.models import (
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
+    DatasetFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
@@ -845,6 +847,294 @@ class TestContributionGFKRelationships:
         assert qs.count() >= 1
 
 
+# ── T088: Contribution targets ───────────────────────────────────────────────
+
+
+class TestContributionTargets:
+    """FR-030: a contributor of either kind is creditable on a project, a dataset, a sample
+    or a measurement through the one generic Contribution entry. The sample case is already
+    covered at tests/test_core/test_sample/test_models.py::TestSampleContributions and is
+    cited rather than rewritten here (design review RECON-004)."""
+
+    @pytest.mark.django_db
+    def test_person_creditable_on_a_project(self, person, project_for_contributions):
+        contribution = person.add_to(project_for_contributions)
+
+        assert contribution.content_object == project_for_contributions
+
+    @pytest.mark.django_db
+    def test_person_creditable_on_a_dataset(self, person):
+        dataset = DatasetFactory()
+
+        contribution = person.add_to(dataset)
+
+        assert contribution.content_object == dataset
+
+    @pytest.mark.django_db
+    def test_person_creditable_on_a_measurement(self, person):
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        contribution = person.add_to(measurement)
+
+        assert contribution.content_object == measurement
+
+    @pytest.mark.django_db
+    def test_organization_creditable_as_a_contributor(
+        self, organization, project_for_contributions
+    ):
+        contribution = organization.add_to(project_for_contributions)
+
+        assert contribution.content_object == project_for_contributions
+        assert contribution.contributor == organization
+
+
+# ── T089: Contribution uniqueness and role accumulation ─────────────────────
+
+
+class TestContributionUniqueness:
+    """FR-031, SC-010: exactly one credit per contributor per object. A second entry for the
+    same pairing is refused, and a further role accumulates on the existing entry rather than
+    replacing it - a person who both collected and analysed appears once, carrying both roles."""
+
+    @pytest.mark.django_db
+    def test_second_contribution_for_the_same_pairing_is_refused(
+        self, person, project_for_contributions
+    ):
+        ContributionFactory(contributor=person, content_object=project_for_contributions)
+        with pytest.raises(IntegrityError):
+            ContributionFactory(
+                contributor=person, content_object=project_for_contributions
+            )
+
+    @pytest.mark.django_db
+    def test_duplicate_pairing_raises_a_validation_error_with_a_clear_message(
+        self, person, project_for_contributions
+    ):
+        """FR-031, Article IX: the named UniqueConstraint carries a message, and clean()
+        raises with the same wording, so a form validating before save is refused exactly
+        the way a raw insert would be."""
+        ContributionFactory(contributor=person, content_object=project_for_contributions)
+        duplicate = Contribution(
+            contributor=person,
+            content_type=ContentType.objects.get_for_model(project_for_contributions),
+            object_id=project_for_contributions.pk,
+        )
+        with pytest.raises(ValidationError, match="already credited"):
+            duplicate.full_clean()
+
+    @pytest.mark.django_db
+    def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
+        self, person, project_for_contributions
+    ):
+        """design review SPEC-001: Contributor.add_to used roles.set(), which replaced the
+        first role rather than accumulating a second one."""
+        person.add_to(project_for_contributions, roles=["DataCollector"])
+        contribution = person.add_to(project_for_contributions, roles=["Researcher"])
+
+        assert (
+            Contribution.objects.filter(
+                contributor=person, object_id=project_for_contributions.pk
+            ).count()
+            == 1
+        )
+        role_names = set(contribution.roles.values_list("name", flat=True))
+        assert role_names == {"DataCollector", "Researcher"}
+
+    @pytest.mark.django_db
+    def test_crediting_again_under_a_new_role_accumulates_via_contribution_add_to(
+        self, person, project_for_contributions
+    ):
+        """design review SPEC-001: Contribution.add_to used roles.set(), which replaced the
+        first role rather than accumulating a second one."""
+        Contribution.add_to(person, project_for_contributions, roles=["DataCollector"])
+        contribution = Contribution.add_to(
+            person, project_for_contributions, roles=["Researcher"]
+        )
+
+        assert (
+            Contribution.objects.filter(
+                contributor=person, object_id=project_for_contributions.pk
+            ).count()
+            == 1
+        )
+        role_names = set(contribution.roles.values_list("name", flat=True))
+        assert role_names == {"DataCollector", "Researcher"}
+
+
+# ── T090: Contribution roles vocabulary ──────────────────────────────────────
+
+
+class TestContributionRoles:
+    """FR-032: a credit's roles are drawn from the framework's controlled roles vocabulary
+    (fairdm-roles); a concept from another vocabulary is refused."""
+
+    @pytest.mark.django_db
+    def test_role_from_the_roles_vocabulary_is_accepted(self, contribution):
+        from research_vocabs.models import Concept
+
+        role = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        contribution.roles.add(role)
+
+        contribution.full_clean()
+
+        assert role in contribution.roles.all()
+
+    @pytest.mark.django_db
+    def test_role_from_outside_the_roles_vocabulary_is_refused(self, contribution):
+        from research_vocabs.models import Concept, Vocabulary
+
+        other_vocabulary = Vocabulary.objects.create(
+            name="not-fairdm-roles",
+            label="Not FairDM Roles",
+            uri="https://example.com/vocabularies/not-fairdm-roles",
+        )
+        outside_role = Concept.objects.create(
+            vocabulary=other_vocabulary,
+            uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
+            name="Outsider",
+            label="Outsider",
+        )
+        contribution.roles.add(outside_role)
+
+        with pytest.raises(ValidationError, match="roles vocabulary"):
+            contribution.full_clean()
+
+
+# ── T092/T100: Credited-outputs reporting ────────────────────────────────────
+
+
+class TestContributorCredits:
+    """FR-034, SC-011: a contributor credited across all four kinds of research output
+    reports each of them and reports counts by kind, each resolved in a bounded number of
+    queries."""
+
+    @pytest.mark.django_db
+    def test_reports_each_kind_of_credited_output(self, person):
+        from fairdm.utils.choices import Visibility
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        project = ProjectFactory()
+        # Dataset.objects (the manager Contributor.datasets reads) excludes PRIVATE
+        # datasets, DatasetFactory's own default - make this one visible so the property
+        # under test can find it.
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        sample = RockSampleFactory()
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        person.add_to(project)
+        person.add_to(dataset)
+        person.add_to(sample)
+        person.add_to(measurement)
+
+        assert project in person.projects
+        assert dataset in person.datasets
+        assert sample in person.samples
+        assert measurement in person.measurements
+
+    @pytest.mark.django_db
+    def test_reports_counts_by_kind(self, person):
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.project.models import Project
+
+        person.add_to(ProjectFactory())
+        person.add_to(DatasetFactory())
+        person.add_to(DatasetFactory())
+
+        counts = person.get_credit_counts()
+
+        assert counts[Project._meta.verbose_name_plural] == 1
+        assert counts[Dataset._meta.verbose_name_plural] == 2
+
+    @pytest.mark.django_db
+    def test_counts_by_kind_resolved_in_a_bounded_number_of_queries(
+        self, person, django_assert_max_num_queries
+    ):
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        person.add_to(ProjectFactory())
+        person.add_to(DatasetFactory())
+        person.add_to(RockSampleFactory())
+        person.add_to(ExampleMeasurementFactory(sample=RockSampleFactory()))
+
+        with django_assert_max_num_queries(6):
+            person.get_credit_counts()
+
+
+# ── T093/T101: Co-contributor reporting ──────────────────────────────────────
+
+
+class TestCoContributors:
+    """FR-035, SC-011: the contributors credited alongside a given contributor come back
+    most frequent first - and only contributors who actually share a credited object, not
+    anyone who merely shares a content type or an object id with a different one of it."""
+
+    @pytest.mark.django_db
+    def test_orders_co_contributors_most_frequent_first(self, person):
+        frequent = PersonFactory()
+        occasional = PersonFactory()
+        projects = ProjectFactory.create_batch(3)
+        for project in projects:
+            person.add_to(project)
+            frequent.add_to(project)
+        occasional.add_to(projects[0])
+
+        co_contributors = list(person.get_co_contributors())
+
+        assert co_contributors[0] == frequent
+        assert occasional in co_contributors
+        assert co_contributors.index(frequent) < co_contributors.index(occasional)
+
+    @pytest.mark.django_db
+    def test_excludes_the_contributor_credited_on_an_unrelated_object(self, person):
+        shared_project = ProjectFactory()
+        person.add_to(shared_project)
+        collaborator = PersonFactory()
+        collaborator.add_to(shared_project)
+
+        stranger = PersonFactory()
+        stranger.add_to(ProjectFactory())
+
+        co_contributors = list(person.get_co_contributors())
+
+        assert collaborator in co_contributors
+        assert stranger not in co_contributors
+
+    @pytest.mark.django_db
+    def test_a_contributor_matching_content_type_and_object_id_separately_is_not_a_false_positive(
+        self, person
+    ):
+        """The naive implementation filtered on
+        ``contributions__content_type_id__in=[...]`` and
+        ``contributions__object_id__in=[...]`` as two separate calls, so a contributor
+        whose *own* credits happened to reuse one of person's content types on one object
+        and one of person's object ids on a *different* object read as a co-contributor,
+        despite sharing no object with person at all."""
+        project = ProjectFactory()
+        dataset = DatasetFactory()
+        person.add_to(project)
+
+        false_positive = PersonFactory()
+        other_project = ProjectFactory()
+        # Same content type as person's credit (Project), but a different object.
+        Contribution.objects.create(
+            contributor=false_positive,
+            content_type=ContentType.objects.get_for_model(other_project),
+            object_id=other_project.pk,
+        )
+        # Same object id as person's credit, but a different content type (Dataset).
+        Contribution.objects.create(
+            contributor=false_positive,
+            content_type=ContentType.objects.get_for_model(dataset),
+            object_id=str(project.pk),
+        )
+
+        co_contributors = list(person.get_co_contributors())
+
+        assert false_positive not in co_contributors
+
+
 # ── T017: ContributorIdentifier uniqueness ───────────────────────────────────
 
 
@@ -965,7 +1255,13 @@ class TestMultipleRolesPerContribution:
 
     @pytest.mark.django_db
     def test_contribution_multiple_roles(self, db):
-        """A contribution can have multiple roles from Fair DM vocabulary."""
+        """A contribution can have multiple roles from the FairDM roles vocabulary.
+
+        The vocabulary is guaranteed seeded for every test by the session-scoped
+        ``django_db_setup`` fixture (``tests/conftest.py``), which calls
+        ``Concept.preload()`` once per session - so this no longer defends against an
+        unseeded vocabulary by skipping. A test that may silently skip is not coverage.
+        """
         from research_vocabs.models import Concept
 
         project = ProjectFactory()
@@ -975,27 +1271,13 @@ class TestMultipleRolesPerContribution:
             contributor=person,
         )
 
-        # Get role concepts from the database (they should exist from fixtures/migrations)
-        # Use the legacy vocabulary filter approach
-        try:
-            roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
-            if roles_qs.count() < 2:
-                # If vocabulary not initialized, skip test
-                import pytest
+        roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
+        author_role = roles_qs.first()
+        editor_role = roles_qs.last()
 
-                pytest.skip("fairdm-roles vocabulary not initialized")
+        contribution.roles.add(author_role, editor_role)
 
-            author_role = roles_qs.first()
-            editor_role = roles_qs.last()
-
-            # Assign multiple roles
-            contribution.roles.add(author_role, editor_role)
-
-            assert contribution.roles.count() == 2
-        except Concept.DoesNotExist:
-            import pytest
-
-            pytest.skip("fairdm-roles vocabulary not initialized")
+        assert contribution.roles.count() == 2
         assert author_role in contribution.roles.all()
         assert editor_role in contribution.roles.all()
 

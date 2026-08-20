@@ -149,8 +149,9 @@ project_contribs = person.get_contributions_by_type("project")
 has_contrib = person.has_contribution_to(some_project)
 co_contributors = person.get_co_contributors(limit=10)
 
-# Add person to object
-person.add_to(my_project, roles=["Author", "Data Collector"])
+# Add person to object - role names must be members of the fairdm-roles vocabulary
+# (fairdm.core.vocabularies.FairDMRoles), e.g. "Creator" or "DataCollector"
+person.add_to(my_project, roles=["Creator", "DataCollector"])
 ```
 
 ## Organization Model
@@ -316,39 +317,89 @@ researcher.affiliations.primary()   # institute_membership
 
 ## Contribution Model
 
-### Linking Contributors to Research Objects
+### One Credit Per Contributor Per Object
+
+A `Contribution` links a contributor (person or organisation) to a project, dataset,
+sample or measurement through Django's `GenericForeignKey`. There is exactly one
+`Contribution` row per contributor per object - a named `UniqueConstraint` refuses a
+second row for the same pairing at the database level, and `Contribution.clean()`
+refuses it too, with a matching message, so a form validating before save is refused the
+same way a raw duplicate insert would be (FR-031).
+
+Crediting the same contributor again under a further role does not create a second row -
+the role **accumulates** on the existing credit, so a person who both collected and
+analysed a dataset appears once, carrying both roles:
 
 ```python
 from fairdm.contrib.contributors.models import Contribution
+
+# Contributor.add_to() and the Contribution.add_to() classmethod are the two entry
+# points, and both accumulate roles rather than replace them.
+contribution = person.add_to(my_project, roles=["DataCollector"])
+same_contribution = person.add_to(my_project, roles=["Researcher"])
+assert contribution.pk == same_contribution.pk
+assert {r.name for r in same_contribution.roles.all()} == {"DataCollector", "Researcher"}
+
+# The classmethod form also accepts the crediting organisation explicitly.
+Contribution.add_to(person, my_project, roles=["ProjectLeader"], affiliation=some_org)
+```
+
+### Roles
+
+Roles are drawn from the framework's controlled roles vocabulary (`fairdm-roles`,
+`fairdm.core.vocabularies.FairDMRoles`). A role from any other vocabulary is refused by
+`Contribution.clean()` (FR-032):
+
+```python
 from research_vocabs.models import Concept
-from fairdm.core.vocabularies import FairDMRoles
 
-# Create contribution
-contribution = Contribution.objects.create(
-    contributor=person,
-    content_object=my_project,  # GenericForeignKey supports any model
-)
-
-# Add roles from FairDMRoles vocabulary
-author_role = Concept.objects.get(vocabulary=FairDMRoles, label="Author")
-contribution.roles.add(author_role)
+role = Concept.objects.get(vocabulary__name="fairdm-roles", name="DataCollector")
+contribution.roles.add(role)
+contribution.full_clean()  # passes; raises ValidationError for an off-vocabulary role
 
 # Query credits by role (FR-042): every Contribution whose roles include the
 # named Concept - defined once on ContributionQuerySet, reachable from both
 # Contribution.objects and Contribution.objects.all() (FR-040)
-author_credits = Contribution.objects.by_role("Author")
-
-# Query contributions
-project_contributions = Contribution.objects.filter(
-    content_type=ContentType.objects.get_for_model(Project),
-    object_id=my_project.pk
-)
-
-# Reverse query
-person_projects = person.contributions.filter(
-    content_type=ContentType.objects.get_for_model(Project)
-)
+data_collector_credits = Contribution.objects.by_role("DataCollector")
 ```
+
+### Crediting Organisation Default
+
+Where a person is credited and no organisation is named on the credit, their primary
+membership's organisation is recorded against it automatically (FR-033):
+
+```python
+contribution = person.add_to(my_project)
+contribution.affiliation  # person's primary Affiliation's organisation, if any
+```
+
+### Reporting a Contributor's Credits
+
+```python
+# What a contributor is credited on (FR-034) - each resolves through the concrete
+# type a credit actually names, not the polymorphic base, which can never be
+# instantiated directly for Sample and Measurement.
+person.projects
+person.datasets
+person.samples
+person.measurements
+
+# Counts by kind, in a bounded number of queries
+person.get_credit_counts()
+# {'projects': 2, 'datasets': 1}
+
+# The contributors credited alongside this one, most frequent first (FR-035)
+person.get_co_contributors(limit=5)
+```
+
+### Deleting a Credit Withdraws Rights - Creating One Grants None
+
+Deleting a person's credit on an object withdraws every object-level right that person
+holds over that object, whether the credit is deleted on the instance or in bulk through
+a queryset (FR-036). **Creating a credit grants nothing** - crediting someone confers no
+permission by itself, so there is no corresponding grant to mirror the withdrawal. A
+portal that wants a credited contributor to also gain a right over the object must grant
+it separately.
 
 ### Supported Content Types
 

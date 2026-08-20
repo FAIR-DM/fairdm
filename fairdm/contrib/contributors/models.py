@@ -269,6 +269,34 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     def type(self):
         return self.polymorphic_ctype.model
 
+    def credited_object_ids(self, base_model):
+        """Object ids of this contributor's credits whose content type is ``base_model``
+        or one of its polymorphic subclasses.
+
+        Django's multi-table inheritance gives every polymorphic subclass row the same
+        primary key as its base row, so these ids double as ``base_model`` primary keys
+        directly. That's what lets ``samples`` and ``measurements`` below find a credit
+        recorded against a concrete specimen or measurement type - ``Sample`` and
+        ``Measurement`` can never be instantiated directly, so every real credit is
+        stored under a subclass's own content type, which a ``GenericRelation`` reverse
+        query from the polymorphic base alone cannot match (FR-034).
+        """
+        content_type_ids = self.contributions.values_list(
+            "content_type_id", flat=True
+        ).distinct()
+        matching_type_ids = [
+            content_type_id
+            for content_type_id in content_type_ids
+            if issubclass(
+                ContentType.objects.get_for_id(content_type_id).model_class()
+                or object,
+                base_model,
+            )
+        ]
+        return self.contributions.filter(
+            content_type_id__in=matching_type_ids
+        ).values_list("object_id", flat=True)
+
     @property
     def projects(self):
         Project = apps.get_model("project.Project")
@@ -281,13 +309,39 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     @property
     def samples(self):
+        """Every specimen this contributor is credited on, resolved through the concrete
+        type each contribution actually names (FR-034; see ``credited_object_ids``)."""
         Sample = apps.get_model("sample.Sample")
-        return Sample.objects.filter(contributors__contributor=self)
+        return Sample.objects.filter(pk__in=self.credited_object_ids(Sample))
 
     @property
     def measurements(self):
+        """Every measurement this contributor is credited on - see ``samples`` above."""
         Measurement = apps.get_model("measurement.Measurement")
-        return Measurement.objects.filter(contributors__contributor=self)
+        return Measurement.objects.filter(pk__in=self.credited_object_ids(Measurement))
+
+    def get_credit_counts(self):
+        """Report this contributor's credit count for each kind of research output
+        (FR-034).
+
+        Resolved in a bounded number of queries: one to group and count credits by
+        content type, plus one more per distinct content type encountered - at most
+        four, one for each of project, dataset, sample and measurement.
+
+        Returns:
+            dict: Mapping of each credited model's plural verbose name to its count.
+        """
+        counts_by_type = self.contributions.values("content_type").annotate(
+            total=Count("id")
+        )
+        result = {}
+        for entry in counts_by_type:
+            model_class = ContentType.objects.get_for_id(
+                entry["content_type"]
+            ).model_class()
+            if model_class is not None:
+                result[model_class._meta.verbose_name_plural] = entry["total"]
+        return result
 
     def to_datacite(self):
         """
@@ -387,21 +441,34 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             >>> person.get_co_contributors(limit=5)
             <QuerySet [<Person: Jane Smith>, <Person: Bob Wilson>, ...]>
         """
-        # Get all content objects this contributor has contributed to
-        my_contributions = self.contributions.values_list(
-            "content_type_id", "object_id"
+        # The (content_type, object_id) pairs this contributor is actually credited on.
+        my_contributions = list(
+            self.contributions.values_list("content_type_id", "object_id")
         )
+        if not my_contributions:
+            return Contributor.objects.none()
 
-        # Find other contributors to those same objects
-        from django.db.models import Count
+        from django.db.models import Count, Q
+
+        # Matches a contribution sharing one of *my* exact (content_type, object_id)
+        # pairs - not merely any of my content types together with any of my object
+        # ids, which two separate filter() calls would allow to pair up across
+        # different objects entirely.
+        shared_credit = Q()
+        for content_type_id, object_id in my_contributions:
+            shared_credit |= Q(
+                contributions__content_type_id=content_type_id,
+                contributions__object_id=object_id,
+            )
 
         co_contributors = (
-            Contributor.objects.filter(
-                contributions__content_type_id__in=[ct for ct, _ in my_contributions]
+            Contributor.objects.exclude(pk=self.pk)
+            .annotate(
+                collaboration_count=Count(
+                    "contributions", filter=shared_credit, distinct=True
+                )
             )
-            .filter(contributions__object_id__in=[oid for _, oid in my_contributions])
-            .exclude(pk=self.pk)  # Exclude self
-            .annotate(collaboration_count=Count("contributions"))
+            .filter(collaboration_count__gt=0)
             .order_by("-collaboration_count")
         )
 
@@ -424,7 +491,10 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             roles_qs = Concept.objects.filter(
                 vocabulary__name="fairdm-roles", name__in=roles
             )
-            contribution.roles.set(roles_qs)
+            # accumulate, don't replace (FR-031, design review SPEC-001): a second
+            # credit under a new role must add to the roles already recorded, not
+            # discard them.
+            contribution.roles.add(*roles_qs)
         return contribution
 
 
@@ -1098,6 +1168,13 @@ class Organization(Contributor):
         return ", ".join(parts) if parts else None
 
 
+# Shared by Contribution.Meta's UniqueConstraint and Contribution.clean(), so a form
+# validating before save and a raw insert refuse a duplicate credit with the same wording.
+CONTRIBUTION_UNIQUE_PAIRING_MESSAGE = _(
+    "This contributor is already credited on this object."
+)
+
+
 class Contribution(LifecycleModelMixin, OrderedModel):
     """A contributor is a person or organisation that has contributed to the project or
     dataset. This model is based on the Datacite schema for contributors."""
@@ -1148,8 +1225,53 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     class Meta:
         verbose_name = _("contributor")
         verbose_name_plural = _("contributors")
-        unique_together = ("content_type", "object_id", "contributor")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["content_type", "object_id", "contributor"],
+                name="unique_contribution_per_contributor_object",
+                violation_error_message=CONTRIBUTION_UNIQUE_PAIRING_MESSAGE,
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["content_type", "object_id"],
+                name="contribution_object_idx",
+            ),
+        ]
         ordering = ["object_id", "order"]
+
+    def clean(self):
+        """Refuse a second credit for the same contributor/object pairing, with the same
+        message the named UniqueConstraint carries (FR-031, Article IX), and refuse a role
+        drawn from any vocabulary other than the framework's roles vocabulary (FR-032,
+        design review SPEC-001)."""
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+
+        # clean() also runs on partially-bound instances — a generic inline formset
+        # validates its forms before the parent object supplies the content type — so
+        # the pairing can only be checked once all three of its parts are present.
+        if self.content_type_id and self.object_id and self.contributor_id:
+            duplicate = (
+                Contribution.objects.exclude(pk=self.pk)
+                .filter(
+                    content_type_id=self.content_type_id,
+                    object_id=self.object_id,
+                    contributor_id=self.contributor_id,
+                )
+                .exists()
+            )
+            if duplicate:
+                raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
+
+        if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
+            raise ValidationError(
+                _(
+                    "A contribution's roles must be drawn from the framework's roles "
+                    "vocabulary."
+                )
+            )
 
     @classmethod
     def add_to(cls, contributor, obj, roles=None, affiliation=None):
@@ -1166,7 +1288,10 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             roles_qs = Concept.objects.filter(
                 vocabulary__name="fairdm-roles", name__in=roles
             )
-            contribution.roles.set(roles_qs)
+            # accumulate, don't replace (FR-031, design review SPEC-001): a second
+            # credit under a new role must add to the roles already recorded, not
+            # discard them.
+            contribution.roles.add(*roles_qs)
         return contribution
 
     def save(self, *args, **kwargs):
