@@ -467,7 +467,7 @@
       "priority": "P1",
       "issue": 235,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -657,8 +657,18 @@
         },
         {
           "id": "T033",
-          "status": "blocked",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/migrations/0027_consolidated_contributor_audit.py:1"
+            ],
+            "commands": [
+              "poetry run python manage.py makemigrations contributors --check --dry-run",
+              "poetry run python manage.py check"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T034",
@@ -718,7 +728,7 @@
       "priority": "P1",
       "issue": 236,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -901,7 +911,7 @@
       "priority": "P2",
       "issue": 237,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -1061,11 +1071,15 @@
         },
         {
           "id": "T056",
-          "status": "blocked",
+          "status": "done",
           "attempts": 1,
           "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/migrations/0027_consolidated_contributor_audit.py:1"
+            ],
             "commands": [
-              "poetry run python manage.py makemigrations --check --dry-run contributors"
+              "poetry run python manage.py makemigrations contributors --check --dry-run",
+              "poetry run python manage.py check"
             ],
             "verified_by_ci": false
           }
@@ -1126,7 +1140,7 @@
       "priority": "P2",
       "issue": 238,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -1359,8 +1373,18 @@
         },
         {
           "id": "T073",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/contributors/migrations/0027_consolidated_contributor_audit.py:1"
+            ],
+            "commands": [
+              "poetry run python manage.py makemigrations contributors --check --dry-run",
+              "poetry run python manage.py check"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T074",
@@ -1419,7 +1443,7 @@
       "priority": "P2",
       "issue": 239,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -1586,7 +1610,7 @@
       "priority": "P1",
       "issue": 240,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -2022,7 +2046,7 @@
       "priority": "P2",
       "issue": 242,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
