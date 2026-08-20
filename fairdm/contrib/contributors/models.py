@@ -1015,6 +1015,13 @@ class Organization(Contributor):
         return ", ".join(parts) if parts else None
 
 
+# Shared by Contribution.Meta's UniqueConstraint and Contribution.clean(), so a form
+# validating before save and a raw insert refuse a duplicate credit with the same wording.
+CONTRIBUTION_UNIQUE_PAIRING_MESSAGE = _(
+    "This contributor is already credited on this object."
+)
+
+
 class Contribution(LifecycleModelMixin, OrderedModel):
     """A contributor is a person or organisation that has contributed to the project or
     dataset. This model is based on the Datacite schema for contributors."""
@@ -1065,8 +1072,39 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     class Meta:
         verbose_name = _("contributor")
         verbose_name_plural = _("contributors")
-        unique_together = ("content_type", "object_id", "contributor")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["content_type", "object_id", "contributor"],
+                name="unique_contribution_per_contributor_object",
+                violation_error_message=CONTRIBUTION_UNIQUE_PAIRING_MESSAGE,
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["content_type", "object_id"],
+                name="contribution_content_object_idx",
+            ),
+        ]
         ordering = ["object_id", "order"]
+
+    def clean(self):
+        """Refuse a second credit for the same contributor/object pairing, with the same
+        message the named UniqueConstraint carries (FR-031, Article IX)."""
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+
+        duplicate = (
+            Contribution.objects.exclude(pk=self.pk)
+            .filter(
+                content_type=self.content_type,
+                object_id=self.object_id,
+                contributor=self.contributor,
+            )
+            .exists()
+        )
+        if duplicate:
+            raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
 
     @classmethod
     def add_to(cls, contributor, obj, roles=None, affiliation=None):

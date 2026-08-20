@@ -12,6 +12,7 @@ Tests cover:
 """
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
@@ -633,6 +634,22 @@ class TestContributionUniqueness:
             ContributionFactory(
                 contributor=person, content_object=project_for_contributions
             )
+
+    @pytest.mark.django_db
+    def test_duplicate_pairing_raises_a_validation_error_with_a_clear_message(
+        self, person, project_for_contributions
+    ):
+        """FR-031, Article IX: the named UniqueConstraint carries a message, and clean()
+        raises with the same wording, so a form validating before save is refused exactly
+        the way a raw insert would be."""
+        ContributionFactory(contributor=person, content_object=project_for_contributions)
+        duplicate = Contribution(
+            contributor=person,
+            content_type=ContentType.objects.get_for_model(project_for_contributions),
+            object_id=project_for_contributions.pk,
+        )
+        with pytest.raises(ValidationError, match="already credited"):
+            duplicate.full_clean()
 
     @pytest.mark.django_db
     def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
