@@ -776,3 +776,39 @@ its existing name. The one genuine gap — no `create_user` — is the only addi
 
 **Revisit if:** a future story renames the manager for an unrelated reason; there is no standing
 reason to rename it for this one.
+
+## D32 — The account's email keeps `unique=True` alongside the case-insensitive constraint
+
+**Self-resolved**, correcting a story's own deviation at convergence.
+
+FR-009 requires an email address to be unique across people, and T031 requires that uniqueness to be
+case-insensitive so that two people cannot take the same address in different case. The story
+implementing it removed the field-level `unique=True` on the grounds that a case-sensitive index and
+a case-insensitive constraint answer the same question twice.
+
+That reasoning is sound about indexes and wrong about Django. `auth.W004` checks the flag on the
+field named by `USERNAME_FIELD`, not `Meta.constraints`, so removing it made the system checks
+report that the portal's login field is not unique. A warning that says the account identifier may
+be ambiguous is not one to silence.
+
+Both are kept. The case-insensitive constraint is the stronger rule and the one that actually stops
+two people sharing an address; the flag exists so that Django's own contract for an authentication
+field is satisfied by the means Django reads. The cost is one redundant index on a column that is
+looked up on every sign-in, which is not a column where an extra index is a burden.
+
+## D33 — One consolidated migration, generated at convergence
+
+**Self-resolved.**
+
+Five stories changed models at the same time in separate worktrees. Had each generated its own
+migration they would have produced five leaves against the same parent, to be merged and renumbered
+by hand for no benefit — the test settings stub `MIGRATION_MODULES`, so no story's tests need a
+migration to pass.
+
+Each story was therefore told not to run `makemigrations`, and to say in its report where a task's
+text had asked for one. One migration was generated here, after all five merged, covering every
+schema change the feature makes: the organisation type field, the parent link's delete rule, four
+indexes, and four named constraints. `makemigrations --check` is clean and the system checks pass.
+
+This is what Article IX asks for anyway — migrations consolidated per pull request — reached by
+withholding them rather than by squashing afterwards.

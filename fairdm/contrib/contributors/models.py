@@ -514,6 +514,12 @@ class Person(AbstractUser, Contributor):
         ),
         null=True,
         blank=True,
+        # Django's auth checks require the field named by USERNAME_FIELD to be
+        # unique (auth.W004), and they read this flag rather than Meta.constraints.
+        # The case-insensitive constraint in Meta is the stronger rule and the one
+        # that actually stops two people sharing an address; this keeps Django's own
+        # contract satisfied rather than silencing the check that states it.
+        unique=True,
     )
 
     is_claimed = models.BooleanField(
