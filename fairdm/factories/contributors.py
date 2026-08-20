@@ -8,6 +8,7 @@ from factory.faker import Faker
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
+    Contributor,
     Organization,
     Person,
 )
@@ -43,44 +44,39 @@ class UserFactory(DjangoModelFactory):
 
 
 class ContributorFactory(DjangoModelFactory):
-    """Factory for creating Contributor instances (creates Person as default)."""
+    """Factory for the fields common to every concrete contributor type.
+
+    PersonFactory and OrganizationFactory build on this rather than duplicating
+    these declarations; the preferred name is a sequence, not a random Faker
+    value, so that ordering by name is stable across a test run.
+    """
 
     class Meta:
-        model = Person  # Use Person as the concrete implementation
+        model = Contributor
 
     image = factory.django.ImageField(width=400, height=400, color="blue")
-    name = Faker("name")
+    name = factory.Sequence(lambda n: f"Contributor {n}")
     profile = Faker("text", max_nb_chars=300)
-    first_name = Faker("first_name")
-    last_name = Faker("last_name")
-    email = LazyAttribute(lambda o: f"{o.first_name}.{o.last_name}@fakeuser.org")
 
 
-class PersonFactory(DjangoModelFactory):
+class PersonFactory(ContributorFactory):
     """Factory for creating Person instances."""
 
     class Meta:
         model = Person
         django_get_or_create = ["email"]
 
-    image = factory.django.ImageField(width=400, height=400, color="blue")
-    profile = Faker("text", max_nb_chars=300)
-    name = LazyAttribute(lambda o: f"{o.first_name} {o.last_name}")
     email = LazyAttribute(lambda o: f"{o.first_name}.{o.last_name}@fakeuser.org")
     first_name = Faker("first_name")
     last_name = Faker("last_name")
     is_active = Faker("boolean", chance_of_getting_true=80)
 
 
-class OrganizationFactory(DjangoModelFactory):
+class OrganizationFactory(ContributorFactory):
     """Factory for creating Organization instances."""
 
     class Meta:
         model = Organization
-
-    image = factory.django.ImageField(width=400, height=400, color="blue")
-    profile = Faker("text", max_nb_chars=300)
-    name = Faker("company")
 
 
 class AffiliationFactory(DjangoModelFactory):
