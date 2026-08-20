@@ -1370,6 +1370,28 @@ class TestIdentifierUniquePerType:
         assert person.identifiers.count() == 2
 
 
+# ── T110: A contributor reports its default identifier ──────────────────────
+
+
+class TestDefaultIdentifier:
+    """A contributor reports the identifier of the type expected for its kind as its
+    default, and reports nothing when it carries none (FR-039, SC-013)."""
+
+    @pytest.mark.django_db
+    def test_person_default_identifier_is_its_orcid(self, orcid_identifier, person):
+        assert person.get_default_identifier() == orcid_identifier
+
+    @pytest.mark.django_db
+    def test_organization_default_identifier_is_its_ror(
+        self, ror_identifier, organization
+    ):
+        assert organization.get_default_identifier() == ror_identifier
+
+    @pytest.mark.django_db
+    def test_default_identifier_is_none_without_any_identifiers(self, person):
+        assert person.get_default_identifier() is None
+
+
 class TestContributorIdentifierVocabulary:
     """005 F1/F2 - ContributorIdentifier is bound to a scoped collection (the union of the
     Person and Organization collections), not the unscoped FairDMIdentifiers vocabulary, so a
