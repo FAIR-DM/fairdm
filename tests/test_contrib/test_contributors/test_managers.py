@@ -11,6 +11,7 @@ Tests correspond to tasks T100-T103.
 
 import pytest
 
+from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import Affiliation, Contribution, Person
 from fairdm.contrib.contributors.tasks import detect_duplicate_contributors
 
@@ -71,6 +72,56 @@ class TestPersonQuerysets:
 
         # Inactive person with email should NOT be in claimed queryset
         assert inactive not in claimed_persons
+
+
+# ── T040 (US3): account state filters ────────────────────────────────────────
+
+
+class TestAccountStateFilters:
+    """The four state filters return exactly the people in that state, and
+    together return the whole population exactly once (FR-014, SC-004).
+    """
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("filter_name", ["ghost", "invited", "claimed", "inactive"])
+    def test_filter_returns_exactly_the_matching_population_member(
+        self, contributor_population, filter_name
+    ):
+        pop = contributor_population
+        by_state = {
+            "ghost": pop.ghost,
+            "invited": pop.invited,
+            "claimed": pop.claimed,
+            "inactive": pop.inactive,
+        }
+        expected = by_state.pop(filter_name)
+        result = getattr(Person.objects, filter_name)()
+
+        assert expected in result
+        for other in by_state.values():
+            assert other not in result
+
+    @pytest.mark.django_db
+    def test_filters_partition_the_whole_table_exactly_once(self, contributor_population):
+        """Every row matches exactly one filter, and it is the one its own
+        `account_state` names - the property and the filters cannot drift
+        apart because this test checks them against each other directly.
+        """
+        state_to_queryset = {
+            AccountState.GHOST: Person.objects.ghost(),
+            AccountState.INVITED: Person.objects.invited(),
+            AccountState.CLAIMED: Person.objects.claimed(),
+            AccountState.INACTIVE: Person.objects.inactive(),
+        }
+
+        all_people = list(Person.objects.all())
+        assert all_people  # contributor_population guarantees a non-empty table
+
+        for person in all_people:
+            matching_states = [
+                state for state, qs in state_to_queryset.items() if person in qs
+            ]
+            assert matching_states == [person.account_state]
 
 
 # ── T101: ContributionManager.by_role() ──────────────────────────────────────

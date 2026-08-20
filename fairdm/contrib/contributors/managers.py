@@ -32,16 +32,29 @@ class PersonQuerySet(PrefetchPolymorphicQuerySet):
         """
         return self.filter(is_active=True)
 
+    def inactive(self):
+        """Filter to deactivated accounts - the highest-precedence state (D8).
+
+        Deactivation is decided first: a deactivated person is inactive
+        regardless of claim status or email address, mirroring
+        `Person.account_state`.
+
+        Returns:
+            QuerySet: Person objects with is_active=False
+        """
+        return self.filter(is_active=False)
+
     def claimed(self):
         """Filter to persons who have claimed their accounts.
 
-        Claimed persons have is_claimed=True and can log in. This includes
-        both active and banned accounts.
+        Claimed persons are active and have is_claimed=True. Deactivation is
+        decided first (D8), so a deactivated account is never claimed here
+        even though the stored flag is still True.
 
         Returns:
-            QuerySet: Person objects with is_claimed=True
+            QuerySet: Person objects with is_active=True and is_claimed=True
         """
-        return self.filter(is_claimed=True)
+        return self.filter(is_active=True, is_claimed=True)
 
     def unclaimed(self):
         """Filter to persons who have not claimed their accounts.
@@ -57,34 +70,40 @@ class PersonQuerySet(PrefetchPolymorphicQuerySet):
     def ghost(self):
         """Filter to ghost profiles (provenance-only attribution records).
 
-        Ghost profiles have no email and are created via create_unclaimed() for
-        attribution purposes. They cannot receive invitations.
+        Ghost profiles are active, have no email and are created via
+        create_unclaimed() for attribution purposes. They cannot receive
+        invitations. Deactivation is decided first (D8): a deactivated
+        person with no email is inactive, not ghost.
 
         Returns:
-            QuerySet: Person objects with is_claimed=False and email=NULL
+            QuerySet: Person objects with is_active=True, is_claimed=False
+            and email=NULL
         """
-        return self.filter(is_claimed=False, email__isnull=True)
+        return self.filter(is_active=True, is_claimed=False, email__isnull=True)
 
     def invited(self):
         """Filter to invited profiles (email present but not claimed).
 
-        Invited profiles have an email address but the person has not yet
-        completed registration/claiming.
+        Invited profiles are active and have an email address but the person
+        has not yet completed registration/claiming. Deactivation is decided
+        first (D8): a deactivated person with an email is inactive, not
+        invited.
 
         Returns:
-            QuerySet: Person objects with is_claimed=False and email NOT NULL
+            QuerySet: Person objects with is_active=True, is_claimed=False
+            and email NOT NULL
         """
-        return self.filter(is_claimed=False, email__isnull=False)
+        return self.filter(is_active=True, is_claimed=False, email__isnull=False)
 
 
 class UserManager(BaseUserManager, PrefetchPolymorphicManager.from_queryset(PersonQuerySet)):
     """Manager for the Person model with no username field.
 
-    `real()`, `active()`, `claimed()`, `unclaimed()`, `ghost()` and `invited()`
-    are defined once on `PersonQuerySet` above and reach this manager through
-    `PrefetchPolymorphicManager.from_queryset()` (FR-040, D14), matching the
-    pattern `fairdm.core.dataset.models.DatasetManager` uses - no manager-side
-    reimplementation is kept here.
+    `real()`, `active()`, `claimed()`, `unclaimed()`, `ghost()`, `invited()`
+    and `inactive()` are defined once on `PersonQuerySet` above and reach this
+    manager through `PrefetchPolymorphicManager.from_queryset()` (FR-040,
+    D14), matching the pattern `fairdm.core.dataset.models.DatasetManager`
+    uses - no manager-side reimplementation is kept here.
     """
 
     use_in_migrations = False
