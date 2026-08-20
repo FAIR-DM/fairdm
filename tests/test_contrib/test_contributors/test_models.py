@@ -151,6 +151,30 @@ class TestContributorTimestamps:
         assert person.modified > original_modified
 
 
+# ── FS-009 US1 T012: Contributor configuration store ─────────────────────────
+
+
+class TestContributorConfiguration:
+    """Verify the general-purpose configuration store (FR-006)."""
+
+    @pytest.mark.django_db
+    def test_config_defaults_empty(self):
+        """A contributor with nothing written to its configuration store has an empty one."""
+        person = PersonFactory()
+        assert person.config == {}
+
+    @pytest.mark.django_db
+    def test_config_accepts_and_returns_arbitrary_json(self):
+        """Arbitrary JSON written to the store round-trips unchanged."""
+        person = PersonFactory()
+        person.config = {"anything": ["the", "specification", "does", "not", "define"]}
+        person.save()
+        person.refresh_from_db()
+        assert person.config == {
+            "anything": ["the", "specification", "does", "not", "define"]
+        }
+
+
 # ── T013: Person claimed/unclaimed semantics ────────────────────────────────
 
 
