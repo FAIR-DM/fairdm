@@ -166,9 +166,10 @@ Organizations represent institutions, companies, research groups, and other orga
 
 **Ownership Transfer**:
 - Admin action: "Transfer Ownership"
-- Select single organization
-- Redirects to organization page with instructions
-- Ownership transfer via Affiliation type change
+- Select a single organization, choose the new owner from the "New owner"
+  field in the action bar, then run the action
+- Performs the transfer directly — demotes the incumbent owner to ADMIN and
+  promotes the chosen member to OWNER
 
 ### Creating Organizations
 
@@ -230,10 +231,15 @@ the incumbent.
 
 ### Transferring Organization Ownership
 
-**Via Admin Action**: Select a single organization in the admin changelist
-and choose "Transfer Ownership". The action does not perform the transfer
-itself — it points you at the members inline to make the change described
-below.
+**Via Admin Action**: Select a single organization in the admin changelist,
+pick the new owner from the "New owner" field next to the action dropdown,
+and choose "Transfer Ownership". The action calls
+`Organization.transfer_ownership()` itself and reports the outcome — the
+incumbent owner is demoted to ADMIN and the chosen member becomes OWNER. It
+requires the acting user to hold `manage_organization` on that organisation
+(an OWNER affiliation, or superuser); holding only the ordinary
+`change_organization` permission that gets an account into the admin at all
+is not enough.
 
 **Via `Organization.transfer_ownership()`**: the model method that performs
 an actual transfer — demoting the incumbent owner to ADMIN and promoting the
