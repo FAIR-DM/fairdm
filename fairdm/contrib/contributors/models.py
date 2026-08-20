@@ -60,27 +60,24 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     - Organization: Institutional contributors
 
     Attributes:
-        uuid (ShortUUIDField): Unique identifier for the contributor
-        name (CharField): Full name of the contributor
-        profile (TextField): Biographical information or description
-        avatar (ThumbnailerImageField): Profile picture
-        links (ArrayField): URLs to external profiles/websites
-        keywords (ConceptManyToManyField): Research topics and interests
+        uuid (ShortUUIDField): Public identifier for the contributor
+        image (ThumbnailerImageField): Profile image
+        name (CharField): Preferred name of the contributor
+        alternative_names (JSONField): Other names by which the contributor is known
+        profile (TextField): Free-text description
+        links (JSONField): URLs to related online resources
+        lang (JSONField): ISO 639-1 language preferences
+        location (ForeignKey): Geographic location
+        last_synced (DateField): Last synchronization timestamp
         synced_data (JSONField): Raw data from external identifier sync
-        last_synced (DateTimeField): Last synchronization timestamp
-        weight (FloatField): Sorting weight based on contributions and profile completeness
-        owner (ForeignKey): User who manages this contributor profile
-        permissions (JSONField): Access control permissions
-        created (DateTimeField): Record creation timestamp
+        config (JSONField): General-purpose configuration data; this specification does
+            not define its contents
+        added (DateTimeField): Record creation timestamp
         modified (DateTimeField): Record modification timestamp
-
-    Lifecycle Hooks:
-        - update_weight: Recalculates weight when synced_data changes
 
     Abstract Methods (implemented by subclasses):
         - icon: Returns the icon identifier
         - default_identifier: Returns the primary external identifier
-        - calculate_profile_completion: Returns completion percentage (0-1)
 
     See Also:
         - Person: Individual contributor implementation
@@ -167,15 +164,6 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         null=True,
         blank=True,
         default=dict,
-    )
-
-    weight = models.FloatField(
-        _("weight"),
-        help_text=_(
-            "A weighting factor to determine sort order of contributors in public lists based on their contributions, completion of profile and linking of external identifiers."
-        ),
-        default=1.0,
-        editable=False,
     )
 
     location = models.ForeignKey(
@@ -298,49 +286,6 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     def measurements(self):
         Measurement = apps.get_model("measurement.Measurement")
         return Measurement.objects.filter(contributors__contributor=self)
-
-    def calculate_profile_completion(self):
-        """
-        Calculate the profile completion percentage.
-
-        Checks for presence of key fields: profile text, image, and links.
-
-        Returns:
-            float: Profile completion percentage (0.0 to 1.0)
-        """
-        fields_to_check = ["profile", "image", "links"]
-        filled_fields = sum(1 for field in fields_to_check if getattr(self, field))
-        return filled_fields / len(fields_to_check)
-
-    def calculate_weight(self):
-        """
-        Calculate contributor weight for ranking in lists.
-
-        Weight is calculated based on:
-        - Number of contributions (50%)
-        - Profile completion (30%)
-        - Presence of external identifiers (20%)
-
-        Returns:
-            float: Weight value between 0.0 and 1.0
-        """
-        # Contribution count component (0-1 scale, max at 10 contributions)
-        contribution_count = min(self.contributions.count() / 10.0, 1.0)
-
-        # Profile completion component (0-1 scale)
-        profile_completion = self.calculate_profile_completion()
-
-        # Identifier presence component (0-1 scale)
-        has_identifiers = 1.0 if self.identifiers.exists() else 0.0
-
-        # Weighted sum
-        weight = (
-            (contribution_count * 0.5)
-            + (profile_completion * 0.3)
-            + (has_identifiers * 0.2)
-        )
-
-        return round(weight, 2)
 
     def to_datacite(self):
         """
