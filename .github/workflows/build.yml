@@ -17,6 +17,9 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   call-build:
     uses: django-mvp/shared/.github/workflows/build.yml@v0.4.0

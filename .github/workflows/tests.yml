@@ -17,8 +17,13 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   call-tests:
+    # v0.4.0 hard-fails the coverage upload without CODECOV_TOKEN, which this
+    # repository does not currently provide for pull request CI.
     uses: django-mvp/shared/.github/workflows/tests.yml@v0.3.3
     with:
       coverage-package: fairdm
