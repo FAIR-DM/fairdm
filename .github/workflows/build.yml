@@ -17,9 +17,12 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   call-build:
-    uses: django-mvp/shared/.github/workflows/build.yml@v0.3.3
+    uses: django-mvp/shared/.github/workflows/build.yml@v0.4.0
     with:
       source-dir: fairdm
       python-version: '3.13'

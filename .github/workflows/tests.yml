@@ -17,9 +17,12 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   call-tests:
-    uses: django-mvp/shared/.github/workflows/tests.yml@v0.3.3
+    uses: django-mvp/shared/.github/workflows/tests.yml@v0.4.0
     with:
       coverage-package: fairdm
       # Django 6.0 is outside this package's supported range (see the django
@@ -27,4 +30,5 @@ jobs:
       python-versions: '["3.13"]'
       django-versions: '["5.1", "5.2"]'
       poetry-install-args: '--with test'
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
