@@ -4,6 +4,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.helpers import ActionForm
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
@@ -19,6 +20,99 @@ from .models import (
     Person,
 )
 from .resources import PersonResource
+
+
+class AffiliationForm(forms.ModelForm):
+    """The single place that gates writing an Admin/Owner affiliation (Route 1).
+
+    Holding an OWNER affiliation *is* what ``contributors.manage_organization``
+    means (``OrganizationPermissionBackend``), so setting an affiliation's
+    ``type`` to ADMIN or OWNER -- or changing one that already carries one of
+    those types, including demoting, deleting, or merely editing its end date
+    -- is itself a management act. Each requires ``manage_organization`` on the
+    organisation in question. Superusers already hold that permission through
+    ``has_perm``, so no separate superuser branch is needed here.
+
+    ``AffiliationAdmin``, ``AffiliationInline`` and ``MemberInline`` each build
+    a per-request subclass of this form via ``bind_affiliation_form_user`` so
+    the rule is written once and reached from every route that can write a
+    ``type``.
+    """
+
+    class Meta:
+        model = Affiliation
+        fields = "__all__"
+
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def _user_can_manage(self, organization):
+        return bool(self.user) and self.user.has_perm(
+            "contributors.manage_organization", organization
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        management_types = (
+            Affiliation.MembershipType.ADMIN,
+            Affiliation.MembershipType.OWNER,
+        )
+        new_type = cleaned_data.get("type")
+        target_organization = cleaned_data.get("organization") or getattr(
+            self.instance, "organization", None
+        )
+
+        if (
+            new_type in management_types
+            and target_organization is not None
+            and not self._user_can_manage(target_organization)
+        ):
+            self.add_error(
+                "type",
+                _(
+                    "You do not have permission to set this affiliation to Admin "
+                    "or Owner for %(organization)s."
+                )
+                % {"organization": target_organization},
+            )
+
+        if self.instance.pk:
+            original_type = self.instance.type
+            original_organization = self.instance.organization
+            if (
+                original_type in management_types
+                and original_organization is not None
+                and not self._user_can_manage(original_organization)
+            ):
+                self.add_error(
+                    None,
+                    _(
+                        "You do not have permission to change this Admin or Owner "
+                        "affiliation with %(organization)s."
+                    )
+                    % {"organization": original_organization},
+                )
+
+        return cleaned_data
+
+
+def bind_affiliation_form_user(form_class, user):
+    """Return a subclass of ``form_class`` with ``user`` bound as its default.
+
+    ``AffiliationForm.clean()`` needs the acting user to evaluate
+    ``manage_organization``. The standalone admin and both inlines each build
+    one of these per request -- in ``get_form``/``get_formset`` -- so the check
+    always runs against whoever actually submitted the form.
+    """
+
+    class BoundAffiliationForm(form_class):
+        def __init__(self, *args, **kwargs):
+            kwargs.setdefault("user", user)
+            super().__init__(*args, **kwargs)
+
+    return BoundAffiliationForm
 
 
 class ClaimedStatusFilter(admin.SimpleListFilter):
@@ -72,19 +166,31 @@ class ContributorInline(admin.StackedInline):
 
 class AffiliationInline(admin.StackedInline):
     model = Affiliation
+    form = AffiliationForm
     fields = [("organization", "type", "is_primary")]
     extra = 0
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Bind the requesting user into ``AffiliationForm`` (Route 1)."""
+        kwargs["form"] = bind_affiliation_form_user(self.form, request.user)
+        return super().get_formset(request, obj, **kwargs)
 
 
 class MemberInline(admin.StackedInline):
     """Inline for managing organization members (from Organization perspective)."""
 
     model = Affiliation
+    form = AffiliationForm
     fk_name = "organization"  # Specify which FK to use (Affiliation -> Organization)
     fields = [("person", "type", "is_primary")]
     extra = 0
     verbose_name = "Member"
     verbose_name_plural = "Members"
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Bind the requesting user into ``AffiliationForm`` (Route 1)."""
+        kwargs["form"] = bind_affiliation_form_user(self.form, request.user)
+        return super().get_formset(request, obj, **kwargs)
 
 
 class IdentifierInline(admin.StackedInline):
@@ -204,6 +310,19 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     ordering = ("last_name",)
     actions = ["generate_claim_link_action", "merge_person_action"]
 
+    def get_actions(self, request):
+        """Drop the merge/claim-link actions for a non-superuser (Route 2).
+
+        ``merge_view`` and ``claim_link_view`` themselves are the load-bearing
+        gate -- this only keeps the interface from offering an action that
+        would redirect a non-superuser into a page that refuses them.
+        """
+        actions = super().get_actions(request)
+        if not request.user.is_superuser:
+            actions.pop("merge_person_action", None)
+            actions.pop("generate_claim_link_action", None)
+        return actions
+
     @admin.display(description=_("Account state"))
     def account_state(self, obj):
         """Report the account state derived from the stored claim and active fields (D8).
@@ -308,7 +427,19 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         return custom_urls + urls
 
     def claim_link_view(self, request, pk):
-        """Render the claim link page for a Person."""
+        """Render the claim link page for a Person.
+
+        Superuser-only (Route 2): a claim token is a credential, and minting
+        one is not an ordinary staff operation. Gated first, before anything
+        else in this view -- including the reverse() call for
+        "contributors:claim-profile", which currently raises NoReverseMatch
+        for an unrelated, already-reported reason (that URL is commented out
+        in ``urls.py``). Refusing here first keeps this permission check
+        observable on its own.
+        """
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
         from django.shortcuts import get_object_or_404
         from django.template.response import TemplateResponse
         from django.urls import reverse
@@ -341,7 +472,16 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         )
 
     def merge_view(self, request, pk):
-        """Render the merge confirmation/execution page for a Person."""
+        """Render the merge confirmation/execution page for a Person.
+
+        Superuser-only (Route 2): merging destroys the discarded person's
+        identity and moves their affiliations (including any OWNER one),
+        object-level permissions, confirmed emails and social account onto
+        the surviving record. That is not an ordinary staff operation.
+        """
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
         from django.contrib import messages
         from django.shortcuts import get_object_or_404, redirect
         from django.template.response import TemplateResponse
@@ -548,11 +688,65 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 @admin.register(Affiliation)
 class AffiliationAdmin(admin.ModelAdmin):
-    """Administer affiliations directly, outside the person/organisation inlines (US10)."""
+    """Administer affiliations directly, outside the person/organisation inlines (US10).
 
+    Writing ``type`` is gated by ``AffiliationForm`` (Route 1): a non-superuser
+    lacking ``manage_organization`` on the affiliation's organisation cannot set
+    it to Admin or Owner, and cannot change one that already is. That covers
+    the write; ``has_change_permission``/``has_delete_permission`` below cover
+    the surrounding change/delete routes for an existing Admin or Owner row the
+    same way, and ``get_queryset`` scopes the changelist itself.
+    """
+
+    form = AffiliationForm
     list_display = ["person", "organization", "type", "is_primary"]
     list_filter = ["type", "is_primary"]
     autocomplete_fields = ["person", "organization"]
+
+    def get_form(self, request, obj=None, **kwargs):
+        kwargs["form"] = bind_affiliation_form_user(self.form, request.user)
+        return super().get_form(request, obj, **kwargs)
+
+    def get_queryset(self, request):
+        """Scope a non-superuser to affiliations of organisations they manage.
+
+        Expressed as a subquery through ``AffiliationQuerySet.owners()`` --
+        the single place the "current OWNER" rule lives -- rather than a
+        Python loop that resolves each organisation in turn.
+        """
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        managed_organization_ids = (
+            Affiliation.objects.owners()
+            .filter(person=request.user)
+            .values_list("organization_id", flat=True)
+        )
+        return qs.filter(organization_id__in=managed_organization_ids)
+
+    def has_change_permission(self, request, obj=None):
+        """Refuse changing a given affiliation without ``manage_organization``
+        on its organisation -- whatever the affiliation's own type is,
+        since a non-manager should not be able to reach the change form for
+        someone else's row and, via ``AffiliationForm``, promote it there.
+
+        ``obj is None`` (the changelist's own permission check) is left to the
+        ordinary model-level permission so the changelist still works.
+        """
+        if obj is not None and not request.user.has_perm(
+            "contributors.manage_organization", obj.organization
+        ):
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        """Refuse deleting a given affiliation without ``manage_organization``
+        on its organisation. See ``has_change_permission`` above."""
+        if obj is not None and not request.user.has_perm(
+            "contributors.manage_organization", obj.organization
+        ):
+            return False
+        return super().has_delete_permission(request, obj)
 
 
 @admin.register(ClaimingAuditLog)
