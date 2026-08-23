@@ -488,6 +488,85 @@ class TestAffiliationQuerysetMethods:
         assert set(current) & set(past) == set()
 
 
+class TestAffiliationOwnersMethod:
+    """Test AffiliationQuerySet.owners(): current OWNER affiliations only.
+
+    Ownership means type=OWNER *and* end_date IS NULL (Defect A); this is
+    the single place that rule is expressed, and every caller (the
+    permission backend, Organization.owner(), transfer_ownership()) reaches
+    it through here.
+    """
+
+    @pytest.mark.django_db
+    def test_owners_excludes_an_owner_affiliation_that_has_ended(self, db):
+        """A type=OWNER affiliation with an end_date is not returned by owners()."""
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        org = OrganizationFactory(name="Ended Owner Org")
+        ended_owner = AffiliationFactory(
+            person=PersonFactory(),
+            organization=org,
+            type=Affiliation.MembershipType.OWNER,
+            end_date="2020",
+        )
+
+        owners = org.affiliations.owners()
+
+        assert owners.count() == 0
+        assert ended_owner not in owners
+
+    @pytest.mark.django_db
+    def test_owners_returns_a_current_owner_affiliation(self, db):
+        """A current (no end_date) type=OWNER affiliation is returned by owners()."""
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        org = OrganizationFactory(name="Current Owner Org")
+        current_owner = AffiliationFactory(
+            person=PersonFactory(),
+            organization=org,
+            type=Affiliation.MembershipType.OWNER,
+            end_date=None,
+        )
+
+        owners = org.affiliations.owners()
+
+        assert owners.count() == 1
+        assert current_owner in owners
+
+    @pytest.mark.django_db
+    def test_owners_excludes_current_non_owner_types(self, db):
+        """A current MEMBER or ADMIN affiliation is not returned by owners()."""
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        org = OrganizationFactory(name="Members Org")
+        AffiliationFactory(
+            person=PersonFactory(),
+            organization=org,
+            type=Affiliation.MembershipType.MEMBER,
+            end_date=None,
+        )
+        AffiliationFactory(
+            person=PersonFactory(),
+            organization=org,
+            type=Affiliation.MembershipType.ADMIN,
+            end_date=None,
+        )
+
+        assert org.affiliations.owners().count() == 0
+
+
 # ── T119 (US9): real contributors ────────────────────────────────────────────
 
 

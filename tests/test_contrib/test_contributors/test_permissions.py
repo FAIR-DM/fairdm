@@ -6,7 +6,9 @@ and ownership transfer functionality.
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from guardian.shortcuts import assign_perm
 from partial_date import PartialDate
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
@@ -322,6 +324,11 @@ class TestTransferOwnership:
         assert organization.affiliations.filter(person=old_owner).exists()
         assert organization.affiliations.filter(person=new_owner).exists()
 
+        # Preserving history is not enough on its own: the end date must also
+        # end the rights the OWNER type would otherwise still confer (Defect A).
+        old_owner = Person.objects.get(pk=old_owner.pk)
+        assert not old_owner.has_perm("contributors.manage_organization", organization)
+
 
 # ── T065: Admin override access ─────────────────────────────────────────────
 
@@ -387,3 +394,72 @@ class TestDeactivatedOwner:
 
         person = Person.objects.get(pk=person.pk)
         assert person.has_perm("manage_organization", organization)
+
+
+# ── Defect A: an ended OWNER affiliation confers no rights ─────────────────
+
+
+@pytest.mark.django_db
+class TestEndedOwnershipRevokesPermission:
+    """Setting end_date on an OWNER affiliation ends the rights it conferred.
+
+    ``Affiliation.end_date``'s help_text documents this: "Leave blank for
+    active affiliations." An administrator who offboards a departing owner
+    by setting the end date and leaving the type alone must actually revoke
+    the right, not merely record history.
+    """
+
+    def test_owner_affiliation_with_a_past_end_date_grants_nothing(
+        self, organization, owner_affiliation
+    ):
+        """An OWNER affiliation with end_date in the past fails has_perm."""
+        person = owner_affiliation.person
+        assert person.has_perm("manage_organization", organization)
+
+        owner_affiliation.end_date = PartialDate("2020-01-01")
+        owner_affiliation.save()
+
+        person = Person.objects.get(pk=person.pk)
+        assert not person.has_perm("manage_organization", organization)
+        assert not person.has_perm("contributors.manage_organization", organization)
+
+
+# ── Defect B: a stored guardian grant never confers manage_organization ────
+
+
+@pytest.mark.django_db
+class TestStoredGuardianGrantNeverHonoured:
+    """A stored object-level ``manage_organization`` grant confers nothing.
+
+    ``manage_organization`` was declared in one migration, its guardian rows
+    removed in another, and the declaration dropped from
+    ``Organization.Meta.permissions`` in a third - but Django never deletes
+    the underlying ``Permission`` row when a permission leaves a model's
+    options, so a database migrated forward can still carry it, and a
+    guardian object-level grant can still be written against it. The
+    derived affiliation rule and superuser status are the only two sources
+    of this right; a stored row must never be honoured.
+    """
+
+    def test_stored_grant_confers_nothing_without_an_owner_affiliation(
+        self, organization, person
+    ):
+        """A guardian UserObjectPermission row alone does not pass has_perm."""
+        org_ct = ContentType.objects.get_for_model(Organization)
+        Permission.objects.get_or_create(
+            content_type=org_ct,
+            codename="manage_organization",
+            defaults={"name": "Can manage organization"},
+        )
+        assign_perm("manage_organization", person, organization)
+
+        person = Person.objects.get(pk=person.pk)
+        assert not person.has_perm("manage_organization", organization)
+        assert not person.has_perm("contributors.manage_organization", organization)
+
+    def test_superuser_still_passes_with_no_affiliation_or_stored_grant(
+        self, organization, superuser
+    ):
+        """A superuser passes on affiliation-derived status alone, not a stored row."""
+        assert superuser.has_perm("manage_organization", organization)
+        assert superuser.has_perm("contributors.manage_organization", organization)

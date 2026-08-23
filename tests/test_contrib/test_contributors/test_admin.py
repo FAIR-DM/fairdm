@@ -439,7 +439,9 @@ class TestOwnershipTransferAction:
 
         incumbent = owner_affiliation.person
         successor = AffiliationFactory(
-            person=PersonFactory(email="successor@example.com"),
+            person=PersonFactory(
+                email="successor@example.com", is_active=True, is_claimed=True
+            ),
             organization=organization,
             type=Affiliation.MembershipType.MEMBER,
         ).person

@@ -642,6 +642,20 @@ class TestOrganizationCreationAndValidation:
         assert organization.owner() == person
 
     @pytest.mark.django_db
+    def test_organization_owner_is_none_when_the_only_owner_affiliation_has_ended(
+        self, person, organization
+    ):
+        """Organization.owner() returns None once the OWNER affiliation has an
+        end_date, even though the row's type still reads OWNER (Defect A)."""
+        AffiliationFactory(
+            person=person,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+            end_date="2019",
+        )
+        assert organization.owner() is None
+
+    @pytest.mark.django_db
     def test_organization_get_location_display(self, db):
         """get_location_display returns city, country string."""
         org = OrganizationFactory(name="GFZ", city="Potsdam", country="DE")
@@ -763,7 +777,9 @@ class TestOwnershipTransfer:
         """Transfer leaves the incumbent an administrator and the successor the owner."""
         incumbent = owner_affiliation.person
         successor = AffiliationFactory(
-            person=PersonFactory(email="successor@example.com"),
+            person=PersonFactory(
+                email="successor@example.com", is_active=True, is_claimed=True
+            ),
             organization=organization,
             type=Affiliation.MembershipType.MEMBER,
         ).person
@@ -794,7 +810,9 @@ class TestOwnershipTransfer:
     def test_transfer_is_atomic(self, organization, owner_affiliation, monkeypatch):
         """A failure mid-transfer leaves neither the demotion nor the promotion applied."""
         successor = AffiliationFactory(
-            person=PersonFactory(email="atomic-successor@example.com"),
+            person=PersonFactory(
+                email="atomic-successor@example.com", is_active=True, is_claimed=True
+            ),
             organization=organization,
             type=Affiliation.MembershipType.MEMBER,
         ).person
@@ -814,6 +832,120 @@ class TestOwnershipTransfer:
             organization.affiliations.get(person=successor).type
             == Affiliation.MembershipType.MEMBER
         )
+
+    @pytest.mark.django_db
+    def test_transfer_leaves_an_already_ended_owner_affiliation_untouched(
+        self, organization, person
+    ):
+        """A transfer only demotes *current* owners; a past OWNER affiliation is
+        history and its type is left exactly as it is (Defect A)."""
+        ended_owner_affiliation = AffiliationFactory(
+            person=person,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+            end_date="2019",
+        )
+        successor = PersonFactory(
+            email="successor-past-owner@example.com", is_active=True, is_claimed=True
+        )
+        AffiliationFactory(
+            person=successor,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+
+        organization.transfer_ownership(successor)
+
+        ended_owner_affiliation.refresh_from_db()
+        assert ended_owner_affiliation.type == Affiliation.MembershipType.OWNER
+        assert ended_owner_affiliation.end_date is not None
+        assert organization.owner() == successor
+
+
+# ── Defect C: transfer refuses a target who cannot be meant ─────────────────
+
+
+class TestTransferOwnershipRefusesInvalidTargets:
+    """Organization.transfer_ownership() refuses a target it cannot mean as the
+    new owner: the new owner must hold a current affiliation of type MEMBER or
+    higher, and must be an active, claimed person (Defect C)."""
+
+    @pytest.mark.django_db
+    def test_refuses_a_pending_affiliate(self, organization, owner_affiliation):
+        """A self-declared, unverified affiliate cannot become owner."""
+        pending_person = PersonFactory(
+            email="pending-affiliate@example.com", is_active=True, is_claimed=True
+        )
+        AffiliationFactory(
+            person=pending_person,
+            organization=organization,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(pending_person)
+
+        assert "pending verification" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+
+    @pytest.mark.django_db
+    def test_refuses_an_ended_affiliation(self, organization, owner_affiliation):
+        """A membership that has already ended cannot become owner."""
+        ended_member = PersonFactory(
+            email="ended-member@example.com", is_active=True, is_claimed=True
+        )
+        AffiliationFactory(
+            person=ended_member,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+            end_date="2019",
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(ended_member)
+
+        assert "has ended" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+
+    @pytest.mark.django_db
+    def test_refuses_an_unclaimed_person(self, organization, owner_affiliation):
+        """Nobody controls an unclaimed profile; it cannot become owner."""
+        unclaimed_member = PersonFactory(
+            email="unclaimed-member@example.com", is_active=True, is_claimed=False
+        )
+        AffiliationFactory(
+            person=unclaimed_member,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(unclaimed_member)
+
+        assert "has not claimed" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+
+    @pytest.mark.django_db
+    def test_refuses_a_deactivated_person(self, organization, owner_affiliation):
+        """A deactivated account cannot become owner."""
+        deactivated_member = PersonFactory(
+            email="deactivated-member@example.com", is_active=False, is_claimed=True
+        )
+        AffiliationFactory(
+            person=deactivated_member,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(deactivated_member)
+
+        assert "deactivated" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
 
 
 # ── T015: Affiliation unique constraints ─────────────────────────────────────

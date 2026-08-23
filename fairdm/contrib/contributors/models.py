@@ -810,13 +810,20 @@ class Affiliation(models.Model):
         ADMIN (2): Can manage organization and approve pending members
         OWNER (3): Full management rights, maps to manage_organization permission
 
+    Setting ``end_date`` ends any rights the affiliation's type would
+    otherwise confer - an OWNER affiliation with an end_date no longer
+    grants ``manage_organization``, for example - because rights derived
+    from an affiliation are read off its *current* state, not its type
+    alone (see ``AffiliationQuerySet.owners()``).
+
     Attributes:
         person: The affiliated person.
         organization: The organization.
         type: Security/verification state (0-3).
         is_primary: Whether this is the person's primary affiliation for citation.
         start_date: When the affiliation began (PartialDateField for variable precision).
-        end_date: When it ended; NULL means active.
+        end_date: When it ended; NULL means active. Ends any rights the
+            affiliation's type conferred.
     """
 
     objects = AffiliationManager()  # type: ignore[var-annotated]
@@ -873,7 +880,11 @@ class Affiliation(models.Model):
 
     end_date = PartialDateField(
         verbose_name=_("end date"),
-        help_text=_("When the affiliation ended. Leave blank for active affiliations."),
+        help_text=_(
+            "When the affiliation ended. Leave blank for active affiliations. "
+            "Setting an end date ends any rights the affiliation's type would "
+            "otherwise confer, such as manage_organization for an owner."
+        ),
         null=True,
         blank=True,
     )
@@ -1115,31 +1126,46 @@ class Organization(Contributor):
         return self.affiliations.select_related("person").all()
 
     def owner(self):
-        """Returns the owner of the organization."""
-        if (
-            membership := self.get_memberships()
-            .filter(type=Affiliation.MembershipType.OWNER)
-            .first()
-        ):
+        """Returns the organization's current owner, or None if it has none.
+
+        Derived through ``AffiliationQuerySet.owners()`` - a current
+        (``end_date`` is NULL) affiliation of type OWNER - so an OWNER
+        affiliation whose end_date has been set no longer counts, even
+        though its type still reads OWNER (Defect A).
+        """
+        if membership := self.get_memberships().owners().first():
             return membership.person
         return None
 
     def transfer_ownership(self, new_owner):
         """Transfer ownership of this organization to an existing member.
 
-        Demotes the incumbent owner to administrator and promotes ``new_owner``
-        to owner in one atomic operation (FR-029). Management rights are
-        derived from the affiliation's type at check time (D13) rather than
-        stored, so this method changes only the affiliation records: no
-        permission is granted, revoked or written anywhere.
+        Demotes each *current* incumbent owner to administrator and promotes
+        ``new_owner`` to owner in one atomic operation (FR-029). Management
+        rights are derived from the affiliation's type at check time (D13)
+        rather than stored, so this method changes only the affiliation
+        records: no permission is granted, revoked or written anywhere.
+        Only current OWNER affiliations (``AffiliationQuerySet.owners()``)
+        are demoted - an affiliation that already carries an end date is
+        history and is left exactly as it is (Defect A).
+
+        ``new_owner`` must hold a current (no end_date) affiliation of type
+        MEMBER or higher, and must be an active, claimed person. A pending,
+        self-declared affiliate; an affiliation that has already ended; an
+        unclaimed profile nobody controls; or a deactivated account would
+        each hand control of the organization to someone who cannot be the
+        intended new owner (Defect C), so each is refused with its own
+        message.
 
         Args:
             new_owner: The Person to become the organization's owner. Must
-                already hold an affiliation with this organization.
+                already hold a current, verified affiliation with this
+                organization, and be an active, claimed account.
 
         Raises:
             ValidationError: If ``new_owner`` is not a member of this
-                organization.
+                organization, holds only a pending or already-ended
+                affiliation, or is an unclaimed or deactivated account.
         """
         from django.core.exceptions import ValidationError
         from django.db import transaction
@@ -1150,11 +1176,30 @@ class Organization(Contributor):
                 _("%(person)s is not a member of %(organization)s.")
                 % {"person": new_owner, "organization": self}
             )
+        if new_owner_affiliation.end_date is not None:
+            raise ValidationError(
+                _("%(person)s's affiliation with %(organization)s has ended.")
+                % {"person": new_owner, "organization": self}
+            )
+        if new_owner_affiliation.type < Affiliation.MembershipType.MEMBER:
+            raise ValidationError(
+                _(
+                    "%(person)s's affiliation with %(organization)s is still "
+                    "pending verification."
+                )
+                % {"person": new_owner, "organization": self}
+            )
+        if not new_owner.is_claimed:
+            raise ValidationError(
+                _("%(person)s has not claimed their account.") % {"person": new_owner}
+            )
+        if not new_owner.is_active:
+            raise ValidationError(
+                _("%(person)s's account is deactivated.") % {"person": new_owner}
+            )
 
         with transaction.atomic():
-            self.affiliations.filter(type=Affiliation.MembershipType.OWNER).update(
-                type=Affiliation.MembershipType.ADMIN
-            )
+            self.affiliations.owners().update(type=Affiliation.MembershipType.ADMIN)
             new_owner_affiliation.type = Affiliation.MembershipType.OWNER
             new_owner_affiliation.save()
 
