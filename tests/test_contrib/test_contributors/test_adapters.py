@@ -1,9 +1,12 @@
-"""Integration tests for the ORCID social adapter — pre_social_login hook.
+"""Integration tests for the ORCID social adapter — pre_social_login and save_user.
 
 Tests verify that:
   - An existing unclaimed Person with a matching ORCID ContributorIdentifier
     gets automatically claimed on ORCID login (no duplicate Person created).
-  - An existing claimed/active Person simply gets the account connected.
+  - An existing claimed/active Person is NOT signed into by the strength of a
+    ContributorIdentifier row alone — that row is not proof of identity, and
+    only allauth's ordinary (email-verified) flow may reach a claimed account.
+  - A deactivated (banned) Person is never reactivated by an ORCID sign-in.
   - A new ORCID sign-in (no matching Person in DB) falls through to the
     normal allauth signup flow.
 """
@@ -92,18 +95,34 @@ class TestPreSocialLoginORCID:
         ).count()
         assert count_after == count_before
 
-    def test_claimed_person_gets_account_connected(
+    def test_claimed_person_is_not_signed_in_via_identifier_row(
         self, db, adapter, request_mock, claimed_person_with_orcid
     ):
-        """An already-claimed Person with ORCID simply gets the social account connected."""
+        """An already-claimed Person is never signed into by an ORCID identifier row.
+
+        Previously this branch swapped ``sociallogin.user`` to the existing,
+        already-claimed Person and connected them — treating a
+        ``ContributorIdentifier`` row (writable by an administrator or a bulk
+        import) as proof of identity. That is account takeover: the row buys
+        no more than skipping allauth's "Account Already Exists" email, at the
+        cost of letting anyone who can write an identifier row sign in as the
+        person it names. The fix leaves a claimed match untouched and falls
+        through to allauth's ordinary, email-verified flow.
+        """
         sl = _make_sociallogin(ORCID_UID, request_mock)
+        original_user = sl.user
 
-        # Should NOT raise — falls through without exception
-        adapter.pre_social_login(request_mock, sl)
+        # Should NOT raise, and should NOT connect or hijack the sociallogin.
+        result = adapter.pre_social_login(request_mock, sl)
 
-        # sociallogin.user should be swapped to the existing person
-        assert sl.user == claimed_person_with_orcid
-        sl.connect.assert_called_once()
+        assert result is None
+        assert sl.user is original_user
+        sl.connect.assert_not_called()
+
+        # The claimed person themselves is untouched.
+        claimed_person_with_orcid.refresh_from_db()
+        assert claimed_person_with_orcid.is_claimed is True
+        assert claimed_person_with_orcid.is_active is True
 
     def test_new_orcid_with_no_matching_person_falls_through(
         self, db, adapter, request_mock
@@ -114,3 +133,95 @@ class TestPreSocialLoginORCID:
         # Should not raise — no matching Person, normal flow
         result = adapter.pre_social_login(request_mock, sl)
         assert result is None
+
+
+# ── save_user ────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def deactivated_unclaimed_person_with_orcid(db):
+    """A deactivated (banned), unclaimed Person with an ORCID ContributorIdentifier."""
+    person = Person.objects.create_unclaimed(first_name="Dana", last_name="Deactivated")
+    person.is_active = False
+    person.save(update_fields=["is_active"])
+    ContributorIdentifier.objects.create(related=person, value=ORCID_UID, type="ORCID")
+    return person
+
+
+def _patch_super_save_user(monkeypatch):
+    """Stub out DefaultSocialAccountAdapter.save_user.
+
+    The real implementation goes on to persist ``sociallogin.user`` via
+    ``sociallogin.save(request)``, which needs a fully-formed allauth
+    SocialLogin/session and is exercised elsewhere (allauth's own test suite,
+    and the app's login views). These tests are only about the adapter's own
+    decision of *which* Person ``sociallogin.user`` ends up pointing at and
+    what is set on it before that persistence step — so the stub keeps the
+    one part that matters for a reactivation check (saving whatever is on
+    ``sociallogin.user`` at that point) without the rest of the real signup
+    machinery.
+    """
+
+    def fake_save_user(self, request, sociallogin, form=None):
+        sociallogin.user.save()
+        return sociallogin.user
+
+    monkeypatch.setattr(
+        "fairdm.contrib.contributors.adapters.DefaultSocialAccountAdapter.save_user",
+        fake_save_user,
+    )
+
+
+class TestSaveUserORCID:
+    def test_deactivated_person_is_not_reactivated(
+        self,
+        db,
+        adapter,
+        request_mock,
+        deactivated_unclaimed_person_with_orcid,
+        monkeypatch,
+    ):
+        """A deactivated Person found by ORCID is adopted (still unclaimed) but
+        save_user no longer un-bans them by forcing is_active back to True.
+        """
+        _patch_super_save_user(monkeypatch)
+        sl = _make_sociallogin(ORCID_UID, request_mock)
+        sl.user = MagicMock()
+
+        adapter.save_user(request_mock, sl)
+
+        deactivated_unclaimed_person_with_orcid.refresh_from_db()
+        assert deactivated_unclaimed_person_with_orcid.is_active is False
+
+    def test_unclaimed_person_is_still_adopted(
+        self, db, adapter, request_mock, unclaimed_person_with_orcid, monkeypatch
+    ):
+        """An unclaimed Person found by ORCID is still adopted by save_user."""
+        _patch_super_save_user(monkeypatch)
+        sl = _make_sociallogin(ORCID_UID, request_mock)
+        sl.user = MagicMock()
+
+        adapter.save_user(request_mock, sl)
+
+        assert sl.user == unclaimed_person_with_orcid
+
+    def test_claimed_person_is_not_adopted(
+        self, db, adapter, request_mock, claimed_person_with_orcid, monkeypatch
+    ):
+        """A claimed Person found by ORCID is left alone — save_user does not
+        adopt it, so signup proceeds as a genuinely new account rather than
+        silently taking over the claimed one.
+        """
+        _patch_super_save_user(monkeypatch)
+        sl = _make_sociallogin(ORCID_UID, request_mock)
+        new_user = MagicMock()
+        sl.user = new_user
+
+        adapter.save_user(request_mock, sl)
+
+        assert sl.user is new_user
+        assert sl.user != claimed_person_with_orcid
+
+        claimed_person_with_orcid.refresh_from_db()
+        assert claimed_person_with_orcid.is_claimed is True
+        assert claimed_person_with_orcid.is_active is True

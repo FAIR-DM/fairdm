@@ -61,48 +61,59 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         if is_provider("orcid", sociallogin):
             orcid_id = sociallogin.account.uid
-            if existing_user := self.get_db_user_by_orcid(orcid_id):
-                if existing_user.is_active and existing_user.is_claimed:
-                    # Active, already-claimed user: simply connect the ORCID account and log them in.
-                    # This prevents allauth sending an "Account Already Exists" email.
-                    sociallogin.user = existing_user
-                    sociallogin.connect(request, existing_user)
-                elif not existing_user.is_claimed:
-                    # Unclaimed Person with a matching ORCID identifier — claim it automatically.
-                    from fairdm.contrib.contributors.exceptions import ClaimingError
-                    from fairdm.contrib.contributors.services.claiming import (
-                        claim_via_orcid,
-                    )
+            existing_user = self.get_db_user_by_orcid(orcid_id)
+            # A ContributorIdentifier row is not proof of identity — it can be
+            # written by an administrator or a bulk import, not just by the
+            # person it names. A claimed account already belongs to someone,
+            # so it is never signed into on the strength of that row alone;
+            # allauth's ordinary flow (email verification) is the correct
+            # outcome there. Only an unclaimed profile — which nobody
+            # controls yet, and which the import exists to make claimable —
+            # is claimed automatically here.
+            if existing_user and not existing_user.is_claimed:
+                # Unclaimed Person with a matching ORCID identifier — claim it automatically.
+                from fairdm.contrib.contributors.exceptions import ClaimingError
+                from fairdm.contrib.contributors.services.claiming import (
+                    claim_via_orcid,
+                )
 
-                    sociallogin.user = existing_user
-                    try:
-                        claim_via_orcid(existing_user, sociallogin)
-                    except ClaimingError as exc:
-                        raise ImmediateHttpResponse(
-                            redirect_to_signup(request, sociallogin)
-                        ) from exc
-                    # Complete the login — the Person is now claimed and active.
+                sociallogin.user = existing_user
+                try:
+                    claim_via_orcid(existing_user, sociallogin)
+                except ClaimingError as exc:
                     raise ImmediateHttpResponse(
                         redirect_to_signup(request, sociallogin)
-                    )
+                    ) from exc
+                # Complete the login — the Person is now claimed and active.
+                raise ImmediateHttpResponse(redirect_to_signup(request, sociallogin))
 
-                # message = (
-                #     f"User with ORCID {orcid_id} already exists. "
-                #     "Logging in with existing user."
-                # )
-                # 1a)
+            # message = (
+            #     f"User with ORCID {orcid_id} already exists. "
+            #     "Logging in with existing user."
+            # )
+            # 1a)
 
     def save_user(self, request, sociallogin, form=None):
         if is_provider("orcid", sociallogin):
             orcid_id = sociallogin.account.uid
-            if existing_user := self.get_db_user_by_orcid(orcid_id):
-                existing_user.is_active = True  # Mark the existing user as active
+            existing_user = self.get_db_user_by_orcid(orcid_id)
+            # As in pre_social_login: the identifier row is not proof of identity,
+            # so only an unclaimed Person is adopted here. A claimed Person is left
+            # alone entirely — signup proceeds as a genuinely new account. Adopting
+            # no longer reactivates the target (a deactivated account is banned;
+            # un-banning it because an ORCID row points at it is the same hole).
+            adopted_user = (
+                existing_user
+                if existing_user and not existing_user.is_claimed
+                else None
+            )
+            if adopted_user:
                 # swap out existing data for incoming data from confirmation form (it exists on the sociallogin.user)
                 # we don't need to save as the remaining flow will do that for us
-                sociallogin.user = existing_user
+                sociallogin.user = adopted_user
 
             user = super().save_user(request, sociallogin, form=form)
-            if not existing_user:
+            if not adopted_user:
                 # The following must be done after the user is saved to ensure the user instance has a pk
                 # create the new ContributorIdentifier relation
                 user.identifiers.create(
