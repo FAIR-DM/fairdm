@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container py-4">
-  <c-pst.components.section title="{{ measurement.name }}" level="1">
+  <c-section title="{{ measurement.name }}" level="1">
     <p class="lead text-muted">{{ measurement.verbose_name }}</p>
 
     <div class="card mt-4">
@@ -46,6 +46,6 @@
         {% trans "Full measurement detail view implementation coming soon. This is a placeholder view." %}
       </p>
     </div>
-  </c-pst.components.section>
+  </c-section>
 </div>
 {% endblock %}
