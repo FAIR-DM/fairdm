@@ -1893,3 +1893,36 @@ class TestClaimingAuditLogManager:
         assert orcid_qs.filter(pk=orcid_entry.pk).exists()
         assert not orcid_qs.filter(pk=email_entry.pk).exists()
 
+
+
+@pytest.mark.django_db
+class TestContributorLinkValidation:
+    """`links` holds URLs to a contributor's other online presences, and both kinds of
+    contributor refuse a value that is not one.
+
+    The message names the offending value, so a person correcting a list of several
+    links can tell which one was rejected.
+    """
+
+    def test_person_refuses_a_link_that_is_not_a_url(self, person):
+        person.links = ["https://example.org", "not a url"]
+
+        with pytest.raises(ValidationError) as excinfo:
+            person.full_clean()
+
+        assert "links" in excinfo.value.message_dict
+        assert "not a url" in excinfo.value.message_dict["links"][0]
+
+    def test_organization_refuses_a_link_that_is_not_a_url(self, organization):
+        organization.links = ["ftp://not-a-web-address"]
+
+        with pytest.raises(ValidationError) as excinfo:
+            organization.full_clean()
+
+        assert "links" in excinfo.value.message_dict
+        assert "ftp://not-a-web-address" in excinfo.value.message_dict["links"][0]
+
+    def test_a_valid_link_list_passes(self, person):
+        person.links = ["https://example.org", "https://orcid.org/0000-0002-1825-0097"]
+
+        person.full_clean()
