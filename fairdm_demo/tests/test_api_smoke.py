@@ -35,14 +35,14 @@ class TestDemoSampleDiscovery:
     """Demo Sample types appear correctly in the discovery catalog."""
 
     def test_sample_discovery_returns_200(self, api_client):
-        resp = api_client.get(reverse("api-sample-discovery"))
+        resp = api_client.get(reverse("api:api-sample-discovery"))
         assert resp.status_code == 200
 
     def test_demo_samples_in_catalog(self, api_client):
         """All registered demo sample types appear in the discovery catalog."""
         from fairdm.registry import registry
 
-        resp = api_client.get(reverse("api-sample-discovery"))
+        resp = api_client.get(reverse("api:api-sample-discovery"))
         data = resp.json()
         types = data.get("types", [])
         catalog_names = {t["name"] for t in types}
@@ -54,7 +54,7 @@ class TestDemoSampleDiscovery:
 
     def test_catalog_entries_have_required_keys(self, api_client):
         """Each catalog entry has name, endpoint, fields, and count keys."""
-        resp = api_client.get(reverse("api-sample-discovery"))
+        resp = api_client.get(reverse("api:api-sample-discovery"))
         for entry in resp.json().get("types", []):
             for key in ("name", "endpoint", "fields", "count"):
                 assert key in entry, f"Missing key '{key}' in catalog entry: {entry}"
@@ -65,14 +65,14 @@ class TestDemoMeasurementDiscovery:
     """Demo Measurement types appear correctly in the discovery catalog."""
 
     def test_measurement_discovery_returns_200(self, api_client):
-        resp = api_client.get(reverse("api-measurement-discovery"))
+        resp = api_client.get(reverse("api:api-measurement-discovery"))
         assert resp.status_code == 200
 
     def test_demo_measurements_in_catalog(self, api_client):
         """All registered demo measurement types appear in the discovery catalog."""
         from fairdm.registry import registry
 
-        resp = api_client.get(reverse("api-measurement-discovery"))
+        resp = api_client.get(reverse("api:api-measurement-discovery"))
         data = resp.json()
         types = data.get("types", [])
         catalog_names = {t["name"] for t in types}
@@ -93,11 +93,11 @@ class TestDemoSampleListEndpoints:
     """Auto-generated list endpoints for demo Sample types return valid responses."""
 
     def test_custom_parent_sample_list_returns_200(self, api_client):
-        resp = api_client.get(reverse("samples-custom-parent-sample-list"))
+        resp = api_client.get(reverse("api:samples-custom-parent-samples-list"))
         assert resp.status_code == 200
 
     def test_custom_parent_sample_list_has_pagination_keys(self, api_client):
-        resp = api_client.get(reverse("samples-custom-parent-sample-list"))
+        resp = api_client.get(reverse("api:samples-custom-parent-samples-list"))
         data = resp.json()
         for key in ("count", "next", "previous", "results"):
             assert key in data
@@ -111,7 +111,7 @@ class TestDemoSampleListEndpoints:
         dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         sample = CustomParentSampleFactory(dataset=dataset)
 
-        resp = api_client.get(reverse("samples-custom-parent-sample-list"))
+        resp = api_client.get(reverse("api:samples-custom-parent-samples-list"))
         assert resp.status_code == 200
         results = resp.json()["results"]
         assert len(results) >= 1  # At least our sample appears
@@ -125,7 +125,7 @@ class TestDemoSampleListEndpoints:
         dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         CustomParentSampleFactory.create_batch(3, dataset=dataset)
 
-        resp = api_client.get(reverse("api-sample-discovery"))
+        resp = api_client.get(reverse("api:api-sample-discovery"))
         types = resp.json().get("types", [])
         entry = next((t for t in types if t["name"] == "CustomParentSample"), None)
         assert entry is not None
@@ -137,10 +137,12 @@ class TestDemoMeasurementListEndpoints:
     """Auto-generated list endpoint for ExampleMeasurement returns valid response."""
 
     def test_example_measurement_list_returns_200(self, api_client):
-        resp = api_client.get(reverse("measurements-example-measurement-list"))
+        resp = api_client.get(reverse("api:measurements-example-measurements-list"))
         assert resp.status_code == 200
 
     def test_example_measurement_list_has_pagination_keys(self, api_client):
-        data = api_client.get(reverse("measurements-example-measurement-list")).json()
+        data = api_client.get(
+            reverse("api:measurements-example-measurements-list")
+        ).json()
         for key in ("count", "next", "previous", "results"):
             assert key in data
