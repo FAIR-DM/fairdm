@@ -944,15 +944,7 @@ class TestMeasurementForm:
 
 @pytest.mark.django_db
 class TestMeasurementViews:
-    """Tests for Measurement views.
-
-    The page that renders a measurement's own address is out of scope for this
-    feature (it is broken - rendering `measurement/detail.html` raises
-    `TemplateDoesNotExist` for a missing `cotton/pst/...` component, filed
-    separately) - only that the address itself is real, is the measurement's
-    own, and resolves to the right view. These tests prove resolution, not
-    rendering, and never touch the client.
-    """
+    """Tests for Measurement views."""
 
     def test_get_absolute_url_is_the_measurements_own_address(self):
         """`get_absolute_url()` names the measurement, not its sample."""
@@ -972,6 +964,21 @@ class TestMeasurementViews:
 
         assert match.view_name == "measurement:overview"
         assert match.kwargs["uuid"] == str(measurement.uuid)
+
+    def test_detail_page_renders(self, client):
+        """The measurement's own address renders rather than raising.
+
+        Regression test for a `TemplateDoesNotExist` on
+        `cotton/pst/components/section/index.html`: `measurement/detail.html`
+        depended on a Cotton component namespace (`c-pst.components.*`) that
+        was never built anywhere in the tree.
+        """
+        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+
+        response = client.get(measurement.get_absolute_url())
+
+        assert response.status_code == 200
+        assert measurement.name in response.content.decode()
 
 
 @pytest.mark.django_db
