@@ -17,9 +17,13 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
 
     Permission Logic:
     - user.has_perm("contributors.manage_organization", org) returns True if:
-      - The account is active, and has an Affiliation with organization where type=OWNER
-      - OR user is a superuser (handled by ModelBackend)
+      - The account is active, and has a *current* Affiliation with organization
+        where type=OWNER (AffiliationQuerySet.owners() - end_date IS NULL)
+      - OR user is a superuser
     - A deactivated account is refused whatever its affiliation says.
+    - A stored guardian object-level grant of manage_organization is never
+      honoured, even if a stale Permission row for it exists in the database
+      (see the comment in has_perm below).
 
     Usage:
         Add to settings.AUTHENTICATION_BACKENDS:
@@ -65,8 +69,22 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
         Check if user has permission on object.
 
         For Organization objects with manage_organization permission, checks:
-        1. Direct check via parent backend (handles staff/superuser)
-        2. Derived permission from OWNER Affiliation
+        1. Whether the user is a superuser (checked explicitly, not via the parent
+           backend - see the comment at that check for why)
+        2. Derived permission from a *current* OWNER Affiliation
+
+        A stored guardian object-level grant is deliberately never consulted for
+        this permission (Defect B): manage_organization was declared in one
+        migration, its guardian rows removed in another, and the declaration
+        dropped from Organization.Meta.permissions in a third, but Django does
+        not delete the underlying Permission row when a permission leaves a
+        model's options. A database migrated forward from before that removal
+        can still carry the row, which means a guardian UserObjectPermission or
+        GroupObjectPermission row can still be written against it - and calling
+        the parent backend here would honour one if it found it. The derived
+        affiliation rule and superuser status are the only two sources of this
+        right, by design, so this method never delegates to the parent for a
+        manage_organization decision.
 
         Args:
             user_obj: User instance
@@ -102,14 +120,23 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
         if perm not in ("contributors.manage_organization", "manage_organization"):
             return super().has_perm(user_obj, perm, obj)
 
-        # Check if user is a superuser (handled by parent ModelBackend); staff
-        # who are not superusers get no shortcut here (D10)
-        if super().has_perm(user_obj, perm, obj):
+        # Checked explicitly rather than via super().has_perm(...): the parent chain
+        # ends in guardian's ObjectPermissionChecker, which grants superusers True but
+        # would *also* honour a stored guardian object-level grant if one exists for
+        # this permission - and for manage_organization specifically, a stored grant
+        # must never confer the right (Defect B, see the docstring above). Staff who
+        # are not superusers get no shortcut here (D10).
+        if user_obj.is_superuser:
             return True
 
-        # Derive permission from OWNER Affiliation
-        return Affiliation.objects.filter(
-            person=user_obj,
-            organization=obj,
-            type=Affiliation.MembershipType.OWNER,
-        ).exists()
+        # Derive permission from a current OWNER Affiliation only - one whose
+        # end_date has not been set. AffiliationQuerySet.owners() is the single
+        # place that rule is expressed (Defect A).
+        return (
+            Affiliation.objects.owners()
+            .filter(
+                person=user_obj,
+                organization=obj,
+            )
+            .exists()
+        )

@@ -331,9 +331,10 @@ class TestSampleAdminInlines:
     def test_contribution_can_be_added_from_the_specimens_own_page(
         self, admin_client
     ):
+        from research_vocabs.models import Concept
+
         from fairdm.contrib.contributors.models import Contribution
         from fairdm.factories import PersonFactory
-        from research_vocabs.models import Concept
 
         sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
         contributor = PersonFactory()
@@ -409,6 +410,101 @@ class TestSampleAdminInlines:
             "SampleContributionInline",
             "SampleRelationInline",
         }
+
+
+@pytest.mark.django_db
+class TestSampleContributionInlineRoleVocabulary:
+    """FR-032/SPEC-001: the roles widget on a specimen's contribution inline must not
+    offer a concept from any vocabulary other than the framework's roles vocabulary -
+    ``refuse_off_vocabulary_role`` (an ``m2m_changed`` receiver, see receivers.py)
+    refuses that write, uncaught, from inside Django's own no-savepoint
+    ``transaction.atomic()`` around ``ManyRelatedManager._add_items`` - so without the
+    admin narrowing the field's queryset, an off-vocabulary choice reaches the receiver
+    and the change request 500s instead of coming back as an ordinary field error.
+    """
+
+    @staticmethod
+    def _off_vocabulary_role():
+        from research_vocabs.models import Concept, Vocabulary
+
+        vocabulary, _ = Vocabulary.objects.get_or_create(
+            name="not-fairdm-roles",
+            defaults={
+                "label": "Not FairDM Roles",
+                "uri": "https://example.com/vocabularies/not-fairdm-roles",
+            },
+        )
+        concept, _ = Concept.objects.get_or_create(
+            vocabulary=vocabulary,
+            name="Outsider",
+            defaults={
+                "uri": "https://example.com/vocabularies/not-fairdm-roles#outsider",
+                "label": "Outsider",
+            },
+        )
+        return concept
+
+    def test_posting_an_off_vocabulary_role_is_a_form_error_not_a_500(
+        self, admin_client
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.factories import PersonFactory
+
+        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        contributor = PersonFactory()
+        contribution = sample.contributors.create(contributor=contributor)
+        off_vocabulary_role = self._off_vocabulary_role()
+
+        data = TestSampleAdminInlines._base_form_data(sample)
+        prefix = "contributors-contribution-content_type-object_id"
+        data.update(
+            {
+                f"{prefix}-TOTAL_FORMS": "1",
+                f"{prefix}-INITIAL_FORMS": "1",
+                f"{prefix}-0-id": contribution.pk,
+                f"{prefix}-0-contributor": contributor.pk,
+                f"{prefix}-0-roles": [off_vocabulary_role.pk],
+            }
+        )
+
+        response = admin_client.post(
+            reverse("admin:fairdm_demo_rocksample_change", args=[sample.pk]),
+            data=data,
+        )
+
+        assert response.status_code == 200, (
+            "A redirect here means the off-vocabulary role was accepted; a 500 "
+            "means the m2m_changed receiver raised uncaught instead of the "
+            "admin field rejecting the choice."
+        )
+        contribution_formset = next(
+            admin_formset.formset
+            for admin_formset in response.context["inline_admin_formsets"]
+            if admin_formset.formset.prefix == prefix
+        )
+        assert contribution_formset.errors and any(contribution_formset.errors), (
+            contribution_formset.errors
+        )
+        assert not Contribution.objects.get(pk=contribution.pk).roles.exists()
+
+    def test_the_roles_field_does_not_offer_the_off_vocabulary_concept(
+        self, admin_user
+    ):
+        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        off_vocabulary_role = self._off_vocabulary_role()
+
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        model_admin = admin.site._registry[type(sample)]
+        contribution_inline = next(
+            inline
+            for inline in model_admin.get_inline_instances(request, sample)
+            if inline.__class__.__name__ == "SampleContributionInline"
+        )
+        formset_class = contribution_inline.get_formset(request, sample)
+
+        roles_queryset = formset_class.form.base_fields["roles"].queryset
+        assert off_vocabulary_role not in roles_queryset
 
 
 @pytest.mark.django_db

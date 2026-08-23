@@ -55,8 +55,15 @@ FairDM supports three automatic pathways plus manual admin tools:
 |---------|-------------|
 | **ORCID** | Contributor signs in via ORCID and the portal detects a matching ORCID identifier on an unclaimed profile. Claiming is automatic. |
 | **Email** | Contributor registers with the same email address stored on the unclaimed profile. After email verification, the profile is automatically activated. Only works when `ACCOUNT_EMAIL_VERIFICATION = "mandatory"`. |
-| **Claim token link** | Admin generates a one-time signed URL and sends it to the contributor. Clicking the link (after sign-in) activates the profile. |
-| **Admin merge** | Admin directly merges two Person records from the admin site. |
+| **Claim token link** | Superuser generates a one-time signed URL and sends it to the contributor. Clicking the link (after sign-in) activates the profile. |
+| **Admin merge** | Superuser directly merges two Person records from the admin site. |
+
+```{note}
+An ORCID identifier on an *already-claimed* profile is not a login credential. A visitor whose
+ORCID matches one is never signed into that profile on the strength of the identifier alone —
+they go through the portal's ordinary sign-up flow instead, the same as anyone with no matching
+record. Only an *unclaimed* profile is claimed automatically this way.
+```
 
 ---
 
@@ -64,6 +71,10 @@ FairDM supports three automatic pathways plus manual admin tools:
 
 Use this when a contributor cannot claim their profile automatically (e.g. no ORCID on
 record, or the stored email is out of date).
+
+This is a superuser-only action. A staff account that is not a superuser does not see
+**"Generate claim link for selected Person"** in the Action dropdown, and the claim-link page
+itself refuses the request directly if reached by URL.
 
 1. In the Django admin, go to **Contributors → Persons**.
 2. Locate the unclaimed profile. A `—` icon in the *Claimed* column indicates an
@@ -95,6 +106,13 @@ Default is `604800` seconds (7 days).
 
 Use the merge action when the same researcher has two separate records in the portal —
 for example, an imported unclaimed profile and a freshly registered account.
+
+This is also a superuser-only action, for the same reason as generating a claim link: merging
+destroys the discarded record's identity and moves its affiliations (including any owner one),
+object-level permissions, confirmed emails and social account onto the survivor, which is not an
+ordinary staff operation. A staff account that is not a superuser does not see **"Merge selected
+Person into another…"** in the Action dropdown, and the confirmation page refuses the request
+directly if reached by URL.
 
 **What the merge transfers:**
 
@@ -183,6 +201,10 @@ state described above (formerly called "banned"). All claiming pathways (ORCID,
 email, token) reject a claim attempt for an inactive profile and log the failure
 with reason `"Person is banned (is_active=False)."` — the claiming service has
 not yet been updated to the current wording.
+
+Signing in via ORCID does not reactivate a deactivated profile either, even when the ORCID
+identifier on record matches. A deactivated profile found this way is left exactly as it is —
+still deactivated — rather than being un-banned as a side effect of the sign-in.
 
 To allow claiming again, re-enable the profile:
 

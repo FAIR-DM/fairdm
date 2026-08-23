@@ -46,6 +46,25 @@ def contribution_roles(db):
     return Concept.objects.filter(vocabulary__name="fairdm-roles")
 
 
+@pytest.fixture
+def off_vocabulary_role(db):
+    """A concept from a vocabulary that is not ``fairdm-roles`` (FR-032) - the shape a
+    credit's roles must always refuse, whichever write path attaches it."""
+    from research_vocabs.models import Concept, Vocabulary
+
+    vocabulary = Vocabulary.objects.create(
+        name="not-fairdm-roles",
+        label="Not FairDM Roles",
+        uri="https://example.com/vocabularies/not-fairdm-roles",
+    )
+    return Concept.objects.create(
+        vocabulary=vocabulary,
+        uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
+        name="Outsider",
+        label="Outsider",
+    )
+
+
 # ── Person Fixtures ──────────────────────────────────────────────────────────
 
 

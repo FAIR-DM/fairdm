@@ -642,6 +642,20 @@ class TestOrganizationCreationAndValidation:
         assert organization.owner() == person
 
     @pytest.mark.django_db
+    def test_organization_owner_is_none_when_the_only_owner_affiliation_has_ended(
+        self, person, organization
+    ):
+        """Organization.owner() returns None once the OWNER affiliation has an
+        end_date, even though the row's type still reads OWNER (Defect A)."""
+        AffiliationFactory(
+            person=person,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+            end_date="2019",
+        )
+        assert organization.owner() is None
+
+    @pytest.mark.django_db
     def test_organization_get_location_display(self, db):
         """get_location_display returns city, country string."""
         org = OrganizationFactory(name="GFZ", city="Potsdam", country="DE")
@@ -763,7 +777,9 @@ class TestOwnershipTransfer:
         """Transfer leaves the incumbent an administrator and the successor the owner."""
         incumbent = owner_affiliation.person
         successor = AffiliationFactory(
-            person=PersonFactory(email="successor@example.com"),
+            person=PersonFactory(
+                email="successor@example.com", is_active=True, is_claimed=True
+            ),
             organization=organization,
             type=Affiliation.MembershipType.MEMBER,
         ).person
@@ -794,7 +810,9 @@ class TestOwnershipTransfer:
     def test_transfer_is_atomic(self, organization, owner_affiliation, monkeypatch):
         """A failure mid-transfer leaves neither the demotion nor the promotion applied."""
         successor = AffiliationFactory(
-            person=PersonFactory(email="atomic-successor@example.com"),
+            person=PersonFactory(
+                email="atomic-successor@example.com", is_active=True, is_claimed=True
+            ),
             organization=organization,
             type=Affiliation.MembershipType.MEMBER,
         ).person
@@ -814,6 +832,120 @@ class TestOwnershipTransfer:
             organization.affiliations.get(person=successor).type
             == Affiliation.MembershipType.MEMBER
         )
+
+    @pytest.mark.django_db
+    def test_transfer_leaves_an_already_ended_owner_affiliation_untouched(
+        self, organization, person
+    ):
+        """A transfer only demotes *current* owners; a past OWNER affiliation is
+        history and its type is left exactly as it is (Defect A)."""
+        ended_owner_affiliation = AffiliationFactory(
+            person=person,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+            end_date="2019",
+        )
+        successor = PersonFactory(
+            email="successor-past-owner@example.com", is_active=True, is_claimed=True
+        )
+        AffiliationFactory(
+            person=successor,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+
+        organization.transfer_ownership(successor)
+
+        ended_owner_affiliation.refresh_from_db()
+        assert ended_owner_affiliation.type == Affiliation.MembershipType.OWNER
+        assert ended_owner_affiliation.end_date is not None
+        assert organization.owner() == successor
+
+
+# ── Defect C: transfer refuses a target who cannot be meant ─────────────────
+
+
+class TestTransferOwnershipRefusesInvalidTargets:
+    """Organization.transfer_ownership() refuses a target it cannot mean as the
+    new owner: the new owner must hold a current affiliation of type MEMBER or
+    higher, and must be an active, claimed person (Defect C)."""
+
+    @pytest.mark.django_db
+    def test_refuses_a_pending_affiliate(self, organization, owner_affiliation):
+        """A self-declared, unverified affiliate cannot become owner."""
+        pending_person = PersonFactory(
+            email="pending-affiliate@example.com", is_active=True, is_claimed=True
+        )
+        AffiliationFactory(
+            person=pending_person,
+            organization=organization,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(pending_person)
+
+        assert "pending verification" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+
+    @pytest.mark.django_db
+    def test_refuses_an_ended_affiliation(self, organization, owner_affiliation):
+        """A membership that has already ended cannot become owner."""
+        ended_member = PersonFactory(
+            email="ended-member@example.com", is_active=True, is_claimed=True
+        )
+        AffiliationFactory(
+            person=ended_member,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+            end_date="2019",
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(ended_member)
+
+        assert "has ended" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+
+    @pytest.mark.django_db
+    def test_refuses_an_unclaimed_person(self, organization, owner_affiliation):
+        """Nobody controls an unclaimed profile; it cannot become owner."""
+        unclaimed_member = PersonFactory(
+            email="unclaimed-member@example.com", is_active=True, is_claimed=False
+        )
+        AffiliationFactory(
+            person=unclaimed_member,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(unclaimed_member)
+
+        assert "has not claimed" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
+
+    @pytest.mark.django_db
+    def test_refuses_a_deactivated_person(self, organization, owner_affiliation):
+        """A deactivated account cannot become owner."""
+        deactivated_member = PersonFactory(
+            email="deactivated-member@example.com", is_active=False, is_claimed=True
+        )
+        AffiliationFactory(
+            person=deactivated_member,
+            organization=organization,
+            type=Affiliation.MembershipType.MEMBER,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            organization.transfer_ownership(deactivated_member)
+
+        assert "deactivated" in str(exc_info.value)
+        owner_affiliation.refresh_from_db()
+        assert owner_affiliation.type == Affiliation.MembershipType.OWNER
 
 
 # ── T015: Affiliation unique constraints ─────────────────────────────────────
@@ -1152,24 +1284,26 @@ class TestContributionRoles:
         assert role in contribution.roles.all()
 
     @pytest.mark.django_db
-    def test_role_from_outside_the_roles_vocabulary_is_refused(self, contribution):
-        from research_vocabs.models import Concept, Vocabulary
+    def test_role_from_outside_the_roles_vocabulary_is_refused(
+        self, contribution, off_vocabulary_role
+    ):
+        """The relation itself refuses the write - no ``full_clean()`` call is needed
+        to catch it, and none is made here.
 
-        other_vocabulary = Vocabulary.objects.create(
-            name="not-fairdm-roles",
-            label="Not FairDM Roles",
-            uri="https://example.com/vocabularies/not-fairdm-roles",
-        )
-        outside_role = Concept.objects.create(
-            vocabulary=other_vocabulary,
-            uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
-            name="Outsider",
-            label="Outsider",
-        )
-        contribution.roles.add(outside_role)
+        ``roles.add()`` raises from inside its own ``transaction.atomic(savepoint=False)``
+        block, so the call is wrapped in a savepoint-holding block of its own here -
+        exactly as any caller inside a broader transaction (a view under
+        ``ATOMIC_REQUESTS``, for one) already needs to, and as Django's own docs
+        describe for handling an exception raised inside ``atomic()`` without aborting
+        the enclosing transaction.
+        """
+        from django.db import transaction
 
-        with pytest.raises(ValidationError, match="roles vocabulary"):
-            contribution.full_clean()
+        with transaction.atomic(), pytest.raises(ValidationError, match="roles vocabulary"):
+            contribution.roles.add(off_vocabulary_role)
+
+        assert off_vocabulary_role not in contribution.roles.all()
+        assert contribution.roles.count() == 0
 
     @pytest.mark.django_db
     def test_contribution_roles_fixture_has_real_concepts_to_attach(
@@ -1392,6 +1526,64 @@ class TestIdentifierUniquePerType:
         second.save()
 
         assert person.identifiers.count() == 2
+
+
+# ── An identifier value already claims one record; a second contributor cannot
+# ── carry the same value (finding 3, save_user's adopted-vs-duplicate decision).
+
+
+class TestIdentifierValueUniqueAcrossContributors:
+    """``AbstractIdentifier.value`` (fairdm/core/abstract.py) is unique both at the
+    database and in ``clean()`` - which checks every ``AbstractIdentifier`` subclass,
+    not only ``ContributorIdentifier``'s own table - so a second, different Person
+    cannot end up carrying an identifier already attached to someone else, whichever
+    write path is used. This is what makes skipping the write in
+    ``SocialAccountAdapter.save_user`` (adapters.py) sufficient on its own: the admin's
+    ``IdentifierInline`` (a plain ``ModelForm``) already refuses the same collision as
+    an ordinary field error through Django's own ``Model.validate_unique()``, so no
+    change to ``clean()`` itself was needed for that surface.
+    """
+
+    @pytest.mark.django_db
+    def test_second_contributor_with_the_same_value_refused_at_the_database(
+        self, orcid_identifier, organization
+    ):
+        with pytest.raises(IntegrityError):
+            ContributorIdentifier.objects.create(
+                related=organization, type="ROR", value=orcid_identifier.value
+            )
+
+    @pytest.mark.django_db
+    def test_second_contributor_with_the_same_value_refused_at_clean(
+        self, orcid_identifier, organization
+    ):
+        duplicate = ContributorIdentifier(
+            related=organization, type="ROR", value=orcid_identifier.value
+        )
+
+        with pytest.raises(ValidationError):
+            duplicate.clean()
+
+    @pytest.mark.django_db
+    def test_the_identifier_inline_form_refuses_it_as_an_ordinary_field_error(
+        self, orcid_identifier, organization
+    ):
+        """The admin's ``IdentifierInline`` declares ``fields = ["type", "value"]``
+        with no custom form - Django's default ``ModelForm`` - so this is the exact
+        validation a submission through that inline goes through: a duplicate value
+        comes back as ``form.errors``, not as an uncaught ``IntegrityError``."""
+        from django import forms
+
+        form_class = forms.modelform_factory(
+            ContributorIdentifier, fields=["type", "value"]
+        )
+        form = form_class(
+            data={"type": "ROR", "value": orcid_identifier.value},
+            instance=ContributorIdentifier(related=organization),
+        )
+
+        assert form.is_valid() is False
+        assert "value" in form.errors
 
 
 # ── T110: A contributor reports its default identifier ──────────────────────

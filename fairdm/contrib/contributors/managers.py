@@ -226,6 +226,29 @@ class AffiliationQuerySet(models.QuerySet):
         """
         return self.filter(end_date__isnull=False)
 
+    def owners(self):
+        """Get all current owner affiliations.
+
+        Ownership is defined once, here, as a current affiliation
+        (``end_date`` is NULL - see :meth:`current`) whose type is OWNER. A
+        person whose OWNER affiliation has ended - the field's help_text
+        documents ending an affiliation as ending the rights it conferred -
+        is not an owner, even though the row's type still reads OWNER.
+        Every caller that decides who may manage an organization
+        (``OrganizationPermissionBackend.has_perm``, ``Organization.owner()``,
+        ``Organization.transfer_ownership()``) derives from this method
+        rather than re-deriving the rule.
+
+        Returns:
+            QuerySet: current Affiliation objects with type=OWNER
+
+        Usage:
+            org.affiliations.owners()
+        """
+        from fairdm.contrib.contributors.models import Affiliation
+
+        return self.current().filter(type=Affiliation.MembershipType.OWNER)
+
 
 class AffiliationManager(models.Manager.from_queryset(AffiliationQuerySet)):
     """Manager for the Affiliation model.

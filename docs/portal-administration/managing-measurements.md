@@ -225,15 +225,17 @@ Track who performed, analyzed, or owns measurements:
 
 1. In the **Contributors** section, click **Add another Contributor**
 2. Select **Contributor** (user or contact from your portal)
-3. Select one or more **Roles** from the controlled list:
+3. Select one or more **Roles**. The three roles defined specifically for a measurement are:
    - **Preparation**: Prepared the measurement, ensuring conditions were met for accurate data acquisition
    - **Collection**: Acquired the data or measurements
    - **Support**: Provided assistance, guidance, tools or expertise to the measurement process
 4. Optionally set **Order** for display ordering
 5. Repeat for additional contributors
 
-Roles are a controlled vocabulary, not free text - the three above are the
-complete list for a measurement contribution.
+Roles are a controlled vocabulary, not free text, but the admin's Roles field is not scoped to
+the three above - it lists every role in the framework's shared roles vocabulary, including ones
+meant for a project, dataset or sample contribution. Choosing a role from outside that shared
+vocabulary entirely is refused when the contribution is saved.
 
 ## Searching Measurements
 

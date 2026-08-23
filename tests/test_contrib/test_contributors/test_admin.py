@@ -12,10 +12,12 @@ Tests cover:
 
 import pytest
 from django.contrib import admin
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
 from django.urls import reverse
 
-from fairdm.contrib.contributors.models import Affiliation, Person
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 
 # ── T046: Person admin changelist loads ─────────────────────────────────────
 
@@ -439,7 +441,9 @@ class TestOwnershipTransferAction:
 
         incumbent = owner_affiliation.person
         successor = AffiliationFactory(
-            person=PersonFactory(email="successor@example.com"),
+            person=PersonFactory(
+                email="successor@example.com", is_active=True, is_claimed=True
+            ),
             organization=organization,
             type=Affiliation.MembershipType.MEMBER,
         ).person
@@ -580,6 +584,421 @@ class TestAffiliationAdmin:
 
         assert response.status_code == 200
         assert affiliation.person.name in response.content.decode()
+
+
+# ── Route 1: writing an Admin/Owner affiliation requires manage_organization
+# on the organisation in question, whichever surface reaches it ─────────────
+
+
+def _grant(user, model, codename):
+    """Add exactly one named model permission to a user (Route 1/2 test setup)."""
+    permission = Permission.objects.get(
+        content_type=ContentType.objects.get_for_model(model), codename=codename
+    )
+    user.user_permissions.add(permission)
+
+
+@pytest.mark.django_db
+class TestAffiliationFormBlocksUnauthorisedManagementWrites:
+    """A staff account without ``manage_organization`` cannot write an Admin or
+    Owner affiliation through any of the three routes ``AffiliationForm``
+    gates: the standalone Affiliation admin, the affiliations inline on a
+    person's own change form, and the members inline on an organisation's
+    change form.
+
+    Holding an OWNER affiliation *is* what ``contributors.manage_organization``
+    means (``OrganizationPermissionBackend``), so each route is proven the same
+    way: the write is refused, and the acting user does not pass ``has_perm``
+    afterwards.
+    """
+
+    def _person_change_payload(self, person, organization, new_type):
+        return {
+            "name": person.name,
+            "email": person.email,
+            "first_name": person.first_name,
+            "last_name": person.last_name,
+            "emailaddress_set-TOTAL_FORMS": "0",
+            "emailaddress_set-INITIAL_FORMS": "0",
+            "emailaddress_set-MIN_NUM_FORMS": "0",
+            "emailaddress_set-MAX_NUM_FORMS": "1000",
+            "affiliations-TOTAL_FORMS": "1",
+            "affiliations-INITIAL_FORMS": "0",
+            "affiliations-MIN_NUM_FORMS": "0",
+            "affiliations-MAX_NUM_FORMS": "1000",
+            "affiliations-0-organization": organization.pk,
+            "affiliations-0-type": new_type,
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
+            "_continue": "Save and continue editing",
+        }
+
+    def _organization_change_payload(self, organization, candidate, new_type):
+        return {
+            "name": organization.name,
+            "affiliations-TOTAL_FORMS": "1",
+            "affiliations-INITIAL_FORMS": "0",
+            "affiliations-MIN_NUM_FORMS": "0",
+            "affiliations-MAX_NUM_FORMS": "1000",
+            "affiliations-0-person": candidate.pk,
+            "affiliations-0-type": new_type,
+            "sub_organizations-TOTAL_FORMS": "0",
+            "sub_organizations-INITIAL_FORMS": "0",
+            "sub_organizations-MIN_NUM_FORMS": "0",
+            "sub_organizations-MAX_NUM_FORMS": "1000",
+            "_continue": "Save and continue editing",
+        }
+
+    def test_standalone_add_form_refuses_owner_without_manage_organization(
+        self, client, person, organization
+    ):
+        """``add_affiliation`` alone cannot promote a person to Owner."""
+        from fairdm.factories import PersonFactory
+
+        acting_user = PersonFactory(email="add-only-staff@example.com", is_staff=True)
+        _grant(acting_user, Affiliation, "add_affiliation")
+        _grant(acting_user, Organization, "view_organization")
+        _grant(acting_user, Person, "view_person")
+        client.force_login(acting_user)
+
+        url = reverse("admin:contributors_affiliation_add")
+        response = client.post(
+            url,
+            {
+                "person": person.pk,
+                "organization": organization.pk,
+                "type": Affiliation.MembershipType.OWNER,
+            },
+        )
+
+        assert response.status_code == 200
+        assert "type" in response.context["adminform"].form.errors
+        assert not Affiliation.objects.filter(
+            person=person, organization=organization
+        ).exists()
+        assert not person.has_perm("contributors.manage_organization", organization)
+
+    def test_standalone_add_form_allows_owner_with_manage_organization(
+        self, client, organization
+    ):
+        """A user who already manages the organisation can promote someone else."""
+        from fairdm.factories import AffiliationFactory, PersonFactory
+
+        manager = PersonFactory(
+            email="org-manager@example.com", is_staff=True, is_active=True
+        )
+        AffiliationFactory(
+            person=manager,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+        )
+        _grant(manager, Affiliation, "add_affiliation")
+        candidate = PersonFactory(email="candidate-owner@example.com")
+        client.force_login(manager)
+
+        url = reverse("admin:contributors_affiliation_add")
+        response = client.post(
+            url,
+            {
+                "person": candidate.pk,
+                "organization": organization.pk,
+                "type": Affiliation.MembershipType.OWNER,
+            },
+        )
+
+        assert response.status_code == 302
+        assert (
+            Affiliation.objects.get(person=candidate, organization=organization).type
+            == Affiliation.MembershipType.OWNER
+        )
+
+    def test_person_change_affiliation_inline_refuses_owner_without_manage_organization(
+        self, client, person, organization
+    ):
+        """``change_person`` and ``add_affiliation`` together are not enough
+        to promote the edited person to Owner through their own affiliations
+        inline -- Django's own inline permission model already requires
+        ``add_affiliation`` to add a row there at all; ``manage_organization``
+        is the additional check this fix adds."""
+        person.is_staff = True
+        person.save(update_fields=["is_staff"])
+        _grant(person, Person, "change_person")
+        _grant(person, Affiliation, "add_affiliation")
+        client.force_login(person)
+
+        url = reverse("admin:contributors_person_change", args=[person.pk])
+        response = client.post(
+            url,
+            self._person_change_payload(
+                person, organization, Affiliation.MembershipType.OWNER
+            ),
+        )
+
+        assert response.status_code == 200
+        assert not Affiliation.objects.filter(
+            person=person, organization=organization
+        ).exists()
+        assert not person.has_perm("contributors.manage_organization", organization)
+
+    def test_organization_change_member_inline_refuses_owner_without_manage_organization(
+        self, client, organization
+    ):
+        """``change_organization`` and ``add_affiliation`` together are not
+        enough to promote a new member to Owner through the organisation's
+        members inline -- see the equivalent note on the person-inline test
+        above."""
+        from fairdm.factories import PersonFactory
+
+        acting_user = PersonFactory(
+            email="org-editor@example.com", is_staff=True, is_active=True
+        )
+        _grant(acting_user, Organization, "change_organization")
+        _grant(acting_user, Affiliation, "add_affiliation")
+        client.force_login(acting_user)
+        candidate = PersonFactory(email="member-candidate@example.com")
+
+        url = reverse("admin:contributors_organization_change", args=[organization.pk])
+        response = client.post(
+            url,
+            self._organization_change_payload(
+                organization, candidate, Affiliation.MembershipType.OWNER
+            ),
+        )
+
+        assert response.status_code == 200
+        assert not Affiliation.objects.filter(
+            person=candidate, organization=organization
+        ).exists()
+        assert not candidate.has_perm("contributors.manage_organization", organization)
+
+
+@pytest.mark.django_db
+class TestAffiliationAdminObjectLevelChangeAndDelete:
+    """``has_change_permission``/``has_delete_permission`` refuse a
+    non-manager for a specific affiliation, even though they hold the
+    ordinary model-level permission (Route 1).
+
+    Called directly with a real request rather than driven through
+    ``change_view``/``delete_view``: ``AffiliationAdmin.get_queryset`` already
+    scopes a non-superuser's changelist to organisations they manage (its own
+    test below), so ``get_object()`` -- which every admin edit/delete route
+    resolves the target through -- would return "not found" for an
+    unauthorised organisation's affiliation before these methods' obj-level
+    branch is ever reached with a real object. That queryset scoping is
+    tested on its own below; this isolates the method contract these two
+    methods are specified to have.
+    """
+
+    def test_change_permission_is_refused_for_a_staff_user_who_does_not_manage_the_organization(
+        self, rf, affiliation
+    ):
+        from fairdm.contrib.contributors.admin import AffiliationAdmin
+        from fairdm.factories import PersonFactory
+
+        acting_user = PersonFactory(email="cannot-manage@example.com", is_staff=True)
+        _grant(acting_user, Affiliation, "change_affiliation")
+
+        request = rf.get("/")
+        request.user = acting_user
+        model_admin = AffiliationAdmin(Affiliation, admin.site)
+
+        assert model_admin.has_change_permission(request, affiliation) is False
+
+    def test_delete_permission_is_refused_for_a_staff_user_who_does_not_manage_the_organization(
+        self, rf, affiliation
+    ):
+        from fairdm.contrib.contributors.admin import AffiliationAdmin
+        from fairdm.factories import PersonFactory
+
+        acting_user = PersonFactory(email="cannot-delete@example.com", is_staff=True)
+        _grant(acting_user, Affiliation, "delete_affiliation")
+
+        request = rf.get("/")
+        request.user = acting_user
+        model_admin = AffiliationAdmin(Affiliation, admin.site)
+
+        assert model_admin.has_delete_permission(request, affiliation) is False
+
+    def test_change_permission_is_granted_for_the_organizations_manager(
+        self, rf, affiliation, organization
+    ):
+        from fairdm.contrib.contributors.admin import AffiliationAdmin
+        from fairdm.factories import AffiliationFactory, PersonFactory
+
+        manager = PersonFactory(email="manages-this-org-directly@example.com")
+        AffiliationFactory(
+            person=manager,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+        )
+        _grant(manager, Affiliation, "change_affiliation")
+        _grant(manager, Affiliation, "delete_affiliation")
+
+        request = rf.get("/")
+        request.user = manager
+        model_admin = AffiliationAdmin(Affiliation, admin.site)
+
+        assert model_admin.has_change_permission(request, affiliation) is True
+        assert model_admin.has_delete_permission(request, affiliation) is True
+
+    def test_change_view_is_allowed_for_the_organizations_manager(
+        self, client, affiliation, organization
+    ):
+        from fairdm.factories import AffiliationFactory, PersonFactory
+
+        manager = PersonFactory(email="manages-this-org@example.com", is_staff=True)
+        AffiliationFactory(
+            person=manager,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+        )
+        _grant(manager, Affiliation, "change_affiliation")
+        client.force_login(manager)
+
+        url = reverse("admin:contributors_affiliation_change", args=[affiliation.pk])
+        response = client.get(url)
+
+        assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestAffiliationAdminQuerysetScoping:
+    """The changelist lists only the affiliations of organisations the
+    acting non-superuser manages (Route 1)."""
+
+    def test_changelist_lists_only_managed_organizations_affiliations(self, client):
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        manager = PersonFactory(email="scoped-manager@example.com", is_staff=True)
+        managed_org = OrganizationFactory(name="Managed University")
+        other_org = OrganizationFactory(name="Unmanaged University")
+
+        AffiliationFactory(
+            person=manager,
+            organization=managed_org,
+            type=Affiliation.MembershipType.OWNER,
+        )
+        visible_member = AffiliationFactory(
+            organization=managed_org, type=Affiliation.MembershipType.MEMBER
+        )
+        hidden_member = AffiliationFactory(
+            organization=other_org, type=Affiliation.MembershipType.MEMBER
+        )
+
+        _grant(manager, Affiliation, "view_affiliation")
+        client.force_login(manager)
+
+        url = reverse("admin:contributors_affiliation_changelist")
+        response = client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert visible_member.person.name in content
+        assert hidden_member.person.name not in content
+
+
+# ── Route 2: merge_view and claim_link_view are superuser-only ──────────────
+
+
+@pytest.mark.django_db
+class TestMergeAndClaimLinkViewsRequireSuperuser:
+    """``merge_view`` and ``claim_link_view`` refuse a non-superuser staff
+    account with ``PermissionDenied``, not merely a hidden menu entry."""
+
+    def _staff_user(self, email):
+        from fairdm.factories import PersonFactory
+
+        return PersonFactory(email=email, is_staff=True, is_active=True)
+
+    def test_merge_view_403s_for_non_superuser_staff(self, client, unclaimed_person):
+        acting_user = self._staff_user("plain-staff-merge@example.com")
+        client.force_login(acting_user)
+
+        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        response = client.get(url)
+
+        assert response.status_code == 403
+
+    def test_claim_link_view_403s_for_non_superuser_staff(
+        self, client, unclaimed_person
+    ):
+        acting_user = self._staff_user("plain-staff-claim@example.com")
+        client.force_login(acting_user)
+
+        url = reverse(
+            "admin:contributors_person_claim_link", args=[unclaimed_person.pk]
+        )
+        response = client.get(url)
+
+        assert response.status_code == 403
+
+    def test_merge_view_is_not_refused_for_a_superuser(
+        self, admin_client, unclaimed_person
+    ):
+        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+
+    def test_claim_link_view_is_not_refused_for_a_superuser(
+        self, admin_client, unclaimed_person
+    ):
+        """The permission gate lets a superuser through; the view then hits a
+        separate, already-reported defect (``NoReverseMatch`` on the
+        commented-out ``contributors:claim-profile`` URL, ``urls.py``) rather
+        than the permission gate refusing them. That defect is out of scope
+        here -- this only proves the gate itself did not fire.
+        """
+        from django.urls import NoReverseMatch
+
+        url = reverse(
+            "admin:contributors_person_claim_link", args=[unclaimed_person.pk]
+        )
+        with pytest.raises(NoReverseMatch):
+            admin_client.get(url)
+
+
+@pytest.mark.django_db
+class TestPersonAdminActionsHiddenFromNonSuperuser:
+    """The merge/claim-link changelist actions do not appear for a
+    non-superuser, so the interface does not offer an action that the view
+    itself would refuse (Route 2)."""
+
+    def test_actions_are_absent_from_the_changelist_for_non_superuser_staff(
+        self, client
+    ):
+        from fairdm.factories import PersonFactory
+
+        acting_user = PersonFactory(
+            email="no-actions-staff@example.com", is_staff=True, is_active=True
+        )
+        _grant(acting_user, Person, "view_person")
+        client.force_login(acting_user)
+
+        url = reverse("admin:contributors_person_changelist")
+        response = client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "merge_person_action" not in content
+        assert "generate_claim_link_action" not in content
+
+    def test_actions_are_present_in_the_changelist_for_a_superuser(
+        self, admin_client
+    ):
+        url = reverse("admin:contributors_person_changelist")
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "merge_person_action" in content
+        assert "generate_claim_link_action" in content
 
 
 # ── T046: ClaimingAuditLog admin view ────────────────────────────────────────

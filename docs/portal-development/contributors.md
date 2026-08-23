@@ -182,9 +182,10 @@ ror_id = org.identifiers.filter(type="ROR").first()
 ### Organization Ownership
 
 `manage_organization` is **derived, not stored** (decisions.md D13). No django-guardian row is
-granted or revoked when an affiliation's type changes — `OrganizationPermissionBackend`
+granted or revoked when an affiliation's type or end date changes — `OrganizationPermissionBackend`
 answers `user.has_perm("contributors.manage_organization", org)` by checking, at the moment of
-the call, whether the user holds an `OWNER` affiliation on that organisation:
+the call, whether the user holds a *current* `OWNER` affiliation on that organisation — one
+whose `end_date` is not set:
 
 ```python
 from fairdm.contrib.contributors.models import Affiliation, Organization
@@ -202,28 +203,31 @@ Affiliation.objects.create(
 owner_person.has_perm("contributors.manage_organization", org)  # True - derived, not stored
 ```
 
-Editing the affiliation's `type` away from `OWNER` (and saving) is enough on its own to remove
-the permission on the next check - nothing else needs to run. Deactivating the account has the
-same effect: a person with `is_active=False` holds nothing, whatever their affiliation says.
+Editing the affiliation's `type` away from `OWNER`, or setting its `end_date`, is enough on its
+own to remove the permission on the next check - nothing else needs to run. Deactivating the
+account has the same effect: a person with `is_active=False` holds nothing, whatever their
+affiliation says.
 
 ```python
-owner_person.is_active = False
-owner_person.save(update_fields=["is_active"])
+owner_affiliation = org.affiliations.get(person=owner_person)
+owner_affiliation.end_date = "2026"
+owner_affiliation.save()
 
 owner_person.has_perm("contributors.manage_organization", org)  # False
 ```
 
-Note that ending an affiliation by setting its `end_date` does **not** currently withdraw the
-permission — only the `type` and the account's active flag are consulted. Change the `type` to
-offboard someone.
+A stored django-guardian grant of `manage_organization` is never consulted for this permission,
+even if one exists in the database. A current `OWNER` affiliation and superuser status are the
+only two sources of this right.
 
-Nothing stops two affiliations on the same organisation both being `OWNER`; use
+Nothing stops two affiliations on the same organisation both being current `OWNER`. Use
 `transfer_ownership()` when the intent is to hand the role to someone else rather than add them
 alongside the incumbent:
 
 ```python
-# Transfer ownership: demotes the incumbent owner to ADMIN, promotes new_owner to OWNER,
-# in one atomic operation. Raises ValidationError if new_owner holds no affiliation on org.
+# Transfer ownership: demotes every *current* owner to ADMIN, promotes new_owner to OWNER,
+# in one atomic operation. new_owner must hold a current MEMBER-or-higher affiliation and be
+# an active, claimed Person - see "Ownership Transfer Validation" below.
 org.transfer_ownership(new_owner)
 ```
 
@@ -231,8 +235,45 @@ org.transfer_ownership(new_owner)
 - `PENDING`: Pending verification
 - `MEMBER`: Regular member
 - `ADMIN`: Administrator (can manage memberships)
-- `OWNER`: Owner (full control; holding an `OWNER` affiliation is what `manage_organization`
-  *means* - more than one per organisation is possible, see above)
+- `OWNER`: Owner (full control; holding a *current* `OWNER` affiliation is what
+  `manage_organization` *means* - more than one current owner per organisation is possible,
+  see above)
+
+### Ownership Transfer Validation
+
+`Organization.transfer_ownership(new_owner)` refuses `new_owner` unless they hold a *current*
+affiliation (no `end_date`) of `MEMBER` standing or higher, and are an active, claimed `Person`.
+Each failure raises `ValidationError` with its own message and changes nothing:
+
+```python
+# new_owner holds no affiliation on org at all
+org.transfer_ownership(stranger)
+# ValidationError: "<stranger> is not a member of <org>."
+
+# new_owner's affiliation has ended
+org.transfer_ownership(former_member)
+# ValidationError: "<former_member>'s affiliation with <org> has ended."
+
+# new_owner is still PENDING verification
+org.transfer_ownership(pending_affiliate)
+# ValidationError: "<pending_affiliate>'s affiliation with <org> is still pending verification."
+
+# new_owner has not claimed their account
+org.transfer_ownership(unclaimed_person)
+# ValidationError: "<unclaimed_person> has not claimed their account."
+
+# new_owner's account is deactivated
+org.transfer_ownership(deactivated_person)
+# ValidationError: "<deactivated_person>'s account is deactivated."
+```
+
+Writing `ADMIN` or `OWNER` directly through the ORM, as in the examples above, is unrestricted.
+The Django admin's affiliation forms - the standalone Affiliation admin and both inlines - gate
+the same write behind `manage_organization`: setting a type to `ADMIN` or `OWNER`, or changing
+or deleting an affiliation that already carries one of those types, requires the acting user to
+already hold `manage_organization` on that organisation. See [Managing Organization Memberships
+in Managing Contributors](../portal-administration/managing_contributors.md#managing-organization-memberships)
+for the admin-facing behaviour.
 
 ### Organization Properties
 
@@ -393,18 +434,22 @@ assert {r.name for r in same_contribution.roles.all()} == {"DataCollector", "Res
 ### Roles
 
 Roles are drawn from the framework's controlled roles vocabulary (`fairdm-roles`,
-`fairdm.core.vocabularies.FairDMRoles`). A role from any other vocabulary is refused by
-`Contribution.clean()` (FR-032). Note that this is a validation check rather than a
-constraint: `roles.add()` writes whatever concept it is given, and the check only runs
-when something calls `full_clean()`. Call it explicitly if you are writing roles from
-code rather than through the contribution form.
+`fairdm.core.vocabularies.FairDMRoles`). A role from any other vocabulary is refused
+at the point it is written: `roles.add()` and `roles.set()` both raise
+`ValidationError` immediately for an off-vocabulary concept, and neither writes it.
+This is enforced by an `m2m_changed` receiver on `Contribution.roles.through`
+(FR-032) rather than by `Contribution.clean()` - `full_clean()` never validates
+many-to-many data, so nothing that writes a role needs to call it for the rule to
+hold.
 
 ```python
 from research_vocabs.models import Concept
 
 role = Concept.objects.get(vocabulary__name="fairdm-roles", name="DataCollector")
-contribution.roles.add(role)
-contribution.full_clean()  # passes; raises ValidationError for an off-vocabulary role
+contribution.roles.add(role)  # accepted
+
+other_vocabulary_role = Concept.objects.get(vocabulary__name="not-fairdm-roles")
+contribution.roles.add(other_vocabulary_role)  # raises ValidationError; not written
 
 # Query credits by role (FR-042): every Contribution whose roles include the
 # named Concept - defined once on ContributionQuerySet, reachable from both

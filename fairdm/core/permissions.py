@@ -32,6 +32,25 @@ class PolymorphicObjectPermissionBackend(ObjectPermissionBackend):
     """
 
     def has_perm(self, user_obj, perm, obj=None):
+        # `contributors.manage_organization` on an `Organization` is decided exclusively
+        # by `OrganizationPermissionBackend` (a current OWNER affiliation, or superuser -
+        # never a stored guardian row; see that backend's docstring for why). This backend
+        # is *also* registered directly in AUTHENTICATION_BACKENDS (module docstring,
+        # D-018), independently of OrganizationPermissionBackend extending it, so without
+        # this guard Django's has_perm - which ORs every backend's answer together, and
+        # cannot let one backend veto another's yes - would still honour a stale stored
+        # grant for this one permission through this entry alone. Scoped to exactly this
+        # (permission, model) pair: every other permission and every other polymorphic
+        # model still resolves through the normal guardian check below, unchanged.
+        if obj is not None and perm in (
+            "contributors.manage_organization",
+            "manage_organization",
+        ):
+            from fairdm.contrib.contributors.models import Organization
+
+            if isinstance(obj, Organization):
+                return False
+
         return super().has_perm(user_obj, perm, get_permission_target(obj, perm))
 
     def get_all_permissions(self, user_obj, obj=None):

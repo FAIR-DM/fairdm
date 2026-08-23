@@ -7,6 +7,7 @@ from polymorphic.admin import (
     PolymorphicChildModelFilter,
     PolymorphicParentModelAdmin,
 )
+from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.models import Contribution
 
@@ -108,6 +109,23 @@ class SampleContributionInline(GenericTabularInline):
     extra = 0
     ct_field = "content_type"
     ct_fk_field = "object_id"
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        """Narrow ``roles`` to the framework's roles vocabulary.
+
+        ``ConceptManyToManyField`` does not restrict its own queryset, so without
+        this the widget offers every ``Concept`` in the database, from every
+        vocabulary - and `refuse_off_vocabulary_role` (an ``m2m_changed`` receiver,
+        see receivers.py) refuses an off-vocabulary choice uncaught, turning what
+        should be an ordinary field error into a 500. Mirrors the narrowing
+        `UpdateContributionForm` already does for the one form that had it
+        (`fairdm/contrib/contributors/forms/contribution.py`).
+        """
+        if db_field.name == "roles":
+            kwargs["queryset"] = Concept.get_for_vocabulary(
+                Contribution.roles_vocab.__class__
+            )
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class SampleRelationInline(admin.TabularInline):
