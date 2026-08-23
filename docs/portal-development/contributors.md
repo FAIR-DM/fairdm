@@ -203,9 +203,23 @@ owner_person.has_perm("contributors.manage_organization", org)  # True - derived
 ```
 
 Editing the affiliation's `type` away from `OWNER` (and saving) is enough on its own to remove
-the permission on the next check - nothing else needs to run. Nothing stops two affiliations on
-the same organisation both being `OWNER`; use `transfer_ownership()` when the intent is to hand
-the role to someone else rather than add them alongside the incumbent:
+the permission on the next check - nothing else needs to run. Deactivating the account has the
+same effect: a person with `is_active=False` holds nothing, whatever their affiliation says.
+
+```python
+owner_person.is_active = False
+owner_person.save(update_fields=["is_active"])
+
+owner_person.has_perm("contributors.manage_organization", org)  # False
+```
+
+Note that ending an affiliation by setting its `end_date` does **not** currently withdraw the
+permission — only the `type` and the account's active flag are consulted. Change the `type` to
+offboard someone.
+
+Nothing stops two affiliations on the same organisation both being `OWNER`; use
+`transfer_ownership()` when the intent is to hand the role to someone else rather than add them
+alongside the incumbent:
 
 ```python
 # Transfer ownership: demotes the incumbent owner to ADMIN, promotes new_owner to OWNER,
@@ -354,8 +368,8 @@ analysed a dataset appears once, carrying both roles:
 ```python
 from fairdm.contrib.contributors.models import Contribution
 
-# Contributor.add_to() and the Contribution.add_to() classmethod are the two entry
-# points, and both accumulate roles rather than replace them.
+# Contributor.add_to() and the Contribution.add_to() classmethod are two of the three
+# entry points, and both accumulate roles rather than replace them.
 contribution = person.add_to(my_project, roles=["DataCollector"])
 same_contribution = person.add_to(my_project, roles=["Researcher"])
 assert contribution.pk == same_contribution.pk
@@ -365,11 +379,25 @@ assert {r.name for r in same_contribution.roles.all()} == {"DataCollector", "Res
 Contribution.add_to(person, my_project, roles=["ProjectLeader"], affiliation=some_org)
 ```
 
+The third is `add_contributor()`, which every project, dataset, sample and measurement
+inherits and which the portal's own creation views use to credit the person who made the
+record. It takes the roles under a different keyword and accumulates them the same way:
+
+```python
+contribution = my_dataset.add_contributor(person, with_roles=["DataCollector"])
+same_contribution = my_dataset.add_contributor(person, with_roles=["Researcher"])
+assert contribution.pk == same_contribution.pk
+assert {r.name for r in same_contribution.roles.all()} == {"DataCollector", "Researcher"}
+```
+
 ### Roles
 
 Roles are drawn from the framework's controlled roles vocabulary (`fairdm-roles`,
 `fairdm.core.vocabularies.FairDMRoles`). A role from any other vocabulary is refused by
-`Contribution.clean()` (FR-032):
+`Contribution.clean()` (FR-032). Note that this is a validation check rather than a
+constraint: `roles.add()` writes whatever concept it is given, and the check only runs
+when something calls `full_clean()`. Call it explicitly if you are writing roles from
+code rather than through the contribution form.
 
 ```python
 from research_vocabs.models import Concept
@@ -421,6 +449,12 @@ a queryset (FR-036). **Creating a credit grants nothing** - crediting someone co
 permission by itself, so there is no corresponding grant to mirror the withdrawal. A
 portal that wants a credited contributor to also gain a right over the object must grant
 it separately.
+
+Deleting the credited object itself is the one case where nothing is withdrawn: the
+project or dataset row is gone before its credits are removed, so there is no object left
+to hold a right over. Rights recorded against a deleted object are cleared by
+django-guardian's `clean_orphan_obj_perms` management command, which is worth scheduling
+on any portal that deletes records regularly.
 
 ### Supported Content Types
 

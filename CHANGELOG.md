@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Deleting a project or dataset that has a person credited on it raised an error.** The
+  record's credits are removed alongside it, and withdrawing that person's rights over the
+  record was attempted after the record itself had gone. Every project and dataset created
+  through the portal credits its creator, so this affected the ordinary delete path.
+- **Crediting the same contributor twice through `add_contributor()` raised a database
+  error** instead of adding the new roles to the credit already recorded. It now behaves
+  like the other two ways of recording a credit, all three of which accumulate roles.
+- **A deactivated account kept its management rights over an organisation.** The right is
+  worked out from the person's affiliation each time it is checked, and that check did not
+  consider whether the account was still active.
+- Error messages naming an invalid URL, ORCID or ROR value could not be translated, because
+  the value was substituted into the message before translation could look it up.
+
+### Changed
+
+- Withdrawing a contributor's rights when their credit is deleted now happens in one place
+  rather than two. The behaviour is unchanged for every path that already worked.
+
 ### Added
 
 #### Portal configuration via `fairdm.setup()` (Feature 001)

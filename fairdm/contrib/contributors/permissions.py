@@ -17,8 +17,9 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
 
     Permission Logic:
     - user.has_perm("contributors.manage_organization", org) returns True if:
-      - User has an Affiliation with organization where type=OWNER
-      - OR user is staff/superuser (handled by ModelBackend)
+      - The account is active, and has an Affiliation with organization where type=OWNER
+      - OR user is a superuser (handled by ModelBackend)
+    - A deactivated account is refused whatever its affiliation says.
 
     Usage:
         Add to settings.AUTHENTICATION_BACKENDS:
@@ -81,6 +82,13 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
 
         # Check if user is anonymous
         if not user_obj.is_authenticated:
+            return False
+
+        # A deactivated account holds nothing. Django grants a permission as soon as any
+        # one backend allows it, and every other backend in the chain already refuses a
+        # deactivated user, so refusing here is what makes deactivation mean anything
+        # for an organization.
+        if not user_obj.is_active:
             return False
 
         # Import here to avoid circular imports

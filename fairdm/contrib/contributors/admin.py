@@ -206,19 +206,13 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
     @admin.display(description=_("Account state"))
     def account_state(self, obj):
-        """Report the account state derived from the stored claim/active fields (D8).
+        """Report the account state derived from the stored claim and active fields (D8).
 
-        A total function so the four states cannot overlap: inactive if the
-        account is deactivated, otherwise claimed, otherwise invited if an
-        email address is present, otherwise ghost.
+        Reads the state off the person rather than working it out again here, so this
+        column cannot come to disagree with what the rest of the application means by
+        claimed, invited, ghost or inactive.
         """
-        if not obj.is_active:
-            return _("Inactive")
-        if obj.is_claimed:
-            return _("Claimed")
-        if obj.email:
-            return _("Invited")
-        return _("Ghost")
+        return obj.account_state.label
 
     @admin.action(description=_("Merge selected Person into another"))
     def merge_person_action(self, request, queryset):

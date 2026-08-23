@@ -350,3 +350,40 @@ class TestAdminOverrideAccess:
 
         # Verify no object permission
         assert not staff_user.has_perm("manage_organization", organization)
+
+
+@pytest.mark.django_db
+class TestDeactivatedOwner:
+    """A deactivated account holds no rights.
+
+    Management of an organization is worked out from the affiliation at the moment it
+    is checked rather than stored, so deactivating an account has to be enough on its
+    own to end that person's control of the organization. Every other backend in the
+    chain refuses a deactivated account, and a check is granted if any single backend
+    allows it, so this one has to refuse as well or deactivation stops meaning anything
+    for organizations.
+    """
+
+    def test_deactivated_owner_cannot_manage_the_organization(
+        self, organization, owner_affiliation
+    ):
+        person = owner_affiliation.person
+        assert person.has_perm("manage_organization", organization)
+
+        person.is_active = False
+        person.save(update_fields=["is_active"])
+
+        person = Person.objects.get(pk=person.pk)
+        assert not person.has_perm("manage_organization", organization)
+        assert not person.has_perm("contributors.manage_organization", organization)
+
+    def test_reactivating_restores_management(self, organization, owner_affiliation):
+        person = owner_affiliation.person
+        person.is_active = False
+        person.save(update_fields=["is_active"])
+
+        person.is_active = True
+        person.save(update_fields=["is_active"])
+
+        person = Person.objects.get(pk=person.pk)
+        assert person.has_perm("manage_organization", organization)

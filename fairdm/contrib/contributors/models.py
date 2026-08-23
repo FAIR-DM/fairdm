@@ -16,7 +16,7 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, AFTER_DELETE, BEFORE_CREATE, hook
+from django_lifecycle import AFTER_CREATE, BEFORE_CREATE, hook
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -33,7 +33,6 @@ from fairdm.db.fields import PartialDateField
 # from polymorphic.models import PolymorphicModel
 from fairdm.db.models import PolymorphicModel
 from fairdm.utils.models import PolymorphicMixin
-from fairdm.utils.permissions import remove_all_model_perms
 from fairdm.utils.utils import default_image_path
 
 from .choices import AccountState, OrganizationType
@@ -620,7 +619,9 @@ class Person(AbstractUser, Contributor):
                 try:
                     url_validator(url)
                 except ValidationError:
-                    raise ValidationError({"links": _(f"Invalid URL: {url}")}) from None
+                    raise ValidationError(
+                        {"links": _("Invalid URL: %(url)s") % {"url": url}}
+                    ) from None
 
         # Validate ORCID format if present
         if self.pk and (orcid := self.identifiers.filter(type="ORCID").first()):
@@ -629,8 +630,10 @@ class Person(AbstractUser, Contributor):
                 raise ValidationError(
                     {
                         "identifiers": _(
-                            f"Invalid ORCID format: {orcid.value}. Expected format: 0000-0000-0000-0000"
+                            "Invalid ORCID format: %(value)s. Expected format: "
+                            "0000-0000-0000-0000"
                         )
+                        % {"value": orcid.value}
                     }
                 )
 
@@ -1032,7 +1035,9 @@ class Organization(Contributor):
                 try:
                     url_validator(url)
                 except ValidationError:
-                    raise ValidationError({"links": _(f"Invalid URL: {url}")}) from None
+                    raise ValidationError(
+                        {"links": _("Invalid URL: %(url)s") % {"url": url}}
+                    ) from None
 
         # Validate ROR format if present (only if saved - identifiers don't exist before save)
         if self.pk and (ror := self.identifiers.filter(type="ROR").first()):
@@ -1044,8 +1049,9 @@ class Organization(Contributor):
                 raise ValidationError(
                     {
                         "identifiers": _(
-                            f"Invalid ROR format: {ror.value}. Expected format: 0xxxxxx00"
+                            "Invalid ROR format: %(value)s. Expected format: 0xxxxxx00"
                         )
+                        % {"value": ror.value}
                     }
                 ) from None
 
@@ -1346,21 +1352,6 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             # Set the users primary_affiliation as default
             if org := self.contributor.affiliations.filter(is_primary=True).first():
                 self.affiliation = org.organization
-
-    @hook(AFTER_DELETE)
-    def remove_user_perms(self):
-        """
-        Clean up permissions when a contribution is deleted.
-
-        This lifecycle hook automatically removes all object-level permissions
-        that were granted to a person contributor on the contributed object.
-        This ensures proper permission cleanup and prevents orphaned permissions
-        when contributions are removed.
-
-        Only applies to Person contributors (not organizations).
-        """
-        if self.is_person():
-            remove_all_model_perms(self.contributor, self.content_object)
 
     def is_person(self):
         """Check if the contributor is a person."""

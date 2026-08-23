@@ -1076,7 +1076,15 @@ class TestContributionUniqueness:
     ):
         """FR-031, Article IX: the named UniqueConstraint carries a message, and clean()
         raises with the same wording, so a form validating before save is refused exactly
-        the way a raw insert would be."""
+        the way a raw insert would be.
+
+        The uniqueness checks are switched off so that only clean()'s own check can
+        raise. With them on, Django's constraint validation produces the identical
+        message from the constraint itself, and the assertion passes whether or not
+        clean() does anything at all - which is the shape a generic inline formset
+        needs clean() for, since it validates its forms before the parent object
+        supplies the content type.
+        """
         ContributionFactory(contributor=person, content_object=project_for_contributions)
         duplicate = Contribution(
             contributor=person,
@@ -1084,7 +1092,7 @@ class TestContributionUniqueness:
             object_id=project_for_contributions.pk,
         )
         with pytest.raises(ValidationError, match="already credited"):
-            duplicate.full_clean()
+            duplicate.full_clean(validate_unique=False, validate_constraints=False)
 
     @pytest.mark.django_db
     def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
