@@ -160,6 +160,9 @@ Organizations represent institutions, companies, research groups, and other orga
 - Affiliations also have their own top-level admin screen (list, add,
   change), independent of the person/organization inlines, with
   autocomplete on the person and organization fields
+- A non-superuser's changelist there is scoped to the affiliations of
+  organizations they currently manage — that is, organizations where they
+  hold a current OWNER affiliation. A superuser sees every affiliation.
 
 **ROR Synchronization**:
 - Admin action: "Sync from ROR"
@@ -198,56 +201,83 @@ To link with ROR:
 3. Click "Add another Affiliation"
 4. Select:
    - Person
-   - Type (PENDING, MEMBER, ADMIN, OWNER)
+   - Type (PENDING, MEMBER, ADMIN, OWNER — see Affiliation Type Meanings,
+     below, for who may set ADMIN or OWNER)
    - Start date (PartialDate: "2020", "2020-03", or "2020-03-15")
    - End date (optional, leave NULL for current affiliation)
    - Is primary (one per person)
 5. Save
 
+Setting Type to ADMIN or OWNER without `manage_organization` on this
+organization is refused with a field error on save — nothing is written.
+
 **Affiliation Type Meanings**:
 - **PENDING**: Membership pending verification (no permissions)
 - **MEMBER**: Regular member (read-only org access)
 - **ADMIN**: Administrator (can manage memberships)
-- **OWNER**: Owner — holding an OWNER affiliation on an organisation is what
-  `manage_organization` on that organisation *means*
+- **OWNER**: Owner — holding a *current* OWNER affiliation (no end date) on
+  an organisation is what `manage_organization` on that organisation
+  *means*
+
+Setting an affiliation's type to ADMIN or OWNER requires the acting user to
+already hold `manage_organization` on that organization themselves — an
+account without it cannot promote anyone, including itself, to either type.
+The same check applies to changing or deleting an affiliation that already
+carries ADMIN or OWNER. It reaches every place a type can be written: the
+standalone Affiliation admin, the affiliations inline on a person's own
+change form, and the members inline on an organization's change form.
 
 ### Ownership is derived, not stored
 
 `manage_organization` is not a permission record. `OrganizationPermissionBackend`
 answers `user.has_perm("manage_organization", organization)` by checking, at
-the moment of the call, whether the user holds an OWNER affiliation on that
-organization. Nothing is granted, revoked or written when an affiliation's
-type changes — there is no permission row to fall out of step with the
-affiliation, because there is no permission row.
+the moment of the call, whether the user holds a *current* OWNER affiliation
+on that organization — one whose end date is not set. Nothing is granted,
+revoked or written when an affiliation's type or end date changes — there is
+no permission row to fall out of step with the affiliation, because there is
+no permission row.
+
+A stored django-guardian grant of `manage_organization` is never consulted
+either, even if one exists in the database. A current OWNER affiliation and
+superuser status are the only two sources of this right.
 
 One consequence: a demotion takes effect on the very next permission check,
-with no separate revocation step. Editing an affiliation's type from OWNER to
-MEMBER or ADMIN in the inline above is enough on its own.
+with no separate revocation step. Editing an affiliation's type away from
+OWNER, or setting its end date, is enough on its own — either ends the
+derived permission the moment it is next checked. Setting the end date is
+the documented way to offboard someone: it ends the rights the type
+conferred without also requiring you to change the type.
 
 Another: the model does not enforce a single owner. Nothing stops two
-affiliations on the same organisation both being OWNER, and each of those
-people independently holds `manage_organization`. Editing an affiliation's
-type to OWNER by hand, on its own, does **not** demote whoever already holds
-it — it adds a second owner. Use `transfer_ownership()` (below) when the
-intent is to hand the role to someone else rather than add them alongside
-the incumbent.
+affiliations on the same organisation both being current OWNER, and each of
+those people independently holds `manage_organization`. Editing an
+affiliation's type to OWNER by hand, on its own, does **not** demote whoever
+already holds it — it adds a second owner. Use `transfer_ownership()`
+(below) when the intent is to hand the role to someone else rather than add
+them alongside the incumbent. Setting a type to OWNER by hand is itself
+gated: the acting user must already hold `manage_organization` on that
+organization — see [Managing Organization
+Memberships](#managing-organization-memberships) above.
 
 ### Transferring Organization Ownership
 
 **Via Admin Action**: Select a single organization in the admin changelist,
 pick the new owner from the "New owner" field next to the action dropdown,
 and choose "Transfer Ownership". The action calls
-`Organization.transfer_ownership()` itself and reports the outcome — the
-incumbent owner is demoted to ADMIN and the chosen member becomes OWNER. It
+`Organization.transfer_ownership()` itself and reports the outcome — every
+current owner is demoted to ADMIN and the chosen member becomes OWNER. It
 requires the acting user to hold `manage_organization` on that organisation
-(an OWNER affiliation, or superuser); holding only the ordinary
+(a current OWNER affiliation, or superuser). Holding only the ordinary
 `change_organization` permission that gets an account into the admin at all
-is not enough.
+is not enough. If the model method refuses the new owner (see below), the
+action reports the same message as an error instead of transferring
+anything.
 
 **Via `Organization.transfer_ownership()`**: the model method that performs
-an actual transfer — demoting the incumbent owner to ADMIN and promoting the
-named person to OWNER in one atomic operation, refusing the call if that
-person is not already a member:
+an actual transfer — demoting every *current* owner to ADMIN and promoting
+the named person to OWNER in one atomic operation. The named person must
+hold a *current* affiliation (no end date) of MEMBER standing or higher, and
+must be an active, claimed account:
 
 ```python
 from fairdm.contrib.contributors.models import Organization, Person
@@ -259,8 +289,14 @@ organization.transfer_ownership(new_owner)
 # new_owner now holds `manage_organization`; the previous owner is now ADMIN.
 ```
 
-Calling it with someone who holds no affiliation on the organisation raises
-`ValidationError` and changes nothing.
+Each of the following is refused with `ValidationError`, and changes
+nothing:
+
+- `new_owner` holds no affiliation on the organisation at all.
+- `new_owner`'s affiliation with the organisation has ended.
+- `new_owner`'s affiliation is still PENDING verification.
+- `new_owner` has not claimed their account.
+- `new_owner`'s account is deactivated.
 
 ## Affiliation Verification Workflow
 
@@ -276,14 +312,17 @@ Calling it with someone who holds no affiliation on the organisation raises
    - Review request
 
 3. **Approve or Reject**:
-   - **Approve**: Change type to MEMBER (or ADMIN if appropriate)
+   - **Approve**: Change type to MEMBER. Approving to ADMIN needs the
+     approving user to already hold `manage_organization` on that
+     organization themselves — see [Managing Organization
+     Memberships](#managing-organization-memberships)
    - **Reject**: Delete affiliation or leave as PENDING with note
 
 4. **Permission Effect**:
    - No permission row is written anywhere — `manage_organization` is derived, not stored (see
      [Ownership is derived, not stored](#ownership-is-derived-not-stored) below)
-   - An OWNER affiliation makes `user.has_perm("contributors.manage_organization", org)` true on
-     the very next check, with nothing further to run
+   - A current OWNER affiliation makes `user.has_perm("contributors.manage_organization", org)`
+     true on the very next check, with nothing further to run
 
 ### Affiliation Admin List Filters
 
@@ -463,7 +502,9 @@ ghosts_without_data = Person.objects.ghost().filter(
 
 The Person admin's **"Merge selected Person into another…"** action does this transactionally,
 including identifiers, allauth accounts and guardian permissions, and is the recommended route —
-see [Merging Two Person Records](managing-unclaimed-profiles.md#merging-two-person-records). The
+see [Merging Two Person Records](managing-unclaimed-profiles.md#merging-two-person-records).
+Running it requires a superuser account: the action is absent from a non-superuser's changelist,
+and the confirmation page itself refuses a non-superuser with a 403 if reached directly. The
 manual approach below only reassigns contributions and affiliations, and is a narrower fallback
 for the pieces the admin action does not cover:
 
@@ -608,14 +649,31 @@ def export_person_data(person):
 ### Permission Boundaries
 
 **Organization Ownership**:
-- OWNER has `manage_organization` permission
-- The permission is derived from the OWNER affiliation at the moment it is
+- A current OWNER affiliation (no end date) has `manage_organization`
+  permission
+- The permission is derived from the affiliation at the moment it is
   checked, not stored — see [Ownership is derived, not stored](#ownership-is-derived-not-stored)
+- A stored django-guardian grant of `manage_organization` is never
+  honoured, whatever the database holds for it — the affiliation and
+  superuser status are the only two sources
+
+**Affiliation Writes**:
+- Setting an affiliation's type to ADMIN or OWNER, and changing or deleting
+  one that already carries either type, requires `manage_organization` on
+  that organization — see [Managing Organization
+  Memberships](#managing-organization-memberships)
+
+**Person Admin Actions**:
+- Merging two Person records, and generating a claim link, are
+  superuser-only — see [Merging Duplicate Persons](#merging-duplicate-persons)
+  and [Managing Unclaimed Profiles](managing-unclaimed-profiles.md)
 
 **Admin Access**:
 - Django staff/superuser can access all records
 - Non-staff users see only records they have permission for
-- Use django-guardian for object-level permissions
+- Use django-guardian for object-level permissions other than
+  `manage_organization`, which a stored guardian grant can never confer
+  (see above)
 
 ## Related Documentation
 

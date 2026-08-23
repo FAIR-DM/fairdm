@@ -104,7 +104,11 @@ Track who collected, analyzed, or owns samples:
 
 1. In the **Contributors** section, click **Add another Contributor**
 2. Select **Contributor** (user or contact)
-3. Enter **Roles** (e.g., "collector", "analyst", "owner")
+3. Select one or more **Roles**. The sample-specific roles are **Collector**, **Preparer**,
+   **Archivist**, **Destroyer** and **Restorer** - but the field is not scoped to those: it
+   lists every role in the framework's shared roles vocabulary, including ones meant for a
+   project, dataset or measurement contribution. Roles are this controlled vocabulary, not free
+   text - a role from outside it entirely is refused when the contribution is saved.
 4. Optionally set **Order** for display ordering
 5. Repeat for additional contributors
 
