@@ -3,6 +3,7 @@
 import pytest
 
 from fairdm.core.dataset.models import DatasetDescription
+from fairdm.factories import PersonFactory
 from fairdm.factories.core import (
     DatasetDateFactory,
     DatasetDescriptionFactory,
@@ -212,3 +213,47 @@ class TestGenericModelQuerySet:
         assert desc1.type != desc2.type
         # Verify both exist in the database
         assert DatasetDescription.objects.filter(related=dataset).count() == 2
+
+
+@pytest.mark.django_db
+class TestAddContributor:
+    """`BaseModel.add_contributor` is the entry point every core record type inherits,
+    and the one the project and dataset creation views call.
+
+    A contributor's credit on an object is one record carrying every role they hold for
+    it, so crediting the same person a second time under a further role has to add that
+    role to the record already there. Recording the credit again instead breaks the
+    uniqueness the record type guarantees.
+    """
+
+    def test_second_credit_adds_its_role_to_the_first(self):
+        dataset = DatasetFactory.create()
+        person = PersonFactory()
+
+        first = dataset.add_contributor(person, with_roles=["DataCollector"])
+        second = dataset.add_contributor(person, with_roles=["Researcher"])
+
+        assert second.pk == first.pk
+        assert {role.name for role in second.roles.all()} == {
+            "DataCollector",
+            "Researcher",
+        }
+        assert dataset.contributors.filter(contributor=person).count() == 1
+
+    def test_a_repeated_role_is_not_recorded_twice(self):
+        dataset = DatasetFactory.create()
+        person = PersonFactory()
+
+        dataset.add_contributor(person, with_roles=["DataCollector"])
+        contribution = dataset.add_contributor(person, with_roles=["DataCollector"])
+
+        assert [role.name for role in contribution.roles.all()] == ["DataCollector"]
+
+    def test_crediting_without_roles_leaves_existing_roles_alone(self):
+        dataset = DatasetFactory.create()
+        person = PersonFactory()
+
+        dataset.add_contributor(person, with_roles=["DataCollector"])
+        contribution = dataset.add_contributor(person)
+
+        assert {role.name for role in contribution.roles.all()} == {"DataCollector"}

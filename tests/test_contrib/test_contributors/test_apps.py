@@ -2,6 +2,7 @@
 configuration (T001)."""
 
 from django.apps import apps
+from django.utils.functional import Promise
 
 
 class TestContributorsConfig:
@@ -16,9 +17,17 @@ class TestContributorsConfig:
         assert config.label == "contributors"
 
     def test_app_config_declares_a_translatable_verbose_name(self):
+        """Assert the declared value, not merely that some string is present.
+
+        Django supplies a verbose name derived from the app label when none is
+        declared, so a truthiness check passes whether or not the app declares one.
+        Comparing against a lazy proxy also proves the value went through the
+        translation machinery rather than being hard-coded (Article VIII).
+        """
         config = apps.get_app_config("contributors")
 
-        assert str(config.verbose_name)
+        assert isinstance(config.verbose_name, Promise)
+        assert str(config.verbose_name) == "Community"
 
     def test_app_config_declares_a_default_auto_field(self):
         config = apps.get_app_config("contributors")

@@ -503,12 +503,9 @@ class Command(BaseCommand):
                 available_roles, min(num_roles, len(available_roles))
             )
 
-            # Create contribution
-            contribution = Contribution.objects.create(
-                contributor=contributor,
-                content_object=obj,
-            )
+            # Credit the contributor, adding to any credit already recorded rather than
+            # starting a second one - the same rule the model's own entry points follow.
+            contribution = Contribution.add_to(contributor, obj)
 
-            # Add roles using concept queryset filtered by name
             if selected_roles:
-                contribution.roles.set(roles_qs.filter(name__in=selected_roles))
+                contribution.roles.add(*roles_qs.filter(name__in=selected_roles))

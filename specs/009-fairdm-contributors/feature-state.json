@@ -3,7 +3,7 @@
   "feature": "009-fairdm-contributors",
   "branch": "009-fairdm-contributors",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -39,6 +39,11 @@
       "state": "REVIEW",
       "at": "2026-08-20T18:30:00Z",
       "note": "141 of 142 tasks done; T143 left to CI"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-20T15:13:10Z",
+      "note": "PR #251 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -51,8 +56,8 @@
       "at": null
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-20T15:12:32Z"
     },
     "design_review": {
       "approved_by": "design-panel",
@@ -2616,5 +2621,9 @@
       "used": 0,
       "max": 4000000
     }
+  },
+  "pr": {
+    "number": 251,
+    "draft": false
   }
 }

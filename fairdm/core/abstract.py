@@ -79,12 +79,23 @@ class BaseModel(models.Model):
         )
 
     def add_contributor(self, contributor, with_roles=None):
-        """Adds a new contributor the object with the specified roles."""
+        """Credit a contributor on this object under the given roles.
 
-        contribution = self.contributors.create(contributor=contributor)
-        roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
+        A contributor holds one credit per object, carrying every role they have on it,
+        so crediting the same contributor again adds the new roles to the credit already
+        recorded rather than starting a second one. This matches
+        ``Contributor.add_to`` and ``Contribution.add_to``, the other two ways to record
+        a credit.
+        """
+        contribution, _created = self.contributors.get_or_create(
+            contributor=contributor
+        )
         if with_roles:
-            contribution.roles.set(roles_qs.filter(name__in=with_roles))
+            contribution.roles.add(
+                *Concept.objects.filter(
+                    vocabulary__name="fairdm-roles", name__in=with_roles
+                )
+            )
         return contribution
 
     def is_contributor(self, user):

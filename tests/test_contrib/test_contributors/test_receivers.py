@@ -52,3 +52,21 @@ class TestWithdrawRightsOnCreditDeletion:
         contribution = Contribution.add_to(organization, project_for_contributions)
 
         Contribution.objects.filter(pk=contribution.pk).delete()
+
+    def test_deleting_the_credited_object_does_not_error(
+        self, person, project_for_contributions
+    ):
+        """Deleting a project cascades to the credits recorded against it, and the
+        project row is gone by the time those credits raise post_delete. The credited
+        object is therefore unresolvable, and the receiver has nothing to withdraw a
+        right over - it must not treat that as a right to withdraw from nothing.
+
+        Every project and dataset created through the portal credits its creator, so
+        this is the ordinary delete path rather than an edge case.
+        """
+        assign_perm("change_project", person, project_for_contributions)
+        Contribution.add_to(person, project_for_contributions)
+
+        project_for_contributions.delete()
+
+        assert not Contribution.objects.exists()

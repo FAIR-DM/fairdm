@@ -1076,7 +1076,15 @@ class TestContributionUniqueness:
     ):
         """FR-031, Article IX: the named UniqueConstraint carries a message, and clean()
         raises with the same wording, so a form validating before save is refused exactly
-        the way a raw insert would be."""
+        the way a raw insert would be.
+
+        The uniqueness checks are switched off so that only clean()'s own check can
+        raise. With them on, Django's constraint validation produces the identical
+        message from the constraint itself, and the assertion passes whether or not
+        clean() does anything at all - which is the shape a generic inline formset
+        needs clean() for, since it validates its forms before the parent object
+        supplies the content type.
+        """
         ContributionFactory(contributor=person, content_object=project_for_contributions)
         duplicate = Contribution(
             contributor=person,
@@ -1084,7 +1092,7 @@ class TestContributionUniqueness:
             object_id=project_for_contributions.pk,
         )
         with pytest.raises(ValidationError, match="already credited"):
-            duplicate.full_clean()
+            duplicate.full_clean(validate_unique=False, validate_constraints=False)
 
     @pytest.mark.django_db
     def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
@@ -1885,3 +1893,36 @@ class TestClaimingAuditLogManager:
         assert orcid_qs.filter(pk=orcid_entry.pk).exists()
         assert not orcid_qs.filter(pk=email_entry.pk).exists()
 
+
+
+@pytest.mark.django_db
+class TestContributorLinkValidation:
+    """`links` holds URLs to a contributor's other online presences, and both kinds of
+    contributor refuse a value that is not one.
+
+    The message names the offending value, so a person correcting a list of several
+    links can tell which one was rejected.
+    """
+
+    def test_person_refuses_a_link_that_is_not_a_url(self, person):
+        person.links = ["https://example.org", "not a url"]
+
+        with pytest.raises(ValidationError) as excinfo:
+            person.full_clean()
+
+        assert "links" in excinfo.value.message_dict
+        assert "not a url" in excinfo.value.message_dict["links"][0]
+
+    def test_organization_refuses_a_link_that_is_not_a_url(self, organization):
+        organization.links = ["ftp://not-a-web-address"]
+
+        with pytest.raises(ValidationError) as excinfo:
+            organization.full_clean()
+
+        assert "links" in excinfo.value.message_dict
+        assert "ftp://not-a-web-address" in excinfo.value.message_dict["links"][0]
+
+    def test_a_valid_link_list_passes(self, person):
+        person.links = ["https://example.org", "https://orcid.org/0000-0002-1825-0097"]
+
+        person.full_clean()
