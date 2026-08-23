@@ -55,6 +55,17 @@ def refuse_off_vocabulary_role(sender, action, reverse, model, pk_set, **kwargs)
     vocabulary before it is written to ``Contribution.roles`` (FR-032, design review
     SPEC-001).
 
+    This is the backstop, not the first line of defence. A person filling in a form -
+    the roles field on ``MeasurementContributionInline``, ``SampleContributionInline``
+    or ``UpdateContributionForm`` - hits the vocabulary restriction each narrows its
+    ``roles`` queryset to first, as an ordinary field validation error attached to the
+    form. This receiver exists for every write path that never goes through one of
+    those forms at all - a fixture, a management command, a raw ``roles.add()`` call -
+    where there is no form to narrow and nothing else stops an off-vocabulary concept
+    reaching the through table. Raising here, uncaught, is acceptable for that kind of
+    caller; it would not be for a form submission, which is why the admin surfaces
+    narrow their querysets instead of relying on this alone.
+
     Connected to ``m2m_changed`` for ``Contribution.roles.through`` with
     ``action="pre_add"``. That single action covers both ``roles.add()`` directly and
     the additive half of ``roles.set()`` - Django's ``ManyRelatedManager.set()``

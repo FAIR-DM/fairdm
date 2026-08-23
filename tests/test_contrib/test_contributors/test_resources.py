@@ -14,9 +14,17 @@ An uploaded spreadsheet is untrusted input. These tests cover:
   - ``get_instance()`` no longer resolves rows by display name — a free-text
     ``name`` collision with an existing Person is not an identity match, now
     that ``import_id_fields`` is ``["uuid"]``.
+  - ``uuid`` is declared ``readonly`` on the resource, so the real import
+    workflow (``import_data``/``import_row``/``import_instance``, not just
+    ``get_instance``) never writes an uploaded ``uuid`` cell onto a matched
+    Person, however the row was matched.
+  - A row whose write does fail (e.g. an ``IntegrityError``) does not poison
+    the rest of the batch — every other row in the same ``import_data()``
+    call still reports its own real outcome.
 """
 
 import pytest
+import tablib
 from django.core.exceptions import ValidationError
 from import_export.instance_loaders import ModelInstanceLoader
 
@@ -59,6 +67,26 @@ def stub_orcid_creation(monkeypatch):
         fake_update_or_create_from_orcid,
     )
     return fake_update_or_create_from_orcid
+
+
+@pytest.fixture
+def stub_orcid_match(monkeypatch):
+    """Stand in for ``update_or_create_from_orcid`` returning an *existing*
+    Person unchanged (``created=False``) — the shape a row whose ORCID
+    matches someone already on file receives, as opposed to
+    ``stub_orcid_creation``'s always-new-Person case.
+    """
+
+    def make(person):
+        def fake_update_or_create_from_orcid(orcid, **kwargs):
+            return person, False
+
+        monkeypatch.setattr(
+            "fairdm.contrib.contributors.resources.update_or_create_from_orcid",
+            fake_update_or_create_from_orcid,
+        )
+
+    return make
 
 
 @pytest.mark.django_db
@@ -154,3 +182,88 @@ class TestGetInstanceDoesNotResolveByName:
 
         assert result is None
         assert result != existing
+
+
+@pytest.mark.django_db
+class TestImportInstanceDoesNotOverwriteUuid:
+    """``uuid`` is the public identifier every Person carries and the only
+    ``import_id_fields`` value this resource trusts — it identifies a row, it
+    is never written by one. Driving the real ``import_data()`` workflow
+    (not just ``get_instance()``) proves the field itself is unwritable,
+    however the row was matched.
+    """
+
+    def test_orcid_matched_row_does_not_change_the_matched_persons_uuid(
+        self, resource, stub_orcid_match
+    ):
+        existing = PersonFactory(is_claimed=False)
+        original_uuid = existing.uuid
+        stub_orcid_match(existing)
+
+        dataset = tablib.Dataset(
+            headers=["uuid", "orcid", "name", "first_name", "last_name"]
+        )
+        # The uploaded row's uuid cell is blank — a spreadsheet exported
+        # without it, or simply never filled in for this row.
+        dataset.append(
+            ["", ORCID_ID, existing.name, existing.first_name, existing.last_name]
+        )
+
+        result = resource.import_data(dataset, dry_run=False)
+
+        assert not result.has_errors(), [
+            [e.error for e in row.errors] for row in result.rows
+        ]
+        existing.refresh_from_db()
+        assert existing.uuid == original_uuid
+
+
+@pytest.mark.django_db
+class TestImportDataDoesNotPoisonTheBatch:
+    """A row whose write fails must not take the rest of the batch down with
+    it (``Meta.use_transactions``). Reproduced with the exact mechanism the
+    defect used to reach ``instance.save()`` through: a claimed person's real
+    uuid, before the ``uuid`` field was made unwritable, could be copied onto
+    an unrelated row and collide - see
+    ``TestImportInstanceDoesNotOverwriteUuid`` above, which now closes that
+    specific trigger. This test keeps a two-row batch where the first row is
+    forced to fail, so the containment mechanism itself - not merely the
+    absence of this one trigger - is what is being proven.
+    """
+
+    def test_a_failing_row_does_not_poison_a_later_rows_outcome(
+        self, resource, stub_orcid_match
+    ):
+        colliding_uuid_holder = PersonFactory(
+            is_claimed=True, email="holds-the-uuid@example.com"
+        )
+        matched_by_orcid = PersonFactory(is_claimed=False)
+        stub_orcid_match(matched_by_orcid)
+
+        dataset = tablib.Dataset(
+            headers=["uuid", "orcid", "name", "first_name", "last_name"]
+        )
+        # Row 0: resolved via ORCID, but its uploaded uuid cell collides with
+        # a different, unrelated Person's real uuid.
+        dataset.append(
+            [
+                colliding_uuid_holder.uuid,
+                ORCID_ID,
+                matched_by_orcid.name,
+                matched_by_orcid.first_name,
+                matched_by_orcid.last_name,
+            ]
+        )
+        # Row 1: an entirely unrelated, valid new row with nothing wrong
+        # with it on its own.
+        dataset.append(["", "", "Fresh New Person", "Fresh", "Person"])
+
+        result = resource.import_data(dataset, dry_run=False)
+
+        row_zero_errors = [e.error for e in result.rows[0].errors]
+        row_one_errors = [e.error for e in result.rows[1].errors]
+        assert not row_one_errors, (
+            "row 1 has nothing wrong with it and must report its own "
+            f"outcome, not row 0's failure: {row_one_errors!r}"
+        )
+        assert Person.objects.filter(name="Fresh New Person").exists()

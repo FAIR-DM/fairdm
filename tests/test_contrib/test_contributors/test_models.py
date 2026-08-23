@@ -1528,6 +1528,64 @@ class TestIdentifierUniquePerType:
         assert person.identifiers.count() == 2
 
 
+# ── An identifier value already claims one record; a second contributor cannot
+# ── carry the same value (finding 3, save_user's adopted-vs-duplicate decision).
+
+
+class TestIdentifierValueUniqueAcrossContributors:
+    """``AbstractIdentifier.value`` (fairdm/core/abstract.py) is unique both at the
+    database and in ``clean()`` - which checks every ``AbstractIdentifier`` subclass,
+    not only ``ContributorIdentifier``'s own table - so a second, different Person
+    cannot end up carrying an identifier already attached to someone else, whichever
+    write path is used. This is what makes skipping the write in
+    ``SocialAccountAdapter.save_user`` (adapters.py) sufficient on its own: the admin's
+    ``IdentifierInline`` (a plain ``ModelForm``) already refuses the same collision as
+    an ordinary field error through Django's own ``Model.validate_unique()``, so no
+    change to ``clean()`` itself was needed for that surface.
+    """
+
+    @pytest.mark.django_db
+    def test_second_contributor_with_the_same_value_refused_at_the_database(
+        self, orcid_identifier, organization
+    ):
+        with pytest.raises(IntegrityError):
+            ContributorIdentifier.objects.create(
+                related=organization, type="ROR", value=orcid_identifier.value
+            )
+
+    @pytest.mark.django_db
+    def test_second_contributor_with_the_same_value_refused_at_clean(
+        self, orcid_identifier, organization
+    ):
+        duplicate = ContributorIdentifier(
+            related=organization, type="ROR", value=orcid_identifier.value
+        )
+
+        with pytest.raises(ValidationError):
+            duplicate.clean()
+
+    @pytest.mark.django_db
+    def test_the_identifier_inline_form_refuses_it_as_an_ordinary_field_error(
+        self, orcid_identifier, organization
+    ):
+        """The admin's ``IdentifierInline`` declares ``fields = ["type", "value"]``
+        with no custom form - Django's default ``ModelForm`` - so this is the exact
+        validation a submission through that inline goes through: a duplicate value
+        comes back as ``form.errors``, not as an uncaught ``IntegrityError``."""
+        from django import forms
+
+        form_class = forms.modelform_factory(
+            ContributorIdentifier, fields=["type", "value"]
+        )
+        form = form_class(
+            data={"type": "ROR", "value": orcid_identifier.value},
+            instance=ContributorIdentifier(related=organization),
+        )
+
+        assert form.is_valid() is False
+        assert "value" in form.errors
+
+
 # ── T110: A contributor reports its default identifier ──────────────────────
 
 

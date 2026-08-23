@@ -11,6 +11,20 @@ class PersonResource(resources.ModelResource):
     orcid = fields.Field(column_name="orcid")
     ror_id = fields.Field(column_name="ror_id")
     affiliation = fields.Field(column_name="affiliation")
+    # `uuid` identifies a row - it is never written by one. Declared
+    # `readonly` (import_export.fields.Field's own supported way to exclude a
+    # field from `import_field()`/`Field.save()`, read in
+    # import_export==4.4.1's fields.py) so `import_instance()` skips writing
+    # it, while `import_id_fields` below still uses it - unaffected, since
+    # instance lookup goes through `Field.clean()`/`get_value()`, not
+    # `save()` - to find the row's matching Person. Without this, the
+    # auto-generated field for a model attribute of the same name defaults to
+    # writable, and a row whose `uuid` cell is blank or collides with another
+    # Person's real uuid could overwrite the public identifier every
+    # profile URL is built from, or raise an IntegrityError (see
+    # `use_transactions` below for why that must not take the rest of the
+    # batch with it).
+    uuid = fields.Field(attribute="uuid", column_name="uuid", readonly=True)
 
     class Meta:
         model = Person
@@ -21,7 +35,17 @@ class PersonResource(resources.ModelResource):
         # supplies no ORCID (see get_instance).
         import_id_fields = ["uuid"]
         skip_unchanged = True
-        use_transactions = False
+        # Each row's `import_row()` is wrapped in its own atomic()/savepoint
+        # (import_export==4.4.1 resources.py `import_data_inner`, the `with
+        # atomic_if_using_transaction(...)` around the per-row loop) only
+        # when this is True. Without it, a row whose `instance.save()` raises
+        # (an IntegrityError, say) has nothing to roll back to: the project
+        # runs PostgreSQL with `ATOMIC_REQUESTS=True`
+        # (fairdm/conf/settings/database.py), so the admin-import request's
+        # own ambient transaction is left broken and every later row fails
+        # with TransactionManagementError instead of reporting its own real
+        # outcome, however unrelated it was to the row that actually failed.
+        use_transactions = True
         skip_admin_log = True
         fields = (
             "uuid",

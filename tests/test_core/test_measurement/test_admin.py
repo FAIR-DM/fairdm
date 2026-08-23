@@ -13,9 +13,11 @@ Based on tasks T019, T006-T010 from Feature 006.
 """
 
 import pytest
+from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
+from django.urls import reverse
 
 from fairdm.core.measurement.admin import MeasurementChildAdmin
 from fairdm.core.measurement.models import (
@@ -328,6 +330,130 @@ class TestMeasurementAdminInlines:
         contribution.refresh_from_db()
 
         assert contribution.contributor == new_contributor
+
+
+@pytest.mark.django_db
+class TestMeasurementContributionInlineRoleVocabulary:
+    """FR-032/SPEC-001: the roles widget on a measurement's contribution inline must not
+    offer a concept from any vocabulary other than the framework's roles vocabulary -
+    see the identical concern and mechanism documented on
+    ``tests.test_core.test_sample.test_admin.TestSampleContributionInlineRoleVocabulary``.
+    """
+
+    @staticmethod
+    def _off_vocabulary_role():
+        from research_vocabs.models import Concept, Vocabulary
+
+        vocabulary, _ = Vocabulary.objects.get_or_create(
+            name="not-fairdm-roles",
+            defaults={
+                "label": "Not FairDM Roles",
+                "uri": "https://example.com/vocabularies/not-fairdm-roles",
+            },
+        )
+        concept, _ = Concept.objects.get_or_create(
+            vocabulary=vocabulary,
+            name="Outsider",
+            defaults={
+                "uri": "https://example.com/vocabularies/not-fairdm-roles#outsider",
+                "label": "Outsider",
+            },
+        )
+        return concept
+
+    def test_posting_an_off_vocabulary_role_is_a_form_error_not_a_500(
+        self, admin_client, sample
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.factories import PersonFactory
+        from fairdm_demo.models import XRFMeasurement
+
+        xrf = XRFMeasurement.objects.create(
+            name="XRF Test",
+            sample=sample,
+            dataset=sample.dataset,
+            element="Si",
+            concentration_ppm=250000.0,
+        )
+        contributor = PersonFactory()
+        contribution = xrf.contributors.create(contributor=contributor)
+        off_vocabulary_role = self._off_vocabulary_role()
+
+        prefix = "contributors-contribution-content_type-object_id"
+        data = {
+            "element": "Si",
+            "concentration_ppm": "250000.00",
+            "detection_limit_ppm": "",
+            "instrument_model": "",
+            "measurement_conditions": "",
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "4",
+            "dates-TOTAL_FORMS": "0",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "2",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1",
+            f"{prefix}-TOTAL_FORMS": "1",
+            f"{prefix}-INITIAL_FORMS": "1",
+            f"{prefix}-MIN_NUM_FORMS": "0",
+            f"{prefix}-MAX_NUM_FORMS": "1000",
+            f"{prefix}-0-id": contribution.pk,
+            f"{prefix}-0-contributor": contributor.pk,
+            f"{prefix}-0-roles": [off_vocabulary_role.pk],
+            "_continue": "Save and continue editing",
+        }
+
+        response = admin_client.post(
+            reverse("admin:fairdm_demo_xrfmeasurement_change", args=[xrf.pk]),
+            data=data,
+        )
+
+        assert response.status_code == 200, (
+            "A redirect here means the off-vocabulary role was accepted; a 500 "
+            "means the m2m_changed receiver raised uncaught instead of the "
+            "admin field rejecting the choice."
+        )
+        contribution_formset = next(
+            admin_formset.formset
+            for admin_formset in response.context["inline_admin_formsets"]
+            if admin_formset.formset.prefix == prefix
+        )
+        assert contribution_formset.errors and any(contribution_formset.errors), (
+            contribution_formset.errors
+        )
+        assert not Contribution.objects.get(pk=contribution.pk).roles.exists()
+
+    def test_the_roles_field_does_not_offer_the_off_vocabulary_concept(
+        self, admin_user, sample
+    ):
+        from fairdm_demo.models import XRFMeasurement
+
+        xrf = XRFMeasurement.objects.create(
+            name="XRF Test",
+            sample=sample,
+            dataset=sample.dataset,
+            element="Si",
+            concentration_ppm=250000.0,
+        )
+        off_vocabulary_role = self._off_vocabulary_role()
+
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        model_admin = admin.site._registry[type(xrf)]
+        contribution_inline = next(
+            inline
+            for inline in model_admin.get_inline_instances(request, xrf)
+            if inline.__class__.__name__ == "MeasurementContributionInline"
+        )
+        formset_class = contribution_inline.get_formset(request, xrf)
+
+        roles_queryset = formset_class.form.base_fields["roles"].queryset
+        assert off_vocabulary_role not in roles_queryset
 
 
 @pytest.mark.django_db

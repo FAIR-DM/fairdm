@@ -225,3 +225,36 @@ class TestSaveUserORCID:
         claimed_person_with_orcid.refresh_from_db()
         assert claimed_person_with_orcid.is_claimed is True
         assert claimed_person_with_orcid.is_active is True
+
+    def test_claimed_persons_orcid_is_not_duplicated_onto_the_new_account(
+        self, db, adapter, request_mock, claimed_person_with_orcid, monkeypatch
+    ):
+        """An ORCID identifies at most one person. ``AbstractIdentifier.value`` carries
+        a database-level uniqueness constraint (``fairdm/core/abstract.py``), so the old
+        unconditional ``user.identifiers.create(value=orcid_id, ...)`` did not actually
+        succeed in duplicating the value — it raised an uncaught ``IntegrityError`` and
+        crashed the signup instead, because ``claimed_person_with_orcid`` already holds
+        a ``ContributorIdentifier`` row for this exact value. Either way is wrong: the
+        new, genuinely-new-account signup must complete, and it must not attempt to
+        write a second identifier row for a value that already belongs to somebody
+        else.
+
+        This test uses a real, saved ``Person`` for ``sociallogin.user`` (not a
+        ``MagicMock`` like ``test_claimed_person_is_not_adopted`` above) specifically so
+        ``user.identifiers.create(...)`` is real, unmocked ORM code hitting the real
+        unique constraint — a MagicMock's ``.identifiers.create(...)`` is itself a mock
+        call and would never demonstrate this at all.
+        """
+        _patch_super_save_user(monkeypatch)
+        sl = _make_sociallogin(ORCID_UID, request_mock)
+        sl.user = Person(name="New Signup", first_name="New", last_name="Signup")
+
+        user = adapter.save_user(request_mock, sl)
+
+        assert user.pk is not None
+        assert user != claimed_person_with_orcid
+        assert not user.identifiers.filter(type="ORCID").exists()
+        assert (
+            ContributorIdentifier.objects.filter(value=ORCID_UID, type="ORCID").count()
+            == 1
+        )

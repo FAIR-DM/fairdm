@@ -113,7 +113,18 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 sociallogin.user = adopted_user
 
             user = super().save_user(request, sociallogin, form=form)
-            if not adopted_user:
+            # An ORCID identifies at most one person - `ContributorIdentifier.value`
+            # carries a database-level uniqueness constraint (fairdm/core/abstract.py)
+            # that already refuses two rows for the same value, so writing this one
+            # unconditionally when `existing_user` is a claimed Person who already
+            # holds it does not silently duplicate the value: it raises an uncaught
+            # IntegrityError and crashes the signup instead. Skipping the write here
+            # is the same choice `pre_social_login`/the block above already made for
+            # `existing_user` itself - a claimed match is left alone entirely, so the
+            # new account it's attached to is not entitled to that identifier either.
+            # The account itself still gets created; it just doesn't carry an ORCID
+            # identifier this signup can't legitimately claim.
+            if not adopted_user and existing_user is None:
                 # The following must be done after the user is saved to ensure the user instance has a pk
                 # create the new ContributorIdentifier relation
                 user.identifiers.create(
