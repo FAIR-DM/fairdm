@@ -393,18 +393,22 @@ assert {r.name for r in same_contribution.roles.all()} == {"DataCollector", "Res
 ### Roles
 
 Roles are drawn from the framework's controlled roles vocabulary (`fairdm-roles`,
-`fairdm.core.vocabularies.FairDMRoles`). A role from any other vocabulary is refused by
-`Contribution.clean()` (FR-032). Note that this is a validation check rather than a
-constraint: `roles.add()` writes whatever concept it is given, and the check only runs
-when something calls `full_clean()`. Call it explicitly if you are writing roles from
-code rather than through the contribution form.
+`fairdm.core.vocabularies.FairDMRoles`). A role from any other vocabulary is refused
+at the point it is written: `roles.add()` and `roles.set()` both raise
+`ValidationError` immediately for an off-vocabulary concept, and neither writes it.
+This is enforced by an `m2m_changed` receiver on `Contribution.roles.through`
+(FR-032) rather than by `Contribution.clean()` - `full_clean()` never validates
+many-to-many data, so nothing that writes a role needs to call it for the rule to
+hold.
 
 ```python
 from research_vocabs.models import Concept
 
 role = Concept.objects.get(vocabulary__name="fairdm-roles", name="DataCollector")
-contribution.roles.add(role)
-contribution.full_clean()  # passes; raises ValidationError for an off-vocabulary role
+contribution.roles.add(role)  # accepted
+
+other_vocabulary_role = Concept.objects.get(vocabulary__name="not-fairdm-roles")
+contribution.roles.add(other_vocabulary_role)  # raises ValidationError; not written
 
 # Query credits by role (FR-042): every Contribution whose roles include the
 # named Concept - defined once on ContributionQuerySet, reachable from both

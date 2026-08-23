@@ -1284,24 +1284,26 @@ class TestContributionRoles:
         assert role in contribution.roles.all()
 
     @pytest.mark.django_db
-    def test_role_from_outside_the_roles_vocabulary_is_refused(self, contribution):
-        from research_vocabs.models import Concept, Vocabulary
+    def test_role_from_outside_the_roles_vocabulary_is_refused(
+        self, contribution, off_vocabulary_role
+    ):
+        """The relation itself refuses the write - no ``full_clean()`` call is needed
+        to catch it, and none is made here.
 
-        other_vocabulary = Vocabulary.objects.create(
-            name="not-fairdm-roles",
-            label="Not FairDM Roles",
-            uri="https://example.com/vocabularies/not-fairdm-roles",
-        )
-        outside_role = Concept.objects.create(
-            vocabulary=other_vocabulary,
-            uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
-            name="Outsider",
-            label="Outsider",
-        )
-        contribution.roles.add(outside_role)
+        ``roles.add()`` raises from inside its own ``transaction.atomic(savepoint=False)``
+        block, so the call is wrapped in a savepoint-holding block of its own here -
+        exactly as any caller inside a broader transaction (a view under
+        ``ATOMIC_REQUESTS``, for one) already needs to, and as Django's own docs
+        describe for handling an exception raised inside ``atomic()`` without aborting
+        the enclosing transaction.
+        """
+        from django.db import transaction
 
-        with pytest.raises(ValidationError, match="roles vocabulary"):
-            contribution.full_clean()
+        with transaction.atomic(), pytest.raises(ValidationError, match="roles vocabulary"):
+            contribution.roles.add(off_vocabulary_role)
+
+        assert off_vocabulary_role not in contribution.roles.all()
+        assert contribution.roles.count() == 0
 
     @pytest.mark.django_db
     def test_contribution_roles_fixture_has_real_concepts_to_attach(

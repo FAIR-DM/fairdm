@@ -9,6 +9,8 @@ row regardless of which delete path removed it.
 """
 
 import pytest
+from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.utils import assign_perm
@@ -70,3 +72,116 @@ class TestWithdrawRightsOnCreditDeletion:
         project_for_contributions.delete()
 
         assert not Contribution.objects.exists()
+
+
+@pytest.mark.django_db
+class TestRefuseOffVocabularyRole:
+    """FR-032, design review SPEC-001: a credit's roles are drawn from the framework's
+    controlled roles vocabulary (``fairdm-roles``). Nothing that writes a role calls
+    ``full_clean()``, so the rule has to live where the write actually happens -
+    ``refuse_off_vocabulary_role``, an ``m2m_changed`` receiver on
+    ``Contribution.roles.through``.
+
+    ``roles.add()``/``roles.set()`` raise from inside their own
+    ``transaction.atomic(savepoint=False)`` block. Each test that inspects state after
+    the raise wraps the call in its own ``transaction.atomic()`` first, exactly as any
+    caller nested inside a wider transaction already has to - Django's own docs describe
+    this as the way to keep using the connection after an exception raised inside
+    ``atomic()``.
+    """
+
+    def test_add_with_an_off_vocabulary_role_raises_and_the_relation_stays_empty(
+        self, contribution, off_vocabulary_role
+    ):
+        with transaction.atomic(), pytest.raises(
+            ValidationError, match="roles vocabulary"
+        ):
+            contribution.roles.add(off_vocabulary_role)
+
+        assert contribution.roles.count() == 0
+
+    def test_set_with_an_off_vocabulary_role_raises_and_leaves_roles_unchanged(
+        self, contribution, contribution_roles, off_vocabulary_role
+    ):
+        genuine_role = contribution_roles.first()
+        contribution.roles.add(genuine_role)
+
+        with transaction.atomic(), pytest.raises(
+            ValidationError, match="roles vocabulary"
+        ):
+            contribution.roles.set([off_vocabulary_role])
+
+        assert list(contribution.roles.all()) == [genuine_role]
+
+    def test_adding_several_roles_where_one_is_off_vocabulary_stores_none_of_them(
+        self, contribution, contribution_roles, off_vocabulary_role
+    ):
+        genuine_role = contribution_roles.first()
+
+        with transaction.atomic(), pytest.raises(
+            ValidationError, match="roles vocabulary"
+        ):
+            contribution.roles.add(genuine_role, off_vocabulary_role)
+
+        assert contribution.roles.count() == 0
+
+    def test_a_genuine_role_still_adds(self, contribution, contribution_roles):
+        genuine_role = contribution_roles.first()
+
+        contribution.roles.add(genuine_role)
+
+        assert list(contribution.roles.all()) == [genuine_role]
+
+    def test_a_genuine_role_still_sets(self, contribution, contribution_roles):
+        genuine_role = contribution_roles.first()
+
+        contribution.roles.set([genuine_role])
+
+        assert list(contribution.roles.all()) == [genuine_role]
+
+
+@pytest.mark.django_db
+class TestProductionWritePathsRefuseOffVocabularyRoles:
+    """Contribution.add_to, Contributor.add_to and BaseModel.add_contributor are the
+    three production entry points that credit a contributor - the reason
+    refuse_off_vocabulary_role exists (see the receivers.py module docstring). Each
+    returns an ordinary Contribution, and its ``.roles`` relation must refuse an
+    off-vocabulary concept exactly as one built any other way does - the write path
+    used to create the credit must not carry some exemption from the rule.
+    """
+
+    def test_contribution_add_to_returns_a_contribution_whose_roles_still_refuse(
+        self, person, project_for_contributions, off_vocabulary_role
+    ):
+        contribution = Contribution.add_to(person, project_for_contributions)
+
+        with transaction.atomic(), pytest.raises(
+            ValidationError, match="roles vocabulary"
+        ):
+            contribution.roles.add(off_vocabulary_role)
+
+        assert contribution.roles.count() == 0
+
+    def test_contributor_add_to_returns_a_contribution_whose_roles_still_refuse(
+        self, person, project_for_contributions, off_vocabulary_role
+    ):
+        contribution = person.add_to(project_for_contributions)
+
+        with transaction.atomic(), pytest.raises(
+            ValidationError, match="roles vocabulary"
+        ):
+            contribution.roles.add(off_vocabulary_role)
+
+        assert contribution.roles.count() == 0
+
+    def test_add_contributor_returns_a_contribution_whose_roles_still_refuse(
+        self, person, project_for_contributions, off_vocabulary_role
+    ):
+        contribution = project_for_contributions.add_contributor(person)
+
+        with transaction.atomic(), pytest.raises(
+            ValidationError, match="roles vocabulary"
+        ):
+            contribution.roles.add(off_vocabulary_role)
+
+        assert contribution.roles.count() == 0

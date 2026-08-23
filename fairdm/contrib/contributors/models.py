@@ -1240,6 +1240,14 @@ CONTRIBUTION_UNIQUE_PAIRING_MESSAGE = _(
     "This contributor is already credited on this object."
 )
 
+# Shared by Contribution.clean() and refuse_off_vocabulary_role (the m2m_changed
+# receiver in receivers.py that actually enforces this - see that module for why
+# clean() alone never runs on a write), so both refuse an off-vocabulary role with the
+# same wording.
+CONTRIBUTION_ROLES_VOCABULARY_MESSAGE = _(
+    "A contribution's roles must be drawn from the framework's roles vocabulary."
+)
+
 
 class Contribution(LifecycleModelMixin, OrderedModel):
     """A contributor is a person or organisation that has contributed to the project or
@@ -1310,7 +1318,18 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         """Refuse a second credit for the same contributor/object pairing, with the same
         message the named UniqueConstraint carries (FR-031, Article IX), and refuse a role
         drawn from any vocabulary other than the framework's roles vocabulary (FR-032,
-        design review SPEC-001)."""
+        design review SPEC-001).
+
+        The roles check below is not what actually enforces FR-032 - Django never
+        validates many-to-many data in full_clean(), self.roles on a saved instance
+        reads what is already stored rather than what a caller is about to write, and
+        no write path calls full_clean() before writing anyway. The real enforcement is
+        refuse_off_vocabulary_role, an m2m_changed receiver on Contribution.roles.through
+        (receivers.py, registered in apps.py), which sees every add()/set() before it
+        commits. This stays because it costs nothing and documents the rule at the model,
+        and because it does catch a role already stored by some means that bypassed the
+        receiver (a fixture, a raw SQL load, a future direct through-table write).
+        """
         from django.core.exceptions import ValidationError
 
         super().clean()
@@ -1332,12 +1351,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
                 raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
 
         if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
-            raise ValidationError(
-                _(
-                    "A contribution's roles must be drawn from the framework's roles "
-                    "vocabulary."
-                )
-            )
+            raise ValidationError(CONTRIBUTION_ROLES_VOCABULARY_MESSAGE)
 
     @classmethod
     def add_to(cls, contributor, obj, roles=None, affiliation=None):
