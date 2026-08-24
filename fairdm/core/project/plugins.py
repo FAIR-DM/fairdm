@@ -3,6 +3,7 @@ Example plugins for Project model using the new model-centric system.
 """
 
 from django.urls import reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
 from mvp.views import MVPFormView
@@ -97,6 +98,24 @@ class Delete(Plugin, FairDMDeleteView):
 
     def get_confirmation_value(self):
         return self.base_object.name
+
+    def get_back_url(self) -> str:
+        """The confirmation page's own "Go Back" falls back to the project itself rather than
+        the project list (013 plan FR-044, US-5 T069/T070): ``MVPDeleteView``'s own fallback is
+        ``resolve_crud_url("list")``, which ``Delete`` never shows (it carries no ``list``
+        entry in its ``directory``), so the shell rendered the control as a destination-less
+        button. From a project's own deletion page, "back" means back to the record being
+        considered for deletion, not the collection everyone reaches it through. The ``?back``
+        query-string override above this in the MRO is preserved unchanged.
+        """
+        candidate = self.request.GET.get("back")
+        if candidate and url_has_allowed_host_and_scheme(
+            url=candidate,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return candidate
+        return self.base_object.get_absolute_url()
 
     def get_context_data(self, **kwargs):
         """Populate the shell's own ``is_protected``/``protected_objects`` contract with the

@@ -10,7 +10,7 @@ import time
 
 import pytest
 from django import forms
-from django.urls import reverse
+from django.urls import resolve, reverse
 from django.views.generic import CreateView
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains, assertNotContains
@@ -1285,3 +1285,36 @@ class TestProjectDeleteView:
         assert response.status_code == 302
         assert response.url == reverse("project-list")
         assert not Project.objects.filter(pk=pk).exists()
+
+
+@pytest.mark.django_db
+class TestDeletionPageBackControl:
+    """T069 — the deletion page's back control is a link to a real address, not the empty href
+    it renders today: nothing populates the shell's ``back_url``
+    (``mvp.views.edit.MVPDeleteView.get_back_url()`` falls back to ``resolve_crud_url("list")``,
+    which ``Delete`` never shows). Asserted as a link with a destination, not merely a control
+    that is present."""
+
+    def test_the_back_control_is_a_non_empty_link_that_resolves(self, client):
+        """Rendered as ``<button ... href="">`` today: the shell's own button component
+        chooses its element by whether ``href`` is truthy
+        (``mvp/templates/cotton/button.html``, ``{% with element=href|yesno:"a,button" %}``),
+        so an unpopulated ``back_url`` renders a button with no destination rather than an
+        empty link. The fix has to make it an ``<a href="...">``, not merely fill in the
+        attribute."""
+        project = ProjectFactory(name="Has A Back Link")
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+        content = response.content.decode()
+
+        match = re.search(
+            r'<a[^>]*href="([^"]*)"[^>]*><i class="bi bi-arrow-left"', content
+        )
+        assert match is not None, "the back control is not rendered as a link"
+        back_href = match.group(1)
+        assert back_href != ""
+        resolve(back_href)
