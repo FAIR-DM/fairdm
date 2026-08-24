@@ -209,9 +209,7 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert user_with_change_permission.project not in entries
 
-    def test_listing_search_by_name_returns_the_matching_project_only(
-        self, client
-    ):
+    def test_listing_search_by_name_returns_the_matching_project_only(self, client):
         """T008 — a distinctive word from one project's name, searched,
         returns that project and excludes the others."""
         target = ProjectFactory(
@@ -225,9 +223,7 @@ class TestProjectListing:
         assert target in entries
         assert other not in entries
 
-    def test_listing_search_by_identifier_value_returns_the_project(
-        self, client
-    ):
+    def test_listing_search_by_identifier_value_returns_the_project(self, client):
         """T009 — searching a project's identifier value returns that
         project."""
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -265,9 +261,7 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert entries.index(older) < entries.index(newer)
 
-    def test_listing_ordered_by_date_added_reversed_returns_newest_first(
-        self, client
-    ):
+    def test_listing_ordered_by_date_added_reversed_returns_newest_first(self, client):
         """T011 — `?o=-added` returns the newest project first. Asserted
         separately from the ascending case."""
         older = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -356,6 +350,36 @@ class TestProjectListing:
         assert FairDMListView in ProjectListView.__bases__
 
 
+@pytest.mark.django_db
+class TestListingOffersTheCreationLink:
+    """T073 — the listing offers a link to the creation page to a signed-in user, and does not
+    to an anonymous visitor. The listing is a page about the record type rather than about a
+    record, so it stays outside any project's own collection and keeps its own `directory =
+    ["create"]` (013 plan P5) — the gap was `show_create_action` hardcoded `False`."""
+
+    def test_a_signed_in_user_is_offered_the_link(self, client):
+        """Asserted against the listing's own control specifically, not merely the address it
+        shares with the portal's unrelated "Create new" navbar widget
+        (``fairdm/templates/cotton/actions/create_new.html``, which renders the identical
+        ``/projects/create/`` href for every signed-in visitor on every page, so a bare
+        ``href="..."`` match would pass with the listing's own link still absent)."""
+        ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(UserFactory())
+
+        response = client.get(reverse("project-list"))
+
+        create_url = reverse("project-create")
+        assertContains(response, f'href="{create_url}"><i class="bi bi-plus-circle"')
+
+    def test_an_anonymous_visitor_is_not_offered_the_link(self, client):
+        ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = client.get(reverse("project-list"))
+
+        create_url = reverse("project-create")
+        assertNotContains(response, f'href="{create_url}"')
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
 # ---------------------------------------------------------------------------
@@ -380,7 +404,9 @@ class TestProjectCreateViewExtended:
         response = authenticated_client.get(url)
         assert response.status_code == 200
 
-    def test_visibility_renders_as_radio_with_public_preselected(self, authenticated_client):
+    def test_visibility_renders_as_radio_with_public_preselected(
+        self, authenticated_client
+    ):
         """T019 — Visibility renders as a visible choice between its options, with Public
         pre-selected. The model's own default stays Private — it serves records created
         outside the portal, where no one sees a control — and the form's default is
@@ -395,10 +421,12 @@ class TestProjectCreateViewExtended:
 
         content = response.content.decode()
         public_input = re.search(
-            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PUBLIC}"[^>]*>', content
+            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PUBLIC}"[^>]*>',
+            content,
         )
         private_input = re.search(
-            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PRIVATE}"[^>]*>', content
+            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PRIVATE}"[^>]*>',
+            content,
         )
         assert public_input is not None and "checked" in public_input.group(0)
         assert private_input is not None and "checked" not in private_input.group(0)
@@ -894,7 +922,9 @@ class TestAttributesDateRowSet:
         assert date_formset.initial_form_count() == 1
         assert len(date_formset.forms) == 1
 
-    def test_adding_a_date_of_a_chosen_type_records_it_against_the_project(self, client):
+    def test_adding_a_date_of_a_chosen_type_records_it_against_the_project(
+        self, client
+    ):
         """T041 — A newly added date row is recorded against the project."""
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="No Dates Yet", owner=org)
@@ -969,7 +999,9 @@ class TestAttributesDateRowSet:
         assert response.status_code == 302
         assert not project.dates.filter(pk=date.pk).exists()
 
-    def test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing(self, client):
+    def test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing(
+        self, client
+    ):
         """T044 — An end date earlier than the start date, both submitted as new rows in the
         same submission, is refused. A per-row check would see neither, since each looks its
         sibling up in the database and finds no unsaved sibling
@@ -1197,7 +1229,9 @@ class TestProjectDeleteView:
         assertContains(response, "Public Dataset")
         assert Project.objects.filter(pk=project.pk).exists()
 
-    def test_project_delete_refused_page_hides_confirmation_and_delete_control(self, client):
+    def test_project_delete_refused_page_hides_confirmation_and_delete_control(
+        self, client
+    ):
         """T084 — the refused page explains why and offers neither the confirmation field nor a
         delete control; the shell's own protected-object branch withholds both."""
         project = ProjectFactory(name="Dataset Project")

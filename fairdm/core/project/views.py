@@ -32,8 +32,14 @@ class ProjectListView(FairDMListView):
         ("-added", _("Date created (newest first)"), "-added"),
     ]
     image = static("img/stock/project.jpg")
-    show_create_action = False  # Creation is handled by a separate view
     show_list_action = True  # All users can view the list of public projects
+
+    def show_create_action(self, user):
+        """The listing offers its own creation link to a signed-in user, and none to an
+        anonymous visitor (013 plan P5, US-5 T073). ``ProjectCreateView`` itself already
+        requires authentication; this only decides whether the link is drawn — see
+        ``mvp.views.detail.CRUDDirectoryMixin``'s own class docstring on that distinction."""
+        return user.is_authenticated
 
     def get_queryset(self) -> QuerySet[Project]:
         """Return the queryset of visible projects with prefetched contributors.
