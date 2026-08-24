@@ -364,6 +364,13 @@ class TestProjectListing:
         assert list(response.context["object_list"]) == []
         assertContains(response, "There&#x27;s nothing here yet")
 
+    def test_listing_entry_links_to_its_projects_page(self, client, public_project):
+        """T015 — each listing entry links to its project's page, reached
+        through the record's own `get_absolute_url`."""
+        response = client.get(reverse("project-list"))
+        expected_url = public_project.get_absolute_url()
+        assertContains(response, f'href="{expected_url}"')
+
 
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
