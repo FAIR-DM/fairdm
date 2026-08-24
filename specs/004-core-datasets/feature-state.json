@@ -780,7 +780,7 @@
     "draft": false
   },
   "integrity": {
-    "recorded_at": "2026-08-23T21:58:26Z",
+    "recorded_at": "2026-08-23T22:10:29Z",
     "by": "ledger-close",
     "errors": [
       "stories/0/tasks/10: 'evidence' is a required property",
