@@ -464,3 +464,25 @@ class TestEditingAnExistingDescriptionPersists:
         row.refresh_from_db()
         assert row.value == "Changed text."
         assert ProjectDescription.objects.filter(related=project).count() == 1
+
+
+@pytest.mark.django_db
+class TestClearingAnAreaRemovesTheDescription:
+    """T058 — clearing an area and submitting removes that description from the project."""
+
+    def test_clearing_the_area_deletes_the_row(self, client, user_with_change_permission):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+        first_type = ProjectDescription.VOCABULARY.values[0]
+        ProjectDescription.objects.create(
+            related=project, type=first_type, value="Existing text."
+        )
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        client.post(url, data={first_type: ""})
+
+        assert not ProjectDescription.objects.filter(
+            related=project, type=first_type
+        ).exists()
