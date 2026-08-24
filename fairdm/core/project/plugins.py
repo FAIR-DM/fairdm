@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
 from mvp.views import MVPFormView
+from mvp.views.detail import CRUDDirectoryMixin
 from mvp.views.inline import InlinesMixin
 
 from fairdm import plugins
@@ -128,19 +129,32 @@ class Delete(Plugin, FairDMDeleteView):
 
 
 @plugins.register(Project, label=_("Overview"), icon="view", order=0)
-class Overview(OverviewPlugin):
+class Overview(CRUDDirectoryMixin, OverviewPlugin):
     """The project's own page: its registered overview, and the root of its collection.
 
     Restores what the 2026-08-11 registry rework dropped by accident (013 plan P1): before that,
     ``Overview`` was one of nine registrations against ``Project`` and the project's own page
     carried a working navigation entry. Declaring no ``url_path`` of its own keeps it the root of
     the record's include, the same convention the contributor pages already use.
+
+    Mixes in the interface layer's own action-link mechanism (013 plan P5, US-5) rather than a
+    hand-rolled one: ``directory`` names the one action this page's extra views need an entry
+    for (``update``, drawn by the shared ``detail_view.html`` shell as its "Edit" button), and
+    ``crud_views`` reverses it to :class:`Attributes`' own registered name — the default
+    ``{model_name}-update`` shape resolves to the standalone route this feature retires.
     """
 
     url_path = None
+    model = Project
     check = staticmethod(project_is_visible)
     template_name = "project/project_detail.html"
     extra_views = [Attributes, Delete]
+
+    directory = ["update"]
+    crud_views = {"update": "project:overview-attributes"}
+
+    def show_update_action(self, user):
+        return has_perm(self.request, Attributes.permission, self.base_object)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

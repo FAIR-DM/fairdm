@@ -9,18 +9,36 @@ T065 - each of those pages states its own permission, since an additional view i
 T066 - the registration's own visibility check refuses a private project to anyone without
        `project.view_project`, since a registered page resolves its record past the filtered
        manager on the assumption that the page gates itself.
+T067 - a user who may change a project is offered its attributes and descriptions pages from the
+       project's own page; one who may not is offered neither.
+T068 - a user who may delete a project is offered its deletion page from the project's own page;
+       one who may not is not.
+T069 - the deletion page's back control is a working link to a real address.
+T070 - the attributes, descriptions and deletion pages each offer a working link back to the
+       project itself.
+T071 - every link drawn by each page this feature owns resolves to a real address, none empty.
 """
+
+import re
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import reverse
+from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.project.models import Project
 from fairdm.core.project.plugins import Attributes, Delete, Descriptions, Overview
 from fairdm.core.utils import assign_perm
+from fairdm.factories import ProjectFactory, UserFactory
+from fairdm.utils.choices import Visibility
+
+
+def _hrefs(content: str) -> list[str]:
+    """Every ``href="..."`` attribute value in rendered HTML, in document order."""
+    return re.findall(r'href="([^"]*)"', content)
 
 
 def _request_for(user, path="/"):
@@ -572,3 +590,51 @@ class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
 
         assert response.status_code == 302
         assert response.url == reverse("project:overview", kwargs={"uuid": project.uuid})
+
+
+@pytest.mark.django_db
+class TestProjectsOwnPageOffersAttributesAndDescriptionsLinks:
+    """T067 — a user who may change the project is offered links to its attributes and
+    descriptions pages from the project's own page; a signed-in user who may not is offered
+    neither. The attributes link switches on the interface layer's existing action-link
+    mechanism (``mvp.views.detail.CRUDDirectoryMixin``, read into ``directory`` and drawn by
+    the shared ``detail_view.html`` shell) rather than a hand-rolled one (013 plan P5); the
+    descriptions link is the registration's own tab, already gated by the same ``can_open`` the
+    page itself checks."""
+
+    def test_a_user_who_may_change_the_project_is_offered_both_links(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": project.uuid})
+        )
+
+        attributes_url = reverse(
+            "project:overview-attributes", kwargs={"uuid": project.uuid}
+        )
+        descriptions_url = reverse(
+            "project:descriptions", kwargs={"uuid": project.uuid}
+        )
+        assertContains(response, f'href="{attributes_url}"')
+        assertContains(response, f'href="{descriptions_url}"')
+
+    def test_a_signed_in_user_who_may_not_change_it_is_offered_neither(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        client.force_login(user)
+
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": project.uuid})
+        )
+
+        attributes_url = reverse(
+            "project:overview-attributes", kwargs={"uuid": project.uuid}
+        )
+        descriptions_url = reverse(
+            "project:descriptions", kwargs={"uuid": project.uuid}
+        )
+        assertNotContains(response, f'href="{attributes_url}"')
+        assertNotContains(response, f'href="{descriptions_url}"')
