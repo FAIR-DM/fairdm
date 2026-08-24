@@ -10,6 +10,7 @@ import time
 import pytest
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
+from pytest_django.asserts import assertContains
 
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
@@ -350,6 +351,18 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert matching in entries
         assert other not in entries
+
+    def test_listing_shows_empty_state_when_a_search_matches_nothing(
+        self, client, public_project
+    ):
+        """T014 — a search matching no project renders the listing's own
+        empty state, rather than a blank page."""
+        response = client.get(
+            reverse("project-list"), {"q": "no-project-should-match-this-term"}
+        )
+        assert response.status_code == 200
+        assert list(response.context["object_list"]) == []
+        assertContains(response, "There&#x27;s nothing here yet")
 
 
 # ---------------------------------------------------------------------------
