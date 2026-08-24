@@ -1,284 +1,170 @@
-# Implementation Plan: Project CRUD Views
+# Plan — 013 Managing a project through the portal
 
-**Branch**: `013-project-crud-views` | **Date**: 2026-05-11 | **Spec**: [spec.md](spec.md)
-**Propagated**: 2026-05-11 — Updated from spec.md refinement: `ProjectForm` as single update form; `ProjectCreateForm` inherits it; `ProjectUpdateForm` removed.
-**Propagated**: 2026-05-11 — Updated from spec.md refinement: `TypedChoiceField(coerce=int)` for `status` and `visibility`; concept-private validation rule removed.
-**Input**: Feature specification from `/specs/013-project-crud-views/spec.md`
+Dated 2026-08-23, from `spec.md` and `research.md`. Decisions are recorded here for veto rather than
+raised as questions.
 
-## Summary
+## Shape of the work
 
-Bring the Project model's list, create, update, and delete views into conformance with FairDM base view classes, wire all four URL patterns under the `<model_name>-<action_name>` naming convention, and enforce a model-level guard that blocks deletion of projects with publicly visible datasets. The create view already largely conforms; the update view needs its base class migrated; the delete view must be created from scratch. All views redirect to `project-detail` (create, update) or `project-list` (delete) on success.
+The specification asks for six things. Research changed the size of four of them, in both
+directions.
 
-## Technical Context
+| Story | What the plan does | Size against expectation |
+|---|---|---|
+| US-1 Find a project | Add the entry link, test what is untested | smaller |
+| US-2 Register a project | Test what is untested; no behaviour change | smaller |
+| US-3 Correct attributes | Add identifiers and dates as inline sets; retire the duplicate page | **larger** |
+| US-4 Describe a project | Build a slot form and register it as a page | as expected |
+| US-5 Move between pages | Switch on the shell's existing buttons | **much smaller** |
+| US-6 Remove a project | Populate the shell's refusal contract | smaller |
 
-**Language/Version**: Python 3.13  
-**Primary Dependencies**: Django 5.x, django-guardian (object permissions), django-filter (ProjectFilter), FairDM base views (`FairDMListView`, `FairDMCreateView`, `FairDMUpdateView`, `FairDMDeleteView`), crispy-forms (existing forms)  
-**Storage**: PostgreSQL (primary); SQLite (test/dev)  
-**Testing**: pytest, pytest-django  
-**Target Platform**: Django web application (server-rendered)  
-**Project Type**: Web application — model CRUD views  
-**Performance Goals**: N/A for this scope  
-**Constraints**: No new migrations required; no new model fields; no UI design work; `ProjectUpdateForm` removed in favour of `ProjectForm` as the single update/base form  
-**Scale/Scope**: 4 view classes, 1 URL pattern addition, 1 signal handler modification, 1 custom exception class, 1 form class removed (`ProjectUpdateForm`), 1 form class promoted to base (`ProjectForm`), 1 form class updated to inherit it (`ProjectCreateForm`), test coverage additions
+## Decisions taken
 
-## Constitution Check
+### P1 — One project editing page, and it is `project-update`
 
-### Pre-design gate assessment
+`ProjectConfigure` is retired and its registration removed. `project-update` becomes the attributes
+page the specification describes and gains the link that `ProjectConfigure` currently has.
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. FAIR-First | ✅ Pass | List view exposes public projects; visibility control is preserved |
-| II. Domain-Driven Modeling | ✅ Pass | Views are wired to the existing `Project` model with no ad-hoc logic |
-| III. Configuration Over Plumbing | ✅ Pass | All views use the FairDM base class layer; no raw Django generic views |
-| IV. Opinionated Defaults | ✅ Pass | Uses django-guardian for permissions, established patterns |
-| V. Test-First Quality | ✅ Pass | Smoke tests + behaviour tests required before merging (see data-model.md) |
-| VI. Documentation Critical | ✅ Pass | No public settings or template blocks added; no doc update needed |
-| VII. Living Demo | ✅ Pass | `fairdm_demo` is unaffected by these changes |
+`project-update` has the complete field set, an explicit redirect and the only tests that exist.
+`ProjectConfigure` is narrower, untested and redirects by accident. Keeping both means two pages
+editing overlapping fields through two different permission strings, which is the condition that
+produced this audit.
 
-No violations. No Complexity Tracking entry needed.
+Its permission string is the one thing worth carrying across. `project-update` checks the bare
+codename `change_project`, which only the object-level layer can grant; `ProjectConfigure` checks
+`project.change_project`, which either layer can. The app-labelled form is kept, so a portal
+administrator holding the model-level permission is not locked out of a page they can see.
 
-### Post-design re-check
+**Consequence to accept:** a tab a user sees today disappears, replaced by an Edit button on the same
+page. No data and no address a user could have bookmarked is lost, since the tab's fields are a
+subset.
 
-Re-check after Phase 1 design confirmed no new violations:
+### P2 — Descriptions are a registered page with one field per type, not a formset
 
-- `PublicDatasetsProtect` is a thin exception class, not a pattern-level architectural addition
-- No new models, migrations, or public APIs introduced
+The unregistered `Descriptions`, `Keywords` and `KeyDates` classes in `project/plugins.py` are
+deleted rather than registered.
 
-## Project Structure
+The generic description plugin is a formset that adds and removes rows. The specification asks for a
+fixed set of labelled areas, one per description type, because the vocabulary is closed at seven and
+the model allows one row per type. Those are different interfaces, and the generic one is also
+broken where it is registered — it resolves to the record's detail template and never draws its
+formset.
 
-### Documentation (this feature)
+So the descriptions page is a purpose-built form: one text area per type in
+`FairDMDescriptions.from_collection("Project")`, labelled with the type's name and helped by its
+definition. Saving writes, updates or deletes one row per non-empty area.
 
-```text
-specs/013-project-crud-views/
-├── plan.md              ← this file
-├── research.md          ← Phase 0 output
-├── data-model.md        ← Phase 1 output
-└── tasks.md             ← Phase 2 output (/speckit.tasks — not created here)
-```
+It is registered as a page against the project, which supplies the address, the menu entry, the
+permission gate and the breadcrumbs, and means the tab is hidden from users who may not open it —
+satisfying FR-042 without a second mechanism.
 
-No `contracts/` directory needed — this feature exposes no external API or public interface contracts.
+**Not fixing the generic plugin here.** Dataset and sample carry the same defect and it is their
+work, routed out below.
 
-### Source Code (affected files)
+### P3 — Identifiers and dates use the shell's inline formsets
 
-```text
-fairdm/core/project/
-├── forms.py             # Promote ProjectForm to full base; ProjectCreateForm inherits it;
-│                        # remove ProjectUpdateForm
-├── models.py            # Add PublicDatasetsProtect exception; narrow pre_delete signal
-├── views.py             # Update ProjectListView.order_by; fix ProjectCreateView.get_success_url;
-│                        # migrate ProjectUpdateView base class and form_class; add ProjectDeleteView
-└── urls.py              # Add project-delete URL pattern
+The attributes page becomes an inline-formset view over `ProjectIdentifier` and `ProjectDate`, using
+the shell's `InlineFormSet` and `InlinesMixin` rather than django-extra-views.
 
-tests/test_core/test_project/
-└── test_views.py        # Add smoke tests + deletion behaviour tests
-```
+The constitution names the shell as the default interface layer, the shell's system ships the
+templates, the row-adding JavaScript and an atomic parent-then-children save, and the alternative is
+the module that is already broken. Against it: this repository would be its first caller, which is
+the main risk on this run.
 
-**Structure Decision**: In-place modification of existing files only. No new modules. No new templates. The list-item template (`project/project_card.html`) already exists.
+Three settings are not optional:
 
-## Complexity Tracking
+- `extra = 0` on both sets. The shell omits anything unset, so Django's default of three blank rows
+  applies otherwise.
+- `formset = DateInlineFormSet` on the dates set, reusing the class already written for the admin
+  (`project/admin.py:24-66`). Without it the sibling comparison in `ProjectDate.clean()` is skipped
+  on creation and compares against stale values on update. This is the single most likely thing to
+  ship broken and unnoticed.
+- `value` and `type` present in both field lists. A model `clean()` that keys an error to a field
+  absent from the form raises rather than reporting.
 
-No constitution violations to justify.
+### P4 — The deletion refusal populates the shell's contract
 
----
+`is_protected` and `protected_objects` are set instead of the invented `protected_datasets`, in a
+`get_context_data` override that runs after the shell's own assignment rather than through keyword
+arguments, which the shell overwrites.
 
-## Phase 0: Research
+The refusal is also evaluated when the page is opened, not only when it is submitted. Today a user
+whose project cannot be deleted gets a fully armed confirmation form and finds out only after typing
+the name. The signal stays as the enforcement point, so the guarantee still holds however the
+deletion is attempted.
 
-**Status**: Complete — see [research.md](research.md)
+The existing test asserts the invented key and is rewritten to assert what the page says.
 
-Key findings:
+### P5 — Navigation is configuration on five views
 
-| # | Unknown | Resolution |
-|---|---------|------------|
-| R-001 | Creation-date ordering field | `added` (auto_now_add from `fairdm.db.models.Model`) |
-| R-002 | Pre-delete signal scope | Exists but too broad; narrows to PUBLIC datasets; raises `PublicDatasetsProtect` |
-| R-003 | List-item template | Already exists at `project/project_card.html` |
-| R-004 | `get_absolute_url` vs `project-detail` | Different URLs; create view `get_success_url` must be changed |
-| R-005 | UpdateView migration | Simple base-class swap; all other attrs stay |
-| R-006 | DeleteView design | ~~Custom `post()` with name-check~~ `require_confirmation = True` + `form_valid()` override for `PublicDatasetsProtect` (BUG-001) |
-| R-007 | Delete URL path | `projects/<str:uuid>/delete/` |
-| R-008 | Exception class location | Module level in `models.py` above signal handler |
+No new templates. Each view declares `directory` and the matching `show_<action>_action`, the
+deprecated names go, and the shell's existing buttons appear.
 
----
-
-## Phase 1: Design
-
-**Status**: Complete — see [data-model.md](data-model.md)
-
-### Key design decisions
-
-#### 1. `PublicDatasetsProtect` exception
-
-```python
-class PublicDatasetsProtect(Exception):
-    def __init__(self, datasets):
-        self.datasets = datasets
-        super().__init__(...)
-```
-
-Defined in `models.py` so both the signal handler (also in `models.py`) and `ProjectDeleteView` (in `views.py`) can import it from the same location without circular imports.
-
-#### 2. Narrowed `pre_delete` signal
-
-```python
-@receiver(pre_delete, sender=Project)
-def prevent_project_deletion_with_datasets(sender, instance, **kwargs):
-    public_datasets = instance.datasets.filter(visibility=Visibility.PUBLIC)
-    if public_datasets.exists():
-        raise PublicDatasetsProtect(public_datasets)
-```
-
-Replaces the existing handler body. Guard no longer fires for private-only datasets.
-
-#### 3. `ProjectListView` ordering expansion
-
-```python
-order_by = [
-    ("name", _("Name (A-Z)")),
-    ("-name", _("Name (Z-A)")),
-    ("added", _("Date created (oldest first)")),
-    ("-added", _("Date created (newest first)")),
-]
-```
-
-#### 4. `ProjectCreateView.get_success_url` correction
-
-```python
-def get_success_url(self):
-    return reverse("project-detail", kwargs={"uuid": self.object.uuid})
-```
-
-Replaces `return self.object.get_absolute_url()` (which resolves to `project:overview`, a different URL).
-
-#### 5. `ProjectUpdateView` base class migration
-
-```python
-# Before
-class ProjectUpdateView(LoginRequiredMixin, UpdateView):
-
-# After
-class ProjectUpdateView(LoginRequiredMixin, FairDMUpdateView):
-    form_class = ProjectForm  # was ProjectUpdateForm — removed in FR-028 refinement
-```
-
-The `form_class` changed from `ProjectUpdateForm` to `ProjectForm` (see design decision #8 below). All other attrs (`get_object()`, `get_success_url()`) stay.
-
-#### 6. `ProjectDeleteView` (new)
-
-> **Bugfix**: 2026-05-11 — BUG-001 Original design used a custom `post()` with a manual `confirm_name` check. This bypassed `MVPDeleteView`'s `require_confirmation` mechanism and resulted in no name-input field being rendered in the template. Corrected below.
-
-```python
-class ProjectDeleteView(LoginRequiredMixin, FairDMDeleteView):
-    model = Project
-    slug_field = "uuid"
-    slug_url_kwarg = "uuid"
-    success_url = reverse_lazy("project-list")
-    require_confirmation = True  # renders DeleteConfirmForm in template
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if not self.request.user.has_perm("delete_project", obj):
-            raise PermissionDenied
-        return obj
-
-    def get_confirmation_value(self):
-        """User must type the exact project name."""
-        return self.object.name
-
-    def form_valid(self, form):
-        """Catch PublicDatasetsProtect before delegating to MVPDeleteView."""
-        try:
-            return super().form_valid(form)
-        except PublicDatasetsProtect as e:
-            context = self.get_context_data(protected_datasets=e.datasets)
-            return self.render_to_response(context)
-```
-
-Key points:
-
-- `require_confirmation = True` activates `DeleteConfirmForm` in the template — the user sees a text input labelled "Type the name to confirm".
-- `get_confirmation_value()` returns `self.object.name`; `DeleteConfirmForm.clean_confirmation()` strips whitespace and compares.
-- No `post()` override. The form validation path handles both the name-mismatch error (via `DeleteConfirmForm`) and the public-dataset guard (via `form_valid()`).
-- `HttpResponseRedirect` import no longer needed in `views.py` for this view.
-
-#### 7. `project-delete` URL pattern
-
-```python
-path("projects/<str:uuid>/delete/", ProjectDeleteView.as_view(), name="project-delete"),
-```
-
-Added after the `project-update` pattern in `urls.py`.
-
-#### 8. Form hierarchy — `ProjectForm` as base (FR-028 refinement)
-
-`ProjectUpdateForm` is removed. `ProjectForm` becomes the single full form class: it declares all fields (`image`, `name`, `status`, `visibility`, `owner`, `funding`) with explicit widgets and help_texts, and sets up the owner queryset in `__init__` (conditional on field presence to support subclasses that exclude it). ~~`ProjectForm.clean()` enforces the concept-private rule~~ — that rule is removed (2026-05-11); concept projects may be made public. `ProjectForm` requires no cross-field `clean()` logic.
-
-The `status` and `visibility` fields MUST use `TypedChoiceField(coerce=int)` so submitted string values are coerced to integers automatically by field validation. No manual `isinstance(x, str): int(x)` conversion in `clean()` is needed or permitted.
-
-`ProjectCreateForm` inherits `ProjectForm` and:
-
-1. Restricts `class Meta(ProjectForm.Meta)` `fields` to `["name", "status", "visibility"]`
-2. Overrides the `visibility` field with a `TypedChoiceField(coerce=int)` using a `RadioSelect` widget
-3. ~~Overrides `clean()` to bypass the concept-private rule~~ — no `clean()` override needed; the rule no longer exists
-
-```python
-class ProjectForm(ModelForm):
-    status = forms.TypedChoiceField(
-        choices=ProjectStatus.choices,
-        coerce=int,
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-    visibility = forms.TypedChoiceField(
-        choices=Visibility.choices,
-        coerce=int,
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-    # ... other fields unchanged
-    # No clean() override required
-
-
-class ProjectCreateForm(ProjectForm):
-    visibility = forms.TypedChoiceField(
-        choices=Visibility.choices,
-        coerce=int,
-        widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
-    )
-
-    class Meta(ProjectForm.Meta):
-        fields = ["name", "status", "visibility"]
-    # No clean() override required
-```
-
-The `ProjectUpdateView.form_class` is updated from `ProjectUpdateForm` to `ProjectForm`.
-
----
-
-## Implementation Notes
-
-### Test-first order (Constitution Principle V)
-
-Tests MUST be written and observed failing before each implementation step:
-
-1. Write smoke test for `project-delete` GET → observe 404/import error → add view + URL
-2. Write deletion behaviour tests → observe failures → implement `ProjectDeleteView` with `require_confirmation = True` and `form_valid()` (BUG-001: NOT a custom `post()`)
-3. Write `pre_delete` guard tests → observe failures → update signal handler
-4. Write ordering test for `added` → observe failure → update `ProjectListView.order_by`
-5. Write redirect test for create view → observe failure (if currently points to `project:overview`) → update `get_success_url`
-6. Run full smoke suite → fix `ProjectUpdateView` base class → verify no regressions
-
-**Bugfix**: 2026-05-11 — BUG-001 Updated from bugfix patch
-
-### No migration needed
-
-`PublicDatasetsProtect` is a Python exception class, not a model change. The signal handler change is code-only. No `manage.py makemigrations` step required.
-
-### Import additions in `views.py`
-
-```python
-from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect
-from django.core.exceptions import PermissionDenied
-from fairdm.views import FairDMUpdateView, FairDMDeleteView
-from .models import PublicDatasetsProtect
-```
-
-Remove `from django.views.generic import ..., UpdateView` once `FairDMUpdateView` replaces it (check if `UpdateView` is still used by `ProjectDetailView` before removing the import).
+- Detail: `directory = ["list", "update", "delete"]`, update and delete gated on the user's
+  permission for that project.
+- List: `directory = ["create"]`, create shown to signed-in users.
+- Update: `show_delete_action` gated on delete permission, which lights the Delete button the shell
+  already draws in the form body.
+- Delete: `show_list_action = True`, which is what makes the Back button a link.
+- Descriptions page: reached as a tab, returns to the project.
+
+`show_*_action` accepts a callable taking the user, so the permission-dependent cases need no custom
+template logic.
+
+## Order
+
+Two independent tracks. The second is larger and touches one file the first also touches, so the
+navigation work lands first to keep the conflict at one file rather than three.
+
+1. **US-5, US-6, US-1, US-2** — navigation, the deletion refusal, the listing link, and the tests
+   for behaviour that is already correct but unproven. All in `views.py`, `urls.py` and tests.
+2. **US-3** — the attributes page gains its inline sets and `ProjectConfigure` is retired.
+3. **US-4** — the descriptions page.
+
+## Verification beyond the suite
+
+Three things cannot be settled by a unit test and get checked on a running page before the work is
+called done:
+
+1. A date row added with the Add-row button renders a working date widget. The clone is a string
+   substitution and breaks widgets needing their own initialisation.
+2. A blocked deletion page shows the alert and the dataset names, with no confirmation field and no
+   delete button.
+3. The Edit, Delete and Descriptions entries appear for a permitted user and are absent for one who
+   is not.
+
+## Test obligations
+
+Every task carries its test, and ten requirements the code already satisfies have no test at all.
+Those are the quiet half of this run: the search, the filters, both name-ordering directions, the
+empty state, the base classes, the whitespace-trimmed confirmation, and the absence of related
+fields from the attributes form.
+
+Two patterns are being established rather than followed, and both should be settled once and reused:
+
+- Asserting a link is on a page. Django's `assertContains` is used nowhere in the suite; the
+  existing idiom is a raw substring check. A single helper is worth writing.
+- Asserting the deprecation is gone. Warnings are silenced file-wide, so the test needs an explicit
+  `filterwarnings` marker or it passes vacuously.
+
+## Routed out
+
+Real, found on the way, and belonging elsewhere.
+
+- **Contributor plugin pages have no permission gate.** Anonymous GET of
+  `project/<uuid>/contributors/` returns 200; `contributors/add/` returns 500 rather than 403, from
+  an unrelated form defect. Child views are not scoped to their parent, so any contribution id
+  resolves under any project's address. Authorisation, not this feature.
+- **Dataset and sample description and key-date pages render the record's detail template**, so
+  their formsets never appear, and the test covering them asserts only a 200.
+- **`ProjectDateFactory` is missing from the factories package exports.** Small enough to fold in,
+  since this feature needs it.
+
+## Risks
+
+1. **First caller of the shell's inline system in this repository.** Nothing here exercises it, so
+   there is no regression net beneath it and the shell's own tests are not shipped in the wheel.
+2. **The date widget inside a cloned row is unverified**, and it is the piece most likely to look
+   fine in a test and fail in a browser.
+3. **Retiring a tab a user can see today.** Deliberate, and the replacement is on the same page.
+4. **Identifier validation queries once per concrete subclass per row.** Fine at the sizes involved,
+   worth knowing before the row count grows.
