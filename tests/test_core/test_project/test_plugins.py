@@ -267,3 +267,31 @@ class TestAttributesPageOverHTTP:
         response = client.get(url)
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestExactlyOnePageOffersTheProjectsOwnAttributes:
+    """T049 — `ProjectConfigure` is retired (013 plan P1); this keeps it retired by asserting
+    no second registered page ever offers a form overlapping the attributes page's own field
+    set."""
+
+    ATTRIBUTES_FIELDS = {"image", "name", "status", "visibility", "owner"}
+
+    def _all_pages(self):
+        """Every page reachable against `Project`: top-level registrations plus each one's
+        extra views (`fairdm.contrib.plugins.base.Plugin.get_extra_views`)."""
+        pages = []
+        for plugin_cls, _kwargs in plugins.registry.get_plugins_for_model(Project):
+            pages.append(plugin_cls)
+            pages.extend(plugin_cls.get_extra_views())
+        return pages
+
+    def test_exactly_one_page_offers_the_attributes_field_set(self):
+        offering_pages = []
+        for page in self._all_pages():
+            form_class = getattr(page, "form_class", None)
+            fields = getattr(getattr(form_class, "Meta", None), "fields", None)
+            if fields and self.ATTRIBUTES_FIELDS & set(fields):
+                offering_pages.append(page)
+
+        assert offering_pages == [Attributes]
