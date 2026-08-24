@@ -336,3 +336,37 @@ class TestDescriptionsPageStatesItsOwnPermission:
     def test_refuses_an_anonymous_request(self, public_project):
         request = _request_for(AnonymousUser())
         assert can_open(Descriptions, request, public_project) is False
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageOffersOneAreaPerVocabularyType:
+    """T053 — for a project with no descriptions, the page offers exactly one empty area per
+    concept in ``ProjectDescription.VOCABULARY``, the count read from the vocabulary itself
+    rather than written as a literal (013 plan P2: built on ``VocabularyDescriptionsForm``,
+    already built and tested)."""
+
+    def test_the_field_set_matches_the_vocabulary_exactly(
+        self, client, user_with_change_permission
+    ):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert list(form.fields) == list(ProjectDescription.VOCABULARY.values)
+
+    def test_every_area_starts_empty_for_a_project_with_no_descriptions(
+        self, client, user_with_change_permission
+    ):
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert all(field.initial in (None, "") for field in form)

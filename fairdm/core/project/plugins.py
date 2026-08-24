@@ -169,6 +169,10 @@ class Descriptions(Plugin, MetadataMixin, MVPFormView):
     page_title = _("Descriptions")
     model = Project
     form_class = VocabularyDescriptionsForm
+    # MVPFormView carries no model to derive a default from (unlike Attributes' UpdateView), so
+    # the fallback base_template_name relies on: Django's TemplateResponseMixin.get_template_names
+    # raises before that fallback is ever appended if template_name is left unset.
+    template_name = "form_view.html"
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
