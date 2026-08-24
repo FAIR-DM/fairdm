@@ -49,6 +49,11 @@
       "state": "PLAN",
       "at": "2026-08-24T12:00:00Z",
       "note": "the project's pages become one registered collection: the overview is the record's page, with the attributes and deletion pages belonging to it"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-24T12:20:00Z",
+      "note": "singular/plural URL split settled in favour of plural; the project's pages move under projects/<uuid>/"
     }
   ],
   "gates": {
@@ -580,6 +585,24 @@
           "id": "T074",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T092",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [],
+            "tests": []
+          }
+        },
+        {
+          "id": "T093",
+          "status": "todo",
+          "attempts": 0,
+          "evidence": {
+            "code": [],
+            "tests": []
+          }
         }
       ]
     },

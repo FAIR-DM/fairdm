@@ -181,11 +181,16 @@ assumed not to.
   anonymous one.
 - **T074** — Test: the record's own address method resolves, and every place that reversed the
   retired names now reaches the same page.
+- **T092** — Test: a project's pages all sit under the plural prefix, so `projects/<uuid>/` is the
+  project itself and each of its pages is a segment below it, with nothing left answering under the
+  singular form. Then move the mount.
+- **T093** — Test: the creation page still resolves under the plural prefix and is not read as a
+  record lookup, which is what a route declared after the record include would cause.
 
 ## US-6 — Remove a project
 
-- **T075** — Test: the deletion page is reachable at `project-delete` keyed by the project's
-  identifier, and an anonymous visitor is redirected to sign in.
+- **T075** — Test: the deletion page is reachable by name as one of the project's own pages, keyed by
+  the project's identifier, and an anonymous visitor is redirected to sign in.
 - **T076** — Test: a user without delete permission on that project is refused.
 - **T077** — Test: typing a name that is not the project's reports an error and the project remains.
 - **T078** — Test: typing the project's name with leading and trailing spaces is accepted and the

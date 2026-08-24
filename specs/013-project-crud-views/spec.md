@@ -51,6 +51,10 @@ which presents the record rather than editing it.
   that registration rather than taking navigation entries of their own. A registration is a
   collection of related functionality carrying one entry; its own pages are linked from within it.
   This restores an arrangement the portal had until a registry change dropped it.
+- Q: A project sits under the plural form of its record type while the pages registered against it
+  sit under the singular form, and bringing them together means moving one of the two. Which moves?
+  → A: The singular form goes. A project keeps the address it has and its pages become segments
+  below it, so the pages already registered against a project change address.
 - Q: The description vocabulary for projects is a closed set of seven types and a project may hold
   at most one description of each. Does the descriptions page present a list to add to, or a fixed
   set of slots? → A: A fixed set of slots, one editable area per type.
@@ -382,8 +386,10 @@ Article XIV.
 ### Addresses
 
 - **FR-048**: Every address in this feature MUST follow the portal's convention of naming a record
-  type and an action.
-- **FR-049**: Every address identifying a particular project MUST do so by the project's identifier.
+  type and an action, and MUST name the record type in the plural. The singular form MUST NOT
+  answer.
+- **FR-049**: Every address identifying a particular project MUST do so by the project's identifier,
+  and every page belonging to that project MUST sit below the project's own address.
 - **FR-050**: The project's own page, its attributes page, its descriptions page and its deletion
   page MUST all be registered against the project record rather than addressed independently, so
   that the portal's own navigation can reach every one of them. A page reachable only by an address

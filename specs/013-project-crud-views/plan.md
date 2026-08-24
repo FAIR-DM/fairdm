@@ -175,14 +175,25 @@ Two rules that still apply wherever these attributes are set:
   `getattr`, so a plain function binds as a method and is then called with an argument too many —
   a 500 on the page, confirmed on this branch.
 
-**The prefix collision, and the way I propose to settle it.** Registered pages for a project mount
-under `project/<uuid>/`; the project's own page is at `projects/<uuid>/`. Singular and plural. One of
-them has to move, and I propose moving the registered pages to the plural prefix, so a project is at
-`projects/<uuid>/` as it is today and its pages become `projects/<uuid>/<page>/`. That keeps the
-address a user may have bookmarked or cited, and it removes the singular/plural inconsistency rather
-than entrenching it. The cost is that the existing registered pages — contributors, datasets, export
-— change address. **Sam's to veto**; the alternative is to keep those and move the project's own
-page to `project/<uuid>/`.
+**The prefix collision, settled: plural everywhere.** Registered pages for a project mount under
+`project/<uuid>/` while the project's own page is at `projects/<uuid>/`. One of them had to move, and
+the singular form is the one that goes: a project stays at `projects/<uuid>/`, which is the
+address a reader may have cited, and its pages become `projects/<uuid>/<page>/`. Contributors,
+datasets and export change address as a result, and that is accepted.
+
+Two things this has to get right in the URL configuration:
+
+- **Order.** The `projects/create/` route must stay declared ahead of the `projects/<uuid>/` include,
+  or `create` is read as an identifier and the creation page resolves to a record lookup that fails.
+  Django matches in declaration order, so this is a matter of not reordering the file.
+- **The record's own page is the include's root**, reached because the overview declares no path
+  segment of its own. The contributor pages already work this way. `projects/<uuid>/` therefore keeps
+  answering with no route of its own, which is what retires `project-detail`.
+
+**The same split exists on datasets and measurements**, and is not this feature's to fix: a dataset's
+pages mount at `dataset/<uuid>/` and measurements are included under `measurement/`, while samples
+are already plural. Raised separately so the singular form leaves the repository in one pass rather
+than one record type at a time.
 
 ### P6 — Built for the four record types, by declaration rather than by machinery
 

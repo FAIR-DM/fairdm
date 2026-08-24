@@ -1,12 +1,12 @@
 {
   "rule": "satisfied requires a code citation AND a passing test that exercises the behaviour; code with no test stays open and the test is its remaining work",
   "totals": {
-    "tasks_total": 91,
+    "tasks_total": 93,
     "satisfied": 16,
-    "open": 75
+    "open": 77
   },
   "open_by_reason": {
-    "not built": 52,
+    "not built": 54,
     "vacuous test": 3,
     "built, untested": 17,
     "built differently": 3
@@ -86,7 +86,9 @@
     "T066": "not built",
     "T067": "not built",
     "T068": "not built",
-    "T074": "not built"
+    "T074": "not built",
+    "T092": "not built",
+    "T093": "not built"
   },
   "review_corrections": [
     "T044 (now T043) returned to todo: its test submits no formset bookkeeping and will fail once the identifier set lands",
@@ -95,6 +97,7 @@
     "four tasks added: two for changing and removing a date, two for deleting the superseded form classes",
     "replanned 2026-08-24: dates returned to a row set and the shared pieces added, so the task list grew from 87 to 90",
     "second review 2026-08-24: the runtime resolver was cut for a shared declaration base; the date rule is parameterised and the duplicate in dataset/admin.py is deleted; the cross-record test was a tautology and became parametrised cases on the shared pieces themselves",
-    "restructured 2026-08-24: the record's pages become one registration; the navigation tasks now test the registration and its own permission and privacy checks"
+    "restructured 2026-08-24: the record's pages become one registration; the navigation tasks now test the registration and its own permission and privacy checks",
+    "prefix settled 2026-08-24: the singular mount goes, so the record and its pages share the plural prefix; two tasks added for the move and for the ordering it depends on"
   ]
 }

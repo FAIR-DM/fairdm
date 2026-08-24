@@ -201,6 +201,54 @@ Found during the audit, correct, and previously unrecorded. Each is now in the s
 
 ---
 
+## D10 — A record's pages are one registered collection, not one registration each
+
+**Previous specification**: silent on how a page is addressed. The pages were given routes of their
+own, outside the portal's per-record navigation, which is why none of them links to any other.
+
+**Code**: a navigation entry's address is built from the record's name and the registration's own
+name, so a page addressed independently can never appear in that navigation. Rendered as an
+anonymous visitor, a project's navigation offers datasets, export, configure and contributors, with
+no entry for the project itself and no entry marked as current.
+
+**Settled**: the project's own page is its overview registration, and the attributes and deletion
+pages belong to that registration rather than standing beside it. `ProjectConfigure` and the
+independent editing and deletion routes are retired.
+
+**Why**: a registration carries one navigation entry. One registration per page fills the record's
+navigation with noise as soon as add-ons contribute their own, so a registration is a collection of
+related functionality with a single entry, and the collection's own template links whatever else it
+owns. The portal was built this way until three months ago: nine registrations existed against a
+project, among them the overview, the editing page and the deletion page, and the record's address
+method returned the overview. The registry rework of 2026-08-11 cut them to three while migrating to
+decorator arguments, and six lost their registration in the move with no reason recorded in any
+commit message, specification or plan. This restores an architecture that was dismantled in passing.
+
+**Left open**: the layout of the overview template, which links the collection's other pages. Out of
+scope here per FR-047.
+
+---
+
+## D11 — One address prefix, and it is the plural one
+
+**Previous specification**: silent. The convention was never written down, and both forms are in use.
+
+**Code**: a project is at `projects/<uuid>/` while the pages registered against it mount under
+`project/<uuid>/`. Datasets carry the same split. Samples are plural already, and measurements are
+singular throughout.
+
+**Settled**: the singular form goes. A project keeps `projects/<uuid>/` and its pages become segments
+below it.
+
+**Why**: the plural address is the one a reader may have cited, and the inconsistency is worth
+removing rather than entrenching. The cost is that the pages already registered against a project —
+contributors, datasets, export — change address, which is accepted.
+
+**Left open**: nothing for this feature. Datasets and measurements are raised separately so the
+singular form leaves the repository in one pass rather than one record type at a time.
+
+---
+
 ## Raised separately
 
 Found while checking the specification against the code, real, and not this feature's work.
@@ -213,3 +261,7 @@ Found while checking the specification against the code, real, and not this feat
 - **The project's own page decides visibility by comparing against a bare number** rather than the
   named value (`views.py:256`). Inside a method this feature does not otherwise touch, and the page
   itself is out of scope. Raised separately.
+- **Datasets and measurements keep the singular address prefix** that D11 removes from projects: a
+  dataset's pages mount under the singular form while the dataset itself is plural, and measurements
+  are included under the singular form throughout. Samples are already plural. Raised separately so
+  the convention lands across the repository rather than one record type at a time.
