@@ -917,6 +917,32 @@ class TestAttributesDateRowSet:
         assert response.status_code == 302
         assert project.dates.filter(type="Start", value="2020-01-01").exists()
 
+    def test_changing_an_existing_dates_value_persists(self, client):
+        """T042 — Submitting a changed value for an existing date row persists it."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Has Date", owner=org)
+        date = ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(),
+                **_date_management_data(total=1, initial=1),
+                "dates-0-id": date.pk,
+                "dates-0-type": "Start",
+                "dates-0-value": "2021-06-15",
+            },
+        )
+
+        assert response.status_code == 302
+        date.refresh_from_db()
+        assert str(date.value) == "2021-06-15"
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
