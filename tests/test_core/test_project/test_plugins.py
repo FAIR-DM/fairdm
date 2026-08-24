@@ -2,6 +2,8 @@
 
 T063 - the project's own page is a registration against ``Project``, so the portal's per-record
        navigation offers an entry for it, and that entry is selected while on the page.
+T064 - its attributes and deletion pages are extra views of that registration, not registrations
+       of their own, so the navigation strip gains no entry for either.
 """
 
 import pytest
@@ -59,3 +61,36 @@ class TestOverviewIsTheProjectsOwnRegistration:
         url = reverse("project:overview", kwargs={"uuid": public_project.uuid})
         # Nothing follows the record's own identifier in the address.
         assert url.split(str(public_project.uuid))[-1] == "/"
+
+
+@pytest.mark.django_db
+class TestAttributesAndDeletionAreExtraViewsNotEntries:
+    """A registration carries one menu entry for the whole collection; the attributes and
+    deletion pages hang off the overview's registration rather than registering themselves, so
+    the strip does not fill with an entry per addon (013 plan P1)."""
+
+    def test_the_attributes_page_resolves_as_an_extra_view_of_the_overview(
+        self, public_project
+    ):
+        url = reverse(
+            "project:overview-attributes", kwargs={"uuid": public_project.uuid}
+        )
+        assert url.endswith(f"{public_project.uuid}/attributes/")
+
+    def test_the_deletion_page_resolves_as_an_extra_view_of_the_overview(
+        self, public_project
+    ):
+        url = reverse("project:overview-delete", kwargs={"uuid": public_project.uuid})
+        assert url.endswith(f"{public_project.uuid}/delete/")
+
+    def test_the_project_menu_carries_no_entry_for_attributes_or_deletion(self):
+        labels = _entry_labels(Project)
+        assert "Attributes" not in labels
+        assert "Delete" not in labels
+
+    def test_the_project_menu_carries_exactly_one_entry_for_the_collection(self):
+        """Superseded ``ProjectConfigure`` (013 plan P1) is retired along with the standalone
+        pages it duplicated, so the collection is carried by ``Overview`` alone."""
+        labels = _entry_labels(Project)
+        assert labels.count("Overview") == 1
+        assert "Configure" not in labels

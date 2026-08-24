@@ -2,6 +2,7 @@
 Example plugins for Project model using the new model-centric system.
 """
 
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
@@ -12,10 +13,55 @@ from fairdm.contrib.generic.plugins import (
 )
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.plugins import OverviewPlugin
-from fairdm.views import FairDMTemplateView, FairDMUpdateView
+from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
 from ..dataset.views import DatasetListView
-from .models import Project, ProjectDate, ProjectDescription
+from .forms import ProjectForm
+from .models import Project, ProjectDate, ProjectDescription, PublicDatasetsProtect
+
+
+class Attributes(Plugin, FairDMUpdateView):
+    """The project's own attributes: name, status, visibility, owner, plus its identifiers and
+    dates. An additional view belonging to :class:`Overview` rather than a registration of its
+    own, so the navigation strip carries one entry for the whole collection (013 plan P1).
+
+    Supersedes the standalone ``project-update`` route and ``ProjectConfigure``, which duplicated
+    part of the same surface with its own, separate navigation entry.
+    """
+
+    url_path = "attributes"
+    page_title = _("Attributes")
+    model = Project
+    form_class = ProjectForm
+
+    def get_success_url(self):
+        return self.base_object.get_absolute_url()
+
+
+class Delete(Plugin, FairDMDeleteView):
+    """The project's own deletion page, confirmed by typing its name.
+
+    An additional view belonging to :class:`Overview`, per :class:`Attributes` above. Supersedes
+    the standalone ``project-delete`` route.
+    """
+
+    url_path = "delete"
+    page_title = _("Delete project")
+    model = Project
+    require_confirmation = True
+    success_url = reverse_lazy("project-list")
+
+    def get_confirmation_value(self):
+        return self.base_object.name
+
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except PublicDatasetsProtect as e:
+            context = self.get_context_data(
+                object=self.base_object, protected_datasets=e.datasets
+            )
+            return self.render_to_response(context)
 
 
 @plugins.register(Project, label=_("Overview"), icon="view", order=0)
@@ -30,6 +76,7 @@ class Overview(OverviewPlugin):
 
     url_path = None
     template_name = "project/project_detail.html"
+    extra_views = [Attributes, Delete]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -60,16 +107,6 @@ class ProjectExportView(Plugin, FairDMTemplateView):
 
     page_title = _("Export Project Data")
     page_icon = "export"
-
-
-@plugins.register(Project, label=_("Configure"), icon="settings", order=300)
-class ProjectConfigure(Plugin, FairDMUpdateView):
-    """Project settings management plugin."""
-
-    page_title = _("Configure project")
-    permission = "project.change_project"
-    model = Project
-    fields = ["name", "visibility", "owner"]
 
 
 class Descriptions(DescriptionsPlugin):
