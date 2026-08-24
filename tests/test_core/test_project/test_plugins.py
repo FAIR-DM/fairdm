@@ -551,3 +551,24 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
         assert not ProjectDescription.objects.filter(
             related=project, type=first_type
         ).exists()
+
+
+@pytest.mark.django_db
+class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
+    """T061 — a successful submission redirects to the project's own page, asserted by exact
+    route reversal rather than a substring of the address."""
+
+    def test_the_redirect_target_is_the_projects_own_overview_url(
+        self, client, user_with_change_permission
+    ):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+        first_type = ProjectDescription.VOCABULARY.values[0]
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        response = client.post(url, data={first_type: "Some text."})
+
+        assert response.status_code == 302
+        assert response.url == reverse("project:overview", kwargs={"uuid": project.uuid})
