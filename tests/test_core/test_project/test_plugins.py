@@ -2,21 +2,27 @@
 
 T063 - the project's own page is a registration against ``Project``, so the portal's per-record
        navigation offers an entry for it, and that entry is selected while on the page.
-T064 - its attributes and deletion pages are extra views of that registration, not registrations
+T064 - its update and deletion pages are extra views of that registration, not registrations
        of their own, so the navigation strip gains no entry for either.
 T065 - each of those pages states its own permission, since an additional view inherits its
        owner's predicate but never its permission.
 T066 - the registration's own visibility check refuses a private project to anyone without
        `project.view_project`, since a registered page resolves its record past the filtered
        manager on the assumption that the page gates itself.
-T067 - a user who may change a project is offered its attributes and descriptions pages from the
+T067 - a user who may change a project is offered its update and descriptions pages from the
        project's own page; one who may not is offered neither.
 T068 - a user who may delete a project is offered its deletion page from the project's own page;
        one who may not is not.
 T069 - the deletion page's back control is a working link to a real address.
-T070 - the attributes, descriptions and deletion pages each offer a working link back to the
+T070 - the update, descriptions and deletion pages each offer a working link back to the
        project itself.
 T071 - every link drawn by each page this feature owns resolves to a real address, none empty.
+T095 - the update page is titled and addressed for what it is, not for how the record is built
+       (D12).
+T096 - descriptions stops being a registration of its own and becomes one of the project's
+       page's own belongings, exactly as update and deletion already are (D13).
+T097 - the project's own page draws the descriptions link itself, since no navigation entry
+       remains to draw it.
 """
 
 import re
@@ -91,16 +97,24 @@ class TestOverviewIsTheProjectsOwnRegistration:
 
 
 @pytest.mark.django_db
-class TestAttributesAndDeletionAreExtraViewsNotEntries:
-    """A registration carries one menu entry for the whole collection; the attributes and
-    deletion pages hang off the overview's registration rather than registering themselves, so
-    the strip does not fill with an entry per addon (013 plan P1)."""
+class TestUpdateDescriptionsAndDeletionAreExtraViewsNotEntries:
+    """A registration carries one menu entry for the whole collection; the update, descriptions
+    and deletion pages hang off the overview's registration rather than registering themselves,
+    so the strip does not fill with an entry per addon (013 plan P1, D13)."""
 
-    def test_the_attributes_page_resolves_as_an_extra_view_of_the_overview(
+    def test_the_update_page_resolves_as_an_extra_view_of_the_overview(
         self, public_project
     ):
         url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
         assert url.endswith(f"{public_project.uuid}/update/")
+
+    def test_the_descriptions_page_resolves_as_an_extra_view_of_the_overview(
+        self, public_project
+    ):
+        url = reverse(
+            "project:overview-descriptions", kwargs={"uuid": public_project.uuid}
+        )
+        assert url.endswith(f"{public_project.uuid}/descriptions/")
 
     def test_the_deletion_page_resolves_as_an_extra_view_of_the_overview(
         self, public_project
@@ -108,9 +122,12 @@ class TestAttributesAndDeletionAreExtraViewsNotEntries:
         url = reverse("project:overview-delete", kwargs={"uuid": public_project.uuid})
         assert url.endswith(f"{public_project.uuid}/delete/")
 
-    def test_the_project_menu_carries_no_entry_for_attributes_or_deletion(self):
+    def test_the_project_menu_carries_no_entry_for_update_descriptions_or_deletion(
+        self,
+    ):
         labels = _entry_labels(Project)
-        assert "Update" not in labels
+        assert "Update project" not in labels
+        assert "Descriptions" not in labels
         assert "Delete" not in labels
 
     def test_the_project_menu_carries_exactly_one_entry_for_the_collection(self):
@@ -128,19 +145,19 @@ class TestEachExtraViewStatesItsOwnPermission:
     is open to everyone, including an anonymous visitor. Each page here names the right it
     needs, matching the standalone pages it replaces (013 plan P1)."""
 
-    def test_attributes_refuses_a_signed_in_user_without_change_permission(
+    def test_update_refuses_a_signed_in_user_without_change_permission(
         self, public_project, user_with_no_permission
     ):
         request = _request_for(user_with_no_permission)
         assert can_open(Update, request, public_project) is False
 
-    def test_attributes_admits_a_user_holding_change_permission(
+    def test_update_admits_a_user_holding_change_permission(
         self, user_with_change_permission
     ):
         request = _request_for(user_with_change_permission)
         assert can_open(Update, request, user_with_change_permission.project) is True
 
-    def test_attributes_refuses_an_anonymous_request(self, public_project):
+    def test_update_refuses_an_anonymous_request(self, public_project):
         request = _request_for(AnonymousUser())
         assert can_open(Update, request, public_project) is False
 
@@ -311,20 +328,25 @@ class TestExactlyOnePageOffersTheProjectsOwnAttributes:
 
 
 @pytest.mark.django_db
-class TestDescriptionsPageIsARegistrationOfItsOwn:
-    """T051 — unlike the attributes and deletion pages, the descriptions page is a registration
-    of its own rather than an additional view, matching Dataset and Sample (013 plan P2)."""
+class TestDescriptionsIsAnExtraViewNotARegistrationOfItsOwn:
+    """T096/D13 — like the update and deletion pages, the descriptions page is an additional
+    view belonging to :class:`Overview` rather than a registration of its own; its address is
+    unchanged by the move."""
 
     def test_reversed_by_name_it_resolves_at_an_address_keyed_by_the_projects_identifier(
         self, public_project
     ):
-        url = reverse("project:descriptions", kwargs={"uuid": public_project.uuid})
+        url = reverse(
+            "project:overview-descriptions", kwargs={"uuid": public_project.uuid}
+        )
         assert url == f"/projects/{public_project.uuid}/descriptions/"
 
     def test_an_anonymous_visitor_is_redirected_to_sign_in(
         self, client, public_project
     ):
-        url = reverse("project:descriptions", kwargs={"uuid": public_project.uuid})
+        url = reverse(
+            "project:overview-descriptions", kwargs={"uuid": public_project.uuid}
+        )
         response = client.get(url)
         assert response.status_code == 302
         assert reverse("account_login") in response.url
@@ -368,7 +390,7 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -380,7 +402,7 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -403,7 +425,7 @@ class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
         first_type = ProjectDescription.VOCABULARY.values[0]
         concept = ProjectDescription.VOCABULARY.get_concept(first_type)
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -425,7 +447,7 @@ class TestSavingTextIntoOneAreaRecordsOnlyThatType:
         client.force_login(user_with_change_permission)
         first_type = ProjectDescription.VOCABULARY.values[0]
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "Some abstract text."})
 
         assert ProjectDescription.objects.filter(related=project).count() == 1
@@ -451,7 +473,7 @@ class TestExistingDescriptionsShowInTheirOwnArea:
             related=project, type=first_type, value="Existing abstract."
         )
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -473,7 +495,7 @@ class TestEditingAnExistingDescriptionPersists:
             related=project, type=first_type, value="Original text."
         )
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "Changed text."})
 
         row.refresh_from_db()
@@ -497,7 +519,7 @@ class TestClearingAnAreaRemovesTheDescription:
             related=project, type=first_type, value="Existing text."
         )
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: ""})
 
         assert not ProjectDescription.objects.filter(
@@ -520,7 +542,7 @@ class TestRepeatSubmissionNeverDuplicatesAType:
         client.force_login(user_with_change_permission)
         first_type = ProjectDescription.VOCABULARY.values[0]
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "First."})
         client.post(url, data={first_type: "Second."})
         client.post(url, data={first_type: "Third."})
@@ -548,7 +570,7 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={})
 
         assert not ProjectDescription.objects.filter(related=project).exists()
@@ -565,7 +587,7 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
             related=project, type=first_type, value="Existing text."
         )
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "   \n  "})
 
         assert not ProjectDescription.objects.filter(
@@ -587,7 +609,7 @@ class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
         client.force_login(user_with_change_permission)
         first_type = ProjectDescription.VOCABULARY.values[0]
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         response = client.post(url, data={first_type: "Some text."})
 
         assert response.status_code == 302
@@ -597,14 +619,18 @@ class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
 
 
 @pytest.mark.django_db
-class TestProjectsOwnPageOffersAttributesAndDescriptionsLinks:
-    """T067 — a user who may change the project is offered links to its attributes and
+class TestProjectsOwnPageOffersUpdateAndDescriptionsLinks:
+    """T067/T097 — a user who may change the project is offered links to its update and
     descriptions pages from the project's own page; a signed-in user who may not is offered
-    neither. The attributes link switches on the interface layer's existing action-link
-    mechanism (``mvp.views.detail.CRUDDirectoryMixin``, read into ``directory`` and drawn by
-    the shared ``detail_view.html`` shell) rather than a hand-rolled one (013 plan P5); the
-    descriptions link is the registration's own tab, already gated by the same ``can_open`` the
-    page itself checks."""
+    neither. The update link switches on the interface layer's existing action-link mechanism
+    (``mvp.views.detail.CRUDDirectoryMixin``, read into ``directory`` and drawn by the shared
+    ``detail_view.html`` shell) rather than a hand-rolled one (013 plan P5). The descriptions
+    link used to be drawn for free by the registration's own tab; now that descriptions is one of
+    the overview's additional views rather than a registration of its own (013 plan D13), no
+    navigation entry exists to draw it, so the project's own page draws it — through the same
+    ``directory`` mechanism, gated by the same ``can_open`` the descriptions page itself checks
+    (``project_detail.html``'s own ``page.actions`` block, since the shared shell has no generic
+    slot for a third action)."""
 
     def test_a_user_who_may_change_the_project_is_offered_both_links(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -616,13 +642,11 @@ class TestProjectsOwnPageOffersAttributesAndDescriptionsLinks:
             reverse("project:overview", kwargs={"uuid": project.uuid})
         )
 
-        attributes_url = reverse(
-            "project:overview-update", kwargs={"uuid": project.uuid}
-        )
+        update_url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         descriptions_url = reverse(
-            "project:descriptions", kwargs={"uuid": project.uuid}
+            "project:overview-descriptions", kwargs={"uuid": project.uuid}
         )
-        assertContains(response, f'href="{attributes_url}"')
+        assertContains(response, f'href="{update_url}"')
         assertContains(response, f'href="{descriptions_url}"')
 
     def test_a_signed_in_user_who_may_not_change_it_is_offered_neither(self, client):
@@ -634,13 +658,11 @@ class TestProjectsOwnPageOffersAttributesAndDescriptionsLinks:
             reverse("project:overview", kwargs={"uuid": project.uuid})
         )
 
-        attributes_url = reverse(
-            "project:overview-update", kwargs={"uuid": project.uuid}
-        )
+        update_url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         descriptions_url = reverse(
-            "project:descriptions", kwargs={"uuid": project.uuid}
+            "project:overview-descriptions", kwargs={"uuid": project.uuid}
         )
-        assertNotContains(response, f'href="{attributes_url}"')
+        assertNotContains(response, f'href="{update_url}"')
         assertNotContains(response, f'href="{descriptions_url}"')
 
 
@@ -679,15 +701,15 @@ class TestProjectsOwnPageOffersTheDeletionLink:
 
 
 @pytest.mark.django_db
-class TestAttributesDescriptionsAndDeletionEachLinkBackToTheProject:
-    """T070 — the attributes, descriptions and deletion pages each offer a working link back to
+class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
+    """T070 — the update, descriptions and deletion pages each offer a working link back to
     the project itself, at the project's own address (FR-044). All three resolve
     ``get_breadcrumbs()`` through :class:`~fairdm.contrib.plugins.base.Plugin` given the MRO
     (``Plugin`` is listed first on every one of them), which links ``obj.get_absolute_url()``
     into the breadcrumb trail whenever the object carries one — confirmed here rather than
     assumed, per the brief's state-of-play."""
 
-    def test_the_attributes_page_links_back_to_the_project(self, client):
+    def test_the_update_page_links_back_to_the_project(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
         assign_perm("change_project", user, project)
@@ -705,7 +727,7 @@ class TestAttributesDescriptionsAndDeletionEachLinkBackToTheProject:
         assign_perm("change_project", user, project)
         client.force_login(user)
 
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
@@ -760,7 +782,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         assert hrefs
         assert all(href.strip() != "" for href in hrefs)
 
-    def test_the_attributes_page_draws_no_empty_link(self, client):
+    def test_the_update_page_draws_no_empty_link(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(project))
 
@@ -777,7 +799,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         client.force_login(self._permitted_user(project))
 
         response = client.get(
-            reverse("project:descriptions", kwargs={"uuid": project.uuid})
+            reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
         )
 
         hrefs = _hrefs(response.content.decode())
@@ -885,7 +907,9 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user)
 
         response = client.get(
-            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
+            reverse(
+                "project:overview-descriptions", kwargs={"uuid": private_project.uuid}
+            )
         )
 
         assert response.status_code in (403, 404)
@@ -897,7 +921,9 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user)
 
         response = client.post(
-            reverse("project:descriptions", kwargs={"uuid": private_project.uuid}),
+            reverse(
+                "project:overview-descriptions", kwargs={"uuid": private_project.uuid}
+            ),
             data={"Abstract": "written by someone who may not see this project"},
         )
 
@@ -923,7 +949,9 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user_with_no_permission)
 
         response = client.get(
-            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
+            reverse(
+                "project:overview-descriptions", kwargs={"uuid": private_project.uuid}
+            )
         )
 
         assert response.status_code == 200
