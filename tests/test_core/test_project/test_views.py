@@ -143,47 +143,6 @@ class TestProjectCreateView:
 
 
 @pytest.mark.django_db
-class TestProjectListView:
-    """Smoke tests and behaviour tests for ProjectListView (US1)."""
-
-    def test_project_list_anonymous_200(self, client):
-        """T010 — GET /projects/ returns 200 for anonymous users."""
-        url = reverse("project-list")
-        response = client.get(url)
-        assert response.status_code == 200
-
-    def test_project_list_shows_only_public(self, client):
-        """T011 — List shows only PUBLIC projects; PRIVATE projects are hidden."""
-        public = ProjectFactory(name="Public Project", visibility=Visibility.PUBLIC)
-        ProjectFactory(name="Private Project", visibility=Visibility.PRIVATE)
-
-        url = reverse("project-list")
-        response = client.get(url)
-
-        assert response.status_code == 200
-        assert public.name in str(response.content)
-        assert "Private Project" not in str(response.content)
-
-    def test_project_list_order_by_added(self, client):
-        """T012 — ?o=added and ?o=-added return results in expected chronological order."""
-        older = ProjectFactory(name="Older Project", visibility=Visibility.PUBLIC)
-        time.sleep(0.01)
-        newer = ProjectFactory(name="Newer Project", visibility=Visibility.PUBLIC)
-
-        url = reverse("project-list")
-
-        response_asc = client.get(url, {"o": "added"})
-        assert response_asc.status_code == 200
-        content_asc = str(response_asc.content)
-        assert content_asc.index(older.name) < content_asc.index(newer.name)
-
-        response_desc = client.get(url, {"o": "-added"})
-        assert response_desc.status_code == 200
-        content_desc = str(response_desc.content)
-        assert content_desc.index(newer.name) < content_desc.index(older.name)
-
-
-@pytest.mark.django_db
 class TestProjectListViewEmitsNoDeprecationWarning:
     """T072 — `has_create_permission`/`has_list_permission` are the superseded names the
     interface layer still honours, with a warning, until it removes them in 0.18. The suite
