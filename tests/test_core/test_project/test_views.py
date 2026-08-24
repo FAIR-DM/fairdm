@@ -1231,6 +1231,32 @@ class TestProjectDeleteView:
         assertContains(response, "Public Dataset")
         assertNotContains(response, 'id="id_confirmation"')
 
+    def test_project_delete_evaluates_visibility_at_submission_time(self, client):
+        """T086 — a dataset made public after the deletion page is opened still blocks the
+        deletion and is named among the blockers; the check is re-evaluated at submission, not
+        captured when the page was drawn (edge case, spec.md)."""
+        project = ProjectFactory(name="Dataset Project")
+        dataset = Dataset.objects.create(
+            name="Soon Public Dataset", project=project, visibility=Visibility.PRIVATE
+        )
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+
+        get_response = client.get(url)
+        assert get_response.status_code == 200
+        assertNotContains(get_response, "This record cannot be deleted.")
+
+        dataset.visibility = Visibility.PUBLIC
+        dataset.save()
+
+        response = client.post(url, data={"confirmation": "Dataset Project"})
+        assert response.status_code == 200
+        assertContains(response, "This record cannot be deleted.")
+        assertContains(response, "Soon Public Dataset")
+        assert Project.objects.filter(pk=project.pk).exists()
+
     def test_project_delete_allows_private_only_datasets(self, client):
         """T032a — POST correct name + only PRIVATE datasets → project deleted, redirect to project-list."""
         project = ProjectFactory(name="Private Dataset Project")
