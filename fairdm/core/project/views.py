@@ -8,6 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from guardian.shortcuts import assign_perm
 
+from fairdm.utils.choices import Visibility
 from fairdm.views import (
     FairDMCreateView,
     FairDMDeleteView,
@@ -253,7 +254,7 @@ class ProjectDetailView(FairDMDetailView):
         project = get_object_or_404(Project, uuid=uuid)
 
         # Public projects are accessible to everyone
-        if project.visibility == 1:  # PUBLIC
+        if project.visibility == Visibility.PUBLIC:
             return project
 
         # Private projects require authentication and permission

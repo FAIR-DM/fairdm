@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Withdrawing a contributor's rights when their credit is deleted now happens in one place
   rather than two. The behaviour is unchanged for every path that already worked.
+- The project detail page's visibility check now compares against the named `Visibility.PUBLIC`
+  constant instead of a bare `1`, matching every other visibility check in the codebase. No
+  behaviour change.
 
 ### Added
 

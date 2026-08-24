@@ -394,3 +394,48 @@ class TestProjectDeleteView:
         assert response.status_code == 302
         assert response.url == reverse("project-list")
         assert not Project.objects.filter(pk=pk).exists()
+
+
+# ---------------------------------------------------------------------------
+# ProjectDetailView — visibility gate on get_object
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestProjectDetailView:
+    """Tests for ProjectDetailView.get_object's visibility/permission gate."""
+
+    def test_anonymous_user_can_view_public_project(self, client):
+        """A PUBLIC project is accessible without authentication."""
+        project = ProjectFactory(name="Open Project", visibility=Visibility.PUBLIC)
+        url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 200
+
+    def test_anonymous_user_cannot_view_private_project(self, client):
+        """A PRIVATE project raises PermissionDenied for an anonymous user."""
+        project = ProjectFactory(name="Closed Project", visibility=Visibility.PRIVATE)
+        url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 403
+
+    def test_authenticated_user_without_permission_cannot_view_private_project(
+        self, client
+    ):
+        """A PRIVATE project raises PermissionDenied for a user lacking view_project."""
+        project = ProjectFactory(name="Closed Project", visibility=Visibility.PRIVATE)
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 403
+
+    def test_authenticated_user_with_permission_can_view_private_project(self, client):
+        """A PRIVATE project is accessible to a user holding view_project."""
+        project = ProjectFactory(name="Closed Project", visibility=Visibility.PRIVATE)
+        user = UserFactory()
+        assign_perm("view_project", user, project)
+        client.force_login(user)
+        url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 200
