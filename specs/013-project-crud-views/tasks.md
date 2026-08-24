@@ -78,8 +78,9 @@ assumed not to.
 
 ## US-3 — Correct a project's own attributes
 
-- **T026** — Test: the attributes page is reachable at `project-update` keyed by the project's
-  identifier, and an anonymous visitor is redirected to sign in.
+- **T026** — Test: the attributes page is reachable, keyed by the project's identifier, as a page
+  belonging to the project's own registration rather than an address of its own, and an anonymous
+  visitor is redirected to sign in.
 - **T027** — Test: a signed-in user without change permission on that project is refused.
 - **T028** — Test: a user holding the permission at the model level, not only against the individual
   record, is admitted. This is the behaviour of the page being retired and it must survive. Changing
@@ -151,62 +152,72 @@ assumed not to.
 
 ## US-5 — Move between a project's pages
 
-- **T063** — Test: a user who may change a project sees links to its attributes page and its
-  descriptions page on the project's page. Then declare the actions on the detail view.
-- **T064** — Test: a user who may delete a project sees a link to its deletion page on the project's
-  page.
-- **T065** — Test: a user who may do neither sees neither link.
-- **T066** — Test: an anonymous visitor to a public project sees neither link.
-- **T067** — Test: the attributes page offers a link to the deletion page to a user who may delete,
-  and not to one who may not.
-- **T068** — Test: the deletion page's back control is a working link to a real address, asserted as
-  a link and not merely as present. This is the failure the specification calls out.
-- **T069** — Test: the attributes page, the descriptions page and the deletion page each offer a
-  working link back to the project itself, not only to the listing.
-- **T070** — Test: every link drawn on each of the five pages resolves to a real address, with none
-  empty. One test per page.
-- **T071** — Test: rendering each of the five pages emits no deprecation warning from the interface
-  layer. Requires an explicit warning filter on the test, because the suite silences warnings
-  file-wide. Then replace the superseded attribute names.
-- **T072** — Test: the listing offers a link to the creation page to a signed-in user and not to an
+- **T063** — Test: the project's page is its own registration against the record, so the portal's
+  per-record navigation offers an entry for it. Then the registration. Today no entry exists and no
+  tab is ever selected while on that page.
+- **T064** — Test: the attributes and deletion pages belong to that registration and take no
+  navigation entry of their own, so the strip gains no entry for either.
+- **T065** — Test: each of those pages states its own permission, and a signed-in user without it is
+  refused. An extra view inherits its owner's predicate but not its permission, so a page that
+  states none is open to everyone.
+- **T066** — Test: a private project is refused to a user who may not view it, through the
+  registration's own check. The record is resolved past the filtered manager, so without this the
+  project is readable by anyone holding its address. This is the regression this restructuring is
+  most likely to introduce.
+- **T067** — Test: a user who may change a project is offered its attributes and descriptions pages;
+  one who may not is offered neither.
+- **T068** — Test: a user who may delete a project is offered its deletion page; one who may not is
+  not.
+- **T069** — Test: the deletion page's back control is a working link to a real address, asserted as
+  a link and not merely as present.
+- **T070** — Test: the attributes, descriptions and deletion pages each offer a working link back to
+  the project itself.
+- **T071** — Test: every link drawn on each page resolves to a real address, with none empty. One
+  test per page.
+- **T072** — Test: rendering each page emits no deprecation warning from the interface layer.
+  Requires an explicit warning filter on the test, because the suite silences warnings file-wide.
+  Then replace the superseded attribute names.
+- **T073** — Test: the listing offers a link to the creation page to a signed-in user and not to an
   anonymous one.
+- **T074** — Test: the record's own address method resolves, and every place that reversed the
+  retired names now reaches the same page.
 
 ## US-6 — Remove a project
 
-- **T073** — Test: the deletion page is reachable at `project-delete` keyed by the project's
+- **T075** — Test: the deletion page is reachable at `project-delete` keyed by the project's
   identifier, and an anonymous visitor is redirected to sign in.
-- **T074** — Test: a user without delete permission on that project is refused.
-- **T075** — Test: typing a name that is not the project's reports an error and the project remains.
-- **T076** — Test: typing the project's name with leading and trailing spaces is accepted and the
+- **T076** — Test: a user without delete permission on that project is refused.
+- **T077** — Test: typing a name that is not the project's reports an error and the project remains.
+- **T078** — Test: typing the project's name with leading and trailing spaces is accepted and the
   deletion proceeds.
-- **T077** — Test: a project with no datasets is deleted when confirmed correctly.
-- **T078** — Test: a project whose datasets are all private is deleted when confirmed correctly.
-- **T079** — Test: a project with one public dataset is not deleted when confirmed correctly, and
+- **T079** — Test: a project with no datasets is deleted when confirmed correctly.
+- **T080** — Test: a project whose datasets are all private is deleted when confirmed correctly.
+- **T081** — Test: a project with one public dataset is not deleted when confirmed correctly, and
   the project still exists afterwards.
-- **T080** — Test: the refusal holds when the deletion is attempted directly against the record,
+- **T082** — Test: the refusal holds when the deletion is attempted directly against the record,
   not only through the page. Then the record-level guard.
-- **T081** — Test: the refused page names each blocking public dataset in what the user sees, not in
+- **T083** — Test: the refused page names each blocking public dataset in what the user sees, not in
   the page's internal state. Assert against the rendered content.
-- **T082** — Test: the refused page explains why, and offers neither a confirmation field nor a
+- **T084** — Test: the refused page explains why, and offers neither a confirmation field nor a
   delete control.
-- **T083** — Test: opening the deletion page for a project with a public dataset already shows the
+- **T085** — Test: opening the deletion page for a project with a public dataset already shows the
   refusal, without the user having to submit first.
-- **T084** — Test: a dataset made public after the page is opened still blocks the deletion, and is
+- **T086** — Test: a dataset made public after the page is opened still blocks the deletion, and is
   named among the blockers.
-- **T085** — Test: a successful deletion redirects to the project listing.
+- **T087** — Test: a successful deletion redirects to the project listing.
 
 ## Deliberate omissions
 
-- **T086** — Remove the unreachable funding field declaration from the project form, and the note
-  above it. No test of its own: T017 and T028 pin both forms' field sets exactly, which excludes
+- **T088** — Remove the unreachable funding field declaration from the project form, and the note
+  above it. No test of its own: T018 and T029 pin both forms' field sets exactly, which excludes
   funding, keywords and tags by construction.
 
 ## Documentation
 
-- **T087** — Document the project management pages in the portal user documentation: what each page
+- **T089** — Document the project management pages in the portal user documentation: what each page
   is for, who may open it, and what the deletion refusal means. Audit every page under `docs/` that
   describes project editing and bring it into line.
-- **T088** — Record the decision between the two editing surfaces, and the choice of inline
+- **T090** — Record the decision between the two editing surfaces, and the choice of inline
   mechanism, where the repository records decisions.
-- **T089** — Update the roadmap entry's state to reflect what this feature delivered, without
+- **T091** — Update the roadmap entry's state to reflect what this feature delivered, without
   claiming the half it does not cover.

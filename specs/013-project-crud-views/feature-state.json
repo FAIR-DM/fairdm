@@ -44,6 +44,11 @@
       "state": "PLAN",
       "at": "2026-08-24T10:30:00Z",
       "note": "second focused review: the reuse design was replaced with a shared declaration and a parameterised date rule after it was shown to validate nothing on three of four record types"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-24T12:00:00Z",
+      "note": "the project's pages become one registered collection: the overview is the record's page, with the attributes and deletion pages belonging to it"
     }
   ],
   "gates": {
@@ -71,7 +76,7 @@
       "issue": 268,
       "worktree": null,
       "status": "todo",
-      "replans": 1,
+      "replans": 2,
       "tasks": [
         {
           "id": "T006",
@@ -158,7 +163,7 @@
       "issue": 269,
       "worktree": null,
       "status": "todo",
-      "replans": 1,
+      "replans": 2,
       "tasks": [
         {
           "id": "T017",
@@ -268,7 +273,7 @@
       "issue": 270,
       "worktree": null,
       "status": "todo",
-      "replans": 1,
+      "replans": 2,
       "tasks": [
         {
           "id": "T001",
@@ -297,19 +302,8 @@
         },
         {
           "id": "T026",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/project/urls.py:18"
-            ],
-            "tests": [
-              "tests/test_core/test_project/test_views.py::test_project_update_anonymous_redirects_to_login"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_project/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T027",
@@ -443,7 +437,7 @@
           "attempts": 0
         },
         {
-          "id": "T086",
+          "id": "T088",
           "status": "todo",
           "attempts": 0
         }
@@ -455,7 +449,7 @@
       "issue": 271,
       "worktree": null,
       "status": "todo",
-      "replans": 1,
+      "replans": 2,
       "tasks": [
         {
           "id": "T051",
@@ -525,7 +519,7 @@
       "issue": 272,
       "worktree": null,
       "status": "todo",
-      "replans": 1,
+      "replans": 2,
       "tasks": [
         {
           "id": "T063",
@@ -576,6 +570,16 @@
           "id": "T072",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T073",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T074",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -585,10 +589,10 @@
       "issue": 273,
       "worktree": null,
       "status": "todo",
-      "replans": 1,
+      "replans": 2,
       "tasks": [
         {
-          "id": "T073",
+          "id": "T075",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -604,7 +608,7 @@
           }
         },
         {
-          "id": "T074",
+          "id": "T076",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -620,7 +624,7 @@
           }
         },
         {
-          "id": "T075",
+          "id": "T077",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -636,12 +640,12 @@
           }
         },
         {
-          "id": "T076",
+          "id": "T078",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T077",
+          "id": "T079",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -657,7 +661,7 @@
           }
         },
         {
-          "id": "T078",
+          "id": "T080",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -673,7 +677,7 @@
           }
         },
         {
-          "id": "T079",
+          "id": "T081",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -689,7 +693,7 @@
           }
         },
         {
-          "id": "T080",
+          "id": "T082",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -705,16 +709,6 @@
           }
         },
         {
-          "id": "T081",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T082",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
           "id": "T083",
           "status": "todo",
           "attempts": 0
@@ -726,6 +720,16 @@
         },
         {
           "id": "T085",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T086",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T087",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -741,17 +745,17 @@
           }
         },
         {
-          "id": "T087",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T088",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
           "id": "T089",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T090",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T091",
           "status": "todo",
           "attempts": 0
         }

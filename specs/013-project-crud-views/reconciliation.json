@@ -1,16 +1,15 @@
 {
   "rule": "satisfied requires a code citation AND a passing test that exercises the behaviour; code with no test stays open and the test is its remaining work",
   "totals": {
-    "tasks_total": 89,
-    "satisfied": 17,
-    "open": 72
+    "tasks_total": 91,
+    "satisfied": 16,
+    "open": 75
   },
   "open_by_reason": {
-    "not built": 48,
+    "not built": 52,
     "vacuous test": 3,
     "built, untested": 17,
-    "built differently": 3,
-    "built, test must be extended with formset bookkeeping once the row sets land": 1
+    "built differently": 3
   },
   "tasks": {
     "T005": "not built",
@@ -45,8 +44,8 @@
     "T046": "not built",
     "T049": "built differently",
     "T050": "not built",
-    "T086": "built, untested",
-    "T088": "built differently",
+    "T088": "built, untested",
+    "T090": "built differently",
     "T051": "not built",
     "T052": "not built",
     "T053": "not built",
@@ -56,24 +55,19 @@
     "T057": "not built",
     "T059": "not built",
     "T060": "not built",
-    "T047": "built, test must be extended with formset bookkeeping once the row sets land",
-    "T087": "not built",
-    "T063": "not built",
-    "T064": "not built",
-    "T065": "not built",
-    "T066": "not built",
-    "T067": "not built",
-    "T068": "not built",
+    "T047": "not built",
+    "T089": "not built",
     "T069": "not built",
     "T070": "not built",
     "T071": "not built",
-    "T072": "built differently",
-    "T076": "built, untested",
-    "T081": "not built",
-    "T082": "not built",
+    "T072": "not built",
+    "T073": "built differently",
+    "T078": "built, untested",
     "T083": "not built",
     "T084": "not built",
-    "T089": "not built",
+    "T085": "not built",
+    "T086": "not built",
+    "T091": "not built",
     "T045": "not built",
     "T048": "not built",
     "T062": "not built",
@@ -84,7 +78,15 @@
     "T003": "not built",
     "T004": "not built",
     "T044": "not built",
-    "T061": "not built"
+    "T026": "not built",
+    "T061": "not built",
+    "T063": "not built",
+    "T064": "not built",
+    "T065": "not built",
+    "T066": "not built",
+    "T067": "not built",
+    "T068": "not built",
+    "T074": "not built"
   },
   "review_corrections": [
     "T044 (now T043) returned to todo: its test submits no formset bookkeeping and will fail once the identifier set lands",
@@ -92,6 +94,7 @@
     "T082 deleted and T081 reduced: the exact-field-set assertions already exclude funding, keywords and tags",
     "four tasks added: two for changing and removing a date, two for deleting the superseded form classes",
     "replanned 2026-08-24: dates returned to a row set and the shared pieces added, so the task list grew from 87 to 90",
-    "second review 2026-08-24: the runtime resolver was cut for a shared declaration base; the date rule is parameterised and the duplicate in dataset/admin.py is deleted; the cross-record test was a tautology and became parametrised cases on the shared pieces themselves"
+    "second review 2026-08-24: the runtime resolver was cut for a shared declaration base; the date rule is parameterised and the duplicate in dataset/admin.py is deleted; the cross-record test was a tautology and became parametrised cases on the shared pieces themselves",
+    "restructured 2026-08-24: the record's pages become one registration; the navigation tasks now test the registration and its own permission and privacy checks"
   ]
 }

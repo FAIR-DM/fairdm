@@ -12,38 +12,67 @@ directions.
 |---|---|---|
 | US-1 Find a project | Add the entry link, test what is untested | smaller |
 | US-2 Register a project | Test what is untested; no behaviour change | smaller |
-| US-3 Correct attributes | Add identifier and date row sets through a shared mixin, retire the duplicate page | **larger** |
+| US-3 Correct attributes | Row sets for identifiers and dates; the page moves into the collection | **larger** |
 | US-4 Describe a project | Build a vocabulary-driven form, reusable across record types | as expected |
-| US-5 Move between pages | Switch on the shell's existing buttons | **much smaller** |
+| US-5 Move between pages | The tab strip, once the pages are one collection | **much smaller** |
 | US-6 Remove a project | Populate the shell's refusal contract | smaller |
 
 ## Decisions taken
 
-### P1 — One project editing page, and it is `project-update`
+### P1 — The project's pages are one registered collection
 
-`ProjectConfigure` is retired and its registration removed. `project-update` becomes the attributes
-page the specification describes and gains the link that `ProjectConfigure` currently has.
+The project's detail page becomes an Overview registration against `Project`, and the attributes and
+deletion pages become extra views belonging to it. `ProjectConfigure` and the standalone
+`project-update` and `project-delete` routes are retired.
 
-`project-update` has the complete field set, an explicit redirect and the only tests that exist.
-`ProjectConfigure` is narrower, untested and redirects by accident. Keeping both means two pages
-editing overlapping fields through two different permission strings, which is the condition that
-prompted this review.
+**This restores what was dismantled by accident.** Before May, `project/plugins.py` registered nine
+plugins, among them `Overview`, `Edit` and `Delete`, and `Project.get_absolute_url()` returned
+`project:overview`. The May work added standalone views alongside them. The registry rework of
+2026-08-11 then cut the registrations from nine to three while migrating to decorator arguments, and
+`Overview`, `Edit`, `Delete`, `Descriptions`, `Keywords` and `KeyDates` all lost their decorator in
+the move. Nothing in any commit message, spec or plan records a reason to leave the architecture.
+The dead classes in that file and the missing overview are the residue of that migration.
 
-Its permission behaviour is the one thing worth carrying across, and the mechanism matters more than
-the string. `project-update` calls `user.has_perm("change_project", project)`, which only the
-object-level layer can satisfy. Changing the string alone does not help: measured on this branch, a
-user holding the model-level permission gets `True` from `has_perm("project.change_project")` and
-**`False`** from `has_perm("project.change_project", project)`, because Django's own backend returns
-nothing once a record is passed.
+**Why the detail page has to be a registration rather than a route of its own.** A menu entry's
+address is built as `f"{model_name}:{name}"` and there is no way to give an entry an arbitrary URL
+name, so a page outside the registration namespace can never appear in the record's own navigation.
+Verified by rendering: on any project sub-page the tab strip offers Datasets, Export, Configure and
+Contributors and no way back to the project, and on the project page itself no tab is selected. The
+project page also draws that strip through a hardcoded call in its own template while every other
+page draws it from context — two paths for one strip. Making the overview a registration collapses
+both, and the selected-tab match starts working for free.
 
-What makes the plugin admit both is that it asks twice. So the attributes page adopts the same
-helper the plugin layer already uses, `fairdm.contrib.plugins.access.has_perm(request, permission,
-obj)`, which tries the model level, then the record, and memoises the answer on the request. The
-string becomes `project.change_project` to match.
+**Why the attributes and deletion pages are extra views rather than registrations of their own.** A
+registration is a collection of related functionality carrying **one** menu entry, and its own
+template links whatever else it owns. If every page an addon needs took a menu entry, the strip
+fills with noise. So Overview registers once, and the attributes and deletion pages hang off it. The
+overview's template links them, which is outside this feature's scope.
 
-Consequence to accept: a tab a user sees today disappears, replaced by an Edit button on the same
-page. No data and no address a user could have bookmarked is lost, since the tab's fields are a
-subset.
+**The permission trap that comes with that, and must not be repeated.** An extra view inherits its
+owner's `check` but **not** its `permission`: the resolution reads `check` from the owner and
+`permission` from the view itself. An extra view that declares no permission is therefore open to
+everyone, including anonymous visitors, no matter how restricted its owner is. That is not
+theoretical — it is why the contributor pages answer an anonymous request today, raised as #279. So
+**every extra view here declares its own permission explicitly**, and the attributes and deletion
+pages each carry `project.change_project` and `project.delete_project`.
+
+**And the record's own privacy check has to move with it.** The current detail view enforces
+visibility on private projects by refusing in `get_object`. A registered page resolves its record
+through machinery that deliberately reads past filtered managers, on the assumption that the page
+gates itself. Moved without reimplementing that check as the page's own `check`, private projects
+become readable by anyone holding a link. This is the single thing on this decision that must not be
+got wrong, and it gets a test naming it.
+
+The permission behaviour of the retired pages carries across. The standalone attributes page asks
+`user.has_perm("change_project", project)`, which only the record-level layer can satisfy: measured
+on this branch, a user holding the permission at model level gets `True` from
+`has_perm("project.change_project")` and **`False`** from `has_perm("project.change_project",
+project)`. The registered pages ask twice, model level then record, through the shared helper. That
+is the behaviour to keep, and the string becomes `project.change_project`.
+
+Consequence to accept: `project-detail`, `project-update` and `project-delete` stop existing as
+names. Four reversals in the running code and nine in tests, none of them in a template, because
+templates go through the record's own address method.
 
 ### P2 — Descriptions are a registered page, one area per vocabulary type
 
@@ -120,31 +149,40 @@ deletion is attempted.
 
 The existing test asserts the invented key and is rewritten to assert what the page says.
 
-### P5 — Navigation is configuration on five views
+### P5 — Navigation is the tab strip, plus configuration on the listing
 
-No new templates. Each view declares `directory` and the matching `show_<action>_action`, the
-deprecated names go, and the shell's existing buttons appear.
+Most of what an earlier draft of this plan put here dissolves under P1. Once the project's pages are
+one registered collection, the tab strip *is* the navigation between them: the overview carries the
+menu entry, and its template links the attributes and deletion pages. Entries are hidden from users
+who may not open them without extra work, because the menu's visibility test and the page's own
+access test are the same function — which is FR-041 and FR-042 together.
 
-- Detail: `directory = ["update", "delete"]`, the shell's own default, which deliberately omits the
-  listing because the breadcrumb already links it. Update and delete gated on the user's permission
-  for that project.
-- List: `directory = ["create"]`, create shown to signed-in users.
-- Update: `show_delete_action` gated on delete permission, which lights the Delete button the shell
-  already draws in the form body, plus `show_detail_action` and `show_list_action`.
-- Delete: `show_list_action` and `show_detail_action`.
-- Descriptions page: reached as a tab, returns to the project.
+What remains is genuinely configuration, on the two pages that stay outside the collection:
 
-The two flags on each of the update and delete pages are load-bearing, not tidiness. The shell
-builds both pages' breadcrumbs through the same resolution, so dropping the deprecated names without
-replacing them costs the attributes page its link back to the project, a link that works today, and
-leaves the deletion page with no route to the project at all, since its back control falls back to
-the listing. On the update page a missing `show_list_action` also puts the literal string `None`
-into the Delete button's address.
+- **The listing** keeps `directory = ["create"]` and shows the create action to signed-in users. It
+  is a page about the record type rather than about a record, so it is not part of any record's
+  collection.
+- **The listing entry** links to the record through the record's own address method, which follows
+  wherever P1 puts it.
 
-A permission-dependent flag is written as a method, not a lambda. The shell reads the flag with
-`getattr`, so a lambda in the class body binds as a method and is called with an argument too many.
-That is a 500 on the project page, confirmed on this branch. The method form is also what gives the
-object-level check access to the record.
+Two rules that still apply wherever these attributes are set:
+
+- The superseded `has_<action>_permission` names go. They are honoured, they warn, and they are
+  removed in the next release of the interface layer. One of the four in the project views is dead
+  already: the listing's `has_list_permission` is never consulted, because a listing's directory does
+  not contain its own action.
+- A permission-dependent flag is a method, not a lambda in the class body. The flag is read with
+  `getattr`, so a plain function binds as a method and is then called with an argument too many —
+  a 500 on the page, confirmed on this branch.
+
+**The prefix collision, and the way I propose to settle it.** Registered pages for a project mount
+under `project/<uuid>/`; the project's own page is at `projects/<uuid>/`. Singular and plural. One of
+them has to move, and I propose moving the registered pages to the plural prefix, so a project is at
+`projects/<uuid>/` as it is today and its pages become `projects/<uuid>/<page>/`. That keeps the
+address a user may have bookmarked or cited, and it removes the singular/plural inconsistency rather
+than entrenching it. The cost is that the existing registered pages — contributors, datasets, export
+— change address. **Sam's to veto**; the alternative is to keep those and move the project's own
+page to `project/<uuid>/`.
 
 ### P6 — Built for the four record types, by declaration rather than by machinery
 

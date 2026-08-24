@@ -45,6 +45,12 @@ which presents the record rather than editing it.
   No. Keywords are deferred until the controlled-vocabulary package is properly integrated, at
   which point they get an interface suited to selecting from a vocabulary. Issue #171 stays open
   for keywords alone.
+- Q: The project's pages were addressed independently of the portal's own per-record navigation,
+  which is why nothing links them. Should they be registered against the record instead? → A: Yes.
+  The project's page is its overview registration, and the attributes and deletion pages belong to
+  that registration rather than taking navigation entries of their own. A registration is a
+  collection of related functionality carrying one entry; its own pages are linked from within it.
+  This restores an arrangement the portal had until a registry change dropped it.
 - Q: The description vocabulary for projects is a closed set of seven types and a project may hold
   at most one description of each. Does the descriptions page present a list to add to, or a fixed
   set of slots? → A: A fixed set of slots, one editable area per type.
@@ -304,8 +310,8 @@ Article XIV.
 
 ### The project's own attributes
 
-- **FR-017**: The attributes page MUST be reachable at a stable address named `project-update`,
-  identifying the project by its identifier, and MUST require the visitor to be signed in.
+- **FR-017**: The attributes page MUST be reachable at a stable address identifying the project by
+  its identifier, and MUST require the visitor to be signed in.
 - **FR-018**: The attributes page MUST refuse a user who does not hold permission to change that
   project.
 - **FR-019**: The attributes page MUST cover the project's own attributes: image, name, lifecycle
@@ -343,8 +349,8 @@ Article XIV.
 
 ### Removing a project
 
-- **FR-035**: The deletion page MUST be reachable at a stable address named `project-delete`,
-  identifying the project by its identifier, and MUST require the visitor to be signed in.
+- **FR-035**: The deletion page MUST be reachable at a stable address identifying the project by its
+  identifier, and MUST require the visitor to be signed in.
 - **FR-036**: The deletion page MUST refuse a user who does not hold permission to delete that
   project.
 - **FR-037**: The deletion page MUST require the visitor to type the project's name exactly before
@@ -377,15 +383,20 @@ Article XIV.
 
 - **FR-048**: Every address in this feature MUST follow the portal's convention of naming a record
   type and an action.
-- **FR-049**: Every address identifying a particular project MUST do so by the project's
-  identifier.
+- **FR-049**: Every address identifying a particular project MUST do so by the project's identifier.
+- **FR-050**: The project's own page, its attributes page, its descriptions page and its deletion
+  page MUST all be registered against the project record rather than addressed independently, so
+  that the portal's own navigation can reach every one of them. A page reachable only by an address
+  the navigation cannot construct does not satisfy this.
+- **FR-051**: Each of those pages MUST state the permission it requires for itself. A page that
+  states none MUST NOT be treated as inheriting one.
 
 ### Deliberate omissions
 
-- **FR-050**: Funding MUST NOT be editable through this feature, and the unreachable funding field
+- **FR-052**: Funding MUST NOT be editable through this feature, and the unreachable funding field
   declared on the project form MUST be removed rather than left in place. Funding editing is issue
   #175, which replaces the field with a related model across projects and datasets.
-- **FR-051**: Keywords and tags MUST NOT be editable through this feature. They are deferred until
+- **FR-053**: Keywords and tags MUST NOT be editable through this feature. They are deferred until
   the controlled-vocabulary package is integrated, which is what will give them an interface suited
   to choosing from a vocabulary.
 
