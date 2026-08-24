@@ -46,11 +46,12 @@ class TestProjectCreateView:
         assert response.status_code == 200
         assert "form" in response.context
 
-        # Verify form has required fields
+        # T018 — The form offers exactly name, status and visibility, and nothing
+        # else. Set equality, not presence: an extra field (owner, image, funding —
+        # all present on the full ProjectForm) would pass a presence check but defeats
+        # the point of a streamlined creation form.
         form = response.context["form"]
-        assert "name" in form.fields
-        assert "status" in form.fields
-        assert "visibility" in form.fields
+        assert set(form.fields.keys()) == {"name", "status", "visibility"}
 
     def test_anonymous_user_redirects_to_login(self, client):
         """Test that anonymous users are redirected to login.
