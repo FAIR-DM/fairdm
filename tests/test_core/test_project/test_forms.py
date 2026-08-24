@@ -105,6 +105,15 @@ class TestProjectCreateForm:
 class TestProjectUpdateForm:
     """Unit tests for Project edit form."""
 
+    def test_the_field_set_is_exactly_image_name_status_visibility_owner(self):
+        """T029 — Asserted as set equality, never a presence check: a field added to the form
+        without being pinned here would pass silently."""
+        from fairdm.core.project.forms import ProjectForm
+
+        form = ProjectForm()
+
+        assert set(form.fields) == {"image", "name", "status", "visibility", "owner"}
+
     def test_image_field_renders_no_label_text(self):
         """The image field is captioned by its widget, so it must render an empty
         label. A boolean suppresses nothing and renders the word "False"."""
