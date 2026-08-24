@@ -417,3 +417,28 @@ class TestSavingTextIntoOneAreaRecordsOnlyThatType:
         row = ProjectDescription.objects.get(related=project)
         assert row.type == first_type
         assert row.value == "Some abstract text."
+
+
+@pytest.mark.django_db
+class TestExistingDescriptionsShowInTheirOwnArea:
+    """T056 — a project holding an existing description shows that text in the area for its
+    own type and no other."""
+
+    def test_the_existing_description_appears_in_its_own_area_and_others_stay_empty(
+        self, client, user_with_change_permission
+    ):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+        first_type, second_type = ProjectDescription.VOCABULARY.values[:2]
+        ProjectDescription.objects.create(
+            related=project, type=first_type, value="Existing abstract."
+        )
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert form.fields[first_type].initial == "Existing abstract."
+        assert form.fields[second_type].initial in (None, "")
