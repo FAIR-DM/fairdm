@@ -516,7 +516,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_plugins.py::test_the_attributes_page_is_keyed_by_the_projects_identifier_not_its_own_address",
@@ -549,7 +549,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_plugins.py::test_a_user_holding_change_permission_at_the_model_level_is_admitted"
@@ -565,7 +565,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/forms.py"
+              "fairdm/core/project/forms.py:63"
             ],
             "tests": [
               "tests/test_core/test_project/test_forms.py::test_the_field_set_is_exactly_image_name_status_visibility_owner",
@@ -582,7 +582,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/forms.py"
+              "fairdm/core/project/forms.py:63"
             ],
             "tests": [
               "tests/test_core/test_project/test_forms.py::test_the_form_offers_no_description_keyword_tag_contributor_or_funding_field",
@@ -599,7 +599,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_changing_name_status_visibility_and_owner_each_persists",
@@ -616,7 +616,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_uploading_an_image_persists_it_and_clearing_it_removes_it",
@@ -633,7 +633,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_submitting_an_empty_name_reports_an_error_and_saves_nothing",
@@ -650,7 +650,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_existing_identifiers_are_presented_one_row_each_with_no_blank_row_beyond_them"
@@ -666,7 +666,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_adding_an_identifier_of_a_chosen_type_records_it_against_the_project"
@@ -682,7 +682,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_changing_an_existing_identifiers_value_persists"
@@ -698,7 +698,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_removing_an_identifier_row_deletes_it_from_the_project"
@@ -714,7 +714,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_a_value_already_recorded_against_a_different_project_is_refused"
@@ -730,7 +730,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_the_same_value_submitted_twice_in_one_submission_reports_the_collision"
@@ -746,7 +746,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_existing_dates_are_presented_one_row_each_with_no_blank_row_beyond_them"
@@ -762,7 +762,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_adding_a_date_of_a_chosen_type_records_it_against_the_project"
@@ -778,7 +778,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_changing_an_existing_dates_value_persists"
@@ -794,7 +794,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_removing_a_date_row_deletes_it_from_the_project"
@@ -810,7 +810,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing",
@@ -827,7 +827,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_a_start_date_with_no_end_date_is_accepted"
@@ -843,7 +843,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_an_invalid_identifier_row_blocks_the_projects_own_field_changes_too"
@@ -859,7 +859,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_views.py::test_a_successful_submission_redirects_to_the_projects_own_page"
@@ -875,7 +875,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/forms.py"
+              "fairdm/core/project/forms.py:16"
             ],
             "tests": [],
             "commands": [
@@ -889,7 +889,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py"
+              "fairdm/core/project/plugins.py:60"
             ],
             "tests": [
               "tests/test_core/test_project/test_plugins.py::test_exactly_one_page_offers_the_attributes_field_set"
@@ -910,7 +910,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/forms.py"
+              "fairdm/core/project/forms.py:63"
             ],
             "tests": [],
             "commands": [
@@ -1110,7 +1110,7 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/forms.py"
+              "fairdm/core/project/forms.py:16"
             ],
             "tests": [
               "tests/test_core/test_project/test_plugins.py::TestSavingTextIntoOneAreaRecordsOnlyThatType",
