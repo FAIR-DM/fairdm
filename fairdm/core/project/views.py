@@ -113,4 +113,4 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             str: URL to the project's own page.
         """
-        return self.object.get_absolute_url()
+        return str(self.object.get_absolute_url())
