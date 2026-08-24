@@ -187,6 +187,25 @@ class TestProjectListViewEmitsNoDeprecationWarning:
 
 
 # ---------------------------------------------------------------------------
+# 013 US-1: Find a project — reaching, searching, ordering and filtering the
+# public listing. Uses the project test package's conftest fixtures for
+# public/private projects and permission-holding users, per Article X.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestProjectListing:
+    """T006-T016 — the public project listing: reachability, visibility,
+    search, ordering, filters, empty state and the listing entry's link."""
+
+    def test_listing_returns_200_for_anonymous_visitor(self, client):
+        """T006 — the listing at `project-list` returns 200 to an anonymous
+        visitor."""
+        response = client.get(reverse("project-list"))
+        assert response.status_code == 200
+
+
+# ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
 # ---------------------------------------------------------------------------
 
