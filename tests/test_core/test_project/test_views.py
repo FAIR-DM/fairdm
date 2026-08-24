@@ -251,6 +251,26 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert project in entries
 
+    def test_listing_ordered_by_name_returns_alphabetical_order(self, client):
+        """T010 — `?o=name` returns projects in alphabetical order."""
+        bravo = ProjectFactory(name="Bravo Project", visibility=Visibility.PUBLIC)
+        alpha = ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
+        response = client.get(reverse("project-list"), {"o": "name"})
+        entries = list(response.context["object_list"])
+        assert entries.index(alpha) < entries.index(bravo)
+
+    def test_listing_ordered_by_name_reversed_returns_reverse_alphabetical_order(
+        self, client
+    ):
+        """T010 — `?o=-name` returns the reverse order. Asserted separately
+        from the ascending case, since an unordered queryset that happens to
+        arrive sorted would pass a single-direction check."""
+        bravo = ProjectFactory(name="Bravo Project", visibility=Visibility.PUBLIC)
+        alpha = ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
+        response = client.get(reverse("project-list"), {"o": "-name"})
+        entries = list(response.context["object_list"])
+        assert entries.index(bravo) < entries.index(alpha)
+
 
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
