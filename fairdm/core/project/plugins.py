@@ -30,6 +30,10 @@ class Attributes(Plugin, FairDMUpdateView):
     """
 
     url_path = "attributes"
+    # An additional view inherits its owner's `check` but never its `permission`
+    # (fairdm/contrib/plugins/access.py `can_open`), so one that states none is open to
+    # everyone, anonymous included (issue #279). Every page here writes its own.
+    permission = "project.change_project"
     page_title = _("Attributes")
     model = Project
     form_class = ProjectForm
@@ -46,6 +50,7 @@ class Delete(Plugin, FairDMDeleteView):
     """
 
     url_path = "delete"
+    permission = "project.delete_project"
     page_title = _("Delete project")
     model = Project
     require_confirmation = True

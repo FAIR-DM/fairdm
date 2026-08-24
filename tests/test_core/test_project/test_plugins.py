@@ -4,6 +4,8 @@ T063 - the project's own page is a registration against ``Project``, so the port
        navigation offers an entry for it, and that entry is selected while on the page.
 T064 - its attributes and deletion pages are extra views of that registration, not registrations
        of their own, so the navigation strip gains no entry for either.
+T065 - each of those pages states its own permission, since an additional view inherits its
+       owner's predicate but never its permission.
 """
 
 import pytest
@@ -12,7 +14,9 @@ from django.test import RequestFactory
 from django.urls import reverse
 
 from fairdm import plugins
+from fairdm.contrib.plugins.access import can_open
 from fairdm.core.project.models import Project
+from fairdm.core.project.plugins import Attributes, Delete
 
 
 def _request_for(user, path="/"):
@@ -94,3 +98,45 @@ class TestAttributesAndDeletionAreExtraViewsNotEntries:
         labels = _entry_labels(Project)
         assert labels.count("Overview") == 1
         assert "Configure" not in labels
+
+
+@pytest.mark.django_db
+class TestEachExtraViewStatesItsOwnPermission:
+    """FR-051 / issue #279: an additional view inherits its owner's ``check`` but never its
+    ``permission`` (fairdm/contrib/plugins/access.py ``can_open``), so a page that states none
+    is open to everyone, including an anonymous visitor. Each page here names the right it
+    needs, matching the standalone pages it replaces (013 plan P1)."""
+
+    def test_attributes_refuses_a_signed_in_user_without_change_permission(
+        self, public_project, user_with_no_permission
+    ):
+        request = _request_for(user_with_no_permission)
+        assert can_open(Attributes, request, public_project) is False
+
+    def test_attributes_admits_a_user_holding_change_permission(
+        self, user_with_change_permission
+    ):
+        request = _request_for(user_with_change_permission)
+        assert (
+            can_open(Attributes, request, user_with_change_permission.project) is True
+        )
+
+    def test_attributes_refuses_an_anonymous_request(self, public_project):
+        request = _request_for(AnonymousUser())
+        assert can_open(Attributes, request, public_project) is False
+
+    def test_deletion_refuses_a_signed_in_user_without_delete_permission(
+        self, public_project, user_with_no_permission
+    ):
+        request = _request_for(user_with_no_permission)
+        assert can_open(Delete, request, public_project) is False
+
+    def test_deletion_admits_a_user_holding_delete_permission(
+        self, user_with_delete_permission
+    ):
+        request = _request_for(user_with_delete_permission)
+        assert can_open(Delete, request, user_with_delete_permission.project) is True
+
+    def test_deletion_refuses_an_anonymous_request(self, public_project):
+        request = _request_for(AnonymousUser())
+        assert can_open(Delete, request, public_project) is False
