@@ -201,9 +201,9 @@ Found during the audit, correct, and previously unrecorded. Each is now in the s
 
 ---
 
-## Routed out
+## Raised separately
 
-Found during the audit, real, and not this feature's work.
+Found while checking the specification against the code, real, and not this feature's work.
 
 - **Issue #174** — the attributes page fetches its project without using the queryset the view
   declares, so no prefetching applies and the fetch runs twice on a submission. Already open.

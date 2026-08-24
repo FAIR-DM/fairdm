@@ -3,7 +3,7 @@
   "feature": "013-project-crud-views",
   "branch": "013-project-crud-views",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "INTAKE",
@@ -29,6 +29,11 @@
       "state": "PLAN",
       "at": "2026-08-23T22:00:00Z",
       "note": "85 greenfield tasks reconciled: 18 satisfied by code and a passing test, 67 open"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-23T23:10:00Z",
+      "note": "12 findings, 2 blocking, all applied; dates moved from a formset to two fields, one over-tick corrected"
     }
   ],
   "gates": {
@@ -41,8 +46,8 @@
       "at": null
     },
     "design_review": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "design-review",
+      "at": "2026-08-23T23:10:00Z"
     },
     "merge": {
       "approved_by": null,
@@ -59,12 +64,12 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T003",
+          "id": "T002",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T004",
+          "id": "T003",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -78,6 +83,11 @@
               "pytest tests/test_core/test_project/ -q"
             ]
           }
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T005",
@@ -96,11 +106,6 @@
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T009",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -114,6 +119,11 @@
               "pytest tests/test_core/test_project/ -q"
             ]
           }
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T010",
@@ -134,11 +144,6 @@
           "id": "T013",
           "status": "todo",
           "attempts": 0
-        },
-        {
-          "id": "T014",
-          "status": "todo",
-          "attempts": 0
         }
       ]
     },
@@ -151,7 +156,7 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T015",
+          "id": "T014",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -167,6 +172,11 @@
           }
         },
         {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
           "id": "T016",
           "status": "todo",
           "attempts": 0
@@ -178,11 +188,6 @@
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T019",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -198,7 +203,7 @@
           }
         },
         {
-          "id": "T020",
+          "id": "T019",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -214,7 +219,7 @@
           }
         },
         {
-          "id": "T021",
+          "id": "T020",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -230,7 +235,7 @@
           }
         },
         {
-          "id": "T022",
+          "id": "T021",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -246,7 +251,7 @@
           }
         },
         {
-          "id": "T023",
+          "id": "T022",
           "status": "todo",
           "attempts": 0
         }
@@ -266,7 +271,7 @@
           "attempts": 0
         },
         {
-          "id": "T024",
+          "id": "T023",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -282,7 +287,7 @@
           }
         },
         {
-          "id": "T025",
+          "id": "T024",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -296,6 +301,11 @@
               "pytest tests/test_core/test_project/ -q"
             ]
           }
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T026",
@@ -389,19 +399,8 @@
         },
         {
           "id": "T044",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/project/views.py:168"
-            ],
-            "tests": [
-              "tests/test_core/test_project/test_views.py::test_project_update_success_redirects_to_detail"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_project/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T045",
@@ -414,17 +413,22 @@
           "attempts": 0
         },
         {
-          "id": "T081",
+          "id": "T047",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T082",
+          "id": "T048",
           "status": "todo",
           "attempts": 0
         },
         {
           "id": "T084",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T086",
           "status": "todo",
           "attempts": 0
         }
@@ -438,16 +442,6 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {
-          "id": "T047",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T048",
-          "status": "todo",
-          "attempts": 0
-        },
         {
           "id": "T049",
           "status": "todo",
@@ -494,26 +488,6 @@
           "attempts": 0
         },
         {
-          "id": "T083",
-          "status": "todo",
-          "attempts": 0
-        }
-      ]
-    },
-    {
-      "id": "US5",
-      "priority": "P2",
-      "issue": 272,
-      "worktree": null,
-      "status": "todo",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T002",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
           "id": "T058",
           "status": "todo",
           "attempts": 0
@@ -528,6 +502,21 @@
           "status": "todo",
           "attempts": 0
         },
+        {
+          "id": "T085",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 272,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
         {
           "id": "T061",
           "status": "todo",
@@ -562,6 +551,21 @@
           "id": "T067",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T068",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T069",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T070",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -574,7 +578,7 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T068",
+          "id": "T071",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -590,7 +594,7 @@
           }
         },
         {
-          "id": "T069",
+          "id": "T072",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -606,7 +610,7 @@
           }
         },
         {
-          "id": "T070",
+          "id": "T073",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -622,12 +626,12 @@
           }
         },
         {
-          "id": "T071",
+          "id": "T074",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T072",
+          "id": "T075",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -643,7 +647,7 @@
           }
         },
         {
-          "id": "T073",
+          "id": "T076",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -659,7 +663,7 @@
           }
         },
         {
-          "id": "T074",
+          "id": "T077",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -675,7 +679,7 @@
           }
         },
         {
-          "id": "T075",
+          "id": "T078",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -691,27 +695,27 @@
           }
         },
         {
-          "id": "T076",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T077",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T078",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
           "id": "T079",
           "status": "todo",
           "attempts": 0
         },
         {
           "id": "T080",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T081",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T082",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T083",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -727,7 +731,7 @@
           }
         },
         {
-          "id": "T085",
+          "id": "T087",
           "status": "todo",
           "attempts": 0
         }
@@ -744,7 +748,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
