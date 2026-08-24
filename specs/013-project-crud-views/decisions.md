@@ -700,3 +700,26 @@ judgment call, so Forge and Sam can verify the reasoning independently rather th
 **Left open**: whether any other pre-existing test conflates permission and visibility the way
 this one did is not swept for here — this one was found by running the full suite once, not by an
 audit of every test's fixture.
+
+---
+
+## D17 — T096 and T097 land in one commit, not two
+
+**Previous specification**: craft-increments' "one task, one commit" rule, and the brief's task
+list treating T096 and T097 as separate tasks.
+
+**Code**: moving `Descriptions` out of its own registration (T096) removes the navigation tab that
+drew its link. Committing T096 alone leaves `TestProjectsOwnPageOffersAttributesAndDescriptionsLinks`
+(the test T097 explicitly rewrites) red — proven by building T096 alone and running the suite,
+not assumed.
+
+**Settled**: T096 and T097 are one commit. craft-increments sizes a slice as "one vertical path
+that leaves the package working," not one layer of it — this is exactly that: descriptions moving
+address and descriptions regaining a way to be linked to are the same change once the tab it used
+to rely on is gone.
+
+**Why**: the alternative — committing T096 with the links test intentionally left red, or
+weakened, or skipped — is a worse outcome than a slightly larger slice under either of those two
+prohibited paths.
+
+**Left open**: nothing. T095 and T098 remain their own commits; only these two are inseparable.
