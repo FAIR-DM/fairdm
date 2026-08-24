@@ -23,6 +23,7 @@ from fairdm.core.project.views import ProjectCreateView, ProjectListView
 from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
+    ProjectDateFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
     UserFactory,
@@ -496,6 +497,18 @@ def _identifier_management_data(total=0, initial=0):
     }
 
 
+def _date_management_data(total=0, initial=0):
+    """Management-form boilerplate for the attributes page's dates row set
+    (`fairdm/core/related_records.py` `ProjectDateInline`, prefix `dates` from
+    `AbstractDate.Meta.default_related_name`)."""
+    return {
+        "dates-TOTAL_FORMS": str(total),
+        "dates-INITIAL_FORMS": str(initial),
+        "dates-MIN_NUM_FORMS": "0",
+        "dates-MAX_NUM_FORMS": "1000",
+    }
+
+
 @pytest.mark.django_db
 class TestProjectUpdateView:
     """Smoke tests and behaviour tests for ProjectUpdateView (US3)."""
@@ -558,7 +571,12 @@ class TestProjectUpdateView:
             assign_perm("change_project", user, project)
             client.force_login(user)
             url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
-            data = {**base_data, field: new_value, **_identifier_management_data()}
+            data = {
+                **base_data,
+                field: new_value,
+                **_identifier_management_data(),
+                **_date_management_data(),
+            }
 
             response = client.post(url, data=data)
 
@@ -588,6 +606,7 @@ class TestProjectUpdateView:
             "visibility": project.visibility,
             "owner": org.pk,
             **_identifier_management_data(),
+            **_date_management_data(),
         }
 
         buffer = io.BytesIO()
@@ -635,6 +654,9 @@ class TestProjectUpdateView:
         T034 — Updated to carry the identifiers row set's management-form data: the page now
         attaches that formset (`fairdm/core/related_records.py` `ProjectIdentifierInline`), and
         a submission carrying no bookkeeping for it fails formset validation.
+
+        T040 — Updated again to carry the dates row set's management-form data for the same
+        reason, once that formset is attached too.
         """
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Original Name", owner=org)
@@ -650,6 +672,7 @@ class TestProjectUpdateView:
                 "visibility": project.visibility,
                 "owner": org.pk,
                 **_identifier_management_data(),
+                **_date_management_data(),
             },
         )
         assert response.status_code == 302
@@ -709,6 +732,7 @@ class TestAttributesIdentifierRowSet:
             data={
                 **_project_field_data(project),
                 **_identifier_management_data(total=1, initial=0),
+                **_date_management_data(),
                 "identifiers-0-type": "DOI",
                 "identifiers-0-value": "10.1/new-identifier",
             },
@@ -736,6 +760,7 @@ class TestAttributesIdentifierRowSet:
             data={
                 **_project_field_data(project),
                 **_identifier_management_data(total=1, initial=1),
+                **_date_management_data(),
                 "identifiers-0-id": identifier.pk,
                 "identifiers-0-type": "DOI",
                 "identifiers-0-value": "10.1/changed",
@@ -763,6 +788,7 @@ class TestAttributesIdentifierRowSet:
             data={
                 **_project_field_data(project),
                 **_identifier_management_data(total=1, initial=1),
+                **_date_management_data(),
                 "identifiers-0-id": identifier.pk,
                 "identifiers-0-type": "DOI",
                 "identifiers-0-value": "10.1/to-remove",
@@ -795,6 +821,7 @@ class TestAttributesIdentifierRowSet:
                 **_project_field_data(project),
                 "name": "Renamed",
                 **_identifier_management_data(total=1, initial=0),
+                **_date_management_data(),
                 "identifiers-0-type": "DOI",
                 "identifiers-0-value": "10.1/taken",
             },
@@ -825,6 +852,7 @@ class TestAttributesIdentifierRowSet:
             data={
                 **_project_field_data(project),
                 **_identifier_management_data(total=2, initial=0),
+                **_date_management_data(),
                 "identifiers-0-type": "DOI",
                 "identifiers-0-value": "10.1/duplicated",
                 "identifiers-1-type": "GRANT_NUMBER",
@@ -836,6 +864,35 @@ class TestAttributesIdentifierRowSet:
         formsets = {formset.prefix: formset for formset in response.context["inlines"]}
         assert formsets["identifiers"].non_form_errors()
         assert not project.identifiers.filter(value="10.1/duplicated").exists()
+
+
+@pytest.mark.django_db
+class TestAttributesDateRowSet:
+    """The attributes page's date row set (013 plan P3): existing dates presented one row each,
+    built from the shared declaration (`related_records.ProjectDateInline`) with the
+    date-ordering rule (`formsets.date_ordering_formset`, parameterised on
+    `ProjectDate.START_TYPE`/`END_TYPE`)."""
+
+    def test_existing_dates_are_presented_one_row_each_with_no_blank_row_beyond_them(
+        self, client
+    ):
+        """T040 — Opening the page with an existing date offers exactly one row for it and no
+        blank row beyond."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Has Date", owner=org)
+        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
+        date_formset = formsets["dates"]
+        assert date_formset.initial_form_count() == 1
+        assert len(date_formset.forms) == 1
 
 
 # ---------------------------------------------------------------------------

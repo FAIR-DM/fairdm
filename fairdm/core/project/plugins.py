@@ -14,8 +14,9 @@ from fairdm.contrib.generic.plugins import (
 )
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
+from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.plugins import OverviewPlugin
-from fairdm.core.related_records import ProjectIdentifierInline
+from fairdm.core.related_records import ProjectDateInline, ProjectIdentifierInline
 from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
@@ -42,6 +43,22 @@ def project_is_visible(request, obj):
     return has_perm(request, "project.view_project", obj)
 
 
+class ProjectDatesInline(ProjectDateInline):
+    """The project's own dates, ordered ``Start`` before ``End`` (013 plan P3). The rule is
+    parameterised on :attr:`ProjectDate.START_TYPE`/``END_TYPE`` rather than the literals, and
+    stated here rather than in ``related_records.py`` because it is this page's own choice of
+    which shared declaration to combine with which shared rule — a dataset's dates page pairs
+    the same base with its own, differently-typed pair (plan P6)."""
+
+    formset = date_ordering_formset(
+        ProjectDate.START_TYPE,
+        ProjectDate.END_TYPE,
+        _(
+            "The project's end date (%(end)s) cannot be before its start date (%(start)s)."
+        ),
+    )
+
+
 class Attributes(Plugin, InlinesMixin, FairDMUpdateView):
     """The project's own attributes: name, status, visibility, owner, plus its identifiers and
     dates. An additional view belonging to :class:`Overview` rather than a registration of its
@@ -59,7 +76,7 @@ class Attributes(Plugin, InlinesMixin, FairDMUpdateView):
     page_title = _("Attributes")
     model = Project
     form_class = ProjectForm
-    inlines = [ProjectIdentifierInline]
+    inlines = [ProjectIdentifierInline, ProjectDatesInline]
 
     def get_success_url(self):
         return self.base_object.get_absolute_url()
