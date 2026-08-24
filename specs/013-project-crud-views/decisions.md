@@ -319,6 +319,79 @@ the call site rather than fixture-parametrizing.
 
 ---
 
+## Implementer decisions — US3 (T026-T049, T088)
+
+### T034/T040 — `Attributes(Plugin, InlinesMixin, FairDMUpdateView)`, `InlinesMixin` in the middle
+
+**Decision**: `InlinesMixin` sits between `Plugin` and `FairDMUpdateView` in the base list, not
+first and not last.
+
+**Why**: `InlinesMixin.form_valid`/`form_invalid`/`get_context_data` are the terminal handlers for
+the update flow and must reach `FairDMUpdateView`'s (→ `MVPUpdateView`'s) `get_form`,
+`get_success_message` etc. through `super()`, the same relative order the shell's own
+`MVPInlineUpdateView(InlinesMixin, MVPUpdateView)` uses. `Plugin` goes first because its
+`get_context_data` (adding `base_object`, breadcrumbs, `plugin_menu`) and its `dispatch`
+(`PermissionRequiredMixin`) must run outermost, matching every other page in this file.
+
+**Revisit if**: a future additional view needs the row-set mixin and this ordering does not
+linearise (C3 conflict) — unlikely, since `Plugin` and `FairDMUpdateView` do not share a
+non-`View`/`object` ancestor.
+
+### T040 — `ProjectDatesInline` (identifier row set + ordering rule combined) lives in `plugins.py`, not `related_records.py`
+
+**Decision**: the subclass that pairs `ProjectDateInline` (from `related_records.py`) with
+`date_ordering_formset(ProjectDate.START_TYPE, ProjectDate.END_TYPE, ...)` is declared in
+`fairdm/core/project/plugins.py`, next to `Attributes`, rather than added to
+`related_records.py` alongside the base declarations.
+
+**Why**: the brief's prohibitions scope this story to `forms.py`, `plugins.py`, templates and
+tests — `related_records.py` is a shared module built and tested in an earlier phase and is not
+to be rebuilt or extended here. More fundamentally, *which* shared rule pairs with *which* shared
+declaration is a choice this page makes for itself (plan P6: a dataset's dates page will pair the
+same `DatasetDateInline` base with its own `CollectionStart`/`CollectionEnd` parameterisation) —
+it is page-specific configuration, not a third shared declaration.
+
+**Revisit if**: three or more record types end up writing the identical
+`<Type>DatesInline(<Type>DateInline)` combining pattern — at that point a small factory in
+`related_records.py` (`with_ordering(base, start, end, message)`) might be worth it, but plan P6
+already rejected a resolver-based version of this same idea for hiding the real difference
+between record types that have an ordered pair and those that do not.
+
+### T026 — one composed test rather than treating scattered pre-existing coverage as sufficient
+
+**Decision**: added `TestAttributesPageOverHTTP` with a dedicated test asserting the address
+shape and the anonymous redirect together, rather than leaving T026 satisfied by the combination
+of `test_the_attributes_page_resolves_as_an_extra_view_of_the_overview`
+(`test_plugins.py`, Track 1) and `test_project_update_anonymous_redirects_to_login`
+(`test_views.py`, pre-existing, stale `T022` numbering) — both of which already proved every
+piece of T026's acceptance criterion before this task ran.
+
+**Why**: the brief names T026 as its own task with its own acceptance criterion; leaving it
+"satisfied by inference" across two unrelated files, neither authored for this task, would leave
+no single test whose failure specifically means "T026 broke." The new test is small and composes
+claims already proven elsewhere rather than re-testing the same code path a third way.
+
+**Revisit if**: this reads as duplicate coverage at review — the counter-evidence is in this
+entry and in `progress.md`'s T026 note.
+
+### T049 — "no second registered page" checked by field-set overlap, not by name
+
+**Decision**: `TestExactlyOnePageOffersTheProjectsOwnAttributes` walks every top-level
+registration against `Project` plus each one's `get_extra_views()`, and flags any page whose
+`form_class.Meta.fields` intersects `{"image", "name", "status", "visibility", "owner"}` — not a
+check for a class named `ProjectConfigure` or similar.
+
+**Why**: the acceptance criterion is "no second registered page offers an overlapping field
+set," which is a claim about behaviour (what a page edits), not about a name. A name-based check
+would pass the moment `ProjectConfigure` is renamed and miss a brand-new page that reintroduces
+the same surface under a different name.
+
+**Revisit if**: a future page legitimately needs to expose a subset of these fields for a
+different purpose (e.g. a bulk-edit page touching only `status`) — the overlap check would flag
+it and the test's own field set may need to shrink to the fields that must stay page-unique.
+
+---
+
 ## Raised separately
 
 Found while checking the specification against the code, real, and not this feature's work.

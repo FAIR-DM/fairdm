@@ -209,3 +209,119 @@ story's scope per the brief's prohibitions).
 
 **Watch**: attaching the second formset will again touch every existing submission test's POST
 data, this time to add the `dates` prefix's management form too.
+
+## 2026-08-24T16:25:00+02:00 · Implementer US3 · T040
+
+**Did**: Wired the dates row set into the attributes page. Added `ProjectDatesInline(ProjectDateInline)`
+to `fairdm/core/project/plugins.py`, pairing the shared declaration with `formsets.date_ordering_formset`
+parameterised on `ProjectDate.START_TYPE`/`END_TYPE` and a message mirroring `ProjectDate.clean()`'s
+own wording; declared in `plugins.py` rather than `related_records.py` since combining a shared
+declaration with a shared rule is this page's own choice (see `decisions.md`). `Attributes.inlines`
+now lists both `ProjectIdentifierInline` and `ProjectDatesInline`. Added
+`TestAttributesDateRowSet.test_existing_dates_are_presented_one_row_each_with_no_blank_row_beyond_them`,
+observed it fail (`KeyError: 'dates'`) before the wiring landed.
+
+As with T034, attaching the second formset broke every existing submission test that didn't carry
+`dates` management-form data — six tests across `TestProjectUpdateView` and
+`TestAttributesIdentifierRowSet`. Added `_date_management_data()` next to `_identifier_management_data()`
+and threaded it through all of them (including the two refusal-case tests, T038/T039, for
+submission realism even though their assertions didn't strictly require it).
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 206 passed.
+`poetry run ruff check tests/test_core/test_project/test_views.py fairdm/core/project/plugins.py` — clean.
+
+**Next**: T041.
+
+**Watch**: nothing further — both row sets are now attached; no more formsets to add.
+
+---
+
+## 2026-08-24T16:40:00+02:00 · Implementer US3 · T041-T045
+
+**Did**: Added five tests to `TestAttributesDateRowSet`: `test_adding_a_date_of_a_chosen_type_records_it_against_the_project`
+(T041), `test_changing_an_existing_dates_value_persists` (T042), `test_removing_a_date_row_deletes_it_from_the_project`
+(T043), two tests for T044 — `test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing`
+(non_form_errors, the case the formset-level rule specifically exists for) and
+`test_a_backwards_pair_with_the_start_already_stored_is_refused_and_saves_nothing` (caught instead
+by the per-row `ProjectDate.clean()`, since the sibling is already in the database — asserted via
+`is_valid() is False` rather than `non_form_errors()`, since the error lands on the row, not the
+formset) — and `test_a_start_date_with_no_end_date_is_accepted` (T045). All passed against the
+existing shared modules; no production code changed in this batch.
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 211 passed.
+`poetry run ruff check tests/test_core/test_project/test_views.py` — clean.
+
+**Next**: T046.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T16:50:00+02:00 · Implementer US3 · T046-T047
+
+**Did**: Added `TestAttributesSaveIsOneAtomicSubmission` to `test_views.py` with
+`test_an_invalid_identifier_row_blocks_the_projects_own_field_changes_too` (T046 — an identifier
+row missing its required `value`, submitted with a valid name change, saves neither; a different
+invalidity than T038's cross-project duplicate, to exercise the atomicity guarantee on its own
+terms) and `test_a_successful_submission_redirects_to_the_projects_own_page` (T047). Both passed
+against `InlinesMixin.form_valid`'s existing one-transaction save — no production code changed.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_views.py::TestAttributesSaveIsOneAtomicSubmission -q`
+— 2 passed. `poetry run ruff check tests/test_core/test_project/test_views.py` — clean.
+
+**Next**: T048.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:00:00+02:00 · Implementer US3 · T048
+
+**Did**: Deleted `ProjectDateForm` and `ProjectIdentifierForm` from `fairdm/core/project/forms.py`
+and their own test classes (`TestProjectDateForm`, `TestProjectIdentifierForm`) from
+`tests/test_core/test_project/test_forms.py`, per the brief's explicit exception to the
+no-test-tampering rule. Re-confirmed by grep, before and after, that neither class had any other
+caller in the tree (only their own module and their own tests referenced them).
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 212 passed.
+`poetry run ruff check fairdm/core/project/forms.py tests/test_core/test_project/test_forms.py` — clean.
+
+**Next**: T049.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:05:00+02:00 · Implementer US3 · T049
+
+**Did**: Added `TestExactlyOnePageOffersTheProjectsOwnAttributes` to `test_plugins.py` —
+walks every top-level registration against `Project` plus each one's `get_extra_views()`, and
+asserts exactly one (`Attributes`) has a `form_class` whose `Meta.fields` overlaps
+`{"image", "name", "status", "visibility", "owner"}`. Checked by field-set overlap rather than by
+name, per `decisions.md`, so a `ProjectConfigure`-shaped page reintroduced under a different name
+would still be caught. Passed on first run — no production code changed.
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 213 passed.
+`poetry run ruff check tests/test_core/test_project/test_plugins.py` — clean.
+
+**Next**: T088.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:10:00+02:00 · Implementer US3 · T088
+
+**Did**: Removed the unreachable `funding = forms.JSONField(...)` declaration and the TODO
+comment above `Meta.fields` from `ProjectForm` (`fairdm/core/project/forms.py`). No behavioural
+change — `Meta.fields` already excluded `funding`, and T029/T030 already pin the form's exact
+field set and its absence. No test of its own, per the brief.
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 213 passed (unchanged count).
+`poetry run ruff check fairdm/core/project/forms.py` — clean.
+
+**Next**: story complete (T026, T028-T049, T088 all done). Full-suite verify and documentation
+check at the completion report.
+
+**Watch**: T027, T050 and T092/T093-adjacent US-5/US-6 work are other stories/tracks, already
+excluded from this brief's task list — not touched here.
