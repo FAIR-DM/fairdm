@@ -11,10 +11,33 @@ from fairdm.contrib.generic.plugins import (
     KeywordsPlugin,
 )
 from fairdm.contrib.plugins import Plugin
+from fairdm.core.plugins import OverviewPlugin
 from fairdm.views import FairDMTemplateView, FairDMUpdateView
 
 from ..dataset.views import DatasetListView
 from .models import Project, ProjectDate, ProjectDescription
+
+
+@plugins.register(Project, label=_("Overview"), icon="view", order=0)
+class Overview(OverviewPlugin):
+    """The project's own page: its registered overview, and the root of its collection.
+
+    Restores what the 2026-08-11 registry rework dropped by accident (013 plan P1): before that,
+    ``Overview`` was one of nine registrations against ``Project`` and the project's own page
+    carried a working navigation entry. Declaring no ``url_path`` of its own keeps it the root of
+    the record's include, the same convention the contributor pages already use.
+    """
+
+    url_path = None
+    template_name = "project/project_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # ``project_detail.html`` predates the registration and still refers to ``project``, the
+        # name Django's ``SingleObjectMixin`` added automatically for the standalone detail view
+        # this replaces. This view is a ``TemplateView`` and does not add it on its own.
+        context["project"] = self.base_object
+        return context
 
 
 @plugins.register(Project, order=100)
