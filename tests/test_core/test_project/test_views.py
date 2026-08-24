@@ -13,7 +13,7 @@ from django import forms
 from django.urls import reverse
 from django.views.generic import CreateView
 from guardian.shortcuts import assign_perm
-from pytest_django.asserts import assertContains
+from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
@@ -1196,6 +1196,23 @@ class TestProjectDeleteView:
         assert response.status_code == 200
         assertContains(response, "Public Dataset")
         assert Project.objects.filter(pk=project.pk).exists()
+
+    def test_project_delete_refused_page_hides_confirmation_and_delete_control(self, client):
+        """T084 — the refused page explains why and offers neither the confirmation field nor a
+        delete control; the shell's own protected-object branch withholds both."""
+        project = ProjectFactory(name="Dataset Project")
+        Dataset.objects.create(
+            name="Public Dataset", project=project, visibility=Visibility.PUBLIC
+        )
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        response = client.post(url, data={"confirmation": "Dataset Project"})
+        assert response.status_code == 200
+        assertContains(response, "This record cannot be deleted.")
+        assertNotContains(response, 'id="id_confirmation"')
+        assertNotContains(response, 'id="delete-submit-btn"')
 
     def test_project_delete_allows_private_only_datasets(self, client):
         """T032a — POST correct name + only PRIVATE datasets → project deleted, redirect to project-list."""

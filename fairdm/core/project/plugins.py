@@ -110,6 +110,12 @@ class Delete(Plugin, FairDMDeleteView):
         if public_datasets.exists():
             context["is_protected"] = True
             context["protected_objects"] = list(public_datasets)
+            # The shell's own confirmation field is withheld by `delete_view.html`'s
+            # `is_protected` branch, but the raw form is rendered unconditionally by
+            # `cotton/form/index.html` whenever a `form` is in context — a second,
+            # duplicate confirmation input the shell's contract has no way to suppress.
+            # Clearing it here is confined to this page's own context, not the shell.
+            context["form"] = None
         return context
 
     def form_valid(self, form):
