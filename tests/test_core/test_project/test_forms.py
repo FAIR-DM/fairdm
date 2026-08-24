@@ -114,6 +114,18 @@ class TestProjectUpdateForm:
 
         assert set(form.fields) == {"image", "name", "status", "visibility", "owner"}
 
+    def test_the_form_offers_no_description_keyword_tag_contributor_or_funding_field(
+        self,
+    ):
+        """T030 — Those are edited on other pages (descriptions, keywords, contributors) or
+        not at all (funding, T088): the attributes form must not offer them."""
+        from fairdm.core.project.forms import ProjectForm
+
+        form = ProjectForm()
+
+        for name in ("description", "keyword", "tag", "contributor", "funding"):
+            assert name not in form.fields
+
     def test_image_field_renders_no_label_text(self):
         """The image field is captioned by its widget, so it must render an empty
         label. A boolean suppresses nothing and renders the word "False"."""
