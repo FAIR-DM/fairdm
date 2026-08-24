@@ -19,7 +19,7 @@ from django.urls import reverse
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.project.models import Project
-from fairdm.core.project.plugins import Attributes, Delete, Overview
+from fairdm.core.project.plugins import Attributes, Delete, Descriptions, Overview
 from fairdm.core.utils import assign_perm
 
 
@@ -313,3 +313,26 @@ class TestDescriptionsPageIsARegistrationOfItsOwn:
         response = client.get(url)
         assert response.status_code == 302
         assert reverse("account_login") in response.url
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageStatesItsOwnPermission:
+    """T052 — the descriptions page declares ``project.change_project`` for itself: a registered
+    page that states none is open to everyone, anonymous included, since the record is fetched
+    through an unfiltered manager on the assumption that the page checks for itself."""
+
+    def test_refuses_a_signed_in_user_without_change_permission(
+        self, public_project, user_with_no_permission
+    ):
+        request = _request_for(user_with_no_permission)
+        assert can_open(Descriptions, request, public_project) is False
+
+    def test_admits_a_user_holding_change_permission(self, user_with_change_permission):
+        request = _request_for(user_with_change_permission)
+        assert (
+            can_open(Descriptions, request, user_with_change_permission.project) is True
+        )
+
+    def test_refuses_an_anonymous_request(self, public_project):
+        request = _request_for(AnonymousUser())
+        assert can_open(Descriptions, request, public_project) is False
