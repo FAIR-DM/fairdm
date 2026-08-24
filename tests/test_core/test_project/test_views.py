@@ -73,6 +73,10 @@ class TestProjectCreateView:
 
         Requirement: FR-001 - Successful creation shows project details.
         User Story: US1 - User is redirected to project detail after creation.
+
+        T024 — The redirect target is asserted by reversal against the current route
+        name (`project:overview`), not against a literal path: the address moved in an
+        earlier story and a literal would pin the wrong thing.
         """
         # Create user and organization
         owner = Organization.objects.create(name="Test Organization")
@@ -94,8 +98,9 @@ class TestProjectCreateView:
         project = Project.objects.get(name="New Test Project")
         assert project.pk is not None
 
-        # Verify redirect URL contains project UUID
-        assert project.uuid in response.url
+        # Verify the redirect targets the project's own page, at its exact address.
+        expected_url = reverse("project:overview", kwargs={"uuid": project.uuid})
+        assert response.url == expected_url
 
     def test_create_project_records_creator(self, authenticated_client, user):
         """Test that creating a project through the portal records the requesting
@@ -397,7 +402,8 @@ class TestProjectCreateViewExtended:
         assert private_input is not None and "checked" not in private_input.group(0)
 
     def test_project_create_redirects_to_detail(self, authenticated_client):
-        """T018 — Valid POST redirects to the project's own registered page (project:overview)."""
+        """T024 — Valid POST redirects to the project's own registered page (project:overview),
+        asserted by reversal against the route name, at its exact address."""
         url = reverse("project-create")
         response = authenticated_client.post(
             url,
