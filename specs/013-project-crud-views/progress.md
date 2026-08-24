@@ -453,3 +453,108 @@ one form-level test.
 found none. `docs/user-guide/project/descriptions.md` is an unrelated stub ("Coming soon...").
 `docs/portal-administration/managing_projects.md` describes the Django admin's own inline
 formset editing for `ProjectDescription`, a different surface this story does not touch.
+
+---
+
+## 2026-08-24T16:45:00+02:00 · Implementer US6 · T078
+
+**Did**: Added `test_project_delete_confirmation_ignores_surrounding_whitespace`, POSTing
+`"  Spaced Project  "` against a project named `"Spaced Project"`. Passed immediately — the
+shared `DeleteConfirmForm.clean_confirmation()` (`mvp/forms.py`) already strips the submitted
+value with `.strip()` before comparing it to `get_confirmation_value()`, and
+`Delete.get_confirmation_value()` already returns the unstripped project name, so a padded
+match already succeeds. No production change; this pins FR-037 as a regression test.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_confirmation_ignores_surrounding_whitespace -q`
+— 1 passed. `poetry run ruff check tests/test_core/test_project/test_views.py` — clean.
+
+**Next**: T083.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T16:55:00+02:00 · Implementer US6 · T083
+
+**Did**: Rewrote `test_project_delete_blocks_public_datasets` in place to assert the blocking
+dataset's name appears in the rendered response, instead of asserting the invented
+`protected_datasets` context key (the one prohibitions-listed exception; recorded in
+`decisions.md`). Ran it first against the unchanged view to confirm RED for the right reason —
+the confirmation form and Delete button rendered, since nothing populated `is_protected`. Added
+`Delete.get_context_data()` in `fairdm/core/project/plugins.py`, querying the project's public
+datasets fresh on every call and setting the shell's own `is_protected`/`protected_objects`
+context keys (plan P4) — after `super().get_context_data()`, not through keyword arguments, which
+the shell's own assignment would overwrite. Simplified `form_valid()`'s except branch to call
+`get_context_data()` with no extra kwargs, since it now derives the refusal itself rather than
+being handed `e.datasets`.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q`
+— 8 passed. `poetry run ruff check fairdm/core/project/plugins.py tests/test_core/test_project/test_views.py`
+— clean.
+
+**Next**: T084.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:05:00+02:00 · Implementer US6 · T084
+
+**Did**: Added `test_project_delete_refused_page_hides_confirmation_and_delete_control`,
+asserting the refused page contains the explanation and neither `id="id_confirmation"` nor
+`id="delete-submit-btn"`. Ran RED first: the custom type-to-confirm UI and Delete button were
+already correctly withheld by `delete_view.html`'s `is_protected` branch, but a *second*,
+duplicate confirmation input was still rendered — `cotton/form/index.html` renders the raw
+Django form via `{% if form_obj %}<c-form.render :form="form_obj" />{% endif %}` unconditionally
+whenever a `form` is present in context, regardless of `is_protected`. This is a shell rendering
+gap the `is_protected`/`protected_objects` contract has no way to express, not something this
+story introduced. Fixed by setting `context["form"] = None` in `Delete.get_context_data()` when
+protected — confined to this page's own context, not a shell change, and it doesn't touch
+`post()`'s or `form_valid()`'s own local `form` used for actual validation.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q`
+— 9 passed. `poetry run ruff check fairdm/core/project/plugins.py tests/test_core/test_project/test_views.py`
+— clean.
+
+**Next**: T085.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:10:00+02:00 · Implementer US6 · T085
+
+**Did**: Added `test_project_delete_get_shows_refusal_without_submitting`, opening the deletion
+page with a GET request against a project with a public dataset and asserting the refusal and
+dataset name are already present, with no confirmation field. Passed immediately —
+`Delete.get_context_data()` (T083) runs on every render, GET included, since Django's
+`DeleteView.get()` calls it the same way `post()`'s refusal path does. No production change; this
+pins FR-038's "evaluate on GET too" requirement as its own regression test.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q`
+— 10 passed. `poetry run ruff check tests/test_core/test_project/test_views.py` — clean.
+
+**Next**: T086.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:15:00+02:00 · Implementer US6 · T086
+
+**Did**: Added `test_project_delete_evaluates_visibility_at_submission_time`: opens the deletion
+page while the project's one dataset is private (GET shows no refusal), makes the dataset public,
+then posts the correct confirmation and asserts the refusal fires and names the newly-public
+dataset. Passed immediately — `get_context_data()` queries `self.base_object.datasets.filter(...)`
+fresh on every call rather than caching anything from the GET, and the `pre_delete` signal
+(`fairdm/core/project/models.py`) independently re-queries at `.delete()` time, so both the
+context shown after a refused submission and the enforcement itself are evaluated at submission,
+not captured when the page was drawn. No production change; this pins the spec's edge case as a
+regression test.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q`
+— 11 passed. `poetry run ruff check tests/test_core/test_project/test_views.py` — clean.
+
+**Next**: T089.
+
+**Watch**: nothing.
