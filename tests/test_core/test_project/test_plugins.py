@@ -442,3 +442,25 @@ class TestExistingDescriptionsShowInTheirOwnArea:
         form = response.context["form"]
         assert form.fields[first_type].initial == "Existing abstract."
         assert form.fields[second_type].initial in (None, "")
+
+
+@pytest.mark.django_db
+class TestEditingAnExistingDescriptionPersists:
+    """T057 — changing an existing description's text and submitting persists the change."""
+
+    def test_the_changed_text_persists(self, client, user_with_change_permission):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+        first_type = ProjectDescription.VOCABULARY.values[0]
+        row = ProjectDescription.objects.create(
+            related=project, type=first_type, value="Original text."
+        )
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        client.post(url, data={first_type: "Changed text."})
+
+        row.refresh_from_db()
+        assert row.value == "Changed text."
+        assert ProjectDescription.objects.filter(related=project).count() == 1
