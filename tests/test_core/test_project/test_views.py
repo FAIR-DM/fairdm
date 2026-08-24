@@ -1060,6 +1060,42 @@ class TestAttributesDateRowSet:
         assert project.dates.filter(type="Start", value="2020-06-01").exists()
 
 
+@pytest.mark.django_db
+class TestAttributesSaveIsOneAtomicSubmission:
+    """The attributes page saves the parent and every row set inside one transaction
+    (`mvp.views.inline.InlinesMixin.form_valid`): an invalid row anywhere refuses the whole
+    submission, including changes to the project's own fields."""
+
+    def test_an_invalid_identifier_row_blocks_the_projects_own_field_changes_too(
+        self, client
+    ):
+        """T046 — An identifier row missing its required value, submitted alongside a valid
+        name change, saves neither."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Original Name", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                "name": "Renamed",
+                **_identifier_management_data(total=1, initial=0),
+                **_date_management_data(),
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "",
+            },
+        )
+
+        assert response.status_code == 200
+        assert project.identifiers.count() == 0
+        project.refresh_from_db()
+        assert project.name == "Original Name"
+
+
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
 # ---------------------------------------------------------------------------
