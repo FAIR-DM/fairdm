@@ -5,9 +5,11 @@ Tests the interaction between views, forms, and models, verifying complete
 request/response cycles for project CRUD operations.
 """
 
+import re
 import time
 
 import pytest
+from django import forms
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains
@@ -363,6 +365,29 @@ class TestProjectCreateViewExtended:
         url = reverse("project-create")
         response = authenticated_client.get(url)
         assert response.status_code == 200
+
+    def test_visibility_renders_as_radio_with_public_preselected(self, authenticated_client):
+        """T019 — Visibility renders as a visible choice between its options, with Public
+        pre-selected. The model's own default stays Private — it serves records created
+        outside the portal, where no one sees a control — and the form's default is
+        deliberately Public. The two disagreeing is a recorded decision (decisions.md)."""
+        url = reverse("project-create")
+        response = authenticated_client.get(url)
+        form = response.context["form"]
+
+        assert isinstance(form.fields["visibility"].widget, forms.RadioSelect)
+        assertContains(response, "Private")
+        assertContains(response, "Public")
+
+        content = response.content.decode()
+        public_input = re.search(
+            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PUBLIC}"[^>]*>', content
+        )
+        private_input = re.search(
+            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PRIVATE}"[^>]*>', content
+        )
+        assert public_input is not None and "checked" in public_input.group(0)
+        assert private_input is not None and "checked" not in private_input.group(0)
 
     def test_project_create_redirects_to_detail(self, authenticated_client):
         """T018 — Valid POST redirects to the project's own registered page (project:overview)."""
