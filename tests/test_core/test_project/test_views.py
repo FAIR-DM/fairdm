@@ -807,6 +807,36 @@ class TestAttributesIdentifierRowSet:
         project.refresh_from_db()
         assert project.name == "Original Name"
 
+    def test_the_same_value_submitted_twice_in_one_submission_reports_the_collision(
+        self, client
+    ):
+        """T039 — Two new rows carrying the same identifier value in one submission report
+        the collision and save neither (`value` carries `unique=True` on the concrete model,
+        so `BaseModelFormSet.validate_unique()` catches the in-formset duplicate)."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="No Identifiers Yet", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(total=2, initial=0),
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "10.1/duplicated",
+                "identifiers-1-type": "GRANT_NUMBER",
+                "identifiers-1-value": "10.1/duplicated",
+            },
+        )
+
+        assert response.status_code == 200
+        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
+        assert formsets["identifiers"].non_form_errors()
+        assert not project.identifiers.filter(value="10.1/duplicated").exists()
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
