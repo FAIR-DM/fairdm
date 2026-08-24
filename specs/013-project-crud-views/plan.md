@@ -74,7 +74,16 @@ Consequence to accept: `project-detail`, `project-update` and `project-delete` s
 names. Four reversals in the running code and nine in tests, none of them in a template, because
 templates go through the record's own address method.
 
-### P2 — Descriptions are a registered page, one area per vocabulary type
+### P2 — Descriptions is one of the project's page's own belongings, one area per vocabulary type
+
+**Revised 2026-08-24 (D13).** This section first made the descriptions page a registration of its
+own, matching Dataset and Sample. That was matching the wrong thing: those two are registrations
+because nothing has restructured them yet. A page per navigation entry does not scale — every
+add-on registering a page against a record competes for the same strip — so the descriptions page
+belongs to the project's page exactly as the update and deletion pages do, and the project's own
+page draws the link. The rest of this section stands as written, with "registered as a page against
+the project" reading as "belonging to the project's page".
+
 
 The unregistered `Descriptions`, `Keywords` and `KeyDates` classes in `project/plugins.py` are
 deleted rather than registered.

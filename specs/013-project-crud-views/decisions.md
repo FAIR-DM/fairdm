@@ -548,3 +548,74 @@ Found while checking the specification against the code, real, and not this feat
   speculatively: the brief's acceptance criteria (T067-T071, T073) are what was authorised, and
   the brief's own prohibitions call out scope containment. Flagged here so it is not read as
   forgotten.
+
+---
+
+## D12 — The page is titled "Update project", not "Attributes"
+
+**Previous specification**: silent on what any page is called.
+
+**Code**: the page carried the title "Attributes" and sat at `projects/<uuid>/attributes/`.
+
+**Settled**: it is titled "Update project" and sits at `projects/<uuid>/update/`.
+
+**Why**: "attributes" is the word for how the record is built, not for what a researcher is doing
+on the page. It also has no counterpart anywhere else in the portal, while the deletion page is
+already "Delete project" — an action and a record type. The alternative considered was "Metadata",
+which was rejected because a project's descriptions and keywords are metadata too and are edited
+elsewhere, so the name would claim more of the record than the page holds.
+
+**Left open**: nothing. The requirement group in this specification still describes the page as
+covering the project's own attributes, which remains an accurate statement of what it edits.
+
+---
+
+## D13 — The descriptions page belongs to the project's page, and takes no navigation entry
+
+**Previous specification**: FR-050 required every page to be registered against the record, and this
+plan read that as one registration each for the project's page, its descriptions page, and its
+update and deletion pages as belongings of the first.
+
+**Code**: the descriptions page was a registration of its own, so the navigation strip carried a
+"Descriptions" entry beside Datasets and Export.
+
+**Settled**: it belongs to the project's page, exactly as the update and deletion pages do. The
+strip carries one entry for the whole collection, and the project's own page draws the link.
+
+**Why**: a navigation entry per page does not scale. Every add-on that registers a page against a
+record competes for the same strip, and a strip carrying one entry per action stops being
+navigation and becomes a list of everything. One entry per collection, with the collection's own
+page linking the rest, is the design the registry's additional-view mechanism exists to support.
+
+The earlier reasoning — that the descriptions page should match Dataset and Sample — was matching
+the wrong thing. Those two are registrations because nothing has restructured them yet, not because
+that is where they should end up.
+
+**Left open**: datasets and samples still register their descriptions and key-date pages
+separately. That is their own restructuring and is not this feature's work.
+
+---
+
+## D14 — Every page states its own visibility rule, because inheriting one does not work
+
+**Previous specification**: silent. FR-051 required each page to state its own permission and said
+nothing about visibility.
+
+**Code**: the project's page declared the visibility rule and its belongings were expected to
+inherit it. They do not. The decision is made from the view class, and the link back to the owning
+page is only ever set on the view instance, so the owner resolves to the page itself and its own
+permissive default is what applies.
+
+**Reproduced through a real request**, not by reading: for a user holding the model-level right to
+change projects and no grant at all on one particular private project, the project's own page
+returns 403 and its update page returns 200.
+
+**Settled**: every page states its own visibility rule. Nothing relies on inheriting one.
+
+**Why**: a rule that silently does not apply is worse than no rule, because the page carrying it
+reads as guarded. Stating it per page costs one line and is checkable by reading the page. The
+underlying resolution defect belongs to the registry rather than to this feature, and is raised
+separately.
+
+**Left open**: the registry's owner resolution is still wrong for every additional view in the
+repository, including the contributor pages. Raised separately.

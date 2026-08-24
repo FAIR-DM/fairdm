@@ -901,8 +901,19 @@
         },
         {
           "id": "T050",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:69"
+            ],
+            "tests": [
+              "manual check on a running portal, 2026-08-24: the row sets on the update page function correctly, including adding a row with the add-row control"
+            ],
+            "commands": [
+              "manual"
+            ]
+          }
         },
         {
           "id": "T088",
@@ -917,6 +928,11 @@
               "poetry run pytest -q"
             ]
           }
+        },
+        {
+          "id": "T095",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -925,7 +941,7 @@
       "priority": "P2",
       "issue": 271,
       "worktree": null,
-      "status": "done",
+      "status": "todo",
       "replans": 2,
       "tasks": [
         {
@@ -1121,6 +1137,11 @@
               "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
             ]
           }
+        },
+        {
+          "id": "T096",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -1129,7 +1150,7 @@
       "priority": "P2",
       "issue": 272,
       "worktree": null,
-      "status": "done",
+      "status": "todo",
       "replans": 2,
       "tasks": [
         {
@@ -1377,6 +1398,21 @@
               "poetry run pytest tests/test_core/test_project -q"
             ]
           }
+        },
+        {
+          "id": "T097",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T098",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T099",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },

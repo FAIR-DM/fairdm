@@ -231,3 +231,30 @@ assumed not to.
   mechanism, where the repository records decisions.
 - **T091** — Update the roadmap entry's state to reflect what this feature delivered, without
   claiming the half it does not cover.
+
+## Revisions after review on a running portal
+
+Raised by Sam on 2026-08-24 after working the pages locally. D12, D13 and D14 record the
+adjudications.
+
+- **T095** — Rename the update page: its visible title becomes "Update project" and its address
+  segment becomes `update`, with its registered name following. Every reversal in running code and
+  in tests moves with it. Test: the page resolves under its new address and carries its new title,
+  and the old address no longer answers.
+- **T096** — The descriptions page stops being a registration of its own and becomes one of the
+  project's page's own belongings, like the update and deletion pages. Test: the per-record
+  navigation carries exactly one entry for the project's pages, and none for descriptions,
+  updating, or deletion.
+- **T097** — The project's own page draws a link to the descriptions page for a user who may change
+  the project, and draws none for a user who may not. Test: the link is asserted as a link in the
+  rendered page, at the descriptions page's real address. The existing test for this behaviour
+  passes today only because the navigation entry existed, and must be rewritten to assert the link
+  the page itself draws.
+- **T098** — The update page and the deletion page each state their own visibility rule rather than
+  relying on the project's page. Test: for a user holding the model-level right to change projects
+  and no grant on one particular private project, every one of that project's pages refuses the
+  request — asserted through a real request per page, not through the decision helper. The existing
+  test believed to cover this passes for an unrelated reason and must be rewritten.
+- **T099** — Raise the registry's owner-resolution defect separately: the visibility rule of an
+  owning page is never consulted for anything belonging to it, anywhere in the repository. Not this
+  feature's fix.

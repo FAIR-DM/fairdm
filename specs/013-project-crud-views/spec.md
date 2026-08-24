@@ -368,8 +368,10 @@ Article XIV.
 
 ### Moving between the pages
 
-- **FR-041**: A project's page MUST offer its attributes page and its descriptions page to a user
-  who may change the project, and its deletion page to a user who may delete it.
+- **FR-041**: A project's page MUST itself draw a link to its update page and to its descriptions
+  page for a user who may change the project, and to its deletion page for a user who may delete it.
+  A navigation entry generated for one of those pages does not satisfy this — the link belongs to
+  the project's own page.
 - **FR-042**: A page MUST NOT offer a link to a page that would refuse the user looking at it.
 - **FR-043**: Every link drawn by the pages in this feature MUST resolve to a real address. A link
   that cannot be resolved MUST NOT be drawn as an empty one.
@@ -396,6 +398,15 @@ Article XIV.
   the navigation cannot construct does not satisfy this.
 - **FR-051**: Each of those pages MUST state the permission it requires for itself. A page that
   states none MUST NOT be treated as inheriting one.
+- **FR-052**: Each of those pages MUST also state its own visibility rule, so that a private project
+  is refused at every one of its addresses. A page MUST NOT be treated as inheriting the visibility
+  rule of the page it belongs to.
+- **FR-053**: A project's pages MUST contribute exactly one entry to the portal's per-record
+  navigation. The pages for updating a project, describing it and deleting it MUST NOT each take an
+  entry of their own; they belong to the project's page and are reached by links that page draws.
+- **FR-054**: The page for changing a project's own attributes MUST be titled and addressed as an
+  update of the project, in the vocabulary a researcher uses, and MUST NOT be named after the
+  internal notion of an attribute.
 
 ### Deliberate omissions
 
