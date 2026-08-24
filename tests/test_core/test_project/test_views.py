@@ -1168,6 +1168,19 @@ class TestProjectDeleteView:
         assert "confirmation" in response.context["form"].errors
         assert Project.objects.filter(pk=project.pk).exists()
 
+    def test_project_delete_confirmation_ignores_surrounding_whitespace(self, client):
+        """T078 — the project's name typed with leading/trailing spaces is accepted (FR-037)."""
+        project = ProjectFactory(name="Spaced Project")
+        pk = project.pk
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        response = client.post(url, data={"confirmation": "  Spaced Project  "})
+        assert response.status_code == 302
+        assert response.url == reverse("project-list")
+        assert not Project.objects.filter(pk=pk).exists()
+
     def test_project_delete_blocks_public_datasets(self, client):
         """T032 — POST correct name but project has PUBLIC dataset returns 200 with protected_datasets; not deleted."""
         project = ProjectFactory(name="Dataset Project")
