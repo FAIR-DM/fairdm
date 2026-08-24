@@ -16,6 +16,7 @@ from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
+from fairdm.core.project.views import ProjectListView
 from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
@@ -23,6 +24,7 @@ from fairdm.factories import (
     ProjectIdentifierFactory,
     UserFactory,
 )
+from fairdm.views import FairDMListView
 from fairdm.utils.choices import Visibility
 
 
@@ -370,6 +372,12 @@ class TestProjectListing:
         response = client.get(reverse("project-list"))
         expected_url = public_project.get_absolute_url()
         assertContains(response, f'href="{expected_url}"')
+
+    def test_listing_view_derives_from_the_portals_own_list_base_class(self):
+        """T016 — `ProjectListView` derives from the portal's own
+        `FairDMListView`, rather than from Django's generic `ListView`
+        directly."""
+        assert FairDMListView in ProjectListView.__bases__
 
 
 # ---------------------------------------------------------------------------
