@@ -5,6 +5,17 @@
   {% render_menu "ProjectMenu" renderer="plugin-menu-renderer" object=object uuid=object.uuid %}
 {% endblock app.header.tray %}
 
+{% block page.actions %}
+  {{ block.super }}
+  {% if directory.descriptions_url %}
+    <c-button href="{{ directory.descriptions_url }}"
+              text="{% trans 'Descriptions' %}"
+              icon="description"
+              size="sm"
+              variant="secondary" />
+  {% endif %}
+{% endblock page.actions %}
+
 {% block page.content %}
   {# ── Stats strip — flat tiles with accent top border ─────────── #}
   <c-section id="project-stats">

@@ -4,8 +4,8 @@ from django.core.exceptions import ValidationError
 # from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from partial_date import PartialDate
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -14,6 +14,7 @@ from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
 from ..choices import ProjectStatus
+from ..dates import precedes
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     FairDMDates,
@@ -140,6 +141,16 @@ class Project(BaseModel):
         "type": "research.project",
     }
 
+    def get_absolute_url(self):
+        """The project's own page: its registered overview (013 plan P1).
+
+        Overrides ``BaseModel.get_absolute_url``, which reverses ``f"{model_name}-detail"`` — a
+        name this record no longer has, now that its own page is a registration rather than a
+        standalone route. ``Dataset``, the other direct ``BaseModel`` subclass, keeps that
+        behaviour unchanged; its own singular/plural address split is issue #283, not this one.
+        """
+        return reverse("project:overview", kwargs={"uuid": self.uuid})
+
     class Meta:
         verbose_name = _("project")
         verbose_name_plural = _("projects")
@@ -198,11 +209,8 @@ class ProjectDate(AbstractDate):
 
         A project's start and end are stored as two separate `ProjectDate`
         rows, one per type, so the comparison is made against the sibling
-        record rather than within a single instance. `PartialDate` mixes
-        precision into its ordering (`self.date >= other.date and
-        self.precision >= other.precision`), so comparing two values of
-        different precision directly is unsafe - the check instead compares
-        at the coarser of the two precisions.
+        record rather than within a single instance. The comparison itself
+        is precision-aware and shared, in `fairdm.core.dates`.
         """
         super().clean()
 
@@ -219,7 +227,7 @@ class ProjectDate(AbstractDate):
         if start_value is None or end_value is None:
             return
 
-        if self._precedes(end_value, start_value):
+        if precedes(end_value, start_value):
             raise ValidationError(
                 {
                     "value": _(
@@ -237,21 +245,6 @@ class ProjectDate(AbstractDate):
             queryset = queryset.exclude(pk=self.pk)
         sibling = queryset.first()
         return sibling.value if sibling else None
-
-    @staticmethod
-    def _precedes(a: PartialDate, b: PartialDate) -> bool:
-        """Whether PartialDate `a` is earlier than PartialDate `b`.
-
-        Compares at the coarser of the two precisions: years only if either
-        is year-precision, year and month if either is month-precision, and
-        the full date only when both carry day precision.
-        """
-        precision = min(a.precision, b.precision)
-        if precision == PartialDate.YEAR:
-            return bool(a.date.year < b.date.year)
-        if precision == PartialDate.MONTH:
-            return bool((a.date.year, a.date.month) < (b.date.year, b.date.month))
-        return bool(a.date < b.date)
 
 
 class ProjectIdentifier(AbstractIdentifier):

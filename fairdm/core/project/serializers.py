@@ -12,7 +12,7 @@ class ProjectSerializer(ModelSerializer):
     and options from API responses.
     """
 
-    web = HyperlinkedIdentityField(view_name="project-detail")
+    web = HyperlinkedIdentityField(view_name="project:overview", lookup_field="uuid")
     # dates = DateSerializer(many=True)
 
     class Meta:

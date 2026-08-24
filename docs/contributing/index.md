@@ -38,10 +38,12 @@ dev-containers
 core_data_model
 registry-system
 base-views
+record-page-building-blocks
 getting_started
 django_dev
 documentation/index
 documentation-standards
 feature-documentation
 testing/index
+../adr/index
 ```

@@ -136,6 +136,41 @@ a single record can open its pages without holding the permission globally.
 Write `check` as a plain function, a lambda or a `staticmethod`. A `classmethod` is refused at
 registration, because it is truthy but not callable and would quietly permit everyone.
 
+**A worked example.** `check` does not carry from a registration to its extra views — the owner is
+read from `plugin_class`, which only exists on the view instance, while `has_permission` passes the
+class — so an extra view that wants the same visibility rule as its owner writes it again rather
+than relying on inheritance. `fairdm.core.project.plugins` builds its checks as small functions so
+each page states its own rule explicitly without repeating the logic:
+
+```python
+def project_is_visible(request, obj):
+    """A public project always, a private one only with project.view_project."""
+    if obj is None:
+        return True
+    if obj.visibility == Visibility.PUBLIC:
+        return True
+    return has_perm(request, "project.view_project", obj)
+
+
+def visible_to_holder_of(permission):
+    """Like project_is_visible, except a private obj also stays visible to a
+    user holding `permission` on it specifically, at record level."""
+
+    def check(request, obj):
+        if project_is_visible(request, obj):
+            return True
+        if obj is None:
+            return False
+        return request.user.has_perm(permission, obj)
+
+    return check
+```
+
+`Update` and `Delete` each set `check = staticmethod(visible_to_holder_of("project.change_project"))`
+(and `"project.delete_project"` respectively) rather than the bare `project_is_visible` their owner
+uses: their own `permission` is the change/delete right, not the view right, and a record-level grant
+of a page's own permission is already evidence of legitimate access.
+
 ## A feature that is more than one page
 
 Declare the other views on the plugin. They share its address prefix and its single navigation
@@ -208,13 +243,13 @@ A plugin is an ordinary class, so a package can ship a base and a portal can sub
 
 ```python
 # In the distributed package
-class KeywordsPlugin(Plugin, FairDMUpdateView):
-    form_class = KeywordForm
+class CitationsPlugin(Plugin, FairDMUpdateView):
+    form_class = CitationForm
 
 
 # In the portal
-@plugins.register(MySample, label=_("Keywords"), icon="tag", order=520)
-class Keywords(KeywordsPlugin):
+@plugins.register(MySample, label=_("Citations"), icon="quote", order=520)
+class Citations(CitationsPlugin):
     pass
 ```
 

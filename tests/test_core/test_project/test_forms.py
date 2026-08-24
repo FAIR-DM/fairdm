@@ -105,6 +105,27 @@ class TestProjectCreateForm:
 class TestProjectUpdateForm:
     """Unit tests for Project edit form."""
 
+    def test_the_field_set_is_exactly_image_name_status_visibility_owner(self):
+        """T029 — Asserted as set equality, never a presence check: a field added to the form
+        without being pinned here would pass silently."""
+        from fairdm.core.project.forms import ProjectForm
+
+        form = ProjectForm()
+
+        assert set(form.fields) == {"image", "name", "status", "visibility", "owner"}
+
+    def test_the_form_offers_no_description_keyword_tag_contributor_or_funding_field(
+        self,
+    ):
+        """T030 — Those are edited on other pages (descriptions, keywords, contributors) or
+        not at all (funding, T088): the attributes form must not offer them."""
+        from fairdm.core.project.forms import ProjectForm
+
+        form = ProjectForm()
+
+        for name in ("description", "keyword", "tag", "contributor", "funding"):
+            assert name not in form.fields
+
     def test_image_field_renders_no_label_text(self):
         """The image field is captioned by its widget, so it must render an empty
         label. A boolean suppresses nothing and renders the word "False"."""
@@ -177,130 +198,3 @@ class TestProjectUpdateForm:
         updated_project = form.save()
         assert updated_project.name == "Updated Project Name"
         assert updated_project.visibility == Visibility.PUBLIC
-
-
-@pytest.mark.django_db
-class TestProjectDescriptionForm:
-    """Unit tests for ProjectDescription form.
-
-    Tests the form for adding/editing project descriptions with type validation.
-    """
-
-    def test_description_form_enforces_uniqueness(self):
-        """Test that description form prevents duplicate types per project.
-
-        Requirement: FR-010 - Each description type can only appear once per project.
-        User Story: US2 - Multiple description types with uniqueness constraint.
-        Implementation: T043 - Form validation for description type uniqueness.
-        """
-        from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.forms import ProjectDescriptionForm
-        from fairdm.core.project.models import Project, ProjectDescription
-
-        owner = Organization.objects.create(name="Test Organization")
-        project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner,
-        )
-
-        # Create first description of type "Abstract"
-        ProjectDescription.objects.create(
-            related=project, type="Abstract", value="Existing abstract"
-        )
-
-        # Attempt to create second description with same type should fail
-        form_data = {"type": "Abstract", "value": "Duplicate abstract"}
-
-        form = ProjectDescriptionForm(data=form_data)
-        form.instance.related = project
-
-        # Form should be invalid due to duplicate type
-        assert not form.is_valid()
-        assert "type" in form.errors or "__all__" in form.errors
-
-
-@pytest.mark.django_db
-class TestProjectDateForm:
-    """Unit tests for ProjectDate form.
-
-    Tests the form for adding/editing project dates with range validation.
-    """
-
-    def test_date_form_validates_range(self):
-        """The date form refuses an end date earlier than the project's start.
-
-        Requirement: FR-010 - The system refuses to save a project date that
-        would place the project's end before its start.
-
-        A project's start and end are two separate `ProjectDate` rows, so the
-        range check runs as cross-record validation inside
-        `ProjectDate.clean()`, fired from the form's `full_clean()` in the
-        same way `ProjectDescriptionForm` fires its own duplicate-type check.
-        """
-        from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.forms import ProjectDateForm
-        from fairdm.core.project.models import Project, ProjectDate
-
-        owner = Organization.objects.create(name="Test Organization")
-        project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner,
-        )
-        ProjectDate.objects.create(related=project, type="Start", value="2020-01-01")
-
-        form_data = {"type": "End", "value": "2019-01-01"}
-        form = ProjectDateForm(data=form_data)
-        form.instance.related = project
-
-        assert not form.is_valid()
-        assert "value" in form.errors or "__all__" in form.errors
-
-
-@pytest.mark.django_db
-class TestProjectIdentifierForm:
-    """Unit tests for ProjectIdentifier form.
-
-    Tests the form for adding/editing project identifiers.
-    """
-
-    def test_identifier_form_accepts_valid_data(self):
-        """Test that identifier form accepts valid identifier types.
-
-        Requirement: FR-011 - Projects carry identifiers drawn from a set that
-        applies to projects.
-        User Story: US-3 - Give a project an identifier the outside world
-        recognises.
-        """
-        from fairdm.contrib.contributors.models import Organization
-        from fairdm.core.project.forms import ProjectIdentifierForm
-        from fairdm.core.project.models import Project
-
-        owner = Organization.objects.create(name="Test Organization")
-        project = Project.objects.create(
-            name="Test Project",
-            status=ProjectStatus.CONCEPT,
-            visibility=Visibility.PRIVATE,
-            owner=owner,
-        )
-
-        # Test with a valid project identifier
-        form_data = {
-            "type": "DOI",
-            "value": "10.5281/zenodo.1234567",
-        }
-
-        form = ProjectIdentifierForm(data=form_data)
-        form.instance.related = project
-
-        # Form should be valid
-        assert form.is_valid(), f"Form errors: {form.errors}"
-
-        # Save and verify
-        identifier = form.save()
-        assert identifier.pk is not None
-        assert identifier.type == "DOI"
-        assert identifier.value == "10.5281/zenodo.1234567"

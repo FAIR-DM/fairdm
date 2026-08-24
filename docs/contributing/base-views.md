@@ -166,14 +166,26 @@ picked up by `MetadataMixin` to populate `meta.title` and friends.
 
 ```python
 from fairdm.views import FairDMDetailView
-from .models import Project
+from .models import Dataset
 
 
-class ProjectDetailView(FairDMDetailView):
-    model = Project
+class DatasetDetailView(FairDMDetailView):
+    model = Dataset
+    template_name = "dataset/dataset_detail.html"
+    slug_field = "uuid"
+    slug_url_kwarg = "uuid"
 ```
 
 **Context keys**: `meta`, `page`, `object`
+
+**Project is not an example of this class.** Its own page is a plugin
+registration (`fairdm.core.project.plugins.Overview`, an `OverviewPlugin`
+subclass) rather than a standalone `FairDMDetailView` subclass, so its
+update, delete and descriptions pages hang off the same registration and
+share its one navigation entry. See [Create a
+plugin](../portal-development/create_a_plugin.md) for that pattern —
+reach for a standalone `FairDMDetailView` when a record's page needs no
+extra views and no navigation entry of its own.
 
 ---
 

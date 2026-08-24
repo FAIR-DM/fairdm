@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
-from partial_date import PartialDate
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -12,6 +11,7 @@ from fairdm.db.models import QuerySet
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
+from ..dates import precedes
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     FairDMDates,
@@ -408,14 +408,10 @@ class DatasetDate(AbstractDate):
         A dataset's collection start and end are stored as two separate
         `DatasetDate` rows, one per type, so the comparison is made against
         the sibling record rather than within a single instance. Mirrors
-        `ProjectDate.clean()` (`fairdm/core/project/models.py:196-250`),
-        duplicated rather than lifted to `AbstractDate` - this is the
-        second use of the *pattern*, not of a shared implementation
-        (Article III, research.md R2). `PartialDate` mixes precision into
-        its ordering (`self.date >= other.date and self.precision >=
-        other.precision`), so comparing two values of different precision
-        directly is unsafe - the check instead compares at the coarser of
-        the two precisions.
+        `ProjectDate.clean()`, whose shape is duplicated rather than lifted
+        to `AbstractDate` - this is the second use of the *pattern*, not of
+        a shared rule (Article III, research.md R2). The precision-aware
+        comparison the rule turns on is shared, in `fairdm.core.dates`.
         """
         super().clean()
 
@@ -432,7 +428,7 @@ class DatasetDate(AbstractDate):
         if start_value is None or end_value is None:
             return
 
-        if self._precedes(end_value, start_value):
+        if precedes(end_value, start_value):
             raise ValidationError(
                 {
                     "value": _(
@@ -450,21 +446,6 @@ class DatasetDate(AbstractDate):
             queryset = queryset.exclude(pk=self.pk)
         sibling = queryset.first()
         return sibling.value if sibling else None
-
-    @staticmethod
-    def _precedes(a: PartialDate, b: PartialDate) -> bool:
-        """Whether PartialDate `a` is earlier than PartialDate `b`.
-
-        Compares at the coarser of the two precisions: years only if either
-        is year-precision, year and month if either is month-precision, and
-        the full date only when both carry day precision.
-        """
-        precision = min(a.precision, b.precision)
-        if precision == PartialDate.YEAR:
-            return bool(a.date.year < b.date.year)
-        if precision == PartialDate.MONTH:
-            return bool((a.date.year, a.date.month) < (b.date.year, b.date.month))
-        return bool(a.date < b.date)
 
 
 class DatasetIdentifier(AbstractIdentifier):

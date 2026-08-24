@@ -1,0 +1,1840 @@
+{
+  "$schema": "aeo/feature-state.schema.json",
+  "feature": "013-project-crud-views",
+  "branch": "013-project-crud-views",
+  "repo": "FAIR-DM/fairdm",
+  "state": "IMPLEMENT",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-08-23T18:00:00Z",
+      "note": "old spec read against the code; retrospective grilling"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-23T19:10:00Z",
+      "note": "spec.md rewritten in place; decisions.md records 9 adjudications"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-23T19:40:00Z",
+      "note": "epic #267, stories #268-273, draft PR #274"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-23T21:30:00Z",
+      "note": "research found a second registered editing page and that navigation is configuration, not new code"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-23T22:00:00Z",
+      "note": "85 greenfield tasks reconciled: 18 satisfied by code and a passing test, 67 open"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-23T23:10:00Z",
+      "note": "12 findings, 2 blocking, all applied; dates moved from a formset to two fields, one over-tick corrected"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-24T09:30:00Z",
+      "note": "replanned on Sam's feedback: dates return to a row set, and the related-record pieces are built for all four record types"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-24T10:30:00Z",
+      "note": "second focused review: the reuse design was replaced with a shared declaration and a parameterised date rule after it was shown to validate nothing on three of four record types"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-24T12:00:00Z",
+      "note": "the project's pages become one registered collection: the overview is the record's page, with the attributes and deletion pages belonging to it"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-24T12:20:00Z",
+      "note": "singular/plural URL split settled in favour of plural; the project's pages move under projects/<uuid>/"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-24T10:31:19Z",
+      "note": "plan confirmed by Sam; foundations first, then navigation track, then the attributes and descriptions pages"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-23T21:00:00Z"
+    },
+    "plan": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-24T13:00:00Z"
+    },
+    "design_review": {
+      "approved_by": "forge",
+      "at": "2026-08-24T10:30:00Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 268,
+      "worktree": null,
+      "status": "done",
+      "replans": 2,
+      "tasks": [
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/urls.py:15"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_returns_200_for_anonymous_visitor"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_shows_only_the_public_project_to_an_anonymous_visitor"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_search_by_name_returns_the_matching_project_only"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_search_by_identifier_value_returns_the_project"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_ordered_by_name_returns_alphabetical_order"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:37"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_ordered_by_date_added_returns_oldest_first"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_status_filter_narrows_to_the_matching_status"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_owner_filter_narrows_to_the_matching_owner"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_shows_empty_state_when_a_search_matches_nothing"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:144"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_entry_links_to_its_projects_page"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListing::test_listing_view_derives_from_the_portals_own_list_base_class"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 269,
+      "worktree": null,
+      "status": "done",
+      "replans": 2,
+      "tasks": [
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/urls.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateViewExtended::test_project_create_anonymous_redirects_to_login"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py:17"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateView::test_authenticated_user_can_access_create_view"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py:17"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateViewExtended::test_visibility_renders_as_radio_with_public_preselected"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:48"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateView::test_create_form_displays_validation_errors"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:110"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateViewExtended::test_creator_holds_all_project_permissions"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:113"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateViewExtended::test_creator_added_as_contributor_with_roles"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:94"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateView::test_create_project_records_creator"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:70"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateViewExtended::test_project_create_redirects_to_detail"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:48"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectCreateViewExtended::test_create_view_derives_from_portal_create_base"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 270,
+      "worktree": null,
+      "status": "done",
+      "replans": 2,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/factories/__init__.py:95"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_factories.py::TestProjectRelatedRecordFactoryExports"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/related_records.py:19"
+            ],
+            "tests": [
+              "tests/test_core/test_related_records.py::TestRelatedRecordInline"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core -q"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/formsets.py:28",
+              "fairdm/core/project/admin.py:22",
+              "fairdm/core/dataset/admin.py:72"
+            ],
+            "tests": [
+              "tests/test_core/test_formsets.py::TestDateOrderingFormSet"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core -q"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_descriptions.py::TestVocabularyDescriptionsForm"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core -q"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_core/test_project/conftest.py:1"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_conftest.py::TestProjectFixtures"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestAttributesPageOverHTTP::test_the_attributes_page_is_keyed_by_the_projects_identifier_not_its_own_address",
+              "tests/test_core/test_project/test_plugins.py::TestAttributesPageOverHTTP::test_an_anonymous_visitor_opening_the_attributes_page_is_redirected_to_sign_in"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:73"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectUpdateView::test_project_update_without_permission_403"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T028",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestAttributesPageOverHTTP::test_a_user_holding_change_permission_at_the_model_level_is_admitted"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py:63"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_forms.py::TestProjectUpdateForm::test_the_field_set_is_exactly_image_name_status_visibility_owner",
+              "tests/test_core/test_project/test_forms.py::TestProjectUpdateForm::test_image_field_renders_no_label_text"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py:63"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_forms.py::TestProjectUpdateForm::test_the_form_offers_no_description_keyword_tag_contributor_or_funding_field",
+              "tests/test_core/test_project/test_forms.py::TestProjectUpdateForm::test_image_field_renders_no_label_text"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectUpdateView::test_changing_name_status_visibility_and_owner_each_persists",
+              "tests/test_core/test_project/test_views.py::TestProjectUpdateView::test_project_update_success_redirects_to_detail"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectUpdateView::test_uploading_an_image_persists_it_and_clearing_it_removes_it",
+              "tests/test_core/test_project/test_views.py::TestProjectUpdateView::test_project_update_success_redirects_to_detail"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectUpdateView::test_submitting_an_empty_name_reports_an_error_and_saves_nothing",
+              "tests/test_core/test_project/test_views.py::TestProjectUpdateView::test_project_update_success_redirects_to_detail"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesIdentifierRowSet::test_existing_identifiers_are_presented_one_row_each_with_no_blank_row_beyond_them"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesIdentifierRowSet::test_adding_an_identifier_of_a_chosen_type_records_it_against_the_project"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesIdentifierRowSet::test_changing_an_existing_identifiers_value_persists"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesIdentifierRowSet::test_removing_an_identifier_row_deletes_it_from_the_project"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T038",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesIdentifierRowSet::test_a_value_already_recorded_against_a_different_project_is_refused"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T039",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesIdentifierRowSet::test_the_same_value_submitted_twice_in_one_submission_reports_the_collision"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T040",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesDateRowSet::test_existing_dates_are_presented_one_row_each_with_no_blank_row_beyond_them"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T041",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesDateRowSet::test_adding_a_date_of_a_chosen_type_records_it_against_the_project"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T042",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesDateRowSet::test_changing_an_existing_dates_value_persists"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T043",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesDateRowSet::test_removing_a_date_row_deletes_it_from_the_project"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T044",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesDateRowSet::test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing",
+              "tests/test_core/test_project/test_views.py::TestAttributesDateRowSet::test_a_backwards_pair_with_the_start_already_stored_is_refused_and_saves_nothing"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesDateRowSet::test_a_start_date_with_no_end_date_is_accepted"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T046",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesSaveIsOneAtomicSubmission::test_an_invalid_identifier_row_blocks_the_projects_own_field_changes_too"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T047",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestAttributesSaveIsOneAtomicSubmission::test_a_successful_submission_redirects_to_the_projects_own_page"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T048",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py:16"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T049",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:60"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestExactlyOnePageOffersTheProjectsOwnAttributes::test_exactly_one_page_offers_the_attributes_field_set"
+            ],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T050",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:69"
+            ],
+            "tests": [
+              "manual check on a running portal, 2026-08-24: the row sets on the update page function correctly, including adding a row with the add-row control"
+            ],
+            "commands": [
+              "manual"
+            ]
+          }
+        },
+        {
+          "id": "T088",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py:63"
+            ],
+            "tests": [],
+            "commands": [
+              "poetry run pytest -q"
+            ]
+          }
+        },
+        {
+          "id": "T095",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:102"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 271,
+      "worktree": null,
+      "status": "done",
+      "replans": 2,
+      "tasks": [
+        {
+          "id": "T051",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:156"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageIsARegistrationOfItsOwn"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T052",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:156"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageStatesItsOwnPermission"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T053",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:177"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageOffersOneAreaPerVocabularyType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T054",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageAreasAreLabelledFromTheVocabulary"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T055",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestSavingTextIntoOneAreaRecordsOnlyThatType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T056",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:177"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestExistingDescriptionsShowInTheirOwnArea"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestEditingAnExistingDescriptionPersists"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestClearingAnAreaRemovesTheDescription"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestEmptyAndWhitespaceOnlyAreasCreateNothing"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestRepeatSubmissionNeverDuplicatesAType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:187"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestASuccessfulSubmissionRedirectsToTheProjectsPage"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestSavingTextIntoOneAreaRecordsOnlyThatType",
+              "tests/test_core/test_project/test_plugins.py::TestEditingAnExistingDescriptionPersists",
+              "tests/test_core/test_project/test_plugins.py::TestRepeatSubmissionNeverDuplicatesAType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T096",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:220",
+              "fairdm/core/project/plugins.py:286"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsIsAnExtraViewNotARegistrationOfItsOwn",
+              "tests/test_core/test_project/test_plugins.py::TestUpdateDescriptionsAndDeletionAreExtraViewsNotEntries"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 272,
+      "worktree": null,
+      "status": "done",
+      "replans": 2,
+      "tasks": [
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:90"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestOverviewIsTheProjectsOwnRegistration"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T064",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:103"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestAttributesAndDeletionAreExtraViewsNotEntries"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T065",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:54",
+              "fairdm/core/project/plugins.py:72"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestEachExtraViewStatesItsOwnPermission"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T066",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:25",
+              "fairdm/core/project/plugins.py:100"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility",
+              "tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsPageThroughARealRequest"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T067",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:198",
+              "fairdm/core/project/plugins.py:206"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:608::TestProjectsOwnPageOffersAttributesAndDescriptionsLinks"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T068",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:198",
+              "fairdm/core/project/plugins.py:210"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:656::TestProjectsOwnPageOffersTheDeletionLink"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T069",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:126"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py:1325::TestDeletionPageBackControl"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_views.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T070",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py:1"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:690::TestAttributesDescriptionsAndDeletionEachLinkBackToTheProject"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T071",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:92"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:736::TestEveryLinkEachPageDrawsResolvesToARealAddress"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T072",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:35"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectListViewEmitsNoDeprecationWarning::test_rendering_the_listing_emits_no_deprecation_warning"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T073",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:37"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py:354::TestListingOffersTheCreationLink"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_views.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T074",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:144"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_urls.py::TestTheProjectsPagesSitUnderThePluralPrefix::test_the_retired_standalone_names_no_longer_reverse"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T092",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/urls.py:9"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_urls.py::TestTheProjectsPagesSitUnderThePluralPrefix"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T093",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/urls.py:11"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_urls.py::TestCreationIsDeclaredAheadOfTheRecordInclude"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T094",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:92",
+              "fairdm/core/project/plugins.py:99"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:809::TestAttributesPageOffersTheDeletionLink"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T097",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:301",
+              "fairdm/core/project/templates/project/project_detail.html:8"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestProjectsOwnPageOffersUpdateAndDescriptionsLinks"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T098",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:56",
+              "fairdm/core/project/plugins.py:123",
+              "fairdm/core/project/plugins.py:163"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility",
+              "tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T099",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/access.py:113"
+            ],
+            "tests": [
+              "issue #284 records the defect, its cause and its reproduction; routed out rather than fixed here"
+            ],
+            "commands": [
+              "gh issue view 284 --repo FAIR-DM/fairdm"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P3",
+      "issue": 273,
+      "worktree": null,
+      "status": "todo",
+      "replans": 2,
+      "tasks": [
+        {
+          "id": "T075",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:90"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_anonymous_redirects_to_login"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T076",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:91"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_without_permission_403"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:97"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_wrong_name_shows_error"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T078",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:97"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_confirmation_ignores_surrounding_whitespace"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q"
+            ]
+          }
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:95"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_no_datasets_success"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T080",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:296"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_allows_private_only_datasets"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T081",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:297"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_blocks_public_datasets"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T082",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/models.py:280"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_models.py::TestProjectPreDeleteSignal::test_pre_delete_signal_blocks_public_datasets"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T083",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:107"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_blocks_public_datasets"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q"
+            ]
+          }
+        },
+        {
+          "id": "T084",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:118"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_refused_page_hides_confirmation_and_delete_control"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q"
+            ]
+          }
+        },
+        {
+          "id": "T085",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:100"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_get_shows_refusal_without_submitting"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q"
+            ]
+          }
+        },
+        {
+          "id": "T086",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:121"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_evaluates_visibility_at_submission_time"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/test_views.py::TestProjectDeleteView -q"
+            ]
+          }
+        },
+        {
+          "id": "T087",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:121"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_allows_private_only_datasets"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_project/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T089",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "docs/user-guide/project/index.md:1",
+              "docs/user-guide/project/create.md:1"
+            ],
+            "tests": [],
+            "commands": [
+              "sphinx-build -b html docs /tmp/docs_build_013c  (no warnings on docs/user-guide/project/*)"
+            ]
+          }
+        },
+        {
+          "id": "T090",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "docs/adr/0008-one-editing-page-per-record-with-its-rows-inline.md:1"
+            ],
+            "tests": [],
+            "commands": [
+              "ls docs/adr/"
+            ]
+          }
+        },
+        {
+          "id": "T091",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "docs/ROADMAP.md:122"
+            ],
+            "tests": [],
+            "commands": [
+              "grep -n \"R12\" -A 8 docs/ROADMAP.md"
+            ]
+          }
+        },
+        {
+          "id": "T100",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/contributing/base-views.md:158"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out -q"
+            ]
+          }
+        },
+        {
+          "id": "T101",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/create_a_plugin.md:205",
+              "docs/portal-development/filtering-by-vocabulary.md:1"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out -q"
+            ]
+          }
+        },
+        {
+          "id": "T102",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/contributing/record-page-building-blocks.md:1",
+              "docs/portal-development/create_a_plugin.md:136"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out2 -q"
+            ]
+          }
+        },
+        {
+          "id": "T103",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/adr/index.md:1",
+              "docs/contributing/index.md:47"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out2 -q"
+            ]
+          }
+        },
+        {
+          "id": "T104",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_core/test_project/test_factories.py:44"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_factories.py::TestProjectFixtures"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_factories.py -q",
+              "forge conformance --repo . --base origin/main"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 3
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 2,
+      "max": 2
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  }
+}

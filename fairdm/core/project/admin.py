@@ -1,14 +1,12 @@
 import json
 
 from django.contrib import admin
-from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef
-from django.forms import BaseInlineFormSet
 from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
-from partial_date import PartialDate
 
 from ..choices import ProjectStatus
+from ..formsets import date_ordering_formset
 from .models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
 from .transforms import to_datacite, to_json_ld
 
@@ -21,50 +19,11 @@ class DescriptionInline(admin.StackedInline):
     max_num = 6
 
 
-class DateInlineFormSet(BaseInlineFormSet):
-    """Refuses a backwards Start/End pair across the whole formset.
-
-    A formset validates every form before any of them saves, so
-    `ProjectDate.clean()`'s sibling lookup - a database query - sees no
-    unsaved sibling when both the start and the end are new rows in the
-    same submission, and each form's individual validation short-circuits.
-    This reads the Start and End values directly off the forms' own
-    `cleaned_data` instead, so the pair is checked whichever of the two (or
-    both) is unsaved.
-    """
-
-    def clean(self):
-        super().clean()
-
-        start_value = None
-        end_value = None
-        for form in self.forms:
-            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
-                continue
-            value = form.cleaned_data.get("value")
-            if not value:
-                continue
-            # The form field stores the raw string; the model field's
-            # `PartialDate` conversion only happens on `full_clean()`, which
-            # a formset's own `clean()` runs before, so it is done here too.
-            if not isinstance(value, PartialDate):
-                value = PartialDate(value)
-            if form.cleaned_data.get("type") == ProjectDate.START_TYPE:
-                start_value = value
-            elif form.cleaned_data.get("type") == ProjectDate.END_TYPE:
-                end_value = value
-
-        if start_value is None or end_value is None:
-            return
-
-        if ProjectDate._precedes(end_value, start_value):
-            raise ValidationError(
-                _(
-                    "The project's end date (%(end)s) cannot be before "
-                    "its start date (%(start)s)."
-                )
-                % {"start": start_value, "end": end_value}
-            )
+DateInlineFormSet = date_ordering_formset(
+    ProjectDate.START_TYPE,
+    ProjectDate.END_TYPE,
+    _("The project's end date (%(end)s) cannot be before its start date (%(start)s)."),
+)
 
 
 class DateInline(admin.TabularInline):
