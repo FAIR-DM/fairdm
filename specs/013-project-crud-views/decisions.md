@@ -38,6 +38,8 @@ declaration in place means leaving code that looks like a feature and is not one
 
 **Left open**: nothing here. Funding editing is issue #175's to design.
 
+**ADR:** none — a scope boundary for this feature; funding editing arrives with its own design and nothing downstream inherits this.
+
 ---
 
 ## D2 — Descriptions, dates and identifiers join the feature
@@ -63,6 +65,8 @@ are separated from the rest because they are long-form prose and the others are 
 **Left open**: which of the shell's facilities fits each case, and how the descriptions page is
 laid out. Both are settled during planning.
 
+**ADR:** none — a scope boundary for this feature. What the pages do with related records is ADR 0008's subject.
+
 ---
 
 ## D3 — Keywords stay out
@@ -78,6 +82,8 @@ alone.
 **Why**: keywords are chosen from controlled vocabularies, and the package that will hold those
 vocabularies is not yet integrated. Building a picker now means building it against a vocabulary
 layer that is about to be replaced. This is a deferral with a named trigger, not an omission.
+
+**ADR:** none — a deferral, recorded in the specification and in the issue that still holds keywords.
 
 ---
 
@@ -95,6 +101,8 @@ choice and making it deliberately, and the portal's purpose is served by encoura
 there. A record created outside the portal — by an import, a fixture, the API — has nobody looking
 at a form, and the safe assumption for it is that nothing has been reviewed for release yet. A
 single value cannot serve both.
+
+**ADR:** docs/adr/0009-a-form-default-and-a-model-default-may-differ.md
 
 ---
 
@@ -123,6 +131,8 @@ is worth recording how it survived: the test asserts the datasets reached the co
 that they reached the reader, so it passes on an implementation that shows the user nothing. The
 replacement test asserts on what the page says.
 
+**ADR:** none — page-level behaviour on one page, superseded in this same feature by showing the refusal on open.
+
 ---
 
 ## D6 — The pages use a mechanism the shell has deprecated, and their links are broken
@@ -146,6 +156,8 @@ The rename is on a removal clock that would otherwise be hit blind, and the two 
 way worth writing down: the old one reads as though it controls access and it never did. Access is
 checked separately on every page, as it was before.
 
+**ADR:** none — replacing a superseded attribute name with its current one. Mechanical, and the deprecation notice is the record.
+
 ---
 
 ## D7 — The listing entry was never a placeholder, and is not this feature's to design
@@ -162,6 +174,8 @@ keep their current design, and this feature changes them only to add links.
 **Why**: the deferral happened and the design landed. The specification simply never caught up.
 Redesigning either page is separate work, and the project page already has an issue of its own
 (#167).
+
+**ADR:** none — a scope boundary. The listing entry's design belongs to the issue already open on it.
 
 ---
 
@@ -185,6 +199,8 @@ generates false findings on every later audit and forbids improvements that chan
 sees. It also made the previous document hard to read: the single longest requirement in it was
 about form class inheritance.
 
+**ADR:** none — how this specification is written, not how the portal is built.
+
 ---
 
 ## D9 — Undocumented behaviour, now written down
@@ -198,6 +214,8 @@ Found during the audit, correct, and previously unrecorded. Each is now in the s
 - A page's configured destination is overridden by a validated destination in the request when one
   is present. The shell does this, so the destinations in this specification are what happens
   absent that, not guarantees.
+
+**ADR:** none — the specification itself is the record of what was undocumented.
 
 ---
 
@@ -226,6 +244,8 @@ commit message, specification or plan. This restores an architecture that was di
 
 **Left open**: the layout of the overview template, which links the collection's other pages. Out of
 scope here per FR-047.
+
+**ADR:** docs/adr/0008-one-editing-page-per-record-with-its-rows-inline.md
 
 ---
 
@@ -549,6 +569,8 @@ Found while checking the specification against the code, real, and not this feat
   the brief's own prohibitions call out scope containment. Flagged here so it is not read as
   forgotten.
 
+**ADR:** docs/adr/0010-record-addresses-name-the-record-type-in-the-plural.md
+
 ---
 
 ## D12 — The page is titled "Update project", not "Attributes"
@@ -567,6 +589,8 @@ elsewhere, so the name would claim more of the record than the page holds.
 
 **Left open**: nothing. The requirement group in this specification still describes the page as
 covering the project's own attributes, which remains an accurate statement of what it edits.
+
+**ADR:** none — the name of one page. Local, and the specification carries it.
 
 ---
 
@@ -594,6 +618,8 @@ that is where they should end up.
 **Left open**: datasets and samples still register their descriptions and key-date pages
 separately. That is their own restructuring and is not this feature's work.
 
+**ADR:** docs/adr/0011-one-navigation-entry-per-collection.md
+
 ---
 
 ## D14 — Every page states its own visibility rule, because inheriting one does not work
@@ -619,6 +645,8 @@ separately.
 
 **Left open**: the registry's owner resolution is still wrong for every additional view in the
 repository, including the contributor pages. Raised as issue #284.
+
+**ADR:** docs/adr/0012-every-page-states-its-own-access-rules.md
 
 ---
 
@@ -666,6 +694,8 @@ holder against it — `TestDescriptionsPageStatesItsOwnPermission` and its sibli
 `user_with_change_permission`, which the fixture's own docstring says always carries view rights
 too. If a future story adds that test, the same asymmetry would surface there.
 
+**ADR:** none — a detail of how ADR 0012's rule is written for these pages, recorded there.
+
 ---
 
 ## D16 — A third pre-existing test, not named in the brief, is rewritten for the same reason as the two that were
@@ -701,6 +731,8 @@ judgment call, so Forge and Sam can verify the reasoning independently rather th
 this one did is not swept for here — this one was found by running the full suite once, not by an
 audit of every test's fixture.
 
+**ADR:** none — why one test was rewritten during the build. Local to this feature.
+
 ---
 
 ## D17 — T096 and T097 land in one commit, not two
@@ -723,6 +755,8 @@ weakened, or skipped — is a worse outcome than a slightly larger slice under e
 prohibited paths.
 
 **Left open**: nothing. T095 and T098 remain their own commits; only these two are inseparable.
+
+**ADR:** none — how two tasks were committed. Local to this feature.
 
 ---
 
@@ -753,6 +787,8 @@ the brief's prohibition means.
 
 **Left open**: nothing about the reading/filtering path. Nothing here documents an editing
 interface — none exists.
+
+**ADR:** none — how one documentation page was rewritten. Local to this feature.
 
 ---
 
@@ -785,3 +821,5 @@ lives, instead of a cross-reference to an unrelated page.
 **Left open**: `Overview` (`project/plugins.py`) needed no separate placement — T100's rewrite of
 `base-views.md` already names and links it while explaining what replaced the removed
 `ProjectDetailView`.
+
+**ADR:** none — where eleven names were documented. Local to this feature.
