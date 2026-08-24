@@ -744,7 +744,7 @@ class TestProjectModelIntegration:
         project = ProjectFactory()
         url = project.get_absolute_url()
 
-        assert url == reverse("project-detail", kwargs={"uuid": project.uuid})
+        assert url == reverse("project:overview", kwargs={"uuid": project.uuid})
 
     def test_project_descriptions_relationship(self):
         """Test that project descriptions can be created correctly."""
@@ -917,7 +917,7 @@ class TestProjectViews:
     def test_project_detail_view_accessible(self, client):
         """Test that project detail view is accessible."""
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-detail", kwargs={"uuid": project.uuid}))
+        response = client.get(reverse("project:overview", kwargs={"uuid": project.uuid}))
 
         assert response.status_code == 200
         assert project.name.encode() in response.content
@@ -1324,7 +1324,7 @@ class TestProjectObjectPermissions:
         client.force_login(other_user)
 
         # Attempt to access edit view
-        url = reverse("project-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         # Verify access denied (403) or redirect
@@ -1360,7 +1360,7 @@ class TestProjectObjectPermissions:
         client.force_login(editor)
 
         # Access edit view
-        url = reverse("project-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         # Verify successful access

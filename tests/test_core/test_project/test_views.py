@@ -197,7 +197,7 @@ class TestProjectCreateViewExtended:
         assert response.status_code == 200
 
     def test_project_create_redirects_to_detail(self, authenticated_client):
-        """T018 — Valid POST redirects to project-detail URL (not project:overview)."""
+        """T018 — Valid POST redirects to the project's own registered page (project:overview)."""
         url = reverse("project-create")
         response = authenticated_client.post(
             url,
@@ -209,7 +209,7 @@ class TestProjectCreateViewExtended:
         )
         assert response.status_code == 302
         project = Project.objects.get(name="Redirect Test Project")
-        expected_url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        expected_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assert response.url == expected_url
 
     def test_project_create_assigns_permissions_and_roles(self, client, user):
@@ -257,7 +257,7 @@ class TestProjectUpdateView:
     def test_project_update_anonymous_redirects_to_login(self, client):
         """T022 — GET /projects/<uuid>/update/ by anonymous client returns 302."""
         project = ProjectFactory()
-        url = reverse("project-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
@@ -267,7 +267,7 @@ class TestProjectUpdateView:
         project = ProjectFactory()
         other_user = UserFactory()
         client.force_login(other_user)
-        url = reverse("project-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
@@ -277,7 +277,7 @@ class TestProjectUpdateView:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
@@ -288,7 +288,7 @@ class TestProjectUpdateView:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
         response = client.post(
             url,
             data={
@@ -299,7 +299,7 @@ class TestProjectUpdateView:
             },
         )
         assert response.status_code == 302
-        expected_url = reverse("project-detail", kwargs={"uuid": project.uuid})
+        expected_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assert response.url == expected_url
 
 
@@ -315,7 +315,7 @@ class TestProjectDeleteView:
     def test_project_delete_anonymous_redirects_to_login(self, client):
         """T028 — GET /projects/<uuid>/delete/ by anonymous client returns 302."""
         project = ProjectFactory()
-        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
@@ -325,7 +325,7 @@ class TestProjectDeleteView:
         project = ProjectFactory()
         user = UserFactory()
         client.force_login(user)
-        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
@@ -335,7 +335,7 @@ class TestProjectDeleteView:
         user = UserFactory()
         assign_perm("delete_project", user, project)
         client.force_login(user)
-        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
@@ -345,7 +345,7 @@ class TestProjectDeleteView:
         user = UserFactory()
         assign_perm("delete_project", user, project)
         client.force_login(user)
-        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Wrong Name"})
         assert response.status_code == 200
         assert "confirmation" in response.context["form"].errors
@@ -360,7 +360,7 @@ class TestProjectDeleteView:
         user = UserFactory()
         assign_perm("delete_project", user, project)
         client.force_login(user)
-        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
         assert response.status_code == 200
         assert "protected_datasets" in response.context
@@ -376,7 +376,7 @@ class TestProjectDeleteView:
         user = UserFactory()
         assign_perm("delete_project", user, project)
         client.force_login(user)
-        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Private Dataset Project"})
         assert response.status_code == 302
         assert response.url == reverse("project-list")
@@ -389,7 +389,7 @@ class TestProjectDeleteView:
         user = UserFactory()
         assign_perm("delete_project", user, project)
         client.force_login(user)
-        url = reverse("project-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Empty Project"})
         assert response.status_code == 302
         assert response.url == reverse("project-list")

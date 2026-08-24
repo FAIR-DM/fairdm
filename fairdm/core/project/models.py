@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 # from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from partial_date import PartialDate
 from shortuuid.django_fields import ShortUUIDField
@@ -139,6 +140,16 @@ class Project(BaseModel):
         "image": "get_meta_image",
         "type": "research.project",
     }
+
+    def get_absolute_url(self):
+        """The project's own page: its registered overview (013 plan P1).
+
+        Overrides ``BaseModel.get_absolute_url``, which reverses ``f"{model_name}-detail"`` — a
+        name this record no longer has, now that its own page is a registration rather than a
+        standalone route. ``Dataset``, the other direct ``BaseModel`` subclass, keeps that
+        behaviour unchanged; its own singular/plural address split is issue #283, not this one.
+        """
+        return reverse("project:overview", kwargs={"uuid": self.uuid})
 
     class Meta:
         verbose_name = _("project")
