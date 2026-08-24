@@ -58,25 +58,9 @@ class ProjectForm(ModelForm):
         widget=forms.Select(attrs={"class": "form-control"}),
         required=False,
     )
-    funding = forms.JSONField(
-        label=_("Funding information"),
-        required=False,
-        help_text=_("DataCite FundingReference schema (JSON format)."),
-        widget=forms.Textarea(
-            attrs={
-                "class": "form-control",
-                "rows": 10,
-                "placeholder": _(
-                    '[\n  {\n    "funderName": "...",\n    "awardNumber": "..."\n  }\n]'
-                ),
-            }
-        ),
-    )
 
     class Meta:
         model = Project
-        # TODO: Come up with a plan for editing funding data. This is a complex field that may require a custom interface
-        # rather than a raw JSON textarea. For now, we declare the field but don't list it in meta.fields.
         fields = ["image", "name", "status", "visibility", "owner"]
 
     def __init__(self, *args, **kwargs):
