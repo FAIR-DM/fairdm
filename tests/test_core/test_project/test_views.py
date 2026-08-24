@@ -346,14 +346,16 @@ class TestProjectListing:
 
 @pytest.mark.django_db
 class TestProjectCreateViewExtended:
-    """Additional tests for ProjectCreateView (US2, T016-T018a)."""
+    """Additional tests for ProjectCreateView (US2, T017-T025)."""
 
     def test_project_create_anonymous_redirects_to_login(self, client):
-        """T016 — GET /projects/create/ by anonymous client returns 302 to login."""
+        """T017 — An anonymous visitor opening the creation page is redirected to the exact
+        sign-in address, not merely redirected somewhere."""
         url = reverse("project-create")
         response = client.get(url)
         assert response.status_code == 302
-        assert "/login/" in response.url or "/accounts/login/" in response.url
+        expected_url = f"{reverse('account_login')}?next={url}"
+        assert response.url == expected_url
 
     def test_project_create_authenticated_200(self, authenticated_client):
         """T017 — GET /projects/create/ by authenticated client returns 200."""
