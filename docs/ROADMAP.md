@@ -121,6 +121,8 @@ Serves G10.
 
 Projects and datasets can be created, read, updated and deleted through the portal itself, without the Django admin and without a portal author writing those views.
 
+The project half is verified: a project can be listed, created, edited — its own fields, its dates and its identifiers together, its descriptions on their own page — and deleted, each page reachable from the project itself and refused to anyone who may not open it. The dataset half is not yet verified, so the tag stands.
+
 Serves G6.
 
 ### R13 — Identifier synchronisation
