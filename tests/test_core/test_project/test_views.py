@@ -122,6 +122,10 @@ class TestProjectCreateView:
 
         Requirement: FR-001 - Clear validation feedback.
         User Story: US1 - Users see helpful error messages.
+
+        T020 — Submitting without a name reports an error and creates nothing. Asserted
+        as a count as well as the error, since an error alone does not rule out a
+        project having been created anyway.
         """
         # Submit form with missing required field (name)
         url = reverse("project-create")
@@ -138,6 +142,7 @@ class TestProjectCreateView:
         form = response.context["form"]
         assert not form.is_valid()
         assert "name" in form.errors
+        assert Project.objects.count() == 0
 
 
 # ---------------------------------------------------------------------------
