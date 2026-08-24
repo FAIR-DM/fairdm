@@ -1,63 +1,48 @@
-# Create a dataset
+# Create a project
 
-Datasets are at the heart of the portal’s mission to foster open, collaborative science. Whether your dataset is raw, processed, or simply a placeholder for future data, adding it to the portal helps support attribution, reproducibility, and discovery within the research community.
+A project groups the datasets produced by a single body of research, and gives them a shared
+home with its own contributors, dates and identifiers. Creating one is short on purpose: you
+give it a name, say what phase it is in and who should see it, and everything else is filled in
+afterwards on the project's own pages.
 
 ```{tip}
-By **creating a dataset early**, even without the data itself, you can start recording **essential metadata** like dates, contributors, descriptions, licenses, etc. This preparation ensures that the dataset is **ready for sharing and publication** in the future. 
-
-Making your dataset available to the community early, even before you collect the data, can spark interest and potentially **lead to new collaborations**. Other researchers may recognize areas for synergy, offer insights, or contribute data that complements your work, creating opportunities for **networking** and **joint research efforts**.
+Create the project early, before the data exists. A project with nothing in it still records
+who is involved and what the work is about, and other researchers can find it and offer to
+collaborate.
 ```
 
-## Step 1: Access Your Dashboard
+## Who can create one
 
-Begin by opening your **user menu** in the top-right corner of the portal’s main navigation bar.
+Anyone signed in to the portal. The project you create is yours: you become its owner, and you
+are added as its first contributor.
 
-- Click **“Dashboard”** to open your personal dashboard.
+## Step 1: Open the "Create new" menu
 
-## Step 2: Open the “Create New” Menu
+The **Create new** button sits at the top of your dashboard and in the portal's main navigation.
 
-![User Dashboard](/_static/tutorials/user_dashboard.png)
+- Click **Create new**.
+- Choose **Project**.
 
-At the top of your dashboard, locate the heading labeled **“Home”**.
+## Step 2: Fill out the form
 
-- To the right of this heading, click the **“Create new”** dropdown button.
-- Select **“Dataset”** from the menu.
+Three fields, all required:
 
-## Step 3: Fill Out the Dataset Form
+1. **Project name** — a clear, descriptive name. This is how everyone else will identify the
+   project, so prefer the full name over an internal abbreviation.
 
-<!-- ![Dataset Creation Form](/_static/tutorials/create_dataset_page.png) -->
+2. **Status** — the project's current phase: Concept, Planning, In progress, Complete, or
+   Searching for collaborators. It can be changed at any time as the work moves on.
 
-You will now be taken to the **dataset creation form**. Fill in the following fields:
+3. **Visibility** — who can see the project:
 
-1. **Image** (optional):  
-You may upload an image to visually represent your dataset (e.g., a map of site locations, graph, or logo).
+    - **Public** — visible to everyone, signed in or not. This is the pre-selected choice.
+    - **Private** — visible only to the project's contributors.
 
-2. **Project** (optional):  
-If this dataset is related to a project you’ve already created, you can link it here.
+Visibility can be changed later, so a project that is not ready to be seen can start out
+private and be opened up once it is.
 
-3. **Name** (required):  
-Provide a clear, descriptive title for the dataset. This will be the primary way other community members identify and refer to it.
+## Step 3: Save
 
-4. **License** (optional but strongly recommended):  
-Choose a license from a list of Creative Commons options. Adding a license clarifies how others may use your data and is critical for enabling reuse, citation, and collaboration.
-
-5. **Visibility** (required):  
-Choose whether the dataset should be:
-
-    - **Public** – visible to all users of the portal.
-    - **Private** – visible only to you (and collaborators, if any are added).
-
-
-```{attention}
-**No License? Limited Use**  
-Datasets without a license are difficult for others to reuse or share. To support open science and community growth, please consider selecting an appropriate license.
-
-```
-
-## Step 4: Save Your Dataset
-
-Once the form is complete, click the **“Create”** button to save your dataset.
-
-- You’ll be redirected to the dataset’s detail page, where you can view, update, or add additional metadata later.
-
-    ![Dataset Page](/_static/tutorials/dataset_detail_page.png)
+Click **Create**. You land on the new project's own page, from which you can add its image,
+owning organisation, dates, identifiers and descriptions — see
+[Attributes](attributes.md) and [Descriptions](descriptions.md).
