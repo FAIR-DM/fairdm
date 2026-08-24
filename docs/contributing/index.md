@@ -45,4 +45,5 @@ documentation/index
 documentation-standards
 feature-documentation
 testing/index
+../adr/index
 ```
