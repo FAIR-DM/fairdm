@@ -186,6 +186,11 @@ assumed not to.
   singular form. Then move the mount.
 - **T093** — Test: the creation page still resolves under the plural prefix and is not read as a
   record lookup, which is what a route declared after the record include would cause.
+- **T094** — Test: the attributes page offers the deletion page to a user who may delete the
+  project and to nobody else, and the link returns here rather than to the project when the
+  deletion is abandoned. Then name the deletion route on the page, since the interface layer's
+  defaults point at the standalone routes this feature retires. Carries FR-045, which no task in
+  the original US-5 block covered.
 
 ## US-6 — Remove a project
 

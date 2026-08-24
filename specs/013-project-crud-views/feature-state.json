@@ -1129,7 +1129,7 @@
       "priority": "P2",
       "issue": 272,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 2,
       "tasks": [
         {
@@ -1201,28 +1201,87 @@
         },
         {
           "id": "T067",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:198",
+              "fairdm/core/project/plugins.py:206"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:608::TestProjectsOwnPageOffersAttributesAndDescriptionsLinks"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T068",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:198",
+              "fairdm/core/project/plugins.py:210"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:656::TestProjectsOwnPageOffersTheDeletionLink"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T069",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:126"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py:1325::TestDeletionPageBackControl"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_views.py -q"
+            ]
+          }
         },
         {
           "id": "T070",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py:1"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:690::TestAttributesDescriptionsAndDeletionEachLinkBackToTheProject"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ],
+            "note": "test-only; the trail each page already draws was confirmed rather than assumed"
+          }
         },
         {
           "id": "T071",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:92"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:736::TestEveryLinkEachPageDrawsResolvesToARealAddress"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ],
+            "note": "test-only; one test per page, none of the drawn addresses empty"
+          }
         },
         {
           "id": "T072",
@@ -1242,8 +1301,19 @@
         },
         {
           "id": "T073",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/views.py:37"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py:354::TestListingOffersTheCreationLink"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_views.py -q"
+            ]
+          }
         },
         {
           "id": "T074",
@@ -1291,6 +1361,24 @@
             "commands": [
               "poetry run pytest tests/test_core/test_project -q"
             ]
+          }
+        },
+        {
+          "id": "T094",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:92",
+              "fairdm/core/project/plugins.py:99"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py:809::TestAttributesPageOffersTheDeletionLink"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ],
+            "note": "carries FR-045, which the original US-5 block covered with no task"
           }
         }
       ]

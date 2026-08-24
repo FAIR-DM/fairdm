@@ -20,6 +20,7 @@ T071 - every link drawn by each page this feature owns resolves to a real addres
 """
 
 import re
+from urllib.parse import quote
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -802,3 +803,66 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         hrefs = _hrefs(response.content.decode())
         assert hrefs
         assert all(href.strip() != "" for href in hrefs)
+
+
+@pytest.mark.django_db
+class TestAttributesPageOffersTheDeletionLink:
+    """T094 / FR-045 — the attributes page offers the deletion page to a user who may delete the
+    project, and offers it to nobody else. The shared ``form_view.html`` shell already carries the
+    slot; it is fed by ``MVPUpdateView.get_delete_url()`` through ``resolve_crud_url("delete")``,
+    so the page names the deletion route in its own ``crud_views`` and gates the link on the
+    right ``Delete`` itself requires."""
+
+    def test_a_user_who_may_delete_the_project_is_offered_the_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        )
+
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        assert any(href.startswith(delete_url) for href in _hrefs(response.content.decode()))
+
+    def test_a_user_who_may_change_but_not_delete_is_offered_no_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        )
+
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        assert not any(
+            href.startswith(delete_url) for href in _hrefs(response.content.decode())
+        )
+
+    def test_the_link_returns_to_the_attributes_page_when_deletion_is_abandoned(
+        self, client
+    ):
+        """The shell appends ``?back=`` to the deletion address, and the deletion page honours
+        it over its own fallback, so abandoning a deletion started here comes back here rather
+        than to the project."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+
+        attributes_url = reverse(
+            "project:overview-attributes", kwargs={"uuid": project.uuid}
+        )
+        response = client.get(attributes_url)
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        link = next(
+            href
+            for href in _hrefs(response.content.decode())
+            if href.startswith(delete_url)
+        )
+
+        assert f"back={quote(attributes_url, safe='')}" in link

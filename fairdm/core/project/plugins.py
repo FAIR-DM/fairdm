@@ -33,8 +33,15 @@ def project_is_visible(request, obj):
     filtered managers (``fairdm.contrib.plugins.base.Plugin.get_base_object``), on the assumption
     the page gates itself. ``Project`` has no privacy-filtered default manager either, so without
     this check a private project would be readable by anyone holding its address (013 plan P1).
-    Set as :class:`Overview`'s ``check`` rather than reimplemented per page: an additional view
-    inherits its owner's ``check``, so :class:`Attributes` and :class:`Delete` are covered too.
+    Set as :class:`Overview`'s ``check``, which is what guards the project's own page.
+
+    It does **not** carry to :class:`Attributes` or :class:`Delete` on a real request, despite the
+    inheritance ``can_open`` describes: the owner is read from ``plugin_class``, which ``get_urls``
+    binds through ``as_view()`` and which therefore exists only on the view instance, while
+    ``has_permission`` passes the class. Those two pages are guarded by their own ``permission``
+    alone. Reported as issue #284; not repaired here because making the predicate apply to pages
+    that already require ``change_project``/``delete_project`` is a decision about how editing
+    rights and visibility compose, which belongs with the plugin access work in #279.
     """
     if obj is None:
         return True
@@ -77,6 +84,23 @@ class Attributes(Plugin, InlinesMixin, FairDMUpdateView):
     model = Project
     form_class = ProjectForm
     inlines = [ProjectIdentifierInline, ProjectDatesInline]
+
+    # FR-045 — this page offers the deletion page. The shared form shell already carries the slot
+    # and fills it from get_delete_url(); all this page supplies is where the three routes it
+    # reverses actually live, since the interface layer's defaults name the standalone
+    # `project-update`/`project-delete` routes this feature retires.
+    crud_views = {
+        "list": "project-list",
+        "update": "project:overview-attributes",
+        "delete": "project:overview-delete",
+    }
+    show_list_action = True
+
+    def show_delete_action(self, user):
+        """Offered on the right ``Delete`` itself requires, not on the one that opened this page:
+        a user may hold ``change_project`` without ``delete_project``, and a link they cannot
+        follow is worse than no link."""
+        return has_perm(self.request, Delete.permission, self.base_object)
 
     def get_success_url(self):
         return self.base_object.get_absolute_url()
