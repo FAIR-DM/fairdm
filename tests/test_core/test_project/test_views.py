@@ -969,6 +969,72 @@ class TestAttributesDateRowSet:
         assert response.status_code == 302
         assert not project.dates.filter(pk=date.pk).exists()
 
+    def test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing(self, client):
+        """T044 — An end date earlier than the start date, both submitted as new rows in the
+        same submission, is refused. A per-row check would see neither, since each looks its
+        sibling up in the database and finds no unsaved sibling
+        (`ProjectDate.clean()`, `fairdm/core/project/models.py:196-239`) — this is exactly the
+        case the formset-level rule exists for (`formsets.date_ordering_formset`)."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Backwards Pair", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(),
+                **_date_management_data(total=2, initial=0),
+                "dates-0-type": "Start",
+                "dates-0-value": "2020-06-01",
+                "dates-1-type": "End",
+                "dates-1-value": "2010-01-01",
+            },
+        )
+
+        assert response.status_code == 200
+        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
+        assert formsets["dates"].non_form_errors()
+        assert not project.dates.exists()
+
+    def test_a_backwards_pair_with_the_start_already_stored_is_refused_and_saves_nothing(
+        self, client
+    ):
+        """T044 — An end date earlier than an already-stored start date is refused too, with
+        the existing start row resubmitted unchanged alongside the new end row. Here the
+        per-row model check (`ProjectDate.clean()`) already catches it, since the sibling is in
+        the database — unlike the both-new case above, where it is the formset-level rule
+        alone that does."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Backwards Pair", owner=org)
+        start = ProjectDateFactory(related=project, type="Start", value="2020-06-01")
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(),
+                **_date_management_data(total=2, initial=1),
+                "dates-0-id": start.pk,
+                "dates-0-type": "Start",
+                "dates-0-value": "2020-06-01",
+                "dates-1-type": "End",
+                "dates-1-value": "2010-01-01",
+            },
+        )
+
+        assert response.status_code == 200
+        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
+        assert not formsets["dates"].is_valid()
+        assert not project.dates.filter(type="End").exists()
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
