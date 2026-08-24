@@ -894,6 +894,29 @@ class TestAttributesDateRowSet:
         assert date_formset.initial_form_count() == 1
         assert len(date_formset.forms) == 1
 
+    def test_adding_a_date_of_a_chosen_type_records_it_against_the_project(self, client):
+        """T041 — A newly added date row is recorded against the project."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="No Dates Yet", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(),
+                **_date_management_data(total=1, initial=0),
+                "dates-0-type": "Start",
+                "dates-0-value": "2020-01-01",
+            },
+        )
+
+        assert response.status_code == 302
+        assert project.dates.filter(type="Start", value="2020-01-01").exists()
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
