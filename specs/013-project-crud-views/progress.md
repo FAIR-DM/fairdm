@@ -593,3 +593,119 @@ report.
 describes the dataset creation flow, not project creation — a pre-existing content mismatch this
 story's acceptance criteria (attributes/descriptions/deletion pages, the retired Configure tab
 and standalone routes) does not name and is out of this story's scope to fix.
+
+---
+
+## 2026-08-24T17:35:00+02:00 · Implementer US5 · T067
+
+**Did**: `Overview` (`fairdm/core/project/plugins.py`) mixes in `mvp.views.detail.CRUDDirectoryMixin`
+and sets `directory = ["update"]` with `crud_views = {"update": "project:overview-attributes"}`
+and a `show_update_action` gated on `has_perm(self.request, Attributes.permission,
+self.base_object)`. This switches on the shell's own action-link mechanism — `detail_view.html`
+already checks `directory.update_url` and draws an "Edit" button — rather than a hand-rolled
+link, per the brief's prohibition. The descriptions link needed no code: it is the
+`Descriptions` registration's own tab, already gated by `can_open` through `menu_check`.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 43 passed.
+`poetry run pre-commit run --files fairdm/core/project/plugins.py
+tests/test_core/test_project/test_plugins.py` — clean.
+
+**Next**: T068.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:40:00+02:00 · Implementer US5 · T068
+
+**Did**: Added `"delete"` to `Overview.directory` and `crud_views`, with `show_delete_action`
+gated on `Delete.permission` the same way as T067's `show_update_action`. The shell's existing
+"Delete" button in `detail_view.html` now resolves for a user who may delete the project.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 45 passed.
+`poetry run pre-commit run --files fairdm/core/project/plugins.py
+tests/test_core/test_project/test_plugins.py` — clean.
+
+**Next**: T069.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:45:00+02:00 · Implementer US5 · T069
+
+**Did**: `Delete.get_back_url()` (`fairdm/core/project/plugins.py`) overridden to fall back to
+`self.base_object.get_absolute_url()` instead of `MVPDeleteView`'s own `resolve_crud_url("list")`
+fallback, which `Delete` never shows (its own `directory` carries no `"list"` entry) — the shell
+rendered the "Go Back" control as a destination-less `<button>` (`href|yesno:"a,button"` chooses
+the element by whether `href` is truthy) rather than a link. The `?back` query-string override
+above this in the MRO is preserved unchanged.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_views.py -q` — 63 passed.
+`poetry run pre-commit run --files fairdm/core/project/plugins.py
+tests/test_core/test_project/test_views.py` — clean.
+
+**Next**: T070.
+
+**Watch**: T069's test asserts the control is rendered as an `<a>` specifically (not merely that
+`href` is non-empty), since the pre-fix bug was rendering it as a `<button href="">` — a
+same-element `href!=""` check alone would not have caught that shape.
+
+---
+
+## 2026-08-24T17:50:00+02:00 · Implementer US5 · T070
+
+**Did**: Test-only. `Attributes`, `Descriptions` and `Delete` all resolve `get_breadcrumbs()`
+through `fairdm.contrib.plugins.base.Plugin` (first in the MRO on every one of them, confirmed by
+walking `__mro__`), which already links `obj.get_absolute_url()` into the breadcrumb trail
+whenever the object carries one. Confirmed against the rendered response — both the breadcrumb
+link and (on the project's own page's `ProjectMenu` tab strip) the "Overview" tab render the
+same address — rather than assumed, per the brief's state-of-play.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 48 passed.
+`poetry run pre-commit run --files tests/test_core/test_project/test_plugins.py` — clean (ruff
+format made one whitespace pass; re-verified green after).
+
+**Next**: T071.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T17:55:00+02:00 · Implementer US5 · T071
+
+**Did**: Test-only. One test per page (listing, the project's own page, attributes,
+descriptions, deletion), parsing every rendered `href="..."` and asserting none is empty,
+rendered as a fully-permitted signed-in user so every link a page can draw is drawn. T067-T069
+already closed the one gap this would have caught (the deletion page's back control); confirmed
+against the rendered pages rather than assumed.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 53 passed.
+`poetry run ruff check/format --check` and `poetry run mypy` on the changed file — clean.
+
+**Next**: T073.
+
+**Watch**: deliberately asserts only "no href is empty" rather than resolving every href through
+Django's urlconf — many of a page's hrefs are external (CDN scripts) or asset paths that no
+urlconf entry answers, so a blanket `resolve()` would be the wrong check.
+
+---
+
+## 2026-08-24T18:00:00+02:00 · Implementer US5 · T073
+
+**Did**: `ProjectListView.show_create_action` (`fairdm/core/project/views.py`) was hardcoded
+`False` ("creation is handled by a separate view"); replaced with a method returning
+`user.is_authenticated`, switching on the listing's own `directory = ["create"]` (already wired
+via `MVPListViewMixin`).
+
+**Verified**: `poetry run pytest tests/test_core/test_project/ -q` — 247 passed. `poetry run
+ruff check/format`, `mypy`, `deptry` on the changed files — clean.
+
+**Next**: story complete (T067-T071, T073 all done). Full-suite verify at the completion report.
+
+**Watch**: the signed-in assertion had to target the listing's own control specifically (an
+icon-class marker), not a bare `href="/projects/create/"` match — the portal's unrelated
+"Create new" navbar widget (`fairdm/templates/cotton/actions/create_new.html`) renders the
+identical href for every signed-in visitor on every page regardless of this feature, so a naive
+match would have passed with the listing's own link still absent. Caught by observing the test
+pass before any source change (craft-tdd's RED-must-be-observed rule) and redesigning it.

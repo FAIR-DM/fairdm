@@ -455,6 +455,51 @@ each call, which is what the template actually branches on.
 
 ---
 
+### T067/T068 — `Overview` mixes in `mvp.views.detail.CRUDDirectoryMixin` directly
+
+**Decision**: `Overview` (a `TemplateView`-based registration, not a `DetailView`) gained
+`mvp.views.detail.CRUDDirectoryMixin` in its own bases, plus `model = Project`, `directory =
+["update", "delete"]` and a `crud_views` override reversing those two actions to `Attributes`'
+and `Delete`'s registered names (`project:overview-attributes`/`-delete`) rather than the
+default `{model_name}-update`/`-delete` shape, which resolves to the standalone routes this
+feature retires.
+
+**Why**: the brief's prohibition is to switch the shell's existing action-link mechanism on
+rather than write a parallel one, and `detail_view.html` (which `project_detail.html` extends
+without overriding `page.actions`) already checks `directory.update_url`/`directory.delete_url`
+and draws "Edit"/"Delete" buttons — it was simply never wired up for `Overview`, because
+`OverviewPlugin`/`FairDMTemplateView` builds on `MVPTemplateView`, which carries no
+`CRUDDirectoryMixin` at all (only `MVPDetailView` does, and `Overview` is not one — it has no
+`SingleObjectMixin` of its own; the record comes through `Plugin.base_object`). No existing code
+in this repository mixes `CRUDDirectoryMixin` into a plain `TemplateView` this way; it is the
+first instance.
+
+**Revisit if**: a later record type's own page (dataset, sample, measurement, per plan P6) needs
+the same treatment — the shape here (mixin + `model` + `directory` + `crud_views` override +
+one `show_<action>_action` per extra view, reusing that view's own `permission` string rather
+than restating it) generalises directly.
+
+---
+
+### T069 — `Delete.get_back_url()` falls back to the project, not the list
+
+**Decision**: overridden rather than left to `MVPDeleteView`'s own `get_back_url()`, which falls
+back to `resolve_crud_url("list")`.
+
+**Why**: `Delete`'s own `directory` (inherited default, unset) carries no `"list"` entry, so
+`resolve_crud_url("list")` always returns `None` regardless of `show_list_action` — the shell
+rendered the "Go Back" control as a destination-less `<button>` (`cotton/button.html` picks the
+element by `href|yesno:"a,button"`). Even set to a working list URL, "list" is the wrong
+destination: from a project's own deletion page, "back" means back to the project being
+considered for deletion, not the collection everyone reaches it through (FR-044/T070). The `?back`
+query-string override is preserved unchanged — only the two-step fallback chain's *final* step
+changes, from `resolve_crud_url("list")` to `self.base_object.get_absolute_url()`.
+
+**Revisit if**: `Delete` ever gains a genuine `"list"` action of its own — the override would then
+need to choose explicitly between the two rather than only ever preferring the project.
+
+---
+
 ## Raised separately
 
 Found while checking the specification against the code, real, and not this feature's work.
@@ -471,3 +516,35 @@ Found while checking the specification against the code, real, and not this feat
   projects. A dataset's pages mount under the singular form while the dataset itself is plural, and
   measurements are included under the singular form throughout. Samples are already plural. Raised
   separately so the convention lands across the repository rather than one record type at a time.
+- **An extra view's owner `check` is not actually consulted through a real HTTP request** —
+  verified while working T067/T068, not this feature's to fix (touches shared
+  `fairdm/contrib/plugins/base.py`/`access.py`, and the brief prohibits changing `check`).
+  `Plugin.has_permission()` calls `can_open(self.__class__, ...)`, and `can_open` reads
+  `owner = getattr(view_class, "plugin_class", None) or view_class` — but `plugin_class` is only
+  ever set as an *instance* attribute, by `View.as_view()`'s `cls(**initkwargs)` call inside
+  `Plugin.get_urls()`'s `mount()` closure. Reading it off the *class* (`self.__class__`, not
+  `self`) therefore always finds the un-set `ClassVar` default (`None`), so `owner` resolves to
+  the extra view itself, never its declared owner. Concretely: `Attributes.check` (unset, default
+  `True`) is what actually gates a real request to the attributes page — `Overview.check`
+  (`project_is_visible`) is never reached — so a private project is reachable through `Attributes`
+  or `Delete` by anyone holding the model-level permission alone, with no `view_project` grant at
+  all. Reproduced directly: `can_open(Attributes, request, private_project)` returns `True` for a
+  user holding only global `change_project`, no per-object grant, on a `Visibility.PRIVATE`
+  project. The existing test believed to cover this
+  (`TestTheOverviewGuardsAPrivateProjectsVisibility.test_the_attributes_page_inherits_the_visibility_check_from_its_owner`,
+  `tests/test_core/test_project/test_plugins.py`) passes for an unrelated reason — its fixture's
+  user is refused by the `permission` check alone, so it never exercises whether `check` itself
+  was inherited. `tests/test_core/test_project/test_plugins.py::TestAttributesPageOverHTTP::test_a_user_holding_change_permission_at_the_model_level_is_admitted`
+  independently demonstrates the same gap is already relied upon as intended behaviour (its
+  docstring: "the retiring standalone page's behaviour and must survive"), which is what makes
+  this a design question for the registry's own maintainer rather than a one-line fix here.
+- **FR-045 — "the attributes page MUST offer the deletion page to a user who may delete the
+  project" — has no task in `tasks.md`'s US-5 block (T067-T074) and so was not built here.**
+  `form_view.html` (the attributes page's own template, via `MVPUpdateView`) already has a slot
+  for exactly this: `{% if delete_url %}` in its `actions` block, fed by
+  `MVPUpdateView.get_delete_url()` → `resolve_crud_url("delete")`, gated by
+  `show_delete_action`/`crud_views["delete"]` on `Attributes` itself (not `Overview` — a
+  different instance of the same mechanism T068 switched on). Left alone rather than added
+  speculatively: the brief's acceptance criteria (T067-T071, T073) are what was authorised, and
+  the brief's own prohibitions call out scope containment. Flagged here so it is not read as
+  forgotten.
