@@ -249,6 +249,76 @@ singular form leaves the repository in one pass rather than one record type at a
 
 ---
 
+## Implementer decisions — US3 Foundations (T001-T005)
+
+Mini-ADRs from the Foundations phase build, per `implement-story.md` §2.6. Lighter-weight than the
+design-review entries above: these are choices made while building T001-T005, not settled during
+planning.
+
+### T002 — `fields` on `RelatedRecordInline` is a tuple, not a list
+
+**Decision**: `RelatedRecordInline.fields = ("type", "value")`.
+
+**Why**: it was first written as a list. `BaseInlineFormSet.__init__` appends the parent foreign
+key's name to `form._meta.fields` in place when it is a list
+(`django/forms/models.py:1115-1118`), and `get_factory_kwargs()` passes the class attribute through
+by reference, so building one subclass's formset (`ProjectDateInline`) permanently mutated the
+shared base class attribute for every other subclass, including `DatasetDateInline`'s. Reproduced
+with a failing test (`test_each_subclass_names_only_its_model`) before fixing; kept as a permanent
+regression test (`test_building_one_declarations_formset_does_not_mutate_the_shared_fields_tuple`).
+A tuple is immutable, which routes Django through its own copy-on-write branch instead.
+
+**Revisit if**: a future subclass needs to override `fields` with something other than a 2-tuple —
+still fine as a tuple, but worth re-reading this note before changing it back to a list for any
+reason.
+
+### T002/T004 — the row sets and the descriptions form are separate modules
+
+**Decision**: `fairdm/core/related_records.py` (row sets, T002) and `fairdm/core/descriptions.py`
+(the vocabulary form, T004) are two files, not one.
+
+**Why**: built together first, in one module, since both are "shared related-record pieces" per
+the brief. Split before committing so each task keeps its own clean commit, and because they serve
+different consumers later: US-3's attributes page lists row sets, US-4's descriptions page uses the
+form. Keeping them apart now means neither future story imports something the other doesn't need.
+
+**Revisit if**: nothing currently anticipated - this is a module-boundary call, not a load-bearing
+constraint.
+
+### T003 — the shared rule's message drops "collection" from the dataset wording
+
+**Decision**: `date_ordering_formset`'s message reads "The %(noun)s's end date (...) cannot be
+before its start date (...)" for both project and dataset, rather than keeping the dataset-specific
+"collection end date"/"collection start date" phrasing the duplicate carried.
+
+**Why**: the rule is parameterised on the noun alone (as the brief specifies), not on a
+per-record-type phrase fragment. No test in this repository asserts the literal error string - the
+existing admin tests for both `ProjectAdmin` and `DatasetAdmin` assert refusal (`response.status_code
+== 200`, no object created), not wording - so this was free to standardise. Recorded here because
+it is still user-facing text that changed on purpose.
+
+**Revisit if**: a future test starts asserting the literal message text, or a portal's translators
+report the wording is now ambiguous for dataset collection dates specifically.
+
+### T005 — permission fixtures each carry their own project as `.project`
+
+**Decision**: `user_with_change_permission`, `user_with_delete_permission` and
+`user_with_no_permission` each build a fresh `Project` internally and set it as an in-memory
+`.project` attribute on the returned `User`, rather than depending on the module's `private_project`
+fixture or returning a tuple.
+
+**Why**: the brief names five fixtures, one per bullet, each yielding one thing. A tuple return
+breaks the plain `def test_x(self, user_with_change_permission):` shape every other fixture in this
+package uses, and coupling the permission fixtures to `private_project` would make a test that asks
+for `user_with_change_permission` alone unable to assert the grant without also requesting a second,
+unrelated-looking fixture.
+
+**Revisit if**: a later story's test needs the permission-holding user and one of the public/private
+project fixtures to refer to the *same* project - at that point pass the project in explicitly at
+the call site rather than fixture-parametrizing.
+
+---
+
 ## Raised separately
 
 Found while checking the specification against the code, real, and not this feature's work.
