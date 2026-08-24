@@ -15,7 +15,13 @@ from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.factories import ProjectFactory, ProjectIdentifierFactory, UserFactory
+from fairdm.factories import (
+    OrganizationFactory,
+    PersonFactory,
+    ProjectFactory,
+    ProjectIdentifierFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -308,6 +314,42 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert concept in entries
         assert complete not in entries
+
+    def test_listing_owner_filter_narrows_to_the_matching_owner(self, client):
+        """T013 — the portal's owner filter narrows the listing to projects
+        held by the chosen owner."""
+        owner = OrganizationFactory()
+        matching = ProjectFactory(owner=owner, visibility=Visibility.PUBLIC)
+        other = ProjectFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("project-list"), {"owner": owner.pk})
+        entries = list(response.context["object_list"])
+        assert matching in entries
+        assert other not in entries
+
+    def test_listing_contributor_filter_narrows_to_the_matching_contributor(
+        self, client
+    ):
+        """T013 — the portal's contributor filter narrows the listing to
+        projects crediting the chosen contributor."""
+        person = PersonFactory()
+        matching = ProjectFactory(visibility=Visibility.PUBLIC)
+        matching.add_contributor(person)
+        other = ProjectFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("project-list"), {"contributor": person.pk})
+        entries = list(response.context["object_list"])
+        assert matching in entries
+        assert other not in entries
+
+    def test_listing_tag_filter_narrows_to_the_matching_tag(self, client):
+        """T013 — the portal's tag filter narrows the listing to projects
+        carrying the chosen tag."""
+        matching = ProjectFactory(visibility=Visibility.PUBLIC)
+        matching.tags.add("geothermal")
+        other = ProjectFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("project-list"), {"tags": "geothermal"})
+        entries = list(response.context["object_list"])
+        assert matching in entries
+        assert other not in entries
 
 
 # ---------------------------------------------------------------------------
