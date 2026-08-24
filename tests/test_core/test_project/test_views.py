@@ -1035,6 +1035,30 @@ class TestAttributesDateRowSet:
         assert not formsets["dates"].is_valid()
         assert not project.dates.filter(type="End").exists()
 
+    def test_a_start_date_with_no_end_date_is_accepted(self, client):
+        """T045 — A start date submitted with no end date is accepted: the ordering rule only
+        compares the pair when both sides are present (`date_ordering_formset`)."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Start Only", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(),
+                **_date_management_data(total=1, initial=0),
+                "dates-0-type": "Start",
+                "dates-0-value": "2020-06-01",
+            },
+        )
+
+        assert response.status_code == 302
+        assert project.dates.filter(type="Start", value="2020-06-01").exists()
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
