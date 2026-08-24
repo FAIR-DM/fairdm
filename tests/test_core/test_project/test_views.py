@@ -292,6 +292,23 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert entries.index(newer) < entries.index(older)
 
+    def test_listing_status_filter_narrows_to_the_matching_status(self, client):
+        """T012 — applying the status filter returns only projects of that
+        status. Attaches the portal's existing `ProjectFilter` (already
+        `filterset_class` on `ProjectListView`) rather than a new filter."""
+        concept = ProjectFactory(
+            status=ProjectStatus.CONCEPT, visibility=Visibility.PUBLIC
+        )
+        complete = ProjectFactory(
+            status=ProjectStatus.COMPLETE, visibility=Visibility.PUBLIC
+        )
+        response = client.get(
+            reverse("project-list"), {"status": ProjectStatus.CONCEPT}
+        )
+        entries = list(response.context["object_list"])
+        assert concept in entries
+        assert complete not in entries
+
 
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
