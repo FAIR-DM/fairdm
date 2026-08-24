@@ -719,6 +719,33 @@ class TestAttributesIdentifierRowSet:
             type="DOI", value="10.1/new-identifier"
         ).exists()
 
+    def test_changing_an_existing_identifiers_value_persists(self, client):
+        """T036 — Submitting a changed value for an existing identifier row persists it."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Has Identifier", owner=org)
+        identifier = ProjectIdentifierFactory(
+            related=project, type="DOI", value="10.1/original"
+        )
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(total=1, initial=1),
+                "identifiers-0-id": identifier.pk,
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "10.1/changed",
+            },
+        )
+
+        assert response.status_code == 302
+        identifier.refresh_from_db()
+        assert identifier.value == "10.1/changed"
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
