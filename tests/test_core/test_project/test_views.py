@@ -11,6 +11,7 @@ import time
 import pytest
 from django import forms
 from django.urls import reverse
+from django.views.generic import CreateView
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains
 
@@ -18,7 +19,7 @@ from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.core.project.views import ProjectListView
+from fairdm.core.project.views import ProjectCreateView, ProjectListView
 from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
@@ -26,7 +27,7 @@ from fairdm.factories import (
     ProjectIdentifierFactory,
     UserFactory,
 )
-from fairdm.views import FairDMListView
+from fairdm.views import FairDMCreateView, FairDMListView
 from fairdm.utils.choices import Visibility
 
 
@@ -469,6 +470,13 @@ class TestProjectCreateViewExtended:
         role_names = list(contributor.roles.values_list("name", flat=True))
         for role in ["Creator", "ProjectMember", "ContactPerson"]:
             assert role in role_names, f"Missing contributor role: {role}"
+
+    def test_create_view_derives_from_portal_create_base(self):
+        """T025 — The creation view derives from the portal's own create base class,
+        FairDMCreateView, rather than Django's generic CreateView directly."""
+        assert issubclass(ProjectCreateView, FairDMCreateView)
+        assert FairDMCreateView in ProjectCreateView.__mro__
+        assert CreateView not in ProjectCreateView.__bases__
 
 
 # ---------------------------------------------------------------------------
