@@ -1,3 +1,23 @@
-# About
+# The project page
 
-Coming soon...
+A project's own page is where you land when you open a project — its name, current status,
+visibility, owning organisation, contributors and datasets. Every other project page, described
+below, is reached from here.
+
+## Who can open it
+
+A **public** project's page can be opened by anyone, signed in or not. A **private** project's
+page can only be opened by someone holding view permission on that project — typically its
+contributors. Anyone else is refused.
+
+## The other project pages
+
+If you hold the right permission, the project's own page links to:
+
+- **Attributes** — correct the project's name, status, visibility, owning organisation, dates
+  and identifiers. Requires permission to change the project.
+- **Descriptions** — write the project's abstract and the other prose passages about it.
+  Requires permission to change the project.
+- **Delete** — remove the project entirely. Requires permission to delete the project.
+
+A link only appears if you are allowed to open the page it points to.

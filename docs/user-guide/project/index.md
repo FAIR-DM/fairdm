@@ -1,6 +1,6 @@
 # Projects
 
-The following guides will help you manage your account and profile on the platform. 
+The following guides describe the pages a project offers and what each one is for.
 
 ```{toctree}
 :maxdepth: 1
@@ -8,9 +8,7 @@ The following guides will help you manage your account and profile on the platfo
 
 about
 create
-configure
+attributes
 descriptions
-keywords
-key-dates
 delete
 ```
