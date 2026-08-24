@@ -122,7 +122,9 @@ class Delete(Plugin, FairDMDeleteView):
         try:
             return super().form_valid(form)
         except PublicDatasetsProtect:
-            return self.render_to_response(self.get_context_data(object=self.base_object))
+            return self.render_to_response(
+                self.get_context_data(object=self.base_object)
+            )
 
 
 @plugins.register(Project, label=_("Overview"), icon="view", order=0)
