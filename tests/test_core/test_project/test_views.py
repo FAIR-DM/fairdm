@@ -1095,6 +1095,30 @@ class TestAttributesSaveIsOneAtomicSubmission:
         project.refresh_from_db()
         assert project.name == "Original Name"
 
+    def test_a_successful_submission_redirects_to_the_projects_own_page(self, client):
+        """T047 — A valid submission redirects to the project's own page."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Original Name", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                "name": "Renamed",
+                **_identifier_management_data(),
+                **_date_management_data(),
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse(
+            "project:overview", kwargs={"uuid": project.uuid}
+        )
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
