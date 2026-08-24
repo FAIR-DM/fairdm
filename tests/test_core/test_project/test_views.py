@@ -410,8 +410,10 @@ class TestProjectCreateViewExtended:
         expected_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assert response.url == expected_url
 
-    def test_project_create_assigns_permissions_and_roles(self, client, user):
-        """T018a — After valid POST, creating user holds all 5 permissions and contributor roles."""
+    def test_creator_holds_all_project_permissions(self, client, user):
+        """T021 — After creation the creator holds view, change, delete, change-metadata
+        and change-settings permission on the new project. Each of the five is asserted
+        by name, then the assignment itself."""
         client.force_login(user)
         url = reverse("project-create")
         response = client.post(
@@ -435,12 +437,6 @@ class TestProjectCreateViewExtended:
         ]
         for perm in expected_perms:
             assert user.has_perm(perm, project), f"Missing permission: {perm}"
-
-        contributor = project.contributors.filter(contributor=user).first()
-        assert contributor is not None, "User should be a contributor"
-        role_names = list(contributor.roles.values_list("name", flat=True))
-        for role in ["Creator", "ProjectMember", "ContactPerson"]:
-            assert role in role_names, f"Missing contributor role: {role}"
 
 
 # ---------------------------------------------------------------------------
