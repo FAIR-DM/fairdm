@@ -224,6 +224,22 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert user_with_change_permission.project not in entries
 
+    def test_listing_search_by_name_returns_the_matching_project_only(
+        self, client
+    ):
+        """T008 — a distinctive word from one project's name, searched,
+        returns that project and excludes the others."""
+        target = ProjectFactory(
+            name="Zircon Thermochronology Survey", visibility=Visibility.PUBLIC
+        )
+        other = ProjectFactory(
+            name="Basalt Petrology Atlas", visibility=Visibility.PUBLIC
+        )
+        response = client.get(reverse("project-list"), {"q": "Thermochronology"})
+        entries = list(response.context["object_list"])
+        assert target in entries
+        assert other not in entries
+
 
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
