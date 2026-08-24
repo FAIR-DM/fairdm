@@ -6,6 +6,9 @@ T064 - its attributes and deletion pages are extra views of that registration, n
        of their own, so the navigation strip gains no entry for either.
 T065 - each of those pages states its own permission, since an additional view inherits its
        owner's predicate but never its permission.
+T066 - the registration's own visibility check refuses a private project to anyone without
+       `project.view_project`, since a registered page resolves its record past the filtered
+       manager on the assumption that the page gates itself.
 """
 
 import pytest
@@ -16,7 +19,8 @@ from django.urls import reverse
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.project.models import Project
-from fairdm.core.project.plugins import Attributes, Delete
+from fairdm.core.project.plugins import Attributes, Delete, Overview
+from fairdm.core.utils import assign_perm
 
 
 def _request_for(user, path="/"):
@@ -140,3 +144,41 @@ class TestEachExtraViewStatesItsOwnPermission:
     def test_deletion_refuses_an_anonymous_request(self, public_project):
         request = _request_for(AnonymousUser())
         assert can_open(Delete, request, public_project) is False
+
+
+@pytest.mark.django_db
+class TestTheOverviewGuardsAPrivateProjectsVisibility:
+    """The regression this restructuring is most likely to introduce (013 plan P1): a
+    registered page resolves its record through machinery that reads past the filtered manager,
+    on the assumption that the page gates itself. Without the visibility check carried across, a
+    private project becomes readable by anyone holding its address."""
+
+    def test_a_private_project_refuses_a_user_who_may_not_view_it(
+        self, private_project, user_with_no_permission
+    ):
+        request = _request_for(user_with_no_permission)
+        assert can_open(Overview, request, private_project) is False
+
+    def test_a_private_project_refuses_an_anonymous_request(self, private_project):
+        request = _request_for(AnonymousUser())
+        assert can_open(Overview, request, private_project) is False
+
+    def test_a_private_project_admits_a_user_holding_view_permission(
+        self, private_project, user_with_no_permission
+    ):
+        assign_perm("view_project", user_with_no_permission, private_project)
+        request = _request_for(user_with_no_permission)
+        assert can_open(Overview, request, private_project) is True
+
+    def test_a_public_project_admits_an_anonymous_request(self, public_project):
+        request = _request_for(AnonymousUser())
+        assert can_open(Overview, request, public_project) is True
+
+    def test_the_attributes_page_inherits_the_visibility_check_from_its_owner(
+        self, private_project, user_with_change_permission
+    ):
+        """A user holding change rights on a *different* project still cannot reach a private
+        project's attributes page: an additional view inherits its owner's `check`, so the
+        visibility guard applies there too."""
+        request = _request_for(user_with_change_permission)
+        assert can_open(Attributes, request, private_project) is False

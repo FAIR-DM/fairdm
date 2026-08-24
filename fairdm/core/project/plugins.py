@@ -12,12 +12,32 @@ from fairdm.contrib.generic.plugins import (
     KeywordsPlugin,
 )
 from fairdm.contrib.plugins import Plugin
+from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.plugins import OverviewPlugin
+from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
 from ..dataset.views import DatasetListView
 from .forms import ProjectForm
 from .models import Project, ProjectDate, ProjectDescription, PublicDatasetsProtect
+
+
+def project_is_visible(request, obj):
+    """Whether ``request``'s user may view ``obj`` — a public project always, a private one only
+    with ``project.view_project``.
+
+    A registered page resolves its record through machinery that deliberately reads past
+    filtered managers (``fairdm.contrib.plugins.base.Plugin.get_base_object``), on the assumption
+    the page gates itself. ``Project`` has no privacy-filtered default manager either, so without
+    this check a private project would be readable by anyone holding its address (013 plan P1).
+    Set as :class:`Overview`'s ``check`` rather than reimplemented per page: an additional view
+    inherits its owner's ``check``, so :class:`Attributes` and :class:`Delete` are covered too.
+    """
+    if obj is None:
+        return True
+    if obj.visibility == Visibility.PUBLIC:
+        return True
+    return has_perm(request, "project.view_project", obj)
 
 
 class Attributes(Plugin, FairDMUpdateView):
@@ -80,6 +100,7 @@ class Overview(OverviewPlugin):
     """
 
     url_path = None
+    check = staticmethod(project_is_visible)
     template_name = "project/project_detail.html"
     extra_views = [Attributes, Delete]
 
