@@ -59,10 +59,8 @@ So the descriptions page is a form whose fields are generated from the related m
 one text area per concept, labelled with its name and helped by its definition. Saving writes,
 updates or deletes one row per area.
 
-**Driving the fields off the vocabulary is what makes this expand without code.** A new description
-type is a vocabulary entry and the page grows a field, which is the same property the row sets have
-for dates and identifiers under P3. The two shapes differ in what the user sees, not in what it
-costs to extend them.
+Driving the fields off the vocabulary is what lets the page expand without code: a new description
+type is a vocabulary entry, and the page grows a field.
 
 It is registered as a page against the project, which supplies the address, the menu entry, the
 breadcrumbs and the permission check, and means the tab is hidden from users who may not open it.
@@ -88,20 +86,18 @@ Two reasons, and neither is about the project.
 - **The vocabulary will grow.** Community feedback adds date types, and adding one should be a
   vocabulary entry rather than a new form field, a new save branch and a new test. A row set absorbs
   a new type with no code at all.
-- **The other record types have several.** Datasets, samples and measurements all carry more dates
-  than a project does. If the project's page treats dates as fields and theirs treat dates as rows,
-  a user who learns one page has to learn the next. Consistency across the record types is worth
-  more than the validation class it costs here.
+- **The other record types carry more of them.** A page that treats dates as fields here and as rows
+  everywhere else makes a user learn each record type separately. P6 covers what that costs.
 
 Three settings are not optional:
 
 - `extra = 0` on both sets. The interface layer omits anything left unset, so Django's default of
   three blank rows applies otherwise.
-- `formset = DateInlineFormSet` on the dates set, reusing the class already written for the admin
-  (`project/admin.py:24-66`). Without it the sibling comparison in `ProjectDate.clean()` is skipped
-  when the parent is new and compares against stale values otherwise, because the sibling row is
-  unsaved and the check queries the database. This is the single most likely thing to ship broken
-  and unnoticed.
+- The date-ordering rule on the dates set, as the shared parameterised formset described in P6.
+  Without it the check in `ProjectDate.clean()` runs and finds nothing: it looks the sibling up in
+  the database, so where both rows are submitted together it sees neither, and where one is stored
+  it compares against the stored value rather than the submitted one. This is the single most likely
+  thing to ship broken and unnoticed.
 - `value` and `type` present in both field lists. A model `clean()` that keys an error to a field
   absent from the form raises rather than reporting it.
 
@@ -150,34 +146,51 @@ A permission-dependent flag is written as a method, not a lambda. The shell read
 That is a 500 on the project page, confirmed on this branch. The method form is also what gives the
 object-level check access to the record.
 
-### P6 — Everything here is built for the four record types, not for projects
+### P6 — Built for the four record types, by declaration rather than by machinery
 
 Datasets, samples and measurements follow this feature, in that order. Anything written
-project-shaped now is written three more times later, so the default is a piece parameterised by the
-record type, with the project supplying only what is genuinely its own.
+project-shaped now is written three more times later. The first draft of this decision answered that
+with a mixin that resolved each record's related models at runtime and built its row sets
+dynamically. That was the wrong instrument, for a reason worth recording.
 
-The structure supports this already. Every core record has a `<Model>Description`, `<Model>Date` and
-`<Model>Identifier` subclassing the same three abstract models, each carrying a `VOCABULARY` and
-reachable from its parent under the same names: `descriptions`, `dates`, `identifiers`. A component
-can therefore find a record's related models from the record itself, without a per-model register.
+**The declaration it would have replaced is five lines.** A row set needs a model, the two fields
+every one of these records has, and no blank rows. The invariant part factors into a single shared
+base; what remains is one line per related model. A resolver that computes those four lines is a
+mechanism with one caller, and it buys nothing that a base class does not.
 
-So:
+**Worse, the resolver would have hidden a real difference.** Only two of the four record types have
+an ordered pair of dates, and they do not agree on the names: a project's are `Start` and `End`, a
+dataset's are `CollectionStart` and `CollectionEnd`, and samples and measurements have no such pair
+at all — their vocabularies are `Created`/`Destroyed`/`Collected`/… and `Setup`/`TearDown`. Handing
+every record type the same date rule means three of them get a rule that silently checks nothing,
+because its type names are not in their vocabulary. That is the defect this plan calls the most
+likely thing to ship unnoticed, reintroduced by the attempt to generalise.
 
-- **The attributes page's related sets come from a mixin**, which builds the date and identifier row
-  sets from the parent model's own relations. A record type's page declares which sets it wants, not
-  how to build them.
-- **The descriptions page is one view and one form**, generated from the related model's vocabulary
-  and registered once per record type.
-- **Templates and components are shared.** The interface layer already ships the row-set component;
-  the descriptions page needs one template, and it is written against "a record and its vocabulary"
-  rather than against a project.
-- **The permission string is derived from the record type**, not written out per page.
+So the shape is:
 
-The proof is a test, not an intention: **the mixin and the descriptions form are exercised against
-`Dataset` as well as `Project`, without adding dataset pages in this work.** That is what
-distinguishes a reusable piece from a project-shaped one that happens to be called generic, and it
-costs one test module. Where something genuinely cannot generalise, it stays in the project's own
-module and the reason is written down.
+- **One shared row-set base** carrying the fields and `extra = 0`, with one subclass per related
+  model naming only its model. Each record type's page lists the sets it wants.
+- **One date-ordering rule, parameterised** on its start type, its end type and the noun in its
+  message, in a shared module. A record type that has no ordered pair does not use it, and that is
+  an explicit decision rather than a rule that runs and finds nothing.
+- **The descriptions page is one view and one form**, its fields generated from the related model's
+  vocabulary, registered once per record type. This one genuinely is generic: the vocabulary is the
+  only thing that varies and every one of these models carries it.
+- **The permission string stays written out per page.** Deriving it from the record type breaks on
+  the polymorphic types, where a concrete subclass reports its own app: a sample subclass derives
+  `fairdm_demo.change_rocksample`, which nothing grants, because grants are normalised to the
+  polymorphic base. The existing pages already write the string out, and this follows them.
+
+**This removes duplication that already exists**, which is the strongest evidence the shape is
+right. The date-ordering rule has been copy-pasted once already — `fairdm/core/project/admin.py:24`
+and `fairdm/core/dataset/admin.py:74`, the second one's docstring saying it mirrors the first, and
+only the second carrying a test. Lifting one parameterised version and pointing both admins at it is
+net work removed from datasets, samples and measurements rather than added here.
+
+The guard is that the shared pieces are tested against two record types, not one: the row-set base
+and the descriptions form are exercised over `Project` and `Dataset` in the same test, asserting
+behaviour rather than construction. Asserting that a component built from a model's own relations
+yields that model's relations proves nothing — it can only fail if a literal name was left behind.
 
 ## Order
 

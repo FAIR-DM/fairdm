@@ -39,6 +39,11 @@
       "state": "PLAN",
       "at": "2026-08-24T09:30:00Z",
       "note": "replanned on Sam's feedback: dates return to a row set, and the related-record pieces are built for all four record types"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-24T10:30:00Z",
+      "note": "second focused review: the reuse design was replaced with a shared declaration and a parameterised date rule after it was shown to validate nothing on three of four record types"
     }
   ],
   "gates": {
@@ -69,7 +74,7 @@
       "replans": 1,
       "tasks": [
         {
-          "id": "T005",
+          "id": "T006",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -83,11 +88,6 @@
               "pytest tests/test_core/test_project/ -q"
             ]
           }
-        },
-        {
-          "id": "T006",
-          "status": "todo",
-          "attempts": 0
         },
         {
           "id": "T007",
@@ -106,6 +106,11 @@
         },
         {
           "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -119,11 +124,6 @@
               "pytest tests/test_core/test_project/ -q"
             ]
           }
-        },
-        {
-          "id": "T011",
-          "status": "todo",
-          "attempts": 0
         },
         {
           "id": "T012",
@@ -144,6 +144,11 @@
           "id": "T015",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -156,7 +161,7 @@
       "replans": 1,
       "tasks": [
         {
-          "id": "T016",
+          "id": "T017",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -172,11 +177,6 @@
           }
         },
         {
-          "id": "T017",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
           "id": "T018",
           "status": "todo",
           "attempts": 0
@@ -188,6 +188,11 @@
         },
         {
           "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -203,7 +208,7 @@
           }
         },
         {
-          "id": "T021",
+          "id": "T022",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -219,7 +224,7 @@
           }
         },
         {
-          "id": "T022",
+          "id": "T023",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -235,7 +240,7 @@
           }
         },
         {
-          "id": "T023",
+          "id": "T024",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -251,7 +256,7 @@
           }
         },
         {
-          "id": "T024",
+          "id": "T025",
           "status": "todo",
           "attempts": 0
         }
@@ -286,7 +291,12 @@
           "attempts": 0
         },
         {
-          "id": "T025",
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -302,7 +312,7 @@
           }
         },
         {
-          "id": "T026",
+          "id": "T027",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -316,11 +326,6 @@
               "pytest tests/test_core/test_project/ -q"
             ]
           }
-        },
-        {
-          "id": "T027",
-          "status": "todo",
-          "attempts": 0
         },
         {
           "id": "T028",
@@ -438,12 +443,7 @@
           "attempts": 0
         },
         {
-          "id": "T051",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T087",
+          "id": "T086",
           "status": "todo",
           "attempts": 0
         }
@@ -457,6 +457,11 @@
       "status": "todo",
       "replans": 1,
       "tasks": [
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
         {
           "id": "T052",
           "status": "todo",
@@ -511,11 +516,6 @@
           "id": "T062",
           "status": "todo",
           "attempts": 0
-        },
-        {
-          "id": "T063",
-          "status": "todo",
-          "attempts": 0
         }
       ]
     },
@@ -527,6 +527,11 @@
       "status": "todo",
       "replans": 1,
       "tasks": [
+        {
+          "id": "T063",
+          "status": "todo",
+          "attempts": 0
+        },
         {
           "id": "T064",
           "status": "todo",
@@ -571,11 +576,6 @@
           "id": "T072",
           "status": "todo",
           "attempts": 0
-        },
-        {
-          "id": "T073",
-          "status": "todo",
-          "attempts": 0
         }
       ]
     },
@@ -588,7 +588,7 @@
       "replans": 1,
       "tasks": [
         {
-          "id": "T074",
+          "id": "T073",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -604,7 +604,7 @@
           }
         },
         {
-          "id": "T075",
+          "id": "T074",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -620,7 +620,7 @@
           }
         },
         {
-          "id": "T076",
+          "id": "T075",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -636,12 +636,12 @@
           }
         },
         {
-          "id": "T077",
+          "id": "T076",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T078",
+          "id": "T077",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -657,7 +657,7 @@
           }
         },
         {
-          "id": "T079",
+          "id": "T078",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -673,7 +673,7 @@
           }
         },
         {
-          "id": "T080",
+          "id": "T079",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -689,7 +689,7 @@
           }
         },
         {
-          "id": "T081",
+          "id": "T080",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -703,6 +703,11 @@
               "pytest tests/test_core/test_project/ -q"
             ]
           }
+        },
+        {
+          "id": "T081",
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T082",
@@ -721,11 +726,6 @@
         },
         {
           "id": "T085",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T086",
           "status": "done",
           "attempts": 0,
           "evidence": {
@@ -741,17 +741,17 @@
           }
         },
         {
+          "id": "T087",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
           "id": "T088",
           "status": "todo",
           "attempts": 0
         },
         {
           "id": "T089",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T090",
           "status": "todo",
           "attempts": 0
         }
@@ -768,7 +768,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 1,
+      "used": 2,
       "max": 2
     },
     "tokens": {
