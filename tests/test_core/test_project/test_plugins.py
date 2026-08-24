@@ -729,3 +729,76 @@ class TestAttributesDescriptionsAndDeletionEachLinkBackToTheProject:
 
         project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assertContains(response, f'href="{project_url}"')
+
+
+@pytest.mark.django_db
+class TestEveryLinkEachPageDrawsResolvesToARealAddress:
+    """T071 — every link drawn by each page this feature owns resolves to a real address; none
+    is empty (FR-043). One test per page, parsing the rendered HTML for every ``href`` rather
+    than asserting a hardcoded list of addresses, so a link added later stays covered without
+    the test being rewritten. Rendered as a fully-permitted, signed-in user throughout, so every
+    link a page can draw is actually drawn."""
+
+    def _permitted_user(self, project):
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        assign_perm("delete_project", user, project)
+        return user
+
+    def test_the_listing_draws_no_empty_link(self, client):
+        ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(UserFactory())
+
+        response = client.get(reverse("project-list"))
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
+
+    def test_the_projects_own_page_draws_no_empty_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(project))
+
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": project.uuid})
+        )
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
+
+    def test_the_attributes_page_draws_no_empty_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(project))
+
+        response = client.get(
+            reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        )
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
+
+    def test_the_descriptions_page_draws_no_empty_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(project))
+
+        response = client.get(
+            reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        )
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
+
+    def test_the_deletion_page_draws_no_empty_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(project))
+
+        response = client.get(
+            reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        )
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
