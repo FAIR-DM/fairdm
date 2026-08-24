@@ -45,4 +45,4 @@ private and be opened up once it is.
 
 Click **Create**. You land on the new project's own page, from which you can add its image,
 owning organisation, dates, identifiers and descriptions — see
-[Attributes](attributes.md) and [Descriptions](descriptions.md).
+[Update project](update.md) and [Descriptions](descriptions.md).

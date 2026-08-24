@@ -31,7 +31,7 @@ from pytest_django.asserts import assertContains, assertNotContains
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.project.models import Project
-from fairdm.core.project.plugins import Attributes, Delete, Descriptions, Overview
+from fairdm.core.project.plugins import Delete, Descriptions, Overview, Update
 from fairdm.core.utils import assign_perm
 from fairdm.factories import ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
@@ -99,10 +99,8 @@ class TestAttributesAndDeletionAreExtraViewsNotEntries:
     def test_the_attributes_page_resolves_as_an_extra_view_of_the_overview(
         self, public_project
     ):
-        url = reverse(
-            "project:overview-attributes", kwargs={"uuid": public_project.uuid}
-        )
-        assert url.endswith(f"{public_project.uuid}/attributes/")
+        url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
+        assert url.endswith(f"{public_project.uuid}/update/")
 
     def test_the_deletion_page_resolves_as_an_extra_view_of_the_overview(
         self, public_project
@@ -112,7 +110,7 @@ class TestAttributesAndDeletionAreExtraViewsNotEntries:
 
     def test_the_project_menu_carries_no_entry_for_attributes_or_deletion(self):
         labels = _entry_labels(Project)
-        assert "Attributes" not in labels
+        assert "Update" not in labels
         assert "Delete" not in labels
 
     def test_the_project_menu_carries_exactly_one_entry_for_the_collection(self):
@@ -134,19 +132,17 @@ class TestEachExtraViewStatesItsOwnPermission:
         self, public_project, user_with_no_permission
     ):
         request = _request_for(user_with_no_permission)
-        assert can_open(Attributes, request, public_project) is False
+        assert can_open(Update, request, public_project) is False
 
     def test_attributes_admits_a_user_holding_change_permission(
         self, user_with_change_permission
     ):
         request = _request_for(user_with_change_permission)
-        assert (
-            can_open(Attributes, request, user_with_change_permission.project) is True
-        )
+        assert can_open(Update, request, user_with_change_permission.project) is True
 
     def test_attributes_refuses_an_anonymous_request(self, public_project):
         request = _request_for(AnonymousUser())
-        assert can_open(Attributes, request, public_project) is False
+        assert can_open(Update, request, public_project) is False
 
     def test_deletion_refuses_a_signed_in_user_without_delete_permission(
         self, public_project, user_with_no_permission
@@ -200,7 +196,7 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
         project's attributes page: an additional view inherits its owner's `check`, so the
         visibility guard applies there too."""
         request = _request_for(user_with_change_permission)
-        assert can_open(Attributes, request, private_project) is False
+        assert can_open(Update, request, private_project) is False
 
 
 @pytest.mark.django_db
@@ -246,19 +242,15 @@ class TestAttributesPageOverHTTP:
     ):
         """T026 — Reversed by name, the attributes page's URL carries the project's own
         identifier rather than resolving to an address of its own."""
-        url = reverse(
-            "project:overview-attributes", kwargs={"uuid": public_project.uuid}
-        )
-        assert url == f"/projects/{public_project.uuid}/attributes/"
+        url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
+        assert url == f"/projects/{public_project.uuid}/update/"
 
     def test_an_anonymous_visitor_opening_the_attributes_page_is_redirected_to_sign_in(
         self, client, public_project
     ):
         """T026 — Opened directly (not merely reversed), the attributes page redirects an
         anonymous visitor to sign in rather than admitting them or 404ing."""
-        url = reverse(
-            "project:overview-attributes", kwargs={"uuid": public_project.uuid}
-        )
+        url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert reverse("account_login") in response.url
@@ -284,7 +276,7 @@ class TestAttributesPageOverHTTP:
         )
         client.force_login(user)
 
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         assert response.status_code == 200
@@ -315,7 +307,7 @@ class TestExactlyOnePageOffersTheProjectsOwnAttributes:
             if fields and self.ATTRIBUTES_FIELDS & set(fields):
                 offering_pages.append(page)
 
-        assert offering_pages == [Attributes]
+        assert offering_pages == [Update]
 
 
 @pytest.mark.django_db
@@ -625,7 +617,7 @@ class TestProjectsOwnPageOffersAttributesAndDescriptionsLinks:
         )
 
         attributes_url = reverse(
-            "project:overview-attributes", kwargs={"uuid": project.uuid}
+            "project:overview-update", kwargs={"uuid": project.uuid}
         )
         descriptions_url = reverse(
             "project:descriptions", kwargs={"uuid": project.uuid}
@@ -643,7 +635,7 @@ class TestProjectsOwnPageOffersAttributesAndDescriptionsLinks:
         )
 
         attributes_url = reverse(
-            "project:overview-attributes", kwargs={"uuid": project.uuid}
+            "project:overview-update", kwargs={"uuid": project.uuid}
         )
         descriptions_url = reverse(
             "project:descriptions", kwargs={"uuid": project.uuid}
@@ -701,7 +693,7 @@ class TestAttributesDescriptionsAndDeletionEachLinkBackToTheProject:
         assign_perm("change_project", user, project)
         client.force_login(user)
 
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
@@ -773,7 +765,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         client.force_login(self._permitted_user(project))
 
         response = client.get(
-            reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+            reverse("project:overview-update", kwargs={"uuid": project.uuid})
         )
 
         hrefs = _hrefs(response.content.decode())
@@ -821,11 +813,13 @@ class TestAttributesPageOffersTheDeletionLink:
         client.force_login(user)
 
         response = client.get(
-            reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+            reverse("project:overview-update", kwargs={"uuid": project.uuid})
         )
 
         delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        assert any(href.startswith(delete_url) for href in _hrefs(response.content.decode()))
+        assert any(
+            href.startswith(delete_url) for href in _hrefs(response.content.decode())
+        )
 
     def test_a_user_who_may_change_but_not_delete_is_offered_no_link(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -834,7 +828,7 @@ class TestAttributesPageOffersTheDeletionLink:
         client.force_login(user)
 
         response = client.get(
-            reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+            reverse("project:overview-update", kwargs={"uuid": project.uuid})
         )
 
         delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
@@ -855,7 +849,7 @@ class TestAttributesPageOffersTheDeletionLink:
         client.force_login(user)
 
         attributes_url = reverse(
-            "project:overview-attributes", kwargs={"uuid": project.uuid}
+            "project:overview-update", kwargs={"uuid": project.uuid}
         )
         response = client.get(attributes_url)
         delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})

@@ -8,7 +8,7 @@ The following guides describe the pages a project offers and what each one is fo
 
 about
 create
-attributes
+update
 descriptions
 delete
 ```

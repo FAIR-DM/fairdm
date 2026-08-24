@@ -14,7 +14,7 @@ contributors. Anyone else is refused.
 
 If you hold the right permission, the project's own page links to:
 
-- **Attributes** — correct the project's name, status, visibility, owning organisation, dates
+- **Update project** — correct the project's name, status, visibility, owning organisation, dates
   and identifiers. Requires permission to change the project.
 - **Descriptions** — write the project's abstract and the other prose passages about it.
   Requires permission to change the project.

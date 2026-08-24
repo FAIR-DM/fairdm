@@ -558,10 +558,7 @@ class TestProjectFunding:
         project.refresh_from_db()
         reference = project.funding[0]
         assert reference["funderName"] == "Sample Agency"
-        assert (
-            reference["funderIdentifier"]
-            == "https://doi.org/10.13039/501100000923"
-        )
+        assert reference["funderIdentifier"] == "https://doi.org/10.13039/501100000923"
         assert reference["funderIdentifierType"] == "ROR"
         assert reference["awardNumber"] == "GRANT-2024-001"
         assert reference["awardTitle"] == "A study of things"
@@ -813,8 +810,7 @@ class TestProjectRoleDataciteMapping:
 
         datacite_names = set(DataciteContributorRoles().values)
         missing = {
-            PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES[name]
-            for name in project_role_names
+            PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES[name] for name in project_role_names
         } - datacite_names
         assert not missing, f"mapped to a non-existent DataCite role: {missing}"
 
@@ -917,7 +913,9 @@ class TestProjectViews:
     def test_project_detail_view_accessible(self, client):
         """Test that project detail view is accessible."""
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project:overview", kwargs={"uuid": project.uuid}))
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": project.uuid})
+        )
 
         assert response.status_code == 200
         assert project.name.encode() in response.content
@@ -1324,7 +1322,7 @@ class TestProjectObjectPermissions:
         client.force_login(other_user)
 
         # Attempt to access edit view
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         # Verify access denied (403) or redirect
@@ -1360,7 +1358,7 @@ class TestProjectObjectPermissions:
         client.force_login(editor)
 
         # Access edit view
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         # Verify successful access
@@ -1522,9 +1520,7 @@ class TestProjectWithMetadataQueryCount:
         )
 
         with django_assert_num_queries(6):
-            self._touch_all_related(
-                Project.objects.with_metadata().filter(pk=small.pk)
-            )
+            self._touch_all_related(Project.objects.with_metadata().filter(pk=small.pk))
 
         # Several projects, each carrying several of every related record -
         # the query count for loading and touching all of them must not grow

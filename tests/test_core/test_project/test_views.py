@@ -544,7 +544,7 @@ class TestProjectUpdateView:
     def test_project_update_anonymous_redirects_to_login(self, client):
         """T022 — GET /projects/<uuid>/update/ by anonymous client returns 302."""
         project = ProjectFactory()
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
@@ -554,7 +554,7 @@ class TestProjectUpdateView:
         project = ProjectFactory()
         other_user = UserFactory()
         client.force_login(other_user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
@@ -564,7 +564,7 @@ class TestProjectUpdateView:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
@@ -598,7 +598,7 @@ class TestProjectUpdateView:
             )
             assign_perm("change_project", user, project)
             client.force_login(user)
-            url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+            url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
             data = {
                 **base_data,
                 field: new_value,
@@ -627,7 +627,7 @@ class TestProjectUpdateView:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         base_data = {
             "name": project.name,
             "status": project.status,
@@ -659,7 +659,7 @@ class TestProjectUpdateView:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -691,7 +691,7 @@ class TestProjectUpdateView:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.post(
             url,
             data={
@@ -734,7 +734,7 @@ class TestAttributesIdentifierRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
 
@@ -753,7 +753,7 @@ class TestAttributesIdentifierRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -781,7 +781,7 @@ class TestAttributesIdentifierRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -809,7 +809,7 @@ class TestAttributesIdentifierRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -841,7 +841,7 @@ class TestAttributesIdentifierRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -873,7 +873,7 @@ class TestAttributesIdentifierRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -912,7 +912,7 @@ class TestAttributesDateRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
 
@@ -931,7 +931,7 @@ class TestAttributesDateRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -955,7 +955,7 @@ class TestAttributesDateRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -981,7 +981,7 @@ class TestAttributesDateRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1012,7 +1012,7 @@ class TestAttributesDateRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1046,7 +1046,7 @@ class TestAttributesDateRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1075,7 +1075,7 @@ class TestAttributesDateRowSet:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1108,7 +1108,7 @@ class TestAttributesSaveIsOneAtomicSubmission:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1134,7 +1134,7 @@ class TestAttributesSaveIsOneAtomicSubmission:
         user = UserFactory()
         assign_perm("change_project", user, project)
         client.force_login(user)
-        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,

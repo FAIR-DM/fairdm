@@ -1,12 +1,13 @@
-# Attributes
+# Update project
 
-The attributes page is where a project's own record is corrected: its image, name, lifecycle
+The update page is where a project's own record is corrected: its image, name, lifecycle
 status, visibility, and owning organisation, together with its dates and external identifiers.
 
 ## Who can open it
 
 Anyone holding permission to change the project — typically its contributors. Anyone else is
-refused, and the link to this page is not shown to them on the project's own page.
+refused, and the link to this page is not shown to them on the project's own page. A private
+project also refuses anyone who cannot see it, the same rule the project's own page applies.
 
 ## What you can change
 

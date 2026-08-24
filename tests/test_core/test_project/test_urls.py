@@ -21,10 +21,8 @@ class TestTheProjectsPagesSitUnderThePluralPrefix:
         assert url == f"/projects/{public_project.uuid}/"
 
     def test_the_attributes_page_resolves_under_the_plural_prefix(self, public_project):
-        url = reverse(
-            "project:overview-attributes", kwargs={"uuid": public_project.uuid}
-        )
-        assert url == f"/projects/{public_project.uuid}/attributes/"
+        url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
+        assert url == f"/projects/{public_project.uuid}/update/"
 
     def test_the_deletion_page_resolves_under_the_plural_prefix(self, public_project):
         url = reverse("project:overview-delete", kwargs={"uuid": public_project.uuid})
