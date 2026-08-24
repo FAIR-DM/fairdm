@@ -415,6 +415,27 @@ and the coverage this entry relies on would need re-establishing at the form lev
 
 ---
 
+### T062 — `ProjectDescriptionForm` and `TestProjectDescriptionForm` deleted
+
+**Decision**: `ProjectDescriptionForm` (`fairdm/core/project/forms.py`) and its test class
+`TestProjectDescriptionForm` (`tests/test_core/test_project/test_forms.py`) were deleted, along
+with the now-unused `ValidationError` import the form's `clean()` needed. Named explicitly in the
+US4 brief's acceptance criteria for T062, not an escalation.
+
+**Why**: the form was used by no running code — the old, unregistered `Descriptions` plugin class
+it backed was itself replaced by the registered page built on `VocabularyDescriptionsForm` at
+T051. The per-type uniqueness the deleted test asserted (`test_description_form_enforces_uniqueness`)
+is covered more broadly now, through the page rather than the form directly:
+`TestSavingTextIntoOneAreaRecordsOnlyThatType` (T055), `TestEditingAnExistingDescriptionPersists`
+(T057) and `TestRepeatSubmissionNeverDuplicatesAType` (T060) — the last one asserting the count
+per type after a repeat submission, which the deleted test never reached since it only checked
+that a second `is_valid()` call failed.
+
+**Revisit if**: a later change reintroduces a form keyed on a single `(type, value)` pair rather
+than the vocabulary-driven slot form — the uniqueness behaviour would need a form-level test again.
+
+---
+
 ## Raised separately
 
 Found while checking the specification against the code, real, and not this feature's work.

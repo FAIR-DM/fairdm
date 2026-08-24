@@ -1,7 +1,6 @@
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper, Layout
 from django import forms
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from easy_thumbnails.widgets import ImageClearableFileInput
 
@@ -99,84 +98,3 @@ class ProjectCreateForm(ProjectForm):
                 "visibility"
             ),  # BUG: Inline radios is causing a layout error with crispy forms. Submit buttons render inside the radio group. Need to investigate and fix this issue.
         )
-
-
-class ProjectDescriptionForm(ModelForm):
-    """Form for adding/editing ProjectDescription instances.
-
-    Validates that only one description of each type exists per project,
-    enforcing the unique_together constraint at the form level.
-
-    Fields:
-    - type: Description type from controlled vocabulary
-    - value: Description text content
-
-    Validation:
-    - Enforces uniqueness of (related, type) combination
-    - Provides clear error messages for duplicate types
-
-    Usage:
-        form = ProjectDescriptionForm(data=request.POST)
-        form.instance.related = project
-        if form.is_valid():
-            form.save()
-    """
-
-    type = forms.ChoiceField(
-        label=_("Description type"),
-        help_text=_("What kind of description is this?"),
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-
-    value = forms.CharField(
-        label=_("Description"),
-        help_text=_("Provide the description text."),
-        widget=forms.Textarea(
-            attrs={
-                "class": "form-control",
-                "rows": 5,
-            }
-        ),
-    )
-
-    class Meta:
-        from .models import ProjectDescription
-
-        model = ProjectDescription
-        fields = ["type", "value"]
-
-    def __init__(self, *args, **kwargs):
-        """Initialize form and set type choices from vocabulary."""
-        super().__init__(*args, **kwargs)
-        from .models import ProjectDescription
-
-        # Set type choices from model vocabulary
-        self.fields["type"].choices = ProjectDescription.VOCABULARY.choices
-
-    def clean(self):
-        """Validate that description type is unique for the project."""
-        cleaned_data = super().clean()
-        description_type = cleaned_data.get("type")
-
-        # Check for duplicate description type on the same project
-        if self.instance.related_id and description_type:
-            from .models import ProjectDescription
-
-            existing = (
-                ProjectDescription.objects.filter(
-                    related=self.instance.related, type=description_type
-                )
-                .exclude(pk=self.instance.pk)
-                .exists()
-            )
-
-            if existing:
-                raise ValidationError(
-                    {
-                        "type": _(
-                            "A description of type '{type}' already exists for this project."
-                        ).format(type=description_type)
-                    }
-                )
-
-        return cleaned_data
