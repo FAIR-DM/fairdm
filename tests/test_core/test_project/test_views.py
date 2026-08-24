@@ -103,6 +103,8 @@ class TestProjectCreateView:
 
         Requirement: FR-017 - A project must record the user who created it.
         User Story: US7 - Know who made a project and when it last changed.
+
+        T023 — After creation the project records the signed-in user as its creator.
         """
         url = reverse("project-create")
         form_data = {
