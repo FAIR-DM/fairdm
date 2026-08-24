@@ -425,7 +425,7 @@
       "priority": "P1",
       "issue": 270,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 2,
       "tasks": [
         {
@@ -952,7 +952,7 @@
       "priority": "P2",
       "issue": 271,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 2,
       "tasks": [
         {
@@ -1174,7 +1174,7 @@
       "priority": "P2",
       "issue": 272,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 2,
       "tasks": [
         {
@@ -1482,7 +1482,7 @@
       "priority": "P3",
       "issue": 273,
       "worktree": null,
-      "status": "done",
+      "status": "todo",
       "replans": 2,
       "tasks": [
         {
@@ -1735,6 +1735,31 @@
               "grep -n \"R12\" -A 8 docs/ROADMAP.md"
             ]
           }
+        },
+        {
+          "id": "T100",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T101",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T102",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T103",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T104",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     }

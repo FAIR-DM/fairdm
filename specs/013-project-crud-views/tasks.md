@@ -258,3 +258,21 @@ adjudications.
 - **T099** — Raise the registry's owner-resolution defect separately: the visibility rule of an
   owning page is never consulted for anything belonging to it, anywhere in the repository. Not this
   feature's fix. Raised as issue #284.
+
+## Convergence
+
+Found by the machine gates on the assembled branch. Lint, type checks and the suite are green; these
+are the documentation and test-layout obligations the branch incurred.
+
+- **T100** — `docs/contributing/base-views.md` describes a view this feature removed. Rewrite the
+  page against what the code now does, and confirm every example on it runs.
+- **T101** — `docs/portal-development/create_a_plugin.md` and
+  `docs/portal-development/filtering-by-vocabulary.md` both describe a keywords page this feature
+  removed. Rewrite both against what the code now does.
+- **T102** — Every public name this branch adds is documented on a page a reader can reach. A
+  docstring is not documentation and neither is a changelog entry.
+- **T103** — The architecture decision record this feature graduated is reachable from the
+  documentation's navigation. The records that predate it are unreachable too, and one index serves
+  all of them.
+- **T104** — The fixture tests added for this feature sit in a module that mirrors no source
+  module. Move them into the module of their subject, per the repository's test-layout standard.
