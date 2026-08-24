@@ -188,7 +188,7 @@ class TestExtraViews:
             "project:contribution-list-contribution-update",
             kwargs={"uuid": "abc", "pk": 7},
         )
-        assert url == "/project/abc/contributors/7/edit/"
+        assert url == "/projects/abc/contributors/7/edit/"
 
 
 @pytest.mark.django_db

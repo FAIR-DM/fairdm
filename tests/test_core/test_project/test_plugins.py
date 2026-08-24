@@ -182,3 +182,34 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
         visibility guard applies there too."""
         request = _request_for(user_with_change_permission)
         assert can_open(Attributes, request, private_project) is False
+
+
+@pytest.mark.django_db
+class TestAPrivateProjectsPageThroughARealRequest:
+    """`can_open()` answering False is a claim about the predicate, not about the page. These
+    go through the URL and the response, which is the composition a visitor actually meets."""
+
+    def test_an_anonymous_visitor_is_refused_a_private_project(
+        self, client, private_project
+    ):
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": private_project.uuid})
+        )
+        assert response.status_code in (302, 403, 404)
+        if response.status_code == 302:
+            assert reverse("account_login") in response.url
+
+    def test_a_signed_in_visitor_without_view_rights_is_refused(
+        self, client, private_project, user_with_no_permission
+    ):
+        client.force_login(user_with_no_permission)
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": private_project.uuid})
+        )
+        assert response.status_code in (403, 404)
+
+    def test_an_anonymous_visitor_reaches_a_public_project(self, client, public_project):
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": public_project.uuid})
+        )
+        assert response.status_code == 200

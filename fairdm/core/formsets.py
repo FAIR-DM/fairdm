@@ -77,6 +77,8 @@ def date_ordering_formset(start_type, end_type, message):
                 return
 
             if _precedes(end_value, start_value):
-                raise ValidationError(message % {"start": start_value, "end": end_value})
+                raise ValidationError(
+                    message % {"start": start_value, "end": end_value}
+                )
 
     return DateOrderingFormSet
