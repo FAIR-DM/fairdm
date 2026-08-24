@@ -798,3 +798,92 @@ text) cites issue #285 for the registry's owner-resolution defect; `decisions.md
 open" line and `tasks.md` T099 both cite #284 for the same defect. Followed the repo's own
 settled documents (#284) rather than the brief's number; flagged as a concern for reconciliation
 rather than guessed at.
+
+## 2026-08-24T21:10:00+02:00 · Implementer US6 · T100
+
+**Did**: Rewrote `docs/contributing/base-views.md`'s `FairDMDetailView` section. The example
+subclassed the removed `ProjectDetailView` against `model = Project`; replaced with
+`DatasetDetailView` (`fairdm/core/dataset/views.py`), which still subclasses `FairDMDetailView`
+directly, and added a note pointing at `fairdm.core.project.plugins.Overview` for what Project's
+own page is now — a plugin registration, not a standalone detail view (013 plan P1).
+
+**Verified**: `forge docs-check --repo . --base origin/main` — the `docs-stale-page` finding for
+this file is gone. `poetry run sphinx-build -b html docs /tmp/docs-build-out -q` — no new warnings
+for this file.
+
+**Next**: T101.
+
+**Watch**: nothing.
+
+## 2026-08-24T21:20:00+02:00 · Implementer US6 · T101
+
+**Did**: Rewrote both pages `docs-check` named as documenting the removed `Keywords` plugin.
+`create_a_plugin.md`'s "Reusable plugins" example reused the exact class names
+(`KeywordsPlugin`/`Keywords`) of the registration this feature deleted from `project/plugins.py`
+(013 plan P2, D3) — swapped for an unrelated fictional example (`CitationsPlugin`/`Citations`),
+consistent with the page's existing fictional examples (`MySample`, `RockSample`, `NoteCreate`).
+`filtering-by-vocabulary.md` documented a `KEYWORD_VOCABULARIES` class attribute `ProjectFilter`
+has never read — confirmed by reading `filters.py` in full, which this branch does not touch —
+and rewrote the page against the real settings-driven mechanism (`FAIRDM_PROJECT["keywords"]`,
+`filters.py:51-106`). See `decisions.md` D18 for why this went past the one flagged token.
+
+**Verified**: `forge docs-check --repo . --base origin/main` — both `docs-stale-page` findings
+gone. `poetry run sphinx-build -b html docs /tmp/docs-build-out -q` — no new warnings for either
+page.
+
+**Next**: T102.
+
+**Watch**: `decisions.md` D18.
+
+## 2026-08-24T21:30:00+02:00 · Implementer US6 · T102
+
+**Did**: Documented the 11 new public names `docs-check` reported. New
+`docs/contributing/record-page-building-blocks.md` covers `RelatedRecordInline`,
+`ProjectDateInline`, `ProjectIdentifierInline`, `DatasetDateInline`, `DatasetIdentifierInline`
+(`related_records.py`), `date_ordering_formset` (`formsets.py`) and `VocabularyDescriptionsForm`
+(`descriptions.py`), grouped by the shared purpose their own module docstrings already state —
+linked from the contributing guide's toctree. `create_a_plugin.md`'s existing "who can see it"
+section gained a worked example using the real `project_is_visible`/`visible_to_holder_of`
+functions in place of staying abstract. `Overview` needed no separate placement — T100 already
+names and links it. See `decisions.md` D19 for the placement rationale.
+
+**Verified**: `forge docs-check --repo . --base origin/main` — `docs-undocumented` finding gone
+(0 of 11 remaining). `poetry run sphinx-build -b html docs /tmp/docs-build-out2 -q` — no warnings
+for the new page or the edited section.
+
+**Next**: T103.
+
+**Watch**: `decisions.md` D19.
+
+## 2026-08-24T21:38:00+02:00 · Implementer US6 · T103
+
+**Did**: `docs/adr/` held eight accepted records reachable from no navigation. Added
+`docs/adr/index.md` with a toctree over all eight (0001-0008) and one entry,
+`../adr/index`, in the contributing guide's own toctree (`docs/contributing/index.md`).
+
+**Verified**: `forge docs-check --repo . --base origin/main` — clean, 0 findings (the
+`docs-orphan-page` finding for 0008 is gone, and none of the pre-existing 0001-0007 orphans
+raise a fresh finding either since the audit scope is this branch's own diff).
+`poetry run sphinx-build -b html docs /tmp/docs-build-out2 -q` — no new warnings.
+
+**Next**: T104.
+
+**Watch**: nothing.
+
+## 2026-08-24T21:45:00+02:00 · Implementer US6 · T104
+
+**Did**: `tests/test_core/test_project/test_conftest.py` mirrored no source module. Confirmed its
+fixtures (`public_project`, `private_project`, `user_with_change_permission`, etc.) all wrap
+factories, per the brief's suggestion — `test_factories.py` is their natural home. Moved
+`TestProjectFixtures` unchanged into `test_factories.py` as a second `Test*` class, added the two
+imports it needs (`Project`, `Visibility`), and removed the now-empty `test_conftest.py`. Left
+`tests/test_contrib/test_plugins/test_urls.py` untouched — same finding, predates this feature,
+issue #110.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_factories.py -q` — 7 passed (5
+moved + 2 pre-existing). `forge conformance --repo . --base origin/main` — the `test_conftest.py`
+finding is gone; only the pre-existing `test_urls.py` finding remains, unchanged.
+
+**Next**: full suite once, then the completion report.
+
+**Watch**: nothing.

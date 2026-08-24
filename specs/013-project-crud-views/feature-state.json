@@ -1738,28 +1738,83 @@
         },
         {
           "id": "T100",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/contributing/base-views.md:158"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out -q"
+            ]
+          }
         },
         {
           "id": "T101",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/create_a_plugin.md:205",
+              "docs/portal-development/filtering-by-vocabulary.md:1"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out -q"
+            ]
+          }
         },
         {
           "id": "T102",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/contributing/record-page-building-blocks.md:1",
+              "docs/portal-development/create_a_plugin.md:136"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out2 -q"
+            ]
+          }
         },
         {
           "id": "T103",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/adr/index.md:1",
+              "docs/contributing/index.md:47"
+            ],
+            "tests": [],
+            "commands": [
+              "forge docs-check --repo . --base origin/main",
+              "poetry run sphinx-build -b html docs /tmp/docs-build-out2 -q"
+            ]
+          }
         },
         {
           "id": "T104",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_core/test_project/test_factories.py:44"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_factories.py::TestProjectFixtures"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_factories.py -q",
+              "forge conformance --repo . --base origin/main"
+            ]
+          }
         }
       ]
     }

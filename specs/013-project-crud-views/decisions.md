@@ -723,3 +723,65 @@ weakened, or skipped — is a worse outcome than a slightly larger slice under e
 prohibited paths.
 
 **Left open**: nothing. T095 and T098 remain their own commits; only these two are inseparable.
+
+---
+
+## D18 — `filtering-by-vocabulary.md` is rewritten past the one name docs-check flagged
+
+**Previous specification**: T101's acceptance text names this page as documenting "a Keywords
+plugin this feature removed" — the same framing as `create_a_plugin.md`.
+
+**Code**: the page's central mechanism, a `KEYWORD_VOCABULARIES` class attribute a portal sets on
+a `ProjectFilter` subclass, is read nowhere in `fairdm/core/project/filters.py`. The filter this
+feature did not touch reads `FAIRDM_PROJECT["keywords"]` from settings instead (`filters.py:69`,
+`filters.py:112`), and names each generated field after the vocabulary class's own `__name__`, not
+the slug the page describes. This staleness predates 013 — `filters.py` carries no diff on this
+branch — and the page's `Keywords` token that triggered `docs-stale-page` sits inside a string
+literal in a code fence, not naming the plugin the brief describes.
+
+**Settled**: rewritten against the real settings-driven mechanism (`decisions.md` D3 already
+describes it: "keywords are configured per portal through a setting, which the project filter
+reads to build its filters"), not merely touched to clear the gate finding.
+
+**Why**: the hard rule binding this whole story is that every example on a page touched has to run
+against this branch as it stands. A page left with a `KEYWORD_VOCABULARIES` example that has never
+worked would satisfy the mechanical gate — the page is "touched" — while remaining exactly as
+wrong as it was found. Filtering by keyword is also a materially different thing from the
+keyword-*editing* surface D3 defers: reading and searching by concepts already on a project is
+live code today, so describing it accurately is not "documenting Keywords as present" in the sense
+the brief's prohibition means.
+
+**Left open**: nothing about the reading/filtering path. Nothing here documents an editing
+interface — none exists.
+
+---
+
+## D19 — Eleven names split across two pages, not one
+
+**Previous specification**: T102's acceptance text: "Put each name where a reader would look for
+it, not in one dumping-ground page."
+
+**Code**: `RelatedRecordInline`, `ProjectDateInline`, `ProjectIdentifierInline`,
+`DatasetDateInline`, `DatasetIdentifierInline` (`related_records.py`), `date_ordering_formset`
+(`formsets.py`) and `VocabularyDescriptionsForm` (`descriptions.py`) share one purpose stated in
+their own module docstrings almost verbatim: "This module is not itself a page, view or URL —
+later stories register those and list the pieces declared here." `project_is_visible` and
+`visible_to_holder_of` (`project/plugins.py`) are a different kind of thing — visibility-check
+functions a reader meets while reading `create_a_plugin.md`'s existing "Who can see it, and who
+can open it" section, which already explains `check` in the abstract.
+
+**Settled**: the seven building-block names get one new page,
+`docs/contributing/record-page-building-blocks.md`, grouped by the shared purpose the source
+itself already states rather than split one-name-per-page. The two visibility functions become a
+worked-example addition to `create_a_plugin.md`'s existing section on `check`, rather than a page
+of their own.
+
+**Why**: "not in one dumping-ground page" reads as a prohibition on grouping by *convenience*
+(alphabetical, by-file, whatever is fastest to write), not a prohibition on grouping by *topic*. A
+reader who wants to know how a record's page gets its dates and identifiers finds all of that in
+one place; a reader learning `check` finds a real example where the abstract explanation already
+lives, instead of a cross-reference to an unrelated page.
+
+**Left open**: `Overview` (`project/plugins.py`) needed no separate placement — T100's rewrite of
+`base-views.md` already names and links it while explaining what replaced the removed
+`ProjectDetailView`.
