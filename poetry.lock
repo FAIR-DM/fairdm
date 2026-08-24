@@ -1976,14 +1976,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-mvp"
-version = "0.19.1"
+version = "0.19.2"
 description = "MVP framework for Django - scaffold production-ready applications with sophisticated layouts and UI patterns designed for data-centric applications."
 optional = false
 python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "django_mvp-0.19.1-py3-none-any.whl", hash = "sha256:d21df16a771be9eaed1e2ad08ee815013ed93523987aec304d4cf55800a93127"},
-    {file = "django_mvp-0.19.1.tar.gz", hash = "sha256:3ba67909f4209ba8832d5468ef7af91808e1e74434c237f22109c15a5441f846"},
+    {file = "django_mvp-0.19.2-py3-none-any.whl", hash = "sha256:e02fea6db7a185934496ec495a24129c32f3c167245d928ab5a65ec77309e77f"},
+    {file = "django_mvp-0.19.2.tar.gz", hash = "sha256:10a095b220a71af8ef17a9d3b2c137887497d1f276912442fbcf1b266e8c70d1"},
 ]
 
 [package.dependencies]
@@ -2727,7 +2727,7 @@ sphinx-book-theme = ["sphinx-book-theme (>1.1)"]
 type = "git"
 url = "https://github.com/FAIR-DM/fairdm-docs"
 reference = "HEAD"
-resolved_reference = "2ff59e060456796e1375cc66e0543363f545b56d"
+resolved_reference = "8af6a3d9eb19b90025495484084a878b3793f52e"
 
 [[package]]
 name = "faker"
