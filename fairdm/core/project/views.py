@@ -32,8 +32,8 @@ class ProjectListView(FairDMListView):
         ("-added", _("Date created (newest first)"), "-added"),
     ]
     image = static("img/stock/project.jpg")
-    has_create_permission = False  # Creation is handled by a separate view
-    has_list_permission = True  # All users can view the list of public projects
+    show_create_action = False  # Creation is handled by a separate view
+    show_list_action = True  # All users can view the list of public projects
 
     def get_queryset(self) -> QuerySet[Project]:
         """Return the queryset of visible projects with prefetched contributors.

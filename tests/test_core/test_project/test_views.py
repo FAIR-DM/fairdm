@@ -174,6 +174,18 @@ class TestProjectListView:
         assert content_desc.index(newer.name) < content_desc.index(older.name)
 
 
+@pytest.mark.django_db
+class TestProjectListViewEmitsNoDeprecationWarning:
+    """T072 — `has_create_permission`/`has_list_permission` are the superseded names the
+    interface layer still honours, with a warning, until it removes them in 0.18. The suite
+    silences warnings file-wide, so the assertion needs its own explicit filter."""
+
+    @pytest.mark.filterwarnings("error::mvp.warnings.MVPDeprecationWarning")
+    def test_rendering_the_listing_emits_no_deprecation_warning(self, client):
+        response = client.get(reverse("project-list"))
+        assert response.status_code == 200
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
 # ---------------------------------------------------------------------------
