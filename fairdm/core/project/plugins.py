@@ -97,14 +97,26 @@ class Delete(Plugin, FairDMDeleteView):
     def get_confirmation_value(self):
         return self.base_object.name
 
+    def get_context_data(self, **kwargs):
+        """Populate the shell's own ``is_protected``/``protected_objects`` contract with the
+        project's public datasets, evaluated fresh on every call so the refusal holds whether
+        the page has just been opened or a submission was just refused (013 plan P4).
+
+        Runs after ``super().get_context_data()`` rather than passing these through keyword
+        arguments, which :class:`FairDMDeleteView`'s own assignment would overwrite.
+        """
+        context = super().get_context_data(**kwargs)
+        public_datasets = self.base_object.datasets.filter(visibility=Visibility.PUBLIC)
+        if public_datasets.exists():
+            context["is_protected"] = True
+            context["protected_objects"] = list(public_datasets)
+        return context
+
     def form_valid(self, form):
         try:
             return super().form_valid(form)
-        except PublicDatasetsProtect as e:
-            context = self.get_context_data(
-                object=self.base_object, protected_datasets=e.datasets
-            )
-            return self.render_to_response(context)
+        except PublicDatasetsProtect:
+            return self.render_to_response(self.get_context_data(object=self.base_object))
 
 
 @plugins.register(Project, label=_("Overview"), icon="view", order=0)

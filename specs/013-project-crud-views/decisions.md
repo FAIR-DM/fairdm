@@ -436,6 +436,25 @@ than the vocabulary-driven slot form — the uniqueness behaviour would need a f
 
 ---
 
+### T083 — `test_project_delete_blocks_public_datasets` rewritten to assert rendered content
+
+**Decision**: `test_project_delete_blocks_public_datasets`
+(`tests/test_core/test_project/test_views.py`) was rewritten in place — same test, same name —
+to assert the blocking dataset's name appears in the rendered response instead of asserting the
+invented `protected_datasets` context key. Named explicitly as the one allowed exception in the
+US6 brief's prohibitions, per plan P4.
+
+**Why**: `protected_datasets` was a key `Delete.form_valid()` set on the context but the shared
+delete template never reads — the refusal rendered as an ordinary confirmation page in production
+regardless of what the test asserted. `Delete.get_context_data()` now populates the shell's own
+`is_protected`/`protected_objects` contract from the project's public datasets, evaluated fresh on
+each call, which is what the template actually branches on.
+
+**Revisit if**: the shared delete template's protected-object contract changes name or shape again
+— the same rewrite discipline applies rather than reintroducing a page-specific context key.
+
+---
+
 ## Raised separately
 
 Found while checking the specification against the code, real, and not this feature's work.

@@ -1182,7 +1182,8 @@ class TestProjectDeleteView:
         assert not Project.objects.filter(pk=pk).exists()
 
     def test_project_delete_blocks_public_datasets(self, client):
-        """T032 — POST correct name but project has PUBLIC dataset returns 200 with protected_datasets; not deleted."""
+        """T083 — the refused page names each blocking public dataset in the rendered content
+        (rewritten from asserting the invented ``protected_datasets`` context key, plan P4)."""
         project = ProjectFactory(name="Dataset Project")
         Dataset.objects.create(
             name="Public Dataset", project=project, visibility=Visibility.PUBLIC
@@ -1193,7 +1194,7 @@ class TestProjectDeleteView:
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
         assert response.status_code == 200
-        assert "protected_datasets" in response.context
+        assertContains(response, "Public Dataset")
         assert Project.objects.filter(pk=project.pk).exists()
 
     def test_project_delete_allows_private_only_datasets(self, client):
