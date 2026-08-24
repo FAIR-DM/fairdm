@@ -12,8 +12,8 @@ directions.
 |---|---|---|
 | US-1 Find a project | Add the entry link, test what is untested | smaller |
 | US-2 Register a project | Test what is untested; no behaviour change | smaller |
-| US-3 Correct attributes | Add identifiers as a row set, dates as fields, and retire the duplicate page | **larger** |
-| US-4 Describe a project | Build a slot form and register it as a page | as expected |
+| US-3 Correct attributes | Add identifier and date row sets through a shared mixin, retire the duplicate page | **larger** |
+| US-4 Describe a project | Build a vocabulary-driven form, reusable across record types | as expected |
 | US-5 Move between pages | Switch on the shell's existing buttons | **much smaller** |
 | US-6 Remove a project | Populate the shell's refusal contract | smaller |
 
@@ -45,61 +45,64 @@ Consequence to accept: a tab a user sees today disappears, replaced by an Edit b
 page. No data and no address a user could have bookmarked is lost, since the tab's fields are a
 subset.
 
-### P2 — Descriptions are a registered page with one field per type, not a formset
+### P2 — Descriptions are a registered page, one area per vocabulary type
 
 The unregistered `Descriptions`, `Keywords` and `KeyDates` classes in `project/plugins.py` are
 deleted rather than registered.
 
-The generic description plugin is a formset that adds and removes rows. The specification asks for a
-fixed set of labelled areas, one per description type, because the vocabulary is closed at seven and
-the model allows one row per type. Those are different interfaces, and the generic one is also
-broken where it is registered, because it resolves to the record's detail template and never draws
-its formset.
+The generic description plugin adds and removes rows. The specification asks for a fixed set of
+labelled areas, one per description type, because the model allows one row per type. Those are
+different interfaces, and the generic one is also broken where it is registered, because it resolves
+to the record's detail template and never draws its formset.
 
-So the descriptions page is a purpose-built form: one text area per type in
-`FairDMDescriptions.from_collection("Project")`, labelled with the type's name and helped by its
-definition. Saving writes, updates or deletes one row per non-empty area.
+So the descriptions page is a form whose fields are generated from the related model's `VOCABULARY`:
+one text area per concept, labelled with its name and helped by its definition. Saving writes,
+updates or deletes one row per area.
+
+**Driving the fields off the vocabulary is what makes this expand without code.** A new description
+type is a vocabulary entry and the page grows a field, which is the same property the row sets have
+for dates and identifiers under P3. The two shapes differ in what the user sees, not in what it
+costs to extend them.
 
 It is registered as a page against the project, which supplies the address, the menu entry, the
-breadcrumbs and the permission gate, and means the tab is hidden from users who may not open it.
+breadcrumbs and the permission check, and means the tab is hidden from users who may not open it.
 That satisfies FR-042 without a second mechanism.
 
 It declares `permission = "project.change_project"`, the same string as the attributes page. The
 check is only supplied where one is declared: a registered page with no permission is open to
 everyone, anonymous included, and the record is fetched through an unfiltered manager on the
-assumption that the page gates itself. That omission is exactly what leaves the contributor pages
-open today, and it is not repeated here.
+assumption that the page checks for itself. That omission is exactly what leaves the contributor
+pages open today, and it is not repeated here.
 
-Not fixing the generic plugin here. Dataset and sample carry the same defect and it is their work,
+Not fixing the generic plugin here. Datasets and samples carry the same defect and it is their work,
 raised separately below.
 
-### P3 — Identifiers are an inline set; dates are two fields
+### P3 — Identifiers and dates are both inline sets
 
-The two related records on the attributes page do not get the same treatment, and the dividing line
-is the one P2 already drew. A closed vocabulary with one row per type is a fixed set of fields. An
-open, repeating record is a formset.
+Both related records on the attributes page are edited as row sets, using the interface layer's own
+`InlineFormSet` and `InlinesMixin` rather than django-extra-views.
 
-- Identifiers repeat. Any number, types drawn from a vocabulary, no ceiling. That is a formset,
-  using the shell's `InlineFormSet` and `InlinesMixin` rather than django-extra-views.
-- Dates do not. The project date vocabulary holds exactly two members, Start and End, and the
-  model allows one row per type. That is two form fields, written onto their rows on save, in the
-  same way descriptions are seven fields rather than a list.
+Dates get the same treatment as identifiers even though a project has only two date types today.
+Two reasons, and neither is about the project.
 
-Treating dates as fields removes three things from this work: the sibling-validation formset class,
-the row-adding control on the dates set, and the manual browser check that the cloned date widget
-survives. The end-before-start rule becomes an ordinary `clean()` on the attributes form, with both
-values in hand, which is where it can actually be enforced.
+- **The vocabulary will grow.** Community feedback adds date types, and adding one should be a
+  vocabulary entry rather than a new form field, a new save branch and a new test. A row set absorbs
+  a new type with no code at all.
+- **The other record types have several.** Datasets, samples and measurements all carry more dates
+  than a project does. If the project's page treats dates as fields and theirs treat dates as rows,
+  a user who learns one page has to learn the next. Consistency across the record types is worth
+  more than the validation class it costs here.
 
-The constitution names the shell as the default interface layer, the shell's system ships the
-templates, the row-adding JavaScript and an atomic parent-then-children save, and the alternative is
-the module that is already broken. Against it: this repository would be its first caller, which is
-the main risk here.
+Three settings are not optional:
 
-Two settings on the identifier set are not optional:
-
-- `extra = 0`. The shell omits anything left unset, so Django's default of three blank rows applies
-  otherwise.
-- `value` and `type` both present in the field list. A model `clean()` that keys an error to a field
+- `extra = 0` on both sets. The interface layer omits anything left unset, so Django's default of
+  three blank rows applies otherwise.
+- `formset = DateInlineFormSet` on the dates set, reusing the class already written for the admin
+  (`project/admin.py:24-66`). Without it the sibling comparison in `ProjectDate.clean()` is skipped
+  when the parent is new and compares against stale values otherwise, because the sibling row is
+  unsaved and the check queries the database. This is the single most likely thing to ship broken
+  and unnoticed.
+- `value` and `type` present in both field lists. A model `clean()` that keys an error to a field
   absent from the form raises rather than reporting it.
 
 The three form classes this replaces (`ProjectDateForm` and `ProjectIdentifierForm` here,
@@ -147,6 +150,35 @@ A permission-dependent flag is written as a method, not a lambda. The shell read
 That is a 500 on the project page, confirmed on this branch. The method form is also what gives the
 object-level check access to the record.
 
+### P6 — Everything here is built for the four record types, not for projects
+
+Datasets, samples and measurements follow this feature, in that order. Anything written
+project-shaped now is written three more times later, so the default is a piece parameterised by the
+record type, with the project supplying only what is genuinely its own.
+
+The structure supports this already. Every core record has a `<Model>Description`, `<Model>Date` and
+`<Model>Identifier` subclassing the same three abstract models, each carrying a `VOCABULARY` and
+reachable from its parent under the same names: `descriptions`, `dates`, `identifiers`. A component
+can therefore find a record's related models from the record itself, without a per-model register.
+
+So:
+
+- **The attributes page's related sets come from a mixin**, which builds the date and identifier row
+  sets from the parent model's own relations. A record type's page declares which sets it wants, not
+  how to build them.
+- **The descriptions page is one view and one form**, generated from the related model's vocabulary
+  and registered once per record type.
+- **Templates and components are shared.** The interface layer already ships the row-set component;
+  the descriptions page needs one template, and it is written against "a record and its vocabulary"
+  rather than against a project.
+- **The permission string is derived from the record type**, not written out per page.
+
+The proof is a test, not an intention: **the mixin and the descriptions form are exercised against
+`Dataset` as well as `Project`, without adding dataset pages in this work.** That is what
+distinguishes a reusable piece from a project-shaped one that happens to be called generic, and it
+costs one test module. Where something genuinely cannot generalise, it stays in the project's own
+module and the reason is written down.
+
 ## Order
 
 Two independent tracks. The second is larger and touches one file the first also touches, so the
@@ -154,7 +186,7 @@ navigation work lands first to keep the conflict at one file rather than three.
 
 1. **US-5, US-6, US-1, US-2** — navigation, the deletion refusal, the listing link, and the tests
    for behaviour that is already correct but unproven. All in `views.py`, `urls.py` and tests.
-2. **US-3** — the attributes page gains its identifier rows and date fields, and `ProjectConfigure` is retired.
+2. **US-3** — the attributes page gains its identifier and date row sets, and `ProjectConfigure` is retired.
 3. **US-4** — the descriptions page.
 
 ## Verification beyond the suite
@@ -162,9 +194,9 @@ navigation work lands first to keep the conflict at one file rather than three.
 Three things cannot be settled by a unit test and get checked on a running page before the work is
 called done:
 
-1. An identifier row added with the Add-row control renders a working row. The clone is a string
-   substitution and breaks any widget needing its own initialisation. This no longer applies to
-   dates, which are ordinary fields under P3.
+1. A row added to either set with the Add-row control renders working fields. The clone is a string
+   substitution and breaks any widget needing its own initialisation, which puts the partial-date
+   widget on the dates set squarely in scope.
 2. A blocked deletion page shows the alert and the dataset names, with no confirmation field and no
    delete button.
 3. The Edit, Delete and Descriptions entries appear for a permitted user and are absent for one who
