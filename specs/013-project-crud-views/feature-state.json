@@ -1262,8 +1262,7 @@
             ],
             "commands": [
               "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
-            ],
-            "note": "test-only; the trail each page already draws was confirmed rather than assumed"
+            ]
           }
         },
         {
@@ -1279,8 +1278,7 @@
             ],
             "commands": [
               "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
-            ],
-            "note": "test-only; one test per page, none of the drawn addresses empty"
+            ]
           }
         },
         {
@@ -1377,8 +1375,7 @@
             ],
             "commands": [
               "poetry run pytest tests/test_core/test_project -q"
-            ],
-            "note": "carries FR-045, which the original US-5 block covered with no task"
+            ]
           }
         }
       ]
