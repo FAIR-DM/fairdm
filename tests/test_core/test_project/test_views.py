@@ -271,6 +271,27 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert entries.index(bravo) < entries.index(alpha)
 
+    def test_listing_ordered_by_date_added_returns_oldest_first(self, client):
+        """T011 — `?o=added` returns the oldest project first."""
+        older = ProjectFactory(visibility=Visibility.PUBLIC)
+        time.sleep(0.01)
+        newer = ProjectFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("project-list"), {"o": "added"})
+        entries = list(response.context["object_list"])
+        assert entries.index(older) < entries.index(newer)
+
+    def test_listing_ordered_by_date_added_reversed_returns_newest_first(
+        self, client
+    ):
+        """T011 — `?o=-added` returns the newest project first. Asserted
+        separately from the ascending case."""
+        older = ProjectFactory(visibility=Visibility.PUBLIC)
+        time.sleep(0.01)
+        newer = ProjectFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("project-list"), {"o": "-added"})
+        entries = list(response.context["object_list"])
+        assert entries.index(newer) < entries.index(older)
+
 
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
