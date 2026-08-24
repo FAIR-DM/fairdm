@@ -325,3 +325,131 @@ check at the completion report.
 
 **Watch**: T027, T050 and T092/T093-adjacent US-5/US-6 work are other stories/tracks, already
 excluded from this brief's task list — not touched here.
+
+---
+
+## 2026-08-24T18:10:00+02:00 · Implementer US4 · T051
+
+**Did**: Registered `Descriptions` against `Project` in `fairdm/core/project/plugins.py` as a
+top-level registration (not an extra view of `Overview`, unlike `Attributes`/`Delete` — matching
+Dataset and Sample per plan P2), built on `MVPFormView` + `VocabularyDescriptionsForm`. Deleted
+the unregistered, generic-formset `Descriptions`, `Keywords` and `KeyDates` classes it replaced
+(the last two were dead — no caller, no registration). Reachable at
+`project:descriptions` → `/projects/<uuid>/descriptions/`; an anonymous request redirects to
+sign in.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 27 passed.
+`poetry run ruff check fairdm/core/project/plugins.py tests/test_core/test_project/test_plugins.py`
+— clean (ruff auto-removed one unused import from my own new test).
+
+**Next**: T052.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T18:15:00+02:00 · Implementer US4 · T052
+
+**Did**: Added `TestDescriptionsPageStatesItsOwnPermission` asserting `can_open()` against
+`project.change_project` — refuses a signed-in user without it and every anonymous request,
+admits a holder. Passed immediately: the permission line was already in place as part of T051's
+own anonymous-redirect requirement. No production change.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py::TestDescriptionsPageStatesItsOwnPermission -q`
+— 3 passed (narrowest scope; the full file was next re-run at T053 and stood at 32, consistent
+with 27 + these 3 + T053's own 2). `poetry run ruff check` on both changed files — clean.
+
+**Next**: T053.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T18:20:00+02:00 · Implementer US4 · T053
+
+**Did**: Added `TestDescriptionsPageOffersOneAreaPerVocabularyType`, asserting the rendered
+form's field set matches `ProjectDescription.VOCABULARY.values` exactly and every area starts
+empty for a project with none. This surfaced a real gap: `MVPFormView` (plain `FormView`, no
+`SingleObjectMixin`) derives no template name of its own, so Django's base
+`TemplateResponseMixin.get_template_names` raised `ImproperlyConfigured` before
+`BaseTemplateNameMixin`'s `form_view.html` fallback was ever appended — unlike the model-backed
+`Attributes` page, which resolves its template through `SingleObjectTemplateResponseMixin`
+instead. Fixed by setting `template_name = "form_view.html"` explicitly on `Descriptions`.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 32 passed.
+`poetry run ruff check` on both changed files — clean.
+
+**Next**: T054.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T18:25:00+02:00 · Implementer US4 · T054
+
+**Did**: Added `TestDescriptionsPageAreasAreLabelledFromTheVocabulary`, asserting the first
+area's label and help text equal the vocabulary concept's own `label()`/`definition()` through a
+real page render. Passed immediately — `VocabularyDescriptionsForm` already sources both from
+the concept (013 plan P2); this proves the page renders what it was handed. No production
+change.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 33 passed.
+`poetry run ruff check` — clean.
+
+**Next**: T055.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T18:30:00+02:00 · Implementer US4 · T055-T061
+
+**Did**: Added one test class per acceptance scenario, each exercising the page end-to-end
+through `client.get`/`client.post` rather than the form directly — all passed immediately
+against the T051 implementation, since `form_valid()` already calls `form.save()` and
+`get_success_url()` already returns `self.base_object.get_absolute_url()`:
+
+- T055 `TestSavingTextIntoOneAreaRecordsOnlyThatType` — one POST creates exactly one row.
+- T056 `TestExistingDescriptionsShowInTheirOwnArea` — an existing row's text appears only in its
+  own area.
+- T057 `TestEditingAnExistingDescriptionPersists` — a repeat POST with different text updates the
+  stored row rather than duplicating it.
+- T058 `TestClearingAnAreaRemovesTheDescription` — an empty resubmission deletes the row.
+- T059 `TestEmptyAndWhitespaceOnlyAreasCreateNothing` — an unfilled area on a project with none
+  creates nothing; a stored row cleared to whitespace-only is treated as empty and removed.
+- T060 `TestRepeatSubmissionNeverDuplicatesAType` — three POSTs to the same area leave exactly
+  one row, holding the last value (asserted on the count, not merely that the save succeeded).
+- T061 `TestASuccessfulSubmissionRedirectsToTheProjectsPage` — the redirect target equals
+  `reverse("project:overview", ...)` exactly, not a substring match.
+
+No production code changed across these seven tasks.
+
+**Verified**: `poetry run pytest tests/test_core/test_project/test_plugins.py -q` — 41 passed
+after T061 (one commit per task; ruff clean at each).
+
+**Next**: T062.
+
+**Watch**: nothing.
+
+---
+
+## 2026-08-24T18:45:00+02:00 · Implementer US4 · T062
+
+**Did**: Deleted `ProjectDescriptionForm` from `fairdm/core/project/forms.py` (used by no
+running code once T051 replaced its caller) and its test class `TestProjectDescriptionForm` from
+`test_forms.py`, plus the now-unused `ValidationError` import. Re-confirmed by grep, before and
+after, that the form had no other caller in the tree. `decisions.md` records the coverage that
+replaces the deleted uniqueness test — spread across T055/T057/T060 rather than concentrated in
+one form-level test.
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 228 passed.
+`poetry run ruff check fairdm/core/project/forms.py tests/test_core/test_project/test_forms.py`
+— clean.
+
+**Next**: story complete (T051-T062 all done). Full-suite verify at the completion report.
+
+**Watch**: checked `docs/` for pages describing `ProjectDescriptionForm`, the retired
+`Descriptions`/`Keywords`/`KeyDates` plugin classes, or the new `project:descriptions` route —
+found none. `docs/user-guide/project/descriptions.md` is an unrelated stub ("Coming soon...").
+`docs/portal-administration/managing_projects.md` describes the Django admin's own inline
+formset editing for `ProjectDescription`, a different surface this story does not touch.
