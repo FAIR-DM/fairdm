@@ -204,6 +204,26 @@ class TestProjectListing:
         response = client.get(reverse("project-list"))
         assert response.status_code == 200
 
+    def test_listing_shows_only_the_public_project_to_an_anonymous_visitor(
+        self, client, public_project, private_project
+    ):
+        """T007 — with a public and a private project, an anonymous visitor
+        sees only the public one. Asserts the entries, not the queryset."""
+        response = client.get(reverse("project-list"))
+        entries = list(response.context["object_list"])
+        assert public_project in entries
+        assert private_project not in entries
+
+    def test_listing_excludes_the_signed_in_owners_own_private_project(
+        self, client, user_with_change_permission
+    ):
+        """T007 — a signed-in user who owns a private project still does not
+        see it in the listing; the listing shows public projects only."""
+        client.force_login(user_with_change_permission)
+        response = client.get(reverse("project-list"))
+        entries = list(response.context["object_list"])
+        assert user_with_change_permission.project not in entries
+
 
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Project (additional tests)
