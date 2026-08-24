@@ -557,6 +557,41 @@ class TestProjectUpdateView:
             else:
                 assert getattr(project, field) == new_value
 
+    def test_uploading_an_image_persists_it_and_clearing_it_removes_it(self, client):
+        """T032 — An uploaded image persists, and submitting the clear checkbox removes it."""
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Has Image", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        base_data = {
+            "name": project.name,
+            "status": project.status,
+            "visibility": project.visibility,
+            "owner": org.pk,
+        }
+
+        buffer = io.BytesIO()
+        Image.new("RGB", (10, 10), color="red").save(buffer, format="PNG")
+        buffer.seek(0)
+        upload = SimpleUploadedFile("test.png", buffer.read(), content_type="image/png")
+
+        response = client.post(url, data={**base_data, "image": upload})
+        assert response.status_code == 302, response.context["form"].errors
+        project.refresh_from_db()
+        assert project.image
+
+        response = client.post(url, data={**base_data, "image-clear": "on"})
+        assert response.status_code == 302, response.context["form"].errors
+        project.refresh_from_db()
+        assert not project.image
+
     def test_project_update_success_redirects_to_detail(self, client):
         """T024a — Valid POST by permitted user returns 302 to project-detail URL."""
         org = Organization.objects.create(name="Test Org")
