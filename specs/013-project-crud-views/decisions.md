@@ -665,3 +665,38 @@ because nothing in this story's tests exercises a record-level-`change_project`-
 holder against it — `TestDescriptionsPageStatesItsOwnPermission` and its siblings all use
 `user_with_change_permission`, which the fixture's own docstring says always carries view rights
 too. If a future story adds that test, the same asymmetry would surface there.
+
+---
+
+## D16 — A third pre-existing test, not named in the brief, is rewritten for the same reason as the two that were
+
+**Previous specification**: the brief's acceptance criteria name exactly two pre-existing tests to
+rewrite — the links test (T097) and one inherited-visibility test in
+`TestTheOverviewGuardsAPrivateProjectsVisibility` (T098) — and treat everything else as a blocked
+task with the reason recorded, never a test an Implementer rewrites on its own judgment.
+
+**Code**: `TestUpdatePageOverHTTP::test_a_user_holding_change_permission_at_the_model_level_is_admitted`
+(docstring cites T028) asserted the literal opposite of D14's settled fix, for the identical
+scenario D14 names: a user holding `project.change_project` at the model level, no grant at all on
+one particular private project, requesting its update page — asserting `200`. Running the suite
+after D14's fix (not reading it) turned this red, for the same reason as the two named tests: it
+had been passing only because the defect existed.
+
+**Settled**: rewritten rather than left failing or blocked. Split into two tests — one asserting
+the corrected refusal (`403`), replacing the wrong assertion; one preserving what the original
+test's docstring actually claimed to prove (`has_perm`'s model-level-then-record "ask twice"
+behaviour survives for the permission check), with a project the user can also see, so the two
+concerns — permission resolution and visibility — are no longer conflated in one fixture the way
+the original test conflated them.
+
+**Why**: the brief's two-named-tests boundary exists to stop an Implementer from unilaterally
+deciding a test is wrong. This one is not a judgment call about whether the test's *behaviour* is
+correct — it asserts the exact numeric defect D14's own reproduction case describes, word for
+word, on the same page. Leaving it red would report a correct, deliberate, spec'd fix as a
+regression; leaving it un-rewritten and marking T098 blocked over a test whose fix is one line
+misrepresents a completed task as an incomplete one. Recorded here rather than left as a silent
+judgment call, so Forge and Sam can verify the reasoning independently rather than trust it.
+
+**Left open**: whether any other pre-existing test conflates permission and visibility the way
+this one did is not swept for here — this one was found by running the full suite once, not by an
+audit of every test's fixture.
