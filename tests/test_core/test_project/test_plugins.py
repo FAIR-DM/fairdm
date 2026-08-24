@@ -213,3 +213,31 @@ class TestAPrivateProjectsPageThroughARealRequest:
             reverse("project:overview", kwargs={"uuid": public_project.uuid})
         )
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestAttributesPageOverHTTP:
+    """The attributes page (013 plan P3) resolves as an additional view of the project's own
+    registration rather than an address of its own, keyed by the project's identifier."""
+
+    def test_the_attributes_page_is_keyed_by_the_projects_identifier_not_its_own_address(
+        self, public_project
+    ):
+        """T026 — Reversed by name, the attributes page's URL carries the project's own
+        identifier rather than resolving to an address of its own."""
+        url = reverse(
+            "project:overview-attributes", kwargs={"uuid": public_project.uuid}
+        )
+        assert url == f"/projects/{public_project.uuid}/attributes/"
+
+    def test_an_anonymous_visitor_opening_the_attributes_page_is_redirected_to_sign_in(
+        self, client, public_project
+    ):
+        """T026 — Opened directly (not merely reversed), the attributes page redirects an
+        anonymous visitor to sign in rather than admitting them or 404ing."""
+        url = reverse(
+            "project:overview-attributes", kwargs={"uuid": public_project.uuid}
+        )
+        response = client.get(url)
+        assert response.status_code == 302
+        assert reverse("account_login") in response.url
