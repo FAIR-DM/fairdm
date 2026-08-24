@@ -773,6 +773,40 @@ class TestAttributesIdentifierRowSet:
         assert response.status_code == 302
         assert not project.identifiers.filter(pk=identifier.pk).exists()
 
+    def test_a_value_already_recorded_against_a_different_project_is_refused(
+        self, client
+    ):
+        """T038 — Submitting an identifier value already recorded against a different project
+        reports the error on that field and saves nothing, including the project's own
+        attributes changed in the same submission (`AbstractIdentifier.clean()`,
+        `fairdm/core/abstract.py:354`, checks `value` across every concrete subclass)."""
+        org = Organization.objects.create(name="Test Org")
+        other_project = ProjectFactory(name="Other Project", owner=org)
+        ProjectIdentifierFactory(related=other_project, type="DOI", value="10.1/taken")
+        project = ProjectFactory(name="Original Name", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                "name": "Renamed",
+                **_identifier_management_data(total=1, initial=0),
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "10.1/taken",
+            },
+        )
+
+        assert response.status_code == 200
+        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
+        assert "value" in formsets["identifiers"].forms[0].errors
+        assert not project.identifiers.filter(value="10.1/taken").exists()
+        project.refresh_from_db()
+        assert project.name == "Original Name"
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
