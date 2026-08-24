@@ -486,3 +486,41 @@ class TestClearingAnAreaRemovesTheDescription:
         assert not ProjectDescription.objects.filter(
             related=project, type=first_type
         ).exists()
+
+
+@pytest.mark.django_db
+class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
+    """T059 — an area left empty creates nothing, and an area containing only whitespace is
+    treated as empty: nothing created, and any row already stored for that type removed."""
+
+    def test_leaving_an_area_empty_creates_no_description(
+        self, client, user_with_change_permission
+    ):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        client.post(url, data={})
+
+        assert not ProjectDescription.objects.filter(related=project).exists()
+
+    def test_whitespace_only_is_treated_as_empty_and_removes_a_stored_row(
+        self, client, user_with_change_permission
+    ):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+        first_type = ProjectDescription.VOCABULARY.values[0]
+        ProjectDescription.objects.create(
+            related=project, type=first_type, value="Existing text."
+        )
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        client.post(url, data={first_type: "   \n  "})
+
+        assert not ProjectDescription.objects.filter(
+            related=project, type=first_type
+        ).exists()
