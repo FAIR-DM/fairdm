@@ -925,68 +925,202 @@
       "priority": "P2",
       "issue": 271,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 2,
       "tasks": [
         {
           "id": "T051",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:156"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageIsARegistrationOfItsOwn"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T052",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:156"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageStatesItsOwnPermission"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T053",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:177"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageOffersOneAreaPerVocabularyType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T054",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsPageAreasAreLabelledFromTheVocabulary"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T055",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestSavingTextIntoOneAreaRecordsOnlyThatType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T056",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:177"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestExistingDescriptionsShowInTheirOwnArea"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T057",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestEditingAnExistingDescriptionPersists"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T058",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestClearingAnAreaRemovesTheDescription"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T059",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestEmptyAndWhitespaceOnlyAreasCreateNothing"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T060",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/descriptions.py:16"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestRepeatSubmissionNeverDuplicatesAType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T061",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:187"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestASuccessfulSubmissionRedirectsToTheProjectsPage"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T062",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/forms.py"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestSavingTextIntoOneAreaRecordsOnlyThatType",
+              "tests/test_core/test_project/test_plugins.py::TestEditingAnExistingDescriptionPersists",
+              "tests/test_core/test_project/test_plugins.py::TestRepeatSubmissionNeverDuplicatesAType"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
         }
       ]
     },
