@@ -592,6 +592,30 @@ class TestProjectUpdateView:
         project.refresh_from_db()
         assert not project.image
 
+    def test_submitting_an_empty_name_reports_an_error_and_saves_nothing(self, client):
+        """T033 — An empty name is refused, and the project's stored name is unchanged."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Original Name", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                "name": "",
+                "status": project.status,
+                "visibility": project.visibility,
+                "owner": org.pk,
+            },
+        )
+
+        assert response.status_code == 200
+        assert "name" in response.context["form"].errors
+        project.refresh_from_db()
+        assert project.name == "Original Name"
+
     def test_project_update_success_redirects_to_detail(self, client):
         """T024a — Valid POST by permitted user returns 302 to project-detail URL."""
         org = Organization.objects.create(name="Test Org")
