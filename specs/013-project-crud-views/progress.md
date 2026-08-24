@@ -558,3 +558,38 @@ regression test.
 **Next**: T089.
 
 **Watch**: nothing.
+
+---
+
+## 2026-08-24T17:30:00+02:00 · Implementer US6 · T089
+
+**Did**: Audited every page under `docs/user-guide/project/` against what this feature delivers.
+Rewrote `about.md` to describe the project's own page (who may open a public vs. a private
+project, and the links it offers). Renamed `configure.md` to `attributes.md` and rewrote it,
+since the Configure tab it described no longer exists — the page is now Attributes, and it
+carries the project's dates and identifiers alongside its own fields, not on pages of their own.
+Rewrote `descriptions.md` to name the seven description types and how saving/clearing an area
+behaves. Rewrote `delete.md` to cover the type-to-confirm requirement (whitespace ignored) and
+explain the public-dataset refusal, including that it is shown on opening the page, not only
+after submitting. Deleted `keywords.md` and `key-dates.md`: keywords are deferred (not editable
+through the portal at all) and key dates are edited on the attributes page rather than a
+standalone page of their own, so neither stub described a real page any longer. Updated
+`index.md`'s toctree to match. Left `create.md` untouched and flagged below — its content
+describes creating a *dataset*, not a project, which predates this feature and is a mismatch
+this story's acceptance criteria does not cover. Left `docs/portal-administration/managing_projects.md`
+untouched — it documents the Django admin's own project editing, a separate surface this
+feature does not touch, and it references nothing this feature retired. Verified the rewrite
+with a full Sphinx build: no new warnings, no broken toctree references, no unresolved links to
+the renamed or deleted files.
+
+**Verified**: `poetry run sphinx-build -b html docs /tmp/docs_build_check -q` — same warnings as
+the unmodified tree, none referencing `docs/user-guide/project/*`. No `ruff` scope (documentation
+only).
+
+**Next**: story complete (T078, T083-T086, T089 all done). Full-suite verify at the completion
+report.
+
+**Watch**: `docs/user-guide/project/create.md` is titled "Create a dataset" and its entire body
+describes the dataset creation flow, not project creation — a pre-existing content mismatch this
+story's acceptance criteria (attributes/descriptions/deletion pages, the retired Configure tab
+and standalone routes) does not name and is out of this story's scope to fix.
