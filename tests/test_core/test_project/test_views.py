@@ -943,6 +943,32 @@ class TestAttributesDateRowSet:
         date.refresh_from_db()
         assert str(date.value) == "2021-06-15"
 
+    def test_removing_a_date_row_deletes_it_from_the_project(self, client):
+        """T043 — Checking DELETE on an existing date row and submitting removes it."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Has Date", owner=org)
+        date = ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(),
+                **_date_management_data(total=1, initial=1),
+                "dates-0-id": date.pk,
+                "dates-0-type": "Start",
+                "dates-0-value": "2020-01-01",
+                "dates-0-DELETE": "on",
+            },
+        )
+
+        assert response.status_code == 302
+        assert not project.dates.filter(pk=date.pk).exists()
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
