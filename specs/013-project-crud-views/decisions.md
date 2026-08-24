@@ -390,6 +390,29 @@ the same surface under a different name.
 different purpose (e.g. a bulk-edit page touching only `status`) — the overlap check would flag
 it and the test's own field set may need to shrink to the fields that must stay page-unique.
 
+### T048 — two pre-existing tests removed, and why that is not a weakening
+
+**Decision**: `test_date_form_validates_range` and `test_identifier_form_accepts_valid_data`
+were deleted from `tests/test_core/test_project/test_forms.py` along with the two form classes
+they exercised. Approved rather than escalated.
+
+**Why**: both tested classes that no longer exist. `ProjectDateForm` and `ProjectIdentifierForm`
+were the single-record forms the row sets replace, and T048 is the task that removes them. The
+behaviour each test asserted is now covered in more places than before, not fewer:
+
+- The date range rule has three tests over the shared, parameterised version
+  (`tests/test_core/test_formsets.py`), including one asserting that record types outside the
+  configured pair are left alone — a case the deleted test could not express.
+- The same rule is additionally asserted through a real submission, twice
+  (`test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing`,
+  `test_a_backwards_pair_with_the_start_already_stored_is_refused_and_saves_nothing`).
+- Identifier validity is asserted through the page rather than the form
+  (`test_adding_an_identifier_of_a_chosen_type_records_it_against_the_project` and the four
+  tests around it), including the two collision cases the deleted test did not reach.
+
+**Revisit if**: a later change removes the row sets — the shared rule's tests would go with them
+and the coverage this entry relies on would need re-establishing at the form level.
+
 ---
 
 ## Raised separately
