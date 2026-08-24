@@ -257,4 +257,4 @@ adjudications.
   test believed to cover this passes for an unrelated reason and must be rewritten.
 - **T099** — Raise the registry's owner-resolution defect separately: the visibility rule of an
   owning page is never consulted for anything belonging to it, anywhere in the repository. Not this
-  feature's fix.
+  feature's fix. Raised as issue #284.

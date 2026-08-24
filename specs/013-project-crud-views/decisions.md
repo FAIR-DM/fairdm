@@ -618,4 +618,4 @@ underlying resolution defect belongs to the registry rather than to this feature
 separately.
 
 **Left open**: the registry's owner resolution is still wrong for every additional view in the
-repository, including the contributor pages. Raised separately.
+repository, including the contributor pages. Raised as issue #284.
