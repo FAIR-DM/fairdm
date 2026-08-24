@@ -370,3 +370,27 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
 
         form = response.context["form"]
         assert all(field.initial in (None, "") for field in form)
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
+    """T054 — each area is labelled with its concept's name and carries that concept's
+    definition as help text, asserted against the vocabulary's own label and definition rather
+    than a copied string."""
+
+    def test_the_first_areas_label_and_help_text_match_its_concept(
+        self, client, user_with_change_permission
+    ):
+        from fairdm.core.project.models import ProjectDescription
+
+        project = user_with_change_permission.project
+        client.force_login(user_with_change_permission)
+        first_type = ProjectDescription.VOCABULARY.values[0]
+        concept = ProjectDescription.VOCABULARY.get_concept(first_type)
+
+        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert form.fields[first_type].label == concept.label()
+        assert form.fields[first_type].help_text == concept.definition()
