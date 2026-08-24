@@ -513,7 +513,7 @@ class TestProjectDateModel:
 
     def test_month_precision_end_before_month_precision_start_is_refused(self):
         """A month-precision end earlier than a month-precision start in the
-        same year is refused - the month-precision branch of `_precedes` was
+        same year is refused - the month-precision branch of `precedes` was
         previously exercised by no test.
 
         Requirement: FR-010.

@@ -823,3 +823,29 @@ lives, instead of a cross-reference to an unrelated page.
 `ProjectDetailView`.
 
 **ADR:** none — where eleven names were documented. Local to this feature.
+
+---
+
+## D20 — One precision-aware date comparison, three consumers
+
+**Previous specification**: none. The review of the final diff found the fault.
+
+**Code**: `formsets.py`'s `date_ordering_formset` carried its own copy of the precision-aware
+comparison two `PartialDate` values need. `ProjectDate` and `DatasetDate` already carried one
+each, identical to it and to each other, both predating this branch. Lifting the admin's two
+hand-rolled date rules into one shared formset had therefore reduced the duplication it was
+extracted to remove while adding a third copy of the comparison underneath it.
+
+**Settled**: the comparison moves to `fairdm/core/dates.py` as `precedes()`. The formset and both
+models call it. Three copies become one.
+
+**Why**: this is the algorithm every date rule in the platform turns on, and getting it wrong is
+silent — a wrong precision branch accepts a backwards pair rather than raising. Three copies is
+three places to fix it. The shape of each record type's rule stays duplicated per record type,
+which is a deliberate earlier decision (spec 004, Article III) about the *rule*, not about the
+comparison it calls.
+
+**Left open**: `_sibling_value` is still a copy on each of the two models. It is a queryset over
+the model's own table, so a shared version would take the model as an argument and save nothing.
+
+**ADR:** none — where one function lives. Local to this feature.

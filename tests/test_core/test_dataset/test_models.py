@@ -944,7 +944,7 @@ class TestDatasetDate:
     def test_month_precision_end_before_month_precision_start_is_refused(self):
         """A month-precision end earlier than a month-precision start in
         the same year is refused - the month-precision branch of
-        `_precedes` was previously exercised by no test (T040).
+        `precedes` was previously exercised by no test (T040).
         """
         dataset = DatasetFactory()
         DatasetDate.objects.create(

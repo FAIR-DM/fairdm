@@ -1,28 +1,16 @@
-"""Shared formsets for the related-record admin inlines.
+"""Shared formsets for the rows of related records a record carries.
 
-This module is not a page, view or URL - it is consumed directly by the
-Django admin inlines in ``fairdm/core/project/admin.py`` and
-``fairdm/core/dataset/admin.py``.
+This module is not a page, view or URL. It is consumed by the Django admin
+inlines in ``fairdm/core/project/admin.py`` and
+``fairdm/core/dataset/admin.py``, and by the record's own pages in
+``fairdm/core/project/plugins.py``.
 """
 
 from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet
 from partial_date import PartialDate
 
-
-def _precedes(a: PartialDate, b: PartialDate) -> bool:
-    """Whether PartialDate `a` is earlier than PartialDate `b`.
-
-    Compares at the coarser of the two precisions: years only if either is
-    year-precision, year and month if either is month-precision, and the
-    full date only when both carry day precision.
-    """
-    precision = min(a.precision, b.precision)
-    if precision == PartialDate.YEAR:
-        return bool(a.date.year < b.date.year)
-    if precision == PartialDate.MONTH:
-        return bool((a.date.year, a.date.month) < (b.date.year, b.date.month))
-    return bool(a.date < b.date)
+from .dates import precedes
 
 
 def date_ordering_formset(start_type, end_type, message):
@@ -76,7 +64,7 @@ def date_ordering_formset(start_type, end_type, message):
             if start_value is None or end_value is None:
                 return
 
-            if _precedes(end_value, start_value):
+            if precedes(end_value, start_value):
                 raise ValidationError(
                     message % {"start": start_value, "end": end_value}
                 )
