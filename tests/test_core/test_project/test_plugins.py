@@ -23,6 +23,8 @@ T096 - descriptions stops being a registration of its own and becomes one of the
        page's own belongings, exactly as update and deletion already are (D13).
 T097 - the project's own page draws the descriptions link itself, since no navigation entry
        remains to draw it.
+T098 - every page states its own visibility rule, because inheriting one silently does not work
+       (D14).
 """
 
 import re
@@ -206,14 +208,40 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
         request = _request_for(AnonymousUser())
         assert can_open(Overview, request, public_project) is True
 
-    def test_the_attributes_page_inherits_the_visibility_check_from_its_owner(
-        self, private_project, user_with_change_permission
+    def test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record(
+        self, client, private_project
     ):
-        """A user holding change rights on a *different* project still cannot reach a private
-        project's attributes page: an additional view inherits its owner's `check`, so the
-        visibility guard applies there too."""
-        request = _request_for(user_with_change_permission)
-        assert can_open(Update, request, private_project) is False
+        """T098/D14 — a user holding `project.change_project` at the model level and no grant at
+        all on this particular private project is refused by every one of its pages: the
+        project's own page, its update page, its descriptions page and its deletion page.
+        Asserted through a real request per page, not through `can_open()` directly, because
+        `can_open()` answering False for `Overview` alone does not prove any page carrying it as
+        an additional view actually refuses the request — that is exactly the gap D14 closes.
+        Before D14 the project's own page refused this user with 403 and its update page admitted
+        them with 200, because the additional view's `check` never carried across from its
+        owner. (The test this replaces asserted the same conclusion for a different scenario — a
+        user with genuine, record-level change rights on a *different* project — which the
+        permission check alone already refuses, so it passed without visibility ever being
+        reached.)"""
+        from django.contrib.auth.models import Permission
+
+        user = UserFactory()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="project", codename="change_project"
+            )
+        )
+        client.force_login(user)
+
+        for name in (
+            "project:overview",
+            "project:overview-update",
+            "project:overview-descriptions",
+            "project:overview-delete",
+        ):
+            url = reverse(name, kwargs={"uuid": private_project.uuid})
+            response = client.get(url)
+            assert response.status_code in (403, 404), name
 
 
 @pytest.mark.django_db
@@ -250,36 +278,35 @@ class TestAPrivateProjectsPageThroughARealRequest:
 
 
 @pytest.mark.django_db
-class TestAttributesPageOverHTTP:
-    """The attributes page (013 plan P3) resolves as an additional view of the project's own
+class TestUpdatePageOverHTTP:
+    """The update page (013 plan P3, D12) resolves as an additional view of the project's own
     registration rather than an address of its own, keyed by the project's identifier."""
 
-    def test_the_attributes_page_is_keyed_by_the_projects_identifier_not_its_own_address(
+    def test_the_update_page_is_keyed_by_the_projects_identifier_not_its_own_address(
         self, public_project
     ):
-        """T026 — Reversed by name, the attributes page's URL carries the project's own
+        """T026 — Reversed by name, the update page's URL carries the project's own
         identifier rather than resolving to an address of its own."""
         url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
         assert url == f"/projects/{public_project.uuid}/update/"
 
-    def test_an_anonymous_visitor_opening_the_attributes_page_is_redirected_to_sign_in(
+    def test_an_anonymous_visitor_opening_the_update_page_is_redirected_to_sign_in(
         self, client, public_project
     ):
-        """T026 — Opened directly (not merely reversed), the attributes page redirects an
+        """T026 — Opened directly (not merely reversed), the update page redirects an
         anonymous visitor to sign in rather than admitting them or 404ing."""
         url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert reverse("account_login") in response.url
 
-    def test_a_user_holding_change_permission_at_the_model_level_is_admitted(
-        self, client
-    ):
-        """T028 — A user holding `project.change_project` at the model level, granted through
-        no individual record, is admitted to a project they hold no per-object grant on. This
-        is the retiring standalone page's behaviour and must survive: the check has to ask
-        twice, model level then record (`fairdm/contrib/plugins/access.py` `has_perm`), or a
-        model-level-only holder is refused."""
+    def test_a_user_holding_only_model_level_change_permission_is_refused(self, client):
+        """T028/T098/D14 — this used to assert the opposite (200): a user holding
+        `project.change_project` at the model level, granted through no individual record, was
+        admitted to a private project they hold no grant at all on. That was the exact defect
+        D14 settled — a page that relies on inheriting a visibility rule is not guarded at all —
+        so this same scenario is now refused here too, matching `Overview` and matching the
+        real-request coverage in `TestTheOverviewGuardsAPrivateProjectsVisibility`."""
         from django.contrib.auth.models import Permission
 
         from fairdm.factories import ProjectFactory, UserFactory
@@ -291,6 +318,33 @@ class TestAttributesPageOverHTTP:
                 content_type__app_label="project", codename="change_project"
             )
         )
+        client.force_login(user)
+
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+
+        assert response.status_code == 403
+
+    def test_a_user_holding_change_permission_at_the_model_level_is_admitted_once_visible(
+        self, client
+    ):
+        """T028 — with view rights added (as a real grant path always provides, per
+        ``conftest.py``'s ``user_with_change_permission``), the retiring standalone page's own
+        behaviour survives: the *permission* check still has to ask twice, model level then
+        record (`fairdm/contrib/plugins/access.py` `has_perm`), or a model-level-only holder of
+        `change_project` would be refused even once they can see the project."""
+        from django.contrib.auth.models import Permission
+
+        from fairdm.factories import ProjectFactory, UserFactory
+
+        project = ProjectFactory()
+        user = UserFactory()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="project", codename="change_project"
+            )
+        )
+        assign_perm("view_project", user, project)
         client.force_login(user)
 
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
@@ -669,7 +723,7 @@ class TestProjectsOwnPageOffersUpdateAndDescriptionsLinks:
 @pytest.mark.django_db
 class TestProjectsOwnPageOffersTheDeletionLink:
     """T068 — a user who may delete the project is offered a link to its deletion page from the
-    project's own page; a signed-in user who may not is not. Same mechanism as T067's attributes
+    project's own page; a signed-in user who may not is not. Same mechanism as T067's update
     link — the shell's own "Delete" button, drawn from ``directory.delete_url``."""
 
     def test_a_user_who_may_delete_the_project_is_offered_the_link(self, client):
@@ -820,8 +874,8 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
 
 
 @pytest.mark.django_db
-class TestAttributesPageOffersTheDeletionLink:
-    """T094 / FR-045 — the attributes page offers the deletion page to a user who may delete the
+class TestUpdatePageOffersTheDeletionLink:
+    """T094 / FR-045 — the update page offers the deletion page to a user who may delete the
     project, and offers it to nobody else. The shared ``form_view.html`` shell already carries the
     slot; it is fed by ``MVPUpdateView.get_delete_url()`` through ``resolve_crud_url("delete")``,
     so the page names the deletion route in its own ``crud_views`` and gates the link on the
@@ -858,7 +912,7 @@ class TestAttributesPageOffersTheDeletionLink:
             href.startswith(delete_url) for href in _hrefs(response.content.decode())
         )
 
-    def test_the_link_returns_to_the_attributes_page_when_deletion_is_abandoned(
+    def test_the_link_returns_to_the_update_page_when_deletion_is_abandoned(
         self, client
     ):
         """The shell appends ``?back=`` to the deletion address, and the deletion page honours
@@ -870,10 +924,8 @@ class TestAttributesPageOffersTheDeletionLink:
         assign_perm("delete_project", user, project)
         client.force_login(user)
 
-        attributes_url = reverse(
-            "project:overview-update", kwargs={"uuid": project.uuid}
-        )
-        response = client.get(attributes_url)
+        update_url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        response = client.get(update_url)
         delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         link = next(
             href
@@ -881,17 +933,19 @@ class TestAttributesPageOffersTheDeletionLink:
             if href.startswith(delete_url)
         )
 
-        assert f"back={quote(attributes_url, safe='')}" in link
+        assert f"back={quote(update_url, safe='')}" in link
 
 
 @pytest.mark.django_db
 class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
     """The project's own page refuses a private project to anyone without `project.view_project`.
-    Its descriptions page is a registration of its own rather than one of the overview's
-    additional views, so it takes none of that guard by default and would answer on the strength
-    of `project.change_project` alone — which `has_perm` grants model-wide, with no rights over
-    the record at all. The two pages would then disagree about the same project: one refusing the
-    visitor, the other rendering and accepting a submission.
+    Descriptions is one of the overview's additional views (013 plan D13), but an additional view
+    inherits its owner's `check` only in name, not on a real request (013 plan D14) — the owner
+    is read from `plugin_class`, which exists only on the view instance. Without its own `check`
+    stated directly, descriptions would answer on the strength of `project.change_project` alone
+    — which `has_perm` grants model-wide, with no rights over the record at all. The two pages
+    would then disagree about the same project: one refusing the visitor, the other rendering and
+    accepting a submission.
     """
 
     def _model_wide_changer(self, user):

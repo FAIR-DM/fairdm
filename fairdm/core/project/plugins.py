@@ -35,19 +35,52 @@ def project_is_visible(request, obj):
     this check a private project would be readable by anyone holding its address (013 plan P1).
     Set as :class:`Overview`'s ``check``, which is what guards the project's own page.
 
-    It does **not** carry to :class:`Attributes` or :class:`Delete` on a real request, despite the
-    inheritance ``can_open`` describes: the owner is read from ``plugin_class``, which ``get_urls``
-    binds through ``as_view()`` and which therefore exists only on the view instance, while
-    ``has_permission`` passes the class. Those two pages are guarded by their own ``permission``
-    alone. Reported as issue #284; not repaired here because making the predicate apply to pages
-    that already require ``change_project``/``delete_project`` is a decision about how editing
-    rights and visibility compose, which belongs with the plugin access work in #279.
+    It does **not** carry to an additional view through the inheritance ``can_open`` describes: the
+    owner is read from ``plugin_class``, which ``get_urls`` binds through ``as_view()`` and which
+    therefore exists only on the view instance, while ``has_permission`` passes the class. So
+    :class:`Update`, :class:`Delete` and :class:`Descriptions` each state a visibility rule of
+    their own too, rather than relying on inheriting :class:`Overview`'s (013 plan D14) — a page
+    that relies on inheriting a visibility rule is not guarded at all, confirmed through a real
+    request: before D14 the project's own page refused a user holding only the model-level right
+    to change projects, and its update page admitted the same user. The underlying owner-
+    resolution defect is unrepaired here and belongs to the registry rather than to this feature —
+    raised separately as issue #284.
     """
     if obj is None:
         return True
     if obj.visibility == Visibility.PUBLIC:
         return True
     return has_perm(request, "project.view_project", obj)
+
+
+def visible_to_holder_of(permission):
+    """Build a ``check`` like :func:`project_is_visible`, except a private ``obj`` also stays
+    visible to a user holding ``permission`` on it specifically, at record level.
+
+    :class:`Update` and :class:`Delete` need this rather than bare :func:`project_is_visible`:
+    their own permission is ``change_project``/``delete_project``, not ``view_project``, and
+    creating a project grants all five rights on it at once
+    (``ProjectCreateView.form_valid``) — nothing in the running application ever grants editing
+    rights on a record without also granting the right to view it. A record-level grant of the
+    page's own permission is therefore already evidence of legitimate access, and treating it as
+    anything else would refuse every ordinary editor of a private project, not just the D14
+    scenario.
+
+    The record-level distinction is what keeps D14's fix intact: ``request.user.has_perm(permission,
+    obj)`` with an object passed consults only the object-level backend
+    (``fairdm.contrib.plugins.access.has_perm``'s own docstring), so a user holding ``permission``
+    **only** at the model level — D14's reproduction case — still finds no grant here and is
+    refused, exactly as :func:`project_is_visible` alone already refuses them.
+    """
+
+    def check(request, obj):
+        if project_is_visible(request, obj):
+            return True
+        if obj is None:
+            return False
+        return request.user.has_perm(permission, obj)
+
+    return check
 
 
 class ProjectDatesInline(ProjectDateInline):
@@ -83,6 +116,11 @@ class Update(Plugin, InlinesMixin, FairDMUpdateView):
     # (fairdm/contrib/plugins/access.py `can_open`), so one that states none is open to
     # everyone, anonymous included (issue #279). Every page here writes its own.
     permission = "project.change_project"
+    # Stated directly rather than inherited from Overview — inheritance does not carry to an
+    # additional view (see `project_is_visible`, 013 plan D14). `visible_to_holder_of` rather than
+    # bare `project_is_visible`: this page's own permission is `change_project`, not
+    # `view_project`, and a record-level grant of it is already evidence of legitimate access.
+    check = staticmethod(visible_to_holder_of("project.change_project"))
     page_title = _("Update project")
     model = Project
     form_class = ProjectForm
@@ -118,6 +156,11 @@ class Delete(Plugin, FairDMDeleteView):
 
     url_path = "delete"
     permission = "project.delete_project"
+    # Stated directly rather than inherited from Overview — inheritance does not carry to an
+    # additional view (see `project_is_visible`, 013 plan D14). `visible_to_holder_of` rather than
+    # bare `project_is_visible`: this page's own permission is `delete_project`, not
+    # `view_project`, and a record-level grant of it is already evidence of legitimate access.
+    check = staticmethod(visible_to_holder_of("project.delete_project"))
     page_title = _("Delete project")
     model = Project
     require_confirmation = True
@@ -287,6 +330,3 @@ class ProjectExportView(Plugin, FairDMTemplateView):
 
     page_title = _("Export Project Data")
     page_icon = "export"
-
-    def get_success_url(self):
-        return self.base_object.get_absolute_url()

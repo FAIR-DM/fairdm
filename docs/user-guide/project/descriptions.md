@@ -6,7 +6,8 @@ one for each kind of description the project supports.
 ## Who can open it
 
 Anyone holding permission to change the project — typically its contributors. Anyone else is
-refused.
+refused. A private project also refuses anyone who cannot see it, the same rule the project's own
+page applies.
 
 ## The description types
 

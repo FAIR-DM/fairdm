@@ -6,7 +6,8 @@ The delete page removes a project permanently. Deletion cannot be undone.
 
 Anyone holding permission to delete the project. Anyone else is refused, and the link to this
 page is not shown to them on the project's own page. If you are not signed in, you are sent to
-sign in first.
+sign in first. A private project also refuses anyone who cannot see it, the same rule the
+project's own page applies.
 
 ## Confirming a deletion
 
