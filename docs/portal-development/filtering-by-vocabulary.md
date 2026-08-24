@@ -1,27 +1,72 @@
-# Filtering by Vocabulary-Specific Keywords
+# Filtering Projects by Vocabulary-Specific Keywords
 
-The `ProjectFilter` class supports creating multiple keyword filters, each tied to a specific vocabulary. This allows users to filter projects by different types of controlled keywords (e.g., science keywords, platforms, instruments) rather than having a single generic "Keywords" filter.
+`ProjectFilter` (`fairdm.core.project.filters.ProjectFilter`) can offer one keyword filter per
+controlled vocabulary, so a portal can let visitors narrow projects by science keywords,
+platforms, instruments, or any other `research_vocabs` vocabulary, each as its own filter field.
 
-## Autocomplete for Large Vocabularies
+Editing a project's keywords through the portal is not part of this: keywords are deferred until
+the controlled-vocabulary package is properly integrated (issue #171). This page covers filtering
+only — reading and searching by keywords that already exist on projects.
 
-For extremely large vocabularies (e.g., GCMD Science Keywords with thousands of concepts), FairDM uses `django-autocomplete-light` to efficiently load concepts on demand rather than loading entire querysets into the browser.
+## Configuring which vocabularies filter
 
-### Concept Autocomplete View
-
-The `ConceptAutocomplete` view at `/autocomplete/concept/` provides filtered concept lookups:
+Which vocabularies get their own filter field is a setting, not a subclass:
 
 ```python
-# URL: /autocomplete/concept/?vocabulary=gcmd-science-keywords&q=ocean
-# Returns: Concepts from the specified vocabulary matching the search term
+# settings.py
+FAIRDM_PROJECT = {
+    "keywords": [
+        "fairdm.core.vocabularies.FairDMRoles",
+        # "myapp.vocabularies.ScienceKeywords",
+    ],
+}
 ```
 
-**Features:**
-- Filters by vocabulary name via URL parameter or forwarded field
-- Searches concept labels and names
-- Only authenticated users can access
-- Returns results ordered by label
+Each entry is the dotted import path to a `research_vocabs` vocabulary class. `ProjectFilter`
+reads the list with `get_setting("PROJECT", "keywords")` and, for each vocabulary, adds a
+`django_filters.ModelMultipleChoiceFilter` restricted to concepts from that vocabulary that at
+least one project actually uses.
 
-**Usage in custom widgets:**
+## How filter names are generated
+
+The filter field name is the vocabulary class's own name, prefixed with `keywords_`:
+
+```
+"fairdm.core.vocabularies.FairDMRoles"  →  keywords_FairDMRoles
+```
+
+Not the vocabulary's slug — `ProjectFilter.__init__` (`fairdm/core/project/filters.py`) uses
+`vocab_class.__name__` for the field name, and the vocabulary's registered `name` (its `_meta.name`)
+only to scope the queryset to that vocabulary's concepts.
+
+## No configured vocabularies
+
+If `FAIRDM_PROJECT["keywords"]` is empty or unset, `ProjectFilter` falls back to one generic
+`keywords` filter spanning every vocabulary, rendered as a plain checkbox list rather than an
+autocomplete widget.
+
+## The filter widget
+
+Each per-vocabulary filter uses `ConceptMultiSelect`
+(`fairdm.contrib.autocomplete.fields.ConceptMultiSelect`), which wires up a
+`django-autocomplete-light` widget scoped to that one vocabulary automatically:
+
+```python
+from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
+
+field = ConceptMultiSelect(vocabulary="fairdm.core.vocabularies.FairDMRoles")
+```
+
+`vocabulary` accepts either the class itself or its dotted path. This is what `ProjectFilter`
+constructs internally for each configured vocabulary — a portal does not need to build one by
+hand to get vocabulary-scoped filtering.
+
+## Concept autocomplete endpoint
+
+`ConceptAutocomplete` (`fairdm.contrib.autocomplete.views.ConceptAutocomplete`), mounted at
+`/autocomplete/concept/`, backs every concept widget so large vocabularies load concepts on
+demand rather than shipping the whole queryset to the browser. It requires an authenticated
+request and filters by vocabulary name via a forwarded field or a `?vocabulary=` query parameter:
 
 ```python
 from dal import autocomplete
@@ -30,136 +75,19 @@ from django import forms
 field = forms.ModelMultipleChoiceField(
     queryset=Concept.objects.all(),
     widget=autocomplete.ModelSelect2Multiple(
-        url='concept-autocomplete?vocabulary=gcmd-science-keywords',
-        attrs={
-            'data-placeholder': 'Select keywords...',
-            'data-minimum-input-length': 2,
-        }
-    )
+        url="autocomplete:concept",
+        forward=["vocabulary_name"],
+    ),
 )
 ```
 
-## Keyword Form Configuration
+`ConceptMultiSelect` and `ConceptSelect` build this widget for you, scoped to one vocabulary, so
+reaching for `autocomplete.ModelSelect2Multiple` directly is only needed for a widget that isn't
+tied to a single vocabulary.
 
-## How It Works
+## Performance
 
-The `ProjectFilter` base class has a `KEYWORD_VOCABULARIES` configuration attribute that accepts a list of vocabulary specifications. For each vocabulary specified, the filter automatically creates a separate filter field that:
-
-1. Only shows concepts from that specific vocabulary
-2. Only shows concepts that are actually used by projects
-3. Filters the `keywords` relationship on the Project model
-
-## Basic Usage
-
-To add vocabulary-specific filters, create a custom filter class that extends `ProjectFilter` and specify the vocabularies you want:
-
-```python
-from django.utils.translation import gettext_lazy as _
-from fairdm.core.project.filters import ProjectFilter
-
-
-class MyProjectFilter(ProjectFilter):
-    """Custom project filter with vocabulary-specific keyword filters."""
-    
-    KEYWORD_VOCABULARIES = [
-        ("gcmd-science-keywords", _("Science Keywords")),
-        ("gcmd-platforms", _("Platforms")),
-        ("gcmd-instruments", _("Instruments")),
-    ]
-```
-
-This will automatically create three new filter fields:
-- `keywords_gcmd_science_keywords` - labeled "Science Keywords"
-- `keywords_gcmd_platforms` - labeled "Platforms"  
-- `keywords_gcmd_instruments` - labeled "Instruments"
-
-## How Filter Names Are Generated
-
-The filter field name is generated by:
-1. Prefixing with `keywords_`
-2. Converting the vocabulary name to a valid Python identifier (replacing `-` with `_`)
-
-For example:
-- `"gcmd-science-keywords"` → `keywords_gcmd_science_keywords`
-- `"my-custom-vocab"` → `keywords_my_custom_vocab`
-
-## Finding Vocabulary Names
-
-Vocabulary names in the database correspond to the `name` field on vocabulary objects. To find available vocabularies:
-
-```python
-from research_vocabs.models import Vocabulary
-
-# List all vocabularies
-for vocab in Vocabulary.objects.all():
-    print(f"{vocab.name}: {vocab.title}")
-```
-
-Common GCMD vocabularies include:
-- `gcmd-science-keywords`
-- `gcmd-platforms`
-- `gcmd-instruments`
-- `gcmd-locations`
-- `gcmd-projects`
-
-## Widget Customization
-
-By default, vocabulary filters use `CheckboxSelectMultiple` widgets for multi-select functionality. The filters use OR logic, meaning projects matching ANY selected keyword will be returned.
-
-If you need different widget behavior, you can override the filter creation in `__init__`:
-
-```python
-class MyProjectFilter(ProjectFilter):
-    KEYWORD_VOCABULARIES = [
-        ("gcmd-science-keywords", _("Science Keywords")),
-    ]
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Customize the widget for a specific vocabulary filter
-        self.filters["keywords_gcmd_science_keywords"].widget = forms.SelectMultiple(
-            attrs={"class": "form-select", "size": "10"}
-        )
-```
-
-## Empty State Handling
-
-The filters automatically exclude concepts that aren't used by any projects. This means if no projects use concepts from a vocabulary, that filter will have an empty queryset and won't show any options.
-
-## Complete Example
-
-```python
-# myapp/filters.py
-from django.utils.translation import gettext_lazy as _
-from fairdm.core.project.filters import ProjectFilter
-
-
-class GeoscienceProjectFilter(ProjectFilter):
-    """Project filter configured for geoscience research portals."""
-    
-    KEYWORD_VOCABULARIES = [
-        ("gcmd-science-keywords", _("Science Keywords")),
-        ("gcmd-platforms", _("Observation Platforms")),
-        ("gcmd-instruments", _("Instruments")),
-        ("gcmd-locations", _("Locations")),
-    ]
-```
-
-Then use it in your view configuration or registry:
-
-```python
-# myapp/config.py
-from .filters import GeoscienceProjectFilter
-
-PROJECT_FILTER = GeoscienceProjectFilter
-```
-
-## Performance Considerations
-
-The filter queries are optimized to:
-- Only load concepts from specified vocabularies
-- Only load concepts actually used by projects (via `projects__isnull=False`)
-- Use `distinct()` to avoid duplicate results
-
-For large vocabularies, consider adding database indexes on the `Concept` model's `vocabulary_id` field if not already present.
+Per-vocabulary filters only query concepts that at least one project actually uses
+(`projects__isnull=False`) and call `.distinct()` to avoid duplicate rows. For a vocabulary large
+enough that this query itself is slow, an index on the `Concept` model's `vocabulary_id` field
+helps.

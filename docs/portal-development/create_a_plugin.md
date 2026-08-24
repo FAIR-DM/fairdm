@@ -208,13 +208,13 @@ A plugin is an ordinary class, so a package can ship a base and a portal can sub
 
 ```python
 # In the distributed package
-class KeywordsPlugin(Plugin, FairDMUpdateView):
-    form_class = KeywordForm
+class CitationsPlugin(Plugin, FairDMUpdateView):
+    form_class = CitationForm
 
 
 # In the portal
-@plugins.register(MySample, label=_("Keywords"), icon="tag", order=520)
-class Keywords(KeywordsPlugin):
+@plugins.register(MySample, label=_("Citations"), icon="quote", order=520)
+class Citations(CitationsPlugin):
     pass
 ```
 
