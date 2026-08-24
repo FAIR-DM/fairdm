@@ -657,6 +657,16 @@ class TestProjectUpdateView:
         assert response.url == expected_url
 
 
+def _project_field_data(project):
+    """The attributes form's own field values, unchanged from `project`."""
+    return {
+        "name": project.name,
+        "status": project.status,
+        "visibility": project.visibility,
+        "owner": project.owner_id,
+    }
+
+
 @pytest.mark.django_db
 class TestAttributesIdentifierRowSet:
     """The attributes page's identifier row set (013 plan P3): existing identifiers presented
@@ -682,6 +692,32 @@ class TestAttributesIdentifierRowSet:
         identifier_formset = formsets["identifiers"]
         assert identifier_formset.initial_form_count() == 1
         assert len(identifier_formset.forms) == 1
+
+    def test_adding_an_identifier_of_a_chosen_type_records_it_against_the_project(
+        self, client
+    ):
+        """T035 — A newly added identifier row is recorded against the project."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="No Identifiers Yet", owner=org)
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(total=1, initial=0),
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "10.1/new-identifier",
+            },
+        )
+
+        assert response.status_code == 302
+        assert project.identifiers.filter(
+            type="DOI", value="10.1/new-identifier"
+        ).exists()
 
 
 # ---------------------------------------------------------------------------
