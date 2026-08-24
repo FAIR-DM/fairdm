@@ -138,10 +138,11 @@ class Overview(CRUDDirectoryMixin, OverviewPlugin):
     the record's include, the same convention the contributor pages already use.
 
     Mixes in the interface layer's own action-link mechanism (013 plan P5, US-5) rather than a
-    hand-rolled one: ``directory`` names the one action this page's extra views need an entry
-    for (``update``, drawn by the shared ``detail_view.html`` shell as its "Edit" button), and
-    ``crud_views`` reverses it to :class:`Attributes`' own registered name — the default
-    ``{model_name}-update`` shape resolves to the standalone route this feature retires.
+    hand-rolled one: ``directory`` names the two actions this page's extra views need an entry
+    for (``update`` and ``delete``, drawn by the shared ``detail_view.html`` shell as its "Edit"
+    and "Delete" buttons), and ``crud_views`` reverses each to :class:`Attributes`' and
+    :class:`Delete`'s own registered names — the default ``{model_name}-update``/``-delete``
+    shape resolves to the standalone routes this feature retires.
     """
 
     url_path = None
@@ -150,11 +151,17 @@ class Overview(CRUDDirectoryMixin, OverviewPlugin):
     template_name = "project/project_detail.html"
     extra_views = [Attributes, Delete]
 
-    directory = ["update"]
-    crud_views = {"update": "project:overview-attributes"}
+    directory = ["update", "delete"]
+    crud_views = {
+        "update": "project:overview-attributes",
+        "delete": "project:overview-delete",
+    }
 
     def show_update_action(self, user):
         return has_perm(self.request, Attributes.permission, self.base_object)
+
+    def show_delete_action(self, user):
+        return has_perm(self.request, Delete.permission, self.base_object)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

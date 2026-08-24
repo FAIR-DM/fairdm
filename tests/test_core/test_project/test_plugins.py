@@ -638,3 +638,35 @@ class TestProjectsOwnPageOffersAttributesAndDescriptionsLinks:
         )
         assertNotContains(response, f'href="{attributes_url}"')
         assertNotContains(response, f'href="{descriptions_url}"')
+
+
+@pytest.mark.django_db
+class TestProjectsOwnPageOffersTheDeletionLink:
+    """T068 — a user who may delete the project is offered a link to its deletion page from the
+    project's own page; a signed-in user who may not is not. Same mechanism as T067's attributes
+    link — the shell's own "Delete" button, drawn from ``directory.delete_url``."""
+
+    def test_a_user_who_may_delete_the_project_is_offered_the_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": project.uuid})
+        )
+
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        assertContains(response, f'href="{delete_url}"')
+
+    def test_a_signed_in_user_who_may_not_delete_it_is_not_offered_the_link(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        client.force_login(user)
+
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": project.uuid})
+        )
+
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        assertNotContains(response, f'href="{delete_url}"')
