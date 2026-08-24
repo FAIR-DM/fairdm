@@ -193,7 +193,7 @@ Two things this has to get right in the URL configuration:
 **The same split exists on datasets and measurements**, and is not this feature's to fix: a dataset's
 pages mount at `dataset/<uuid>/` and measurements are included under `measurement/`, while samples
 are already plural. Raised separately so the singular form leaves the repository in one pass rather
-than one record type at a time.
+than one record type at a time. Raised as issue #283.
 
 ### P6 — Built for the four record types, by declaration rather than by machinery
 

@@ -261,7 +261,7 @@ Found while checking the specification against the code, real, and not this feat
 - **The project's own page decides visibility by comparing against a bare number** rather than the
   named value (`views.py:256`). Inside a method this feature does not otherwise touch, and the page
   itself is out of scope. Raised separately.
-- **Datasets and measurements keep the singular address prefix** that D11 removes from projects: a
-  dataset's pages mount under the singular form while the dataset itself is plural, and measurements
-  are included under the singular form throughout. Samples are already plural. Raised separately so
-  the convention lands across the repository rather than one record type at a time.
+- **Issue #283** — datasets and measurements keep the singular address prefix that D11 removes from
+  projects. A dataset's pages mount under the singular form while the dataset itself is plural, and
+  measurements are included under the singular form throughout. Samples are already plural. Raised
+  separately so the convention lands across the repository rather than one record type at a time.
