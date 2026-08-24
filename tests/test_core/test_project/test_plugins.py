@@ -866,3 +866,70 @@ class TestAttributesPageOffersTheDeletionLink:
         )
 
         assert f"back={quote(attributes_url, safe='')}" in link
+
+
+@pytest.mark.django_db
+class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
+    """The project's own page refuses a private project to anyone without `project.view_project`.
+    Its descriptions page is a registration of its own rather than one of the overview's
+    additional views, so it takes none of that guard by default and would answer on the strength
+    of `project.change_project` alone — which `has_perm` grants model-wide, with no rights over
+    the record at all. The two pages would then disagree about the same project: one refusing the
+    visitor, the other rendering and accepting a submission.
+    """
+
+    def _model_wide_changer(self, user):
+        from django.contrib.auth.models import Permission
+
+        user.user_permissions.add(Permission.objects.get(codename="change_project"))
+        return type(user).objects.get(pk=user.pk)
+
+    def test_a_private_project_refuses_a_visitor_who_may_not_view_it(
+        self, client, private_project, user_with_no_permission
+    ):
+        user = self._model_wide_changer(user_with_no_permission)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
+        )
+
+        assert response.status_code in (403, 404)
+
+    def test_the_same_visitor_cannot_write_a_description_either(
+        self, client, private_project, user_with_no_permission
+    ):
+        user = self._model_wide_changer(user_with_no_permission)
+        client.force_login(user)
+
+        response = client.post(
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid}),
+            data={"Abstract": "written by someone who may not see this project"},
+        )
+
+        assert response.status_code in (403, 404)
+        assert private_project.descriptions.count() == 0
+
+    def test_it_agrees_with_the_projects_own_page_on_the_same_project(
+        self, client, private_project, user_with_no_permission
+    ):
+        """The guard is the same one, so the two pages cannot disagree."""
+        user = self._model_wide_changer(user_with_no_permission)
+        request = _request_for(user)
+
+        assert can_open(Descriptions, request, private_project) == can_open(
+            Overview, request, private_project
+        )
+
+    def test_a_visitor_holding_view_rights_still_reaches_it(
+        self, client, private_project, user_with_no_permission
+    ):
+        assign_perm("view_project", user_with_no_permission, private_project)
+        assign_perm("change_project", user_with_no_permission, private_project)
+        client.force_login(user_with_no_permission)
+
+        response = client.get(
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
+        )
+
+        assert response.status_code == 200

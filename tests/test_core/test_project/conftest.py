@@ -25,8 +25,15 @@ def private_project(db):
 
 @pytest.fixture
 def user_with_change_permission(db):
-    """A user holding ``change_project`` on a project of their own, and
-    nothing else.
+    """A user holding ``change_project`` on a project of their own, and no
+    rights over any other.
+
+    ``view_project`` comes with it. A project is private by default and its
+    pages check visibility, so a holder of editing rights who cannot view the
+    record is a state no grant path produces - registering a project gives its
+    creator all five rights at once. Granting change alone here would model a
+    user who cannot exist and would make these tests answer a question about a
+    combination the platform never issues.
 
     The project is carried on the returned user as ``.project`` - an
     in-memory attribute only, never persisted - so a test can assert the
@@ -34,16 +41,19 @@ def user_with_change_permission(db):
     """
     user = UserFactory()
     user.project = ProjectFactory()
+    assign_perm("view_project", user, user.project)
     assign_perm("change_project", user, user.project)
     return user
 
 
 @pytest.fixture
 def user_with_delete_permission(db):
-    """A user holding ``delete_project`` on a project of their own, and
-    nothing else. See ``user_with_change_permission`` for ``.project``."""
+    """A user holding ``delete_project`` on a project of their own, and no
+    rights over any other. ``view_project`` comes with it, for the reason given
+    on ``user_with_change_permission``, which also explains ``.project``."""
     user = UserFactory()
     user.project = ProjectFactory()
+    assign_perm("view_project", user, user.project)
     assign_perm("delete_project", user, user.project)
     return user
 

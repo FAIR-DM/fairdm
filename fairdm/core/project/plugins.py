@@ -250,6 +250,11 @@ class Descriptions(Plugin, MetadataMixin, MVPFormView):
     """
 
     permission = "project.change_project"
+    # Stated here as well as on Overview. A registration of its own takes no predicate from any
+    # other page, and `change_project` alone is not a visibility rule: `has_perm` grants it
+    # model-wide, so without this a holder of the model-level right reads and rewrites the
+    # descriptions of a private project the project's own page refuses them.
+    check = staticmethod(project_is_visible)
     page_title = _("Descriptions")
     model = Project
     form_class = VocabularyDescriptionsForm
