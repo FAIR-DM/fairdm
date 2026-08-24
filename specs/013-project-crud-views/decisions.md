@@ -619,3 +619,49 @@ separately.
 
 **Left open**: the registry's owner resolution is still wrong for every additional view in the
 repository, including the contributor pages. Raised as issue #284.
+
+---
+
+## D15 — The stated visibility rule admits a record-level holder of the page's own permission, not bare `project_is_visible`
+
+**Previous specification**: D14 settled that `Update` and `Delete` each state a visibility rule
+directly. It did not specify the rule's exact predicate, on the assumption that reusing
+`project_is_visible` verbatim — the same one `Overview` and `Descriptions` already use — was the
+obvious, and only, implementation.
+
+**Code (probed by running the suite, not by reading)**: reusing bare `project_is_visible` on
+`Update` and `Delete` regressed 29 previously-accepted tests in `test_views.py` (identifier and
+date row sets, atomic submission, the whole `TestProjectDeleteView` class) and one more in
+`test_plugins.py` — every one a real request granting `change_project` or `delete_project` at
+record level on a private project (the default), expecting 200. `project_is_visible` requires
+`project.view_project` specifically; a record-level grant of `change_project` alone does not carry
+it, because Django-guardian treats permissions as independent grants with no implied relationship.
+
+**Settled**: `Update` and `Delete` use `visible_to_holder_of(permission)`
+(`fairdm/core/project/plugins.py`), not bare `project_is_visible`. It is `project_is_visible`,
+plus: a private object also stays visible to a user holding `permission` — the page's own,
+`change_project` or `delete_project` — on it specifically, checked at record level only
+(`request.user.has_perm(permission, obj)`, which per `fairdm.contrib.plugins.access.has_perm`'s
+own docstring consults only the object-level backend once an object is passed, never the
+model-level one). `Overview` and `Descriptions` are unchanged — bare `project_is_visible` was
+already correct for them and nothing regressed there.
+
+**Why**: `conftest.py`'s `user_with_change_permission` fixture already documents the reasoning
+this decision needed: "a project is private by default and its pages check visibility, so a
+holder of editing rights who cannot view the record is a state no grant path produces —
+registering a project gives its creator all five rights at once. Granting change alone here would
+model a user who cannot exist." `ProjectCreateView.form_valid` confirms it: creation grants
+`view_project`, `change_project`, `delete_project` and both metadata permissions on the record in
+one pass. So a record-level grant of `change_project` is itself evidence of legitimate access —
+refusing it as if it were the D14 defect would refuse every ordinary editor of a private project,
+not just the scenario D14 names. The record-level restriction (object-only, not model-level) is
+what keeps D14's actual fix intact: a user holding `change_project` **only** at the model level —
+D14's reproduction case — still finds no grant on `request.user.has_perm(permission, obj)` and is
+refused exactly as before.
+
+**Left open**: nothing for `Update`/`Delete`. Whether `Descriptions` should get the same
+`visible_to_holder_of` treatment (rather than bare `project_is_visible`) is not raised here
+because nothing in this story's tests exercises a record-level-`change_project`-without-`view`
+holder against it — `TestDescriptionsPageStatesItsOwnPermission` and its siblings all use
+`user_with_change_permission`, which the fixture's own docstring says always carries view rights
+too. If a future story adds that test, the same asymmetry would surface there.

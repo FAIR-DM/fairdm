@@ -709,3 +709,92 @@ icon-class marker), not a bare `href="/projects/create/"` match — the portal's
 identical href for every signed-in visitor on every page regardless of this feature, so a naive
 match would have passed with the listing's own link still absent. Caught by observing the test
 pass before any source change (craft-tdd's RED-must-be-observed rule) and redesigning it.
+
+---
+
+## 2026-08-24T19:15:00+02:00 · Implementer US5 · T095
+
+**Did**: Renamed the additional view formerly `Attributes` to `Update`: `url_path` `attributes` →
+`update`, `page_title` "Attributes" → "Update project", registered name `overview-attributes` →
+`overview-update`. Every reversal in `fairdm/core/project/plugins.py` and across
+`tests/test_core/test_project/{test_plugins,test_urls,test_models,test_views}.py` moved with it.
+Also renamed the user-guide page (`docs/user-guide/project/attributes.md` → `update.md`) and its
+cross-references (`about.md`, `create.md`, `index.md` toctree).
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 209 passed (the narrowed scope
+available before T096-T098 landed; the four test files this task touches). `poetry run ruff
+check`/`format` and `poetry run djlint --check` on the changed files — clean.
+
+**Next**: T096.
+
+**Watch**: `TestExactlyOnePageOffersTheProjectsOwnAttributes` and its `ATTRIBUTES_FIELDS` constant
+keep the word "attributes" deliberately — per D12's "left open", the page still edits the
+project's attributes, only its name and address changed.
+
+---
+
+## 2026-08-24T19:25:00+02:00 · Implementer US5 · T096-T097
+
+**Did**: Moved `Descriptions` from a standalone `@plugins.register(...)` to an additional view of
+`Overview` (`extra_views = [Update, Delete, Descriptions]`), matching `Update`/`Delete`. Its
+address, permission and visibility rule are unchanged — only its registered name follows the
+`overview-descriptions` shape the other additional views already use. Committed together with
+T097 (`Overview.directory`/`crud_views` gains a `descriptions` entry, `show_descriptions_action`,
+and `project_detail.html` draws the link from its own `page.actions` block) because the two are
+not independently green: removing the registration also removes the tab that drew the link.
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 255 passed. `poetry run ruff
+check`/`format` and `poetry run djlint --check` on the changed files — clean.
+
+**Next**: T098.
+
+**Watch**: none.
+
+---
+
+## 2026-08-24T19:35:00+02:00 · Implementer US5 · T098
+
+**Did**: `Update` and `Delete` each declare `check` directly rather than relying on inheriting
+`Overview`'s — confirmed by probing (per craft-tdd) rather than assumed: before this change, a
+user holding only the model-level `project.change_project` right was refused by the project's own
+page (403) and admitted by its update page (200), for the same private project. Reusing bare
+`project_is_visible` on `Update`/`Delete` regressed 29 previously-accepted tests in
+`test_views.py` and one in `test_plugins.py` (all real-request tests granting `change_project` or
+`delete_project` at record level on a private project, expecting 200) — `conftest.py`'s
+`user_with_change_permission` fixture already documents why: creating a project grants all five
+rights on it at once, so a record-level grant of a page's own permission is itself evidence of
+legitimate access, and nothing in the running application ever produces the "editing rights
+without view rights" combination. Added `visible_to_holder_of(permission)` (`plugins.py:56`): as
+`project_is_visible`, but a private object also stays visible to a user holding `permission` on it
+specifically, checked at record level only (`request.user.has_perm(permission, obj)`, which
+consults only the object-level backend once an object is passed) — so a model-level-only holder,
+D14's exact scenario, is still refused. See `decisions.md` D15.
+
+Rewrote the one test the brief named
+(`TestTheOverviewGuardsAPrivateProjectsVisibility::test_the_attributes_page_inherits_the_visibility_check_from_its_owner`
+→ `test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`): the original
+passed for an unrelated reason (its fixture's user is refused by the permission check on a
+*different* project, before visibility is ever reached), confirmed by tracing `can_open`'s
+decision manually. Rewritten as a real request per page (overview, update, descriptions, delete).
+
+Also rewrote `TestUpdatePageOverHTTP::test_a_user_holding_change_permission_at_the_model_level_is_admitted`
+(T028, not named in the brief): this pre-existing test asserted the exact opposite (200) for the
+identical D14 scenario against the update page specifically — the same defect, a second
+manifestation, found only by running the suite. Split into two: one asserting the corrected
+refusal (403), and one preserving the original test's actual claim (the permission check's
+model-level-then-record "ask twice" behaviour survives) with a project the user can also see.
+
+Fixed a leftover `ProjectExportView.get_success_url` from the T096-T097 commit's restructuring —
+dead code (a `TemplateView` never calls it) but incorrect to leave; caught by diffing the
+reconstructed file against the version this had already been verified green against.
+
+**Verified**: `poetry run pytest tests/test_core/test_project -q` — 256 passed. `poetry run ruff
+check`/`format` on the changed files — clean.
+
+**Next**: full suite once, then the completion report.
+
+**Watch**: `decisions.md` D14 (and this story's `us5-revisions.json` brief, T098's acceptance
+text) cites issue #285 for the registry's owner-resolution defect; `decisions.md` D14's own "left
+open" line and `tasks.md` T099 both cite #284 for the same defect. Followed the repo's own
+settled documents (#284) rather than the brief's number; flagged as a concern for reconciliation
+rather than guessed at.

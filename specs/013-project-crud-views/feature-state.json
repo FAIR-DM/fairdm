@@ -931,8 +931,19 @@
         },
         {
           "id": "T095",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:102"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
         }
       ]
     },
@@ -1140,8 +1151,21 @@
         },
         {
           "id": "T096",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:220",
+              "fairdm/core/project/plugins.py:286"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestDescriptionsIsAnExtraViewNotARegistrationOfItsOwn",
+              "tests/test_core/test_project/test_plugins.py::TestUpdateDescriptionsAndDeletionAreExtraViewsNotEntries"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
         }
       ]
     },
@@ -1401,13 +1425,39 @@
         },
         {
           "id": "T097",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:301",
+              "fairdm/core/project/templates/project/project_detail.html:8"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestProjectsOwnPageOffersUpdateAndDescriptionsLinks"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
         },
         {
           "id": "T098",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:56",
+              "fairdm/core/project/plugins.py:123",
+              "fairdm/core/project/plugins.py:163"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility",
+              "tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_core/test_project -q"
+            ]
+          }
         },
         {
           "id": "T099",
