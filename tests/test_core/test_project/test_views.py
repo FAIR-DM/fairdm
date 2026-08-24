@@ -438,6 +438,30 @@ class TestProjectCreateViewExtended:
         for perm in expected_perms:
             assert user.has_perm(perm, project), f"Missing permission: {perm}"
 
+    def test_creator_added_as_contributor_with_roles(self, client, user):
+        """T022 — After creation the creator appears among the project's contributors
+        carrying Creator, ProjectMember and ContactPerson. The three roles are asserted
+        on the contribution, not merely that a contribution exists."""
+        client.force_login(user)
+        url = reverse("project-create")
+        response = client.post(
+            url,
+            data={
+                "name": "Contributor Role Test Project",
+                "status": "1",
+                "visibility": str(Visibility.PRIVATE),
+            },
+        )
+        assert response.status_code == 302
+
+        project = Project.objects.get(name="Contributor Role Test Project")
+
+        contributor = project.contributors.filter(contributor=user).first()
+        assert contributor is not None, "User should be a contributor"
+        role_names = list(contributor.roles.values_list("name", flat=True))
+        for role in ["Creator", "ProjectMember", "ContactPerson"]:
+            assert role in role_names, f"Missing contributor role: {role}"
+
 
 # ---------------------------------------------------------------------------
 # Phase 5 — User Story 3: Edit Project Core Attributes
