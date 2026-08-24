@@ -484,6 +484,18 @@ class TestProjectCreateViewExtended:
 # ---------------------------------------------------------------------------
 
 
+def _identifier_management_data(total=0, initial=0):
+    """Management-form boilerplate for the attributes page's identifiers row set
+    (`fairdm/core/related_records.py` `ProjectIdentifierInline`, prefix `identifiers` from
+    `AbstractIdentifier.Meta.default_related_name`)."""
+    return {
+        "identifiers-TOTAL_FORMS": str(total),
+        "identifiers-INITIAL_FORMS": str(initial),
+        "identifiers-MIN_NUM_FORMS": "0",
+        "identifiers-MAX_NUM_FORMS": "1000",
+    }
+
+
 @pytest.mark.django_db
 class TestProjectUpdateView:
     """Smoke tests and behaviour tests for ProjectUpdateView (US3)."""
@@ -546,7 +558,7 @@ class TestProjectUpdateView:
             assign_perm("change_project", user, project)
             client.force_login(user)
             url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
-            data = {**base_data, field: new_value}
+            data = {**base_data, field: new_value, **_identifier_management_data()}
 
             response = client.post(url, data=data)
 
@@ -575,6 +587,7 @@ class TestProjectUpdateView:
             "status": project.status,
             "visibility": project.visibility,
             "owner": org.pk,
+            **_identifier_management_data(),
         }
 
         buffer = io.BytesIO()
@@ -617,7 +630,12 @@ class TestProjectUpdateView:
         assert project.name == "Original Name"
 
     def test_project_update_success_redirects_to_detail(self, client):
-        """T024a — Valid POST by permitted user returns 302 to project-detail URL."""
+        """T024a — Valid POST by permitted user returns 302 to project-detail URL.
+
+        T034 — Updated to carry the identifiers row set's management-form data: the page now
+        attaches that formset (`fairdm/core/related_records.py` `ProjectIdentifierInline`), and
+        a submission carrying no bookkeeping for it fails formset validation.
+        """
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Original Name", owner=org)
         user = UserFactory()
@@ -631,11 +649,39 @@ class TestProjectUpdateView:
                 "status": project.status,
                 "visibility": project.visibility,
                 "owner": org.pk,
+                **_identifier_management_data(),
             },
         )
         assert response.status_code == 302
         expected_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assert response.url == expected_url
+
+
+@pytest.mark.django_db
+class TestAttributesIdentifierRowSet:
+    """The attributes page's identifier row set (013 plan P3): existing identifiers presented
+    one row each, added, changed and removed through the page."""
+
+    def test_existing_identifiers_are_presented_one_row_each_with_no_blank_row_beyond_them(
+        self, client
+    ):
+        """T034 — Opening the page with an existing identifier offers exactly one row for it
+        and no blank row beyond."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Has Identifier", owner=org)
+        ProjectIdentifierFactory(related=project, type="DOI", value="10.1/existing")
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
+        identifier_formset = formsets["identifiers"]
+        assert identifier_formset.initial_form_count() == 1
+        assert len(identifier_formset.forms) == 1
 
 
 # ---------------------------------------------------------------------------

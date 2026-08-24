@@ -4,6 +4,7 @@ Example plugins for Project model using the new model-centric system.
 
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+from mvp.views.inline import InlinesMixin
 
 from fairdm import plugins
 from fairdm.contrib.generic.plugins import (
@@ -14,6 +15,7 @@ from fairdm.contrib.generic.plugins import (
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.plugins import OverviewPlugin
+from fairdm.core.related_records import ProjectIdentifierInline
 from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
@@ -40,7 +42,7 @@ def project_is_visible(request, obj):
     return has_perm(request, "project.view_project", obj)
 
 
-class Attributes(Plugin, FairDMUpdateView):
+class Attributes(Plugin, InlinesMixin, FairDMUpdateView):
     """The project's own attributes: name, status, visibility, owner, plus its identifiers and
     dates. An additional view belonging to :class:`Overview` rather than a registration of its
     own, so the navigation strip carries one entry for the whole collection (013 plan P1).
@@ -57,6 +59,7 @@ class Attributes(Plugin, FairDMUpdateView):
     page_title = _("Attributes")
     model = Project
     form_class = ProjectForm
+    inlines = [ProjectIdentifierInline]
 
     def get_success_url(self):
         return self.base_object.get_absolute_url()
