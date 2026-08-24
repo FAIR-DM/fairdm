@@ -295,3 +295,21 @@ class TestExactlyOnePageOffersTheProjectsOwnAttributes:
                 offering_pages.append(page)
 
         assert offering_pages == [Attributes]
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageIsARegistrationOfItsOwn:
+    """T051 — unlike the attributes and deletion pages, the descriptions page is a registration
+    of its own rather than an additional view, matching Dataset and Sample (013 plan P2)."""
+
+    def test_reversed_by_name_it_resolves_at_an_address_keyed_by_the_projects_identifier(
+        self, public_project
+    ):
+        url = reverse("project:descriptions", kwargs={"uuid": public_project.uuid})
+        assert url == f"/projects/{public_project.uuid}/descriptions/"
+
+    def test_an_anonymous_visitor_is_redirected_to_sign_in(self, client, public_project):
+        url = reverse("project:descriptions", kwargs={"uuid": public_project.uuid})
+        response = client.get(url)
+        assert response.status_code == 302
+        assert reverse("account_login") in response.url
