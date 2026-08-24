@@ -85,6 +85,27 @@ A record type with no ordered pair (Sample, Measurement) simply never calls
 `date_ordering_formset` — that omission is a decision each record type states, not a rule left to
 run and find nothing.
 
+### Comparing two partial dates
+
+Every date rule in the platform rests on one comparison, `precedes`
+(`fairdm.core.dates.precedes`). Use it rather than comparing two `PartialDate` values with `<`.
+
+```python
+from fairdm.core.dates import precedes
+
+precedes(start.value, end.value)  # True when start is earlier than end
+```
+
+A `PartialDate` folds precision into its own ordering, so comparing a year-precision value against
+a day-precision one directly gives an answer that depends on which is which rather than on the
+dates. `precedes` compares at the coarser of the two precisions: years alone if either value is
+year-precision, year and month if either is month-precision, and the full date only when both carry
+day precision. A project running from `2020` to `2020-03-14` is therefore accepted rather than
+refused, because at year precision the two are the same year.
+
+The comparison is shared; the rules built on it are not. Each record type still states its own date
+rule in its own words, which is deliberate — see spec 004, Article III.
+
 ## One text area per vocabulary concept
 
 A related model that carries at most one description of each vocabulary type — see
