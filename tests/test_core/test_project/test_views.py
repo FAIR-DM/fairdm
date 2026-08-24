@@ -746,6 +746,33 @@ class TestAttributesIdentifierRowSet:
         identifier.refresh_from_db()
         assert identifier.value == "10.1/changed"
 
+    def test_removing_an_identifier_row_deletes_it_from_the_project(self, client):
+        """T037 — Checking DELETE on an existing identifier row and submitting removes it."""
+        org = Organization.objects.create(name="Test Org")
+        project = ProjectFactory(name="Has Identifier", owner=org)
+        identifier = ProjectIdentifierFactory(
+            related=project, type="DOI", value="10.1/to-remove"
+        )
+        user = UserFactory()
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+
+        response = client.post(
+            url,
+            data={
+                **_project_field_data(project),
+                **_identifier_management_data(total=1, initial=1),
+                "identifiers-0-id": identifier.pk,
+                "identifiers-0-type": "DOI",
+                "identifiers-0-value": "10.1/to-remove",
+                "identifiers-0-DELETE": "on",
+            },
+        )
+
+        assert response.status_code == 302
+        assert not project.identifiers.filter(pk=identifier.pk).exists()
+
 
 # ---------------------------------------------------------------------------
 # Phase 6 — User Story 4: Delete a Project
