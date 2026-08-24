@@ -241,3 +241,29 @@ class TestAttributesPageOverHTTP:
         response = client.get(url)
         assert response.status_code == 302
         assert reverse("account_login") in response.url
+
+    def test_a_user_holding_change_permission_at_the_model_level_is_admitted(
+        self, client
+    ):
+        """T028 — A user holding `project.change_project` at the model level, granted through
+        no individual record, is admitted to a project they hold no per-object grant on. This
+        is the retiring standalone page's behaviour and must survive: the check has to ask
+        twice, model level then record (`fairdm/contrib/plugins/access.py` `has_perm`), or a
+        model-level-only holder is refused."""
+        from django.contrib.auth.models import Permission
+
+        from fairdm.factories import ProjectFactory, UserFactory
+
+        project = ProjectFactory()
+        user = UserFactory()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="project", codename="change_project"
+            )
+        )
+        client.force_login(user)
+
+        url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+
+        assert response.status_code == 200
