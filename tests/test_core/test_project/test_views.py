@@ -27,8 +27,8 @@ from fairdm.factories import (
     ProjectIdentifierFactory,
     UserFactory,
 )
-from fairdm.views import FairDMCreateView, FairDMListView
 from fairdm.utils.choices import Visibility
+from fairdm.views import FairDMCreateView, FairDMListView
 
 
 @pytest.mark.django_db
@@ -514,6 +514,48 @@ class TestProjectUpdateView:
         url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 200
+
+    def test_changing_name_status_visibility_and_owner_each_persists(self, client):
+        """T031 — Each of name, status, visibility and owner is changed and submitted, and each
+        persists, asserted one field at a time against a fresh copy of the same starting
+        project."""
+        org = Organization.objects.create(name="Original Org")
+        other_org = Organization.objects.create(name="Other Org")
+        user = UserFactory()
+
+        base_data = {
+            "name": "Original Name",
+            "status": ProjectStatus.CONCEPT,
+            "visibility": Visibility.PRIVATE,
+            "owner": org.pk,
+        }
+        changes = {
+            "name": "Changed Name",
+            "status": ProjectStatus.IN_PROGRESS,
+            "visibility": Visibility.PUBLIC,
+            "owner": other_org.pk,
+        }
+
+        for field, new_value in changes.items():
+            project = ProjectFactory(
+                name="Original Name",
+                status=ProjectStatus.CONCEPT,
+                visibility=Visibility.PRIVATE,
+                owner=org,
+            )
+            assign_perm("change_project", user, project)
+            client.force_login(user)
+            url = reverse("project:overview-attributes", kwargs={"uuid": project.uuid})
+            data = {**base_data, field: new_value}
+
+            response = client.post(url, data=data)
+
+            assert response.status_code == 302, response.context["form"].errors
+            project.refresh_from_db()
+            if field == "owner":
+                assert project.owner_id == other_org.pk
+            else:
+                assert getattr(project, field) == new_value
 
     def test_project_update_success_redirects_to_detail(self, client):
         """T024a — Valid POST by permitted user returns 302 to project-detail URL."""
