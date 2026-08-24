@@ -3,7 +3,7 @@
   "feature": "013-project-crud-views",
   "branch": "013-project-crud-views",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "INTAKE",
@@ -54,6 +54,11 @@
       "state": "PLAN",
       "at": "2026-08-24T12:20:00Z",
       "note": "singular/plural URL split settled in favour of plural; the project's pages move under projects/<uuid>/"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-24T10:31:19Z",
+      "note": "plan confirmed by Sam; foundations first, then navigation track, then the attributes and descriptions pages"
     }
   ],
   "gates": {
@@ -62,12 +67,12 @@
       "at": "2026-08-23T21:00:00Z"
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-24T13:00:00Z"
     },
     "design_review": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "forge",
+      "at": "2026-08-24T10:30:00Z"
     },
     "merge": {
       "approved_by": null,
