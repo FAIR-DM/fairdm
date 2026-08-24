@@ -7,7 +7,6 @@ Django admin inlines in ``fairdm/core/project/admin.py`` and
 
 from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet
-from django.utils.translation import gettext_lazy as _
 from partial_date import PartialDate
 
 
@@ -26,14 +25,20 @@ def _precedes(a: PartialDate, b: PartialDate) -> bool:
     return bool(a.date < b.date)
 
 
-def date_ordering_formset(start_type, end_type, noun):
+def date_ordering_formset(start_type, end_type, message):
     """Return a ``BaseInlineFormSet`` that refuses a backwards
     ``start_type``/``end_type`` pair across the whole formset.
 
-    Parameterised on its start type, its end type and the noun in its
-    message, so the same rule serves every record type that has an ordered
-    pair of dates without generalising onto the ones that do not (plan P6)
-    - a record type with no such pair simply never calls this.
+    Parameterised on its start type, its end type and its whole message, so
+    the same rule serves every record type that has an ordered pair of dates
+    without generalising onto the ones that do not (plan P6) - a record type
+    with no such pair simply never calls this.
+
+    The message is passed whole rather than assembled from a noun so that
+    each record type states its own date vocabulary in its own words - a
+    dataset's pair is its collection start and collection end, and its
+    model-level validation says so too. It also keeps the sentence
+    translatable as one unit.
 
     A formset validates every form before any of them saves, so a per-row
     ``clean()`` that looks its sibling up in the database (as
@@ -72,12 +77,6 @@ def date_ordering_formset(start_type, end_type, noun):
                 return
 
             if _precedes(end_value, start_value):
-                raise ValidationError(
-                    _(
-                        "The %(noun)s's end date (%(end)s) cannot be before "
-                        "its start date (%(start)s)."
-                    )
-                    % {"noun": noun, "start": start_value, "end": end_value}
-                )
+                raise ValidationError(message % {"start": start_value, "end": end_value})
 
     return DateOrderingFormSet

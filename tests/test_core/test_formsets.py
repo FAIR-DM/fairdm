@@ -18,24 +18,32 @@ from fairdm.core.project.models import Project, ProjectDate
 from fairdm.factories import DatasetFactory, ProjectFactory
 
 DATE_ORDER_CASES = [
-    (Project, ProjectDate, ProjectFactory, "Start", "End", "project"),
+    (
+        Project,
+        ProjectDate,
+        ProjectFactory,
+        "Start",
+        "End",
+        "The project's end date (%(end)s) cannot be before its start date (%(start)s).",
+    ),
     (
         Dataset,
         DatasetDate,
         DatasetFactory,
         "CollectionStart",
         "CollectionEnd",
-        "dataset",
+        "The dataset's collection end date (%(end)s) cannot be "
+        "before its collection start date (%(start)s).",
     ),
 ]
 
 
-def _build_formset(parent_model, date_model, instance, start_type, end_type, noun, data):
+def _build_formset(parent_model, date_model, instance, start_type, end_type, message, data):
     formset_class = inlineformset_factory(
         parent_model,
         date_model,
         fields=("type", "value"),
-        formset=date_ordering_formset(start_type, end_type, noun),
+        formset=date_ordering_formset(start_type, end_type, message),
         extra=0,
     )
     prefix = date_model._meta.default_related_name
@@ -55,11 +63,11 @@ class TestDateOrderingFormSet:
     refused, for both a project and a dataset."""
 
     @pytest.mark.parametrize(
-        "parent_model, date_model, parent_factory, start_type, end_type, noun",
+        "parent_model, date_model, parent_factory, start_type, end_type, message",
         DATE_ORDER_CASES,
     )
     def test_a_backwards_pair_submitted_together_is_refused(
-        self, parent_model, date_model, parent_factory, start_type, end_type, noun
+        self, parent_model, date_model, parent_factory, start_type, end_type, message
     ):
         instance = parent_factory()
         prefix = date_model._meta.default_related_name
@@ -69,7 +77,7 @@ class TestDateOrderingFormSet:
             instance,
             start_type,
             end_type,
-            noun,
+            message,
             {
                 f"{prefix}-0-type": start_type,
                 f"{prefix}-0-value": "2020-06-01",
@@ -79,14 +87,16 @@ class TestDateOrderingFormSet:
         )
 
         assert not formset.is_valid()
-        assert formset.non_form_errors()
+        assert formset.non_form_errors() == [
+            message % {"start": "2020-06-01", "end": "2010-01-01"}
+        ]
 
     @pytest.mark.parametrize(
-        "parent_model, date_model, parent_factory, start_type, end_type, noun",
+        "parent_model, date_model, parent_factory, start_type, end_type, message",
         DATE_ORDER_CASES,
     )
     def test_a_forwards_pair_submitted_together_is_accepted(
-        self, parent_model, date_model, parent_factory, start_type, end_type, noun
+        self, parent_model, date_model, parent_factory, start_type, end_type, message
     ):
         instance = parent_factory()
         prefix = date_model._meta.default_related_name
@@ -96,7 +106,7 @@ class TestDateOrderingFormSet:
             instance,
             start_type,
             end_type,
-            noun,
+            message,
             {
                 f"{prefix}-0-type": start_type,
                 f"{prefix}-0-value": "2010-01-01",
@@ -122,7 +132,8 @@ class TestDateOrderingFormSet:
             dataset,
             "CollectionStart",
             "CollectionEnd",
-            "dataset",
+            "The dataset's collection end date (%(end)s) cannot be "
+            "before its collection start date (%(start)s).",
             {
                 f"{prefix}-0-type": "Submitted",
                 f"{prefix}-0-value": "2020-06-01",

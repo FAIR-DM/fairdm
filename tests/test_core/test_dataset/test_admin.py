@@ -521,6 +521,10 @@ class TestDateInlineCollectionPeriod:
         content = response.content.decode()
         assert "2020-06-01" in content
         assert "2019-05-01" in content
+        # The refusal names the dataset's own date vocabulary, matching what
+        # `DatasetDate.clean()` says when the pair arrives one row at a time.
+        assert "collection end date" in content
+        assert "collection start date" in content
         assert not DatasetDate.objects.filter(related=dataset).exists()
 
     def test_forwards_pair_submitted_together_is_accepted(self, admin_client):

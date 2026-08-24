@@ -70,7 +70,12 @@ class DescriptionInline(admin.StackedInline):
 
 
 DateInlineFormSet = date_ordering_formset(
-    DatasetDate.START_TYPE, DatasetDate.END_TYPE, _("dataset")
+    DatasetDate.START_TYPE,
+    DatasetDate.END_TYPE,
+    _(
+        "The dataset's collection end date (%(end)s) cannot be "
+        "before its collection start date (%(start)s)."
+    ),
 )
 
 
