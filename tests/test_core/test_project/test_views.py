@@ -15,7 +15,7 @@ from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.factories import ProjectFactory, UserFactory
+from fairdm.factories import ProjectFactory, ProjectIdentifierFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -239,6 +239,17 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
+
+    def test_listing_search_by_identifier_value_returns_the_project(
+        self, client
+    ):
+        """T009 — searching a project's identifier value returns that
+        project."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        identifier = ProjectIdentifierFactory(related=project)
+        response = client.get(reverse("project-list"), {"q": identifier.value})
+        entries = list(response.context["object_list"])
+        assert project in entries
 
 
 # ---------------------------------------------------------------------------

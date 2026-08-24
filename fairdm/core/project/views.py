@@ -24,7 +24,7 @@ class ProjectListView(FairDMListView):
     model = Project
     filterset_class = ProjectFilter
     list_item_template = "project/project_card.html"
-    search_fields = ["uuid", "name"]
+    search_fields = ["uuid", "name", "identifiers__value"]
     order_by = [
         ("name", _("Name (A-Z)"), "name"),
         ("-name", _("Name (Z-A)"), "-name"),
