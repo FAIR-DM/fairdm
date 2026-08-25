@@ -13,7 +13,7 @@ request goes to `PermissionRequiredMixin.handle_no_permission`, which redirects 
 to sign in and gives a signed-in stranger a permission refusal — both confirming the record is there.
 Nothing in the plan mentioned it, and the only symptom would have been two assertions going red
 inside an address sweep. Plan P1 now states the decision — the not-found response is preserved
-through a `handle_no_permission` override — and T061a asserts it at all four addresses, with the
+through a `handle_no_permission` override — and T085 asserts it at all four addresses, with the
 public-but-refused case tested separately so the two are not collapsed.
 
 **A fourth filter is broken, not three.** `image` is inherited from the shared list filter, which

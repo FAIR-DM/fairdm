@@ -3,7 +3,7 @@
   "feature": "014-dataset-crud-views",
   "branch": "014-dataset-crud-views",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -24,6 +24,11 @@
       "state": "PLAN",
       "at": "2026-08-25T11:30:00Z",
       "note": "research, plan, greenfield tasks, reconciliation"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-25T13:20:00Z",
+      "note": "one round, nine findings applied; plan amended again for django-mvp 0.19.3 and the shell's cascade preview"
     }
   ],
   "gates": {
@@ -43,6 +48,15 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-25T13:20:00Z",
+      "self_resolved": [
+        "nine findings, all accepted and applied to plan, tasks and reconciliation",
+        "six reconciliation ticks withdrawn as coverage assumed rather than present",
+        "the ledger was regenerated from the amended reconciliation by the orchestrator"
+      ]
     }
   },
   "stories": [
@@ -65,7 +79,7 @@
               "tests/test_core/test_dataset/conftest.py:21"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -87,25 +101,14 @@
               "tests/test_core/test_dataset/test_views.py:32"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
         {
           "id": "T012",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/dataset/models.py:159"
-            ],
-            "tests": [
-              "tests/test_core/test_dataset/test_views.py:38"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T013",
@@ -156,7 +159,7 @@
               "n/a — the requirement is that the design is not changed; nothing to build"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         }
@@ -182,7 +185,7 @@
               "tests/test_core/test_dataset/test_views.py:78"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -233,7 +236,7 @@
               "tests/test_core/test_dataset/test_views.py:133"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -254,7 +257,7 @@
               "tests/test_core/test_dataset/test_views.py:93"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -282,7 +285,7 @@
               "tests/test_core/test_related_records.py:24"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -298,7 +301,7 @@
               "tests/test_core/test_related_records.py:57"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -314,7 +317,7 @@
               "tests/test_core/test_related_records.py:32"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -330,7 +333,7 @@
               "tests/test_core/test_related_records.py:98"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -346,7 +349,7 @@
               "tests/test_core/test_formsets.py:69"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -359,7 +362,7 @@
               "tests/test_core/test_formsets.py:69"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -370,36 +373,13 @@
         },
         {
           "id": "T034",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/dataset/urls.py:18",
-              "fairdm/core/dataset/views.py:164"
-            ],
-            "tests": [
-              "tests/test_core/test_dataset/test_views.py:188"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T035",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/dataset/views.py:186"
-            ],
-            "tests": [
-              "tests/test_core/test_dataset/test_views.py:196"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T036",
@@ -454,25 +434,14 @@
               "tests/test_core/test_dataset/test_forms.py:111"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
         {
           "id": "T045",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/dataset/views.py:213"
-            ],
-            "tests": [
-              "tests/test_core/test_dataset/test_views.py:229"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T046",
@@ -490,10 +459,10 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — a constraint on this feature's own scope, with no deliverable of its own; the enforcing assertion is T043's field-set test"
+              "n/a — a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -509,7 +478,7 @@
               "n/a — a constraint on this feature's own scope"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -522,7 +491,7 @@
               "n/a — a constraint on this feature's own scope"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         }
@@ -545,7 +514,7 @@
               "tests/test_core/test_project/test_plugins.py:564"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -672,7 +641,7 @@
               "n/a — the requirement is that the page is not redesigned; nothing to build"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         },
@@ -690,6 +659,11 @@
           "id": "T084",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T085",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -702,36 +676,13 @@
       "tasks": [
         {
           "id": "T070",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/dataset/urls.py:23",
-              "fairdm/core/dataset/views.py:222"
-            ],
-            "tests": [
-              "tests/test_core/test_dataset/test_views.py:270"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T071",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "code": [
-              "fairdm/core/dataset/views.py:242"
-            ],
-            "tests": [
-              "tests/test_core/test_dataset/test_views.py:278"
-            ],
-            "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
-            ]
-          }
+          "status": "todo",
+          "attempts": 0
         },
         {
           "id": "T072",
@@ -775,7 +726,7 @@
               "tests/test_core/test_project/test_views.py:1216"
             ],
             "commands": [
-              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
             ]
           }
         }
@@ -792,7 +743,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {

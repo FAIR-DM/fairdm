@@ -120,50 +120,54 @@ and 013 recorded that as an architecture decision.
 view stops declaring its own `fields` list and uses the form class, and passes `request` so the
 project field is narrowed — all three of those lines exist in the file today, commented out.
 
-### P5 — The deletion warning is a per-model template, and the shared page gets an issue
+### P5 — The deletion preview is the shell's own, switched on
 
-The shared deletion page has no warning slot: its only prominent channels are a refusal that
-suppresses the submit button, and a fixed-shape list of cascading object names. FR-046 needs neither
-— it needs counts, prominent, with the deletion still available.
+*Rewritten 2026-08-25 after Sam pointed out the facility I had talked myself out of using.*
 
-`fairdm/core/dataset/templates/dataset/dataset_confirm_delete.html` extends the shared page and
-overrides `{% block before_form %}` with `{{ block.super }}` plus the dataset's own warning. This is
-a supported extension point, not a workaround: `BaseTemplateNameMixin` deliberately puts Django's
-own `<app>/<model>_confirm_delete.html` ahead of the shared template, and nothing of the shared
-markup is restated.
+`MVPDeleteView` already previews a cascade: `show_related_objects = True` collects what the deletion
+would take, groups it by record type, caps each group at `related_objects_max_per_group` with an
+overflow count, and renders it above the confirmation. Its own docstring calls it "preview cascade
+deletes". So the deletion page sets that attribute and supplies nothing of its own.
 
-The counts come from a `get_context_data` override on `Delete`, two aggregates on the relations
-`has_data` already uses.
+The earlier plan here had `Delete` counting samples and measurements itself and a per-model template
+rendering them, on the reasoning that FR-046 asked for counts and the shell offers names. That was
+backwards. FR-046 is my own text, written before I had read the shell properly, and Article XIV says
+the requirement is to use the facility rather than to build an equivalent — which is the rule this
+feature applies to identifiers, dates and descriptions without hesitating. **FR-046 is amended to ask
+for the substance and to name the shell's facility**, and SC-005 with it.
 
-**Raised upstream, not built here**: the shared page should take a `warnings` list and a block around
-it, so this is configuration rather than a template per record type. Filed against django-mvp.
+What the shell's version gives up against the wording it replaces: the alert is styled as
+information rather than warning, its heading is fixed, and it names records rather than counting
+them. What it gains: no per-model template, no hand-written aggregate queries, one preview on every
+record type in the portal, and it stays correct when a new relation is added to `Dataset` because it
+asks the deletion collector rather than a hand-written list of relations.
 
-### P6 — The confirmation field is an upstream defect and stays one
+FR-047 — no warning about data a dataset does not hold — needs nothing: a group with no rows is
+never emitted.
 
-On the version this project runs, `require_confirmation = True` draws the confirmation field twice —
-once outside the `<form>` element and once inside it — and the enabling script watches the outer one
-while the browser posts the inner, empty one. A deletion cannot be completed in a browser. The
-project's deletion page has this today, merged.
+**Raised upstream, not built here**: whether a caller can ask for the alert to read as a warning
+rather than information, since deleting a dataset destroys research data and deleting most records
+does not.
 
-The fix already exists in the django-mvp working tree, unreleased, and deletes the duplicate with a
-comment describing exactly this fault.
+### P6 — The confirmation defect is fixed upstream; take the release
 
-**This feature does not fork the shared markup to route around it.** Overriding `before_form` to
-drop one of the two fields would fix one page and leave the defect live on every other, invisibly.
-The plan instead:
+*Rewritten 2026-08-25.*
 
-- writes the behavioural test for FR-045 against the posted form, as the existing deletion tests are;
-- adds a rendering test asserting the deletion page carries exactly one control named
-  `confirmation`, which **fails today** and is the check that reports when the upstream fix lands;
-- marks that test `@pytest.mark.xfail(strict=True, reason=…)` against the pinned version, with the
-  issue in the reason, so the suite stays green and the failure is not silently absorbed. **Strict is
-  the whole mechanism**: `xfail_strict` defaults to False and this project does not set it, so
-  without it the day the upstream fix lands the test passes unexpectedly, is reported as `xpassed`
-  and fails nothing — and the one signal that FR-045 has become satisfiable in a browser never fires;
-- raises the defect against django-mvp with the reproduction.
+The duplicate confirmation field is fixed in django-mvp 0.19.3, released after the research for this
+plan was written. The pin already admitted it and the lock now resolves it; verified in the installed
+template, where the second field is replaced by a comment explaining the fault.
 
-If Sam would rather this feature carried a temporary local override, that is a scope change and goes
-back through a delta brief.
+So there is no expected-to-fail mark and no local override. T073 is an ordinary test: the rendered
+deletion page carries exactly one control named for the confirmation, and it passes.
+
+The project's deletion page, merged in #274, is repaired by the same update.
+
+### P6a — The row sets render as a table
+
+0.19.3 also adds a `tabular` layout to the formset component, opt-in per set and unchanged for
+callers that do not ask. Identifiers and dates are two-column type-and-value rows, which is exactly
+the shape it is for, so both row sets on the update page ask for it. It collapses back to stacked
+rows below the `sm` breakpoint, so nothing is lost on a narrow screen.
 
 ### P7 — Descriptions is an extra view, and the generic plugin is left alone
 

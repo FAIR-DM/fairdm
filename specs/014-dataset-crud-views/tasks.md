@@ -108,7 +108,7 @@ than one story.
 | T059 | A dataset's address resolves to its registered page wherever the record is asked for its address. Sweep every reversal, template link, redirect target and test that names one of the retired routes. | FR-058 |
 | T060 | Each of the four pages states the permission it requires for itself. Test that a page stating none is not treated as inheriting one. | FR-060 |
 | T061 | Each of the four pages states its own visibility rule, so a private dataset is refused at every one of its addresses. Test the case that motivates it: a user holding the model-level right but no record-level grant. | FR-061 |
-| T061a | The refusal at all four addresses does not disclose that a private dataset exists. Test each address for an anonymous visitor and for a signed-in user with no rights: both get the not-found response, never a permission refusal and never a redirect to sign in. Test separately that a *public* dataset the user may not change still refuses with a permission response, so the two cases are not collapsed. | FR-061 |
+| T085 | The refusal at all four addresses does not disclose that a private dataset exists. Test each address for an anonymous visitor and for a signed-in user with no rights: both get the not-found response, never a permission refusal and never a redirect to sign in. Test separately that a *public* dataset the user may not change still refuses with a permission response, so the two cases are not collapsed. | FR-061 |
 | T062 | The dataset's pages contribute exactly one entry to the per-record navigation. Test asserts the entry count, not the entry names. | FR-062 |
 | T063 | The dataset's page draws a link to its update page and its descriptions page for a user who may change it, and to its deletion page for a user who may delete it. | FR-050 |
 | T064 | No page offers a link to a page that would refuse the user looking at it. Test each of the three actions against a user who lacks exactly that right. | FR-051 |
@@ -125,8 +125,8 @@ than one story.
 | T070 | A deletion page at a stable address identifying the dataset by its identifier, requiring the visitor to be signed in. | FR-043 |
 | T071 | The page refuses a user who does not hold permission to delete that dataset. | FR-044 |
 | T072 | The deletion proceeds only when the dataset's name is typed exactly, disregarding leading and trailing spaces. | FR-045 |
-| T073 | The rendered page carries exactly one control named for the confirmation. Fails against the pinned shared package, so it is marked expected-to-fail **strictly**, with the issue in the reason — an unexpected pass fails the suite, which is how the upstream fix landing is noticed. | FR-045 |
-| T074 | The page states what will be deleted with the dataset — the number of samples and the number of measurements beneath it, and that its descriptions, dates and identifiers go too — prominently and before the confirmation is offered. Test asserts rendered content, not context. | FR-046 |
+| T073 | The rendered page carries exactly one control named for the confirmation. Fixed upstream in django-mvp 0.19.3, so this is an ordinary passing test rather than an expected failure. | FR-045 |
+| T074 | The page previews what will be deleted with the dataset — its samples, measurements, descriptions, dates and identifiers — before the confirmation is offered, through the shell's own cascade preview rather than a hand-written equivalent. Test asserts rendered content, not context. | FR-046 |
 | T075 | A dataset holding no samples and no measurements is not warned about data it does not hold. | FR-047 |
 | T076 | A public dataset is deleted like any other; visibility alone never prevents a deletion. | FR-048 |
 | T077 | A successful deletion arrives at the dataset listing, and the samples and measurements beneath the dataset are gone. | FR-049 |

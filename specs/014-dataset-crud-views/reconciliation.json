@@ -272,7 +272,7 @@
       "reason": "not built",
       "note": "no page states a visibility rule; #284"
     },
-    "T061a": {
+    "T085": {
       "reason": "not built",
       "note": "the retired standalone views do answer not-found for a private record (views.py:197-201, :250-254) and two tests pin it, but nothing asserts it at the new addresses, which is where the mechanism changes"
     },
@@ -312,11 +312,11 @@
     },
     "T073": {
       "reason": "not built",
-      "note": "django-mvp 0.19.2 draws the confirmation field twice — once outside the form element and once inside it — and posts the empty one. Upstream; raised, not worked around"
+      "note": "the duplicate confirmation field is fixed in django-mvp 0.19.3, taken 2026-08-25; the assertion that the page carries exactly one such control is still to be written"
     },
     "T074": {
       "reason": "not built",
-      "note": "the shared page has no warning slot; a per-model template is the route"
+      "note": "MVPDeleteView.show_related_objects (mvp/views/edit.py:492) provides the cascade preview; it is not switched on for the dataset"
     },
     "T075": {
       "reason": "not built"

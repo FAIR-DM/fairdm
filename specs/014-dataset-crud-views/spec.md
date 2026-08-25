@@ -392,9 +392,12 @@ rather than inventing a second one.
   dataset.
 - **FR-045**: The deletion page MUST require the visitor to type the dataset's name exactly before
   it will proceed, disregarding leading and trailing spaces.
-- **FR-046**: The deletion page MUST state what will be deleted along with the dataset, prominently
-  and before the confirmation is offered: the number of samples and the number of measurements held
-  beneath it, and the fact that its descriptions, dates and identifiers go too.
+- **FR-046**: The deletion page MUST state what will be deleted along with the dataset, before the
+  confirmation is offered — the samples and measurements held beneath it, and its descriptions,
+  dates and identifiers. This MUST use the application shell's own facility for previewing what a
+  deletion would take, per Article XIV, rather than a hand-written equivalent. *(Amended 2026-08-25:
+  originally required the two counts and a warning of this feature's own making, written before the
+  shell's facility had been read properly.)*
 - **FR-047**: Where a dataset holds no samples and no measurements, the page MUST NOT warn about
   data it does not hold.
 - **FR-048**: A dataset's visibility MUST NOT, on its own, prevent its deletion. A public dataset
@@ -483,7 +486,7 @@ rather than inventing a second one.
   raises an error.
 - **SC-004**: A deletion never proceeds unless the dataset's name was typed correctly.
 - **SC-005**: No researcher deletes a dataset holding data without having been told, on the page
-  they confirmed from, how many samples and measurements they were destroying.
+  they confirmed from, what they were destroying with it.
 - **SC-006**: Every page in this feature refuses a user who lacks the permission it requires, and
   offers no link to a page that would refuse them.
 - **SC-007**: Every link drawn by these pages resolves. None renders empty.
