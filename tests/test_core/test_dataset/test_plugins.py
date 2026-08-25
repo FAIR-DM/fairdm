@@ -1179,3 +1179,27 @@ class TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility:
             url = reverse(name, kwargs={"uuid": dataset.uuid})
             response = client.get(url)
             assert response.status_code == 404, name
+
+
+@pytest.mark.django_db
+class TestTheDatasetsPagesContributeExactlyOneNavigationEntry:
+    """T062/FR-062 — ``Update``, ``Delete`` and ``Descriptions`` are additional views of
+    ``Overview``'s own registration rather than registrations of their own, so the per-record
+    navigation gains no entry for any of them (mirrors
+    ``fairdm.core.project.plugins.Overview``'s equivalent). Asserts the entry count, not the
+    entry names, so a page renamed later still fails here if it starts registering its own
+    entry."""
+
+    def test_overview_contributes_exactly_one_entry(self):
+        plugins.registry.get_urls_for_model(Dataset)
+        menu = plugins.registry.get_plugin_menu_for_model(Dataset)
+        labels = [item.extra_context.get("label") for item in menu.children]
+        assert labels.count("Overview") == 1
+
+    def test_update_descriptions_and_deletion_contribute_no_entry_of_their_own(self):
+        plugins.registry.get_urls_for_model(Dataset)
+        menu = plugins.registry.get_plugin_menu_for_model(Dataset)
+        labels = [item.extra_context.get("label") for item in menu.children]
+        assert "Update dataset" not in labels
+        assert "Descriptions" not in labels
+        assert "Delete dataset" not in labels
