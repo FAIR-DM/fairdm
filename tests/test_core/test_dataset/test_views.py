@@ -189,6 +189,27 @@ class TestDatasetListingSearch:
         assert 'name="search"' not in content
 
 
+@pytest.mark.django_db
+class TestDatasetListingOrdering:
+    """T014/FR-004 — ordering by name and by date added, in both directions. The
+    pre-existing `test_order_by_added` above covers date added; name is untested in
+    either direction (reconciliation: built, untested)."""
+
+    def test_ordered_by_name_returns_alphabetical_order(self, client):
+        bravo = DatasetFactory(name="Bravo Dataset", visibility=Visibility.PUBLIC)
+        alpha = DatasetFactory(name="Alpha Dataset", visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset-list"), {"o": "name"})
+        entries = list(response.context["object_list"])
+        assert entries.index(alpha) < entries.index(bravo)
+
+    def test_ordered_by_name_reversed_returns_reverse_alphabetical_order(self, client):
+        bravo = DatasetFactory(name="Bravo Dataset", visibility=Visibility.PUBLIC)
+        alpha = DatasetFactory(name="Alpha Dataset", visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset-list"), {"o": "-name"})
+        entries = list(response.context["object_list"])
+        assert entries.index(bravo) < entries.index(alpha)
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Dataset
 # ---------------------------------------------------------------------------
