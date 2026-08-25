@@ -1381,3 +1381,52 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         matching = [href for href in hrefs if href.startswith(dataset_url)]
         assert matching
         assert all(href.strip() != "" for href in matching)
+
+
+@pytest.mark.django_db
+class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
+    """T066/FR-053 — the update, descriptions and deletion pages each offer a working link back
+    to the dataset itself, at the dataset's own address. All three resolve ``get_breadcrumbs()``
+    through ``fairdm.contrib.plugins.base.Plugin`` given the MRO (``Plugin`` listed first on
+    every one of them), which links ``obj.get_absolute_url()`` into the breadcrumb trail whenever
+    the object carries one — confirmed here rather than assumed. Mirrors
+    ``tests.test_core.test_project.test_plugins.TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject``."""
+
+    def test_the_update_page_links_back_to_the_dataset(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        )
+
+        dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        assertContains(response, f'href="{dataset_url}"')
+
+    def test_the_descriptions_page_links_back_to_the_dataset(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        )
+
+        dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        assertContains(response, f'href="{dataset_url}"')
+
+    def test_the_deletion_page_links_back_to_the_dataset(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        )
+
+        dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        assertContains(response, f'href="{dataset_url}"')
