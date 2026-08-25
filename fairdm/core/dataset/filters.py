@@ -153,20 +153,33 @@ class DatasetFilter(BaseListFilter):
         }
 
     def __init__(self, *args, **kwargs):
-        """Initialize filter and set project queryset."""
+        """Initialize filter and set project queryset.
+
+        Offers public projects, plus any the requester holds ``view_project`` on
+        at record level. This is not the creation form's contribution-based rule
+        (``request.user.projects.all()``) - that one is the right question for
+        "projects this researcher may file under" and the wrong one here, where
+        an anonymous visitor must also get a usable queryset (014 plan P8).
+        """
         super().__init__(*args, **kwargs)
 
-        # Set project queryset
         from fairdm.core.models import Project
+        from fairdm.core.utils import get_objects_for_user
 
-        if (
-            self.request
-            and hasattr(self.request, "user")
-            and self.request.user.is_authenticated
-        ):
-            # Show all projects for authenticated users
-            # (Views should handle permission filtering)
-            self.filters["project"].queryset = Project.objects.all()
+        if self.request and hasattr(self.request, "user"):
+            # A real request always carries a user - authenticated or
+            # AnonymousUser - so this is the visitor-facing rule.
+            queryset = Project.objects.get_visible()
+            if self.request.user.is_authenticated:
+                permitted = get_objects_for_user(
+                    self.request.user,
+                    "project.view_project",
+                    Project.objects.all(),
+                )
+                queryset = (queryset | permitted).distinct()
         else:
-            # Show all projects for filter display
-            self.filters["project"].queryset = Project.objects.all()
+            # No request (e.g. a filterset built directly, outside a view):
+            # there is no visitor to scope by, so the queryset is unrestricted.
+            queryset = Project.objects.all()
+
+        self.filters["project"].queryset = queryset

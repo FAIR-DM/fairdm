@@ -18,7 +18,7 @@ from django import forms
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from licensing.models import License
-from pytest_django.asserts import assertContains
+from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.core.dataset.models import Dataset
@@ -313,6 +313,56 @@ class TestDatasetListingOffersNoDeadFilter:
     def test_the_rendered_filterset_form_offers_no_visibility_field(self, client):
         response = client.get(reverse("dataset-list"))
         assert "visibility" not in response.context["filter"].form.fields
+
+
+@pytest.mark.django_db
+class TestDatasetListingProjectFilterVisibility:
+    """T018/FR-007 — the project filter offers only projects the visitor may see:
+    public projects, plus any the requester holds `view_project` on at record level.
+    Not the creation form's contribution-based rule, which raises for an anonymous
+    visitor (014 plan P8)."""
+
+    def test_a_private_project_is_absent_for_an_anonymous_visitor(self, client):
+        private_project = ProjectFactory(
+            name="Confidential Survey", visibility=Visibility.PRIVATE
+        )
+        response = client.get(reverse("dataset-list"))
+        project_queryset = response.context["filter"].form.fields["project"].queryset
+        assert private_project not in project_queryset
+        assertNotContains(response, "Confidential Survey")
+
+    def test_a_private_project_is_absent_for_a_signed_in_visitor_with_no_rights_over_it(
+        self, client
+    ):
+        private_project = ProjectFactory(
+            name="Confidential Survey", visibility=Visibility.PRIVATE
+        )
+        client.force_login(UserFactory())
+        response = client.get(reverse("dataset-list"))
+        project_queryset = response.context["filter"].form.fields["project"].queryset
+        assert private_project not in project_queryset
+        assertNotContains(response, "Confidential Survey")
+
+    def test_a_public_project_is_offered_to_every_visitor(self, client):
+        public_project = ProjectFactory(
+            name="Open Reef Survey", visibility=Visibility.PUBLIC
+        )
+        response = client.get(reverse("dataset-list"))
+        project_queryset = response.context["filter"].form.fields["project"].queryset
+        assert public_project in project_queryset
+
+    def test_a_private_project_the_signed_in_visitor_holds_view_rights_on_is_offered(
+        self, client
+    ):
+        private_project = ProjectFactory(
+            name="Confidential Survey", visibility=Visibility.PRIVATE
+        )
+        user = UserFactory()
+        assign_perm("view_project", user, private_project)
+        client.force_login(user)
+        response = client.get(reverse("dataset-list"))
+        project_queryset = response.context["filter"].form.fields["project"].queryset
+        assert private_project in project_queryset
 
 
 # ---------------------------------------------------------------------------
