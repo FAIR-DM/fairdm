@@ -42,6 +42,7 @@ implementation does not need.
 """
 
 import re
+import warnings
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -49,6 +50,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from licensing.models import License
+from mvp.warnings import MVPDeprecationWarning
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
@@ -1430,3 +1432,51 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assertContains(response, f'href="{dataset_url}"')
+
+
+@pytest.mark.django_db
+class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
+    """T068/FR-055 — links are declared through the shell's current mechanism
+    (``show_<action>_action``), not the deprecated ``has_<action>_permission`` name
+    ``mvp.views.detail.CRUDDirectoryMixin.show_action`` still honours with a warning. Uses
+    ``warnings.catch_warnings`` directly rather than ``pytest.warns(None)``, which modern pytest
+    removed."""
+
+    def _permitted_user(self, dataset):
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        assign_perm("delete_dataset", user, dataset)
+        return user
+
+    def _assert_no_deprecation_warning(self, client, url):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            response = client.get(url)
+        assert response.status_code == 200
+        assert not any(
+            issubclass(w.category, MVPDeprecationWarning) for w in caught
+        )
+
+    def test_the_datasets_own_page_emits_no_deprecation_warning(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+        url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        self._assert_no_deprecation_warning(client, url)
+
+    def test_the_update_page_emits_no_deprecation_warning(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        self._assert_no_deprecation_warning(client, url)
+
+    def test_the_descriptions_page_emits_no_deprecation_warning(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        self._assert_no_deprecation_warning(client, url)
+
+    def test_the_deletion_page_emits_no_deprecation_warning(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        self._assert_no_deprecation_warning(client, url)
