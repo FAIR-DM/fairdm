@@ -41,12 +41,12 @@
         class="descriptions-form"
         novalidate>
     {% csrf_token %}
-    <c-vstack gap=2>
+    <c-group gap="2">
       {% for form in formset %}
         <c-card title="{{ form.value.label }}" tight>
           {{ form.value }}
-          <c-slot name="footer_start">
-            <c-text small tight>
+          <c-slot name="footer">
+            <c-text size="sm" tight>
               <c-icon name="info" />
               {{ form.value.help_text }}
             </c-text>
@@ -54,10 +54,9 @@
         </c-card>
       {% endfor %}
       {% if formset.non_field_errors %}
-        <c-alert variant="danger"
-                 text="{{ formset.non_field_errors }}" />
+        <c-alert variant="danger">{{ formset.non_field_errors }}</c-alert>
       {% endif %}
-    </c-vstack>
+    </c-group>
   </form>
   {# Form Actions - Sticky to bottom #}
   <c-card>
