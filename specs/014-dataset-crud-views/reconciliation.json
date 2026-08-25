@@ -1,0 +1,339 @@
+{
+  "rule": "satisfied requires a code citation AND a passing test that exercises the behaviour; code with no test stays open and the test is its remaining work",
+  "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
+  "totals": {
+    "tasks_total": 84,
+    "satisfied": 25,
+    "open": 59
+  },
+  "open_by_reason": {
+    "not built": 38,
+    "built, untested": 13,
+    "built differently": 5,
+    "vacuous test": 3
+  },
+  "satisfied": {
+    "T001": {
+      "code": "fairdm/factories/core.py:344",
+      "test": "tests/test_core/test_dataset/conftest.py:21,27 — public_dataset / private_dataset, exercised by every passing view test"
+    },
+    "T002": {
+      "code": "fairdm/factories/core.py — DatasetDescriptionFactory, DatasetDateFactory, DatasetIdentifierFactory",
+      "test": "tests/test_core/test_dataset/conftest.py:33-41; tests/test_core/test_related_records.py:24-25"
+    },
+    "T004": {
+      "code": "fairdm/core/related_records.py:19",
+      "test": "tests/test_core/test_related_records.py:57,73 — parameterised over Dataset at :32"
+    },
+    "T005": {
+      "code": "fairdm/core/related_records.py:47",
+      "test": "tests/test_core/test_related_records.py:32,98-105"
+    },
+    "T006": {
+      "code": "fairdm/core/related_records.py:51",
+      "test": "tests/test_core/test_related_records.py:98-105,110"
+    },
+    "T007": {
+      "code": "fairdm/core/dates.py — precedes(); consumed by DatasetDate.clean at fairdm/core/dataset/models.py:431",
+      "test": "tests/test_core/test_formsets.py:69,98 — Dataset parameters at :30-32"
+    },
+    "T008": {
+      "code": "fairdm/core/formsets.py — date_ordering_formset()",
+      "test": "tests/test_core/test_formsets.py:69,98,120 — the Dataset CollectionStart/CollectionEnd pair"
+    },
+    "T009": {
+      "code": "fairdm/core/descriptions.py — VocabularyDescriptionsForm",
+      "test": "tests/test_core/test_descriptions.py:30,40,54 parameterised over DatasetDescription at :20; the save() removal and whitespace branches are covered through tests/test_core/test_project/test_plugins.py:564,632"
+    },
+    "T011": {
+      "code": "fairdm/core/dataset/urls.py:15; fairdm/core/dataset/views.py:128",
+      "test": "tests/test_core/test_dataset/test_views.py:32"
+    },
+    "T012": {
+      "code": "fairdm/core/dataset/models.py:159-182 — DatasetManager excludes PRIVATE",
+      "test": "tests/test_core/test_dataset/test_views.py:38"
+    },
+    "T021": {
+      "code": "fairdm/core/dataset/templates/dataset/dataset_card.html",
+      "test": "n/a — the requirement is that the design is not changed; nothing to build"
+    },
+    "T022": {
+      "code": "fairdm/core/dataset/urls.py:16; fairdm/core/dataset/views.py:58 — LoginRequiredMixin",
+      "test": "tests/test_core/test_dataset/test_views.py:78,85"
+    },
+    "T030": {
+      "code": "fairdm/core/dataset/views.py:121-123",
+      "test": "tests/test_core/test_dataset/test_views.py:133,419"
+    },
+    "T032": {
+      "code": "fairdm/core/dataset/views.py:82-88",
+      "test": "tests/test_core/test_dataset/test_views.py:93"
+    },
+    "T034": {
+      "code": "fairdm/core/dataset/urls.py:18-22; fairdm/core/dataset/views.py:164",
+      "test": "tests/test_core/test_dataset/test_views.py:188"
+    },
+    "T035": {
+      "code": "fairdm/core/dataset/views.py:186-201",
+      "test": "tests/test_core/test_dataset/test_views.py:196,205"
+    },
+    "T044": {
+      "code": "fairdm/core/dataset/forms.py:87-94 — name required on DatasetForm, which the update view uses (views.py:181)",
+      "test": "tests/test_core/test_dataset/test_forms.py:111"
+    },
+    "T045": {
+      "code": "fairdm/core/dataset/views.py:213-219",
+      "test": "tests/test_core/test_dataset/test_views.py:229"
+    },
+    "T069": {
+      "code": "fairdm/core/dataset/templates/dataset/dataset_detail.html",
+      "test": "n/a — the requirement is that the page is not redesigned; nothing to build"
+    },
+    "T070": {
+      "code": "fairdm/core/dataset/urls.py:23-27; fairdm/core/dataset/views.py:222",
+      "test": "tests/test_core/test_dataset/test_views.py:270"
+    },
+    "T071": {
+      "code": "fairdm/core/dataset/views.py:242-254",
+      "test": "tests/test_core/test_dataset/test_views.py:278,287"
+    },
+    "T079": {
+      "code": "no tags field appears on any dataset form",
+      "test": "n/a — a constraint on this feature's own scope, with no deliverable of its own; the enforcing assertion is T043's field-set test"
+    },
+    "T080": {
+      "code": "fairdm/core/dataset/views.py:121-123 records the creator and nothing else manages contributions",
+      "test": "n/a — a constraint on this feature's own scope"
+    },
+    "T081": {
+      "code": "no publication state exists on Dataset; fairdm/core/dataset/models.py declares visibility alone",
+      "test": "n/a — a constraint on this feature's own scope"
+    },
+    "T082": {
+      "code": "fairdm/core/project/plugins.py:190-217 — unchanged by this feature",
+      "test": "tests/test_core/test_project/test_views.py:1216,1252"
+    }
+  },
+  "open": {
+    "T003": {
+      "reason": "not built",
+      "note": "the four-actor permission fixtures exist for projects (tests/test_core/test_project/conftest.py:26-59) and not for datasets; dataset tests build permission users inline"
+    },
+    "T010": {
+      "reason": "built, untested",
+      "note": "of the five enumerated cases, four are covered; an end date equal to the start date is asserted nowhere"
+    },
+    "T013": {
+      "reason": "vacuous test",
+      "note": "fairdm/core/dataset/views.py:148 declares search over name, uuid and descriptions. The passing search tests (test_filters.py:206,223) exercise DatasetFilter.filter_search, a different mechanism searching name, uuid and keywords. Nothing tests the listing's own search, and nothing at all tests searching descriptions"
+    },
+    "T014": {
+      "reason": "built, untested",
+      "note": "views.py:141-147 declares name and -name; only the added pair is tested (test_views.py:50)"
+    },
+    "T015": {
+      "reason": "built, untested",
+      "note": "licence and project filters are tested (test_filters.py:59,106); the description-type and date-type behavioural tests are both skipped (test_filters.py:303,311)"
+    },
+    "T016": {
+      "reason": "built differently",
+      "note": "filters.py:160 filters on dates__date_type, a Python property rather than a column, so applying it raises FieldError. #186"
+    },
+    "T017": {
+      "reason": "built differently",
+      "note": "filters.py:144-150 offers a visibility choice on a listing that shows public datasets only, so neither choice can change the result set"
+    },
+    "T018": {
+      "reason": "built differently",
+      "note": "filters.py:174-191 branches on authentication and sets Project.objects.all() in both arms, so every private project's name is offered to anyone"
+    },
+    "T019": {
+      "reason": "built, untested",
+      "note": "the shared listing renders an empty state and it is tested for projects (test_project/test_views.py:327); nothing tests the dataset listing's"
+    },
+    "T020": {
+      "reason": "built, untested",
+      "note": "the shared object card links via get_absolute_url (cotton/components/object_card.html:61); no dataset test asserts the entry links"
+    },
+    "T023": {
+      "reason": "not built",
+      "note": "views.py:68 declares name, project, license — no visibility"
+    },
+    "T024": {
+      "reason": "not built",
+      "note": "visibility appears on no dataset form"
+    },
+    "T025": {
+      "reason": "built differently",
+      "note": "forms.py:171-174 sets the default on DatasetForm, which the creation page does not use (views.py:67 has form_class commented out). test_forms.py:85 pins the literal CC BY 4.0 rather than reading the setting"
+    },
+    "T026": {
+      "reason": "vacuous test",
+      "note": "test_forms.py:118 proves DatasetForm's project field is optional; the creation page uses a generated form built from views.py:68, so the tested form is not the shipped one"
+    },
+    "T027": {
+      "reason": "not built",
+      "note": "views.py:79 has the request kwarg commented out, so the creation page's project field is never narrowed. The form's own filtering is tested (test_forms.py:35) and unreachable from this page"
+    },
+    "T028": {
+      "reason": "vacuous test",
+      "note": "same shape as T026 — test_forms.py:111 tests DatasetForm, not the creation page"
+    },
+    "T029": {
+      "reason": "built, untested",
+      "note": "views.py:110-119 assigns all five permissions. No test asserts it. test_views.py:133's own docstring still says the assignment is disabled pending guardian integration, which stopped being true"
+    },
+    "T031": {
+      "reason": "not built",
+      "note": "DatasetCreateView.form_valid never sets created_by, where ProjectCreateView does (project/views.py:91). The model field exists and its comment cites a portal create view that does not write it"
+    },
+    "T033": {
+      "reason": "not built",
+      "note": "views.py:67 — form_class commented out in favour of a field list"
+    },
+    "T036": {
+      "reason": "not built",
+      "note": "forms.py:164 declares image, name, project, license, reference, doi — no visibility, and doi leaves under FR-027"
+    },
+    "T037": {
+      "reason": "built, untested",
+      "note": "test_forms.py:165 covers some attributes; visibility does not exist yet"
+    },
+    "T038": {
+      "reason": "built, untested",
+      "note": "views.py:209-211 passes request and forms.py:176-190 filters; no test asserts the update page's project field is narrowed"
+    },
+    "T039": {
+      "reason": "not built",
+      "note": "no identifiers row set on the update page"
+    },
+    "T040": {
+      "reason": "not built",
+      "note": "no dates row set on the update page"
+    },
+    "T041": {
+      "reason": "not built",
+      "note": "the model and the shared formset enforce it; the page does not offer dates at all"
+    },
+    "T042": {
+      "reason": "not built",
+      "note": "the page offers no identifiers, so the collision cannot be reported by it"
+    },
+    "T043": {
+      "reason": "not built",
+      "note": "no test asserts the update form's field set excludes descriptions, keywords, tags and contributors"
+    },
+    "T046": {
+      "reason": "not built"
+    },
+    "T047": {
+      "reason": "not built",
+      "note": "DatasetForm sets no form_tag; project, sample and measurement all do. The page emits a form element inside the one already opened"
+    },
+    "T048": {
+      "reason": "built differently",
+      "note": "a descriptions page answers at dataset:descriptions and is permission-gated (plugins.py:20-27; tests/test_contrib/test_plugins/test_pages.py:26,38). Its address moves under FR-058 and its editor is replaced under FR-042"
+    },
+    "T049": {
+      "reason": "built, untested",
+      "note": "covered for the current page at test_pages.py:38; that page is replaced"
+    },
+    "T050": {
+      "reason": "not built",
+      "note": "the current page offers add-and-remove rows, not one area per vocabulary type"
+    },
+    "T051": {
+      "reason": "not built"
+    },
+    "T052": {
+      "reason": "not built"
+    },
+    "T053": {
+      "reason": "not built"
+    },
+    "T054": {
+      "reason": "not built"
+    },
+    "T055": {
+      "reason": "not built"
+    },
+    "T056": {
+      "reason": "not built",
+      "note": "Dataset has no Overview registration; its own page is a standalone view"
+    },
+    "T057": {
+      "reason": "not built",
+      "note": "urls.py:28-31 mounts the record's pages under the singular dataset/"
+    },
+    "T058": {
+      "reason": "not built"
+    },
+    "T059": {
+      "reason": "not built",
+      "note": "Dataset.get_absolute_url resolves dataset-detail via abstract.py:73"
+    },
+    "T060": {
+      "reason": "built, untested",
+      "note": "the three current plugins each declare a permission; the pages this feature adds do not exist"
+    },
+    "T061": {
+      "reason": "not built",
+      "note": "no page states a visibility rule; #284"
+    },
+    "T062": {
+      "reason": "not built",
+      "note": "three registrations take three entries today"
+    },
+    "T063": {
+      "reason": "not built"
+    },
+    "T064": {
+      "reason": "not built"
+    },
+    "T065": {
+      "reason": "not built"
+    },
+    "T066": {
+      "reason": "not built"
+    },
+    "T067": {
+      "reason": "not built"
+    },
+    "T068": {
+      "reason": "not built"
+    },
+    "T072": {
+      "reason": "built, untested",
+      "note": "require_confirmation and get_confirmation_value are set (views.py:240,256) and tested for a right and a wrong name (test_views.py:311,326); the whitespace case is tested for projects only"
+    },
+    "T073": {
+      "reason": "not built",
+      "note": "django-mvp 0.19.2 draws the confirmation field twice — once outside the form element and once inside it — and posts the empty one. Upstream; raised, not worked around"
+    },
+    "T074": {
+      "reason": "not built",
+      "note": "the shared page has no warning slot; a per-model template is the route"
+    },
+    "T075": {
+      "reason": "not built"
+    },
+    "T076": {
+      "reason": "built, untested",
+      "note": "no guard exists, so it holds; no test asserts a public dataset deletes"
+    },
+    "T077": {
+      "reason": "built, untested",
+      "note": "the cascade is the ORM's; no test asserts samples and measurements go with the dataset"
+    },
+    "T078": {
+      "reason": "not built",
+      "note": "plugins.py:44-59 still registers the keywords page"
+    },
+    "T083": {
+      "reason": "not built"
+    },
+    "T084": {
+      "reason": "not built"
+    }
+  }
+}

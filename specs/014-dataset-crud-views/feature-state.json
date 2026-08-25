@@ -1,0 +1,803 @@
+{
+  "$schema": "aeo/feature-state.schema.json",
+  "feature": "014-dataset-crud-views",
+  "branch": "014-dataset-crud-views",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-25T09:00:00Z",
+      "note": "spec.md rewritten in place from intent"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-25T10:00:00Z",
+      "note": "epic #288, stories #289-294, draft PR #295"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-25T10:30:00Z",
+      "note": "approved in session"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-25T11:30:00Z",
+      "note": "research, plan, greenfield tasks, reconciliation"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-25T10:30:00Z",
+      "self_resolved": [
+        "listing filters repaired inside this feature",
+        "creation page reuses the declared form",
+        "#296, #297, #298 routed out"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 289,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/factories/core.py:344"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/conftest.py:21"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/urls.py:15",
+              "fairdm/core/dataset/views.py:128"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:32"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/models.py:159"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:38"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "n/a — the requirement is that the design is not changed; nothing to build"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 290,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/urls.py:16",
+              "fairdm/core/dataset/views.py:58"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:78"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/views.py:121"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:133"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/views.py:82"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:93"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 291,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_dataset/conftest.py:33",
+              "tests/test_core/test_related_records.py:24"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/related_records.py:19"
+            ],
+            "tests": [
+              "tests/test_core/test_related_records.py:57"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/related_records.py:47"
+            ],
+            "tests": [
+              "tests/test_core/test_related_records.py:32"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/related_records.py:51"
+            ],
+            "tests": [
+              "tests/test_core/test_related_records.py:98"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/models.py:431"
+            ],
+            "tests": [
+              "tests/test_core/test_formsets.py:69"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_formsets.py:69"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/urls.py:18",
+              "fairdm/core/dataset/views.py:164"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:188"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/views.py:186"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:196"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T044",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/forms.py:87",
+              "views.py:181"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_forms.py:111"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/views.py:213"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:229"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T046",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T047",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "n/a — a constraint on this feature's own scope, with no deliverable of its own; the enforcing assertion is T043's field-set test"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T080",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/views.py:121"
+            ],
+            "tests": [
+              "n/a — a constraint on this feature's own scope"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T081",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "n/a — a constraint on this feature's own scope"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 292,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_descriptions.py:30",
+              "tests/test_core/test_project/test_plugins.py:564"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T049",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T055",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 293,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T056",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T057",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T058",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T060",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T061",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T062",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T063",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T064",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T065",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T066",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T067",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T068",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T069",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "n/a — the requirement is that the page is not redesigned; nothing to build"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T078",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T083",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T084",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P3",
+      "issue": 294,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T070",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/urls.py:23",
+              "fairdm/core/dataset/views.py:222"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:270"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T071",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/views.py:242"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py:278"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T072",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T073",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T074",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T075",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T076",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T077",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T082",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/project/plugins.py:190"
+            ],
+            "tests": [
+              "tests/test_core/test_project/test_views.py:1216"
+            ],
+            "commands": [
+              "pytest tests/test_core/test_dataset/ tests/test_contrib/test_plugins/ -q"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  }
+}

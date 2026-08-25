@@ -1,215 +1,152 @@
-# Tasks: Dataset CRUD Views
+# Tasks — FS-014, managing a dataset through the portal
 
-**Input**: Design documents from `/specs/014-dataset-crud-views/`
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, quickstart.md
+**Written greenfield.** This list describes building the feature from nothing, to the standard the
+constitution sets, from `spec.md` and `plan.md` alone. It does not describe the code that exists.
+What the codebase already satisfies is settled afterwards, in `reconciliation.json`, against a code
+citation and a passing test — never against this list's own judgement of what is likely already
+there.
 
-**Tests**: Tests are included per the framework's test-first requirement (Constitution Principle V — URL Smoke Test Coverage mandatory for all new URL patterns)
+Article I: every behavioural task writes its test first, and the test fails for the stated reason
+before the change. Article X: tests mirror the source tree, one factory per model, shared fixtures
+in `conftest.py`, related assertions grouped in classes.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. There are no cross-cutting foundational prerequisites: all four user stories can proceed sequentially after Phase 1.
-
-## Format: `[ID] [P?] [Story] Description`
-
-- **[P]**: Logically independent — safe to author concurrently in the same session. Does NOT imply OS-level file-write parallelism; multiple `[P]` tasks that write to the same file should be done in sequence within that file.
-- **[Story]**: Which user story this task belongs to (US1–US4)
-- Exact file paths included in each description
-
----
-
-## Phase 1: Setup (Shared Infrastructure)
-
-**Purpose**: Verify environment and existing file state before any changes.
-
-- [X] T001 Confirm feature branch `014-dataset-crud-views` is active (`git branch --show-current`) and Poetry virtualenv is activated
-- [X] T002 Confirm `tests/test_core/test_dataset/test_views.py` does NOT yet exist (will be created in Phase 3)
-
-### System Validation — Phase 1
-
-- [X] T003 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding to Phase 3
-
-**Checkpoint — Setup Complete**: System checks pass. Proceed to Phase 3.
-
-*Phase 2: Foundational — not required; no model, migration, or signal changes for this feature.*
+Test locations, throughout: `tests/test_core/test_dataset/` for the record's own surface,
+`tests/test_contrib/test_plugins/` for registration and addressing.
 
 ---
 
-## Phase 3: User Story 1 — Browse and Search the Dataset List (Priority: P1) 🎯 MVP
+## Phase F — Foundations
 
-**Goal**: `DatasetListView` exposes date-added ordering and description search, wired to the `dataset-list` URL, and is smoke-tested.
+Shared machinery the feature needs before any page can be built. Every one of these is used by more
+than one story.
 
-**Independent Test**: `GET /datasets/` returns 200 for anonymous users; only public datasets appear; ordering by `added` and `-added` returns results in chronological order; search by description value returns matching results.
+| Id | Task | Serves |
+|---|---|---|
+| T001 | A `Dataset` factory producing a valid record, with traits for public and private visibility and for belonging to a project or not. | all |
+| T002 | Factories for `DatasetDescription`, `DatasetDate` and `DatasetIdentifier`, each taking its type from its own vocabulary. | US-3, US-4 |
+| T003 | Fixtures in `conftest.py` for the four actors every page is checked against: an anonymous visitor, a signed-in user with no rights over the record, one holding `change_dataset` on it, one holding `delete_dataset` on it. | all |
+| T004 | A row-set declaration base for related records carrying a type and a value, rendering one row per stored pair and no blank rows beyond them. | US-3 |
+| T005 | A dataset dates row set built on T004. | US-3 |
+| T006 | A dataset identifiers row set built on T004. | US-3 |
+| T007 | A precision-aware comparison for two dates that may be recorded to different precisions, so a rule about ordering does not read a year as a January. | US-3 |
+| T008 | A row-set validation rule refusing an end date earlier than a start date, parameterised on which two types are the pair and on the message, so a record type supplies its own. | US-3, FR-029 |
+| T009 | A form generating one text area per concept in a related model's description vocabulary, labelled with the concept's name and helped by its definition, which writes, updates and removes one row per area on save. | US-4, FR-037–FR-040 |
+| T010 | Tests for T004–T009 covering: rows render for stored values only; an end before a start is refused naming the field; an equal start and end is accepted; a whitespace-only description area is treated as empty; a cleared area removes its row. | |
 
-### Tests for User Story 1 (Red → Green → Refactor)
+## Phase 1 — US-1, Find a dataset
 
-- [X] T004 [P] [US1] Create `tests/test_core/test_dataset/test_views.py`; write `TestDatasetListView.test_anonymous_get` smoke test: `GET reverse("dataset-list")` by anonymous client returns 200 (MUST FAIL if view is broken or URL missing)
-- [X] T005 [P] [US1] Write `TestDatasetListView.test_shows_only_public_datasets` in `tests/test_core/test_dataset/test_views.py`: given one PUBLIC and one PRIVATE dataset, list response contains the public one and not the private one (MUST FAIL before T008)
-- [X] T006 [P] [US1] Write `TestDatasetListView.test_order_by_added` in `tests/test_core/test_dataset/test_views.py`: `?o=added` and `?o=-added` return results in expected chronological order (MUST FAIL before T008)
+| Id | Task | Serves |
+|---|---|---|
+| T011 | A listing page for datasets at a stable address named `dataset-list`, open to visitors who are not signed in. | FR-001 |
+| T012 | The listing shows only public datasets, whoever is looking. Test with both visibilities present, signed in and signed out, including a user holding rights over a private dataset. | FR-002 |
+| T013 | Search across the dataset's name, its identifier and its descriptions. Test each of the three finds a record the others would not. | FR-003 |
+| T014 | Ordering by name and by date added, both directions. Test that reversing reverses. | FR-004 |
+| T015 | Filters by licence, by project, and by the types of description and date a dataset carries. | FR-005 |
+| T016 | Every offered filter runs a query without error. Test applies each filter in turn and asserts on the returned records, not on the filter form. | FR-006 |
+| T017 | No filter is offered that cannot change the result set. | FR-006 |
+| T018 | The project filter offers only projects the visitor may see. Test that a private project's name is absent for a visitor with no rights over it. | FR-007 |
+| T019 | An empty state when nothing matches. | FR-008 |
+| T020 | Each listing entry links to its dataset's page. Test asserts the rendered address. | FR-009 |
+| T021 | The listing entry's existing design is otherwise unchanged. | FR-010 |
 
-### Implementation for User Story 1
+## Phase 2 — US-2, Register a dataset
 
-- [X] T007 [US1] In `fairdm/core/dataset/views.py`, verify `DatasetListView`: ensure `order_by` includes `("added", _("Date created (oldest first)"), "added")` and `("-added", _("Date created (newest first)"), "-added")`; ensure `search_fields` includes `"descriptions__value"` alongside `"uuid"` and `"name"` (add any missing entries); also confirm `filterset_class = DatasetFilter` is set (FR-005)
-- [X] T008 [US1] In `fairdm/core/dataset/views.py`, verify `DatasetListView.get_queryset()` calls `.get_visible().with_contributors()` — add `.with_contributors()` call if absent
+| Id | Task | Serves |
+|---|---|---|
+| T022 | A creation page at a stable address named `dataset-create`, requiring the visitor to be signed in and sending them to sign in otherwise. | FR-011 |
+| T023 | The page asks for a name, a visibility, a licence and a project, and for nothing else. Test asserts the exact field set, so a field added later fails here. | FR-012 |
+| T024 | Visibility is presented as a visible choice between its options, pre-selecting public. Test asserts the rendered control and the pre-selection, not just the form's initial value. | FR-013 |
+| T025 | The portal's configured default licence is pre-selected. Test under an overridden setting, so the test does not pin one licence name. | FR-014 |
+| T026 | The project field is optional and starts empty; a dataset can be created without one. | FR-015 |
+| T027 | The project field offers only projects the signed-in researcher may use, and none at all to a visitor who is not signed in. | FR-016 |
+| T028 | A dataset cannot be created without a name. | FR-017 |
+| T029 | On creation the creator is granted view, change, delete, change-metadata and change-settings on the record. | FR-018 |
+| T030 | On creation the creator is recorded among the contributors as Creator, ProjectMember and ContactPerson. | FR-019 |
+| T031 | On creation the dataset records who created it, written server-side and not through the form. | FR-020 |
+| T032 | A successful creation arrives at the new dataset's page. | FR-021 |
+| T033 | The creation page uses the update page's declared form narrowed to those four fields, rather than a field list of its own. Test asserts the form class in use and that a label declared once reaches both pages. | FR-022 |
 
-### System Validation — Phase 3
+## Phase 3 — US-3, Correct a dataset's own attributes
 
-- [X] T009 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [X] T010 ⚠️ CRITICAL: Run User Story 1 tests: `poetry run pytest tests/test_core/test_dataset/test_views.py::TestDatasetListView -v` — ALL tests MUST pass
+| Id | Task | Serves |
+|---|---|---|
+| T034 | An update page at a stable address identifying the dataset by its identifier, requiring the visitor to be signed in. | FR-023 |
+| T035 | The page refuses a user who does not hold permission to change that dataset. | FR-024 |
+| T036 | The page covers image, name, project, licence, visibility and the publication that describes the dataset. Test asserts the exact field set. | FR-025 |
+| T037 | Each of those attributes persists when changed. | FR-025 |
+| T038 | The project field offers only projects the researcher may use, on the same terms as the creation page. | FR-026 |
+| T039 | External identifiers can be added, changed and removed, any number, each typed from the dataset identifier vocabulary. | FR-027 |
+| T040 | Collection start and collection end can be set, changed and removed. | FR-028 |
+| T041 | A collection end earlier than the collection start is refused, reporting which field is at fault. | FR-029 |
+| T042 | An identifier value already recorded against another record is refused, and nothing in the submission is saved. Test asserts the other rows are also unsaved. | FR-030 |
+| T043 | The page offers no descriptions, keywords, tags or contributors. Test asserts absence by field set, so a field reintroduced later fails. | FR-031 |
+| T044 | A dataset cannot be saved without a name. | FR-032 |
+| T045 | A successful submission arrives at the dataset's page. | FR-033 |
+| T046 | Identifiers and dates are edited through the shared facility for editing related records, not a hand-written equivalent. | FR-034 |
+| T047 | The form declares its layout so it does not emit a form element inside the one the page has already opened. Test asserts the rendered page has one form element. | FR-025 |
 
-**Checkpoint — US1 Complete**: Dataset list renders for anonymous users, shows only public datasets, supports date-added ordering.
+## Phase 4 — US-4, Describe a dataset
+
+| Id | Task | Serves |
+|---|---|---|
+| T048 | A descriptions page at a stable address of its own, identifying the dataset by its identifier, requiring the visitor to be signed in. | FR-035 |
+| T049 | The page refuses a user who does not hold permission to change that dataset. | FR-036 |
+| T050 | One editable area per description type in the dataset description vocabulary, labelled with the type's name and explained by its definition. Test asserts one area per vocabulary member, by reading the vocabulary rather than by counting a fixed number. | FR-037 |
+| T051 | Saving text into an area records a description of that type; a dataset holds at most one of any type. | FR-038 |
+| T052 | Clearing an area removes that description. | FR-039 |
+| T053 | An empty area creates nothing. | FR-040 |
+| T054 | A successful submission arrives at the dataset's page. | FR-041 |
+| T055 | The page uses the vocabulary-driven form from T009, not a row-based editor. | FR-042 |
+
+## Phase 5 — US-5, Move between a dataset's pages
+
+| Id | Task | Serves |
+|---|---|---|
+| T056 | The dataset's own page, its update page, its descriptions page and its deletion page are all registered against the dataset record, so the portal's own navigation can construct every address. | FR-059 |
+| T057 | Every address names the record type in the plural, and every page belonging to a dataset sits below the dataset's own address. | FR-057, FR-058 |
+| T058 | The singular form no longer answers. Test asserts a request to it fails, not merely that the plural one succeeds. | FR-057 |
+| T059 | A dataset's address resolves to its registered page wherever the record is asked for its address. Sweep every reversal, template link, redirect target and test that names one of the retired routes. | FR-058 |
+| T060 | Each of the four pages states the permission it requires for itself. Test that a page stating none is not treated as inheriting one. | FR-060 |
+| T061 | Each of the four pages states its own visibility rule, so a private dataset is refused at every one of its addresses. Test the case that motivates it: a user holding the model-level right but no record-level grant. | FR-061 |
+| T062 | The dataset's pages contribute exactly one entry to the per-record navigation. Test asserts the entry count, not the entry names. | FR-062 |
+| T063 | The dataset's page draws a link to its update page and its descriptions page for a user who may change it, and to its deletion page for a user who may delete it. | FR-050 |
+| T064 | No page offers a link to a page that would refuse the user looking at it. Test each of the three actions against a user who lacks exactly that right. | FR-051 |
+| T065 | Every link drawn resolves to a real address, and a link that cannot be resolved is not drawn as an empty one. | FR-052 |
+| T066 | The update, descriptions and deletion pages each offer a way back to the dataset. | FR-053 |
+| T067 | The update page offers the deletion page to a user who may delete the dataset. | FR-054 |
+| T068 | Links are declared through the shell's current mechanism; the deprecated one is not used. Test asserts no deprecation warning is raised while rendering each page. | FR-055 |
+| T069 | The dataset's own page keeps its content and layout, gaining only the links. | FR-056 |
+
+## Phase 6 — US-6, Remove a dataset
+
+| Id | Task | Serves |
+|---|---|---|
+| T070 | A deletion page at a stable address identifying the dataset by its identifier, requiring the visitor to be signed in. | FR-043 |
+| T071 | The page refuses a user who does not hold permission to delete that dataset. | FR-044 |
+| T072 | The deletion proceeds only when the dataset's name is typed exactly, disregarding leading and trailing spaces. | FR-045 |
+| T073 | The rendered page carries exactly one control named for the confirmation. | FR-045 |
+| T074 | The page states what will be deleted with the dataset — the number of samples and the number of measurements beneath it, and that its descriptions, dates and identifiers go too — prominently and before the confirmation is offered. Test asserts rendered content, not context. | FR-046 |
+| T075 | A dataset holding no samples and no measurements is not warned about data it does not hold. | FR-047 |
+| T076 | A public dataset is deleted like any other; visibility alone never prevents a deletion. | FR-048 |
+| T077 | A successful deletion arrives at the dataset listing, and the samples and measurements beneath the dataset are gone. | FR-049 |
+
+## Phase 7 — Deliberate omissions, and closing out
+
+| Id | Task | Serves |
+|---|---|---|
+| T078 | Keywords are not editable anywhere in this feature, and the portal offers no keywords page for a dataset. Test asserts the address does not answer. | FR-063 |
+| T079 | Tags are not editable through this feature. | FR-064 |
+| T080 | Contributors are not managed through this feature beyond recording the creator. | FR-065 |
+| T081 | Nothing in this feature publishes a dataset's data, gates access to it, or introduces a published state. | FR-066 |
+| T082 | The project's deletion refusal is unchanged by this feature. Test asserts its current behaviour still holds. | FR-067 |
+| T083 | Documentation: every page this feature adds or moves is described where a portal author would look for it, and any page describing the retired addresses is corrected. | Article VI |
+| T084 | The full suite, lint, type checks and the build pass, and `makemigrations --check` is clean across all apps. | |
 
 ---
 
-## Phase 4: User Story 2 — Create a New Dataset (Priority: P1)
+## Reconciliation
 
-**Goal**: New `DatasetCreateForm` class added; `DatasetCreateView` uses it (not `DatasetForm`) and drops the `?project=` pre-population; permissions and contributor roles assigned on save.
-
-**Independent Test**: Authenticated `POST /datasets/create/` with valid data creates the dataset, redirects to the detail page, and the creating user has all 5 permissions plus Creator/ProjectMember/ContactPerson roles.
-
-### Tests for User Story 2 (Red → Green → Refactor)
-
-- [X] T011 [P] [US2] Write `TestDatasetCreateView.test_anonymous_redirects_to_login` smoke test in `tests/test_core/test_dataset/test_views.py`: `GET reverse("dataset-create")` by anonymous client returns 302 to login (MUST FAIL if view broken)
-- [X] T012 [P] [US2] Write `TestDatasetCreateView.test_authenticated_get_200` smoke test in `tests/test_core/test_dataset/test_views.py`: `GET reverse("dataset-create")` by authenticated client returns 200 (MUST FAIL if view broken)
-- [X] T013 [P] [US2] Write `TestDatasetCreateView.test_valid_post_redirects_to_detail` in `tests/test_core/test_dataset/test_views.py`: valid POST redirects to `dataset-detail` URL (MUST FAIL before T015)
-- [X] T014 [P] [US2] Write `TestDatasetCreateView.test_assigns_permissions_and_roles` in `tests/test_core/test_dataset/test_views.py`: after valid POST, assert creating user holds all 5 permissions (`view_dataset`, `change_dataset`, `delete_dataset`, `change_dataset_metadata`, `change_dataset_settings`) on the new dataset, and appears as contributor with Creator, ProjectMember, and ContactPerson roles (FR-012, FR-013 — MUST FAIL before T015)
-
-### Implementation for User Story 2
-
-- [X] T015 [US2] In `fairdm/core/dataset/forms.py`, add `DatasetCreateForm(DatasetForm)` class after `DatasetForm` with `class Meta(DatasetForm.Meta): fields = ["name", "project", "license"]`
-- [X] T016 [US2] In `fairdm/core/dataset/views.py`: import `DatasetCreateForm` from `.forms`; change `DatasetCreateView.form_class` from `DatasetForm` to `DatasetCreateForm`; remove the `get_initial()` override entirely
-
-### System Validation — Phase 4
-
-- [X] T017 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [X] T018 ⚠️ CRITICAL: Run User Story 2 tests: `poetry run pytest tests/test_core/test_dataset/test_views.py::TestDatasetCreateView -v` — ALL tests MUST pass
-
-**Checkpoint — US2 Complete**: Create view uses `DatasetCreateForm`, requires login, assigns permissions/roles, redirects to `dataset-detail`.
-
----
-
-## Phase 5: User Story 3 — Edit Dataset Core Attributes (Priority: P2)
-
-**Goal**: New `DatasetUpdateView` class added; enforces `change_dataset` object permission; passes `request` to `DatasetForm` via `get_form_kwargs()`; redirects to `dataset-detail` on success; wired to `dataset-update` URL.
-
-**Independent Test**: `GET /datasets/<uuid>/update/` by permitted user returns 200; by unpermitted user returns 403; by anonymous user returns 302; valid `POST` persists changes and redirects to `dataset-detail`.
-
-### Tests for User Story 3 (Red → Green → Refactor)
-
-- [X] T019 [P] [US3] Write `TestDatasetUpdateView.test_anonymous_redirects_to_login` smoke test in `tests/test_core/test_dataset/test_views.py`: `GET reverse("dataset-update", kwargs={"uuid": dataset.uuid})` by anonymous client returns 302 (MUST FAIL before T023 — URL doesn't exist yet)
-- [X] T020 [P] [US3] Write `TestDatasetUpdateView.test_no_permission_returns_403` smoke test in `tests/test_core/test_dataset/test_views.py`: authenticated client without `change_dataset` permission returns 403 (MUST FAIL before T023)
-
-  > **Superseded by 004-core-datasets.** A dataset now carries a visibility and is private unless stated otherwise, so an unpermitted request for a *private* dataset answers 404 rather than 403 — a 403 would confirm that a private dataset with that address exists, which the API path already refuses to do. 403 still holds for a **public** dataset the user may read but not change; the test is split into those two arms.
-- [X] T021 [P] [US3] Write `TestDatasetUpdateView.test_with_permission_returns_200` smoke test in `tests/test_core/test_dataset/test_views.py`: client with `change_dataset` permission `GET` returns 200 (MUST FAIL before T023)
-- [X] T022 [P] [US3] Write `TestDatasetUpdateView.test_valid_post_redirects_to_detail` in `tests/test_core/test_dataset/test_views.py`: valid POST by permitted user returns 302 to `dataset-detail` URL (FR-018a — MUST FAIL before T023)
-
-### Implementation for User Story 3
-
-- [X] T023 [US3] In `fairdm/core/dataset/views.py`, add `DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView)` class: `model = Dataset`, `form_class = DatasetForm`, `slug_field = "uuid"`, `slug_url_kwarg = "uuid"`, `get_object()` using `get_object_or_404` + `has_perm("change_dataset", dataset)` guard, `get_form_kwargs()` adding `request=self.request`, `get_success_url()` returning `reverse("dataset-detail", kwargs={"uuid": self.object.uuid})`; add `FairDMUpdateView` to imports from `fairdm.views` and `get_object_or_404`, `PermissionDenied`, `reverse` to top-level imports if not present
-- [X] T024 [US3] In `fairdm/core/dataset/urls.py`, import `DatasetUpdateView` and add `path("datasets/<str:uuid>/update/", DatasetUpdateView.as_view(), name="dataset-update")` after the `dataset-create` entry
-
-### System Validation — Phase 5
-
-- [X] T025 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [X] T026 ⚠️ CRITICAL: Run User Story 3 tests: `poetry run pytest tests/test_core/test_dataset/test_views.py::TestDatasetUpdateView -v` — ALL tests MUST pass
-
-**Checkpoint — US3 Complete**: Update view enforces `change_dataset` permission, passes `request` to form, redirects to `dataset-detail`.
-
----
-
-## Phase 6: User Story 4 — Delete a Dataset (Priority: P3)
-
-**Goal**: New `DatasetDeleteView` class added; enforces `delete_dataset` object permission; `require_confirmation = True` with `get_confirmation_value()` returning dataset name; redirects to `dataset-list` on success; wired to `dataset-delete` URL.
-
-**Independent Test**: `GET /datasets/<uuid>/delete/` blocked for anonymous (302), unpermitted (403); permitted user gets 200. Incorrect name confirmation → 200 with form error, dataset not deleted. Correct name → 302 to `dataset-list`, dataset deleted.
-
-### Tests for User Story 4 (Red → Green → Refactor)
-
-- [X] T027 [P] [US4] Write `TestDatasetDeleteView.test_anonymous_redirects_to_login` smoke test in `tests/test_core/test_dataset/test_views.py`: `GET reverse("dataset-delete", kwargs={"uuid": dataset.uuid})` by anonymous client returns 302 (MUST FAIL before T031 — URL doesn't exist yet)
-- [X] T028 [P] [US4] Write `TestDatasetDeleteView.test_no_permission_returns_403` smoke test in `tests/test_core/test_dataset/test_views.py`: authenticated client without `delete_dataset` permission returns 403 (MUST FAIL before T031)
-
-  > **Superseded by 004-core-datasets.** A dataset now carries a visibility and is private unless stated otherwise, so an unpermitted request for a *private* dataset answers 404 rather than 403 — a 403 would confirm that a private dataset with that address exists, which the API path already refuses to do. 403 still holds for a **public** dataset the user may read but not change; the test is split into those two arms.
-- [X] T029 [P] [US4] Write `TestDatasetDeleteView.test_with_permission_returns_200` smoke test in `tests/test_core/test_dataset/test_views.py`: client with `delete_dataset` permission `GET` returns 200 (MUST FAIL before T031)
-- [X] T030 [P] [US4] Write `TestDatasetDeleteView.test_wrong_name_shows_error` in `tests/test_core/test_dataset/test_views.py`: POST `{"confirmation": "Wrong Name"}` by permitted user returns 200; assert `form.errors` contains a validation error for `confirmation`; assert dataset still exists (MUST FAIL before T031)
-- [X] T030a [P] [US4] Write `TestDatasetDeleteView.test_correct_name_redirects_to_list` in `tests/test_core/test_dataset/test_views.py`: POST `{"confirmation": dataset.name}` by permitted user returns 302 to `dataset-list`; assert dataset no longer exists (MUST FAIL before T031)
-
-### Implementation for User Story 4
-
-- [X] T031 [US4] In `fairdm/core/dataset/views.py`, add `DatasetDeleteView(LoginRequiredMixin, FairDMDeleteView)` class: `model = Dataset`, `slug_field = "uuid"`, `slug_url_kwarg = "uuid"`, `success_url = reverse_lazy("dataset-list")`, `require_confirmation = True`, `get_object()` using `get_object_or_404` + `has_perm("delete_dataset", dataset)` guard, `get_confirmation_value()` returning `self.object.name`; add `FairDMDeleteView` to imports from `fairdm.views` and `reverse_lazy` to imports if not present
-- [X] T032 [US4] In `fairdm/core/dataset/urls.py`, import `DatasetDeleteView` and add `path("datasets/<str:uuid>/delete/", DatasetDeleteView.as_view(), name="dataset-delete")` after the `dataset-update` entry
-
-### System Validation — Phase 6
-
-- [X] T033 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass before proceeding
-- [X] T034 ⚠️ CRITICAL: Run User Story 4 tests: `poetry run pytest tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView -v` — ALL tests MUST pass
-
-**Checkpoint — US4 Complete**: Delete view enforces `delete_dataset` permission, name-confirmation via `DeleteConfirmForm`, redirects to `dataset-list`.
-
----
-
-## Phase 7: Polish & Cross-Cutting Concerns
-
-**Goal**: Full regression sweep, verify redirect targets, and confirm no regressions in existing dataset tests.
-
-- [X] T035 [P] Verify `dataset-detail` URL resolves correctly (it is out of scope but is the redirect target for create and update views — a broken URL would cause test failures): `reverse("dataset-detail", kwargs={"uuid": <any valid uuid>})` must not raise `NoReverseMatch`
-- [X] T036 [P] Run existing dataset test suite to confirm no regressions: `poetry run pytest tests/test_core/test_dataset/test_form.py tests/test_core/test_dataset/test_models.py -v` — ALL pre-existing tests MUST still pass (2 pre-existing failures in test_models.py unrelated to this feature)
-
-### System Validation — Final
-
-- [X] T037 ⚠️ CRITICAL: Run Django system checks: `poetry run python manage.py check` — MUST pass
-- [X] T038 ⚠️ CRITICAL: Run complete dataset test suite: `poetry run pytest tests/test_core/test_dataset/ -v` — ALL tests MUST pass (166 pass, 28 skip, 2 pre-existing failures in test_models.py)
-
-**Checkpoint — Feature Complete**: All four views conform to FairDM base classes, all URLs wired (`dataset-list`, `dataset-create`, `dataset-update`, `dataset-delete`), `DatasetCreateForm` added, `DatasetCreateView` updated, full test suite green.
-
----
-
-## Dependencies
-
-```
-Phase 1 (Setup)
-    └── Phase 3 (US1 — List)       independent of US2/US3/US4
-    └── Phase 4 (US2 — Create)     independent of US1/US3/US4; T015 before T016
-    └── Phase 5 (US3 — Update)     independent of US1/US2/US4
-    └── Phase 6 (US4 — Delete)     independent of US1/US2/US3
-Phase 3 + Phase 4 + Phase 5 + Phase 6
-    └── Phase 7 (Polish)
-```
-
-All four user story phases can be sequenced independently after Phase 1 completes. No story depends on another.
-
-## Parallel Execution Examples
-
-**Within US1 (Phase 3)**: T004, T005, T006 (all test writes) can run in parallel before T007/T008.
-
-**Within US2 (Phase 4)**: T011, T012, T013, T014 (all test writes) can run in parallel before T015/T016.
-
-**Within US3 (Phase 5)**: T019, T020, T021, T022 (all test writes) can run in parallel before T023/T024.
-
-**Within US4 (Phase 6)**: T027, T028, T029, T030, T030a (all test writes) can run in parallel before T031/T032.
-
-## Independent Test Criteria Per Story
-
-| Story | Independent Test Command |
-|-------|--------------------------|
-| US1 — List | `pytest tests/test_core/test_dataset/test_views.py::TestDatasetListView -v` |
-| US2 — Create | `pytest tests/test_core/test_dataset/test_views.py::TestDatasetCreateView -v` |
-| US3 — Update | `pytest tests/test_core/test_dataset/test_views.py::TestDatasetUpdateView -v` |
-| US4 — Delete | `pytest tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView -v` |
-| Full suite | `pytest tests/test_core/test_dataset/ -v` |
-
-## Implementation Strategy
-
-**MVP scope**: US1 + US2 (Phase 3 + Phase 4) — gives researchers a working list and creation flow; forms the P1 baseline.
-
-**Delivery order**: Phase 3 (US1) → Phase 4 (US2) → Phase 5 (US3) → Phase 6 (US4) → Phase 7 (Polish). Each phase is independently shippable once its system validation passes.
-
-**Total tasks**: 38 (including T030a)  
-**Parallelisable tasks**: 18 (marked [P])  
-**Sequential gates**: 8 (System Validation tasks, marked ⚠️ CRITICAL)
-
-## Format Validation
-
-All tasks follow the checklist format:
-
-- ✅ Checkbox (`- [ ]`)
-- ✅ Task ID (T001–T038)
-- ✅ [P] marker where parallelisable
-- ✅ [US1]–[US4] label on user story phase tasks only
-- ✅ File path in every implementation and test task description
+Each task above is settled against the codebase before any implementation begins, and the result is
+written to `reconciliation.json` and then to `feature-state.json`. A task starts `done` only with a
+code citation **and** a passing test that covers it. Code with no test leaves the task open, and the
+remaining work is the test.
