@@ -8,7 +8,8 @@ below, is reached from here.
 
 A **public** project's page can be opened by anyone, signed in or not. A **private** project's
 page can only be opened by someone holding view permission on that project — typically its
-contributors. Anyone else is refused.
+contributors. To anyone else the page behaves as though no such project existed, so its address
+cannot be used to find out whether a private project is there.
 
 ## The other project pages
 

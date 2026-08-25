@@ -247,7 +247,12 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
 @pytest.mark.django_db
 class TestAPrivateProjectsPageThroughARealRequest:
     """`can_open()` answering False is a claim about the predicate, not about the page. These
-    go through the URL and the response, which is the composition a visitor actually meets."""
+    go through the URL and the response, which is the composition a visitor actually meets.
+
+    T090 tightens both refusals from "any refusal will do" to 404 exactly: a sign-in redirect
+    and a 403 each confirm the project exists, which is the disclosure the update, deletion and
+    descriptions pages now refuse to make. This is the fourth and most obvious address of the
+    four, so a loose assertion here would leave the rule unenforced where it matters most."""
 
     def test_an_anonymous_visitor_is_refused_a_private_project(
         self, client, private_project
@@ -255,9 +260,7 @@ class TestAPrivateProjectsPageThroughARealRequest:
         response = client.get(
             reverse("project:overview", kwargs={"uuid": private_project.uuid})
         )
-        assert response.status_code in (302, 403, 404)
-        if response.status_code == 302:
-            assert reverse("account_login") in response.url
+        assert response.status_code == 404
 
     def test_a_signed_in_visitor_without_view_rights_is_refused(
         self, client, private_project, user_with_no_permission
@@ -266,7 +269,7 @@ class TestAPrivateProjectsPageThroughARealRequest:
         response = client.get(
             reverse("project:overview", kwargs={"uuid": private_project.uuid})
         )
-        assert response.status_code in (403, 404)
+        assert response.status_code == 404
 
     def test_an_anonymous_visitor_reaches_a_public_project(
         self, client, public_project
@@ -304,9 +307,11 @@ class TestUpdatePageOverHTTP:
         """T028/T098/D14 — this used to assert the opposite (200): a user holding
         `project.change_project` at the model level, granted through no individual record, was
         admitted to a private project they hold no grant at all on. That was the exact defect
-        D14 settled — a page that relies on inheriting a visibility rule is not guarded at all —
-        so this same scenario is now refused here too, matching `Overview` and matching the
-        real-request coverage in `TestTheOverviewGuardsAPrivateProjectsVisibility`."""
+        D14 settled — a page that relies on inheriting a visibility rule is not guarded at all.
+        T090 tightens the refusal itself from 403 to 404: a private project the requester may
+        not change no longer confirms its own existence. Update now disagrees with `Overview`
+        on this one point deliberately — T090 scopes the disclosure fix to Update, Delete and
+        Descriptions, and leaves `Overview` as it was."""
         from django.contrib.auth.models import Permission
 
         from fairdm.factories import ProjectFactory, UserFactory
@@ -323,7 +328,7 @@ class TestUpdatePageOverHTTP:
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_a_user_holding_change_permission_at_the_model_level_is_admitted_once_visible(
         self, client
@@ -1009,3 +1014,42 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         )
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageAnswersNotFoundForAPrivateProject:
+    """T090 — the descriptions page had no ``handle_no_permission`` of its own before this
+    story (unlike the dataset's), so a private project the requester may not change fell
+    through to the stock refusal: 403 for a signed-in stranger, a sign-in redirect for
+    anonymous. Both confirm the project exists. This is the exact leak the dataset's own
+    pages already closed (T089), applied here without a fourth hand-written copy."""
+
+    def test_a_signed_in_user_with_no_rights_on_a_private_project_gets_404(self, client):
+        project = ProjectFactory()  # private, per the model default
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_an_anonymous_requester_gets_404(self, client):
+        project = ProjectFactory()  # private, per the model default
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_a_user_with_no_rights_on_a_public_project_still_gets_the_plain_refusal(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+
+        assert response.status_code == 403

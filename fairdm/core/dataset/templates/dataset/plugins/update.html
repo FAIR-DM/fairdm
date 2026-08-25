@@ -1,0 +1,11 @@
+{% extends "form_view.html" %}
+{% comment %}
+  The dataset's own attributes page (014 plan P6a). Identifiers and dates are two-column
+  type-and-value rows, which is what the shared formset component's ``tabular`` layout is for -
+  the default ``stacked`` layout the base template renders spends far more vertical space on the
+  same two fields.
+{% endcomment %}
+{% block formset %}
+  {% if formset %}<c-form.formset :formset="formset" />{% endif %}
+  {% for inline in inlines %}<c-form.formset :formset="inline" layout="tabular" />{% endfor %}
+{% endblock formset %}

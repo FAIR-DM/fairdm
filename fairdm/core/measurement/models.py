@@ -72,7 +72,11 @@ class Measurement(BasePolymorphicModel):
         "sample.Sample",
         verbose_name=_("sample"),
         help_text=_("The sample on which the measurement was made."),
-        on_delete=models.PROTECT,
+        # RESTRICT, not PROTECT: both still refuse to delete a sample while a measurement needs
+        # it, but PROTECT refuses even when the measurement is itself being deleted in the same
+        # operation. That is the ordinary shape of a dataset — samples, and measurements made on
+        # them — so under PROTECT no dataset holding real data could be deleted at all.
+        on_delete=models.RESTRICT,
     )
 
     local_id = models.CharField(

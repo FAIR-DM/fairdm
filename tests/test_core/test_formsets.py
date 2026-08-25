@@ -117,6 +117,35 @@ class TestDateOrderingFormSet:
 
         assert formset.is_valid(), formset.errors
 
+    @pytest.mark.parametrize(
+        "parent_model, date_model, parent_factory, start_type, end_type, message",
+        DATE_ORDER_CASES,
+    )
+    def test_an_equal_start_and_end_is_accepted(
+        self, parent_model, date_model, parent_factory, start_type, end_type, message
+    ):
+        """A start and end on the same day is not "backwards" - the rule
+        refuses an end strictly before the start, not one equal to it
+        (T010)."""
+        instance = parent_factory()
+        prefix = date_model._meta.default_related_name
+        formset = _build_formset(
+            parent_model,
+            date_model,
+            instance,
+            start_type,
+            end_type,
+            message,
+            {
+                f"{prefix}-0-type": start_type,
+                f"{prefix}-0-value": "2020-06-01",
+                f"{prefix}-1-type": end_type,
+                f"{prefix}-1-value": "2020-06-01",
+            },
+        )
+
+        assert formset.is_valid(), formset.errors
+
     def test_types_outside_the_parameterised_pair_are_unaffected(self):
         """The rule only compares the two types it was parameterised on.
         Dataset's vocabulary carries other, unordered date types alongside

@@ -11,7 +11,7 @@ class BaseListFilter(df.FilterSet):
     """
 
     image = django_filters.BooleanFilter(
-        field_name="images",
+        field_name="image",
         lookup_expr="isnull",
         exclude=True,
         label=_("Has image"),

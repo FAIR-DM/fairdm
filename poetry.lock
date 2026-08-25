@@ -1976,14 +1976,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-mvp"
-version = "0.19.2"
+version = "0.19.3"
 description = "MVP framework for Django - scaffold production-ready applications with sophisticated layouts and UI patterns designed for data-centric applications."
 optional = false
 python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "django_mvp-0.19.2-py3-none-any.whl", hash = "sha256:e02fea6db7a185934496ec495a24129c32f3c167245d928ab5a65ec77309e77f"},
-    {file = "django_mvp-0.19.2.tar.gz", hash = "sha256:10a095b220a71af8ef17a9d3b2c137887497d1f276912442fbcf1b266e8c70d1"},
+    {file = "django_mvp-0.19.3-py3-none-any.whl", hash = "sha256:0200d26cd7849d86cbf5d161dd5b8ef860df4f26355ae215d4c53eefde2d75a1"},
+    {file = "django_mvp-0.19.3.tar.gz", hash = "sha256:cb11e9a31524ee9148caf2cb5476138c27f7bf5c7a8ba746e4c20f7ee49547ef"},
 ]
 
 [package.dependencies]

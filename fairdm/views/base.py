@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from django.db.models import RestrictedError
+from django.utils.http import url_has_allowed_host_and_scheme
 from django_filters.views import FilterView
 from meta.views import MetadataMixin
 from mvp.integrations.django_filters.views import MVPFilteredListView
@@ -225,7 +227,48 @@ class FairDMDeleteView(MetadataMixin, MVPDeleteView):
             success_url = "list"  # CRUD shorthand resolved by MVPDeleteView
     """
 
-    pass
+    def _collect_deletion_data(self):
+        """Treat a restricted relation as a refusal, the same as a protected one.
+
+        ``MVPDeleteView`` catches ``ProtectedError`` and turns it into the refusal the template
+        already draws — the blocking records listed, no submit button. It does not catch
+        ``RestrictedError``, which is a sibling under ``IntegrityError`` rather than a subclass,
+        so a ``RESTRICT`` relation raises straight out of the page instead. ``Measurement.sample``
+        is one, so a dataset whose samples are measured by another dataset reaches this.
+
+        Remove once django-mvp#308 lands.
+        """
+        try:
+            return super()._collect_deletion_data()
+        except RestrictedError as exc:
+            return {}, list(exc.restricted_objects)
+
+    def get_back_url(self) -> str:
+        """``MVPDeleteView``'s own "Back", with its destination behind an overridable hook.
+
+        The upstream method reads ``?back``, validates it against the current host, and then
+        falls back to the list page in the same body. A page that wants a different fallback
+        has nowhere to say so, so it has to restate the query-string handling — including the
+        open-redirect guard — to change the last line. Splitting the two means the guard is
+        written once and a subclass overrides :meth:`get_back_url_fallback` alone.
+
+        Remove once django-mvp#309 lands.
+        """
+        candidate: str | None = self.request.GET.get("back")
+        if candidate and url_has_allowed_host_and_scheme(
+            url=candidate,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return candidate
+        return self.get_back_url_fallback()
+
+    def get_back_url_fallback(self) -> str:
+        """Where "Back" points when the request carries no usable ``?back``.
+
+        Keeps ``MVPDeleteView``'s own answer — the registered list page.
+        """
+        return self.resolve_crud_url("list") or ""
 
 
 class FairDMTableView(MetadataMixin, MVPTableViewMixin, FilterView):

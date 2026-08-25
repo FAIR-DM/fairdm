@@ -1956,11 +1956,12 @@ class TestDatasetModel:
         assert str(dataset) == "Test Dataset"
 
     def test_dataset_absolute_url(self):
-        """Test get_absolute_url returns correct URL."""
+        """get_absolute_url reverses the dataset's registered overview, not
+        the retired standalone `dataset-detail` route (014 T057)."""
         dataset = DatasetFactory()
         url = dataset.get_absolute_url()
 
-        assert url == reverse("dataset-detail", kwargs={"uuid": dataset.uuid})
+        assert url == reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
 
     def test_dataset_has_data_property(self):
         """Test has_data cached property."""

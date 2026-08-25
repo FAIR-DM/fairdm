@@ -1,66 +1,303 @@
-# Implementation Plan: Dataset CRUD Views
+# Plan — 014 Managing a dataset through the portal
 
-**Branch**: `014-dataset-crud-views` | **Date**: 2026-05-12 | **Spec**: [spec.md](spec.md)  
-**Input**: Feature specification from `/specs/014-dataset-crud-views/spec.md`
+Dated 2026-08-25, from `spec.md` and `research.md`. Decisions are recorded here rather than raised
+as questions.
 
-## Summary
+## Shape of the work
 
-Complete the Dataset CRUD surface by adding `DatasetUpdateView` and `DatasetDeleteView`, refactoring `DatasetCreateView` to use a new `DatasetCreateForm` (restricting fields to `name`, `project`, `license`), and wiring all four URLs. `DatasetForm` remains the full form used by the update view and as the base for `DatasetCreateForm`. Both the create and update views pass `request` to `DatasetForm` to filter the project dropdown to the user's accessible projects. The `visibility` field is intentionally excluded from all forms and is managed via a future publish/unpublish workflow. Deletion is guarded by the existing name-confirmation mechanism (`require_confirmation = True`) and a `django-guardian` object-level permission check. All four patterns mirror the already-implemented Project CRUD pattern exactly.
+The specification asks for six things. This feature is the dataset counterpart of 013, and the
+machinery 013 built is already in the tree — the row-set declarations for a dataset's dates and
+identifiers, the vocabulary-driven descriptions form, the precision-aware date comparison. Most of
+what remains is configuration and the tests that pin it.
 
-## Technical Context
+| Story | What the plan does | Size against expectation |
+|---|---|---|
+| US-1 Find a dataset | Add the entry link; repair four filters; collapse two searches into one | **larger** |
+| US-2 Register a dataset | Use the declared form again, add visibility, filter the project field | as expected |
+| US-3 Correct attributes | Row sets for identifiers and dates; the page moves into the collection; the DOI box goes | **larger** |
+| US-4 Describe a dataset | Configuration — the form already exists | **much smaller** |
+| US-5 Move between pages | The overview registration, then the tab strip | as expected |
+| US-6 Remove a dataset | A warning the shared page has no slot for | **larger** |
 
-**Language/Version**: Python 3.12+, Django 5.x  
-**Primary Dependencies**: django-guardian (object-level permissions), django-filter (`DatasetFilter`), django-select2 (autocomplete widgets), django-addanother, licensing (License model)  
-**Storage**: PostgreSQL (production), SQLite (dev/test)  
-**Testing**: pytest, pytest-django  
-**Target Platform**: Linux server (Django web app)  
-**Project Type**: Django web application — framework extension  
-**Performance Goals**: N/A (CRUD forms, not high-throughput)  
-**Constraints**: No new migrations; all changes are view/form/URL layer only. No changes to the Dataset model or DatasetFilter.  
-**Scale/Scope**: 4 URL patterns, 2 new view classes, 1 new form class, 1 modified view, 1 modified form module, 1 modified URL module.
+Two things found in research change the plan rather than the specification, and both are recorded
+below: the shared deletion page offers no warning slot (P5), and its confirmation field is drawn
+twice on the version this project runs, so a browser cannot complete a deletion at all (P6).
 
-## Constitution Check
+## Decisions taken
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+### P1 — The dataset's pages are one registered collection
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. FAIR-First | ✅ Pass | Dataset visibility remains first-class; public-only list view enforces FAIR discoverability. Editing fields do not weaken FAIR characteristics. |
-| II. Domain-Driven Modeling | ✅ Pass | No model changes. `DatasetCreateForm` is a declarative subclass of `DatasetForm`; no ad-hoc runtime logic. |
-| III. Configuration Over Plumbing | ✅ Pass | Views mirror the established Project CRUD pattern; no novel plumbing invented. |
-| IV. Production-Grade Defaults | ✅ Pass | Uses `django-guardian` for object-level permissions (project standard). Bootstrap 5 UI baseline unchanged. |
-| V. Test-First Quality | ✅ Pass | URL smoke tests MUST be added for all four routes. Behavior tests for permission denial, form validation, and redirect targets. |
-| VI. Documentation Critical | ⚠ Note | No public API changes. Internal docstrings required on new view classes per codebase convention. No doc-site updates needed for this phase. |
-| VII. Living Demo | ✅ Pass | No changes to `fairdm_demo` required (Dataset views are core, not demo-specific). |
+The dataset's detail page becomes an `Overview` registration against `Dataset`, and the update,
+descriptions and deletion pages become extra views belonging to it. The standalone `dataset-detail`,
+`dataset-update` and `dataset-delete` routes are retired, and the separate `Descriptions` and
+`KeyDates` registrations go with them — dates move onto the update page, descriptions become an
+extra view.
 
-**Constitution Check — Post-Design**: No violations. No entry required in Complexity Tracking.
+This is `fairdm/core/project/plugins.py:263-293` applied to datasets, and the reasoning is 013's P1
+unchanged: a menu entry's address is built as `f"{model_name}:{name}"`, so a page outside the
+registration namespace can never appear in the record's own navigation. What is different for a
+dataset is that there is no accident to undo — the dataset never had an overview registration, and
+`fairdm/core/dataset/templates/dataset/plugins/overview.html` is a template written for one that was
+never wired up (#190).
 
-## Project Structure
+`Overview` mixes in `CRUDDirectoryMixin` and states `directory` and `crud_views` for all three
+actions, because the mixin's defaults resolve to the standalone routes this feature retires.
 
-### Documentation (this feature)
+**The refusal code for a private dataset is preserved, and this is not automatic.** The pages being
+retired answer 404 to a request for a private dataset the user may not touch, deliberately, so the
+response does not confirm that the record exists — `fairdm/core/dataset/views.py:46-55` says so, and
+`fairdm.api.permissions` raises `NotFound` for the same reason. The registered path does not behave
+that way: `Plugin.has_permission` hands a refusal to `PermissionRequiredMixin.handle_no_permission`,
+which sends an anonymous visitor to log in and gives a signed-in stranger 403. Both disclose that the
+dataset exists. Moving the pages without acting would therefore turn four addresses into an existence
+oracle for embargoed metadata, and the only visible symptom would be two existing assertions going
+red — the kind of thing an address sweep absorbs.
 
-```text
-specs/014-dataset-crud-views/
-├── plan.md              ← this file
-├── research.md          ← Phase 0 output
-├── data-model.md        ← Phase 1 output
-├── quickstart.md        ← Phase 1 output
-└── tasks.md             ← Phase 2 output (/speckit.tasks)
-```
+So the dataset's pages override `handle_no_permission` to raise `Http404` when the record is not
+public, and to fall through to the inherited behaviour when it is. That reproduces exactly what the
+standalone views do today: no rights and not public answers 404, no rights and public answers 403.
+The assertions at `tests/test_core/test_dataset/test_views.py:205` and `:287` are re-aimed at the new
+addresses and keep their expected status. The same disclosure exists on the project's registered
+pages, which are out of this feature's scope; it is raised separately.
 
-### Source Code (affected files only)
+**Every page states its own permission and its own visibility rule** — `dataset.change_dataset` for
+the update and descriptions pages, `dataset.delete_dataset` for the deletion page — because
+inheriting either does not work (research R2, #279 and #284). The visibility rule follows the
+project's two-function shape: a plain one for the overview and the descriptions page, and one that
+additionally admits a record-level holder of the page's own permission for update and delete, since
+creating a dataset grants all five rights at once and an editor of a private dataset must not be
+refused.
 
-```text
-fairdm/core/dataset/
-├── forms.py             ← ADD DatasetCreateForm; no changes to DatasetForm
-├── views.py             ← MODIFY DatasetCreateView (form_class, remove get_initial);
-│                           ADD DatasetUpdateView, DatasetDeleteView
-└── urls.py              ← ADD dataset-update, dataset-delete URL patterns
+### P2 — The addresses move to the plural form, in one step
 
-tests/test_core/test_dataset/
-└── test_views.py        ← ADD smoke tests + behaviour tests for all four views
-```
+`fairdm/core/dataset/urls.py` becomes the project's shape: the listing, then the creation route,
+then the record include under `datasets/<str:uuid>/`. The creation route is declared **ahead** of the
+include, or `create` is read as a uuid.
 
-## Complexity Tracking
+`Dataset.get_absolute_url()` is overridden to reverse `dataset:overview`, mirroring
+`Project.get_absolute_url()` (`fairdm/core/project/models.py:144-152`) — whose docstring names the
+dataset as the record still doing it the old way. The `BaseModel` default is left alone; samples and
+measurements are #283's business, not this feature's.
 
-*No constitution violations.*
+This is the change with the widest blast radius, and research R3 lists every call site. It is done
+as one task with the whole sweep in it, not spread across stories, because a half-moved route set
+leaves the application unreachable in ways no single story's tests would catch.
+
+### P3 — Identifiers and dates are row sets on the update page
+
+`Update` is `Plugin, InlinesMixin, FairDMUpdateView` with
+`inlines = [DatasetIdentifierInline, DatasetDatesInline]`, mirroring the project exactly. The
+declarations already exist in `fairdm/core/related_records.py`; `DatasetDatesInline` is a subclass
+in `plugins.py` attaching `date_ordering_formset(DatasetDate.START_TYPE, DatasetDate.END_TYPE, …)`,
+parameterised rather than literal, which is what that helper was built for.
+
+The message wording differs from the project's — a dataset's pair is a collection start and end, not
+a project start and end — and the model already phrases it that way in
+`DatasetDate.clean()`.
+
+**The DOI field is removed from `DatasetForm`**, along with the `save()` override that created and
+deleted a `DatasetIdentifier` behind it. The identifier row set replaces both. The dataset's
+identifier vocabulary holds DOI alone today, so nothing is lost, and the pre-population that read an
+existing DOI into the box goes with it.
+
+### P4 — The form gains visibility and stops nesting a form element
+
+Two changes to `DatasetForm`, both from research R6 and R7.
+
+`Meta.helper_attrs = {"form_tag": False}`. Every FairDM form is given a crispy helper automatically,
+and the shared render tag takes the `{% crispy form %}` branch whenever one is present, which emits
+its own `<form>` inside the one the page already opened. Project, sample and measurement all set this
+and the dataset is the only core form that does not. Setting it through `helper_attrs` rather than
+replacing the helper in `__init__` keeps the derived layout, the form id and the interaction
+attributes, all three of which the project's approach discards.
+
+`visibility` is declared explicitly with `RadioSelect` and `initial = Visibility.PUBLIC`, and the
+layout is stated through `Meta.fieldsets` so the field can be presented as inline radios without
+hand-writing a helper. The model default stays private; the two defaults answer different questions
+and 013 recorded that as an architecture decision.
+
+`DatasetCreateForm` narrows `Meta.fields` to `name`, `visibility`, `license`, `project`. The create
+view stops declaring its own `fields` list and uses the form class, and passes `request` so the
+project field is narrowed — all three of those lines exist in the file today, commented out.
+
+### P5 — The deletion preview is the shell's own, switched on
+
+*Rewritten 2026-08-25 after Sam pointed out the facility I had talked myself out of using.*
+
+`MVPDeleteView` already previews a cascade: `show_related_objects = True` collects what the deletion
+would take, groups it by record type, caps each group at `related_objects_max_per_group` with an
+overflow count, and renders it above the confirmation. Its own docstring calls it "preview cascade
+deletes". So the deletion page sets that attribute and supplies nothing of its own.
+
+The earlier plan here had `Delete` counting samples and measurements itself and a per-model template
+rendering them, on the reasoning that FR-046 asked for counts and the shell offers names. That was
+backwards. FR-046 is my own text, written before I had read the shell properly, and Article XIV says
+the requirement is to use the facility rather than to build an equivalent — which is the rule this
+feature applies to identifiers, dates and descriptions without hesitating. **FR-046 is amended to ask
+for the substance and to name the shell's facility**, and SC-005 with it.
+
+What the shell's version gives up against the wording it replaces: the alert is styled as
+information rather than warning, its heading is fixed, and it names records rather than counting
+them. What it gains: no per-model template, no hand-written aggregate queries, one preview on every
+record type in the portal, and it stays correct when a new relation is added to `Dataset` because it
+asks the deletion collector rather than a hand-written list of relations.
+
+FR-047 — no warning about data a dataset does not hold — needs nothing: a group with no rows is
+never emitted.
+
+**Raised upstream, not built here**: whether a caller can ask for the alert to read as a warning
+rather than information, since deleting a dataset destroys research data and deleting most records
+does not.
+
+### P6 — The confirmation defect is fixed upstream; take the release
+
+*Rewritten 2026-08-25.*
+
+The duplicate confirmation field is fixed in django-mvp 0.19.3, released after the research for this
+plan was written. The pin already admitted it and the lock now resolves it; verified in the installed
+template, where the second field is replaced by a comment explaining the fault.
+
+So there is no expected-to-fail mark and no local override. T073 is an ordinary test: the rendered
+deletion page carries exactly one control named for the confirmation, and it passes.
+
+The project's deletion page, merged in #274, is repaired by the same update.
+
+### P6a — The row sets render as a table
+
+0.19.3 also adds a `tabular` layout to the formset component, opt-in per set and unchanged for
+callers that do not ask. Identifiers and dates are two-column type-and-value rows, which is exactly
+the shape it is for, so both row sets on the update page ask for it. It collapses back to stacked
+rows below the `sm` breakpoint, so nothing is lost on a narrow screen.
+
+### P7 — Descriptions is an extra view, and the generic plugin is left alone
+
+`Descriptions` becomes `Plugin, MetadataMixin, MVPFormView` with
+`form_class = VocabularyDescriptionsForm`, `related_model = DatasetDescription`, and
+`template_name = "form_view.html"` stated explicitly — a plain form view derives no template from a
+model, so leaving it unset makes Django raise before the fallback is reached. This is the project's
+`Descriptions` with two names changed.
+
+The generic `DescriptionsPlugin` and `KeyDatesPlugin` are not repaired and not removed: the sample
+pages still use them, and they are #280's business. PR #287 repaired them for both record types and
+is superseded here for the dataset half only.
+
+### P8 — The listing's filter faults, and its two searches
+
+`date_type` is repointed from `dates__date_type` to `dates__type`, matching the sibling filter that
+works.
+
+`image` is repointed from `images` to `image`. It is inherited from `BaseListFilter`
+(`fairdm/core/filters.py:13-18`), which declares a relation neither record type has — both carry a
+scalar `image` — so applying it raises `FieldError` and the page 500s. This is the same shape as the
+`date_type` fault, one level up: the fix is one line in the shared base and it repairs the project
+listing in the same pass.
+
+The visibility filter is removed — it cannot change the result set on a listing that shows public
+datasets only.
+
+**The project filter's rule is stated rather than inherited.** It offers public projects, plus any
+the requester holds `view_project` on at record level, and public projects alone for a visitor who is
+not signed in. This is not the rule the creation form uses — that one is contribution-based
+(`request.user.projects.all()`), which is the right rule for "projects this researcher may file
+under" and the wrong one for a listing open to anonymous visitors, where it raises. Two different
+questions, two different rules. The branch in `__init__` that tests authentication and then sets the
+same value in both arms goes.
+
+**The listing keeps one search, not two.** `DatasetListView.search_fields` binds to `?q=` while
+`DatasetFilter.search` is offered on the same page under `?search=`, over a different field set, and
+neither reaches the dataset's external identifiers — which is what a researcher pastes into a search
+box. `DatasetFilter.search` is withdrawn as the duplicate and `search_fields` becomes
+`["name", "uuid", "identifiers__value", "descriptions__value", "keywords__name"]`: the project's set
+(`fairdm/core/project/views.py:27`) plus the two the dataset's own requirements name, and keywords
+carried over from the withdrawn filter so nothing is lost.
+
+The stale INTERNAL visibility level in the module and class docstrings is corrected in the same
+pass.
+
+### P9 — Keywords: the registration goes, the base classes stay
+
+`Keywords` is deleted from `fairdm/core/dataset/plugins.py`. `KeywordsPlugin` and `KeywordForm` are
+left where they are, registered by nothing, and #298 decides whether the rebuild reuses them or they
+are retired. Removing unused framework surface is a different change with a different risk and does
+not belong in a feature about a dataset's pages.
+
+## Order
+
+1. **Foundations** — the dates row set, the form changes, the filter repairs, **and the registration
+   and address move (T056, T057, T059)**.
+2. **US-3** — the update page as an extra view, with its row sets. The largest story and the one the
+   others' navigation depends on.
+3. **US-4** — descriptions as an extra view.
+4. **US-6** — deletion as an extra view, with the warning template.
+5. **US-5** — the singular form ceasing to answer, the links, and the navigation-entry count
+   (T058, T060–T068).
+6. **US-2** and **US-1** — creation and the listing, which are the smallest and depend on nothing
+   above except the form changes.
+
+**Why the registration comes first, against the instinct to move addresses last.** An extra view has
+no route of its own: `Plugin.get_urls` (`fairdm/contrib/plugins/base.py:123-137`) mounts each entry
+of `extra_views` inside the *owning registered* plugin's patterns, which is why the project's
+`Update`, `Delete` and `Descriptions` carry no registration decorator and exist only because
+`Overview.extra_views` lists them. Until `Overview` is registered, `dataset:overview-update`,
+`-descriptions` and `-delete` do not resolve at all, so every behavioural task in steps 2–4 is a view
+test with no view to request — failing with `NoReverseMatch`, which is failing for the wrong reason
+and does not satisfy Article I.
+
+The reason the move was placed last — that it wants the pages it links to already built — is met by
+registering `Overview` with an empty `extra_views` and appending each page as it lands. The links
+themselves stay in US-5, where they belong.
+
+US-1 and US-2 could run earlier; they are placed last because their remaining work is small and the
+address move touches their tests.
+
+## Verification beyond the suite
+
+- Every page rendered as a real request, signed in and signed out, with and without each permission.
+  The visibility-rule defect in R2 was found this way in 013 and is invisible to a unit test.
+- The deletion page rendered in a browser, to confirm the duplicate-field defect and to confirm the
+  warning reads as a warning.
+- `makemigrations --check` across all apps: no model field changes are planned, so this must stay
+  clean.
+
+## Test obligations
+
+- Every FR that changes behaviour gets a test that fails before the change.
+- The address move gets a test asserting the singular form no longer answers, not merely that the
+  plural one does.
+- The filter repairs get behavioural tests that run a query — the existing `date_type` test asserts
+  only that the field appears on a form, which is why the defect survived.
+- The warning gets a test asserting rendered content, not context keys. 013 recorded that a refusal
+  test asserting context passed against a page that showed the user nothing.
+
+## Raised separately
+
+Upstream, against django-mvp — every one of these is a shared page a caller cannot configure, and
+every one was worked around twice, once per record type:
+
+- django-mvp#302: the cascade preview always reads as information, with no way to say that this
+  particular deletion destroys research data (P5).
+- django-mvp#308: the shell catches `ProtectedError` and turns it into its refusal, but not
+  `RestrictedError`, which is a sibling rather than a subclass (US-6).
+- django-mvp#309: the deletion page's Back button renders with an empty `href` when the page carries
+  no list action, which is every page registered against its own record. The workaround duplicates
+  the base class's `?back` validation, which is security-relevant and should not be copied.
+- django-mvp#310: the detail page's action header has exactly two slots, so a record offering a
+  third registered action has to draw it by hand, in the page body rather than the header.
+
+The confirmation field being drawn twice (P6) was fixed upstream in 0.19.3 and needed nothing here.
+- #298: the keyword rebuild, and what becomes of the now-unregistered base classes (P9).
+- #297: the project's deletion refusal, keyed on visibility rather than publication.
+- #296: takedown requests for published data.
+- The project's registered pages answer 403 or a login redirect for a private project, disclosing
+  that it exists, where the API answers 404 (P1). Out of scope here; raised for the project's own
+  pages.
+
+## Risks
+
+- **The address move is wide.** Its blast radius is enumerated in research R3 and it is done as one
+  task with the whole sweep, but a missed reversal shows up as a 500 on a page no test opens. The
+  render-every-page check above is the backstop.
+- **The upstream deletion defect may turn out to matter more than the plan assumes.** If Sam wants a
+  working deletion page in this release rather than when django-mvp next ships, the answer is a
+  django-mvp release, not a local override, and that is a sequencing decision rather than a
+  technical one.

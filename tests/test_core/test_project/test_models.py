@@ -1325,8 +1325,10 @@ class TestProjectObjectPermissions:
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
-        # Verify access denied (403) or redirect
-        assert response.status_code in [403, 302]
+        # T090 — a private project the requester may not change answers 404, not a
+        # permission refusal or a sign-in redirect, so the address does not confirm the
+        # project exists.
+        assert response.status_code == 404
 
     def test_user_with_change_permission_can_edit(self, client):
         """Test that users with change permission can edit projects.
