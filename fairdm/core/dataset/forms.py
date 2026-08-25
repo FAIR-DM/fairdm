@@ -27,8 +27,6 @@ from fairdm.utils.choices import Visibility
 
 from .models import Dataset
 
-DEFAULT_LICENSE = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
-
 
 class DatasetForm(ModelForm):
     """Form for creating and editing Dataset instances.
@@ -176,10 +174,17 @@ class DatasetForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.request = request
 
-        # Set license default to CC BY 4.0
+        # Set license default to the portal's configured default licence. Read at call time,
+        # not as a module-level constant, so `override_settings` and per-portal configuration
+        # are both honoured (014 T025/FR-014) — mirrors `models.get_default_license_pk`.
         license_field = self.fields.get("license")
         if license_field:
-            license_field.initial = License.objects.filter(name=DEFAULT_LICENSE).first()
+            default_license_name = getattr(
+                settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0"
+            )
+            license_field.initial = License.objects.filter(
+                name=default_license_name
+            ).first()
 
         # Filter project queryset based on user permissions
         project_field = self.fields.get("project")

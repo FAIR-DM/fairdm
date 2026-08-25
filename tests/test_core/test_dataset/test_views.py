@@ -17,6 +17,7 @@ import pytest
 from django import forms
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
+from licensing.models import License
 from pytest_django.asserts import assertContains
 
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
@@ -267,6 +268,25 @@ class TestDatasetCreatePageVisibilityField:
         )
         assert public_input is not None and "checked" in public_input.group(0)
         assert private_input is not None and "checked" not in private_input.group(0)
+
+
+@pytest.mark.django_db
+class TestDatasetCreatePageLicenseDefault:
+    """T025/FR-014 - the portal's configured default licence is pre-selected. Tested under an
+    overridden setting, so the test does not pin one licence name (rituals)."""
+
+    def test_the_rendered_form_preselects_the_configured_default_licence(
+        self, client, settings
+    ):
+        other_license = License.objects.get_or_create(name="A Portal's Own Licence")[0]
+        settings.FAIRDM_DEFAULT_LICENSE = other_license.name
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("dataset-create")
+
+        response = client.get(url)
+
+        assert response.context["form"].fields["license"].initial == other_license
 
 
 # ---------------------------------------------------------------------------
