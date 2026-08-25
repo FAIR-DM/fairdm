@@ -94,13 +94,15 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "tests/test_core/test_dataset/conftest.py"
+              "tests/test_core/test_dataset/conftest.py:48",
+              "tests/test_core/test_dataset/conftest.py:72",
+              "tests/test_core/test_dataset/conftest.py:85"
             ],
             "tests": [
-              "tests/test_core/test_dataset/conftest.py"
+              "tests/test_core/test_dataset/conftest.py:48"
             ],
             "commands": [
-              "pytest \u2014 2354 passed, 13 skipped"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -172,7 +174,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 the requirement is that the design is not changed; nothing to build"
+              "n/a — the requirement is that the design is not changed; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -388,13 +390,13 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/formsets.py"
+              "fairdm/core/formsets.py:16"
             ],
             "tests": [
-              "tests/test_core/test_formsets.py::TestDateOrderingFormSet::test_an_equal_start_and_end_is_accepted"
+              "tests/test_core/test_formsets.py:120"
             ],
             "commands": [
-              "pytest \u2014 2354 passed, 13 skipped"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -486,7 +488,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
+              "n/a — a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -502,7 +504,7 @@
               "fairdm/core/dataset/views.py:121"
             ],
             "tests": [
-              "n/a \u2014 a constraint on this feature's own scope"
+              "n/a — a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -515,7 +517,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 a constraint on this feature's own scope"
+              "n/a — a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -600,13 +602,14 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/dataset/plugins.py"
+              "fairdm/core/dataset/plugins.py:105",
+              "fairdm/core/dataset/plugins.py:22"
             ],
             "tests": [
-              "tests/test_contrib/test_plugins/test_pages.py::TestRecordPagesServe::test_dataset_overview"
+              "tests/test_contrib/test_plugins/test_pages.py:40"
             ],
             "commands": [
-              "pytest \u2014 2354 passed, 13 skipped"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -616,14 +619,14 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/dataset/urls.py",
-              "fairdm/core/dataset/models.py"
+              "fairdm/core/dataset/urls.py:34",
+              "fairdm/core/dataset/models.py:327"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_models.py::TestDatasetModel::test_dataset_absolute_url"
+              "tests/test_core/test_dataset/test_models.py:1958"
             ],
             "commands": [
-              "pytest \u2014 2354 passed, 13 skipped"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -638,13 +641,14 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/dataset/views.py"
+              "fairdm/core/dataset/models.py:327",
+              "fairdm/core/dataset/urls.py:14"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_views.py::TestDatasetViews::test_dataset_detail_view_accessible"
+              "tests/test_core/test_dataset/test_views.py:391"
             ],
             "commands": [
-              "pytest \u2014 2354 passed, 13 skipped"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -699,7 +703,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 the requirement is that the page is not redesigned; nothing to build"
+              "n/a — the requirement is that the page is not redesigned; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
