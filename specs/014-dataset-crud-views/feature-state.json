@@ -44,6 +44,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-25T13:43:30Z",
       "note": "US-4 descriptions page: 8 tasks closed on evidence (dfe0d70)"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-25T14:55:00Z",
+      "note": "US-6 deletion page: 9 tasks closed on evidence (a724a5e + follow-up). T077 required Measurement.sample RESTRICT — under PROTECT no dataset holding samples with their own measurements could be deleted at all."
     }
   ],
   "gates": {
@@ -1006,48 +1011,149 @@
       "id": "US6",
       "priority": "P3",
       "issue": 294,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T070",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:243-272",
+              "fairdm/core/dataset/urls.py:1-17"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_anonymous_visitor_to_a_public_dataset_redirects_to_login",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_with_permission_returns_200"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T071",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:247-269"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_anonymous_visitor_to_a_private_dataset_returns_404",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_no_permission_on_a_public_dataset_returns_403",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_no_permission_on_a_private_dataset_returns_404"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T072",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:257",
+              "fairdm/core/dataset/plugins.py:271-272"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_wrong_name_shows_error",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_confirmation_ignores_surrounding_whitespace"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T073",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "django-mvp 0.19.3 delete_view.html — duplicate confirmation control fixed upstream"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_page_carries_exactly_one_confirmation_control"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T074",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:259-261"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_preview_names_the_datasets_samples_measurements_dates_and_identifiers"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T075",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:259-261"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_preview_says_nothing_about_samples_or_measurements_the_dataset_holds_none_of"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T076",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:243-272 — no visibility guard"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_public_dataset_deletes_like_any_other"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T077",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:262",
+              "fairdm/core/measurement/models.py:71-80",
+              "fairdm/views/base.py:227-241"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_correct_name_redirects_to_list",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_deleting_a_dataset_removes_its_samples",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_deleting_a_dataset_removes_its_samples_and_their_measurements",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_deletion_is_refused_while_another_dataset_measures_its_samples",
+              "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_deleting_a_dataset_leaves_a_sample_it_borrowed_alone",
+              "tests/test_core/test_measurement/test_models.py::TestMeasurementCascadeBehavior::test_deleting_a_dataset_removes_its_samples_and_their_measurements"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T082",
@@ -1055,13 +1161,13 @@
           "attempts": 0,
           "evidence": {
             "code": [
-              "fairdm/core/project/plugins.py:190"
+              "fairdm/views/base.py:227-241 — the shared refusal path both delete pages use"
             ],
             "tests": [
-              "tests/test_core/test_project/test_views.py:1216"
+              "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_page_refuses_rather_than_raises_on_a_restricted_sample"
             ],
             "commands": [
-              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/ -q — 2416 passed, 13 skipped (verified independently)"
             ]
           }
         }

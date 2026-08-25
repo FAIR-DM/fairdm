@@ -27,11 +27,25 @@ Two rulings recorded at the gate:
 | S3 PLAN | done | Research, plan, greenfield task list, reconciliation: 85 tasks, 19 satisfied, 66 open. |
 | S3R DESIGN REVIEW | done | One round, nine findings, all verified and applied; six reconciliation ticks withdrawn. |
 | Plan gate | filed | Recorded on the pull request for veto; approved in session 2026-08-25. |
-| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. Ledger now 40 satisfied, 45 open. |
+| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. US-6 deletion page `a724a5e` and follow-up: 8 tasks closed on evidence. Ledger now 48 satisfied, 37 open. |
 
-## Carried forward into US-6
+## Carried forward into US-5
 
-The update page does not yet declare that the record's pages offer a listing and a deletion, and
-does not name the deletion page's permission, because the deletion page does not exist. Naming it
-now would fail at import. The deletion story adds both, and the project's equivalent page is the
-shape to copy.
+The dataset's own page does not yet draw the links that reach its update, descriptions and
+deletion pages. The update page draws its own listing and deletion links (US-6); the record's
+page is US-5's work, and `fairdm.core.project.plugins.Overview` is the shape to copy.
+
+## Notes from US-6
+
+`Measurement.sample` was `on_delete=PROTECT`. Django's collector raises against a protected row
+even when that row is itself being deleted in the same operation, so a dataset holding samples
+with measurements recorded on them — the ordinary shape of a dataset carrying data — could not be
+deleted at all, by this page or by any other route. FR-049 requires that it can. Changed to
+`RESTRICT`, which refuses the same thing at the level intended (a sample cannot be deleted out
+from under a measurement that needs it) and permits the whole-record cascade.
+
+The shell catches `ProtectedError` and turns it into the refusal its template already draws, but
+not `RestrictedError`, which is a sibling under `IntegrityError` rather than a subclass. Without
+handling, a dataset whose samples are measured by another dataset raised out of the deletion page
+instead of refusing. Caught in `FairDMDeleteView` so the project's page is covered by the same
+path; raised upstream as django-mvp#308 and to be removed when that lands.

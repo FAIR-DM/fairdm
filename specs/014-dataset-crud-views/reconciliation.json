@@ -3,13 +3,13 @@
   "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
   "totals": {
     "tasks_total": 85,
-    "satisfied": 40,
-    "open": 45
+    "satisfied": 48,
+    "open": 37
   },
   "open_by_reason": {
-    "not built": 25,
-    "built, untested": 11,
-    "built differently": 6,
+    "not built": 22,
+    "built, untested": 8,
+    "built differently": 4,
     "vacuous test": 3
   },
   "satisfied": {
@@ -138,8 +138,8 @@
       "test": "n/a — a constraint on this feature's own scope"
     },
     "T082": {
-      "code": "fairdm/core/project/plugins.py:190-217 — unchanged by this feature",
-      "test": "tests/test_core/test_project/test_views.py:1216,1252"
+      "code": "fairdm/core/project/plugins.py:190-217 — unchanged by this feature; fairdm/views/base.py:227-241",
+      "test": "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_page_refuses_rather_than_raises_on_a_restricted_sample"
     },
     "T048": {
       "code": "fairdm/core/dataset/plugins.py:179; fairdm/core/dataset/plugins.py:249",
@@ -172,6 +172,38 @@
     "T055": {
       "code": "fairdm/core/dataset/plugins.py:201",
       "test": "tests/test_core/test_dataset/test_plugins.py:1049"
+    },
+    "T070": {
+      "code": "fairdm/core/dataset/plugins.py:243-272; fairdm/core/dataset/urls.py:1-17",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_with_permission_returns_200"
+    },
+    "T071": {
+      "code": "fairdm/core/dataset/plugins.py:247-269",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_no_permission_on_a_private_dataset_returns_404"
+    },
+    "T072": {
+      "code": "fairdm/core/dataset/plugins.py:257,271-272",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_confirmation_ignores_surrounding_whitespace"
+    },
+    "T073": {
+      "code": "django-mvp 0.19.3 delete_view.html — duplicate control fixed upstream",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_page_carries_exactly_one_confirmation_control"
+    },
+    "T074": {
+      "code": "fairdm/core/dataset/plugins.py:259-261",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_preview_names_the_datasets_samples_measurements_dates_and_identifiers"
+    },
+    "T075": {
+      "code": "fairdm/core/dataset/plugins.py:259-261",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_preview_says_nothing_about_samples_or_measurements_the_dataset_holds_none_of"
+    },
+    "T076": {
+      "code": "fairdm/core/dataset/plugins.py:243-272 — no visibility guard",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_public_dataset_deletes_like_any_other"
+    },
+    "T077": {
+      "code": "fairdm/core/dataset/plugins.py:262; fairdm/core/measurement/models.py:71-80; fairdm/views/base.py:227-241",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_deleting_a_dataset_removes_its_samples_and_their_measurements"
     }
   },
   "open": {
@@ -299,37 +331,6 @@
     },
     "T068": {
       "reason": "not built"
-    },
-    "T070": {
-      "reason": "built differently",
-      "note": "the page is rebuilt as an additional view under the record's registration; different address, different refusal mechanism"
-    },
-    "T071": {
-      "reason": "built differently",
-      "note": "the refusal is rebuilt on the registration's own permission and visibility rule, and its response code is re-decided (plan P1); the cited test covers the retired page"
-    },
-    "T072": {
-      "reason": "built, untested",
-      "note": "require_confirmation and get_confirmation_value are set (views.py:240,256) and tested for a right and a wrong name (test_views.py:311,326); the whitespace case is tested for projects only"
-    },
-    "T073": {
-      "reason": "not built",
-      "note": "the duplicate confirmation field is fixed in django-mvp 0.19.3, taken 2026-08-25; the assertion that the page carries exactly one such control is still to be written"
-    },
-    "T074": {
-      "reason": "not built",
-      "note": "MVPDeleteView.show_related_objects (mvp/views/edit.py:492) provides the cascade preview; it is not switched on for the dataset"
-    },
-    "T075": {
-      "reason": "not built"
-    },
-    "T076": {
-      "reason": "built, untested",
-      "note": "no guard exists, so it holds; no test asserts a public dataset deletes"
-    },
-    "T077": {
-      "reason": "built, untested",
-      "note": "the cascade is the ORM's; no test asserts samples and measurements go with the dataset"
     },
     "T078": {
       "reason": "not built",

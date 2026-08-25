@@ -269,3 +269,31 @@ page's work, one per file.
 **Why it matters**: a deleted test is the cheapest way to make a red suite green, so deleting one
 has to be justified against something written down beforehand. Here it is: the requirement the
 deleted tests covered was withdrawn at the specification gate.
+
+---
+
+## D13 — A measurement's link to its sample became a restriction rather than a protection
+
+**Flagged**: FR-049 requires that deleting a dataset takes the samples and measurements beneath it.
+It could not, and this was not a defect in the deletion page. `Measurement.sample` was
+`on_delete=PROTECT`, and Django's collector raises against a protected row even when that row is
+itself scheduled for deletion in the same operation. Samples with measurements recorded on them is
+the ordinary shape of a dataset carrying data, so in practice no dataset holding data could be
+deleted at all — through this page, through the project's page, or through the shell.
+
+**Settled**: `on_delete=RESTRICT`, with a migration. It refuses the same thing at the level the
+protection was placed to defend — a sample cannot be deleted out from under a measurement that
+needs it, whether the measurement belongs to the same dataset or another one — and permits the
+cascade when the measurement is going too. The existing assertions that a sample cannot be deleted
+while measured are unchanged in substance; only the exception they expect differs.
+
+**Why it matters**: the requirement said data attached to a dataset is deleted with it and warned
+about beforehand, not that its presence blocks the deletion. Refusing was not a stricter reading of
+the requirement, it was a different one, and it would have shipped as a page that works on empty
+datasets and fails on real ones.
+
+**Consequence**: `RestrictedError` is a sibling of `ProtectedError` under `IntegrityError`, not a
+subclass, and the shell catches only the latter. A dataset whose samples are measured by another
+dataset therefore raised out of the deletion page rather than drawing the refusal the template
+already has. Handled in `FairDMDeleteView`, so the project's deletion page is covered by the same
+path rather than by a copy, and raised upstream as django-mvp#308 to be removed when that lands.
