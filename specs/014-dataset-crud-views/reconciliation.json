@@ -3,12 +3,12 @@
   "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
   "totals": {
     "tasks_total": 85,
-    "satisfied": 48,
-    "open": 37
+    "satisfied": 53,
+    "open": 32
   },
   "open_by_reason": {
-    "not built": 22,
-    "built, untested": 8,
+    "not built": 18,
+    "built, untested": 7,
     "built differently": 4,
     "vacuous test": 3
   },
@@ -204,17 +204,29 @@
     "T077": {
       "code": "fairdm/core/dataset/plugins.py:262; fairdm/core/measurement/models.py:71-80; fairdm/views/base.py:227-241",
       "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_deleting_a_dataset_removes_its_samples_and_their_measurements"
+    },
+    "T003": {
+      "code": "tests/test_core/test_dataset/conftest.py — the four-actor fixtures",
+      "test": "tests/test_core/test_dataset/conftest.py"
+    },
+    "T010": {
+      "code": "fairdm/core/formsets.py — date_ordering_formset",
+      "test": "tests/test_core/test_formsets.py — end equal to start"
+    },
+    "T056": {
+      "code": "fairdm/core/dataset/plugins.py — Overview registered against Dataset",
+      "test": "tests/test_contrib/test_plugins/test_pages.py"
+    },
+    "T057": {
+      "code": "fairdm/core/dataset/urls.py:20 — datasets/<uuid>/; fairdm/core/dataset/models.py:327",
+      "test": "tests/test_core/test_dataset/test_models.py — get_absolute_url"
+    },
+    "T059": {
+      "code": "fairdm/core/dataset/models.py:327; fairdm/core/dataset/urls.py",
+      "test": "tests/test_core/test_dataset/test_views.py — address sweep"
     }
   },
   "open": {
-    "T003": {
-      "reason": "not built",
-      "note": "the four-actor permission fixtures exist for projects (tests/test_core/test_project/conftest.py:26-59) and not for datasets; dataset tests build permission users inline"
-    },
-    "T010": {
-      "reason": "built, untested",
-      "note": "of the five enumerated cases, four are covered; an end date equal to the start date is asserted nowhere"
-    },
     "T012": {
       "reason": "built, untested",
       "note": "only the signed-out case is covered at test_views.py:38; the signed-in cases the task and SC-002 both name are asserted nowhere"
@@ -287,20 +299,8 @@
       "reason": "not built",
       "note": "views.py:67 — form_class commented out in favour of a field list"
     },
-    "T056": {
-      "reason": "not built",
-      "note": "Dataset has no Overview registration; its own page is a standalone view"
-    },
-    "T057": {
-      "reason": "not built",
-      "note": "urls.py:28-31 mounts the record's pages under the singular dataset/"
-    },
     "T058": {
       "reason": "not built"
-    },
-    "T059": {
-      "reason": "not built",
-      "note": "Dataset.get_absolute_url resolves dataset-detail via abstract.py:73"
     },
     "T060": {
       "reason": "built, untested",
