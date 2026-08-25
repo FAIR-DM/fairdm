@@ -7,8 +7,12 @@ The DatasetFilter class enables filtering by:
 1. **License**: Exact match filtering by license
 2. **Project**: Choice-based filtering by associated project
 3. **Visibility**: Choice-based filtering by visibility level (PUBLIC/PRIVATE)
-4. **Generic Search**: Search across name, UUID, and keywords
-5. **Cross-relationship Filters**: Filter by related DatasetDescription and DatasetDate types
+4. **Cross-relationship Filters**: Filter by related DatasetDescription and DatasetDate types
+
+The listing's own text search (name, UUID and keywords, extended to also cover external
+identifiers and descriptions) is the shell's `?q=` control
+(`DatasetListView.search_fields`), not a filter on this class — a second, competing search
+field used to live here and has been withdrawn (014 T013).
 
 All filters combine using AND logic when multiple filters are applied.
 
@@ -31,12 +35,6 @@ Without indexes, these queries could take 100ms+ on large datasets.
 filterset = DatasetFilter(data={"license": license_id}, queryset=Dataset.objects.all())
 ```
 
-**Generic search**:
-```python
-# Search across name, UUID, keywords
-filterset = DatasetFilter(data={"search": "geology"}, queryset=Dataset.objects.all())
-```
-
 **Cross-relationship filtering**:
 ```python
 # Find datasets with abstract descriptions
@@ -53,7 +51,6 @@ filterset = DatasetFilter(
         "license": cc_by.id,
         "project": project.id,
         "visibility": "PUBLIC",
-        "search": "geology",
     },
     queryset=Dataset.objects.all(),
 )
@@ -67,7 +64,6 @@ filterset = DatasetFilter(
 """
 
 import django_filters
-from django.db.models import Q
 
 from fairdm.core.filters import BaseListFilter
 
@@ -85,9 +81,6 @@ class DatasetFilter(BaseListFilter):
     - project: Choice-based filter on associated project
     - visibility: Choice-based filter on visibility level
 
-    **Search**:
-    - search: Generic search across name, UUID, and keywords (case-insensitive)
-
     **Cross-Relationship Filters**:
     - description_type: Filter by DatasetDescription type (ABSTRACT, METHODS, etc.)
     - date_type: Filter by DatasetDate type (COLLECTED, PUBLISHED, etc.)
@@ -99,7 +92,6 @@ class DatasetFilter(BaseListFilter):
     - Returns only datasets matching ALL three criteria
 
     **Performance**:
-    - Generic search uses indexed fields (name, uuid, keywords)
     - Cross-relationship filters use database indexes on type fields
     - Expected query time: <10ms for most filter combinations on 10k+ datasets
 
@@ -126,12 +118,6 @@ class DatasetFilter(BaseListFilter):
         - tests/unit/core/dataset/test_filter.py: Comprehensive test suite
         - fairdm_demo/filters.py: Examples and best practices
     """
-
-    search = django_filters.CharFilter(
-        method="filter_search",
-        label="Search",
-        help_text="Search across dataset name, UUID, and keywords",
-    )
 
     project = django_filters.ModelChoiceFilter(
         field_name="project",
@@ -189,38 +175,3 @@ class DatasetFilter(BaseListFilter):
         else:
             # Show all projects for filter display
             self.filters["project"].queryset = Project.objects.all()
-
-    def filter_search(self, queryset, name, value):
-        """
-        Generic search filter across multiple fields.
-
-        Searches the following fields (case-insensitive):
-        - name: Dataset name (icontains lookup)
-        - uuid: Dataset UUID (icontains lookup)
-        - keywords: Associated keyword names (icontains lookup)
-
-        Args:
-            queryset: The queryset to filter
-            name: The filter name (unused)
-            value: The search term
-
-        Returns:
-            Filtered queryset matching search term in any of the above fields
-
-        Examples:
-            >>> # Search by name
-            >>> filterset = DatasetFilter(data={"search": "geology"})
-            >>> # Returns datasets with "geology" in name or keywords
-
-            >>> # Search by UUID
-            >>> filterset = DatasetFilter(data={"search": "abc123"})
-            >>> # Returns datasets with "abc123" in UUID
-        """
-        if not value:
-            return queryset
-
-        return queryset.filter(
-            Q(name__icontains=value)
-            | Q(uuid__icontains=value)
-            | Q(keywords__name__icontains=value)
-        ).distinct()  # distinct() prevents duplicate results from keywords join

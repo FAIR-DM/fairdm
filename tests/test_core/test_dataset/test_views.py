@@ -120,6 +120,75 @@ class TestDatasetListingVisibility:
         assert user_with_change_permission.dataset not in entries
 
 
+@pytest.mark.django_db
+class TestDatasetListingSearch:
+    """T013/FR-003,FR-006 — one search, over name, uuid, external identifiers,
+    descriptions and keywords, replacing the two competing controls the listing used
+    to offer (014 plan P8). Each of the five reaches a record the others would not."""
+
+    def test_search_by_name_returns_the_matching_dataset_only(self, client):
+        target = DatasetFactory(
+            name="Zircon Thermochronology Survey", visibility=Visibility.PUBLIC
+        )
+        other = DatasetFactory(
+            name="Basalt Petrology Atlas", visibility=Visibility.PUBLIC
+        )
+        response = client.get(reverse("dataset-list"), {"q": "Thermochronology"})
+        entries = list(response.context["object_list"])
+        assert target in entries
+        assert other not in entries
+
+    def test_search_by_uuid_returns_the_dataset(self, client):
+        target = DatasetFactory(visibility=Visibility.PUBLIC)
+        other = DatasetFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset-list"), {"q": str(target.uuid)})
+        entries = list(response.context["object_list"])
+        assert target in entries
+        assert other not in entries
+
+    def test_search_by_external_identifier_returns_the_dataset(self, client):
+        target = DatasetFactory(visibility=Visibility.PUBLIC)
+        other = DatasetFactory(visibility=Visibility.PUBLIC)
+        identifier = DatasetIdentifierFactory(related=target)
+        response = client.get(reverse("dataset-list"), {"q": identifier.value})
+        entries = list(response.context["object_list"])
+        assert target in entries
+        assert other not in entries
+
+    def test_search_by_description_returns_the_dataset(self, client):
+        from fairdm.factories import DatasetDescriptionFactory
+
+        target = DatasetFactory(visibility=Visibility.PUBLIC)
+        other = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetDescriptionFactory(
+            related=target,
+            type="Abstract",
+            value="A rare assemblage of pyroxenite xenoliths from the Rio Grande rift",
+        )
+        response = client.get(reverse("dataset-list"), {"q": "pyroxenite"})
+        entries = list(response.context["object_list"])
+        assert target in entries
+        assert other not in entries
+
+    def test_search_by_keyword_returns_the_dataset(self, client):
+        from research_vocabs.models import Concept
+
+        target = DatasetFactory(visibility=Visibility.PUBLIC)
+        other = DatasetFactory(visibility=Visibility.PUBLIC)
+        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        target.keywords.add(term)
+        response = client.get(reverse("dataset-list"), {"q": term.name})
+        entries = list(response.context["object_list"])
+        assert target in entries
+        assert other not in entries
+
+    def test_the_listing_offers_no_second_search_control(self, client):
+        response = client.get(reverse("dataset-list"))
+        content = response.content.decode()
+        assert content.count('name="q"') == 1
+        assert 'name="search"' not in content
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Dataset
 # ---------------------------------------------------------------------------

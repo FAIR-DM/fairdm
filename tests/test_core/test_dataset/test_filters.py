@@ -7,10 +7,15 @@ for datasets based on:
 1. **License filtering**: Exact match filtering by license
 2. **Project filtering**: Choice-based filtering by associated project
 3. **Visibility filtering**: Choice-based filtering by visibility level
-4. **Generic search**: Search across name, UUID, and keywords
-5. **Cross-relationship filters**: Filter by related descriptions and dates
-6. **Multiple filter combinations**: AND logic when multiple filters applied
-7. **Performance**: Ensure efficient queries on large datasets
+4. **Cross-relationship filters**: Filter by related descriptions and dates
+5. **Multiple filter combinations**: AND logic when multiple filters applied
+6. **Performance**: Ensure efficient queries on large datasets
+
+The listing's own text search (name, UUID, external identifiers, descriptions and
+keywords) is covered against the rendered listing in `test_views.py`
+(`TestDatasetListingSearch`), not here — the filterset's own competing `search` field was
+withdrawn (014 plan P8), and `TestGenericSearch`, which exercised it directly, was
+removed with it (014 T013).
 
 These tests follow TDD principles - they are written FIRST and should FAIL
 until DatasetFilter is properly implemented.
@@ -20,7 +25,6 @@ until DatasetFilter is properly implemented.
 - TestLicenseFilter: Tests for filtering by license
 - TestProjectFilter: Tests for filtering by project
 - TestVisibilityFilter: Tests for filtering by visibility level
-- TestGenericSearch: Tests for generic search field
 - TestCrossRelationshipFilters: Tests for filters on related models
 - TestMultipleFilterCombinations: Tests AND logic with multiple filters
 - TestFilterPerformance: Tests query efficiency on large datasets
@@ -196,103 +200,6 @@ class TestVisibilityFilter:
 
 
 @pytest.mark.django_db
-class TestGenericSearch:
-    """Test generic search field functionality.
-
-    Verifies that the generic search field searches across name, UUID,
-    and keywords to provide comprehensive dataset discovery.
-    """
-
-    def test_search_by_name(self):
-        """Generic search should match dataset name."""
-        # Arrange
-        ds_match = DatasetFactory(name="Geological Survey 2024")
-        DatasetFactory(name="Weather Station Data")
-
-        # Act
-        # `all_objects`: subject is search matching, not visibility (see above).
-        filterset = DatasetFilter(
-            data={"search": "Geological"}, queryset=Dataset.all_objects.all()
-        )
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 1
-        assert ds_match in filterset.qs
-
-    def test_search_by_uuid(self):
-        """Generic search should match dataset UUID."""
-        # Arrange
-        ds_match = DatasetFactory()
-        DatasetFactory()
-
-        # Act - search by first 8 characters of UUID
-        search_term = str(ds_match.uuid)[:8]
-        # `all_objects`: subject is search matching, not visibility (see above).
-        filterset = DatasetFilter(
-            data={"search": search_term}, queryset=Dataset.all_objects.all()
-        )
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 1
-        assert ds_match in filterset.qs
-
-    @pytest.mark.skip(
-        reason="TermFactory not yet implemented - keyword filtering pending"
-    )
-    def test_search_by_keyword(self):
-        """Generic search should match dataset keywords."""
-        # TODO: Implement TermFactory or use alternative approach
-        pass
-
-    def test_search_case_insensitive(self):
-        """Generic search should be case-insensitive."""
-        # Arrange
-        ds_match = DatasetFactory(name="Geological Survey")
-
-        # Act
-        # `all_objects`: subject is search matching, not visibility (see above).
-        filterset = DatasetFilter(
-            data={"search": "geological"}, queryset=Dataset.all_objects.all()
-        )
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 1
-        assert ds_match in filterset.qs
-
-    def test_search_partial_match(self):
-        """Generic search should support partial matching."""
-        # Arrange
-        ds_match = DatasetFactory(name="Geological Survey 2024")
-
-        # Act
-        # `all_objects`: subject is search matching, not visibility (see above).
-        filterset = DatasetFilter(
-            data={"search": "Survey"}, queryset=Dataset.all_objects.all()
-        )
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 1
-        assert ds_match in filterset.qs
-
-    def test_empty_search_returns_all(self):
-        """Empty search should return all datasets."""
-        # Arrange
-        DatasetFactory.create_batch(3)
-
-        # Act
-        # `all_objects`: subject is search matching, not visibility (see above).
-        filterset = DatasetFilter(data={"search": ""}, queryset=Dataset.all_objects.all())
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 3
-
-
-@pytest.mark.django_db
 class TestCrossRelationshipFilters:
     """Test filtering by related model fields.
 
@@ -356,43 +263,20 @@ class TestMultipleFilterCombinations:
         assert filterset.qs.count() == 1
         assert ds_match in filterset.qs
 
-    def test_combine_search_and_visibility(self):
-        """Combining search and visibility filters should use AND logic."""
-        # Arrange
-        ds_match = DatasetFactory(
-            name="Geological Survey", visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
-        )
-        DatasetFactory(
-            name="Weather Station",  # Wrong search
-            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
-        )
-        DatasetFactory(
-            name="Geological Data",
-            visibility=Dataset.VISIBILITY_CHOICES.PRIVATE,  # Wrong visibility
-        )
-
-        # Act
-        filterset = DatasetFilter(
-            data={
-                "search": "Geological",
-                "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC,
-            },
-            queryset=Dataset.objects.all(),
-        )
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 1
-        assert ds_match in filterset.qs
-
     def test_combine_all_filters(self):
-        """Combining all available filters should progressively narrow results."""
+        """Combining all available filters should progressively narrow results.
+
+        014 T013 — the withdrawn `search` field (see module docstring) is no longer part
+        of this combination; the decoys are distinguished by license, project and
+        visibility instead, which still all exist on this filterset.
+        """
         # Arrange
         cc_by = License.objects.get(name="CC BY 4.0")
+        cc0 = License.objects.get(name="CC0 1.0")
         project = ProjectFactory()
+        other_project = ProjectFactory()
 
         ds_match = DatasetFactory(
-            name="Geological Survey",
             license=cc_by,
             project=project,
             visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
@@ -400,22 +284,24 @@ class TestMultipleFilterCombinations:
 
         # Create datasets that don't match all criteria
         DatasetFactory(
-            name="Other",
             license=cc_by,
+            project=other_project,  # Wrong project
+            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
+        )
+        DatasetFactory(
+            license=cc0,  # Wrong license
             project=project,
             visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
         )
         DatasetFactory(
-            name="Geological Survey",
             license=cc_by,
             project=project,
-            visibility=Dataset.VISIBILITY_CHOICES.PRIVATE,
+            visibility=Dataset.VISIBILITY_CHOICES.PRIVATE,  # Wrong visibility
         )
 
         # Act
         filterset = DatasetFilter(
             data={
-                "search": "Geological",
                 "license": cc_by.id,
                 "project": project.id,
                 "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC,
@@ -459,18 +345,6 @@ class TestFilterPerformance:
             result_count = filterset.qs.count()
             assert result_count == 25
 
-    def test_generic_search_performance(self, django_assert_max_num_queries):
-        """Generic search should execute efficiently with many datasets."""
-        # Arrange
-        DatasetFactory.create_batch(100)
-
-        # Act & Assert - Should use at most 5 queries
-        with django_assert_max_num_queries(5):
-            filterset = DatasetFilter(
-                data={"search": "Dataset"}, queryset=Dataset.objects.all()
-            )
-            list(filterset.qs)  # Force query execution
-
 
 @pytest.mark.django_db
 class TestFilterFormRendering:
@@ -487,7 +361,6 @@ class TestFilterFormRendering:
 
         # Assert
         expected_fields = [
-            "search",
             "license",
             "project",
             "visibility",
@@ -520,7 +393,6 @@ class TestFilterFormRendering:
                 "license": license_obj.id,
                 "project": project.id,
                 "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC,
-                "search": "test",
             },
             queryset=Dataset.objects.all(),
         )

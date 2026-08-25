@@ -108,7 +108,13 @@ class DatasetListView(FairDMListView):
         ("name", _("Name A-Z"), "name"),
         ("-name", _("Name Z-A"), "-name"),
     ]
-    search_fields = ["name", "uuid", "descriptions__value"]
+    search_fields = [
+        "name",
+        "uuid",
+        "identifiers__value",
+        "descriptions__value",
+        "keywords__name",
+    ]
 
     def get_queryset(self) -> QuerySet[Dataset]:
         """Return the queryset of visible datasets with prefetched contributors.
