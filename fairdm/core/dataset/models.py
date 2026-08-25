@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
@@ -322,6 +323,17 @@ class Dataset(BaseModel):
             ("change_dataset_metadata", "Can edit dataset metadata"),
             ("change_dataset_settings", "Can change dataset settings"),
         ]
+
+    def get_absolute_url(self):
+        """The dataset's own page: its registered overview (014 plan P1, T057).
+
+        Overrides ``BaseModel.get_absolute_url``, which reverses ``f"{model_name}-detail"`` — a
+        name this record no longer has, now that its own page is a registration rather than a
+        standalone route. Mirrors ``Project.get_absolute_url``
+        (``fairdm/core/project/models.py:144-152``), whose docstring named this override as the
+        one still outstanding, citing #283.
+        """
+        return reverse("dataset:overview", kwargs={"uuid": self.uuid})
 
     @cached_property
     def has_data(self):

@@ -166,26 +166,30 @@ picked up by `MetadataMixin` to populate `meta.title` and friends.
 
 ```python
 from fairdm.views import FairDMDetailView
-from .models import Dataset
+
+from .models import Point
 
 
-class DatasetDetailView(FairDMDetailView):
-    model = Dataset
-    template_name = "dataset/dataset_detail.html"
-    slug_field = "uuid"
-    slug_url_kwarg = "uuid"
+class PointDetailView(FairDMDetailView):
+    model = Point
+    template_name = "locations/location_detail.html"
+
+    def get_object(self, queryset=None):
+        return Point.objects.get(x=self.kwargs["lon"], y=self.kwargs["lat"])
 ```
 
 **Context keys**: `meta`, `page`, `object`
 
-**Project is not an example of this class.** Its own page is a plugin
-registration (`fairdm.core.project.plugins.Overview`, an `OverviewPlugin`
-subclass) rather than a standalone `FairDMDetailView` subclass, so its
-update, delete and descriptions pages hang off the same registration and
-share its one navigation entry. See [Create a
+**None of the core records is an example of this class.** A project, a
+dataset and a sample each reach their own page through a plugin
+registration (`fairdm.core.project.plugins.Overview` and its dataset and
+sample counterparts, all `OverviewPlugin` subclasses) rather than a
+standalone `FairDMDetailView` subclass. A record's other pages — update,
+delete, descriptions — hang off that same registration and share its one
+navigation entry. See [Create a
 plugin](../portal-development/create_a_plugin.md) for that pattern —
 reach for a standalone `FairDMDetailView` when a record's page needs no
-extra views and no navigation entry of its own.
+extra views and no navigation entry of its own, as `Point` above does.
 
 ---
 

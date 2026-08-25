@@ -14,6 +14,7 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
+from fairdm.utils.choices import Visibility
 from fairdm_demo.factories import RockSampleFactory
 
 
@@ -25,7 +26,8 @@ class TestRecordPagesServe:
         assert response.status_code == 200
 
     def test_dataset_plugin_page(self, client):
-        """Dataset has no overview plugin; its own detail view serves that."""
+        """Dataset's descriptions page - a registration of its own until US-4 folds
+        it into the overview's extra_views (014 plan Order step 3)."""
         user = UserFactory()
         dataset = DatasetFactory()
         assign_perm("change_dataset", user, dataset)
@@ -33,6 +35,43 @@ class TestRecordPagesServe:
         response = client.get(
             reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         )
+        assert response.status_code == 200
+
+    def test_dataset_overview(self, client):
+        """The dataset's own page, now a registration like every other core
+        record's (014 T056)."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+        assert response.status_code == 200
+
+    def test_dataset_overview_refuses_an_anonymous_visitor_to_a_private_record_not_found(
+        self, client
+    ):
+        """A private dataset the visitor may not see answers 404, not a
+        redirect to sign in, so the address does not confirm the record
+        exists (014 plan P1)."""
+        dataset = DatasetFactory()  # private, per the model default
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+        assert response.status_code == 404
+
+    def test_dataset_overview_refuses_a_signed_in_stranger_to_a_private_record_not_found(
+        self, client
+    ):
+        """A private dataset a signed-in user has no rights over answers 404,
+        not 403, for the same reason (014 plan P1)."""
+        dataset = DatasetFactory()  # private, per the model default
+        client.force_login(UserFactory())
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+        assert response.status_code == 404
+
+    def test_dataset_overview_admits_a_holder_of_view_permission(self, client):
+        """A private dataset is still open to a user granted view_dataset on
+        it at record level."""
+        dataset = DatasetFactory()
+        user = UserFactory()
+        assign_perm("view_dataset", user, dataset)
+        client.force_login(user)
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
         assert response.status_code == 200
 
     def test_dataset_plugin_page_is_closed_to_a_visitor(self, client):

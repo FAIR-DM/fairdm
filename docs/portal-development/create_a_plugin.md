@@ -171,6 +171,27 @@ def visible_to_holder_of(permission):
 uses: their own `permission` is the change/delete right, not the view right, and a record-level grant
 of a page's own permission is already evidence of legitimate access.
 
+`fairdm.core.dataset.plugins.dataset_is_visible` is the same rule for a dataset, reading
+`dataset.view_dataset`. Write one of these for every record type you register pages against, even
+when the model's default manager already hides private records: a registered page resolves its
+record through `Plugin.get_base_object`, which reads past that manager on purpose, so that a
+private record's owner can still open it. The manager is not the gate; the check is.
+
+**Refusing without confirming the record exists.** The default refusal redirects an anonymous
+visitor to sign in and gives a signed-in stranger a permission error. Both answers tell whoever
+typed the address that there is something at it, which is the wrong answer for embargoed metadata.
+Where that matters, override `handle_no_permission` to raise `Http404` while the record is private,
+and fall through to the default once it is public — a refusal on a public record should say plainly
+why it was refused:
+
+```python
+def handle_no_permission(self):
+    obj = self.base_object
+    if obj is not None and obj.visibility != Visibility.PUBLIC:
+        raise Http404("No dataset matches the given query.")
+    return super().handle_no_permission()
+```
+
 ## A feature that is more than one page
 
 Declare the other views on the plugin. They share its address prefix and its single navigation

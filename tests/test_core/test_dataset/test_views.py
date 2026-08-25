@@ -91,7 +91,8 @@ class TestDatasetCreateView:
         assert response.status_code == 200
 
     def test_valid_post_redirects_to_detail(self, client):
-        """T013 — Valid POST redirects to dataset-detail URL.
+        """T013 — Valid POST redirects to the dataset's own page (dataset:overview,
+        014 T057 — the retired standalone dataset-detail route no longer exists).
 
         MUST FAIL before T015 (DatasetCreateForm) because DatasetForm requires
         additional fields that make a minimal POST fail form validation.
@@ -127,7 +128,7 @@ class TestDatasetCreateView:
         # `all_objects` - a newly created dataset defaults to private, and
         # `Dataset.objects` is privacy-first by default (R1).
         dataset = Dataset.all_objects.get(name="New Test Dataset")
-        expected_url = reverse("dataset-detail", kwargs={"uuid": dataset.uuid})
+        expected_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assert response.url == expected_url
 
     def test_assigns_contributor_roles(self, client):
@@ -227,7 +228,8 @@ class TestDatasetUpdateView:
         assert response.status_code == 200
 
     def test_valid_post_redirects_to_detail(self, client):
-        """T022 — Valid POST by permitted user returns 302 to dataset-detail URL. FR-018a."""
+        """T022 — Valid POST by permitted user returns 302 to the dataset's own page
+        (dataset:overview, 014 T057). FR-018a."""
         from licensing.models import License
 
         user = UserFactory()
@@ -254,7 +256,7 @@ class TestDatasetUpdateView:
         assert response.status_code == 302, (
             f"Form errors: {response.context['form'].errors if 'form' in response.context else 'no form in context'}"
         )
-        expected_url = reverse("dataset-detail", kwargs={"uuid": dataset.uuid})
+        expected_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assert response.url == expected_url
 
 
@@ -387,12 +389,13 @@ class TestDatasetViews:
         assert response.status_code == 200
 
     def test_dataset_detail_view_accessible(self, client):
-        """Test that dataset detail view serves the requested dataset and
-        renders its name in the page body (FAIR-DM/fairdm#113)."""
+        """The dataset's own registered page (dataset:overview, 014 T057) serves
+        the requested dataset and renders its name in the page body
+        (FAIR-DM/fairdm#113)."""
         dataset = DatasetFactory(
             name="Reef Survey Dataset", visibility=Visibility.PUBLIC
         )
-        response = client.get(reverse("dataset-detail", kwargs={"uuid": dataset.uuid}))
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
 
         assert response.status_code == 200
         assert response.context["dataset"] == dataset

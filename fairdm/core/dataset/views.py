@@ -3,7 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from guardian.shortcuts import assign_perm
 
@@ -11,7 +11,6 @@ from fairdm.utils.choices import Visibility
 from fairdm.views import (
     FairDMCreateView,
     FairDMDeleteView,
-    FairDMDetailView,
     FairDMListView,
     FairDMUpdateView,
 )
@@ -19,40 +18,6 @@ from fairdm.views import (
 from .filters import DatasetFilter
 from .forms import DatasetForm
 from .models import Dataset, DatasetQuerySet
-
-
-class DatasetDetailView(FairDMDetailView):
-    """Detail view for Dataset model with plugin support.
-
-    This view displays a dataset and makes plugin URLs available.
-    """
-
-    model = Dataset
-    template_name = "dataset/dataset_detail.html"
-    slug_field = "uuid"
-    slug_url_kwarg = "uuid"
-    context_object_name = "dataset"
-
-    def get_object(self, queryset=None):
-        """Retrieve the dataset, then decide whether this user may see it.
-
-        Resolved through ``Dataset.all_objects`` and gated explicitly, rather
-        than left to the privacy-first default manager. The manager alone
-        would hide a private dataset from the person who owns it - including
-        the creator arriving from the create view's redirect - because it has
-        no notion of who is asking.
-
-        A dataset the user may not see answers 404 rather than 403, so the
-        page does not confirm that a private dataset exists. This matches
-        ``fairdm.api.permissions``, which raises ``NotFound`` for the same
-        reason.
-        """
-        dataset = get_object_or_404(Dataset.all_objects, uuid=self.kwargs.get("uuid"))
-        if dataset.visibility == Visibility.PUBLIC:
-            return dataset
-        if self.request.user.has_perm("view_dataset", dataset):
-            return dataset
-        raise Http404("No dataset matches the given query.")
 
 
 class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
@@ -82,10 +47,13 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
     def get_success_url(self) -> str:
         """Return URL to redirect to after successful creation.
 
+        ``Dataset.get_absolute_url()`` rather than a name reversed here: the dataset's own page
+        is a registration, not a standalone route, since 014 T057.
+
         Returns:
-            str: URL to dataset detail page.
+            str: URL to the dataset's own page.
         """
-        return reverse("dataset-detail", kwargs={"uuid": self.object.uuid})
+        return str(self.object.get_absolute_url())
 
     def form_valid(self, form) -> HttpResponse:
         """Handle successful form submission and assign permissions.
@@ -213,10 +181,13 @@ class DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView):
     def get_success_url(self) -> str:
         """Return URL to redirect to after successful update.
 
+        ``Dataset.get_absolute_url()`` rather than a name reversed here: the dataset's own page
+        is a registration, not a standalone route, since 014 T057.
+
         Returns:
-            str: URL to dataset detail page.
+            str: URL to the dataset's own page.
         """
-        return reverse("dataset-detail", kwargs={"uuid": self.object.uuid})
+        return str(self.object.get_absolute_url())
 
 
 class DatasetDeleteView(LoginRequiredMixin, FairDMDeleteView):
