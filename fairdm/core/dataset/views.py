@@ -57,6 +57,11 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
         Returns:
             HttpResponse: Redirect to dataset detail page.
         """
+        # Set the creator before saving so `created_by` is written with the rest of the
+        # record in one save, from the request user only — never through the form, which
+        # never declares this field (`created_by` is `editable=False`, models.py). Matches
+        # `ProjectCreateView.form_valid` (014 T031/FR-020).
+        form.instance.created_by = self.request.user
         response: HttpResponse = super().form_valid(form)
 
         user = self.request.user

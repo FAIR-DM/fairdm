@@ -407,6 +407,33 @@ class TestDatasetCreatePagePermissionAssignment:
             assert user.has_perm(f"dataset.{perm}", dataset), f"Missing permission: {perm}"
 
 
+@pytest.mark.django_db
+class TestDatasetCreatePageRecordsCreator:
+    """T031/FR-020 - on creation the dataset records who created it, written server-side and not
+    through the form (`created_by` is `editable=False` — `models.py`)."""
+
+    def test_the_dataset_records_its_creator(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
+        url = reverse("dataset-create")
+
+        response = client.post(
+            url,
+            data={
+                "name": "Attributed Dataset",
+                "license": license_obj.pk,
+                "visibility": Visibility.PUBLIC,
+            },
+        )
+
+        assert response.status_code == 302, (
+            response.context["form"].errors if "form" in response.context else None
+        )
+        dataset = Dataset.all_objects.get(name="Attributed Dataset")
+        assert dataset.created_by == user
+
+
 # ---------------------------------------------------------------------------
 # Phase 5 — User Story 3: Edit Dataset Core Attributes
 # ---------------------------------------------------------------------------
