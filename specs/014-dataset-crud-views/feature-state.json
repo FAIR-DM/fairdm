@@ -907,8 +907,19 @@
         },
         {
           "id": "T058",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/urls.py:9-22 — plural-only include"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestTheSingularAddressNoLongerAnswers::test_a_request_to_the_singular_address_is_not_found"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T059",
@@ -929,38 +940,115 @@
         },
         {
           "id": "T060",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — Update.permission, Delete.permission, Descriptions.permission; Overview states none"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesStatesItsOwnPermission (3 tests)"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T061",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — dataset_is_visible / visible_to_holder_of on all four pages"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T062",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — one @plugins.register on Overview; Update/Delete/Descriptions are extra_views"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsPagesContributeExactlyOneNavigationEntry (2 tests)"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T063",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — Overview.directory, crud_views, show_update_action/show_delete_action/show_descriptions_action; fairdm/core/dataset/templates/dataset/dataset_detail.html page.actions block"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsOwnPageOffersUpdateAndDescriptionsLinks; ::TestTheDatasetsOwnPageOffersTheDeletionLink"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T064",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — the same show_*_action gates"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestNoLinkIsOfferedForAnActionTheViewerCannotUse (2 tests)"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T065",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — Overview's crud_views; Delete.get_back_url"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress (4 tests, every page swept whole)"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T066",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/plugins/base.py get_breadcrumbs; fairdm/core/dataset/plugins.py Delete.get_back_url"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset (3 tests); ::TestUpdatePageOffersTheDeletionLink::test_the_link_returns_to_the_update_page_when_deletion_is_abandoned"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T067",
@@ -981,8 +1069,19 @@
         },
         {
           "id": "T068",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — show_*_action, the shell's current mechanism; no has_*_permission"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning (4 tests)"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         },
         {
           "id": "T069",
@@ -1014,8 +1113,19 @@
         },
         {
           "id": "T085",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — handle_no_permission on Overview, Update, Descriptions, Delete"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestNoAddressDisclosesAPrivateDatasetsExistence (4 tests)"
+            ],
+            "commands": [
+              "pytest -q — 2448 passed, 13 skipped (verified independently); pre-commit (ruff lint, ruff format, mypy, deptry) all passed"
+            ]
+          }
         }
       ]
     },

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.http import Http404
 from django.urls import reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
 from mvp.views import MVPFormView
@@ -287,6 +288,24 @@ class Delete(Plugin, FairDMDeleteView):
 
     def get_confirmation_value(self):
         return self.base_object.name
+
+    def get_back_url(self) -> str:
+        """The confirmation page's own "Back" falls back to the dataset itself rather than the
+        dataset list (FR-052/FR-053), mirroring ``fairdm.core.project.plugins.Delete``:
+        ``MVPDeleteView``'s own fallback is ``resolve_crud_url("list")``, which this page never
+        shows (it carries no ``list`` entry in its ``directory``), so the shell drew that control
+        as an empty ``href=""``. From a dataset's own deletion page, "back" means back to the
+        record being considered for deletion. The ``?back`` query-string override above this in
+        the MRO is preserved unchanged.
+        """
+        candidate = self.request.GET.get("back")
+        if candidate and url_has_allowed_host_and_scheme(
+            url=candidate,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return candidate
+        return self.base_object.get_absolute_url()
 
 
 @plugins.register(Dataset, label=_("Overview"), icon="view", order=0)

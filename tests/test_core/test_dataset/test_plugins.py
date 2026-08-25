@@ -43,6 +43,7 @@ implementation does not need.
 
 import re
 import warnings
+from urllib.parse import quote
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -1107,6 +1108,33 @@ class TestUpdatePageOffersTheDeletionLink:
             href.startswith(delete_url) for href in _hrefs(response.content.decode())
         )
 
+    def test_the_link_returns_to_the_update_page_when_deletion_is_abandoned(
+        self, client
+    ):
+        """The shell appends ``?back=`` to the deletion address, and ``Delete.get_back_url()``
+        honours it over its own fallback, so abandoning a deletion started here comes back here
+        rather than to the dataset."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+
+        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        response = client.get(update_url)
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        link = next(
+            href
+            for href in _hrefs(response.content.decode())
+            if href.startswith(delete_url)
+        )
+
+        assert f"back={quote(update_url, safe='')}" in link
+
+        deletion_page = client.get(link)
+
+        assert update_url in _hrefs(deletion_page.content.decode())
+
 
 class TestTheSingularAddressNoLongerAnswers:
     """T058/FR-057 — every address names the record type in the plural. The singular
@@ -1362,15 +1390,12 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         assert hrefs
         assert all(href.strip() != "" for href in hrefs)
 
-    def test_the_deletion_pages_link_back_to_the_dataset_is_not_empty(self, client):
-        """Narrower than the other three: the deletion page's own confirmation-cancel "Back"
-        button is a pre-existing defect this story does not own — ``Delete`` is closed on
-        evidence from US-6 and the brief prohibits changing it, and it carries no
-        ``get_back_url`` override the way ``fairdm.core.project.plugins.Delete`` does, so
-        ``MVPDeleteView``'s own fallback renders that one control as an empty ``href=""``
-        (reported separately in this report's ``issues_found``). This asserts only the link this
-        story's own breadcrumb mechanism draws (T066) is real and non-empty, rather than sweeping
-        every href the page renders."""
+    def test_the_deletion_page_draws_no_empty_link(self, client):
+        """Swept the same way as the other three, including the confirmation-cancel "Back"
+        button the shell draws from ``get_back_url()``. That control is the one FR-052 was
+        written against: ``MVPDeleteView``'s own fallback reverses ``resolve_crud_url("list")``,
+        which ``Delete`` never shows, so without an override the shell renders it as an empty
+        ``href=""``."""
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
 
@@ -1378,11 +1403,9 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
             reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         )
 
-        dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         hrefs = _hrefs(response.content.decode())
-        matching = [href for href in hrefs if href.startswith(dataset_url)]
-        assert matching
-        assert all(href.strip() != "" for href in matching)
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
 
 
 @pytest.mark.django_db

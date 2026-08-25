@@ -3,12 +3,12 @@
   "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
   "totals": {
     "tasks_total": 85,
-    "satisfied": 54,
-    "open": 31
+    "satisfied": 64,
+    "open": 21
   },
   "open_by_reason": {
-    "not built": 17,
-    "built, untested": 7,
+    "not built": 8,
+    "built, untested": 6,
     "built differently": 4,
     "vacuous test": 3
   },
@@ -228,6 +228,46 @@
     "T067": {
       "code": "fairdm/core/dataset/plugins.py — Update.crud_views, Update.show_delete_action",
       "test": "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageOffersTheDeletionLink::test_a_user_who_may_delete_the_dataset_is_offered_the_link"
+    },
+    "T058": {
+      "code": "fairdm/core/dataset/urls.py:9-22 — plural-only include",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheSingularAddressNoLongerAnswers::test_a_request_to_the_singular_address_is_not_found"
+    },
+    "T060": {
+      "code": "fairdm/core/dataset/plugins.py — Update.permission, Delete.permission, Descriptions.permission; Overview states none",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesStatesItsOwnPermission (3 tests)"
+    },
+    "T061": {
+      "code": "fairdm/core/dataset/plugins.py — dataset_is_visible / visible_to_holder_of on all four pages",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record"
+    },
+    "T062": {
+      "code": "fairdm/core/dataset/plugins.py — one @plugins.register on Overview; Update/Delete/Descriptions are extra_views",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsPagesContributeExactlyOneNavigationEntry (2 tests)"
+    },
+    "T063": {
+      "code": "fairdm/core/dataset/plugins.py — Overview.directory, crud_views, show_update_action/show_delete_action/show_descriptions_action; fairdm/core/dataset/templates/dataset/dataset_detail.html page.actions block",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsOwnPageOffersUpdateAndDescriptionsLinks; ::TestTheDatasetsOwnPageOffersTheDeletionLink"
+    },
+    "T064": {
+      "code": "fairdm/core/dataset/plugins.py — the same show_*_action gates",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestNoLinkIsOfferedForAnActionTheViewerCannotUse (2 tests)"
+    },
+    "T065": {
+      "code": "fairdm/core/dataset/plugins.py — Overview's crud_views; Delete.get_back_url",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress (4 tests, every page swept whole)"
+    },
+    "T066": {
+      "code": "fairdm/contrib/plugins/base.py get_breadcrumbs; fairdm/core/dataset/plugins.py Delete.get_back_url",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset (3 tests); ::TestUpdatePageOffersTheDeletionLink::test_the_link_returns_to_the_update_page_when_deletion_is_abandoned"
+    },
+    "T068": {
+      "code": "fairdm/core/dataset/plugins.py — show_*_action, the shell's current mechanism; no has_*_permission",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning (4 tests)"
+    },
+    "T085": {
+      "code": "fairdm/core/dataset/plugins.py — handle_no_permission on Overview, Update, Descriptions, Delete",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestNoAddressDisclosesAPrivateDatasetsExistence (4 tests)"
     }
   },
   "open": {
@@ -303,36 +343,6 @@
       "reason": "not built",
       "note": "views.py:67 — form_class commented out in favour of a field list"
     },
-    "T058": {
-      "reason": "not built"
-    },
-    "T060": {
-      "reason": "built, untested",
-      "note": "the three current plugins each declare a permission; the pages this feature adds do not exist"
-    },
-    "T061": {
-      "reason": "not built",
-      "note": "no page states a visibility rule; #284"
-    },
-    "T062": {
-      "reason": "not built",
-      "note": "three registrations take three entries today"
-    },
-    "T063": {
-      "reason": "not built"
-    },
-    "T064": {
-      "reason": "not built"
-    },
-    "T065": {
-      "reason": "not built"
-    },
-    "T066": {
-      "reason": "not built"
-    },
-    "T068": {
-      "reason": "not built"
-    },
     "T078": {
       "reason": "not built",
       "note": "plugins.py:44-59 still registers the keywords page"
@@ -342,10 +352,6 @@
     },
     "T084": {
       "reason": "not built"
-    },
-    "T085": {
-      "reason": "not built",
-      "note": "the retired standalone views do answer not-found for a private record (views.py:197-201, :250-254) and two tests pin it, but nothing asserts it at the new addresses, which is where the mechanism changes"
     }
   }
 }

@@ -27,13 +27,15 @@ Two rulings recorded at the gate:
 | S3 PLAN | done | Research, plan, greenfield task list, reconciliation: 85 tasks, 19 satisfied, 66 open. |
 | S3R DESIGN REVIEW | done | One round, nine findings, all verified and applied; six reconciliation ticks withdrawn. |
 | Plan gate | filed | Recorded on the pull request for veto; approved in session 2026-08-25. |
-| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. US-6 deletion page `a724a5e` and follow-up: 9 tasks closed on evidence. The audit ledger had also drifted from the task ledger — five tasks closed at foundations were never moved out of its open list — so both now read 54 satisfied, 31 open — the update page's own deletion link (T067) closed here too. |
+| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. US-6 deletion page `a724a5e` and follow-up: 9 tasks closed on evidence. The audit ledger had also drifted from the task ledger — five tasks closed at foundations were never moved out of its open list — so both now read 54 satisfied, 31 open — the update page's own deletion link (T067) closed here too. US-5 links `cc9bc2b` and follow-up: 10 tasks closed on evidence, 64 satisfied, 21 open. |
 
-## Carried forward into US-5
+## Notes from US-5
 
-The dataset's own page does not yet draw the links that reach its update, descriptions and
-deletion pages. The update page draws its own listing and deletion links (US-6); the record's
-page is US-5's work, and `fairdm.core.project.plugins.Overview` is the shape to copy.
+The deletion page's own cancel control resolved to nothing. `MVPDeleteView`'s fallback reverses
+the listing address, which that page never shows, so the shell drew the control with an empty
+`href` — the exact case FR-052 forbids. `fairdm.core.project.plugins.Delete` carries a
+`get_back_url` for this and the dataset's did not. Added, mirroring it, and the deletion page's
+link sweep is now the same whole-page sweep the other three pages get rather than a narrowed one.
 
 ## Notes from US-6
 
