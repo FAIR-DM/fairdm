@@ -52,9 +52,10 @@ from licensing.models import License
 
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
+from fairdm.contrib.plugins.base import Plugin
 from fairdm.core.dataset.forms import DatasetForm
 from fairdm.core.dataset.models import Dataset, DatasetDescription
-from fairdm.core.dataset.plugins import Descriptions, Update
+from fairdm.core.dataset.plugins import Delete, Descriptions, Overview, Update
 from fairdm.core.descriptions import VocabularyDescriptionsForm
 from fairdm.factories import (
     DatasetDateFactory,
@@ -1113,3 +1114,34 @@ class TestTheSingularAddressNoLongerAnswers:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         response = client.get(f"/dataset/{dataset.uuid}/")
         assert response.status_code == 404
+
+
+class TestEachOfTheFourPagesStatesItsOwnPermission:
+    """T060/FR-060 — ``can_open`` (``fairdm/contrib/plugins/access.py``) reads ``permission``
+    straight off ``view_class``, never off the owning plugin
+    (``getattr(view_class, "permission", None)``), so an additional view that states none is
+    never treated as inheriting its owner's. ``Overview`` itself states none — reaching it is
+    gated by visibility alone — and each of its three additional views states its own."""
+
+    def test_the_overview_states_no_permission_of_its_own(self):
+        assert "permission" not in Overview.__dict__
+
+    def test_update_delete_and_descriptions_each_declare_their_own_permission(self):
+        assert Update.__dict__.get("permission") == "dataset.change_dataset"
+        assert Delete.__dict__.get("permission") == "dataset.delete_dataset"
+        assert Descriptions.__dict__.get("permission") == "dataset.change_dataset"
+
+    def test_a_page_stating_no_permission_does_not_inherit_its_owners(self):
+        """Proven directly against the real mechanism rather than assumed: an owner declaring a
+        permission, and a child that states none, is admitted anonymously — ``can_open`` never
+        reads ``permission`` from ``plugin_class``."""
+
+        class _OwnerWithPermission(Plugin):
+            permission = "dataset.delete_dataset"
+
+        class _ChildStatingNone(Plugin):
+            plugin_class = _OwnerWithPermission
+            check = staticmethod(lambda request, obj: True)
+
+        request = _request_for(AnonymousUser())
+        assert can_open(_ChildStatingNone, request, None) is True
