@@ -271,8 +271,20 @@ address move touches their tests.
 
 ## Raised separately
 
-- django-mvp: no warning slot on the shared deletion page (P5).
-- django-mvp: the confirmation field is drawn twice (P6).
+Upstream, against django-mvp — every one of these is a shared page a caller cannot configure, and
+every one was worked around twice, once per record type:
+
+- django-mvp#302: the cascade preview always reads as information, with no way to say that this
+  particular deletion destroys research data (P5).
+- django-mvp#308: the shell catches `ProtectedError` and turns it into its refusal, but not
+  `RestrictedError`, which is a sibling rather than a subclass (US-6).
+- django-mvp#309: the deletion page's Back button renders with an empty `href` when the page carries
+  no list action, which is every page registered against its own record. The workaround duplicates
+  the base class's `?back` validation, which is security-relevant and should not be copied.
+- django-mvp#310: the detail page's action header has exactly two slots, so a record offering a
+  third registered action has to draw it by hand, in the page body rather than the header.
+
+The confirmation field being drawn twice (P6) was fixed upstream in 0.19.3 and needed nothing here.
 - #298: the keyword rebuild, and what becomes of the now-unregistered base classes (P9).
 - #297: the project's deletion refusal, keyed on visibility rather than publication.
 - #296: takedown requests for published data.
