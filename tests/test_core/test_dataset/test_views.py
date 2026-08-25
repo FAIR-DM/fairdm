@@ -148,10 +148,9 @@ class TestDatasetCreateView:
     def test_assigns_contributor_roles(self, client):
         """T014 — After valid POST, creating user is a contributor with correct roles.
 
-        FR-013. Object-level permission assignment (FR-012) is currently disabled in
-        DatasetCreateView.form_valid() pending guardian integration (see the
-        "Re-enable permission assignment" TODO in fairdm/core/dataset/views.py), so
-        this test only covers the contributor/role side that is actually wired up.
+        FR-013. Object-level permission assignment (FR-012) is covered on its own terms by
+        `TestDatasetCreatePagePermissionAssignment` (T029); this test covers the contributor/
+        role side only.
         """
         from licensing.models import License
 
@@ -371,6 +370,41 @@ class TestDatasetCreatePageNameRequired:
         assert response.status_code == 200
         assert "name" in response.context["form"].errors
         assert not Dataset.all_objects.filter(license=license_obj).exists()
+
+
+@pytest.mark.django_db
+class TestDatasetCreatePagePermissionAssignment:
+    """T029/FR-018 - on creation the creator is granted view, change, delete,
+    change-metadata and change-settings on the record. Built (`views.py` `form_valid`) but
+    untested until now (reconciliation)."""
+
+    def test_the_creator_is_granted_full_permissions_on_the_new_dataset(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
+        url = reverse("dataset-create")
+
+        response = client.post(
+            url,
+            data={
+                "name": "Permissioned Dataset",
+                "license": license_obj.pk,
+                "visibility": Visibility.PUBLIC,
+            },
+        )
+
+        assert response.status_code == 302, (
+            response.context["form"].errors if "form" in response.context else None
+        )
+        dataset = Dataset.all_objects.get(name="Permissioned Dataset")
+        for perm in [
+            "view_dataset",
+            "change_dataset",
+            "delete_dataset",
+            "change_dataset_metadata",
+            "change_dataset_settings",
+        ]:
+            assert user.has_perm(f"dataset.{perm}", dataset), f"Missing permission: {perm}"
 
 
 # ---------------------------------------------------------------------------
