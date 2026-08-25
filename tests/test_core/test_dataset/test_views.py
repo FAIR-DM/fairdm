@@ -365,6 +365,23 @@ class TestDatasetListingProjectFilterVisibility:
         assert private_project in project_queryset
 
 
+@pytest.mark.django_db
+class TestDatasetListingEmptyState:
+    """T019/FR-008 — a search matching no dataset renders the listing's own empty
+    state, rather than a blank page (mirrors
+    TestProjectListing.test_listing_shows_empty_state_when_a_search_matches_nothing)."""
+
+    def test_listing_shows_empty_state_when_a_search_matches_nothing(
+        self, client, public_dataset
+    ):
+        response = client.get(
+            reverse("dataset-list"), {"q": "no-dataset-should-match-this-term"}
+        )
+        assert response.status_code == 200
+        assert list(response.context["object_list"]) == []
+        assertContains(response, "There&#x27;s nothing here yet")
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Dataset
 # ---------------------------------------------------------------------------
