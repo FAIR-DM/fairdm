@@ -49,6 +49,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-25T14:55:00Z",
       "note": "US-6 deletion page: 9 tasks closed on evidence (a724a5e + follow-up). T077 required Measurement.sample RESTRICT — under PROTECT no dataset holding samples with their own measurements could be deleted at all."
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-25T16:02:00Z",
+      "note": "US-2 creation page: 9 tasks closed on evidence (8af5588..319715a). The view's form_class and request kwarg were both commented out, so the page ran on a field list of its own and offered every project in the portal; DEFAULT_LICENSE was read at import, so the configured default was never honoured. Ledger 73 satisfied, 12 open."
     }
   ],
   "gates": {

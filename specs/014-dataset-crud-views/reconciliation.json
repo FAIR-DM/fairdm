@@ -3,14 +3,14 @@
   "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
   "totals": {
     "tasks_total": 85,
-    "satisfied": 64,
-    "open": 21
+    "satisfied": 73,
+    "open": 12
   },
   "open_by_reason": {
-    "not built": 8,
-    "built, untested": 6,
-    "built differently": 4,
-    "vacuous test": 3
+    "built, untested": 5,
+    "vacuous test": 1,
+    "built differently": 3,
+    "not built": 3
   },
   "satisfied": {
     "T001": {
@@ -20,6 +20,10 @@
     "T002": {
       "code": "fairdm/factories/core.py — DatasetDescriptionFactory, DatasetDateFactory, DatasetIdentifierFactory",
       "test": "tests/test_core/test_dataset/conftest.py:33-41; tests/test_core/test_related_records.py:24-25"
+    },
+    "T003": {
+      "code": "tests/test_core/test_dataset/conftest.py — the four-actor fixtures",
+      "test": "tests/test_core/test_dataset/conftest.py"
     },
     "T004": {
       "code": "fairdm/core/related_records.py:19",
@@ -45,6 +49,10 @@
       "code": "fairdm/core/descriptions.py — VocabularyDescriptionsForm",
       "test": "tests/test_core/test_descriptions.py:30,40,54 parameterised over DatasetDescription at :20; the save() removal and whitespace branches are covered through tests/test_core/test_project/test_plugins.py:564,632"
     },
+    "T010": {
+      "code": "fairdm/core/formsets.py — date_ordering_formset",
+      "test": "tests/test_core/test_formsets.py — end equal to start"
+    },
     "T011": {
       "code": "fairdm/core/dataset/urls.py:15; fairdm/core/dataset/views.py:128",
       "test": "tests/test_core/test_dataset/test_views.py:32"
@@ -57,13 +65,49 @@
       "code": "fairdm/core/dataset/urls.py:16; fairdm/core/dataset/views.py:58 — LoginRequiredMixin",
       "test": "tests/test_core/test_dataset/test_views.py:78,85"
     },
+    "T023": {
+      "code": "fairdm/core/dataset/forms.py:245-246 — DatasetCreateForm.Meta.fields",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageFieldSet::test_the_rendered_form_offers_exactly_the_creation_field_set"
+    },
+    "T024": {
+      "code": "fairdm/core/dataset/forms.py:143 — visibility TypedChoiceField, reachable once T033 wired the form in",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageVisibilityField::test_the_rendered_page_offers_a_radio_choice_pre_selecting_public"
+    },
+    "T025": {
+      "code": "fairdm/core/dataset/forms.py:177-187 — default licence name read at call time, not at import",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageLicenseDefault::test_the_rendered_form_preselects_the_configured_default_licence"
+    },
+    "T026": {
+      "code": "fairdm/core/dataset/forms.py:105-107 — project required=False",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageProjectField::test_the_project_field_is_optional_and_starts_empty; ::test_a_dataset_can_be_created_without_a_project"
+    },
+    "T027": {
+      "code": "fairdm/core/dataset/views.py:34 — kwargs[\"request\"] = self.request",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageProjectFieldNarrowing::test_the_project_field_is_narrowed_to_the_researchers_own_projects; tests/test_core/test_dataset/test_forms.py::TestCreateFormProjectFieldForAnonymousRequest::test_the_project_field_offers_no_projects_for_an_anonymous_request"
+    },
+    "T028": {
+      "code": "fairdm/core/dataset/forms.py:87-96 — name required",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageNameRequired::test_submitting_without_a_name_reports_an_error_and_saves_nothing"
+    },
+    "T029": {
+      "code": "fairdm/core/dataset/views.py:73-82 — permission assignment loop",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePagePermissionAssignment::test_the_creator_is_granted_full_permissions_on_the_new_dataset"
+    },
     "T030": {
       "code": "fairdm/core/dataset/views.py:121-123",
       "test": "tests/test_core/test_dataset/test_views.py:133,419"
     },
+    "T031": {
+      "code": "fairdm/core/dataset/views.py:60-64 — form.instance.created_by set before super().form_valid",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageRecordsCreator::test_the_dataset_records_its_creator"
+    },
     "T032": {
       "code": "fairdm/core/dataset/views.py:82-88",
       "test": "tests/test_core/test_dataset/test_views.py:93"
+    },
+    "T033": {
+      "code": "fairdm/core/dataset/forms.py:245-246; fairdm/core/dataset/views.py:10,23 — form_class = DatasetCreateForm, a narrowing of DatasetForm",
+      "test": "tests/test_core/test_dataset/test_views.py::TestDatasetCreatePageUsesTheDeclaredForm::test_the_view_declares_a_subclass_of_the_update_pages_form; ::test_a_label_declared_once_reaches_both_the_creation_and_the_update_page"
     },
     "T034": {
       "code": "fairdm/core/dataset/plugins.py:154,166 — Update, url_path 'update', carried as an extra view of Overview (fairdm/core/dataset/plugins.py:222); the standalone route is gone (fairdm/core/dataset/urls.py)",
@@ -121,26 +165,6 @@
       "code": "fairdm/core/dataset/forms.py:166 — helper_attrs form_tag False; fairdm/core/dataset/templates/dataset/plugins/update.html",
       "test": "tests/test_core/test_dataset/test_plugins.py:703,710 — the form declares no form tag and the rendered page carries exactly one form element"
     },
-    "T069": {
-      "code": "fairdm/core/dataset/templates/dataset/dataset_detail.html",
-      "test": "n/a — the requirement is that the page is not redesigned; nothing to build"
-    },
-    "T079": {
-      "code": "no tags field appears on any dataset form",
-      "test": "n/a — a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
-    },
-    "T080": {
-      "code": "fairdm/core/dataset/views.py:121-123 records the creator and nothing else manages contributions",
-      "test": "n/a — a constraint on this feature's own scope"
-    },
-    "T081": {
-      "code": "no publication state exists on Dataset; fairdm/core/dataset/models.py declares visibility alone",
-      "test": "n/a — a constraint on this feature's own scope"
-    },
-    "T082": {
-      "code": "fairdm/core/project/plugins.py:190-217 — unchanged by this feature; fairdm/views/base.py:227-241",
-      "test": "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_page_refuses_rather_than_raises_on_a_restricted_sample"
-    },
     "T048": {
       "code": "fairdm/core/dataset/plugins.py:179; fairdm/core/dataset/plugins.py:249",
       "test": "tests/test_core/test_dataset/test_plugins.py:742; tests/test_contrib/test_plugins/test_pages.py:28"
@@ -172,6 +196,62 @@
     "T055": {
       "code": "fairdm/core/dataset/plugins.py:201",
       "test": "tests/test_core/test_dataset/test_plugins.py:1049"
+    },
+    "T056": {
+      "code": "fairdm/core/dataset/plugins.py — Overview registered against Dataset",
+      "test": "tests/test_contrib/test_plugins/test_pages.py"
+    },
+    "T057": {
+      "code": "fairdm/core/dataset/urls.py:20 — datasets/<uuid>/; fairdm/core/dataset/models.py:327",
+      "test": "tests/test_core/test_dataset/test_models.py — get_absolute_url"
+    },
+    "T058": {
+      "code": "fairdm/core/dataset/urls.py:9-22 — plural-only include",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheSingularAddressNoLongerAnswers::test_a_request_to_the_singular_address_is_not_found"
+    },
+    "T059": {
+      "code": "fairdm/core/dataset/models.py:327; fairdm/core/dataset/urls.py",
+      "test": "tests/test_core/test_dataset/test_views.py — address sweep"
+    },
+    "T060": {
+      "code": "fairdm/core/dataset/plugins.py — Update.permission, Delete.permission, Descriptions.permission; Overview states none",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesStatesItsOwnPermission (3 tests)"
+    },
+    "T061": {
+      "code": "fairdm/core/dataset/plugins.py — dataset_is_visible / visible_to_holder_of on all four pages",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record"
+    },
+    "T062": {
+      "code": "fairdm/core/dataset/plugins.py — one @plugins.register on Overview; Update/Delete/Descriptions are extra_views",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsPagesContributeExactlyOneNavigationEntry (2 tests)"
+    },
+    "T063": {
+      "code": "fairdm/core/dataset/plugins.py — Overview.directory, crud_views, show_update_action/show_delete_action/show_descriptions_action; fairdm/core/dataset/templates/dataset/dataset_detail.html page.actions block",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsOwnPageOffersUpdateAndDescriptionsLinks; ::TestTheDatasetsOwnPageOffersTheDeletionLink"
+    },
+    "T064": {
+      "code": "fairdm/core/dataset/plugins.py — the same show_*_action gates",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestNoLinkIsOfferedForAnActionTheViewerCannotUse (2 tests)"
+    },
+    "T065": {
+      "code": "fairdm/core/dataset/plugins.py — Overview's crud_views; Delete.get_back_url",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress (4 tests, every page swept whole)"
+    },
+    "T066": {
+      "code": "fairdm/contrib/plugins/base.py get_breadcrumbs; fairdm/core/dataset/plugins.py Delete.get_back_url",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset (3 tests); ::TestUpdatePageOffersTheDeletionLink::test_the_link_returns_to_the_update_page_when_deletion_is_abandoned"
+    },
+    "T067": {
+      "code": "fairdm/core/dataset/plugins.py — Update.crud_views, Update.show_delete_action",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageOffersTheDeletionLink::test_a_user_who_may_delete_the_dataset_is_offered_the_link"
+    },
+    "T068": {
+      "code": "fairdm/core/dataset/plugins.py — show_*_action, the shell's current mechanism; no has_*_permission",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning (4 tests)"
+    },
+    "T069": {
+      "code": "fairdm/core/dataset/templates/dataset/dataset_detail.html",
+      "test": "n/a — the requirement is that the page is not redesigned; nothing to build"
     },
     "T070": {
       "code": "fairdm/core/dataset/plugins.py:243-272; fairdm/core/dataset/urls.py:1-17",
@@ -205,65 +285,21 @@
       "code": "fairdm/core/dataset/plugins.py:262; fairdm/core/measurement/models.py:71-80; fairdm/views/base.py:227-241",
       "test": "tests/test_core/test_dataset/test_views.py::TestDatasetDeleteView::test_deleting_a_dataset_removes_its_samples_and_their_measurements"
     },
-    "T003": {
-      "code": "tests/test_core/test_dataset/conftest.py — the four-actor fixtures",
-      "test": "tests/test_core/test_dataset/conftest.py"
+    "T079": {
+      "code": "no tags field appears on any dataset form",
+      "test": "n/a — a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
     },
-    "T010": {
-      "code": "fairdm/core/formsets.py — date_ordering_formset",
-      "test": "tests/test_core/test_formsets.py — end equal to start"
+    "T080": {
+      "code": "fairdm/core/dataset/views.py:121-123 records the creator and nothing else manages contributions",
+      "test": "n/a — a constraint on this feature's own scope"
     },
-    "T056": {
-      "code": "fairdm/core/dataset/plugins.py — Overview registered against Dataset",
-      "test": "tests/test_contrib/test_plugins/test_pages.py"
+    "T081": {
+      "code": "no publication state exists on Dataset; fairdm/core/dataset/models.py declares visibility alone",
+      "test": "n/a — a constraint on this feature's own scope"
     },
-    "T057": {
-      "code": "fairdm/core/dataset/urls.py:20 — datasets/<uuid>/; fairdm/core/dataset/models.py:327",
-      "test": "tests/test_core/test_dataset/test_models.py — get_absolute_url"
-    },
-    "T059": {
-      "code": "fairdm/core/dataset/models.py:327; fairdm/core/dataset/urls.py",
-      "test": "tests/test_core/test_dataset/test_views.py — address sweep"
-    },
-    "T067": {
-      "code": "fairdm/core/dataset/plugins.py — Update.crud_views, Update.show_delete_action",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageOffersTheDeletionLink::test_a_user_who_may_delete_the_dataset_is_offered_the_link"
-    },
-    "T058": {
-      "code": "fairdm/core/dataset/urls.py:9-22 — plural-only include",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheSingularAddressNoLongerAnswers::test_a_request_to_the_singular_address_is_not_found"
-    },
-    "T060": {
-      "code": "fairdm/core/dataset/plugins.py — Update.permission, Delete.permission, Descriptions.permission; Overview states none",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesStatesItsOwnPermission (3 tests)"
-    },
-    "T061": {
-      "code": "fairdm/core/dataset/plugins.py — dataset_is_visible / visible_to_holder_of on all four pages",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record"
-    },
-    "T062": {
-      "code": "fairdm/core/dataset/plugins.py — one @plugins.register on Overview; Update/Delete/Descriptions are extra_views",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsPagesContributeExactlyOneNavigationEntry (2 tests)"
-    },
-    "T063": {
-      "code": "fairdm/core/dataset/plugins.py — Overview.directory, crud_views, show_update_action/show_delete_action/show_descriptions_action; fairdm/core/dataset/templates/dataset/dataset_detail.html page.actions block",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestTheDatasetsOwnPageOffersUpdateAndDescriptionsLinks; ::TestTheDatasetsOwnPageOffersTheDeletionLink"
-    },
-    "T064": {
-      "code": "fairdm/core/dataset/plugins.py — the same show_*_action gates",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestNoLinkIsOfferedForAnActionTheViewerCannotUse (2 tests)"
-    },
-    "T065": {
-      "code": "fairdm/core/dataset/plugins.py — Overview's crud_views; Delete.get_back_url",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress (4 tests, every page swept whole)"
-    },
-    "T066": {
-      "code": "fairdm/contrib/plugins/base.py get_breadcrumbs; fairdm/core/dataset/plugins.py Delete.get_back_url",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset (3 tests); ::TestUpdatePageOffersTheDeletionLink::test_the_link_returns_to_the_update_page_when_deletion_is_abandoned"
-    },
-    "T068": {
-      "code": "fairdm/core/dataset/plugins.py — show_*_action, the shell's current mechanism; no has_*_permission",
-      "test": "tests/test_core/test_dataset/test_plugins.py::TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning (4 tests)"
+    "T082": {
+      "code": "fairdm/core/project/plugins.py:190-217 — unchanged by this feature; fairdm/views/base.py:227-241",
+      "test": "tests/test_core/test_project/test_views.py::TestProjectDeleteView::test_project_delete_page_refuses_rather_than_raises_on_a_restricted_sample"
     },
     "T085": {
       "code": "fairdm/core/dataset/plugins.py — handle_no_permission on Overview, Update, Descriptions, Delete",
@@ -306,42 +342,6 @@
     "T020": {
       "reason": "built, untested",
       "note": "the shared object card links via get_absolute_url (cotton/components/object_card.html:61); no dataset test asserts the entry links"
-    },
-    "T023": {
-      "reason": "not built",
-      "note": "views.py:68 declares name, project, license — no visibility"
-    },
-    "T024": {
-      "reason": "not built",
-      "note": "visibility appears on no dataset form"
-    },
-    "T025": {
-      "reason": "built differently",
-      "note": "forms.py:171-174 sets the default on DatasetForm, which the creation page does not use (views.py:67 has form_class commented out). test_forms.py:85 pins the literal CC BY 4.0 rather than reading the setting"
-    },
-    "T026": {
-      "reason": "vacuous test",
-      "note": "test_forms.py:118 proves DatasetForm's project field is optional; the creation page uses a generated form built from views.py:68, so the tested form is not the shipped one"
-    },
-    "T027": {
-      "reason": "not built",
-      "note": "views.py:79 has the request kwarg commented out, so the creation page's project field is never narrowed. The form's own filtering is tested (test_forms.py:35) and unreachable from this page"
-    },
-    "T028": {
-      "reason": "vacuous test",
-      "note": "same shape as T026 — test_forms.py:111 tests DatasetForm, not the creation page"
-    },
-    "T029": {
-      "reason": "built, untested",
-      "note": "views.py:110-119 assigns all five permissions. No test asserts it. test_views.py:133's own docstring still says the assignment is disabled pending guardian integration, which stopped being true"
-    },
-    "T031": {
-      "reason": "not built",
-      "note": "DatasetCreateView.form_valid never sets created_by, where ProjectCreateView does (project/views.py:91). The model field exists and its comment cites a portal create view that does not write it"
-    },
-    "T033": {
-      "reason": "not built",
-      "note": "views.py:67 — form_class commented out in favour of a field list"
     },
     "T078": {
       "reason": "not built",

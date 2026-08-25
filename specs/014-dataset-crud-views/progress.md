@@ -27,7 +27,7 @@ Two rulings recorded at the gate:
 | S3 PLAN | done | Research, plan, greenfield task list, reconciliation: 85 tasks, 19 satisfied, 66 open. |
 | S3R DESIGN REVIEW | done | One round, nine findings, all verified and applied; six reconciliation ticks withdrawn. |
 | Plan gate | filed | Recorded on the pull request for veto; approved in session 2026-08-25. |
-| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. US-6 deletion page `a724a5e` and follow-up: 9 tasks closed on evidence. The audit ledger had also drifted from the task ledger — five tasks closed at foundations were never moved out of its open list — so both now read 54 satisfied, 31 open — the update page's own deletion link (T067) closed here too. US-5 links `cc9bc2b` and follow-up: 10 tasks closed on evidence, 64 satisfied, 21 open. |
+| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. US-6 deletion page `a724a5e` and follow-up: 9 tasks closed on evidence. The audit ledger had also drifted from the task ledger — five tasks closed at foundations were never moved out of its open list — so both now read 54 satisfied, 31 open — the update page's own deletion link (T067) closed here too. US-5 links `cc9bc2b` and follow-up: 10 tasks closed on evidence, 64 satisfied, 21 open. US-2 creation page `8af5588..319715a`: 9 tasks closed on evidence, 73 satisfied, 12 open. |
 
 ## Notes from US-5
 
@@ -51,3 +51,23 @@ not `RestrictedError`, which is a sibling under `IntegrityError` rather than a s
 handling, a dataset whose samples are measured by another dataset raised out of the deletion page
 instead of refusing. Caught in `FairDMDeleteView` so the project's page is covered by the same
 path; raised upstream as django-mvp#308 and to be removed when that lands.
+
+## Notes from US-2
+
+`DatasetForm` read the portal's default licence from a module-level `DEFAULT_LICENSE`, evaluated
+once at import. `FAIRDM_DEFAULT_LICENSE` set by a portal after the module loaded, or overridden in
+a test, was therefore never consulted — the form always offered CC BY 4.0. T025 requires the
+configured licence, so the lookup now reads the setting at call time, mirroring
+`models.get_default_license_pk`. The existing return type (a `License` instance rather than a pk)
+is preserved, so `test_forms.py::TestLicenseDefault` continues to pass unmodified.
+
+The creation view had `form_class = DatasetCreateForm` commented out and a `fields` list of its
+own, and `get_form_kwargs` had `kwargs["request"]` commented out with it. That is why the two
+pages looked unalike, and why the creation page offered every project in the portal. Both are now
+live, so the update page's declared form is the single place a dataset's fields are described.
+
+`tests/` is excluded wholesale in `.pre-commit-config.yaml` (`exclude: "^docs/|/migrations/|^tests/"`),
+so `ruff format` never gates a test file. `test_core/test_dataset/test_views.py` has failed
+`ruff format --check` since before this feature, in code this feature did not touch. Left alone:
+reformatting it here would bury the story's diff, and whether the exclusion should stand at all is
+a standards question rather than this feature's.
