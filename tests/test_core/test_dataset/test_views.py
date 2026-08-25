@@ -382,6 +382,18 @@ class TestDatasetListingEmptyState:
         assertContains(response, "There&#x27;s nothing here yet")
 
 
+@pytest.mark.django_db
+class TestDatasetListingEntryLink:
+    """T020/FR-009 — each listing entry links to its dataset's page, reached
+    through the record's own `get_absolute_url` (mirrors
+    TestProjectListing.test_listing_entry_links_to_its_projects_page)."""
+
+    def test_listing_entry_links_to_its_datasets_page(self, client, public_dataset):
+        response = client.get(reverse("dataset-list"))
+        expected_url = public_dataset.get_absolute_url()
+        assertContains(response, f'href="{expected_url}"')
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Dataset
 # ---------------------------------------------------------------------------
