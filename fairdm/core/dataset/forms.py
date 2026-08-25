@@ -3,7 +3,6 @@
 This module provides forms for creating and editing Dataset instances with:
 - Request-based queryset filtering (user permissions)
 - Internationalized help text using gettext_lazy
-- Autocomplete widgets on all ForeignKey/ManyToMany fields
 - License field defaulting to CC BY 4.0
 - Visibility field presented as a radio choice, pre-selecting Public
 - Form-specific help text (not copied from model)
@@ -13,10 +12,7 @@ The forms follow Django best practices and integrate with FairDM's permission sy
 
 from django import forms
 from django.conf import settings
-from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django_addanother.widgets import AddAnotherWidgetWrapper
-from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 from licensing.models import License
 
@@ -65,8 +61,7 @@ class DatasetForm(ModelForm):
     All user-facing strings use gettext_lazy for translation support.
 
     **Widgets:**
-    - Select2 autocomplete on all ForeignKey/ManyToMany fields
-    - "Add another" functionality on project field
+    - Plain select on the project and reference (data publication) fields
     - Image upload with preview (optional)
 
     See Also:
@@ -99,17 +94,10 @@ class DatasetForm(ModelForm):
         label=_("Project"),
         help_text=_(
             "Select the research project this dataset belongs to. Datasets can be "
-            "organized under projects for better management. Use the plus icon to "
-            "quickly create a new project if needed."
+            "organized under projects for better management."
         ),
         required=False,
-        widget=AddAnotherWidgetWrapper(
-            ModelSelect2Widget(
-                search_fields=["name__icontains"],
-                attrs={"data-placeholder": _("Select a project...")},
-            ),
-            reverse_lazy("project-create"),
-        ),
+        widget=forms.Select(attrs={"class": "form-control"}),
     )
 
     license = forms.ModelChoiceField(
@@ -128,16 +116,10 @@ class DatasetForm(ModelForm):
         label=_("Data Publication"),
         help_text=_(
             "Link to the primary data publication (paper, report, or other literature) "
-            "that describes this dataset. Use the plus icon to add a new publication."
+            "that describes this dataset."
         ),
         required=False,
-        widget=AddAnotherWidgetWrapper(
-            ModelSelect2Widget(
-                search_fields=["title__icontains", "authors__icontains"],
-                attrs={"data-placeholder": _("Select a publication...")},
-            ),
-            reverse_lazy("literature-create"),
-        ),
+        widget=forms.Select(attrs={"class": "form-control"}),
     )
 
     visibility = forms.TypedChoiceField(

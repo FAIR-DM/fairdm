@@ -240,61 +240,35 @@ class TestInternationalizedHelpText:
 
 
 @pytest.mark.django_db
-class TestAutocompleteWidgets:
-    """Test autocomplete widgets on applicable fields (T091)."""
+class TestProjectAndReferenceFieldWidgets:
+    """T086 — the project and reference (data publication) fields render as ordinary
+    `forms.Select` widgets, not the django_addanother/select2 wrapper stack, which does not
+    render correctly in the portal. Supersedes ``TestAutocompleteWidgets``: select2 is gone
+    from both fields, not merely tolerated as one option among several."""
 
-    def test_project_field_uses_autocomplete_widget(self):
-        """Test that project field uses Select2 or autocomplete widget."""
+    def test_project_field_uses_a_plain_select_widget(self):
         form = DatasetForm()
 
-        project_field = form.fields.get("project")
-        if project_field:
-            # Widget might be wrapped in AddAnotherWidgetWrapper - check inner widget
-            widget = project_field.widget
-            widget_name = type(widget).__name__
+        widget = form.fields["project"].widget
+        assert type(widget).__name__ == "Select"
+        assert not hasattr(widget, "widget"), "project field is still wrapped"
 
-            # If wrapped, get the inner widget
-            if hasattr(widget, "widget"):
-                inner_widget_name = type(widget.widget).__name__
-                assert (
-                    "Select2" in inner_widget_name
-                    or "Autocomplete" in inner_widget_name
-                ), (
-                    f"Project field should use autocomplete widget, got {inner_widget_name} (wrapped in {widget_name})"
-                )
-            else:
-                assert "Select2" in widget_name or "Autocomplete" in widget_name, (
-                    f"Project field should use autocomplete widget, got {widget_name}"
-                )
+    def test_reference_field_uses_a_plain_select_widget(self):
+        form = DatasetForm()
 
-    def test_license_field_uses_autocomplete_widget(self):
-        """Test that license field uses Select2 or autocomplete widget."""
+        widget = form.fields["reference"].widget
+        assert type(widget).__name__ == "Select"
+        assert not hasattr(widget, "widget"), "reference field is still wrapped"
+
+    def test_license_field_uses_a_select_widget(self):
+        """License field is unaffected by T086; unchanged coverage kept alongside the
+        fields that did change so the widget expectations for this form live in one place."""
         form = DatasetForm()
 
         license_field = form.fields.get("license")
         if license_field:
-            # Widget should support autocomplete for many license options
             widget_name = type(license_field.widget).__name__
-            # Should use Select2 or similar
-            assert (
-                "Select2" in widget_name
-                or "Autocomplete" in widget_name
-                or "Select" in widget_name
-            )
-
-    def test_reference_field_uses_autocomplete_widget(self):
-        """Test that reference field (literature) uses autocomplete widget."""
-        form = DatasetForm()
-
-        reference_field = form.fields.get("reference")
-        if reference_field:
-            widget_name = type(reference_field.widget).__name__
-            # Literature references should use autocomplete for large lists
-            assert (
-                "Select2" in widget_name
-                or "Autocomplete" in widget_name
-                or "AddAnother" in widget_name
-            )
+            assert "Select" in widget_name
 
 
 @pytest.mark.django_db
