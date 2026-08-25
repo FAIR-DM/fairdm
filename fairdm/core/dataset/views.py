@@ -8,15 +8,9 @@ from django.utils.translation import gettext as _
 from guardian.shortcuts import assign_perm
 
 from fairdm.utils.choices import Visibility
-from fairdm.views import (
-    FairDMCreateView,
-    FairDMDeleteView,
-    FairDMListView,
-    FairDMUpdateView,
-)
+from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMListView
 
 from .filters import DatasetFilter
-from .forms import DatasetForm
 from .models import Dataset, DatasetQuerySet
 
 
@@ -127,67 +121,6 @@ class DatasetListView(FairDMListView):
         """
         qs: DatasetQuerySet = super().get_queryset()
         return qs.with_contributors()
-
-
-class DatasetUpdateView(LoginRequiredMixin, FairDMUpdateView):
-    """View for editing existing Dataset instances.
-
-    Enforces ``change_dataset`` object-level permission. Passes ``request``
-    to ``DatasetForm`` so the project dropdown is filtered to the user's
-    accessible projects. Redirects to the dataset detail page on success.
-
-    Permissions required:
-        change_dataset: To edit the dataset
-
-    Usage:
-        URL: /datasets/<uuid>/update/
-        Login required: Yes
-        Object permission: change_dataset
-    """
-
-    model = Dataset
-    form_class = DatasetForm
-    slug_field = "uuid"
-    slug_url_kwarg = "uuid"
-    template_name = "plugins/form_view.html"
-
-    def get_object(self, queryset=None):
-        """Retrieve dataset and enforce change_dataset permission.
-
-        Looked up through ``Dataset.all_objects`` rather than the
-        privacy-first default manager: an owner editing their own private
-        dataset is exactly the case FR-019's default exclusion is not
-        meant to block, and the permission check below is what actually
-        gates access.
-        """
-        uuid = self.kwargs.get("uuid")
-        dataset = get_object_or_404(Dataset.all_objects, uuid=uuid)
-        if not self.request.user.has_perm("change_dataset", dataset):
-            if dataset.visibility != Visibility.PUBLIC:
-                raise Http404("No dataset matches the given query.")
-            raise PermissionDenied("You do not have permission to edit this dataset.")
-        return dataset
-
-    def get_form_kwargs(self):
-        """Add request to form kwargs for user-specific project filtering.
-
-        Returns:
-            dict: Form kwargs including the current request.
-        """
-        kwargs = super().get_form_kwargs()
-        kwargs["request"] = self.request
-        return kwargs
-
-    def get_success_url(self) -> str:
-        """Return URL to redirect to after successful update.
-
-        ``Dataset.get_absolute_url()`` rather than a name reversed here: the dataset's own page
-        is a registration, not a standalone route, since 014 T057.
-
-        Returns:
-            str: URL to the dataset's own page.
-        """
-        return str(self.object.get_absolute_url())
 
 
 class DatasetDeleteView(LoginRequiredMixin, FairDMDeleteView):

@@ -182,54 +182,91 @@ class TestDatasetCreateView:
 # ---------------------------------------------------------------------------
 
 
+def _identifier_management_data(total=0, initial=0):
+    """Management-form boilerplate for the attributes page's identifiers row set
+    (`fairdm/core/related_records.py` `DatasetIdentifierInline`, prefix `identifiers` from
+    `AbstractIdentifier.Meta.default_related_name`). Mirrors
+    `tests/test_core/test_project/test_views.py`'s helper of the same name."""
+    return {
+        "identifiers-TOTAL_FORMS": str(total),
+        "identifiers-INITIAL_FORMS": str(initial),
+        "identifiers-MIN_NUM_FORMS": "0",
+        "identifiers-MAX_NUM_FORMS": "1000",
+    }
+
+
+def _date_management_data(total=0, initial=0):
+    """Management-form boilerplate for the attributes page's dates row set
+    (`fairdm/core/related_records.py` `DatasetDateInline`, prefix `dates` from
+    `AbstractDate.Meta.default_related_name`). Mirrors
+    `tests/test_core/test_project/test_views.py`'s helper of the same name."""
+    return {
+        "dates-TOTAL_FORMS": str(total),
+        "dates-INITIAL_FORMS": str(initial),
+        "dates-MIN_NUM_FORMS": "0",
+        "dates-MAX_NUM_FORMS": "1000",
+    }
+
+
 @pytest.mark.django_db
 class TestDatasetUpdateView:
-    """Smoke tests and behaviour tests for DatasetUpdateView (US3)."""
+    """Smoke tests and behaviour tests for the update page (US3), an additional view of
+    `dataset:overview` rather than the retired standalone `dataset-update` route (014 plan P1).
+    Row-set and field-set behaviour lives in `tests/test_core/test_dataset/test_plugins.py`,
+    mirroring the project's own split.
+    """
 
     def test_anonymous_redirects_to_login(self, client):
-        """T019 — GET /datasets/<uuid>/update/ by anonymous client returns 302."""
-        dataset = DatasetFactory()
-        url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
+        """T019/T034 — GET the update page for a public dataset by an anonymous client
+        returns 302, since it is public visibility, not authentication, that the 404
+        override below is guarding."""
+        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
+    def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
+        """T035 — An anonymous visitor to a private dataset's update page answers 404, not a
+        sign-in redirect, so the address does not confirm the record exists — the same
+        disclosure rule `dataset:overview` itself carries (014 plan P1)."""
+        dataset = DatasetFactory()  # private, per the model default
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+        assert response.status_code == 404
+
     def test_no_permission_on_a_public_dataset_returns_403(self, client):
-        """T020 — Authenticated client without change_dataset returns 403."""
+        """T020/T035 — Authenticated client without change_dataset returns 403."""
         user = UserFactory()
         dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
-        url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
     def test_no_permission_on_a_private_dataset_returns_404(self, client):
-        """A private dataset the user may not edit answers 404, not 403, so the
-        response does not confirm that a dataset with this address exists. 004
-        supersedes 014's 403 here: 014 was written before a dataset had a
-        visibility, and the API already answers `NotFound` for the same reason
-        (`fairdm/api/permissions.py`).
-        """
+        """T035 — A private dataset the user may not edit answers 404, not 403, so the
+        response does not confirm that a dataset with this address exists — the same
+        disclosure rule `dataset:overview` itself carries (014 plan P1)."""
         user = UserFactory()
         dataset = DatasetFactory()  # private, per the model default
         client.force_login(user)
-        url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
     def test_with_permission_returns_200(self, client):
-        """T021 — Client with change_dataset permission GET returns 200."""
+        """T021/T034 — Client with change_dataset permission GET returns 200."""
         user = UserFactory()
         dataset = DatasetFactory()
         assign_perm("change_dataset", user, dataset)
         client.force_login(user)
-        url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
     def test_valid_post_redirects_to_detail(self, client):
-        """T022 — Valid POST by permitted user returns 302 to the dataset's own page
-        (dataset:overview, 014 T057). FR-018a."""
+        """T022/T045 — Valid POST by permitted user returns 302 to the dataset's own page."""
         from licensing.models import License
 
         user = UserFactory()
@@ -243,13 +280,16 @@ class TestDatasetUpdateView:
         project.add_contributor(user)
         license_obj = dataset.license if dataset.license else License.objects.first()
 
-        url = reverse("dataset-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.post(
             url,
             data={
                 "name": "Updated Name",
                 "project": project.pk,
                 "license": license_obj.pk,
+                "visibility": dataset.visibility,
+                **_identifier_management_data(),
+                **_date_management_data(),
             },
         )
 
