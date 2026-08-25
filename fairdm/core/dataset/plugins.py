@@ -9,7 +9,6 @@ from mvp.views.detail import CRUDDirectoryMixin
 from mvp.views.inline import InlinesMixin
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.descriptions import VocabularyDescriptionsForm
@@ -17,7 +16,6 @@ from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.plugins import OverviewPlugin
 from fairdm.core.related_records import DatasetDateInline, DatasetIdentifierInline
 from fairdm.utils.choices import Visibility
-from fairdm.utils.utils import user_guide
 from fairdm.views import FairDMDeleteView, FairDMUpdateView
 
 from .forms import DatasetForm
@@ -71,43 +69,15 @@ def visible_to_holder_of(permission):
 
 # ======== Management Plugins ======== #
 
-
-@plugins.register(Dataset, label=_("Keywords"), icon="keywords", order=520)
-class Keywords(KeywordsPlugin):
-    heading_config = {
-        "title": _("Keywords"),
-        "description": _(
-            "Keywords enhance your dataset's visibility in search engines and catalogs by summarizing its content. They help others quickly evaluate its relevance without reading the full documentation."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("dataset/keywords"),
-                "icon": "documentation",
-            }
-        ],
-    }
-    permission = "dataset.change_dataset"
-
-
-@plugins.register(Dataset, label=_("Key Dates"), icon="date", order=530)
-class KeyDates(KeyDatesPlugin):
-    heading_config = {
-        "title": _("Key Dates"),
-        "description": _(
-            "Entering key dates helps track important milestones and timelines, supporting effective dataset management and giving others insight into the dataset's history and progress."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("dataset/key-dates"),
-                "icon": "documentation",
-            }
-        ],
-    }
-    permission = "dataset.change_dataset"
-    model = Dataset
-    inline_model = DatasetDate
+# A dataset once carried two further registered pages of its own. Neither survives here:
+#
+# - Keywords. Keyword editing is rebuilt whole against the controlled vocabularies in a later
+#   specification, so the page is removed rather than carried over (FR-063). The generic
+#   ``KeywordsPlugin`` it was built on stays where it is; a sample still registers one.
+# - Key Dates. A dataset's collection dates are now rows on its update page
+#   (:class:`DatasetDatesInline`), so a second page editing the same records would be both a
+#   duplicate and a second navigation entry (FR-062). Mirrors ``fairdm.core.project.plugins``,
+#   which registers neither.
 
 
 class DatasetDatesInline(DatasetDateInline):

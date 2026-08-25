@@ -48,7 +48,7 @@ from urllib.parse import quote
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from guardian.shortcuts import assign_perm
 from licensing.models import License
 from mvp.warnings import MVPDeprecationWarning
@@ -1571,3 +1571,34 @@ class TestNoAddressDisclosesAPrivateDatasetsExistence:
             response = client.get(url)
             assert response.status_code == 302, name
             assert "/login/" in response.url or "/accounts/login/" in response.url
+
+
+@pytest.mark.django_db
+class TestRetiredManagementPages:
+    """T078/FR-063, FR-062 — a dataset once carried a keywords page and a key-dates page, each
+    registered against the record and each taking a navigation entry of its own. Keyword editing
+    is rebuilt against the controlled vocabularies in a later specification, and collection dates
+    are now rows on the update page, so neither page survives: no address answers for them, and
+    the dataset's menu carries a single entry."""
+
+    RETIRED_ADDRESSES = ("dataset:keywords", "dataset:key-dates")
+    RETIRED_PATHS = ("keywords", "key-dates")
+
+    def test_no_address_resolves_for_either_retired_page(self):
+        for name in self.RETIRED_ADDRESSES:
+            with pytest.raises(NoReverseMatch):
+                reverse(name, kwargs={"uuid": DatasetFactory.build().uuid})
+
+    def test_neither_retired_address_answers(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        overview = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+
+        for segment in self.RETIRED_PATHS:
+            response = client.get(f"{overview}{segment}/")
+            assert response.status_code == 404, segment
+
+    def test_the_dataset_menu_carries_one_entry(self):
+        plugins.registry.get_urls_for_model(Dataset)
+        menu = plugins.registry.get_plugin_menu_for_model(Dataset)
+        labels = [item.extra_context.get("label") for item in menu.children]
+        assert labels == ["Overview"]
