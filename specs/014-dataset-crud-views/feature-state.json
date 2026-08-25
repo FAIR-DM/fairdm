@@ -3,7 +3,7 @@
   "feature": "014-dataset-crud-views",
   "branch": "014-dataset-crud-views",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -29,6 +29,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-08-25T13:20:00Z",
       "note": "one round, nine findings applied; plan amended again for django-mvp 0.19.3 and the shell's cascade preview"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-25T13:55:00Z",
+      "note": "foundations: registration, address move, fixtures and the missing ordering case (ecad5f9)"
     }
   ],
   "gates": {
@@ -85,8 +90,19 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "tests/test_core/test_dataset/conftest.py"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/conftest.py"
+            ],
+            "commands": [
+              "pytest \u2014 2354 passed, 13 skipped"
+            ]
+          }
         },
         {
           "id": "T011",
@@ -156,7 +172,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — the requirement is that the design is not changed; nothing to build"
+              "n/a \u2014 the requirement is that the design is not changed; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -368,8 +384,19 @@
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/formsets.py"
+            ],
+            "tests": [
+              "tests/test_core/test_formsets.py::TestDateOrderingFormSet::test_an_equal_start_and_end_is_accepted"
+            ],
+            "commands": [
+              "pytest \u2014 2354 passed, 13 skipped"
+            ]
+          }
         },
         {
           "id": "T034",
@@ -459,7 +486,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
+              "n/a \u2014 a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -475,7 +502,7 @@
               "fairdm/core/dataset/views.py:121"
             ],
             "tests": [
-              "n/a — a constraint on this feature's own scope"
+              "n/a \u2014 a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -488,7 +515,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — a constraint on this feature's own scope"
+              "n/a \u2014 a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -569,13 +596,36 @@
       "tasks": [
         {
           "id": "T056",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py"
+            ],
+            "tests": [
+              "tests/test_contrib/test_plugins/test_pages.py::TestRecordPagesServe::test_dataset_overview"
+            ],
+            "commands": [
+              "pytest \u2014 2354 passed, 13 skipped"
+            ]
+          }
         },
         {
           "id": "T057",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/urls.py",
+              "fairdm/core/dataset/models.py"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_models.py::TestDatasetModel::test_dataset_absolute_url"
+            ],
+            "commands": [
+              "pytest \u2014 2354 passed, 13 skipped"
+            ]
+          }
         },
         {
           "id": "T058",
@@ -584,8 +634,19 @@
         },
         {
           "id": "T059",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/views.py"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_views.py::TestDatasetViews::test_dataset_detail_view_accessible"
+            ],
+            "commands": [
+              "pytest \u2014 2354 passed, 13 skipped"
+            ]
+          }
         },
         {
           "id": "T060",
@@ -638,7 +699,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — the requirement is that the page is not redesigned; nothing to build"
+              "n/a \u2014 the requirement is that the page is not redesigned; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
