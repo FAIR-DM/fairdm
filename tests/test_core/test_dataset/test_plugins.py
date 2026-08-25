@@ -1273,3 +1273,39 @@ class TestTheDatasetsOwnPageOffersTheDeletionLink:
 
         delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         assertNotContains(response, f'href="{delete_url}"')
+
+
+@pytest.mark.django_db
+class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
+    """T064/FR-051 — a user holding some, but not all, of the dataset's action permissions is
+    offered exactly the links they may follow, never one that would refuse them if followed.
+    Tested against each of the three actions in turn, granting every other right but the one it
+    needs, so a link gated on the wrong permission cannot pass by accident."""
+
+    def test_a_user_who_may_delete_but_not_change_sees_no_update_or_descriptions_link(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+
+        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        descriptions_url = reverse(
+            "dataset:overview-descriptions", kwargs={"uuid": dataset.uuid}
+        )
+        assertNotContains(response, f'href="{update_url}"')
+        assertNotContains(response, f'href="{descriptions_url}"')
+
+    def test_a_user_who_may_change_but_not_delete_sees_no_deletion_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        assertNotContains(response, f'href="{delete_url}"')
