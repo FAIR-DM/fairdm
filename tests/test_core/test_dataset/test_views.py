@@ -275,7 +275,6 @@ class TestDatasetListingFiltersAllRunWithoutError:
             "description_type": "Abstract",
             "date_type": "Available",
             "image": "true",
-            "visibility": Visibility.PUBLIC,
         }[field_name]
 
     def test_every_offered_filter_runs_without_raising(self, client):
@@ -303,6 +302,17 @@ class TestDatasetListingFiltersAllRunWithoutError:
             assert dataset in entries, (
                 f"applying '{field_name}' did not return the matching dataset"
             )
+
+
+@pytest.mark.django_db
+class TestDatasetListingOffersNoDeadFilter:
+    """T017/FR-006 — no filter is offered that cannot change the result set. The
+    listing shows public datasets only (T012), so a visibility choice between Public
+    and Private can never narrow it — that filter is withdrawn (014 plan P8)."""
+
+    def test_the_rendered_filterset_form_offers_no_visibility_field(self, client):
+        response = client.get(reverse("dataset-list"))
+        assert "visibility" not in response.context["filter"].form.fields
 
 
 # ---------------------------------------------------------------------------

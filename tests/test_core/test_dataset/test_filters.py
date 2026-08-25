@@ -6,16 +6,18 @@ for datasets based on:
 
 1. **License filtering**: Exact match filtering by license
 2. **Project filtering**: Choice-based filtering by associated project
-3. **Visibility filtering**: Choice-based filtering by visibility level
-4. **Cross-relationship filters**: Filter by related descriptions and dates
-5. **Multiple filter combinations**: AND logic when multiple filters applied
-6. **Performance**: Ensure efficient queries on large datasets
+3. **Cross-relationship filters**: Filter by related descriptions and dates
+4. **Multiple filter combinations**: AND logic when multiple filters applied
+5. **Performance**: Ensure efficient queries on large datasets
 
 The listing's own text search (name, UUID, external identifiers, descriptions and
 keywords) is covered against the rendered listing in `test_views.py`
 (`TestDatasetListingSearch`), not here — the filterset's own competing `search` field was
 withdrawn (014 plan P8), and `TestGenericSearch`, which exercised it directly, was
-removed with it (014 T013).
+removed with it (014 T013). The filterset's `visibility` field was withdrawn the same
+way (014 T017): the listing shows public datasets only, so a visibility choice could
+never change the result set, and `TestVisibilityFilter`, which exercised it directly,
+was removed with it.
 
 These tests follow TDD principles - they are written FIRST and should FAIL
 until DatasetFilter is properly implemented.
@@ -24,7 +26,6 @@ until DatasetFilter is properly implemented.
 
 - TestLicenseFilter: Tests for filtering by license
 - TestProjectFilter: Tests for filtering by project
-- TestVisibilityFilter: Tests for filtering by visibility level
 - TestCrossRelationshipFilters: Tests for filters on related models
 - TestMultipleFilterCombinations: Tests AND logic with multiple filters
 - TestFilterPerformance: Tests query efficiency on large datasets
@@ -146,61 +147,6 @@ class TestProjectFilter:
 
 
 @pytest.mark.django_db
-class TestVisibilityFilter:
-    """Test filtering datasets by visibility level.
-
-    Verifies that the visibility filter correctly matches datasets by their
-    visibility setting (PUBLIC or PRIVATE).
-    """
-
-    def test_filter_by_visibility_public(self):
-        """Visibility filter should return only PUBLIC datasets when PUBLIC selected."""
-        # Arrange
-        ds_public = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-        DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
-
-        # Act
-        filterset = DatasetFilter(
-            data={"visibility": Dataset.VISIBILITY_CHOICES.PUBLIC},
-            queryset=Dataset.objects.all(),
-        )
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 1
-        assert ds_public in filterset.qs
-
-    def test_filter_by_visibility_private(self):
-        """Visibility filter should return only PRIVATE datasets when PRIVATE selected."""
-        # Arrange
-        DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-        ds_private = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PRIVATE)
-
-        # Act
-        # Base queryset is `all_objects`: this test's subject IS visibility, and
-        # `Dataset.objects` (privacy-first, 004-core-datasets FR-019) would exclude
-        # the private row before the filter ever saw it, leaving nothing to prove
-        # the filter itself narrows correctly. `all_objects` supplies both rows so
-        # the filter — not the manager — is what is under test.
-        filterset = DatasetFilter(
-            data={"visibility": Dataset.VISIBILITY_CHOICES.PRIVATE},
-            queryset=Dataset.all_objects.all(),
-        )
-
-        # Assert
-        assert filterset.is_valid()
-        assert filterset.qs.count() == 1
-        assert ds_private in filterset.qs
-
-    @pytest.mark.skip(
-        reason="INTERNAL visibility does not exist - only PUBLIC and PRIVATE"
-    )
-    def test_filter_by_visibility_internal(self):
-        """Skipped - INTERNAL visibility level does not exist."""
-        pass
-
-
-@pytest.mark.django_db
 class TestCrossRelationshipFilters:
     """Test filtering by related model fields.
 
@@ -282,9 +228,10 @@ class TestMultipleFilterCombinations:
     def test_combine_all_filters(self):
         """Combining all available filters should progressively narrow results.
 
-        014 T013 — the withdrawn `search` field (see module docstring) is no longer part
-        of this combination; the decoys are distinguished by license, project and
-        visibility instead, which still all exist on this filterset.
+        014 T013/T017 — the withdrawn `search` and `visibility` fields (see module
+        docstring) are no longer part of this combination; the decoys are distinguished
+        by license, project and description_type instead, which still all exist on this
+        filterset.
         """
         # Arrange
         cc_by = License.objects.get(name="CC BY 4.0")
@@ -292,37 +239,25 @@ class TestMultipleFilterCombinations:
         project = ProjectFactory()
         other_project = ProjectFactory()
 
-        ds_match = DatasetFactory(
-            license=cc_by,
-            project=project,
-            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
-        )
+        ds_match = DatasetFactory(license=cc_by, project=project)
+        DatasetDescriptionFactory(related=ds_match, type="Abstract")
 
         # Create datasets that don't match all criteria
-        DatasetFactory(
-            license=cc_by,
-            project=other_project,  # Wrong project
-            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
-        )
-        DatasetFactory(
-            license=cc0,  # Wrong license
-            project=project,
-            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC,
-        )
-        DatasetFactory(
-            license=cc_by,
-            project=project,
-            visibility=Dataset.VISIBILITY_CHOICES.PRIVATE,  # Wrong visibility
-        )
+        wrong_project = DatasetFactory(license=cc_by, project=other_project)
+        DatasetDescriptionFactory(related=wrong_project, type="Abstract")
+        wrong_license = DatasetFactory(license=cc0, project=project)
+        DatasetDescriptionFactory(related=wrong_license, type="Abstract")
+        wrong_type = DatasetFactory(license=cc_by, project=project)
+        DatasetDescriptionFactory(related=wrong_type, type="Methods")
 
         # Act
         filterset = DatasetFilter(
             data={
                 "license": cc_by.id,
                 "project": project.id,
-                "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC,
+                "description_type": "Abstract",
             },
-            queryset=Dataset.objects.all(),
+            queryset=Dataset.all_objects.all(),
         )
 
         # Assert
@@ -379,7 +314,6 @@ class TestFilterFormRendering:
         expected_fields = [
             "license",
             "project",
-            "visibility",
             "description_type",
             "date_type",
         ]
@@ -408,7 +342,6 @@ class TestFilterFormRendering:
             data={
                 "license": license_obj.id,
                 "project": project.id,
-                "visibility": Dataset.VISIBILITY_CHOICES.PUBLIC,
             },
             queryset=Dataset.objects.all(),
         )

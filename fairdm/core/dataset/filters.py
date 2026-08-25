@@ -5,14 +5,18 @@ This module provides filtering capabilities for Dataset querysets using django-f
 The DatasetFilter class enables filtering by:
 
 1. **License**: Exact match filtering by license
-2. **Project**: Choice-based filtering by associated project
-3. **Visibility**: Choice-based filtering by visibility level (PUBLIC/PRIVATE)
-4. **Cross-relationship Filters**: Filter by related DatasetDescription and DatasetDate types
+2. **Project**: Choice-based filtering by associated project, narrowed to the projects
+   the requester may see
+3. **Cross-relationship Filters**: Filter by related DatasetDescription and DatasetDate types
 
 The listing's own text search (name, UUID and keywords, extended to also cover external
 identifiers and descriptions) is the shell's `?q=` control
 (`DatasetListView.search_fields`), not a filter on this class — a second, competing search
 field used to live here and has been withdrawn (014 T013).
+
+A visibility filter used to live here too. The listing shows public datasets only
+(`DatasetListView.get_queryset`), so a choice between Public and Private could never
+change the result set — it has been withdrawn as a dead filter (014 T017).
 
 All filters combine using AND logic when multiple filters are applied.
 
@@ -50,7 +54,6 @@ filterset = DatasetFilter(
     data={
         "license": cc_by.id,
         "project": project.id,
-        "visibility": "PUBLIC",
     },
     queryset=Dataset.objects.all(),
 )
@@ -78,8 +81,8 @@ class DatasetFilter(BaseListFilter):
 
     **Basic Filters**:
     - license: Exact match on dataset license
-    - project: Choice-based filter on associated project
-    - visibility: Choice-based filter on visibility level
+    - project: Choice-based filter on associated project, narrowed to the projects the
+      requester may see
 
     **Cross-Relationship Filters**:
     - description_type: Filter by DatasetDescription type (ABSTRACT, METHODS, etc.)
@@ -88,8 +91,8 @@ class DatasetFilter(BaseListFilter):
     **Filter Logic**:
     All filters combine using AND logic - applying multiple filters progressively
     narrows the result set. For example:
-    - license=CC_BY AND project=X AND visibility=PUBLIC
-    - Returns only datasets matching ALL three criteria
+    - license=CC_BY AND project=X
+    - Returns only datasets matching both criteria
 
     **Performance**:
     - Cross-relationship filters use database indexes on type fields
@@ -125,14 +128,6 @@ class DatasetFilter(BaseListFilter):
         label="Project",
         help_text="Filter by associated project",
         empty_label="All projects",
-    )
-
-    visibility = django_filters.ChoiceFilter(
-        field_name="visibility",
-        choices=Dataset.VISIBILITY_CHOICES.choices,
-        label="Visibility",
-        help_text="Filter by visibility level",
-        empty_label="All visibility levels",
     )
 
     description_type = django_filters.CharFilter(
