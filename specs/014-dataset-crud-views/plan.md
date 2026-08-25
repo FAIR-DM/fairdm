@@ -12,7 +12,7 @@ what remains is configuration and the tests that pin it.
 
 | Story | What the plan does | Size against expectation |
 |---|---|---|
-| US-1 Find a dataset | Add the entry link; repair three filters | **larger** |
+| US-1 Find a dataset | Add the entry link; repair four filters; collapse two searches into one | **larger** |
 | US-2 Register a dataset | Use the declared form again, add visibility, filter the project field | as expected |
 | US-3 Correct attributes | Row sets for identifiers and dates; the page moves into the collection; the DOI box goes | **larger** |
 | US-4 Describe a dataset | Configuration — the form already exists | **much smaller** |
@@ -42,6 +42,23 @@ never wired up (#190).
 
 `Overview` mixes in `CRUDDirectoryMixin` and states `directory` and `crud_views` for all three
 actions, because the mixin's defaults resolve to the standalone routes this feature retires.
+
+**The refusal code for a private dataset is preserved, and this is not automatic.** The pages being
+retired answer 404 to a request for a private dataset the user may not touch, deliberately, so the
+response does not confirm that the record exists — `fairdm/core/dataset/views.py:46-55` says so, and
+`fairdm.api.permissions` raises `NotFound` for the same reason. The registered path does not behave
+that way: `Plugin.has_permission` hands a refusal to `PermissionRequiredMixin.handle_no_permission`,
+which sends an anonymous visitor to log in and gives a signed-in stranger 403. Both disclose that the
+dataset exists. Moving the pages without acting would therefore turn four addresses into an existence
+oracle for embargoed metadata, and the only visible symptom would be two existing assertions going
+red — the kind of thing an address sweep absorbs.
+
+So the dataset's pages override `handle_no_permission` to raise `Http404` when the record is not
+public, and to fall through to the inherited behaviour when it is. That reproduces exactly what the
+standalone views do today: no rights and not public answers 404, no rights and public answers 403.
+The assertions at `tests/test_core/test_dataset/test_views.py:205` and `:287` are re-aimed at the new
+addresses and keep their expected status. The same disclosure exists on the project's registered
+pages, which are out of this feature's scope; it is raised separately.
 
 **Every page states its own permission and its own visibility rule** — `dataset.change_dataset` for
 the update and descriptions pages, `dataset.delete_dataset` for the deletion page — because
@@ -138,8 +155,11 @@ The plan instead:
 - writes the behavioural test for FR-045 against the posted form, as the existing deletion tests are;
 - adds a rendering test asserting the deletion page carries exactly one control named
   `confirmation`, which **fails today** and is the check that reports when the upstream fix lands;
-- marks that test as expected-to-fail against the pinned version, with the issue in the reason, so
-  the suite stays green and the failure is not silently absorbed;
+- marks that test `@pytest.mark.xfail(strict=True, reason=…)` against the pinned version, with the
+  issue in the reason, so the suite stays green and the failure is not silently absorbed. **Strict is
+  the whole mechanism**: `xfail_strict` defaults to False and this project does not set it, so
+  without it the day the upstream fix lands the test passes unexpectedly, is reported as `xpassed`
+  and fails nothing — and the one signal that FR-045 has become satisfiable in a browser never fires;
 - raises the defect against django-mvp with the reproduction.
 
 If Sam would rather this feature carried a temporary local override, that is a scope change and goes
@@ -157,12 +177,35 @@ The generic `DescriptionsPlugin` and `KeyDatesPlugin` are not repaired and not r
 pages still use them, and they are #280's business. PR #287 repaired them for both record types and
 is superseded here for the dataset half only.
 
-### P8 — The listing's three filter faults
+### P8 — The listing's filter faults, and its two searches
 
 `date_type` is repointed from `dates__date_type` to `dates__type`, matching the sibling filter that
-works. The visibility filter is removed — it cannot change the result set on a listing that shows
-public datasets only. The project filter's queryset is narrowed to projects the viewer may see, and
-the branch in `__init__` that tests authentication and then sets the same value in both arms goes.
+works.
+
+`image` is repointed from `images` to `image`. It is inherited from `BaseListFilter`
+(`fairdm/core/filters.py:13-18`), which declares a relation neither record type has — both carry a
+scalar `image` — so applying it raises `FieldError` and the page 500s. This is the same shape as the
+`date_type` fault, one level up: the fix is one line in the shared base and it repairs the project
+listing in the same pass.
+
+The visibility filter is removed — it cannot change the result set on a listing that shows public
+datasets only.
+
+**The project filter's rule is stated rather than inherited.** It offers public projects, plus any
+the requester holds `view_project` on at record level, and public projects alone for a visitor who is
+not signed in. This is not the rule the creation form uses — that one is contribution-based
+(`request.user.projects.all()`), which is the right rule for "projects this researcher may file
+under" and the wrong one for a listing open to anonymous visitors, where it raises. Two different
+questions, two different rules. The branch in `__init__` that tests authentication and then sets the
+same value in both arms goes.
+
+**The listing keeps one search, not two.** `DatasetListView.search_fields` binds to `?q=` while
+`DatasetFilter.search` is offered on the same page under `?search=`, over a different field set, and
+neither reaches the dataset's external identifiers — which is what a researcher pastes into a search
+box. `DatasetFilter.search` is withdrawn as the duplicate and `search_fields` becomes
+`["name", "uuid", "identifiers__value", "descriptions__value", "keywords__name"]`: the project's set
+(`fairdm/core/project/views.py:27`) plus the two the dataset's own requirements name, and keywords
+carried over from the withdrawn filter so nothing is lost.
 
 The stale INTERNAL visibility level in the module and class docstrings is corrected in the same
 pass.
@@ -176,16 +219,29 @@ not belong in a feature about a dataset's pages.
 
 ## Order
 
-1. **Foundations** — the dates row set, the form changes, the filter repairs. No page moves yet, so
-   the suite stays meaningful throughout.
+1. **Foundations** — the dates row set, the form changes, the filter repairs, **and the registration
+   and address move (T056, T057, T059)**.
 2. **US-3** — the update page as an extra view, with its row sets. The largest story and the one the
    others' navigation depends on.
 3. **US-4** — descriptions as an extra view.
 4. **US-6** — deletion as an extra view, with the warning template.
-5. **US-5** — the overview registration, the address move, and the links. Last, because it is the
-   step that retires the standalone routes, and it wants the pages it links to already built.
+5. **US-5** — the singular form ceasing to answer, the links, and the navigation-entry count
+   (T058, T060–T068).
 6. **US-2** and **US-1** — creation and the listing, which are the smallest and depend on nothing
    above except the form changes.
+
+**Why the registration comes first, against the instinct to move addresses last.** An extra view has
+no route of its own: `Plugin.get_urls` (`fairdm/contrib/plugins/base.py:123-137`) mounts each entry
+of `extra_views` inside the *owning registered* plugin's patterns, which is why the project's
+`Update`, `Delete` and `Descriptions` carry no registration decorator and exist only because
+`Overview.extra_views` lists them. Until `Overview` is registered, `dataset:overview-update`,
+`-descriptions` and `-delete` do not resolve at all, so every behavioural task in steps 2–4 is a view
+test with no view to request — failing with `NoReverseMatch`, which is failing for the wrong reason
+and does not satisfy Article I.
+
+The reason the move was placed last — that it wants the pages it links to already built — is met by
+registering `Overview` with an empty `extra_views` and appending each page as it lands. The links
+themselves stay in US-5, where they belong.
 
 US-1 and US-2 could run earlier; they are placed last because their remaining work is small and the
 address move touches their tests.
@@ -216,6 +272,9 @@ address move touches their tests.
 - #298: the keyword rebuild, and what becomes of the now-unregistered base classes (P9).
 - #297: the project's deletion refusal, keyed on visibility rather than publication.
 - #296: takedown requests for published data.
+- The project's registered pages answer 403 or a login redirect for a private project, disclosing
+  that it exists, where the API answers 404 (P1). Out of scope here; raised for the project's own
+  pages.
 
 ## Risks
 
