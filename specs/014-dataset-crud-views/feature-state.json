@@ -7,39 +7,44 @@
   "state_history": [
     {
       "state": "SPECIFY",
-      "at": "2026-08-25T09:00:00Z",
+      "at": "2026-08-25T07:00:00Z",
       "note": "spec.md rewritten in place from intent"
     },
     {
       "state": "SETUP",
-      "at": "2026-08-25T10:00:00Z",
+      "at": "2026-08-25T08:00:00Z",
       "note": "epic #288, stories #289-294, draft PR #295"
     },
     {
       "state": "GATE_SPEC",
-      "at": "2026-08-25T10:30:00Z",
+      "at": "2026-08-25T08:30:00Z",
       "note": "approved in session"
     },
     {
       "state": "PLAN",
-      "at": "2026-08-25T11:30:00Z",
+      "at": "2026-08-25T09:30:00Z",
       "note": "research, plan, greenfield tasks, reconciliation"
     },
     {
       "state": "DESIGN_REVIEW",
-      "at": "2026-08-25T13:20:00Z",
+      "at": "2026-08-25T11:20:00Z",
       "note": "one round, nine findings applied; plan amended again for django-mvp 0.19.3 and the shell's cascade preview"
     },
     {
       "state": "IMPLEMENT",
-      "at": "2026-08-25T13:55:00Z",
+      "at": "2026-08-25T11:55:00Z",
       "note": "foundations: registration, address move, fixtures and the missing ordering case (ecad5f9)"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-25T13:08:00Z",
+      "note": "US-3 update page: 13 tasks closed on evidence (ce696e9, 3adad5e, 99b9501, 8d90997)"
     }
   ],
   "gates": {
     "spec": {
       "approved_by": "SamuelJennings",
-      "at": "2026-08-25T10:30:00Z",
+      "at": "2026-08-25T08:30:00Z",
       "self_resolved": [
         "listing filters repaired inside this feature",
         "creation page reuses the declared form",
@@ -56,7 +61,7 @@
     },
     "design_review": {
       "approved_by": "design-panel",
-      "at": "2026-08-25T13:20:00Z",
+      "at": "2026-08-25T11:20:00Z",
       "self_resolved": [
         "nine findings, all accepted and applied to plan, tasks and reconciliation",
         "six reconciliation ticks withdrawn as coverage assumed rather than present",
@@ -102,7 +107,7 @@
               "tests/test_core/test_dataset/conftest.py:48"
             ],
             "commands": [
-              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -174,7 +179,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — the requirement is that the design is not changed; nothing to build"
+              "n/a \u2014 the requirement is that the design is not changed; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -290,7 +295,7 @@
       "id": "US3",
       "priority": "P1",
       "issue": 291,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -396,59 +401,184 @@
               "tests/test_core/test_formsets.py:120"
             ],
             "commands": [
-              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:154",
+              "fairdm/core/dataset/plugins.py:166",
+              "fairdm/core/dataset/plugins.py:222",
+              "fairdm/core/dataset/urls.py:14"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:96 \u2014 resolves as an extra view",
+              "tests/test_core/test_dataset/test_views.py:219 \u2014 anonymous sign-in redirect",
+              "tests/test_core/test_dataset/test_views.py:258 \u2014 200 with permission"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:170",
+              "fairdm/core/dataset/plugins.py:175",
+              "fairdm/core/dataset/plugins.py:182"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:121,134 \u2014 refuses a signed-in user without the grant and an anonymous request",
+              "tests/test_core/test_dataset/test_plugins.py:144 \u2014 a model-level holder with no record-level grant is refused",
+              "tests/test_core/test_dataset/test_views.py:229,247 \u2014 private answers 404"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/forms.py:159",
+              "fairdm/core/dataset/forms.py:145"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:194 \u2014 the rendered form offers exactly that set",
+              "tests/test_core/test_dataset/test_plugins.py:210 \u2014 no second registered page overlaps it"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/forms.py:159",
+              "fairdm/core/dataset/plugins.py:178"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:233 \u2014 each of name, project, license, visibility and reference changed and asserted against a fresh copy"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:193",
+              "fairdm/core/dataset/forms.py:190"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:309 \u2014 the field offers only the researcher's own projects"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:180"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:335,353,378,404 \u2014 rows presented, added, changed and removed"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:136",
+              "fairdm/core/dataset/plugins.py:180"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:470,488,509,535,623 \u2014 rows presented, added, changed, removed, start without end accepted"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T041",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:144"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:561,590 \u2014 a backwards pair is refused and saves nothing, both newly added and with the start already stored"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/abstract.py:354"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:430 \u2014 a value held by another dataset is refused",
+              "tests/test_core/test_dataset/test_plugins.py:650 \u2014 an invalid row blocks the record's own field changes too"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T043",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/forms.py:159"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:206 \u2014 asserts absence by field set, so a field reintroduced later fails"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T044",
@@ -457,30 +587,66 @@
           "evidence": {
             "code": [
               "fairdm/core/dataset/forms.py:87",
-              "views.py:181"
+              "fairdm/core/dataset/plugins.py:178"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_forms.py:111"
+              "tests/test_core/test_dataset/test_forms.py:112",
+              "tests/test_core/test_dataset/test_plugins.py:281 \u2014 an empty name reports an error and saves nothing"
             ],
             "commands": [
-              "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
         {
           "id": "T045",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:200"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:678 \u2014 the redirect target is dataset:overview",
+              "tests/test_core/test_dataset/test_views.py:268 \u2014 a valid submission redirects"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T046",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:154",
+              "fairdm/core/dataset/plugins.py:180"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:107 \u2014 asserts the shared mixin is what the page uses"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T047",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/forms.py:166"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:703,710 \u2014 the form declares no form tag and the rendered page carries exactly one form element"
+            ],
+            "commands": [
+              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T079",
@@ -488,7 +654,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
+              "n/a \u2014 a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -504,7 +670,7 @@
               "fairdm/core/dataset/views.py:121"
             ],
             "tests": [
-              "n/a — a constraint on this feature's own scope"
+              "n/a \u2014 a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -517,7 +683,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — a constraint on this feature's own scope"
+              "n/a \u2014 a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -609,7 +775,7 @@
               "tests/test_contrib/test_plugins/test_pages.py:40"
             ],
             "commands": [
-              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -626,7 +792,7 @@
               "tests/test_core/test_dataset/test_models.py:1958"
             ],
             "commands": [
-              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -648,7 +814,7 @@
               "tests/test_core/test_dataset/test_views.py:391"
             ],
             "commands": [
-              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -703,7 +869,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a — the requirement is that the page is not redesigned; nothing to build"
+              "n/a \u2014 the requirement is that the page is not redesigned; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"

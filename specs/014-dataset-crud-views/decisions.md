@@ -244,3 +244,28 @@ those terms, per Article XIV.
 and does nothing, and is broken by a rename that changes no behaviour. It also pre-empts the design
 — several of the old requirements are now false not because the behaviour regressed but because the
 right structure turned out to be different.
+
+---
+
+## D12 — Two pre-existing test files were edited while building the update page, and both edits are approved
+
+**Flagged**: the guardrail on modifying tests that already existed raised two flags for the update
+page's work, one per file.
+
+**Settled**: both are legitimate, and neither weakens an assertion.
+
+- `tests/test_core/test_dataset/test_forms.py` — six tests covering the DOI text box and the form's
+  save override were deleted, both of which the plan retires: a dataset's external identifiers,
+  DOI included, are now edited as rows on the update page, the same way every other record edits
+  them. Four tests covering the visibility field that replaced it were added. Three unrelated tests
+  had `visibility` added to their submitted data, since it is now a required field — their
+  assertions are untouched.
+- `tests/test_core/test_dataset/test_views.py` — the update page's tests were repointed from the
+  retired standalone address to the new one, which is the same repair 013 made on the project side.
+  One case changed subject: a signed-out visitor is now sent to sign-in from a *public* dataset's
+  update page, because on a private one the page answers "not found" instead, which is a new
+  assertion of its own rather than a replacement.
+
+**Why it matters**: a deleted test is the cheapest way to make a red suite green, so deleting one
+has to be justified against something written down beforehand. Here it is: the requirement the
+deleted tests covered was withdrawn at the specification gate.

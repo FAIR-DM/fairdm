@@ -3,13 +3,13 @@
   "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
   "totals": {
     "tasks_total": 85,
-    "satisfied": 19,
-    "open": 66
+    "satisfied": 32,
+    "open": 53
   },
   "open_by_reason": {
-    "not built": 39,
-    "built, untested": 14,
-    "built differently": 10,
+    "not built": 31,
+    "built, untested": 12,
+    "built differently": 7,
     "vacuous test": 3
   },
   "satisfied": {
@@ -65,9 +65,61 @@
       "code": "fairdm/core/dataset/views.py:82-88",
       "test": "tests/test_core/test_dataset/test_views.py:93"
     },
+    "T034": {
+      "code": "fairdm/core/dataset/plugins.py:154,166 — Update, url_path 'update', carried as an extra view of Overview (fairdm/core/dataset/plugins.py:222); the standalone route is gone (fairdm/core/dataset/urls.py)",
+      "test": "tests/test_core/test_dataset/test_plugins.py:96 — resolves as an extra view; tests/test_core/test_dataset/test_views.py:219 — anonymous sign-in redirect; tests/test_core/test_dataset/test_views.py:258 — 200 with permission"
+    },
+    "T035": {
+      "code": "fairdm/core/dataset/plugins.py:170,175,182 — its own permission, visible_to_holder_of check, and the 404 override for a private record",
+      "test": "tests/test_core/test_dataset/test_plugins.py:121,134 — refuses a signed-in user without the grant and an anonymous request; tests/test_core/test_dataset/test_plugins.py:144 — a model-level holder with no record-level grant is refused; tests/test_core/test_dataset/test_views.py:229,247 — private answers 404"
+    },
+    "T036": {
+      "code": "fairdm/core/dataset/forms.py:159 — Meta.fields is image, name, project, license, reference, visibility; fairdm/core/dataset/forms.py:145 — visibility as a radio choice pre-selecting Public",
+      "test": "tests/test_core/test_dataset/test_plugins.py:194 — the rendered form offers exactly that set; tests/test_core/test_dataset/test_plugins.py:210 — no second registered page overlaps it"
+    },
+    "T037": {
+      "code": "fairdm/core/dataset/forms.py:159 with fairdm/core/dataset/plugins.py:178 — the update page's declared form",
+      "test": "tests/test_core/test_dataset/test_plugins.py:233 — each of name, project, license, visibility and reference changed and asserted against a fresh copy"
+    },
+    "T038": {
+      "code": "fairdm/core/dataset/plugins.py:193 — request passed to the form, which narrows the project field (fairdm/core/dataset/forms.py:190-224)",
+      "test": "tests/test_core/test_dataset/test_plugins.py:309 — the field offers only the researcher's own projects"
+    },
+    "T039": {
+      "code": "fairdm/core/dataset/plugins.py:180 — DatasetIdentifierInline on the page's inlines",
+      "test": "tests/test_core/test_dataset/test_plugins.py:335,353,378,404 — rows presented, added, changed and removed"
+    },
+    "T040": {
+      "code": "fairdm/core/dataset/plugins.py:136,180 — DatasetDatesInline on the page's inlines",
+      "test": "tests/test_core/test_dataset/test_plugins.py:470,488,509,535,623 — rows presented, added, changed, removed, start without end accepted"
+    },
+    "T041": {
+      "code": "fairdm/core/dataset/plugins.py:144-151 — date_ordering_formset over DatasetDate.START_TYPE/END_TYPE",
+      "test": "tests/test_core/test_dataset/test_plugins.py:561,590 — a backwards pair is refused and saves nothing, both newly added and with the start already stored"
+    },
+    "T042": {
+      "code": "fairdm/core/abstract.py:354 — AbstractIdentifier.clean, pre-existing, reached through the row set",
+      "test": "tests/test_core/test_dataset/test_plugins.py:430 — a value held by another dataset is refused; tests/test_core/test_dataset/test_plugins.py:650 — an invalid row blocks the record's own field changes too"
+    },
+    "T043": {
+      "code": "fairdm/core/dataset/forms.py:159 — the field set names no description, keyword, tag or contributor field",
+      "test": "tests/test_core/test_dataset/test_plugins.py:206 — asserts absence by field set, so a field reintroduced later fails"
+    },
     "T044": {
-      "code": "fairdm/core/dataset/forms.py:87-94 — name required on DatasetForm, which the update view uses (views.py:181)",
-      "test": "tests/test_core/test_dataset/test_forms.py:111"
+      "code": "fairdm/core/dataset/forms.py:87-94 — name required on DatasetForm, which the update page declares (fairdm/core/dataset/plugins.py:178)",
+      "test": "tests/test_core/test_dataset/test_forms.py:112; tests/test_core/test_dataset/test_plugins.py:281 — an empty name reports an error and saves nothing"
+    },
+    "T045": {
+      "code": "fairdm/core/dataset/plugins.py:200 — get_success_url returns the dataset's own page",
+      "test": "tests/test_core/test_dataset/test_plugins.py:678 — the redirect target is dataset:overview; tests/test_core/test_dataset/test_views.py:268 — a valid submission redirects"
+    },
+    "T046": {
+      "code": "fairdm/core/dataset/plugins.py:154,180 — mvp.views.inline.InlinesMixin with declared inlines, no hand-written formset",
+      "test": "tests/test_core/test_dataset/test_plugins.py:107 — asserts the shared mixin is what the page uses"
+    },
+    "T047": {
+      "code": "fairdm/core/dataset/forms.py:166 — helper_attrs form_tag False; fairdm/core/dataset/templates/dataset/plugins/update.html",
+      "test": "tests/test_core/test_dataset/test_plugins.py:703,710 — the form declares no form tag and the rendered page carries exactly one form element"
     },
     "T069": {
       "code": "fairdm/core/dataset/templates/dataset/dataset_detail.html",
@@ -171,57 +223,6 @@
       "reason": "not built",
       "note": "views.py:67 — form_class commented out in favour of a field list"
     },
-    "T034": {
-      "reason": "built differently",
-      "note": "the page is rebuilt as an additional view under the record's registration; different address, different refusal mechanism"
-    },
-    "T035": {
-      "reason": "built differently",
-      "note": "the refusal is rebuilt on the registration's own permission and visibility rule, and its response code is re-decided (plan P1); the cited test covers the retired page"
-    },
-    "T036": {
-      "reason": "not built",
-      "note": "forms.py:164 declares image, name, project, license, reference, doi — no visibility, and doi leaves under FR-027"
-    },
-    "T037": {
-      "reason": "built, untested",
-      "note": "test_forms.py:165 covers some attributes; visibility does not exist yet"
-    },
-    "T038": {
-      "reason": "built, untested",
-      "note": "views.py:209-211 passes request and forms.py:176-190 filters; no test asserts the update page's project field is narrowed"
-    },
-    "T039": {
-      "reason": "not built",
-      "note": "no identifiers row set on the update page"
-    },
-    "T040": {
-      "reason": "not built",
-      "note": "no dates row set on the update page"
-    },
-    "T041": {
-      "reason": "not built",
-      "note": "the model and the shared formset enforce it; the page does not offer dates at all"
-    },
-    "T042": {
-      "reason": "not built",
-      "note": "the page offers no identifiers, so the collision cannot be reported by it"
-    },
-    "T043": {
-      "reason": "not built",
-      "note": "no test asserts the update form's field set excludes descriptions, keywords, tags and contributors"
-    },
-    "T045": {
-      "reason": "built differently",
-      "note": "the page is rebuilt as an additional view under the record's registration; the cited test covers the retired page"
-    },
-    "T046": {
-      "reason": "not built"
-    },
-    "T047": {
-      "reason": "not built",
-      "note": "DatasetForm sets no form_tag; project, sample and measurement all do. The page emits a form element inside the one already opened"
-    },
     "T048": {
       "reason": "built differently",
       "note": "a descriptions page answers at dataset:descriptions and is permission-gated (plugins.py:20-27; tests/test_contrib/test_plugins/test_pages.py:26,38). Its address moves under FR-058 and its editor is replaced under FR-042"
@@ -271,10 +272,6 @@
     "T061": {
       "reason": "not built",
       "note": "no page states a visibility rule; #284"
-    },
-    "T085": {
-      "reason": "not built",
-      "note": "the retired standalone views do answer not-found for a private record (views.py:197-201, :250-254) and two tests pin it, but nothing asserts it at the new addresses, which is where the mechanism changes"
     },
     "T062": {
       "reason": "not built",
@@ -338,6 +335,10 @@
     },
     "T084": {
       "reason": "not built"
+    },
+    "T085": {
+      "reason": "not built",
+      "note": "the retired standalone views do answer not-found for a private record (views.py:197-201, :250-254) and two tests pin it, but nothing asserts it at the new addresses, which is where the mechanism changes"
     }
   }
 }
