@@ -7,6 +7,7 @@ from guardian.shortcuts import assign_perm
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from .filters import DatasetFilter
+from .forms import DatasetCreateForm
 from .models import Dataset, DatasetQuerySet
 
 
@@ -19,8 +20,7 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
     """
 
     model = Dataset
-    # form_class = DatasetCreateForm
-    fields = ["name", "project", "license"]
+    form_class = DatasetCreateForm
     page_title = _("Create a Dataset")
     default_roles = ["Creator", "ProjectMember", "ContactPerson"]
 

@@ -18,7 +18,9 @@ from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains
 
+from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.dataset.views import DatasetCreateView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
@@ -125,6 +127,7 @@ class TestDatasetCreateView:
                 "name": "New Test Dataset",
                 "project": project.pk,
                 "license": license_obj.pk,
+                "visibility": Visibility.PUBLIC,
             },
         )
 
@@ -167,6 +170,7 @@ class TestDatasetCreateView:
                 "name": "Permission Test Dataset",
                 "project": project.pk,
                 "license": license_obj.pk,
+                "visibility": Visibility.PUBLIC,
             },
         )
 
@@ -184,6 +188,34 @@ class TestDatasetCreateView:
         role_names = list(contributor.roles.values_list("name", flat=True))
         for role in ["Creator", "ProjectMember", "ContactPerson"]:
             assert role in role_names, f"Missing contributor role: {role}"
+
+
+@pytest.mark.django_db
+class TestDatasetCreatePageUsesTheDeclaredForm:
+    """T033/FR-022 - the creation page uses the update page's declared form (`DatasetForm`)
+    narrowed to its own four fields, rather than a field list of its own. A label declared once
+    on `DatasetForm` reaches both the creation and the update page."""
+
+    def test_the_view_declares_a_subclass_of_the_update_pages_form(self):
+        assert DatasetCreateView.form_class is DatasetCreateForm
+        assert issubclass(DatasetCreateForm, DatasetForm)
+
+    def test_a_label_declared_once_reaches_both_the_creation_and_the_update_page(
+        self, client
+    ):
+        user = UserFactory()
+        client.force_login(user)
+        create_response = client.get(reverse("dataset-create"))
+
+        dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
+        update_response = client.get(
+            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        )
+
+        create_label = create_response.context["form"].fields["name"].label
+        update_label = update_response.context["form"].fields["name"].label
+        assert create_label == update_label
 
 
 # ---------------------------------------------------------------------------

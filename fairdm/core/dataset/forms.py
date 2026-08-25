@@ -225,9 +225,10 @@ class DatasetForm(ModelForm):
 class DatasetCreateForm(DatasetForm):
     """Restricted form for initial dataset creation.
 
-    Exposes only the minimum fields needed at creation time. All
-    other fields (image, reference, descriptions) are available after
-    creation via the full DatasetForm on the update view.
+    Narrows the update page's declared ``DatasetForm`` (014 plan FR-022) to the four fields the
+    creation page asks for: name, visibility, licence and project. All other fields (image,
+    reference, descriptions) are available after creation via the full ``DatasetForm`` on the
+    update page.
 
     Usage:
         ```python
@@ -237,4 +238,4 @@ class DatasetCreateForm(DatasetForm):
     """
 
     class Meta(DatasetForm.Meta):
-        fields = ["name", "license"]
+        fields = ["name", "project", "license", "visibility"]
