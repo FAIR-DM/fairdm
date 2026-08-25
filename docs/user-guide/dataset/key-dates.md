@@ -1,3 +1,0 @@
-# Key dates
-
-Coming soon...
