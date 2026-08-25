@@ -218,6 +218,25 @@ class TestDatasetCreatePageUsesTheDeclaredForm:
         assert create_label == update_label
 
 
+@pytest.mark.django_db
+class TestDatasetCreatePageFieldSet:
+    """T023/FR-012 - the creation page asks for a name, a visibility, a licence and a project,
+    and for nothing else. A field added later (e.g. `image` or `reference`, both offered by the
+    update page) fails this test."""
+
+    FIELDS = {"name", "visibility", "license", "project"}
+
+    def test_the_rendered_form_offers_exactly_the_creation_field_set(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("dataset-create")
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert set(response.context["form"].fields) == self.FIELDS
+
+
 # ---------------------------------------------------------------------------
 # Phase 5 — User Story 3: Edit Dataset Core Attributes
 # ---------------------------------------------------------------------------
