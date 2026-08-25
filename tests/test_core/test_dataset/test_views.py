@@ -353,6 +353,26 @@ class TestDatasetCreatePageProjectFieldNarrowing:
         assert other_project not in project_queryset
 
 
+@pytest.mark.django_db
+class TestDatasetCreatePageNameRequired:
+    """T028/FR-017 - a dataset cannot be created without a name. Exercised against the creation
+    page's own shipped form (`DatasetCreateForm`), not `DatasetForm` directly — the pre-existing
+    `test_forms.py` coverage exercises an object unreachable from this page (reconciliation:
+    vacuous test)."""
+
+    def test_submitting_without_a_name_reports_an_error_and_saves_nothing(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
+        url = reverse("dataset-create")
+
+        response = client.post(url, data={"name": "", "license": license_obj.pk})
+
+        assert response.status_code == 200
+        assert "name" in response.context["form"].errors
+        assert not Dataset.all_objects.filter(license=license_obj).exists()
+
+
 # ---------------------------------------------------------------------------
 # Phase 5 — User Story 3: Edit Dataset Core Attributes
 # ---------------------------------------------------------------------------
