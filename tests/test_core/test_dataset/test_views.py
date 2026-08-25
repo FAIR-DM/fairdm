@@ -261,6 +261,50 @@ class TestDatasetListingFilters:
         assert other not in entries
 
 
+@pytest.mark.django_db
+class TestDatasetListingFiltersAllRunWithoutError:
+    """T016/FR-006 — every filter the rendered filterset form actually offers runs a
+    query without raising, applied one at a time. The field set is read from the
+    rendered form itself, never a hand-written list, so a filter added or removed
+    later is swept automatically."""
+
+    def _value_for(self, field_name, dataset, project, license_obj):
+        return {
+            "license": license_obj.pk,
+            "project": project.pk,
+            "description_type": "Abstract",
+            "date_type": "Available",
+            "image": "true",
+            "visibility": Visibility.PUBLIC,
+        }[field_name]
+
+    def test_every_offered_filter_runs_without_raising(self, client):
+        from fairdm.factories import DatasetDateFactory, DatasetDescriptionFactory
+
+        license_obj = License.objects.get(name="CC BY 4.0")
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            license=license_obj, project=project, visibility=Visibility.PUBLIC
+        )
+        DatasetDescriptionFactory(related=dataset, type="Abstract")
+        DatasetDateFactory(related=dataset, type="Available")
+
+        response = client.get(reverse("dataset-list"))
+        rendered_fields = list(response.context["filter"].form.fields)
+        assert rendered_fields, "the rendered filterset form offers no fields to sweep"
+
+        for field_name in rendered_fields:
+            value = self._value_for(field_name, dataset, project, license_obj)
+            response = client.get(reverse("dataset-list"), {field_name: value})
+            assert response.status_code == 200, (
+                f"applying '{field_name}' raised rather than rendering"
+            )
+            entries = list(response.context["object_list"])
+            assert dataset in entries, (
+                f"applying '{field_name}' did not return the matching dataset"
+            )
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Dataset
 # ---------------------------------------------------------------------------
