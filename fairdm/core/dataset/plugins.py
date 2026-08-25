@@ -19,19 +19,6 @@ DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 
 @plugins.register(Dataset, label=_("Descriptions"), icon="description", order=510)
 class Descriptions(DescriptionsPlugin):
-    heading_config = {
-        "title": _("Descriptions"),
-        "description": _(
-            "Provide key details about your dataset, including its name and key descriptions. This information is essential for conveying the dataset's purpose and scope, helping users quickly understand its relevance."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("dataset/descriptions"),
-                "icon": "documentation",
-            }
-        ],
-    }
     # These three plugins are editing surfaces, not reading ones. Without a
     # declared permission `can_open()` admits every request, anonymous
     # included, and a private dataset's metadata would stay readable and
@@ -61,19 +48,6 @@ class Keywords(KeywordsPlugin):
 
 @plugins.register(Dataset, label=_("Key Dates"), icon="date", order=530)
 class KeyDates(KeyDatesPlugin):
-    heading_config = {
-        "title": _("Key Dates"),
-        "description": _(
-            "Entering key dates helps track important milestones and timelines, supporting effective dataset management and giving others insight into the dataset's history and progress."
-        ),
-        "links": [
-            {
-                "text": _("Learn more"),
-                "href": user_guide("dataset/key-dates"),
-                "icon": "documentation",
-            }
-        ],
-    }
     permission = "dataset.change_dataset"
     model = Dataset
     inline_model = DatasetDate

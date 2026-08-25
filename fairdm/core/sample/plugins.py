@@ -46,13 +46,10 @@ class Descriptions(DescriptionsPlugin):
     permission = "sample.change_sample"
     name = "basic-information"
     title = _("Basic Information")
-    heading_config = {
-        "description": _(
-            "Provide descriptions of your sample to convey its purpose and scope. This information is essential for helping users quickly understand the sample's relevance and applicability to their research or applications."
-        ),
-        "links": [documentation_link("sample/key-dates")],
-    }
     learn_more = user_guide("dataset/basic-information")
+    # SingleObjectMixin.get_queryset() needs this to resolve the record; Edit (above) declares
+    # it, this and KeyDates below never did (issue #280).
+    model = Sample
     inline_model = SampleDescription
 
 
@@ -70,10 +67,5 @@ class Keywords(KeywordsPlugin):
 @plugins.register(Sample, label=_("Key Dates"), icon="date", order=530)
 class KeyDates(KeyDatesPlugin):
     permission = "sample.change_sample"
-    heading_config = {
-        "description": _(
-            "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
-        ),
-        "links": [documentation_link("sample/key-dates")],
-    }
+    model = Sample
     inline_model = SampleDate
