@@ -1145,3 +1145,37 @@ class TestEachOfTheFourPagesStatesItsOwnPermission:
 
         request = _request_for(AnonymousUser())
         assert can_open(_ChildStatingNone, request, None) is True
+
+
+@pytest.mark.django_db
+class TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility:
+    """T061/FR-061 — each of the dataset's four pages states its own visibility rule rather than
+    relying on inheriting ``Overview``'s (an additional view's ``check`` is read from the owning
+    plugin at call time, but that alone does not prove any *page* carrying it as an additional
+    view actually refuses a real request — this goes through HTTP at all four addresses). The
+    scenario that motivates it: a user holding ``dataset.change_dataset`` at the model level and
+    no grant at all on this particular private dataset."""
+
+    def test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record(
+        self, client
+    ):
+        from django.contrib.auth.models import Permission
+
+        dataset = DatasetFactory()  # private, per the model default
+        user = UserFactory()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="dataset", codename="change_dataset"
+            )
+        )
+        client.force_login(user)
+
+        for name in (
+            "dataset:overview",
+            "dataset:overview-update",
+            "dataset:overview-descriptions",
+            "dataset:overview-delete",
+        ):
+            url = reverse(name, kwargs={"uuid": dataset.uuid})
+            response = client.get(url)
+            assert response.status_code == 404, name
