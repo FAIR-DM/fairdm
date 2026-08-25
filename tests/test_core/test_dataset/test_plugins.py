@@ -1102,3 +1102,14 @@ class TestUpdatePageOffersTheDeletionLink:
         assert not any(
             href.startswith(delete_url) for href in _hrefs(response.content.decode())
         )
+
+
+class TestTheSingularAddressNoLongerAnswers:
+    """T058/FR-057 — every address names the record type in the plural. The singular
+    ``dataset/<uuid>/`` mount ``fairdm/core/dataset/urls.py`` used to have is retired in favour
+    of the plural ``datasets/<uuid>/`` include (014 plan P2)."""
+
+    def test_a_request_to_the_singular_address_is_not_found(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        response = client.get(f"/dataset/{dataset.uuid}/")
+        assert response.status_code == 404
