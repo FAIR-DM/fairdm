@@ -19,7 +19,7 @@ page applies.
 - **Data publication** — the paper, report or other literature describing this dataset.
 - **Visibility** — Public, meaning the dataset's metadata may be read by anyone using the
   portal, or Private, meaning only you and anyone you grant access to. It governs the metadata
-  alone; the data held beneath the dataset is published separately.
+  alone. The data held beneath the dataset is published separately.
 
 ## Dates and identifiers
 
@@ -28,11 +28,14 @@ alongside the dataset's other attributes — there is no separate page for eithe
 
 Dates carry a type from the dataset date vocabulary, among them the collection start and
 collection end. A collection end earlier than its collection start is refused, and the page says
-which of the two is at fault. Identifiers carry a type as well; a DOI is one, and an identifier
+which of the two is at fault. Identifiers carry a type as well. A DOI is one, and an identifier
 value already recorded against another dataset is refused.
+
+Each row set holds at most one row per type its vocabulary offers, since a second row of the
+same type would say the same thing twice.
 
 ## What isn't here
 
 Descriptions have a page of their own — see [Descriptions](descriptions.md). Keywords are not
-editable through the portal at present; they are deferred until the portal's controlled
+editable through the portal at present. They are deferred until the portal's controlled
 vocabulary support is in place. Contributors are managed elsewhere.

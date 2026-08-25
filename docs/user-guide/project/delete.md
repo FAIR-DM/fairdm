@@ -5,9 +5,11 @@ The delete page removes a project permanently. Deletion cannot be undone.
 ## Who can open it
 
 Anyone holding permission to delete the project. Anyone else is refused, and the link to this
-page is not shown to them on the project's own page. If you are not signed in, you are sent to
-sign in first. A private project also refuses anyone who cannot see it, the same rule the
-project's own page applies.
+page is not shown to them on the project's own page. On a public project, someone who is not
+signed in is sent to sign in first. A private project does not answer at all to anyone who may
+not delete it — the page behaves exactly as though no such project existed, so its address
+cannot be used to find out whether it does. This is the same rule every one of the project's
+pages applies.
 
 ## Confirming a deletion
 

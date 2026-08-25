@@ -11,13 +11,15 @@ someone who may not delete it, the same rule the dataset's own page applies.
 
 ## What goes with it
 
-Before you confirm, the page lists what the deletion will take with the dataset — its samples
-and measurements, and the descriptions, dates and identifiers recorded against it. Only what the
-dataset actually holds is listed, so a dataset carrying no data says so by omission.
+Before you confirm, the page tells you how much data the deletion will take with the dataset: a
+count for each kind of sample and each kind of measurement it holds. Descriptions, dates,
+identifiers and contributor records go with it too, but they describe the dataset rather than
+stand on their own, so the page does not list them. A dataset holding no samples and no
+measurements shows no warning at all.
 
 ```{warning}
-Deleting a dataset that holds samples and measurements destroys that data. Read the list before
-confirming.
+Deleting a dataset that holds samples and measurements destroys that data. Read the counts
+before confirming.
 ```
 
 ## Confirming a deletion
@@ -30,7 +32,7 @@ whichever page you came from.
 ## Visibility does not block a deletion
 
 A public dataset can be deleted by someone holding permission to delete it. Making a dataset
-public shares its metadata with the community; it does not publish the data beneath it, and it
+public shares its metadata with the community. It does not publish the data beneath it, and it
 is not a point of no return.
 
 The protection that does prevent a deletion applies to published data, and arrives with the
