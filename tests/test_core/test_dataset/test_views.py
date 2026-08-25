@@ -668,6 +668,22 @@ class TestDatasetCreatePageProjectFieldNarrowing:
 
 
 @pytest.mark.django_db
+class TestDatasetCreatePageProjectFieldWidget:
+    """T086 - the creation page's project field renders as a plain select, not the
+    django_addanother wrapper markup that does not render correctly in the portal."""
+
+    def test_the_rendered_page_carries_no_add_another_wrapper_markup(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("dataset-create")
+
+        response = client.get(url)
+
+        assertNotContains(response, "related-widget-wrapper")
+        assertNotContains(response, "add-related")
+
+
+@pytest.mark.django_db
 class TestDatasetCreatePageNameRequired:
     """T028/FR-017 - a dataset cannot be created without a name. Exercised against the creation
     page's own shipped form (`DatasetCreateForm`), not `DatasetForm` directly — the pre-existing
@@ -870,6 +886,25 @@ class TestDatasetUpdateView:
         )
         expected_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assert response.url == expected_url
+
+
+@pytest.mark.django_db
+class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
+    """T086 - the update page's project and reference (data publication) fields render as
+    plain selects, not the django_addanother wrapper markup that does not render correctly
+    in the portal."""
+
+    def test_the_rendered_page_carries_no_add_another_wrapper_markup(self, client):
+        user = UserFactory()
+        dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+
+        response = client.get(url)
+
+        assertNotContains(response, "related-widget-wrapper")
+        assertNotContains(response, "add-related")
 
 
 # ---------------------------------------------------------------------------
@@ -1103,20 +1138,24 @@ class TestDatasetDeleteView:
         assert response.url == reverse("dataset-list")
         assert not Dataset.all_objects.filter(pk=pk).exists()
 
-    def test_preview_names_the_datasets_samples_measurements_dates_and_identifiers(
+    def test_preview_shows_counted_lines_for_two_sample_types_and_one_measurement_type(
         self, client
     ):
-        """T074 — before the confirmation is offered, the page previews what will be deleted
-        with the dataset (FR-046), through the shell's own cascade preview
-        (`show_related_objects`). Asserted against rendered content, not the `related_objects`
-        context data: the group headings for each related kind, plus the sample's and
-        identifier's own values, all as they actually render.
+        """T088 — before the confirmation is offered, the page previews what will be deleted
+        with the dataset (FR-046), as a count-only summary of samples and measurements rather
+        than a name-by-name listing: a researcher is told how many of each concrete type will
+        go, and nothing else the cascade also removes (contributors, contribution roles,
+        descriptions, dates, identifiers) appears at all.
 
         The measurement's own sample lives in a different, unaffected dataset — a measurement
         sharing its dataset with the sample it references trips a pre-existing
         `Measurement.sample` PROTECT interaction unrelated to this page (`issues_found`), and
         this test's job is the preview's rendered content, not that interaction."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from fairdm_demo.factories import (
+            ExampleMeasurementFactory,
+            RockSampleFactory,
+            WaterSampleFactory,
+        )
 
         user = UserFactory()
         other_dataset = DatasetFactory(name="Other Dataset")
@@ -1124,7 +1163,9 @@ class TestDatasetDeleteView:
 
         dataset = DatasetFactory(name="Rich Dataset", dates=1)
         DatasetIdentifierFactory(related=dataset, value="10.9999/rich-dataset")
+        dataset.add_contributor(user)
         RockSampleFactory(dataset=dataset, name="Granite Core 1")
+        WaterSampleFactory(dataset=dataset, name="Spring Water 1")
         ExampleMeasurementFactory(dataset=dataset, sample=other_sample)
         assign_perm("delete_dataset", user, dataset)
         client.force_login(user)
@@ -1136,44 +1177,76 @@ class TestDatasetDeleteView:
         assertContains(
             response, "The following related records will also be permanently deleted"
         )
-        sample_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
+        rock_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
+        water_label = WaterSampleFactory._meta.model._meta.verbose_name_plural.title()
         measurement_label = ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
-        assert _assert_cascade_preview_group(content, sample_label)
-        assertContains(response, "Granite Core 1")
-        assert _assert_cascade_preview_group(content, measurement_label)
-        assert _assert_cascade_preview_group(content, "Dates")
-        assert _assert_cascade_preview_group(content, "Identifiers")
-        assertContains(response, "10.9999/rich-dataset")
+        assertContains(response, f"{rock_label} (1)")
+        assertContains(response, f"{water_label} (1)")
+        assertContains(response, f"{measurement_label} (1)")
 
-    def test_preview_says_nothing_about_samples_or_measurements_the_dataset_holds_none_of(
+        # Nothing besides the two counted sample lines and the one measurement line -
+        # no instance names, no contributors, no dates, no identifiers.
+        assertNotContains(response, "Granite Core 1")
+        assertNotContains(response, "Spring Water 1")
+        assertNotContains(response, user.get_full_name())
+        assert not _assert_cascade_preview_group(content, "Dates")
+        assert not _assert_cascade_preview_group(content, "Identifiers")
+        assert not _assert_cascade_preview_group(content, "Contributors")
+        assertNotContains(response, "10.9999/rich-dataset")
+
+    def test_preview_shows_nothing_for_a_dataset_holding_no_samples_or_measurements(
         self, client
     ):
-        """T075 — a dataset holding no samples and no measurements is not warned about data it
-        does not hold (FR-047). A date is included so the preview genuinely renders content —
-        proving the sample/measurement groups are absent rather than the whole preview being
-        empty."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
-
+        """T088/FR-047 — an empty dataset (no samples, no measurements) shows no
+        related-records warning at all, not an empty box: dates, identifiers and
+        contributors are cascade-deleted along with it but none of them are shown, so an
+        otherwise-"rich" dataset that merely lacks data must not trigger the section either."""
         user = UserFactory()
         dataset = DatasetFactory(name="Bare Dataset", dates=1)
+        DatasetIdentifierFactory(related=dataset, value="10.0000/bare-dataset")
+        dataset.add_contributor(user)
         assign_perm("delete_dataset", user, dataset)
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
-        content = response.content.decode()
 
-        assert _assert_cascade_preview_group(content, "Dates")
+        assertNotContains(
+            response, "The following related records will also be permanently deleted"
+        )
+        assert response.context["related_objects"] == []
+
+    def test_preview_counts_match_what_an_actual_delete_removes(self, client):
+        """T088 — the counted lines are the truth about what the deletion will actually
+        remove: proven by counting the samples and measurements that exist before the
+        confirmed delete and confirming every one of them is gone after it, not by
+        re-deriving the same expression the view itself computes."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        user = UserFactory()
+        dataset = DatasetFactory(name="Countable Dataset")
+        rock_samples = [RockSampleFactory(dataset=dataset) for _ in range(2)]
+        measurements = [
+            ExampleMeasurementFactory(dataset=dataset, sample=rock_samples[0])
+            for _ in range(3)
+        ]
+        sample_pks = [s.pk for s in rock_samples]
+        measurement_pks = [m.pk for m in measurements]
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.get(url)
         sample_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
         measurement_label = ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
-        assert not _assert_cascade_preview_group(content, sample_label)
-        assert not _assert_cascade_preview_group(content, measurement_label)
-        assert not _assert_cascade_preview_group(
-            content, Sample._meta.verbose_name_plural.title()
-        )
-        assert not _assert_cascade_preview_group(
-            content, Measurement._meta.verbose_name_plural.title()
-        )
+        assertContains(response, f"{sample_label} (2)")
+        assertContains(response, f"{measurement_label} (3)")
+
+        response = client.post(url, data={"confirmation": "Countable Dataset"})
+
+        assert response.status_code == 302
+        assert Sample.objects.filter(pk__in=sample_pks).count() == 0
+        assert Measurement.objects.filter(pk__in=measurement_pks).count() == 0
 
 
 @pytest.mark.django_db

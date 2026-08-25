@@ -185,13 +185,6 @@ class TestCrossRelationshipFilters:
         assert matching in filterset.qs
         assert other not in filterset.qs
 
-    @pytest.mark.skip(
-        reason="Cross-relationship filtering not yet implemented in DatasetFilter"
-    )
-    def test_cross_relationship_filter_with_no_related_data(self):
-        """Cross-relationship filter should handle datasets without related data."""
-        pass
-
 
 @pytest.mark.django_db
 class TestMultipleFilterCombinations:
