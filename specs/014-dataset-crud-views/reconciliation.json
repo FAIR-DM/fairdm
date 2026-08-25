@@ -3,13 +3,13 @@
   "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
   "totals": {
     "tasks_total": 85,
-    "satisfied": 32,
-    "open": 53
+    "satisfied": 40,
+    "open": 45
   },
   "open_by_reason": {
-    "not built": 31,
-    "built, untested": 12,
-    "built differently": 7,
+    "not built": 25,
+    "built, untested": 11,
+    "built differently": 6,
     "vacuous test": 3
   },
   "satisfied": {
@@ -140,6 +140,38 @@
     "T082": {
       "code": "fairdm/core/project/plugins.py:190-217 — unchanged by this feature",
       "test": "tests/test_core/test_project/test_views.py:1216,1252"
+    },
+    "T048": {
+      "code": "fairdm/core/dataset/plugins.py:179; fairdm/core/dataset/plugins.py:249",
+      "test": "tests/test_core/test_dataset/test_plugins.py:742; tests/test_contrib/test_plugins/test_pages.py:28"
+    },
+    "T049": {
+      "code": "fairdm/core/dataset/plugins.py:194; fairdm/core/dataset/plugins.py:198; fairdm/core/dataset/plugins.py:207-215",
+      "test": "tests/test_core/test_dataset/test_plugins.py:765; tests/test_core/test_dataset/test_plugins.py:788; tests/test_contrib/test_plugins/test_pages.py:82"
+    },
+    "T050": {
+      "code": "fairdm/core/dataset/plugins.py:201; fairdm/core/dataset/plugins.py:217-221",
+      "test": "tests/test_core/test_dataset/test_plugins.py:838; tests/test_core/test_dataset/test_plugins.py:869"
+    },
+    "T051": {
+      "code": "fairdm/core/dataset/plugins.py:223-225",
+      "test": "tests/test_core/test_dataset/test_plugins.py:891; tests/test_core/test_dataset/test_plugins.py:912; tests/test_core/test_dataset/test_plugins.py:932; tests/test_core/test_dataset/test_plugins.py:950"
+    },
+    "T052": {
+      "code": "fairdm/core/dataset/plugins.py:223-225",
+      "test": "tests/test_core/test_dataset/test_plugins.py:977"
+    },
+    "T053": {
+      "code": "fairdm/core/dataset/plugins.py:223-225",
+      "test": "tests/test_core/test_dataset/test_plugins.py:997"
+    },
+    "T054": {
+      "code": "fairdm/core/dataset/plugins.py:227-228",
+      "test": "tests/test_core/test_dataset/test_plugins.py:1031"
+    },
+    "T055": {
+      "code": "fairdm/core/dataset/plugins.py:201",
+      "test": "tests/test_core/test_dataset/test_plugins.py:1049"
     }
   },
   "open": {
@@ -222,33 +254,6 @@
     "T033": {
       "reason": "not built",
       "note": "views.py:67 — form_class commented out in favour of a field list"
-    },
-    "T048": {
-      "reason": "built differently",
-      "note": "a descriptions page answers at dataset:descriptions and is permission-gated (plugins.py:20-27; tests/test_contrib/test_plugins/test_pages.py:26,38). Its address moves under FR-058 and its editor is replaced under FR-042"
-    },
-    "T049": {
-      "reason": "built, untested",
-      "note": "covered for the current page at test_pages.py:38; that page is replaced"
-    },
-    "T050": {
-      "reason": "not built",
-      "note": "the current page offers add-and-remove rows, not one area per vocabulary type"
-    },
-    "T051": {
-      "reason": "not built"
-    },
-    "T052": {
-      "reason": "not built"
-    },
-    "T053": {
-      "reason": "not built"
-    },
-    "T054": {
-      "reason": "not built"
-    },
-    "T055": {
-      "reason": "not built"
     },
     "T056": {
       "reason": "not built",

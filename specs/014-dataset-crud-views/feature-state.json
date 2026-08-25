@@ -39,6 +39,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-25T13:08:00Z",
       "note": "US-3 update page: 13 tasks closed on evidence (ce696e9, 3adad5e, 99b9501, 8d90997)"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-25T13:43:30Z",
+      "note": "US-4 descriptions page: 8 tasks closed on evidence (dfe0d70)"
     }
   ],
   "gates": {
@@ -107,7 +112,7 @@
               "tests/test_core/test_dataset/conftest.py:48"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -179,7 +184,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 the requirement is that the design is not changed; nothing to build"
+              "n/a — the requirement is that the design is not changed; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -401,7 +406,7 @@
               "tests/test_core/test_formsets.py:120"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -417,12 +422,12 @@
               "fairdm/core/dataset/urls.py:14"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:96 \u2014 resolves as an extra view",
-              "tests/test_core/test_dataset/test_views.py:219 \u2014 anonymous sign-in redirect",
-              "tests/test_core/test_dataset/test_views.py:258 \u2014 200 with permission"
+              "tests/test_core/test_dataset/test_plugins.py:96 — resolves as an extra view",
+              "tests/test_core/test_dataset/test_views.py:219 — anonymous sign-in redirect",
+              "tests/test_core/test_dataset/test_views.py:258 — 200 with permission"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -437,12 +442,12 @@
               "fairdm/core/dataset/plugins.py:182"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:121,134 \u2014 refuses a signed-in user without the grant and an anonymous request",
-              "tests/test_core/test_dataset/test_plugins.py:144 \u2014 a model-level holder with no record-level grant is refused",
-              "tests/test_core/test_dataset/test_views.py:229,247 \u2014 private answers 404"
+              "tests/test_core/test_dataset/test_plugins.py:121,134 — refuses a signed-in user without the grant and an anonymous request",
+              "tests/test_core/test_dataset/test_plugins.py:144 — a model-level holder with no record-level grant is refused",
+              "tests/test_core/test_dataset/test_views.py:229,247 — private answers 404"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -456,11 +461,11 @@
               "fairdm/core/dataset/forms.py:145"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:194 \u2014 the rendered form offers exactly that set",
-              "tests/test_core/test_dataset/test_plugins.py:210 \u2014 no second registered page overlaps it"
+              "tests/test_core/test_dataset/test_plugins.py:194 — the rendered form offers exactly that set",
+              "tests/test_core/test_dataset/test_plugins.py:210 — no second registered page overlaps it"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -474,10 +479,10 @@
               "fairdm/core/dataset/plugins.py:178"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:233 \u2014 each of name, project, license, visibility and reference changed and asserted against a fresh copy"
+              "tests/test_core/test_dataset/test_plugins.py:233 — each of name, project, license, visibility and reference changed and asserted against a fresh copy"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -491,10 +496,10 @@
               "fairdm/core/dataset/forms.py:190"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:309 \u2014 the field offers only the researcher's own projects"
+              "tests/test_core/test_dataset/test_plugins.py:309 — the field offers only the researcher's own projects"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -507,10 +512,10 @@
               "fairdm/core/dataset/plugins.py:180"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:335,353,378,404 \u2014 rows presented, added, changed and removed"
+              "tests/test_core/test_dataset/test_plugins.py:335,353,378,404 — rows presented, added, changed and removed"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -524,10 +529,10 @@
               "fairdm/core/dataset/plugins.py:180"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:470,488,509,535,623 \u2014 rows presented, added, changed, removed, start without end accepted"
+              "tests/test_core/test_dataset/test_plugins.py:470,488,509,535,623 — rows presented, added, changed, removed, start without end accepted"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -540,10 +545,10 @@
               "fairdm/core/dataset/plugins.py:144"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:561,590 \u2014 a backwards pair is refused and saves nothing, both newly added and with the start already stored"
+              "tests/test_core/test_dataset/test_plugins.py:561,590 — a backwards pair is refused and saves nothing, both newly added and with the start already stored"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -556,11 +561,11 @@
               "fairdm/core/abstract.py:354"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:430 \u2014 a value held by another dataset is refused",
-              "tests/test_core/test_dataset/test_plugins.py:650 \u2014 an invalid row blocks the record's own field changes too"
+              "tests/test_core/test_dataset/test_plugins.py:430 — a value held by another dataset is refused",
+              "tests/test_core/test_dataset/test_plugins.py:650 — an invalid row blocks the record's own field changes too"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -573,10 +578,10 @@
               "fairdm/core/dataset/forms.py:159"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:206 \u2014 asserts absence by field set, so a field reintroduced later fails"
+              "tests/test_core/test_dataset/test_plugins.py:206 — asserts absence by field set, so a field reintroduced later fails"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -591,10 +596,10 @@
             ],
             "tests": [
               "tests/test_core/test_dataset/test_forms.py:112",
-              "tests/test_core/test_dataset/test_plugins.py:281 \u2014 an empty name reports an error and saves nothing"
+              "tests/test_core/test_dataset/test_plugins.py:281 — an empty name reports an error and saves nothing"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -607,11 +612,11 @@
               "fairdm/core/dataset/plugins.py:200"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:678 \u2014 the redirect target is dataset:overview",
-              "tests/test_core/test_dataset/test_views.py:268 \u2014 a valid submission redirects"
+              "tests/test_core/test_dataset/test_plugins.py:678 — the redirect target is dataset:overview",
+              "tests/test_core/test_dataset/test_views.py:268 — a valid submission redirects"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -625,10 +630,10 @@
               "fairdm/core/dataset/plugins.py:180"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:107 \u2014 asserts the shared mixin is what the page uses"
+              "tests/test_core/test_dataset/test_plugins.py:107 — asserts the shared mixin is what the page uses"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -641,10 +646,10 @@
               "fairdm/core/dataset/forms.py:166"
             ],
             "tests": [
-              "tests/test_core/test_dataset/test_plugins.py:703,710 \u2014 the form declares no form tag and the rendered page carries exactly one form element"
+              "tests/test_core/test_dataset/test_plugins.py:703,710 — the form declares no form tag and the rendered page carries exactly one form element"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+              "pytest tests/ -q — 2383 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
             ]
           }
         },
@@ -654,7 +659,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
+              "n/a — a constraint on this feature's own scope, with no deliverable of its own; T043's field-set test will enforce it, and T043 is open"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -670,7 +675,7 @@
               "fairdm/core/dataset/views.py:121"
             ],
             "tests": [
-              "n/a \u2014 a constraint on this feature's own scope"
+              "n/a — a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -683,7 +688,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 a constraint on this feature's own scope"
+              "n/a — a constraint on this feature's own scope"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
@@ -696,7 +701,7 @@
       "id": "US4",
       "priority": "P2",
       "issue": 292,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -715,43 +720,142 @@
         },
         {
           "id": "T048",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:179",
+              "fairdm/core/dataset/plugins.py:249"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:742 — resolves at datasets/<uuid>/descriptions/ as an extra view of the record's own page",
+              "tests/test_contrib/test_plugins/test_pages.py:28 — the retired standalone address is gone"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T049",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:194",
+              "fairdm/core/dataset/plugins.py:198",
+              "fairdm/core/dataset/plugins.py:207-215"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:765 — states its own permission; an extra view inherits none",
+              "tests/test_core/test_dataset/test_plugins.py:788 — a private dataset answers not-found at this address too",
+              "tests/test_contrib/test_plugins/test_pages.py:82 — anonymous and signed-in stranger both get not-found"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T050",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:201",
+              "fairdm/core/dataset/plugins.py:217-221"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:838 — the field set is read from the vocabulary, not a literal count",
+              "tests/test_core/test_dataset/test_plugins.py:869 — label and help text come from the concept itself"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T051",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:223-225"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:891 — one area saved records exactly one description of that type",
+              "tests/test_core/test_dataset/test_plugins.py:912 — an existing description shows in its own area and no other",
+              "tests/test_core/test_dataset/test_plugins.py:932 — an edit persists",
+              "tests/test_core/test_dataset/test_plugins.py:950 — three submissions to the same area leave one row"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T052",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:223-225"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:977 — clearing an area deletes the row"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T053",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:223-225"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:997 — an empty submission and a whitespace-only area each create nothing"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T054",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:227-228"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:1031 — the redirect target equals the dataset's own address"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         },
         {
           "id": "T055",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py:201"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py:1049 — the declared form is the vocabulary-driven one, and the page is not the generic row-based plugin"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2404 passed, 13 skipped (verified independently); forge verify: lint, typecheck, test, build green"
+            ]
+          }
         }
       ]
     },
@@ -775,7 +879,7 @@
               "tests/test_contrib/test_plugins/test_pages.py:40"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -792,7 +896,7 @@
               "tests/test_core/test_dataset/test_models.py:1958"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -814,7 +918,7 @@
               "tests/test_core/test_dataset/test_views.py:391"
             ],
             "commands": [
-              "pytest tests/ -q \u2014 2354 passed, 13 skipped (verified independently)"
+              "pytest tests/ -q — 2354 passed, 13 skipped (verified independently)"
             ]
           }
         },
@@ -869,7 +973,7 @@
           "attempts": 0,
           "evidence": {
             "tests": [
-              "n/a \u2014 the requirement is that the page is not redesigned; nothing to build"
+              "n/a — the requirement is that the page is not redesigned; nothing to build"
             ],
             "commands": [
               "pytest tests/test_core/ tests/test_contrib/test_plugins/ -q"
