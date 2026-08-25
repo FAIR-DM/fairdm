@@ -20,11 +20,12 @@ test_integration.py.
 
 import pytest
 from django import forms
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from licensing.models import License
 
 from fairdm.contrib.contributors.models import Contribution
-from fairdm.core.dataset.forms import DatasetForm
+from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
@@ -77,6 +78,25 @@ class TestFormQuerysetFiltering:
         # Should not raise an exception
         form = DatasetForm(request=request)
         assert form is not None
+
+
+@pytest.mark.django_db
+class TestCreateFormProjectFieldForAnonymousRequest:
+    """T027/FR-016 - the creation page's own shipped form offers no projects at all to a
+    visitor who is not signed in. `DatasetCreateView` itself refuses an anonymous visitor
+    before a form is ever rendered, so this is exercised directly against the form the page
+    declares (`DatasetCreateForm`), the same way `TestFormQuerysetFiltering` above exercises
+    the authenticated-narrowing branch of the same `__init__`."""
+
+    def test_the_project_field_offers_no_projects_for_an_anonymous_request(self):
+        ProjectFactory()
+        factory = RequestFactory()
+        request = factory.get("/")
+        request.user = AnonymousUser()
+
+        form = DatasetCreateForm(request=request)
+
+        assert form.fields["project"].queryset.count() == 0
 
 
 @pytest.mark.django_db

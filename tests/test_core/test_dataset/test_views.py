@@ -330,6 +330,29 @@ class TestDatasetCreatePageProjectField:
         assert dataset.project is None
 
 
+@pytest.mark.django_db
+class TestDatasetCreatePageProjectFieldNarrowing:
+    """T027/FR-016 - the project field offers only projects the signed-in researcher may use,
+    on the same terms as the update page (`DatasetForm.__init__`, `request.user.projects.all()`,
+    mirrors `test_plugins.py`'s `TestUpdatePageProjectField`)."""
+
+    def test_the_project_field_is_narrowed_to_the_researchers_own_projects(self, client):
+        from fairdm.contrib.contributors.models import Contribution
+
+        user = UserFactory()
+        client.force_login(user)
+        own_project = ProjectFactory(name="Researcher's Own Project")
+        other_project = ProjectFactory(name="Someone Else's Project")
+        Contribution.add_to(user, own_project, roles=["Contributor"])
+
+        url = reverse("dataset-create")
+        response = client.get(url)
+        project_queryset = response.context["form"].fields["project"].queryset
+
+        assert own_project in project_queryset
+        assert other_project not in project_queryset
+
+
 # ---------------------------------------------------------------------------
 # Phase 5 — User Story 3: Edit Dataset Core Attributes
 # ---------------------------------------------------------------------------

@@ -31,7 +31,7 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
             dict: Form kwargs including the current request.
         """
         kwargs = super().get_form_kwargs()
-        # kwargs["request"] = self.request
+        kwargs["request"] = self.request
         return kwargs
 
     def get_success_url(self) -> str:
