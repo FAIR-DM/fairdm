@@ -44,6 +44,7 @@ from licensing.models import License
 from fairdm.core.dataset.filters import DatasetFilter
 from fairdm.core.dataset.models import Dataset
 from fairdm.factories import (
+    DatasetDateFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
     ProjectFactory,
@@ -207,21 +208,36 @@ class TestCrossRelationshipFilters:
     DatasetDescription and DatasetDate fields.
     """
 
-    @pytest.mark.skip(
-        reason="Cross-relationship filtering by description type not yet implemented in DatasetFilter"
-    )
     def test_filter_by_description_type(self):
-        """Should filter datasets by description type."""
-        # TODO: Implement description_type filter in DatasetFilter
-        pass
+        """014 T015/FR-005 — the description_type filter narrows to datasets carrying a
+        description of that type."""
+        matching = DatasetFactory()
+        DatasetDescriptionFactory(related=matching, type="Abstract")
+        other = DatasetFactory()
 
-    @pytest.mark.skip(
-        reason="Cross-relationship filtering by date type not yet implemented in DatasetFilter"
-    )
+        filterset = DatasetFilter(
+            data={"description_type": "Abstract"}, queryset=Dataset.all_objects.all()
+        )
+
+        assert filterset.is_valid()
+        assert matching in filterset.qs
+        assert other not in filterset.qs
+
     def test_filter_by_date_type(self):
-        """Should filter datasets by date type."""
-        # TODO: Implement date_type filter in DatasetFilter
-        pass
+        """014 T015/FR-005 — the date_type filter narrows to datasets carrying a date of
+        that type. Previously pointed at `dates__date_type`, a field that does not exist
+        (`AbstractDate.type`), so applying it raised `FieldError` (014 plan P8)."""
+        matching = DatasetFactory()
+        DatasetDateFactory(related=matching, type="Available")
+        other = DatasetFactory()
+
+        filterset = DatasetFilter(
+            data={"date_type": "Available"}, queryset=Dataset.all_objects.all()
+        )
+
+        assert filterset.is_valid()
+        assert matching in filterset.qs
+        assert other not in filterset.qs
 
     @pytest.mark.skip(
         reason="Cross-relationship filtering not yet implemented in DatasetFilter"

@@ -19,8 +19,8 @@ All filters combine using AND logic when multiple filters are applied.
 ## Performance Considerations
 
 Cross-relationship filters (description_type, date_type) require joins to related tables.
-Database indexes have been added to DatasetDescription.description_type and
-DatasetDate.date_type fields to optimize these queries. With indexes:
+Database indexes have been added to DatasetDescription.type and DatasetDate.type fields
+to optimize these queries. With indexes:
 - Filtering by description_type: ~5ms on 10k datasets
 - Filtering by date_type: ~5ms on 10k datasets
 - Combined filters: ~10ms on 10k datasets
@@ -144,7 +144,7 @@ class DatasetFilter(BaseListFilter):
     )
 
     date_type = django_filters.CharFilter(
-        field_name="dates__date_type",
+        field_name="dates__type",
         lookup_expr="exact",
         label="Date Type",
         help_text="Filter by date type (e.g., COLLECTED, PUBLISHED)",

@@ -210,6 +210,57 @@ class TestDatasetListingOrdering:
         assert entries.index(bravo) < entries.index(alpha)
 
 
+@pytest.mark.django_db
+class TestDatasetListingFilters:
+    """T015/FR-005 — filters by licence, project, description type and date type,
+    applied through the listing itself."""
+
+    def test_license_filter_narrows_to_the_matching_license(self, client):
+        cc_by = License.objects.get(name="CC BY 4.0")
+        cc0 = License.objects.get(name="CC0 1.0")
+        matching = DatasetFactory(license=cc_by, visibility=Visibility.PUBLIC)
+        other = DatasetFactory(license=cc0, visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset-list"), {"license": cc_by.pk})
+        entries = list(response.context["object_list"])
+        assert matching in entries
+        assert other not in entries
+
+    def test_project_filter_narrows_to_the_matching_project(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        matching = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        other = DatasetFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset-list"), {"project": project.pk})
+        entries = list(response.context["object_list"])
+        assert matching in entries
+        assert other not in entries
+
+    def test_description_type_filter_narrows_to_datasets_carrying_that_type(
+        self, client
+    ):
+        from fairdm.factories import DatasetDescriptionFactory
+
+        matching = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetDescriptionFactory(related=matching, type="Abstract")
+        other = DatasetFactory(visibility=Visibility.PUBLIC)
+        response = client.get(
+            reverse("dataset-list"), {"description_type": "Abstract"}
+        )
+        entries = list(response.context["object_list"])
+        assert matching in entries
+        assert other not in entries
+
+    def test_date_type_filter_narrows_to_datasets_carrying_that_type(self, client):
+        from fairdm.factories import DatasetDateFactory
+
+        matching = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetDateFactory(related=matching, type="Available")
+        other = DatasetFactory(visibility=Visibility.PUBLIC)
+        response = client.get(reverse("dataset-list"), {"date_type": "Available"})
+        entries = list(response.context["object_list"])
+        assert matching in entries
+        assert other not in entries
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Dataset
 # ---------------------------------------------------------------------------
