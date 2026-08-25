@@ -14,6 +14,7 @@ import re
 import time
 
 import pytest
+from django import forms
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains
@@ -235,6 +236,37 @@ class TestDatasetCreatePageFieldSet:
 
         assert response.status_code == 200
         assert set(response.context["form"].fields) == self.FIELDS
+
+
+@pytest.mark.django_db
+class TestDatasetCreatePageVisibilityField:
+    """T024/FR-013 - visibility is presented as a visible radio choice pre-selecting Public.
+    Asserted against the rendered control and its pre-selection, not just the form's initial
+    value (rituals)."""
+
+    def test_the_rendered_page_offers_a_radio_choice_pre_selecting_public(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("dataset-create")
+
+        response = client.get(url)
+        form = response.context["form"]
+
+        assert isinstance(form.fields["visibility"].widget, forms.RadioSelect)
+        assertContains(response, "Private")
+        assertContains(response, "Public")
+
+        content = response.content.decode()
+        public_input = re.search(
+            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PUBLIC}"[^>]*>',
+            content,
+        )
+        private_input = re.search(
+            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PRIVATE}"[^>]*>',
+            content,
+        )
+        assert public_input is not None and "checked" in public_input.group(0)
+        assert private_input is not None and "checked" not in private_input.group(0)
 
 
 # ---------------------------------------------------------------------------
