@@ -80,6 +80,47 @@ class TestDatasetListView:
 
 
 # ---------------------------------------------------------------------------
+# 014 US-1: Find a dataset — visibility, search, ordering, filters, empty
+# state and the listing entry's link. Mirrors
+# tests/test_core/test_project/test_views.py::TestProjectListing.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestDatasetListingVisibility:
+    """T012/FR-002 — the listing shows only public datasets, whoever is looking. The
+    pre-existing `test_shows_only_public_datasets` above only covers a signed-out
+    visitor; T012 and SC-002 both name the signed-in cases too (reconciliation: built,
+    untested)."""
+
+    def test_signed_out_visitor_sees_only_the_public_dataset(
+        self, client, public_dataset, private_dataset
+    ):
+        response = client.get(reverse("dataset-list"))
+        entries = list(response.context["object_list"])
+        assert public_dataset in entries
+        assert private_dataset not in entries
+
+    def test_signed_in_visitor_with_no_rights_sees_only_the_public_dataset(
+        self, client, public_dataset, private_dataset, user_with_no_permission
+    ):
+        client.force_login(user_with_no_permission)
+        response = client.get(reverse("dataset-list"))
+        entries = list(response.context["object_list"])
+        assert public_dataset in entries
+        assert private_dataset not in entries
+
+    def test_signed_in_holder_of_record_level_rights_over_a_private_dataset_still_does_not_see_it(
+        self, client, public_dataset, user_with_change_permission
+    ):
+        client.force_login(user_with_change_permission)
+        response = client.get(reverse("dataset-list"))
+        entries = list(response.context["object_list"])
+        assert public_dataset in entries
+        assert user_with_change_permission.dataset not in entries
+
+
+# ---------------------------------------------------------------------------
 # Phase 4 — User Story 2: Create a New Dataset
 # ---------------------------------------------------------------------------
 
