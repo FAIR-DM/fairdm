@@ -18,11 +18,27 @@ T046 - identifiers and dates are edited through `mvp.views.inline.InlinesMixin`,
        hand-written equivalent.
 T047 - the form declares `helper_attrs = {"form_tag": False}` so the page renders one form
        element, not one nested inside another.
+T048 - the descriptions page is reachable at a stable address of its own, identifying the
+       dataset by its identifier, and requires the visitor to be signed in.
+T049 - it refuses a user who does not hold permission to change that dataset.
+T050 - it offers one editable area per description type in the dataset description vocabulary,
+       labelled with the type's name and explained by its definition.
+T051 - saving text into an area records a description of that type; a dataset never holds more
+       than one description of any type.
+T052 - clearing an area removes that description.
+T053 - an area left empty creates nothing.
+T054 - a successful submission arrives at the dataset's own page.
+T055 - the page is built on the vocabulary-driven form (T009), not the row-based editor it used
+       to be registered on.
 
 Mirrors `tests/test_core/test_project/test_plugins.py` and
 `tests/test_core/test_project/test_views.py`'s `TestAttributesIdentifierRowSet` /
 `TestAttributesDateRowSet`, adapted to the dataset's own field set and identifier vocabulary
-(DOI alone, `fairdm/core/dataset/models.py:480`).
+(DOI alone, `fairdm/core/dataset/models.py:480`). The descriptions test classes below mirror
+`tests/test_core/test_project/test_plugins.py`'s `TestDescriptions*` classes, adapted to the
+dataset's own vocabulary and to the not-found visibility rule 014 US-3 established for private
+datasets (`fairdm.core.dataset.plugins.Update.handle_no_permission`), which project's reference
+implementation does not need.
 """
 
 import re
@@ -37,8 +53,9 @@ from licensing.models import License
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.dataset.forms import DatasetForm
-from fairdm.core.dataset.models import Dataset
-from fairdm.core.dataset.plugins import Update
+from fairdm.core.dataset.models import Dataset, DatasetDescription
+from fairdm.core.dataset.plugins import Descriptions, Update
+from fairdm.core.descriptions import VocabularyDescriptionsForm
 from fairdm.factories import (
     DatasetDateFactory,
     DatasetFactory,
@@ -719,3 +736,325 @@ class TestUpdatePageEmitsExactlyOneFormElement:
         assert response.status_code == 200
         content = response.content.decode()
         assert len(re.findall(r"<form[ >]", content)) == 1
+
+
+@pytest.mark.django_db
+class TestDescriptionsIsAnExtraViewNotARegistrationOfItsOwn:
+    """T048 — the descriptions page is an additional view belonging to ``Overview``, exactly
+    like ``Update``, rather than the standalone registration it used to be (014 plan P7,
+    mirrors ``fairdm.core.project.plugins.Descriptions``)."""
+
+    def test_reversed_by_name_it_resolves_at_an_address_keyed_by_the_datasets_identifier(
+        self, public_dataset
+    ):
+        url = reverse(
+            "dataset:overview-descriptions", kwargs={"uuid": public_dataset.uuid}
+        )
+        assert url == f"/datasets/{public_dataset.uuid}/descriptions/"
+
+    def test_an_anonymous_visitor_is_redirected_to_sign_in(self, client, public_dataset):
+        url = reverse(
+            "dataset:overview-descriptions", kwargs={"uuid": public_dataset.uuid}
+        )
+        response = client.get(url)
+        assert response.status_code == 302
+        assert reverse("account_login") in response.url
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageStatesItsOwnPermission:
+    """T049 — an additional view inherits its owner's ``check`` but never its ``permission``
+    (``fairdm/contrib/plugins/access.py`` ``can_open``), so this page states its own, matching
+    ``Update`` and ``fairdm.core.project.plugins.Descriptions``."""
+
+    def test_refuses_a_signed_in_user_without_change_permission(
+        self, public_dataset, user_with_no_permission
+    ):
+        request = _request_for(user_with_no_permission)
+        assert can_open(Descriptions, request, public_dataset) is False
+
+    def test_admits_a_user_holding_change_permission(self, user_with_change_permission):
+        request = _request_for(user_with_change_permission)
+        assert (
+            can_open(Descriptions, request, user_with_change_permission.dataset) is True
+        )
+
+    def test_refuses_an_anonymous_request(self, public_dataset):
+        request = _request_for(AnonymousUser())
+        assert can_open(Descriptions, request, public_dataset) is False
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageDoesNotDiscloseAPrivateDataset:
+    """014 US-3 established that a private dataset answers not-found rather than a permission
+    refusal or a sign-in redirect at every one of its addresses
+    (``fairdm.core.dataset.plugins.Update.handle_no_permission``). This page carries the same
+    rule so it does not become a second existence oracle for embargoed metadata alongside the
+    dataset's own page and its update page."""
+
+    def test_a_model_level_holder_with_no_record_level_grant_is_refused(self, client):
+        from django.contrib.auth.models import Permission
+
+        dataset = DatasetFactory()  # private, per the model default
+        user = UserFactory()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="dataset", codename="change_dataset"
+            )
+        )
+        client.force_login(user)
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_a_model_level_holder_with_view_rights_is_admitted(self, client):
+        from django.contrib.auth.models import Permission
+
+        dataset = DatasetFactory()
+        user = UserFactory()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="dataset", codename="change_dataset"
+            )
+        )
+        assign_perm("view_dataset", user, dataset)
+        client.force_login(user)
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+
+        assert response.status_code == 200
+
+    def test_an_anonymous_visitor_to_a_private_dataset_gets_not_found(self, client):
+        dataset = DatasetFactory()  # private, per the model default
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageOffersOneAreaPerVocabularyType:
+    """T050 — for a dataset with no descriptions, the page offers exactly one empty area per
+    concept in ``DatasetDescription.VOCABULARY``, the count read from the vocabulary itself
+    rather than written as a literal."""
+
+    def test_the_field_set_matches_the_vocabulary_exactly(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert list(form.fields) == list(DatasetDescription.VOCABULARY.values)
+
+    def test_every_area_starts_empty_for_a_dataset_with_no_descriptions(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert all(field.initial in (None, "") for field in form)
+
+
+@pytest.mark.django_db
+class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
+    """T050 — each area is labelled with its concept's name and carries that concept's
+    definition as help text, asserted against the vocabulary's own label and definition rather
+    than a copied string."""
+
+    def test_the_first_areas_label_and_help_text_match_its_concept(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type = DatasetDescription.VOCABULARY.values[0]
+        concept = DatasetDescription.VOCABULARY.get_concept(first_type)
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert form.fields[first_type].label == concept.label()
+        assert form.fields[first_type].help_text == concept.definition()
+
+
+@pytest.mark.django_db
+class TestSavingTextIntoOneAreaRecordsOnlyThatType:
+    """T051 — saving text into exactly one area records one description of that type and
+    creates no description of any other type."""
+
+    def test_saving_one_area_creates_exactly_one_description_of_that_type(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type = DatasetDescription.VOCABULARY.values[0]
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        client.post(url, data={first_type: "Some abstract text."})
+
+        assert DatasetDescription.objects.filter(related=dataset).count() == 1
+        row = DatasetDescription.objects.get(related=dataset)
+        assert row.type == first_type
+        assert row.value == "Some abstract text."
+
+
+@pytest.mark.django_db
+class TestExistingDescriptionsShowInTheirOwnArea:
+    def test_the_existing_description_appears_in_its_own_area_and_others_stay_empty(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type, second_type = DatasetDescription.VOCABULARY.values[:2]
+        DatasetDescription.objects.create(
+            related=dataset, type=first_type, value="Existing abstract."
+        )
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+
+        form = response.context["form"]
+        assert form.fields[first_type].initial == "Existing abstract."
+        assert form.fields[second_type].initial in (None, "")
+
+
+@pytest.mark.django_db
+class TestEditingAnExistingDescriptionPersists:
+    def test_the_changed_text_persists(self, client, user_with_change_permission):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type = DatasetDescription.VOCABULARY.values[0]
+        row = DatasetDescription.objects.create(
+            related=dataset, type=first_type, value="Original text."
+        )
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        client.post(url, data={first_type: "Changed text."})
+
+        row.refresh_from_db()
+        assert row.value == "Changed text."
+        assert DatasetDescription.objects.filter(related=dataset).count() == 1
+
+
+@pytest.mark.django_db
+class TestRepeatSubmissionNeverDuplicatesAType:
+    """T051 — a dataset never holds two descriptions of the same type through this page, even
+    across repeated submissions to the same area."""
+
+    def test_submitting_the_same_area_three_times_leaves_exactly_one_row(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type = DatasetDescription.VOCABULARY.values[0]
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        client.post(url, data={first_type: "First."})
+        client.post(url, data={first_type: "Second."})
+        client.post(url, data={first_type: "Third."})
+
+        assert (
+            DatasetDescription.objects.filter(related=dataset, type=first_type).count()
+            == 1
+        )
+        assert (
+            DatasetDescription.objects.get(related=dataset, type=first_type).value
+            == "Third."
+        )
+
+
+@pytest.mark.django_db
+class TestClearingAnAreaRemovesTheDescription:
+    """T052 — clearing an area and submitting removes that description from the dataset."""
+
+    def test_clearing_the_area_deletes_the_row(self, client, user_with_change_permission):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type = DatasetDescription.VOCABULARY.values[0]
+        DatasetDescription.objects.create(
+            related=dataset, type=first_type, value="Existing text."
+        )
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        client.post(url, data={first_type: ""})
+
+        assert not DatasetDescription.objects.filter(
+            related=dataset, type=first_type
+        ).exists()
+
+
+@pytest.mark.django_db
+class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
+    """T053 — an area left empty creates nothing, and an area containing only whitespace is
+    treated as empty: nothing created, and any row already stored for that type removed."""
+
+    def test_leaving_an_area_empty_creates_no_description(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        client.post(url, data={})
+
+        assert not DatasetDescription.objects.filter(related=dataset).exists()
+
+    def test_whitespace_only_is_treated_as_empty_and_removes_a_stored_row(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type = DatasetDescription.VOCABULARY.values[0]
+        DatasetDescription.objects.create(
+            related=dataset, type=first_type, value="Existing text."
+        )
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        client.post(url, data={first_type: "   \n  "})
+
+        assert not DatasetDescription.objects.filter(
+            related=dataset, type=first_type
+        ).exists()
+
+
+@pytest.mark.django_db
+class TestASuccessfulSubmissionRedirectsToTheDatasetsPage:
+    """T054 — a successful submission redirects to the dataset's own page, asserted by exact
+    route reversal rather than a substring of the address."""
+
+    def test_the_redirect_target_is_the_datasets_own_overview_url(
+        self, client, user_with_change_permission
+    ):
+        dataset = user_with_change_permission.dataset
+        client.force_login(user_with_change_permission)
+        first_type = DatasetDescription.VOCABULARY.values[0]
+
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        response = client.post(url, data={first_type: "Some text."})
+
+        assert response.status_code == 302
+        assert response.url == reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+
+
+class TestDescriptionsUsesTheVocabularyDrivenForm:
+    """T055 — built on the shared vocabulary-driven form (T009), not the row-based editor
+    (``fairdm.contrib.generic.plugins.DescriptionsPlugin``) this page used to be registered
+    on."""
+
+    def test_the_declared_form_class_is_the_vocabulary_driven_form(self):
+        assert Descriptions.form_class is VocabularyDescriptionsForm
+
+    def test_the_page_is_not_built_on_the_generic_row_based_plugin(self):
+        from fairdm.contrib.generic.plugins import DescriptionsPlugin
+
+        assert not issubclass(Descriptions, DescriptionsPlugin)
