@@ -1309,3 +1309,75 @@ class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
 
         delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         assertNotContains(response, f'href="{delete_url}"')
+
+
+@pytest.mark.django_db
+class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
+    """T065/FR-052 — every link drawn by each of the dataset's four pages resolves to a real
+    address; none is drawn as an empty href. One test per page, parsing every rendered ``href``
+    rather than asserting a hardcoded list, so a link added later stays covered without the test
+    being rewritten. Rendered as a fully-permitted, signed-in user throughout, so every link a
+    page can draw is actually drawn. Mirrors
+    ``tests.test_core.test_project.test_plugins.TestEveryLinkEachPageDrawsResolvesToARealAddress``."""
+
+    def _permitted_user(self, dataset):
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        assign_perm("delete_dataset", user, dataset)
+        return user
+
+    def test_the_datasets_own_page_draws_no_empty_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
+
+    def test_the_update_page_draws_no_empty_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+
+        response = client.get(
+            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        )
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
+
+    def test_the_descriptions_page_draws_no_empty_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+
+        response = client.get(
+            reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        )
+
+        hrefs = _hrefs(response.content.decode())
+        assert hrefs
+        assert all(href.strip() != "" for href in hrefs)
+
+    def test_the_deletion_pages_link_back_to_the_dataset_is_not_empty(self, client):
+        """Narrower than the other three: the deletion page's own confirmation-cancel "Back"
+        button is a pre-existing defect this story does not own — ``Delete`` is closed on
+        evidence from US-6 and the brief prohibits changing it, and it carries no
+        ``get_back_url`` override the way ``fairdm.core.project.plugins.Delete`` does, so
+        ``MVPDeleteView``'s own fallback renders that one control as an empty ``href=""``
+        (reported separately in this report's ``issues_found``). This asserts only the link this
+        story's own breadcrumb mechanism draws (T066) is real and non-empty, rather than sweeping
+        every href the page renders."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._permitted_user(dataset))
+
+        response = client.get(
+            reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        )
+
+        dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        hrefs = _hrefs(response.content.decode())
+        matching = [href for href in hrefs if href.startswith(dataset_url)]
+        assert matching
+        assert all(href.strip() != "" for href in matching)
