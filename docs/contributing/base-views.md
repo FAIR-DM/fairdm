@@ -264,6 +264,11 @@ class DatasetDeleteView(FairDMDeleteView):
 
 **Context keys**: `meta`, `page`, `object`
 
+A record that something else relies on cannot be deleted, and the page says so instead of offering
+the confirmation: it lists what is in the way and draws no submit control. This covers relations
+declared `on_delete=PROTECT` and `on_delete=RESTRICT` alike — `Measurement.sample` is the latter,
+so a dataset whose samples carry measurements recorded by another dataset lands here.
+
 ---
 
 ### `FairDMTableView`

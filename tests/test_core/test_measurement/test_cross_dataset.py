@@ -13,7 +13,7 @@ declared on the polymorphic ``Measurement`` base cannot be stored against a subc
 """
 
 import pytest
-from django.db.models import ProtectedError
+from django.db.models import RestrictedError
 
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.factories import DatasetFactory, PersonFactory
@@ -95,8 +95,25 @@ class TestCrossDatasetDeletionBoundaries:
         sample_b = RockSampleFactory(dataset=dataset_b)
         measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
 
-        with pytest.raises(ProtectedError):
+        with pytest.raises(RestrictedError):
             sample_b.delete()
+
+        assert ExampleMeasurementFactory._meta.model.objects.filter(
+            pk=measurement_a.pk
+        ).exists()
+
+    def test_deleting_the_sample_dataset_is_refused_while_a_measurement_elsewhere_refers_to_it(
+        self,
+    ):
+        """The guard holds a level up too: dataset B cannot be deleted out from under a
+        measurement in dataset A that refers to one of B's samples."""
+        dataset_a = DatasetFactory()
+        dataset_b = DatasetFactory()
+        sample_b = RockSampleFactory(dataset=dataset_b)
+        measurement_a = ExampleMeasurementFactory(dataset=dataset_a, sample=sample_b)
+
+        with pytest.raises(RestrictedError):
+            dataset_b.delete()
 
         assert ExampleMeasurementFactory._meta.model.objects.filter(
             pk=measurement_a.pk

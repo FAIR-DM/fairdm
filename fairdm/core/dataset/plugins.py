@@ -155,6 +155,23 @@ class Update(Plugin, InlinesMixin, FairDMUpdateView):
     template_name = "dataset/plugins/update.html"
     inlines = [DatasetIdentifierInline, DatasetDatesInline]
 
+    # FR-045 — this page offers the deletion page. The shared form shell already carries the slot
+    # and fills it from get_delete_url(); all this page supplies is where the three routes it
+    # reverses actually live, since the interface layer's defaults name the standalone
+    # `dataset-update`/`dataset-delete` routes this feature retires.
+    crud_views = {
+        "list": "dataset-list",
+        "update": "dataset:overview-update",
+        "delete": "dataset:overview-delete",
+    }
+    show_list_action = True
+
+    def show_delete_action(self, user):
+        """Offered on the right ``Delete`` itself requires, not on the one that opened this page:
+        a user may hold ``change_dataset`` without ``delete_dataset``, and a link they cannot
+        follow is worse than no link."""
+        return has_perm(self.request, Delete.permission, self.base_object)
+
     def handle_no_permission(self):
         """Mirrors :meth:`Overview.handle_no_permission`: a private dataset the requester may
         not change answers 404, not 403, so this address does not become an existence oracle for

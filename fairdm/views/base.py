@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.db.models import RestrictedError
 from django_filters.views import FilterView
 from meta.views import MetadataMixin
 from mvp.integrations.django_filters.views import MVPFilteredListView
@@ -225,7 +226,21 @@ class FairDMDeleteView(MetadataMixin, MVPDeleteView):
             success_url = "list"  # CRUD shorthand resolved by MVPDeleteView
     """
 
-    pass
+    def _collect_deletion_data(self):
+        """Treat a restricted relation as a refusal, the same as a protected one.
+
+        ``MVPDeleteView`` catches ``ProtectedError`` and turns it into the refusal the template
+        already draws — the blocking records listed, no submit button. It does not catch
+        ``RestrictedError``, which is a sibling under ``IntegrityError`` rather than a subclass,
+        so a ``RESTRICT`` relation raises straight out of the page instead. ``Measurement.sample``
+        is one, so a dataset whose samples are measured by another dataset reaches this.
+
+        Remove once django-mvp#308 lands.
+        """
+        try:
+            return super()._collect_deletion_data()
+        except RestrictedError as exc:
+            return {}, list(exc.restricted_objects)
 
 
 class FairDMTableView(MetadataMixin, MVPTableViewMixin, FilterView):

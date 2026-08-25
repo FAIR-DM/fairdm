@@ -539,24 +539,41 @@ class TestMeasurementURLPattern:
 
 @pytest.mark.django_db
 class TestMeasurementCascadeBehavior:
-    """Test PROTECT deletion behavior. T013/T014 - the CASCADE-on-dataset-delete case
-    previously asserted here deleted the measurement before the dataset, so its assertion held
-    whatever ``on_delete`` said; that coverage now lives at
+    """Test deletion behaviour where a measurement refers to a sample. T013/T014 - the
+    CASCADE-on-dataset-delete case previously asserted here deleted the measurement before the
+    dataset, so its assertion held whatever ``on_delete`` said; that coverage now lives at
     ``TestMeasurementCRUDWorkflow.test_deleting_dataset_cascades_to_measurements``, which deletes
     the dataset while the measurement still exists."""
 
-    def test_deleting_sample_protects_measurements(self, xrf_measurement):
-        """Test that measurements prevent sample deletion (PROTECT)."""
-        from django.db.models import ProtectedError
+    def test_deleting_sample_is_refused_while_a_measurement_refers_to_it(
+        self, xrf_measurement
+    ):
+        """A sample cannot be deleted out from under a measurement that refers to it."""
+        from django.db.models import RestrictedError
 
         sample = xrf_measurement.sample
 
         # Attempt to delete sample should fail
-        with pytest.raises(ProtectedError):
+        with pytest.raises(RestrictedError):
             sample.delete()
 
         # Measurement should still exist
         assert Measurement.objects.filter(pk=xrf_measurement.pk).exists()
+
+    def test_deleting_a_dataset_removes_its_samples_and_their_measurements(self):
+        """The ordinary shape of a dataset — samples, and measurements made on those same
+        samples — deletes whole. Under ``PROTECT`` this was refused outright, because the
+        refusal fired against the measurement even though the measurement was itself being
+        deleted in the same operation."""
+        dataset = DatasetFactory()
+        sample = RockSampleFactory(dataset=dataset)
+        measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
+        sample_pk, measurement_pk = sample.pk, measurement.pk
+
+        dataset.delete()
+
+        assert not Sample.objects.filter(pk=sample_pk).exists()
+        assert not Measurement.objects.filter(pk=measurement_pk).exists()
 
 
 @pytest.mark.django_db
@@ -1064,7 +1081,7 @@ class TestMeasurementCRUDWorkflow:
 
         # Measurement should be deleted via cascade
         assert not Measurement.objects.filter(pk=measurement_id).exists()
-        # Sample should still exist (in different dataset, protected by PROTECT)
+        # Sample should still exist — it lives in a different, undeleted dataset
         assert Sample.objects.filter(pk=sample.pk).exists()
 
     def test_deleting_sample_protects_measurements(self):

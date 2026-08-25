@@ -21,6 +21,7 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.project.views import ProjectCreateView, ProjectListView
 from fairdm.factories import (
+    DatasetFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectDateFactory,
@@ -1168,6 +1169,28 @@ class TestProjectDeleteView:
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
+
+    def test_project_delete_page_refuses_rather_than_raises_on_a_restricted_sample(
+        self, client
+    ):
+        """T082 — a project holding a dataset whose samples are measured by a dataset elsewhere
+        cannot be deleted, and the page draws the refusal instead of raising."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        project = ProjectFactory(name="Holds The Samples")
+        dataset = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=DatasetFactory(), sample=sample)
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert Project.objects.filter(pk=project.pk).exists()
 
     def test_project_delete_without_permission_403(self, client):
         """T029 — Authenticated client without delete_project returns 403."""

@@ -1058,3 +1058,47 @@ class TestDescriptionsUsesTheVocabularyDrivenForm:
         from fairdm.contrib.generic.plugins import DescriptionsPlugin
 
         assert not issubclass(Descriptions, DescriptionsPlugin)
+
+
+def _hrefs(content: str) -> list[str]:
+    """Every ``href="..."`` attribute value in rendered HTML, in document order."""
+    return re.findall(r'href="([^"]*)"', content)
+
+
+@pytest.mark.django_db
+class TestUpdatePageOffersTheDeletionLink:
+    """T070 / FR-045 — the update page offers the deletion page to a user who may delete the
+    dataset, and offers it to nobody else. `fairdm.core.project.plugins.Update`'s equivalent,
+    applied to datasets: the shared `form_view.html` shell already carries the slot and fills it
+    from `get_delete_url()`, so this page supplies only the route names and the permission gate."""
+
+    def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        )
+
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        assert any(
+            href.startswith(delete_url) for href in _hrefs(response.content.decode())
+        )
+
+    def test_a_user_who_may_change_but_not_delete_is_offered_no_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        )
+
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        assert not any(
+            href.startswith(delete_url) for href in _hrefs(response.content.decode())
+        )

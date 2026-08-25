@@ -454,15 +454,55 @@ class TestDatasetDeleteView:
         assert response.url == reverse("dataset-list")
         assert not Sample.objects.filter(pk=sample_pk).exists()
 
-    def test_deleting_a_dataset_removes_its_measurements(self, client):
-        """T077 — the measurements held beneath a deleted dataset are gone too, even where the
-        measurement's own sample lives in a different, unaffected dataset (mirrors
-        `tests/test_core/test_measurement/test_models.py`
-        `TestMeasurementCascadeBehavior.test_deleting_dataset_cascades_to_measurements`, which
-        the reconciliation notes as the coverage this rewrite carries forward). A measurement
-        sharing its own dataset with the sample it references is a separate, pre-existing
-        `Measurement.sample` PROTECT interaction — noted in this run's `issues_found` rather
-        than exercised here, since it is not this page's own behaviour."""
+    def test_deleting_a_dataset_removes_its_samples_and_their_measurements(self, client):
+        """T077 — the ordinary shape of a dataset holding data: samples, and measurements made
+        on those same samples. Both go with it."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        user = UserFactory()
+        dataset = DatasetFactory(name="Dataset With Data")
+        sample = RockSampleFactory(dataset=dataset)
+        measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
+        sample_pk, measurement_pk = sample.pk, measurement.pk
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.post(url, data={"confirmation": "Dataset With Data"})
+
+        assert response.status_code == 302
+        assert response.url == reverse("dataset-list")
+        assert not Sample.objects.filter(pk=sample_pk).exists()
+        assert not Measurement.objects.filter(pk=measurement_pk).exists()
+
+    def test_deletion_is_refused_while_another_dataset_measures_its_samples(self, client):
+        """T077 — a dataset whose samples carry measurements recorded by another dataset cannot
+        be deleted, and the page says so rather than raising."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        user = UserFactory()
+        dataset = DatasetFactory(name="Borrowed From")
+        other = DatasetFactory(name="Borrower")
+        sample = RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=other, sample=sample)
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert response.context["form"] is None
+
+        response = client.post(url, data={"confirmation": "Borrowed From"})
+
+        assert response.status_code == 200
+        assert Dataset.all_objects.filter(pk=dataset.pk).exists()
+
+    def test_deleting_a_dataset_leaves_a_sample_it_borrowed_alone(self, client):
+        """T077 — a measurement may refer to a sample belonging to another dataset. Deleting
+        the measurement's dataset takes the measurement and leaves that sample standing."""
         from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
