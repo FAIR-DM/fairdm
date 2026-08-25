@@ -10,14 +10,23 @@ Also covers general list/create/permission smoke tests moved from the former
 test_integration.py.
 """
 
+import re
 import time
 
 import pytest
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
+from pytest_django.asserts import assertContains
 
 from fairdm.core.dataset.models import Dataset
-from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from fairdm.core.measurement.models import Measurement
+from fairdm.core.sample.models import Sample
+from fairdm.factories import (
+    DatasetFactory,
+    DatasetIdentifierFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 # ---------------------------------------------------------------------------
@@ -305,80 +314,263 @@ class TestDatasetUpdateView:
 # ---------------------------------------------------------------------------
 
 
+def _assert_cascade_preview_group(content, label):
+    """Whether the cascade preview's own group-heading markup (`delete_view.html`'s
+    `<c-text ... bold />`) names `label`, rather than a bare substring match — the portal's
+    sidebar navigation renders several of the same words ("Samples", "Rock Samples") in its own
+    unrelated markup, on every page a signed-in visitor can reach."""
+    pattern = rf'<p class="text-base mb-3 font-semibold "\s*>\s*{re.escape(label)}\s*</p>'
+    return re.search(pattern, content) is not None
+
+
 @pytest.mark.django_db
 class TestDatasetDeleteView:
-    """Smoke tests and behaviour tests for DatasetDeleteView (US4)."""
+    """The deletion page (US-6), an additional view of `dataset:overview` rather than the
+    retired standalone `dataset-delete` route (014 plan P7), mirroring
+    `tests/test_core/test_dataset/test_views.py::TestDatasetUpdateView`'s own split from its
+    retired route."""
 
-    def test_anonymous_redirects_to_login(self, client):
-        """T027 — GET /datasets/<uuid>/delete/ by anonymous client returns 302."""
-        dataset = DatasetFactory()
-        url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
+    def test_anonymous_visitor_to_a_public_dataset_redirects_to_login(self, client):
+        """T070 — the deletion page requires the visitor to be signed in (FR-043): a public
+        dataset's page still redirects an anonymous visitor to sign in, since it is
+        authentication rather than the dataset's own visibility being tested here."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
+    def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
+        """T070/T071 — an anonymous visitor to a private dataset's deletion page answers 404,
+        not a sign-in redirect, so the address does not confirm the record exists — the same
+        disclosure rule `dataset:overview` and its update page carry."""
+        dataset = DatasetFactory()  # private, per the model default
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+        assert response.status_code == 404
+
     def test_no_permission_on_a_public_dataset_returns_403(self, client):
-        """T028 — Authenticated client without delete_dataset returns 403."""
+        """T071 — an authenticated visitor without delete_dataset on a public dataset is
+        refused with 403, since the dataset's existence is already public knowledge."""
         user = UserFactory()
-        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(user)
-        url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
     def test_no_permission_on_a_private_dataset_returns_404(self, client):
-        """A private dataset the user may not delete answers 404, not 403, so the
-        response does not confirm that a dataset with this address exists. 004
-        supersedes 014's 403 here: 014 was written before a dataset had a
-        visibility, and the API already answers `NotFound` for the same reason
-        (`fairdm/api/permissions.py`).
-        """
+        """T071 — a private dataset the requester may not delete answers 404, not 403, so the
+        response does not confirm that a dataset with this address exists."""
         user = UserFactory()
         dataset = DatasetFactory()  # private, per the model default
         client.force_login(user)
-        url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
     def test_with_permission_returns_200(self, client):
-        """T029 — Client with delete_dataset permission GET returns 200."""
+        """T070 — a client holding delete_dataset reaches the page at its stable, uuid-keyed
+        address."""
         user = UserFactory()
         dataset = DatasetFactory()
         assign_perm("delete_dataset", user, dataset)
         client.force_login(user)
-        url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
     def test_wrong_name_shows_error(self, client):
-        """T030 — POST with mismatched confirmation returns 200 with form error; dataset not deleted."""
-        from fairdm.core.dataset.models import Dataset
-
+        """T072 — a confirmation that does not match the dataset's name is refused, and the
+        dataset is not deleted."""
         user = UserFactory()
         dataset = DatasetFactory(name="My Dataset")
         assign_perm("delete_dataset", user, dataset)
         client.force_login(user)
-        url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={"confirmation": "Wrong Name"})
         assert response.status_code == 200
         assert "confirmation" in response.context["form"].errors
         # `all_objects` - the dataset is private by default.
         assert Dataset.all_objects.filter(pk=dataset.pk).exists()
 
-    def test_correct_name_redirects_to_list(self, client):
-        """T030a — POST with correct name redirects to dataset-list; dataset deleted."""
-        from fairdm.core.dataset.models import Dataset
+    def test_confirmation_ignores_surrounding_whitespace(self, client):
+        """T072 — the dataset's name typed with leading/trailing spaces is accepted (FR-045)."""
+        user = UserFactory()
+        dataset = DatasetFactory(name="Spaced Dataset")
+        pk = dataset.pk
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        response = client.post(url, data={"confirmation": "  Spaced Dataset  "})
+        assert response.status_code == 302
+        assert response.url == reverse("dataset-list")
+        assert not Dataset.all_objects.filter(pk=pk).exists()
 
+    def test_page_carries_exactly_one_confirmation_control(self, client):
+        """T073 — the rendered page carries exactly one control named for the confirmation.
+        Fixed upstream in django-mvp 0.19.3 (the page used to draw the bound field a second
+        time, unbound, so what the visitor typed was never what got posted); this is now an
+        ordinary passing test rather than an expected failure."""
+        user = UserFactory()
+        dataset = DatasetFactory(name="My Dataset")
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        response = client.get(url)
+        content = response.content.decode()
+        assert content.count('id="id_confirmation"') == 1
+
+    def test_correct_name_redirects_to_list(self, client):
+        """T077 — a valid submission redirects to the dataset listing (FR-049), and the
+        dataset is gone."""
         user = UserFactory()
         dataset = DatasetFactory(name="Delete Me Dataset")
         pk = dataset.pk
         assign_perm("delete_dataset", user, dataset)
         client.force_login(user)
-        url = reverse("dataset-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={"confirmation": "Delete Me Dataset"})
         assert response.status_code == 302
         assert response.url == reverse("dataset-list")
-        assert not Dataset.objects.filter(pk=pk).exists()
+        assert not Dataset.all_objects.filter(pk=pk).exists()
+
+    def test_deleting_a_dataset_removes_its_samples(self, client):
+        """T077 — the samples held beneath a deleted dataset are gone too, through the ORM's
+        own cascade rather than anything this page does by hand."""
+        from fairdm_demo.factories import RockSampleFactory
+
+        user = UserFactory()
+        dataset = DatasetFactory(name="Dataset With A Sample")
+        sample = RockSampleFactory(dataset=dataset)
+        sample_pk = sample.pk
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.post(url, data={"confirmation": "Dataset With A Sample"})
+
+        assert response.status_code == 302
+        assert response.url == reverse("dataset-list")
+        assert not Sample.objects.filter(pk=sample_pk).exists()
+
+    def test_deleting_a_dataset_removes_its_measurements(self, client):
+        """T077 — the measurements held beneath a deleted dataset are gone too, even where the
+        measurement's own sample lives in a different, unaffected dataset (mirrors
+        `tests/test_core/test_measurement/test_models.py`
+        `TestMeasurementCascadeBehavior.test_deleting_dataset_cascades_to_measurements`, which
+        the reconciliation notes as the coverage this rewrite carries forward). A measurement
+        sharing its own dataset with the sample it references is a separate, pre-existing
+        `Measurement.sample` PROTECT interaction — noted in this run's `issues_found` rather
+        than exercised here, since it is not this page's own behaviour."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        user = UserFactory()
+        sample_dataset = DatasetFactory(name="Sample Dataset")
+        sample = RockSampleFactory(dataset=sample_dataset)
+        dataset = DatasetFactory(name="Dataset With A Measurement")
+        measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
+        measurement_pk = measurement.pk
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.post(url, data={"confirmation": "Dataset With A Measurement"})
+
+        assert response.status_code == 302
+        assert response.url == reverse("dataset-list")
+        assert not Measurement.objects.filter(pk=measurement_pk).exists()
+        assert Sample.objects.filter(pk=sample.pk).exists()
+
+    def test_public_dataset_deletes_like_any_other(self, client):
+        """T076 — a public dataset is deleted like any other; FR-048's visibility rule never
+        prevents a deletion on its own."""
+        user = UserFactory()
+        dataset = DatasetFactory(
+            name="Public Dataset To Delete", visibility=Visibility.PUBLIC
+        )
+        pk = dataset.pk
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.post(url, data={"confirmation": "Public Dataset To Delete"})
+
+        assert response.status_code == 302
+        assert response.url == reverse("dataset-list")
+        assert not Dataset.all_objects.filter(pk=pk).exists()
+
+    def test_preview_names_the_datasets_samples_measurements_dates_and_identifiers(
+        self, client
+    ):
+        """T074 — before the confirmation is offered, the page previews what will be deleted
+        with the dataset (FR-046), through the shell's own cascade preview
+        (`show_related_objects`). Asserted against rendered content, not the `related_objects`
+        context data: the group headings for each related kind, plus the sample's and
+        identifier's own values, all as they actually render.
+
+        The measurement's own sample lives in a different, unaffected dataset — a measurement
+        sharing its dataset with the sample it references trips a pre-existing
+        `Measurement.sample` PROTECT interaction unrelated to this page (`issues_found`), and
+        this test's job is the preview's rendered content, not that interaction."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        user = UserFactory()
+        other_dataset = DatasetFactory(name="Other Dataset")
+        other_sample = RockSampleFactory(dataset=other_dataset)
+
+        dataset = DatasetFactory(name="Rich Dataset", dates=1)
+        DatasetIdentifierFactory(related=dataset, value="10.9999/rich-dataset")
+        RockSampleFactory(dataset=dataset, name="Granite Core 1")
+        ExampleMeasurementFactory(dataset=dataset, sample=other_sample)
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.get(url)
+        content = response.content.decode()
+
+        assertContains(
+            response, "The following related records will also be permanently deleted"
+        )
+        sample_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
+        measurement_label = ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
+        assert _assert_cascade_preview_group(content, sample_label)
+        assertContains(response, "Granite Core 1")
+        assert _assert_cascade_preview_group(content, measurement_label)
+        assert _assert_cascade_preview_group(content, "Dates")
+        assert _assert_cascade_preview_group(content, "Identifiers")
+        assertContains(response, "10.9999/rich-dataset")
+
+    def test_preview_says_nothing_about_samples_or_measurements_the_dataset_holds_none_of(
+        self, client
+    ):
+        """T075 — a dataset holding no samples and no measurements is not warned about data it
+        does not hold (FR-047). A date is included so the preview genuinely renders content —
+        proving the sample/measurement groups are absent rather than the whole preview being
+        empty."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        user = UserFactory()
+        dataset = DatasetFactory(name="Bare Dataset", dates=1)
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        response = client.get(url)
+        content = response.content.decode()
+
+        assert _assert_cascade_preview_group(content, "Dates")
+        sample_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
+        measurement_label = ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
+        assert not _assert_cascade_preview_group(content, sample_label)
+        assert not _assert_cascade_preview_group(content, measurement_label)
+        assert not _assert_cascade_preview_group(
+            content, Sample._meta.verbose_name_plural.title()
+        )
+        assert not _assert_cascade_preview_group(
+            content, Measurement._meta.verbose_name_plural.title()
+        )
 
 
 @pytest.mark.django_db

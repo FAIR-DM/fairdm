@@ -1,14 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
-from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.http import HttpResponse
 from django.utils.translation import gettext as _
 from guardian.shortcuts import assign_perm
 
-from fairdm.utils.choices import Visibility
-from fairdm.views import FairDMCreateView, FairDMDeleteView, FairDMListView
+from fairdm.views import FairDMCreateView, FairDMListView
 
 from .filters import DatasetFilter
 from .models import Dataset, DatasetQuerySet
@@ -121,42 +117,3 @@ class DatasetListView(FairDMListView):
         """
         qs: DatasetQuerySet = super().get_queryset()
         return qs.with_contributors()
-
-
-class DatasetDeleteView(LoginRequiredMixin, FairDMDeleteView):
-    """View for deleting a Dataset instance with name-confirmation guard.
-
-    Requires:
-        - User must be authenticated (LoginRequiredMixin)
-        - User must hold the ``delete_dataset`` object-level permission
-        - The ``DeleteConfirmForm`` field ``confirmation`` must match the dataset name exactly
-
-    Usage:
-        URL: /datasets/<uuid>/delete/
-        Login required: Yes
-        Object permission: delete_dataset
-    """
-
-    model = Dataset
-    slug_field = "uuid"
-    slug_url_kwarg = "uuid"
-    success_url = reverse_lazy("dataset-list")
-    require_confirmation = True
-
-    def get_object(self, queryset=None):
-        """Retrieve dataset and enforce delete_dataset permission.
-
-        Looked up through ``Dataset.all_objects`` for the same reason as
-        ``DatasetUpdateView.get_object`` above.
-        """
-        uuid = self.kwargs.get("uuid")
-        dataset = get_object_or_404(Dataset.all_objects, uuid=uuid)
-        if not self.request.user.has_perm("delete_dataset", dataset):
-            if dataset.visibility != Visibility.PUBLIC:
-                raise Http404("No dataset matches the given query.")
-            raise PermissionDenied("You do not have permission to delete this dataset.")
-        return dataset
-
-    def get_confirmation_value(self):
-        """Return the dataset name as the required confirmation value."""
-        return self.object.name

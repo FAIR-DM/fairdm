@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.http import Http404
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
 from mvp.views import MVPFormView
@@ -16,7 +17,7 @@ from fairdm.core.plugins import OverviewPlugin
 from fairdm.core.related_records import DatasetDateInline, DatasetIdentifierInline
 from fairdm.utils.choices import Visibility
 from fairdm.utils.utils import user_guide
-from fairdm.views import FairDMUpdateView
+from fairdm.views import FairDMDeleteView, FairDMUpdateView
 
 from .forms import DatasetForm
 from .models import Dataset, DatasetDate, DatasetDescription
@@ -228,6 +229,49 @@ class Descriptions(Plugin, MetadataMixin, MVPFormView):
         return self.base_object.get_absolute_url()
 
 
+class Delete(Plugin, FairDMDeleteView):
+    """The dataset's own deletion page, confirmed by typing its name and previewing what it
+    takes with it through the shell's own cascade preview (014 plan P7, US-6) — mirrors
+    ``fairdm.core.project.plugins.Delete``, minus that page's protected-object guard: FR-048
+    holds a dataset's visibility never blocks its own deletion on its own, and a dataset has no
+    descendant record equivalent to a project's public datasets for such a guard to protect.
+
+    An additional view belonging to :class:`Overview`, per :class:`Update` and
+    :class:`Descriptions` above.
+    """
+
+    url_path = "delete"
+    # An additional view inherits its owner's `check` but never its `permission`
+    # (fairdm/contrib/plugins/access.py `can_open`), so one that states none is open to everyone,
+    # anonymous included (mirrors project issue #279). This page writes its own.
+    permission = "dataset.delete_dataset"
+    # Stated directly rather than inherited from Overview — inheritance does not carry to an
+    # additional view (see `Update`, `visible_to_holder_of`). `visible_to_holder_of` rather than
+    # bare `dataset_is_visible`: this page's own permission is `delete_dataset`, not
+    # `view_dataset`, and a record-level grant of it is already evidence of legitimate access.
+    check = staticmethod(visible_to_holder_of("dataset.delete_dataset"))
+    page_title = _("Delete dataset")
+    model = Dataset
+    require_confirmation = True
+    # FR-046 — the shell's own cascade preview (`MVPDeleteView.show_related_objects`), not a
+    # hand-written count of samples and measurements.
+    show_related_objects = True
+    success_url = reverse_lazy("dataset-list")
+
+    def handle_no_permission(self):
+        """Mirrors :meth:`Update.handle_no_permission`: a private dataset the requester may not
+        delete answers 404, not a permission refusal or a sign-in redirect, so this address does
+        not become a third existence oracle for embargoed metadata alongside the dataset's own
+        page and its update page."""
+        obj = self.base_object
+        if obj is not None and obj.visibility != Visibility.PUBLIC:
+            raise Http404("No dataset matches the given query.")
+        return super().handle_no_permission()
+
+    def get_confirmation_value(self):
+        return self.base_object.name
+
+
 @plugins.register(Dataset, label=_("Overview"), icon="view", order=0)
 class Overview(CRUDDirectoryMixin, OverviewPlugin):
     """The dataset's own page: its registered overview, and the root of its collection.
@@ -237,16 +281,15 @@ class Overview(CRUDDirectoryMixin, OverviewPlugin):
     standalone ``DatasetDetailView`` this replaces. Declaring no ``url_path`` of its own keeps it
     the root of the record's include, matching every other core record.
 
-    ``extra_views`` carries :class:`Update` (014 US-3) and :class:`Descriptions` (014 US-4) — the
-    deletion page is appended by the run that builds it (US-6), mirroring
-    :class:`~fairdm.core.project.plugins.Delete`.
+    ``extra_views`` carries :class:`Update` (014 US-3), :class:`Delete` (014 US-6) and
+    :class:`Descriptions` (014 US-4).
     """
 
     url_path = None
     model = Dataset
     check = staticmethod(dataset_is_visible)
     template_name = "dataset/dataset_detail.html"
-    extra_views = [Update, Descriptions]
+    extra_views = [Update, Delete, Descriptions]
 
     def handle_no_permission(self):
         """Preserve the not-found response the retired ``DatasetDetailView`` gave a user who may
