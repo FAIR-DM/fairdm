@@ -1480,3 +1480,71 @@ class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
         client.force_login(self._permitted_user(dataset))
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         self._assert_no_deprecation_warning(client, url)
+
+
+@pytest.mark.django_db
+class TestNoAddressDisclosesAPrivateDatasetsExistence:
+    """T085/FR-061 — a private dataset's four addresses (its own page, its update page, its
+    descriptions page and its deletion page) never confirm the record exists to a visitor who
+    may not see it: an anonymous visitor and a signed-in stranger both get not-found, never a
+    permission refusal and never a sign-in redirect. Tested separately from a *public* dataset a
+    stranger may not change, which still refuses with a permission response, so the two cases
+    are not collapsed into one assertion."""
+
+    ADDRESSES = (
+        "dataset:overview",
+        "dataset:overview-update",
+        "dataset:overview-descriptions",
+        "dataset:overview-delete",
+    )
+    PERMISSION_BEARING_ADDRESSES = (
+        "dataset:overview-update",
+        "dataset:overview-descriptions",
+        "dataset:overview-delete",
+    )
+
+    def test_an_anonymous_visitor_gets_not_found_at_every_address(self, client):
+        dataset = DatasetFactory()  # private, per the model default
+        for name in self.ADDRESSES:
+            url = reverse(name, kwargs={"uuid": dataset.uuid})
+            response = client.get(url)
+            assert response.status_code == 404, name
+
+    def test_a_signed_in_stranger_gets_not_found_at_every_address(self, client):
+        dataset = DatasetFactory()  # private, per the model default
+        user = UserFactory()
+        client.force_login(user)
+        for name in self.ADDRESSES:
+            url = reverse(name, kwargs={"uuid": dataset.uuid})
+            response = client.get(url)
+            assert response.status_code == 404, name
+
+    def test_a_public_dataset_a_stranger_may_not_change_refuses_with_a_permission_response_instead(
+        self, client
+    ):
+        """The permission-bearing pages (update, descriptions, delete) still refuse a stranger
+        on a *public* dataset with a permission response, not a 404 — since visibility alone is
+        not what is gating them here. ``Overview`` itself carries no ``permission``, so a public
+        dataset admits any visitor to its own page regardless."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        client.force_login(user)
+
+        for name in self.PERMISSION_BEARING_ADDRESSES:
+            url = reverse(name, kwargs={"uuid": dataset.uuid})
+            response = client.get(url)
+            assert response.status_code == 403, name
+
+        overview_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        assert client.get(overview_url).status_code == 200
+
+    def test_the_same_public_dataset_refuses_an_anonymous_visitor_with_a_sign_in_redirect_instead(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        for name in self.PERMISSION_BEARING_ADDRESSES:
+            url = reverse(name, kwargs={"uuid": dataset.uuid})
+            response = client.get(url)
+            assert response.status_code == 302, name
+            assert "/login/" in response.url or "/accounts/login/" in response.url
