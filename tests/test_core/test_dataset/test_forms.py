@@ -8,7 +8,7 @@ This module tests the DatasetForm functionality including:
 - Anonymous user handling
 - Internationalized help text
 - Autocomplete widgets
-- DOI entry field
+- Visibility field
 
 These tests follow the TDD approach - they are written BEFORE implementation and
 should FAIL initially. Once the form is properly configured (Phase 5 implementation
@@ -19,13 +19,14 @@ test_integration.py.
 """
 
 import pytest
+from django import forms
 from django.test import RequestFactory
 from licensing.models import License
 
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.forms import DatasetForm
-from fairdm.core.dataset.models import DatasetIdentifier
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from fairdm.utils.choices import Visibility
 
 
 @pytest.mark.django_db
@@ -142,6 +143,7 @@ class TestFormValidation:
                 "name": "Valid Dataset",
                 "project": project.pk,
                 "license": license.pk,
+                "visibility": Visibility.PUBLIC,
             }
         )
 
@@ -172,6 +174,7 @@ class TestFormRenderingWithData:
                 "name": "Updated Name",
                 "project": dataset.project.pk,
                 "license": license.pk,
+                "visibility": Visibility.PUBLIC,
             },
             instance=dataset,
         )
@@ -275,107 +278,34 @@ class TestAutocompleteWidgets:
 
 
 @pytest.mark.django_db
-class TestDOIEntryField:
-    """Test DOI entry field that creates DatasetIdentifier (T092)."""
+class TestVisibilityField:
+    """Test the visibility field the update page's attributes cover (014 plan P4, FR-025).
 
-    def test_doi_field_exists_on_form(self):
-        """Test that DOI entry field exists on the form."""
+    Supersedes ``TestDOIEntryField``: the DOI text box this replaced is retired along with its
+    ``save()`` override (014 plan P3) — a dataset's external identifiers, DOI included, are now
+    edited as rows on the update page's identifiers row set instead of a field on this form (see
+    ``tests/test_core/test_dataset/test_plugins.py``'s ``TestAttributesIdentifierRowSet``).
+    """
+
+    def test_visibility_field_exists_on_form(self):
         form = DatasetForm()
 
-        # DOI field should be present
-        assert "doi" in form.fields, "Form should have a DOI entry field"
+        assert "visibility" in form.fields
 
-    def test_doi_field_is_optional(self):
-        """Test that DOI field is optional (datasets may not have DOI yet)."""
+    def test_visibility_field_pre_selects_public(self):
         form = DatasetForm()
 
-        doi_field = form.fields.get("doi")
-        assert doi_field is not None
-        assert not doi_field.required, "DOI field should be optional"
+        assert form.fields["visibility"].initial == Visibility.PUBLIC
 
-    def test_doi_field_creates_dataset_identifier_on_save(self):
-        """Test that entering DOI creates DatasetIdentifier with type='DOI'."""
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-        project = ProjectFactory()
-
-        form = DatasetForm(
-            data={
-                "name": "Dataset with DOI",
-                "project": project.pk,
-                "license": license.pk,
-                "doi": "10.1000/test123",
-            }
-        )
-
-        assert form.is_valid(), f"Form errors: {form.errors}"
-        dataset = form.save()
-
-        # Should have created a DatasetIdentifier
-        doi_identifier = DatasetIdentifier.objects.filter(
-            related=dataset, type="DOI"
-        ).first()
-        assert doi_identifier is not None, "DOI identifier should be created"
-        assert doi_identifier.value == "10.1000/test123"
-
-    def test_doi_field_updates_existing_identifier(self):
-        """Test that updating DOI field updates existing DatasetIdentifier."""
-        dataset = DatasetFactory(name="Existing Dataset")
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-
-        # Create initial DOI
-        DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.1000/original"
-        )
-
-        # Update DOI via form
-        form = DatasetForm(
-            data={
-                "name": dataset.name,
-                "project": dataset.project.pk,
-                "license": license.pk,
-                "doi": "10.1000/updated",
-            },
-            instance=dataset,
-        )
-
-        assert form.is_valid()
-        form.save()
-
-        # Should have updated the identifier
-        doi_identifier = DatasetIdentifier.objects.get(related=dataset, type="DOI")
-        assert doi_identifier.value == "10.1000/updated"
-
-    def test_empty_doi_field_does_not_create_identifier(self):
-        """Test that empty DOI field does not create DatasetIdentifier."""
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-        project = ProjectFactory()
-
-        form = DatasetForm(
-            data={
-                "name": "Dataset without DOI",
-                "project": project.pk,
-                "license": license.pk,
-                "doi": "",  # Empty DOI
-            }
-        )
-
-        assert form.is_valid()
-        dataset = form.save()
-
-        # Should NOT have created a DOI identifier
-        doi_count = DatasetIdentifier.objects.filter(
-            related=dataset, type="DOI"
-        ).count()
-        assert doi_count == 0, "Empty DOI should not create identifier"
-
-    def test_doi_field_has_helpful_text(self):
-        """Test that DOI field has clear help text."""
+    def test_visibility_field_uses_a_radio_widget(self):
         form = DatasetForm()
 
-        doi_field = form.fields.get("doi")
-        assert doi_field.help_text, "DOI field should have explanatory help text"
-        # Help text should mention it's for existing DOIs
-        assert "DOI" in str(doi_field.help_text).upper()
+        assert isinstance(form.fields["visibility"].widget, forms.RadioSelect)
+
+    def test_doi_field_no_longer_exists_on_form(self):
+        form = DatasetForm()
+
+        assert "doi" not in form.fields
 
 
 @pytest.mark.django_db
@@ -393,6 +323,7 @@ class TestDatasetForm:
             "name": "Test Dataset",
             "project": project.pk,
             "license": license.pk,
+            "visibility": Visibility.PUBLIC,
         }
         form = DatasetForm(data=form_data)
 

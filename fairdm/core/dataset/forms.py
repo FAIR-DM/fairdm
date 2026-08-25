@@ -5,7 +5,7 @@ This module provides forms for creating and editing Dataset instances with:
 - Internationalized help text using gettext_lazy
 - Autocomplete widgets on all ForeignKey/ManyToMany fields
 - License field defaulting to CC BY 4.0
-- DOI entry field that creates DatasetIdentifier
+- Visibility field presented as a radio choice, pre-selecting Public
 - Form-specific help text (not copied from model)
 
 The forms follow Django best practices and integrate with FairDM's permission system.
@@ -23,8 +23,9 @@ from licensing.models import License
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.core.models import Project
 from fairdm.forms import ModelForm
+from fairdm.utils.choices import Visibility
 
-from .models import Dataset, DatasetIdentifier
+from .models import Dataset
 
 DEFAULT_LICENSE = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
 
@@ -58,9 +59,9 @@ class DatasetForm(ModelForm):
     License field defaults to CC BY 4.0 (or FAIRDM_DEFAULT_LICENSE setting).
     This encourages open licensing consistent with FAIR principles.
 
-    **DOI Support:**
-    The DOI entry field creates/updates a DatasetIdentifier with type='DOI'
-    when the form is saved. Empty DOI values do not create identifiers.
+    **Identifiers:**
+    External identifiers, including a DOI, are edited as rows on the update page's
+    identifiers row set (014 plan P3), not through a field on this form.
 
     **Internationalization:**
     All user-facing strings use gettext_lazy for translation support.
@@ -141,27 +142,28 @@ class DatasetForm(ModelForm):
         ),
     )
 
-    doi = forms.CharField(
-        label=_("DOI (Digital Object Identifier)"),
+    visibility = forms.TypedChoiceField(
+        label=_("Visibility"),
+        choices=Visibility.choices,
+        coerce=int,
+        initial=Visibility.PUBLIC,
         help_text=_(
-            "If this dataset already has a DOI assigned (e.g., from a data repository "
-            "like Zenodo or Dryad), enter it here. Format: 10.1000/xyz123. "
-            "Leave empty if no DOI has been assigned yet."
+            "Whether this dataset's metadata may be read by anyone using the portal. "
+            "The data held beneath the dataset is governed separately."
         ),
-        required=False,
-        max_length=255,
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": _("10.1000/example"),
-                "pattern": r"10\.\d{4,}/.*",
-                "title": _("DOI must start with 10. followed by a number"),
-            }
-        ),
+        widget=forms.RadioSelect,
     )
 
     class Meta:
         model = Dataset
-        fields = ["image", "name", "project", "license", "reference", "doi"]
+        fields = ["image", "name", "project", "license", "reference", "visibility"]
+        # The shared render tag emits its own `<form>` whenever a crispy helper is
+        # present, which nests a second one inside the one the update page already
+        # opened. Every other core form sets this; the dataset form is the last to
+        # (014 plan P4). Set through `helper_attrs` rather than replacing the helper
+        # in `__init__` (`ProjectForm`'s approach), which keeps the derived layout,
+        # the form id and the interaction attributes this metaclass builds.
+        helper_attrs = {"form_tag": False}
 
     def __init__(self, request=None, *args, **kwargs):
         """Initialize form with optional request parameter for permission filtering.
@@ -219,51 +221,12 @@ class DatasetForm(ModelForm):
                             f for f in self.Meta.fields if f != "reference"
                         ]
 
-        # Pre-populate DOI field if editing existing dataset with DOI
-        if self.instance and self.instance.pk:
-            doi_identifier = DatasetIdentifier.objects.filter(
-                related=self.instance, type="DOI"
-            ).first()
-            if doi_identifier:
-                self.fields["doi"].initial = doi_identifier.value
-
-    def save(self, commit=True):
-        """Save dataset and handle DOI identifier creation/update.
-
-        This method extends the default save() to handle the DOI field which
-        creates or updates a DatasetIdentifier instance with type='DOI'.
-
-        Args:
-            commit: Whether to save to database immediately
-
-        Returns:
-            The saved Dataset instance
-        """
-        dataset = super().save(commit=commit)
-
-        # Handle DOI field - create/update DatasetIdentifier
-        doi_value = self.cleaned_data.get("doi", "").strip()
-
-        if commit:
-            if doi_value:
-                # Create or update DOI identifier
-                DatasetIdentifier.objects.update_or_create(
-                    related=dataset,
-                    type="DOI",
-                    defaults={"value": doi_value},
-                )
-            else:
-                # Remove DOI identifier if field is empty
-                DatasetIdentifier.objects.filter(related=dataset, type="DOI").delete()
-
-        return dataset
-
 
 class DatasetCreateForm(DatasetForm):
     """Restricted form for initial dataset creation.
 
     Exposes only the minimum fields needed at creation time. All
-    other fields (image, reference, doi, descriptions) are available after
+    other fields (image, reference, descriptions) are available after
     creation via the full DatasetForm on the update view.
 
     Usage:
