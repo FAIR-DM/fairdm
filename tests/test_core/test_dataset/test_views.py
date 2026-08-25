@@ -289,6 +289,47 @@ class TestDatasetCreatePageLicenseDefault:
         assert response.context["form"].fields["license"].initial == other_license
 
 
+@pytest.mark.django_db
+class TestDatasetCreatePageProjectField:
+    """T026/FR-015 - the project field is optional and starts empty; a dataset can be created
+    without one. Exercised against the creation page's own shipped form
+    (`DatasetCreateForm`), not `DatasetForm` directly — the object under test in the
+    pre-existing `test_forms.py` coverage is unreachable from this page (reconciliation:
+    vacuous test)."""
+
+    def test_the_project_field_is_optional_and_starts_empty(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("dataset-create")
+
+        response = client.get(url)
+        project_field = response.context["form"].fields["project"]
+
+        assert project_field.required is False
+        assert not project_field.initial
+
+    def test_a_dataset_can_be_created_without_a_project(self, client):
+        user = UserFactory()
+        client.force_login(user)
+        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
+        url = reverse("dataset-create")
+
+        response = client.post(
+            url,
+            data={
+                "name": "Orphan Dataset",
+                "license": license_obj.pk,
+                "visibility": Visibility.PUBLIC,
+            },
+        )
+
+        assert response.status_code == 302, (
+            response.context["form"].errors if "form" in response.context else None
+        )
+        dataset = Dataset.all_objects.get(name="Orphan Dataset")
+        assert dataset.project is None
+
+
 # ---------------------------------------------------------------------------
 # Phase 5 — User Story 3: Edit Dataset Core Attributes
 # ---------------------------------------------------------------------------
