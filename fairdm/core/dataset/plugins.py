@@ -300,6 +300,14 @@ class Overview(CRUDDirectoryMixin, OverviewPlugin):
 
     ``extra_views`` carries :class:`Update` (014 US-3), :class:`Delete` (014 US-6) and
     :class:`Descriptions` (014 US-4).
+
+    Mixes in the interface layer's own action-link mechanism (014 plan P7, US-5) rather than a
+    hand-rolled one — mirrors ``fairdm.core.project.plugins.Overview`` exactly: ``directory``
+    names the three actions its extra views need an entry for, and ``crud_views`` reverses each
+    to :class:`Update`'s, :class:`Delete`'s and :class:`Descriptions`'s own registered names.
+    ``update`` and ``delete`` are drawn by the shared ``detail_view.html`` shell as its "Edit"
+    and "Delete" buttons; the shell has no generic slot for a third action, so ``descriptions``
+    is drawn by this page's own ``dataset_detail.html`` (014 plan P7, mirrors project D13).
     """
 
     url_path = None
@@ -307,6 +315,22 @@ class Overview(CRUDDirectoryMixin, OverviewPlugin):
     check = staticmethod(dataset_is_visible)
     template_name = "dataset/dataset_detail.html"
     extra_views = [Update, Delete, Descriptions]
+
+    directory = ["update", "delete", "descriptions"]
+    crud_views = {
+        "update": "dataset:overview-update",
+        "delete": "dataset:overview-delete",
+        "descriptions": "dataset:overview-descriptions",
+    }
+
+    def show_update_action(self, user):
+        return has_perm(self.request, Update.permission, self.base_object)
+
+    def show_delete_action(self, user):
+        return has_perm(self.request, Delete.permission, self.base_object)
+
+    def show_descriptions_action(self, user):
+        return has_perm(self.request, Descriptions.permission, self.base_object)
 
     def handle_no_permission(self):
         """Preserve the not-found response the retired ``DatasetDetailView`` gave a user who may

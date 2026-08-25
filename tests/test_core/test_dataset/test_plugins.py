@@ -49,6 +49,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from licensing.models import License
+from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
@@ -1203,3 +1204,72 @@ class TestTheDatasetsPagesContributeExactlyOneNavigationEntry:
         assert "Update dataset" not in labels
         assert "Descriptions" not in labels
         assert "Delete dataset" not in labels
+
+
+@pytest.mark.django_db
+class TestTheDatasetsOwnPageOffersUpdateAndDescriptionsLinks:
+    """T063/FR-050 — a user who may change the dataset is offered links to its update and
+    descriptions pages from the dataset's own page; a signed-in user who may not is offered
+    neither. Mirrors ``fairdm.core.project.plugins.Overview``'s equivalent: the update link
+    switches on the interface layer's existing action-link mechanism
+    (``mvp.views.detail.CRUDDirectoryMixin``, read into ``directory`` and drawn by the shared
+    ``detail_view.html`` shell) rather than a hand-rolled one; the descriptions link is drawn by
+    ``dataset_detail.html``'s own ``page.actions`` block, since the shared shell has no generic
+    slot for a third action."""
+
+    def test_a_user_who_may_change_the_dataset_is_offered_both_links(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+
+        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        descriptions_url = reverse(
+            "dataset:overview-descriptions", kwargs={"uuid": dataset.uuid}
+        )
+        assertContains(response, f'href="{update_url}"')
+        assertContains(response, f'href="{descriptions_url}"')
+
+    def test_a_signed_in_user_who_may_not_change_it_is_offered_neither(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+
+        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        descriptions_url = reverse(
+            "dataset:overview-descriptions", kwargs={"uuid": dataset.uuid}
+        )
+        assertNotContains(response, f'href="{update_url}"')
+        assertNotContains(response, f'href="{descriptions_url}"')
+
+
+@pytest.mark.django_db
+class TestTheDatasetsOwnPageOffersTheDeletionLink:
+    """T063/FR-050 — a user who may delete the dataset is offered a link to its deletion page
+    from the dataset's own page; a signed-in user who may not is not. Same mechanism as the
+    update link above — the shell's own "Delete" button, drawn from ``directory.delete_url``."""
+
+    def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        assertContains(response, f'href="{delete_url}"')
+
+    def test_a_signed_in_user_who_may_not_delete_it_is_not_offered_the_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        assertNotContains(response, f'href="{delete_url}"')
