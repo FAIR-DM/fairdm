@@ -543,21 +543,48 @@ class TestProjectUpdateView:
     """Smoke tests and behaviour tests for ProjectUpdateView (US3)."""
 
     def test_project_update_anonymous_redirects_to_login(self, client):
-        """T022 — GET /projects/<uuid>/update/ by anonymous client returns 302."""
-        project = ProjectFactory()
+        """T022 — GET /projects/<uuid>/update/ by anonymous client returns 302. A public
+        project (T090): its existence is already known, so it is authentication rather than
+        the project's own visibility being exercised here — a private project instead
+        answers 404, covered by ``test_project_update_without_permission_anonymous_on_a_
+        private_project_404``."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
-    def test_project_update_without_permission_403(self, client):
-        """T023 — Authenticated client without change_project returns 403."""
+    def test_project_update_without_permission_on_a_private_project_404(self, client):
+        """T090 — a private project (the factory's own default) the requester may not change
+        answers 404, not 403, so this address does not become an existence oracle for an
+        embargoed project — the same disclosure rule the dataset's update page already
+        carries."""
         project = ProjectFactory()
         other_user = UserFactory()
         client.force_login(other_user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
+        assert response.status_code == 404
+
+    def test_project_update_without_permission_on_a_public_project_403(self, client):
+        """T090 — a public project's existence is already known, so a requester without
+        change_project still gets the plain refusal, not a 404."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        other_user = UserFactory()
+        client.force_login(other_user)
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        response = client.get(url)
         assert response.status_code == 403
+
+    def test_project_update_without_permission_anonymous_on_a_private_project_404(
+        self, client
+    ):
+        """T090 — an anonymous visitor to a private project's update page answers 404, not a
+        sign-in redirect, so the address does not confirm the record exists."""
+        project = ProjectFactory()
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 404
 
     def test_project_update_with_permission_200(self, client):
         """T024 — Client with change_project permission returns 200."""
@@ -1163,8 +1190,12 @@ class TestProjectDeleteView:
     """Smoke tests and behaviour tests for ProjectDeleteView (US4)."""
 
     def test_project_delete_anonymous_redirects_to_login(self, client):
-        """T028 — GET /projects/<uuid>/delete/ by anonymous client returns 302."""
-        project = ProjectFactory()
+        """T028 — GET /projects/<uuid>/delete/ by anonymous client returns 302. A public
+        project (T090): its existence is already known, so it is authentication rather than
+        the project's own visibility being exercised here — a private project instead
+        answers 404, covered by ``test_project_delete_without_permission_anonymous_on_a_
+        private_project_404``."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 302
@@ -1192,14 +1223,37 @@ class TestProjectDeleteView:
         assert response.context["is_protected"] is True
         assert Project.objects.filter(pk=project.pk).exists()
 
-    def test_project_delete_without_permission_403(self, client):
-        """T029 — Authenticated client without delete_project returns 403."""
+    def test_project_delete_without_permission_on_a_private_project_404(self, client):
+        """T090 — a private project (the factory's own default) the requester may not delete
+        answers 404, not 403, so this address does not become an existence oracle for an
+        embargoed project — the same disclosure rule the dataset's deletion page already
+        carries."""
         project = ProjectFactory()
         user = UserFactory()
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.get(url)
+        assert response.status_code == 404
+
+    def test_project_delete_without_permission_on_a_public_project_403(self, client):
+        """T090 — a public project's existence is already known, so a requester without
+        delete_project still gets the plain refusal, not a 404."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        client.force_login(user)
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        response = client.get(url)
         assert response.status_code == 403
+
+    def test_project_delete_without_permission_anonymous_on_a_private_project_404(
+        self, client
+    ):
+        """T090 — an anonymous visitor to a private project's deletion page answers 404, not a
+        sign-in redirect, so the address does not confirm the record exists."""
+        project = ProjectFactory()
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        response = client.get(url)
+        assert response.status_code == 404
 
     def test_project_delete_with_permission_200(self, client):
         """T030 — Client with delete_project permission GET returns 200."""
