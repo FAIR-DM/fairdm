@@ -3,11 +3,11 @@
   "baseline": "386 passed, 5 skipped — tests/test_core/test_dataset/ + tests/test_contrib/test_plugins/, 2026-08-25",
   "totals": {
     "tasks_total": 85,
-    "satisfied": 53,
-    "open": 32
+    "satisfied": 54,
+    "open": 31
   },
   "open_by_reason": {
-    "not built": 18,
+    "not built": 17,
     "built, untested": 7,
     "built differently": 4,
     "vacuous test": 3
@@ -224,6 +224,10 @@
     "T059": {
       "code": "fairdm/core/dataset/models.py:327; fairdm/core/dataset/urls.py",
       "test": "tests/test_core/test_dataset/test_views.py — address sweep"
+    },
+    "T067": {
+      "code": "fairdm/core/dataset/plugins.py — Update.crud_views, Update.show_delete_action",
+      "test": "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageOffersTheDeletionLink::test_a_user_who_may_delete_the_dataset_is_offered_the_link"
     }
   },
   "open": {
@@ -324,9 +328,6 @@
       "reason": "not built"
     },
     "T066": {
-      "reason": "not built"
-    },
-    "T067": {
       "reason": "not built"
     },
     "T068": {

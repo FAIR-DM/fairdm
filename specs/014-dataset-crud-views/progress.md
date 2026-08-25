@@ -27,7 +27,7 @@ Two rulings recorded at the gate:
 | S3 PLAN | done | Research, plan, greenfield task list, reconciliation: 85 tasks, 19 satisfied, 66 open. |
 | S3R DESIGN REVIEW | done | One round, nine findings, all verified and applied; six reconciliation ticks withdrawn. |
 | Plan gate | filed | Recorded on the pull request for veto; approved in session 2026-08-25. |
-| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. US-6 deletion page `a724a5e` and follow-up: 9 tasks closed on evidence. The audit ledger had also drifted from the task ledger — five tasks closed at foundations were never moved out of its open list — so both now read 53 satisfied, 32 open. |
+| S4 IMPLEMENT | in progress | Foundations `ecad5f9`. US-3 update page: 13 tasks closed on evidence. US-4 descriptions page `dfe0d70`: 8 tasks closed on evidence. US-6 deletion page `a724a5e` and follow-up: 9 tasks closed on evidence. The audit ledger had also drifted from the task ledger — five tasks closed at foundations were never moved out of its open list — so both now read 54 satisfied, 31 open — the update page's own deletion link (T067) closed here too. |
 
 ## Carried forward into US-5
 

@@ -964,8 +964,20 @@
         },
         {
           "id": "T067",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/plugins.py — Update.crud_views, Update.show_delete_action"
+            ],
+            "tests": [
+              "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageOffersTheDeletionLink::test_a_user_who_may_delete_the_dataset_is_offered_the_link",
+              "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageOffersTheDeletionLink::test_a_user_who_may_change_but_not_delete_is_offered_no_link"
+            ],
+            "commands": [
+              "pytest tests/ -q — 2419 passed, 13 skipped (verified independently)"
+            ]
+          }
         },
         {
           "id": "T068",
