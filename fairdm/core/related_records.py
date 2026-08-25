@@ -35,6 +35,24 @@ class RelatedRecordInline(InlineFormSet):
     fields = ("type", "value")
     extra = 0
 
+    def get_factory_kwargs(self):
+        """Bound the row set to one row per type its vocabulary offers - the
+        same rule the Django admin already applies per model
+        (``fairdm/core/dataset/admin.py``'s ``DescriptionInline``/``DateInline``/
+        ``IdentifierInline``), generalised here so every subclass gets it for
+        free.
+
+        Read from ``self.model.VOCABULARY`` (``GenericModel.VOCABULARY``),
+        which is already scoped to the owning record's own collection
+        (``DatasetIdentifier.VOCABULARY = FairDMIdentifiers.from_collection
+        ("Dataset")``) - not a parent-model constant this module would have to
+        import Dataset/Project to reach.
+        """
+        kwargs = super().get_factory_kwargs()
+        kwargs["max_num"] = len(self.model.VOCABULARY.choices)
+        kwargs["validate_max"] = True
+        return kwargs
+
 
 class ProjectDateInline(RelatedRecordInline):
     model = ProjectDate

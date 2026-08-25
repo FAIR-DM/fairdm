@@ -11,6 +11,7 @@ behind.
 import pytest
 from django.test import RequestFactory
 
+from fairdm.core.abstract import AbstractDate
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.related_records import (
@@ -23,14 +24,32 @@ from fairdm.core.related_records import (
 from fairdm.factories import (
     DatasetDateFactory,
     DatasetFactory,
+    DatasetIdentifierFactory,
     ProjectDateFactory,
     ProjectFactory,
+    ProjectIdentifierFactory,
 )
 
 ROW_SET_CASES = [
     (Project, ProjectDateInline, ProjectFactory, ProjectDateFactory, "Start"),
     (Dataset, DatasetDateInline, DatasetFactory, DatasetDateFactory, "CollectionStart"),
 ]
+
+ALL_FOUR_INLINE_CASES = [
+    (Project, ProjectDateInline, ProjectFactory, ProjectDateFactory),
+    (Project, ProjectIdentifierInline, ProjectFactory, ProjectIdentifierFactory),
+    (Dataset, DatasetDateInline, DatasetFactory, DatasetDateFactory),
+    (Dataset, DatasetIdentifierInline, DatasetFactory, DatasetIdentifierFactory),
+]
+
+
+def _row_value(model, index):
+    """A valid, unique-enough ``value`` for a hand-built management form row.
+    Dates take a plain ISO string; identifiers carry a table-wide unique
+    constraint, so each needs its own value."""
+    if issubclass(model, AbstractDate):
+        return "2020-01-01"
+    return f"10.{9000 + index}/row-limit-test-{index}"
 
 
 def _formset_for(declaration_cls, parent_model, instance, method="GET", data=None):
@@ -106,6 +125,65 @@ class TestRelatedRecordInline:
         ):
             assert declaration_cls.fields == ("type", "value")
             assert declaration_cls.extra == 0
+
+    @pytest.mark.parametrize(
+        "parent_model, declaration_cls, parent_factory, row_factory",
+        ALL_FOUR_INLINE_CASES,
+    )
+    def test_max_num_matches_the_parents_type_vocabulary(
+        self, parent_model, declaration_cls, parent_factory, row_factory
+    ):
+        """T087/FR-024-style row cap, moved off the dataset's own admin
+        (`fairdm/core/dataset/admin.py`'s ``IdentifierInline``/``DateInline``)
+        onto the shared base so the project's update page gets it too."""
+        instance = parent_factory()
+
+        formset = _formset_for(declaration_cls, parent_model, instance)
+
+        assert formset.max_num == len(declaration_cls.model.VOCABULARY.choices)
+
+    @pytest.mark.parametrize(
+        "parent_model, declaration_cls, parent_factory, row_factory",
+        ALL_FOUR_INLINE_CASES,
+    )
+    def test_a_record_already_at_the_maximum_refuses_one_more_row(
+        self, parent_model, declaration_cls, parent_factory, row_factory
+    ):
+        """A record already holding one row per available type renders no
+        blank row (``extra = 0``) and cannot be made to accept another by
+        hand-editing the management form's ``TOTAL_FORMS``."""
+        instance = parent_factory()
+        types = [choice for choice, _label in declaration_cls.model.VOCABULARY.choices]
+        for row_type in types:
+            row_factory(related=instance, type=row_type)
+        max_num = len(types)
+
+        prefix = declaration_cls.model._meta.default_related_name
+        existing = list(getattr(instance, prefix).all())
+        data = {
+            f"{prefix}-TOTAL_FORMS": str(max_num + 1),
+            f"{prefix}-INITIAL_FORMS": str(max_num),
+            f"{prefix}-MIN_NUM_FORMS": "0",
+            f"{prefix}-MAX_NUM_FORMS": "1000",
+        }
+        for i, obj in enumerate(existing):
+            data[f"{prefix}-{i}-id"] = str(obj.pk)
+            data[f"{prefix}-{i}-type"] = obj.type
+            data[f"{prefix}-{i}-value"] = str(obj.value)
+        # One row beyond the maximum, hand-added to the management form as a
+        # real submission would if a blank row were forced onto the page.
+        data[f"{prefix}-{max_num}-type"] = types[0]
+        data[f"{prefix}-{max_num}-value"] = _row_value(declaration_cls.model, max_num)
+
+        formset = _formset_for(
+            declaration_cls, parent_model, instance, method="POST", data=data
+        )
+
+        assert not formset.is_valid()
+        assert any(
+            "Please submit at most" in str(error)
+            for error in formset.non_form_errors()
+        )
 
     def test_building_one_declarations_formset_does_not_mutate_the_shared_fields_tuple(
         self,
