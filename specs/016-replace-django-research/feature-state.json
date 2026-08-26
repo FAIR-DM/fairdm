@@ -1,0 +1,396 @@
+{
+  "$schema": "aeo/feature-state.schema.json",
+  "feature": "016-replace-django-research",
+  "branch": "016-replace-django-research",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-26T13:30:00Z",
+      "note": "spec.md, 5 stories, 23 requirements, 5 clarifications self-answered"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-26T13:55:00Z",
+      "note": "epic #195 promoted in place, stories #305-309, draft PR #310"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-26T14:02:00Z",
+      "note": "approved in session; planning only, no implementation"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-26T14:30:00Z",
+      "note": "research, plan, 54 tasks across 5 stories"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-26T14:02:00Z",
+      "self_resolved": [
+        "an unloaded portal warns rather than refusing to start",
+        "FairDM supplies the load command rather than portals calling the package importer",
+        "the keyword vocabulary setting is portal-wide, not per record type",
+        "the upgrade resolves everything before writing, then converts all or reports all",
+        "definitions carried across from existing text rather than reauthored",
+        "per-record-type role narrowing left to R19",
+        "the live portal's migration state is out of bounds by Sam's instruction"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 305,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 306,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 307,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 308,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T044",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T045",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T046",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 309,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T047",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T049",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  },
+  "pr": {
+    "number": 310,
+    "draft": true
+  },
+  "escalations": []
+}

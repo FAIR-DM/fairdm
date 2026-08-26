@@ -211,3 +211,77 @@ is stored, scoped and migrated. #298 decides how a researcher edits one, which i
 with its own navigation and form design, and which cannot be built until keywords are concepts.
 Splitting them keeps this change reviewable and lets the interface be designed against a settled
 substrate rather than alongside a moving one.
+
+---
+
+Decisions D-015 onward were taken during planning, from the evidence in `research.md`.
+
+## D-015 — A metaclass subclass, not a new dependency
+
+**Open:** the rich-choices mechanism could come from `django-enum` with its `enum-properties`
+extra, which solves exactly this and is actively maintained.
+
+**Chosen:** roughly fifteen lines subclassing Django's own `ChoicesType`, in
+`fairdm/utils/choices.py`.
+
+**Why:** Article VII asks a new runtime dependency to justify itself against the simplicity of the
+dependency tree, and this is a closed problem with a small, verified answer. The mechanism was run
+in this environment before being chosen: `.choices`, `.labels`, `.values` and `.names` keep
+Django's exact semantics, `choices=` on a plain character column is unchanged, `gettext_lazy` works
+for both label and definition, and templates reach all three because `do_not_call_in_templates` is
+inherited.
+
+`django-enum` would be the right call if FairDM wanted symmetric lookups, enum-typed field access
+and the rest of its surface. It does not, and taking two dependencies to avoid fifteen lines trades
+the wrong way.
+
+## D-016 — Adopting the package drops Django 5.1
+
+**Open:** FairDM declares `django = ">=5.1,<6.0"` and its required checks test both 5.1 and 5.2.
+`django-controlled-vocabularies` requires Django `>=5.2`.
+
+**Chosen:** narrow FairDM to Django `>=5.2`, and raise it with Sam before implementing rather than
+assuming it.
+
+**Why:** Django 5.1 reached the end of extended support in April 2026, so FairDM is currently
+testing against an unsupported Django and the narrowing is correct independently of this feature.
+The alternative — lowering the vocabulary package's own floor to 5.1 — would hold a second package
+back to an end-of-life Django to preserve a version FairDM has no consumer on.
+
+It is raised rather than self-resolved because it needs an edit to `.github/workflows/tests.yml`
+and a change to the repository's required checks, neither of which is the run's to make.
+
+## D-017 — Three frozen migrations are edited, and this is not the squash D-007 refused
+
+**Open:** FR-020 removes the retired stub at `fairdm/core/choices.py:305`, which exists only so
+`sample/migrations/0001_initial.py` stays importable. D-007 keeps migration history. Both cannot
+hold while that migration names the class.
+
+**Chosen:** edit the three migration files that name the retired library's field classes and the
+stub, replacing them with the plain field the column has always been. Nothing else in the history
+is touched.
+
+**Why:** the two rules are only in tension if "keep the history" means "never edit a frozen file".
+What D-007 refused was squashing — collapsing many migrations into new initials, which changes what
+an existing database has to be reconciled against. This changes no applied state and no column: the
+stored values, the column types and the ordering are identical before and after, and a database
+that has applied these migrations needs nothing done to it.
+
+Called out explicitly for the design review, because it is the only point where this plan touches
+migration history and the distinction is exactly the kind that reads wrong at a glance.
+
+## D-018 — Two dependencies in, one out
+
+**Open:** Article VII requires a stated justification for each new runtime dependency.
+
+**Chosen:** add `django-controlled-vocabularies` and `django-tomselect`; remove
+`django-research-vocabs`.
+
+**Why:** the first is the feature. The second is not a choice — the vocabulary package imports it
+at module scope in both its views and its forms, so it arrives whether or not FairDM renders a
+concept field, and it additionally requires its middleware and a mounted route or the field renders
+as an empty control with nothing raised.
+
+Net dependency count rises by one. The removed dependency was a git reference with no released
+version, which is itself worth ending: nothing pinned it, and a resolution could change under the
+project without any version number moving.
