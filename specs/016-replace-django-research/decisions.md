@@ -177,13 +177,14 @@ rewrites research credit and attribution.
 
 **Open:** where the definitions for the four closed sets come from.
 
-**Chosen:** the text those terms already carry in the current vocabularies. Terms with no
-definition today get one written as part of this work.
+**Chosen:** the text those terms already carry in the current vocabularies.
 
 **Why:** the existing definitions were written deliberately and are the reason this layer exists
 at all. Reauthoring them would put a documentation change inside a migration, where nobody would
-review it as one. A set that only half explains itself does not satisfy US-1, so the gaps are
-filled rather than carried.
+review it as one.
+
+The clause about filling gaps has no subject: all 98 terms already carry a `gettext_lazy`
+definition (`research.md` §2), so nothing has to be written.
 
 ## D-013 — Per-record-type role narrowing is out of scope
 
@@ -282,6 +283,76 @@ at module scope in both its views and its forms, so it arrives whether or not Fa
 concept field, and it additionally requires its middleware and a mounted route or the field renders
 as an empty control with nothing raised.
 
-Net dependency count rises by one. The removed dependency was a git reference with no released
+Net dependency count rises by one. The removed dependency is a git reference with no released
 version, which is itself worth ending: nothing pinned it, and a resolution could change under the
-project without any version number moving.
+project without any version number moving. D-019 defers the removal of the declaration itself to
+the squash; the dependency stops being used by anything at this change, which is what Article VII
+is about.
+
+## D-019 — The retirement is from the running framework, not from the repository
+
+**Open:** FR-019 as first written required the retired library gone from the migrations too, which
+is the squash D-007 refused. The design review found the two mutually exclusive: thirteen migration
+files across six applications name the library, and twelve of them do it through a
+`dependencies = [("research_vocabs", …)]` graph edge or a `to="research_vocabs.concept"` lazy
+reference. A graph edge needs the application installed, not merely importable, so uninstalling it
+makes a migrate from empty fail at graph-load time and takes the test suite with it.
+
+**Chosen:** narrow the retirement. The library stops being imported, referenced or drawn on by any
+model, form, filter, admin class, table, template, setting or documentation page. Its distribution
+and its `INSTALLED_APPS` entry stay, each carrying a comment saying why, until the deferred squash
+removes them.
+
+**Why:** the alternative is to edit the graph edges and lazy references in all thirteen files, which
+sounds like more of D-017 and is not. Two things break. The historical state would say the keyword
+join tables point at the new concept table from the start, while the live portal's tables actually
+point at the old one — a divergence between Django's model state and the database that nothing
+reconciles. And the upgrade migration has to read the old concept rows to resolve their names, which
+it cannot do through historical models once the application is out of the history, so it would fall
+back to raw SQL against a table that may not exist. Both land on the riskiest migration in the
+change, on a live database, to buy a cleanup that the squash performs safely once the portal's
+migration state is known good.
+
+Leaving the old concept table in place has a second benefit worth naming: the source data survives
+the upgrade, so a conversion that went wrong can be inspected rather than reconstructed.
+
+## D-020 — The concept fields are added under temporary names, then renamed
+
+**Open:** whether `Contribution.roles` and `keywords` can be converted in place.
+
+**Chosen:** no. Each is added as a second field under a temporary name, the upgrade copies the rows
+across, and a following migration drops the old field and renames the new one onto the original.
+
+**Why:** `research.md` §6 assumed the new field would generate a through table under a different
+name, so old and new could coexist. That is false. `ConceptsField` sets its membership model's
+`db_table` to `field._get_m2m_db_table(cls._meta)` — Django's standard `<owner_table>_<field>`,
+which is exactly the table the current field already uses. Converting in place therefore emits an
+`AlterField` on a many-to-many whose old and new through models are both auto-created, and the
+schema editor alters the existing join table's concept column to point at the new concept table
+while keeping primary-key values that belong to the old one. Contributions would silently end up
+crediting unrelated concepts, which is SC-003 failing without an error.
+
+## D-021 — The upgrade migration lives in the contributors application
+
+**Open:** `plan.md` placed the one data migration in `fairdm.core`, which is not an installed
+application and has no migrations directory.
+
+**Chosen:** `fairdm.contrib.contributors`, declaring dependencies on the latest migration of each of
+the six applications that own an affected join table and on `controlled_vocabularies`, and
+`run_before` on the migrations that drop the old fields.
+
+**Why:** it has to be a real application, and it should be the one furthest downstream so the
+dependency list reads forwards rather than backwards. Contributors owns the roles conversion and
+already sits after the four record applications.
+
+## D-022 — The mounted autocomplete route requires a signed-in user
+
+**Open:** the vocabulary package's autocomplete view is mounted in every portal and no decision
+recorded who may query it.
+
+**Chosen:** mount it behind a login requirement, with one route smoke test as Article XVI requires.
+
+**Why:** the search is a leading-wildcard match over an unindexed label column with a `distinct()`
+over a join (`research.md` §4, raised upstream). That is cheap to abuse and expensive to serve on a
+portal that has loaded a large domain vocabulary. FairDM cannot know how exposed a given portal is,
+so the conservative default is the right one and a portal that wants it open can say so.

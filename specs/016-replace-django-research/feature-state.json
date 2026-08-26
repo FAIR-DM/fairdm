@@ -3,7 +3,7 @@
   "feature": "016-replace-django-research",
   "branch": "016-replace-django-research",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -24,6 +24,11 @@
       "state": "PLAN",
       "at": "2026-08-26T14:30:00Z",
       "note": "research, plan, 54 tasks across 5 stories"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-26T18:40:00Z",
+      "note": "request_changes, risk high; 14 findings dispositioned, D-019..D-022 recorded, 57 tasks"
     }
   ],
   "gates": {
@@ -166,12 +171,22 @@
           "attempts": 0
         },
         {
+          "id": "T019a",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
           "id": "T020",
           "status": "todo",
           "attempts": 0
         },
         {
           "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021a",
           "status": "todo",
           "attempts": 0
         },
@@ -315,6 +330,11 @@
         },
         {
           "id": "T046",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T046a",
           "status": "todo",
           "attempts": 0
         }

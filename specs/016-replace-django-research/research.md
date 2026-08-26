@@ -1,7 +1,8 @@
 # Research — FS-016: Controlled vocabularies replace django-research-vocabs
 
 Everything here was read from source in this working tree or measured in this project's virtual
-environment on 2026-08-26. Version numbers and counts are readings, not recollections.
+environment on 2026-08-26, with one exception stated at the head of §4. Version numbers and counts
+are readings, not recollections.
 
 ---
 
@@ -34,9 +35,17 @@ Three migration files freeze the library's field classes *and* a FairDM vocabula
 - `fairdm/core/sample/migrations/0007_...py:5,20` — `ConceptField(..., vocabulary=fairdm.core.vocabularies.FairDMSampleStatus)`
 - `fairdm/contrib/contributors/migrations/0001_initial.py:14,619` — `ConceptManyToManyField(to="research_vocabs.concept", vocabulary=...FairDMRoles)`
 
-Ten further migrations across six apps depend only on the library's app label. Per D-007 the
-history is not rewritten, so those import paths must stay resolvable. That is what forces the
-retired `SampleStatus` stub at `fairdm/core/choices.py:305` to survive in some form — see §6.
+Ten further migrations across the same six apps name the library without importing it, through a
+`dependencies = [("research_vocabs", …)]` graph edge, a `to="research_vocabs.concept"` lazy
+reference, or both. Twelve files carry a graph edge in total.
+
+The distinction matters more than it looks. An import path only has to stay **resolvable**; a graph
+edge requires the application to stay **installed**, because the migration loader reads migrations
+only from `INSTALLED_APPS` and raises `NodeNotFoundError` at graph-load time otherwise — before any
+operation runs, and for the test suite as well, which migrates from empty. Per D-007 the history is
+not rewritten, so the application stays installed and the distribution stays declared until the
+squash. That is D-019, and it is also what forces the retired `SampleStatus` stub at
+`fairdm/core/choices.py:305` to survive in some form — see §6.
 
 ---
 
@@ -140,6 +149,14 @@ templates.
 
 Version 0.1.0, on PyPI, Django `>=5.2`, Python `>=3.11`.
 
+**Source of this section, and its limit.** The package is not in this project's virtual environment,
+its `pyproject.toml` or its lock file, so the readings below come from the sibling working checkout
+at `/home/sam/projects/fairdm/django-controlled-vocabularies`, which sits four commits past its
+`v0.1.0` tag. The plan pins `>=0.1.0,<0.2.0`, so the code that installs is the published 0.1.0 and
+not the checkout that was read. T019 installs the pinned version and re-checks the claims in this
+section against it before Phase 2 proceeds. This gap has already produced one error: §6's
+through-table claim was wrong and contradicted this section.
+
 ### Field API
 
 `ConceptField` (a foreign key) and `ConceptsField` (a many-to-many) share a signature:
@@ -230,11 +247,18 @@ rather than assumed. Recorded as D-016.
 Two conversions carry data.
 
 **Contribution roles.** The existing through table holds foreign keys into `research_vocabs_concept`.
-The target field generates its own through table under a different name. The conversion joins the
-old rows to the retired library's concept rows, reads each concept's name, resolves it to a concept
-in the imported roles vocabulary, and writes the new membership rows.
+The target field generates its own through table on **the same** name: `ConceptsField` sets its
+membership model's `db_table` to `field._get_m2m_db_table(cls._meta)`, Django's standard
+`<owner_table>_<field>`, which is what the current field already uses. Old and new therefore cannot
+coexist under the same field name, and converting in place makes Django alter the existing join
+table's concept column to point at the new concept table while keeping primary-key values that
+belong to the old one. The conversion adds the new field under a temporary name instead (D-020),
+joins the old rows to the retired library's concept rows, reads each concept's name, resolves it to
+a concept in the imported roles vocabulary, writes the new membership rows, and only then drops the
+old field and renames the new one onto `roles`.
 
-**Keywords.** Five join tables, all pointing at `research_vocabs_concept`, converting the same way.
+**Keywords.** Five join tables, all pointing at `research_vocabs_concept`, converting the same way
+and under the same temporary-name sequence.
 Keywords are unscoped today, so a stored concept may belong to any vocabulary the portal loaded.
 Resolution is therefore scoped per source vocabulary rather than matched on label across the whole
 table, which is FR-018.
@@ -253,6 +277,19 @@ The plan therefore has the migration load FairDM's own vocabulary files itself r
 on an operator having run the command first, and the command remains the route for re-import and for
 a portal's own vocabularies.
 
+Loading from inside a migration has three consequences, and only one of them is benign.
+
+- **The nested transaction is fine.** `import_skos` opens its own `transaction.atomic()`, which on
+  PostgreSQL is a savepoint inside the migration's own transaction. FR-017's all-or-nothing
+  guarantee holds.
+- **It needs the vocabulary tables to exist**, so the migration must depend on
+  `controlled_vocabularies`' own migrations. That is part of D-021.
+- **Replaying history later imports whatever the file says then**, not what it said when the
+  migration was written, because `import_skos` reaches the package's live models rather than
+  historical ones. The migration therefore loads only when the roles vocabulary is absent, so a
+  replay is a no-op rather than a re-import. That keeps D-003's objection satisfied: the vocabulary
+  content still lives in a reviewable file, not frozen inside the history.
+
 ### The retired stub
 
 `fairdm/core/choices.py:305` holds a four-member class that exists only so
@@ -264,3 +301,8 @@ That is not a history rewrite in the sense D-007 refused. It edits a frozen file
 squashing the history, it changes no applied state, and it is the minimum needed to delete a class
 whose only purpose is to be imported. Recorded as D-017, and called out for the design review
 because it is the one place this plan touches migration history at all.
+
+The design review confirmed the distinction and bounded it. These three edits remove *field classes
+and vocabulary arguments*, which is a Python import concern. They do not touch the graph edges or
+the lazy `to="research_vocabs.concept"` references in these or any other file, and they are not what
+would let the application be uninstalled — that is D-019, and it is deferred to the squash.

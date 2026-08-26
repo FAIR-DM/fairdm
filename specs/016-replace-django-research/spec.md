@@ -118,20 +118,20 @@ A portal declares which vocabularies its keywords are drawn from. A researcher t
 
 ---
 
-### User Story 5 - The retired vocabulary library is gone (Priority: P2)
+### User Story 5 - The retired vocabulary library is out of the running framework (Priority: P2)
 
-A developer reading FairDM finds one vocabulary layer, not two. The old library is not installed, not imported, not referenced in settings or templates, and the documentation describes what actually ships.
+A developer reading FairDM finds one vocabulary layer, not two. The old library is not imported, not referenced in settings, templates or documentation, and no model draws on it. Its one remaining trace is the existing migration history, which names it and cannot stop naming it until that history is squashed.
 
 **Why this priority**: It is the point of the feature, but it can only complete once every surface has moved, so it is sequenced last rather than valued least.
 
-**Independent Test**: Search the package for any reference to the retired library and find none, then install FairDM into a clean environment and confirm the library is absent from the resolved dependency set.
+**Independent Test**: Search the package for any import of or live reference to the retired library and find none, then start a portal and confirm no model, form, filter, admin or template draws on it.
 
 **Acceptance Scenarios**:
 
-1. **Given** the package's dependency declarations, **When** they are resolved, **Then** the retired library is absent and the dependency check passes with no unused, missing or transitively-relied-upon dependency.
-2. **Given** the framework's settings, **When** a portal starts, **Then** the retired library is not among the installed applications.
-3. **Given** the package source, **When** it is searched for imports of the retired library, **Then** none is found, including the class retained solely to keep an old migration importable.
-4. **Given** the framework's migrations, **When** they are applied from empty, **Then** they complete without the retired library installed.
+1. **Given** the package's dependency declarations, **When** they are resolved, **Then** the retired library is present only as a declared migration-only dependency carrying a recorded reason, and the dependency check passes with no unused, missing or transitively-relied-upon dependency.
+2. **Given** the framework's settings, **When** a portal starts, **Then** the retired library's application is installed only so the existing migration graph resolves, and nothing else in the settings names it.
+3. **Given** the package source outside its migration history, **When** it is searched for imports of the retired library, **Then** none is found, including the class retained solely to keep an old migration importable.
+4. **Given** the framework's migrations, **When** they are applied from empty, **Then** they complete and no model, form, filter, admin or template resolves to the retired library afterwards.
 5. **Given** the documentation, **When** the pages describing the vocabulary layer are read, **Then** every named field, setting and command exists and every example runs against the current code.
 6. **Given** an existing portal, **When** its maintainer follows the upgrade guide, **Then** the steps are sufficient to move that portal without further instruction.
 
@@ -182,7 +182,7 @@ A developer reading FairDM finds one vocabulary layer, not two. The old library 
 
 **Retirement**
 
-- **FR-019**: The framework MUST NOT depend on, install, import or reference the retired library anywhere in the package, its settings, its templates or its migrations.
+- **FR-019**: The framework MUST NOT import or reference the retired library in any module, setting, template or documentation page, and no model, form, filter, admin class or table MUST draw on it. Its distribution and its installed-application entry MUST remain only for as long as the existing migration history names them, MUST carry a recorded reason at both declaration sites, and MUST be removed by the deferred squash.
 - **FR-020**: The class retained solely to keep an earlier migration importable MUST be removed along with the reason it existed, as MUST the preload step the retired library required in the framework's always-run setup tooling.
 - **FR-021**: The configuration entry that named keyword vocabularies as import paths to Python classes MUST be replaced by one that names vocabularies directly, and the unused project-level keyword entry MUST be removed.
 - **FR-022**: Documentation describing the vocabulary layer MUST match what ships, with every named field, setting and command existing and every example running against the current code.
@@ -203,7 +203,7 @@ A developer reading FairDM finds one vocabulary layer, not two. The old library 
 - **SC-001**: Every term a researcher can choose for a sample's status, a description's type, a date's type or an identifier's type carries a definition the portal can display, and displaying it costs no database query.
 - **SC-002**: A portal starting from an empty database reaches working keyword and role selection by running the documented setup steps alone, with no hand-entered data and no network access.
 - **SC-003**: A portal populated before the change keeps one hundred per cent of its recorded keywords and contribution roles across the upgrade, with each resolving to the same term it named before.
-- **SC-004**: No file in the package refers to the retired library, and the dependency check passes.
+- **SC-004**: No module, setting, template or documentation page in the package refers to the retired library, its only remaining trace is the existing migration history, and the dependency check passes.
 - **SC-005**: Every documented example describing the vocabulary layer runs against the code as shipped.
 - **SC-006**: The one existing portal is moved by following the upgrade guide, without instructions that are not in it.
 
@@ -211,7 +211,7 @@ A developer reading FairDM finds one vocabulary layer, not two. The old library 
 
 - **The keyword editing interface.** Rebuilding how a researcher edits keywords in the portal is a separate feature (#298), which depends on this one. This feature delivers the substrate and the scoping, not the page.
 - **Offering roles per record type.** Restricting the roles available on a project to a different set than those available on a sample is a deliverable of the portal-contributions roadmap item (R19). The vocabulary declares those groupings today and nothing enforces them, and that remains true after this feature.
-- **Rewriting migration history.** Squashing the framework's existing migrations to remove all trace of the retired library is deliberately not done here, so that an upgrade failure cannot be ambiguous between a history rewrite and a data conversion.
+- **Rewriting migration history.** Squashing the framework's existing migrations to remove all trace of the retired library is deliberately not done here, so that an upgrade failure cannot be ambiguous between a history rewrite and a data conversion. Thirteen migration files across six applications name the retired library, twelve of them through a graph dependency that requires the application to stay installed. Removing the library from the running framework is therefore what this feature delivers; removing it from the repository is what the squash delivers, and the two are deliberately separate changes.
 - **Publishing vocabularies at resolvable addresses.** Hosting FairDM's vocabularies so portals fetch them over the network is a later move; this feature ships them in the package.
 - **Exporting vocabularies.** Producing vocabulary files back out of a portal is not part of this change.
 - **Migrating the existing portal.** The upgrade of the one live portal is carried out in that portal's own repository, against the guide this feature ships.
