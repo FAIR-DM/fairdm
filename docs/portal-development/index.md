@@ -90,6 +90,7 @@ component_library/index
 :maxdepth: 2
 
 create_a_plugin
+rich-text
 quality_control
 testing-portal-projects
 profile-claiming-api

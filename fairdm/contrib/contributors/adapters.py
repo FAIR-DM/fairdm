@@ -29,7 +29,7 @@ class AccountAdapter(DefaultAccountAdapter):
         ):
             return True
         # Site is open to signup if not invitation only
-        return not settings.INVITATIONS_INVITATION_ONLY
+        return not settings.FAIRDM_INVITATION_ONLY_SIGNUP
 
     def get_user_signed_up_signal(self):
         return user_signed_up

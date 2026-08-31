@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.i18n import JavaScriptCatalog
+from markdownx.views import MarkdownifyView
 
 from fairdm.views.generic import FairDMHomeView
 
@@ -21,12 +22,19 @@ urlpatterns = [
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     # path("", include("dac.allauth")),
     path("account-center/", include("dac.urls")),
-    path("invitations/", include("invitations.urls", namespace="invitations")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
-    path("martor/", include("martor.urls")),
+    # Only the preview endpoint is exposed. django-markdownx also ships an
+    # image upload view, which writes to media storage with no authentication
+    # check of any kind; the editor here has no image upload, so that route is
+    # deliberately left out rather than included and then guarded.
+    path(
+        "markdownx/markdownify/",
+        MarkdownifyView.as_view(),
+        name="markdownx_markdownify",
+    ),
     path("hijack/", include("hijack.urls")),
     path("orbit/", include("orbit.urls")),
     # REST API — Feature 011 (namespaced to prevent URL name collision with portal UI routes)

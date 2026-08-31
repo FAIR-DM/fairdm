@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **The two dependencies licensed under the GPL are gone**, so a portal built on FairDM is
+  not obliged to adopt that licence. Markdown editing moves from martor to django-markdownx,
+  and the signup gate django-invitations provided is now FairDM's own setting. Portals that
+  customised either need a small change — the settings and template changes involved, and
+  the one piece of markdown syntax that renders differently afterwards, are covered in
+  [Rich text and markdown](docs/portal-development/rich-text.md).
+
 ### Fixed
 
 - **Deleting a project or dataset that has a person credited on it raised an error.** The

@@ -78,7 +78,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.orcid",
     "allauth.mfa",
     "allauth.usersessions",
-    "invitations",
     # UTILITIES
     "compressor",
     "dbbackup",
@@ -116,7 +115,7 @@ INSTALLED_APPS = [
     "waffle",
     "guardian",  # for object level permissions
     "django_countries",
-    "martor",  # markdown editor
+    "markdownx",  # markdown editor
     "hijack",
     "hijack.contrib.admin",
     # REST API (Feature 011)

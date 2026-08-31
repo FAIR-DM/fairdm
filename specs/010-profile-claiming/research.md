@@ -173,7 +173,14 @@ def save_user(self, request, user, form, commit=True):
 
 ### D7: django-invitations Integration with Claiming Flows
 
-**Decision:** Use django-invitations' `INVITATIONS_INVITATION_ONLY` setting to complement claiming flows for invitation-restricted portals.
+~~**Decision:** Use django-invitations' `INVITATIONS_INVITATION_ONLY` setting to complement claiming flows for invitation-restricted portals.~~
+
+> **Superseded 2026-08-31:** django-invitations is removed (GPL-3.0, incompatible with this
+> project's MIT license, issue #266). The invitation-only signup gate now lives on FairDM's own
+> `FAIRDM_INVITATION_ONLY_SIGNUP` setting (`fairdm/conf/settings/auth.py`), read by the same
+> `AccountAdapter.is_open_for_signup()` this decision describes. The rest of D7 — that token claims
+> bypass the gate, ORCID claiming intercepts before it, and email claiming is inherently compatible
+> — is unaffected by the setting rename.
 
 **Rationale:**
 

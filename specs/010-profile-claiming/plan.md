@@ -10,13 +10,17 @@ Implement comprehensive profile claiming and account linking flows so that uncla
 ## Technical Context
 
 **Language/Version**: Python 3.11+, Django 5.x
-**Primary Dependencies**: django-allauth (authentication, social login, email verification), django-guardian (object-level permissions), django-polymorphic (Contributor hierarchy), django-invitations (invitation-only signup gate — not used for claim tokens), django-lifecycle (model hooks), rapidfuzz (fuzzy name matching)
+**Primary Dependencies**: django-allauth (authentication, social login, email verification), django-guardian (object-level permissions), django-polymorphic (Contributor hierarchy), ~~django-invitations (invitation-only signup gate — not used for claim tokens)~~, django-lifecycle (model hooks), rapidfuzz (fuzzy name matching)
 **Storage**: PostgreSQL (primary), SQLite (dev/test)
 **Testing**: pytest + pytest-django, factory-boy
 **Target Platform**: Linux server (Docker), development on Windows
 **Project Type**: Django web framework (server-rendered templates with HTMX/Alpine.js enhancements)
 **Constraints**: Zero account takeover tolerance — every claiming pathway MUST verify identity; email claiming MUST require mandatory email verification; tokens MUST be single-use and time-limited
 **Scale/Scope**: Portals typically 100–10,000 contributors; fuzzy matching is implemented via `rapidfuzz` (Python-level, suitable for portals up to ~5,000 Persons). For portals exceeding ~5,000 Persons, consider PostgreSQL `pg_trgm` as a future performance optimisation — this is not in scope for the current implementation
+
+> **Superseded 2026-08-31:** django-invitations is removed (GPL-3.0, incompatible with this
+> project's MIT license, issue #266). The invitation-only signup gate is now FairDM's own
+> `FAIRDM_INVITATION_ONLY_SIGNUP` setting — see D7 in `research.md`.
 
 ## Constitution Check
 
