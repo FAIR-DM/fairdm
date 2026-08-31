@@ -47,8 +47,8 @@ editable — the creator is written server-side, never through a form or a seria
 is what makes FR-021 hold: removing the account leaves the dataset with an unknown creator rather
 than deleting the dataset.
 
-`image` exists here, but its aspect ratio, dimensions, thumbnails and upload guidance belong to
-`015-image-field-spec`.
+`image` exists here, but its aspect ratio, dimensions, thumbnails and upload guidance are not
+specified in this document — see `fairdm/core/abstract.py` and `fairdm/core/image_utils.py`.
 
 ### Class attributes
 
@@ -311,5 +311,6 @@ Two, per Article IX's request for consolidation:
 
 The dataset list, create, edit and delete pages, the forms behind them, the list search box and
 `DatasetFilter` — those are `014-dataset-crud-views`. The image field's dimensions and thumbnails —
-`015-image-field-spec`. The REST API's representation of a dataset — `011-restful-api`. Metadata
-export, which does not exist and is expected to arrive as an addon (D-002).
+implemented but not separately specified; see `fairdm/core/abstract.py` and
+`fairdm/core/image_utils.py`. The REST API's representation of a dataset — `011-restful-api`.
+Metadata export, which does not exist and is expected to arrive as an addon (D-002).

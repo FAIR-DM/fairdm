@@ -478,8 +478,8 @@ roles and read them back, and count the queries needed to load it with all its r
 - The portal pages through which a researcher creates and edits a dataset are specified by
   `014-dataset-crud-views`. Where a field specified here needs a form control, that document decides
   whether it gets one.
-- The image field's dimensions, thumbnails and upload guidance are specified by
-  `015-image-field-spec`.
+- The image field's dimensions, thumbnails and upload guidance are implemented but not separately
+  specified; see `fairdm/core/abstract.py` and `fairdm/core/image_utils.py`.
 - The literature package supplies the item this record relates to; its own model is not changed here.
 - Translation catalogues do not exist in the repository yet. This work marks strings for translation;
   it does not produce catalogues.
@@ -491,7 +491,8 @@ roles and read them back, and count the queries needed to load it with all its r
 - The dataset list, create, edit and delete pages, their forms, the list search box and the filter
   set behind it — `014-dataset-crud-views`.
 - The dataset detail page and the portal pages for editing descriptions, keywords and key dates.
-- The image field's dimensions and thumbnails — `015-image-field-spec`.
+- The image field's dimensions and thumbnails — implemented but not separately specified; see
+  `fairdm/core/abstract.py` and `fairdm/core/image_utils.py`.
 - Funding recorded against a dataset — deferred to the work that gives projects and datasets a shared
   funding record.
 - Blocking deletion of a project that has public datasets — `013-project-crud-views`.
