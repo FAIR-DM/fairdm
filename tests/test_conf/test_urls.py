@@ -1,5 +1,5 @@
-"""Route smoke tests for ``fairdm/conf/urls.py``'s ``markdownx/`` include,
-which replaces the ``martor/`` include it superseded (issue #266).
+"""Route smoke tests for the ``markdownx/`` routes in ``fairdm/conf/urls.py``,
+which replace the ``martor/`` include they superseded (issue #266).
 """
 
 
@@ -15,9 +15,9 @@ class TestMarkdownxRoutes:
 
         assert response.status_code == 405
 
-    def test_upload_endpoint_rejects_an_invalid_ajax_upload(self, db, client):
-        response = client.post(
-            "/markdownx/upload/", {}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
-        )
+    def test_image_upload_endpoint_is_not_exposed(self, db, client):
+        """The editor offers no image upload, and the library's upload view writes
+        to media storage without authenticating anyone, so it must not be routable."""
+        response = client.post("/markdownx/upload/", {}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
-        assert response.status_code == 400
+        assert response.status_code == 404
