@@ -24,9 +24,9 @@ This guide covers:
 - Setting up a FairDM development environment
 - Understanding the framework architecture and design philosophy
 - Running tests, type checking, linting, and building documentation
-- Following the contribution workflow and aligning with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md)
+- Following the contribution workflow and aligning with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md)
 
-Before getting started, please review the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md) and respect community standards.
+Before getting started, please review the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md) and respect community standards.
 
 ## Table of Contents
 

@@ -92,11 +92,11 @@ Choose this section if your documentation answers:
 
 The **constitution** and core governance documents reside in `memory/`:
 
-- `memory/constitution.md` - Core principles and governance rules
+- `CONSTITUTION.md` - Core principles and governance rules
 
 **When to reference**: Link to the constitution when explaining how a feature aligns with FairDM principles (FAIR-first, domain-driven modeling, etc.)
 
-**Cross-reference pattern**: `[Constitution: FAIR-First](memory/constitution.md#i-fair-first-research-portals)`
+**Cross-reference pattern**: `[Constitution: FAIR-First](CONSTITUTION.md#i-fair-first-research-portals)`
 
 ### Feature Specifications (`specs/`)
 
@@ -183,10 +183,10 @@ For details on the dataset requirements, see the
 
 ```markdown
 FairDM enforces FAIR principles through automated metadata validation
-([Constitution: FAIR-First](memory/constitution.md#i-fair-first-research-portals)).
+([Constitution: FAIR-First](CONSTITUTION.md#i-fair-first-research-portals)).
 
 This configuration-first approach follows the principle of
-[Configuration Over Custom Plumbing](memory/constitution.md#iii-configuration-over-custom-plumbing).
+[Configuration Over Custom Plumbing](CONSTITUTION.md#iii-configuration-over-custom-plumbing).
 ```
 
 **Guidelines**:
@@ -382,7 +382,7 @@ A: There's no automated gate, so nothing stops you. But a broken build or a brok
 
 ## Related Documentation
 
-- [FairDM Constitution](../../memory/constitution.md)
+- [FairDM Constitution](../../CONSTITUTION.md)
 - [MyST Parser Documentation](https://myst-parser.readthedocs.io/)
 - [Sphinx Documentation](https://www.sphinx-doc.org/)
 - [pydata-sphinx-theme Documentation](https://pydata-sphinx-theme.readthedocs.io/)

@@ -64,7 +64,7 @@ These four sections are **immutable** — future features must use these section
 
 ## Documentation Principles
 
-FairDM documentation follows these core principles from our [Constitution](memory/constitution.md#documentation-principles):
+FairDM documentation follows these core principles from our [Constitution](CONSTITUTION.md#documentation-principles):
 
 1. **Audience-First**: Organize content by reader role, not by technical implementation
 2. **Traceability**: Link documentation to specifications and governance principles
