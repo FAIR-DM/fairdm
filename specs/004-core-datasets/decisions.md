@@ -35,6 +35,8 @@ the list search box, the filter set attached to the list, and the view-level per
 
 **Out of scope, owned by 015** — the image field's aspect ratio, dimensions and thumbnails. The old
 FR-014 and an entire research note in this directory were written before that specification existed.
+(015 was later removed as a formal spec; the field itself remains implemented and unchanged — see
+`fairdm/core/abstract.py` and `fairdm/core/image_utils.py`.)
 
 **Out of scope, owned by neither** — the detail page, and `DatasetFilter` itself. 014 attaches the
 filter and explicitly disclaims its internals. Both are routed out rather than absorbed here.
