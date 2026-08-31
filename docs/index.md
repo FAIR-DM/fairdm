@@ -42,7 +42,7 @@ Choose the guide that best matches your needs:
 
 ### [Contributing Guide](contributing/index.md) (Framework Contributors)
 
-**For FairDM framework contributors** who want to contribute to the core framework itself (code, documentation, examples). Set up a development environment, understand the architecture, and learn how to propose changes that align with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md).
+**For FairDM framework contributors** who want to contribute to the core framework itself (code, documentation, examples). Set up a development environment, understand the architecture, and learn how to propose changes that align with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md).
 
 **Start here if**: You want to improve the FairDM framework codebase
 
@@ -52,7 +52,7 @@ For more on the distinction between portal users and framework contributors, see
 
 ### [Overview](overview/index.md)
 
-**For evaluators and stakeholders** seeking high-level context on FairDM's vision, FAIR-first philosophy, core architecture, design principles, and the [FairDM Constitution](../memory/constitution.md).
+**For evaluators and stakeholders** seeking high-level context on FairDM's vision, FAIR-first philosophy, core architecture, design principles, and the [FairDM Constitution](../CONSTITUTION.md).
 
 **Start here if**: You're evaluating FairDM or need high-level context
 
@@ -60,7 +60,7 @@ For more on the distinction between portal users and framework contributors, see
 
 ## Governance & Specifications
 
-FairDM follows a governance model defined in the [FairDM Constitution](../memory/constitution.md), which establishes five core principles:
+FairDM follows a governance model defined in the [FairDM Constitution](../CONSTITUTION.md), which establishes five core principles:
 
 ::::{grid} 1 2 2 3
 :gutter: 3
