@@ -178,5 +178,5 @@ Now that your environment is set up, you can:
 - **[Read the contribution workflow](getting_started.md)**: Learn how to propose changes, create pull requests, and align with the FairDM constitution
 
 ```{seealso}
-**Constitution**: Before making changes, read the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md) to understand the framework's goals and constraints.
+**Constitution**: Before making changes, read the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md) to understand the framework's goals and constraints.
 ```

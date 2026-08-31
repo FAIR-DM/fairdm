@@ -27,7 +27,7 @@
 
 - **[Before You Start](../contributing/before_you_start.md)**: Complete development environment setup instructions (fork, clone, install, migrate, test)
 - **[Python Code Development](../contributing/django_dev.md)**: Quality gates documentation covering tests, type checking, linting, and documentation builds with examples
-- **[Contributing to FairDM](../contributing/getting_started.md)**: Full contribution workflow from issue creation to pull request merge, with explicit [constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md) alignment guidance
+- **[Contributing to FairDM](../contributing/getting_started.md)**: Full contribution workflow from issue creation to pull request merge, with explicit [constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md) alignment guidance
 - Enhanced [Contributing Guide](../contributing/index.md) with clear framework contributor role distinction
 
 ### Navigation & Usability Improvements
@@ -41,7 +41,7 @@
 
 - **New users**: Start with your role's "Getting Started" guide for a guided first experience
 - **Experienced users**: Navigate directly to specific guides via the role-based structure
-- **Evaluators**: Review [Getting Started](../portal-development/getting_started.md) first, then explore the [constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md) for principles
+- **Evaluators**: Review [Getting Started](../portal-development/getting_started.md) first, then explore the [constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md) for principles
 - **Contributors**: All contribution types now have clear, independent workflows
 
 ---

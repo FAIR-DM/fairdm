@@ -24,7 +24,7 @@ The top-level structure defined here is **immutable**. Future features MUST use 
 
 ### Special Locations
 
-- **Constitution & Governance**: `memory/constitution.md` (immutable)
+- **Constitution & Governance**: `CONSTITUTION.md` (immutable)
 - **Feature Specifications**: `specs/###-feature-name/` (immutable)
 - **Overview Content**: `docs/overview/` (background, data model, tech stack)
 
@@ -192,7 +192,7 @@ graph TD
 
 **Question 5**: Is this about governance principles or feature specifications?
 
-- **Principles** → `memory/constitution.md`
+- **Principles** → `CONSTITUTION.md`
 - **Specification** → `specs/###-feature-name/spec.md`
 
 ```{note}
@@ -280,10 +280,10 @@ For implementation details, see the [FairDM Registry Specification](../../specs/
 Use stable anchor links to reference governance principles:
 
 ```markdown
-This feature implements the [FAIR-First principle](memory/constitution.md#i-fair-first-research-portals) by...
+This feature implements the [FAIR-First principle](CONSTITUTION.md#i-fair-first-research-portals) by...
 ```
 
-**Pattern**: `[principle name](memory/constitution.md#anchor-id)`
+**Pattern**: `[principle name](CONSTITUTION.md#anchor-id)`
 
 ### Linking Between Documentation Sections
 
@@ -493,7 +493,7 @@ When you've added or updated documentation, ensure it's properly integrated:
 ## Related Documentation
 
 - [Documentation Standards](../documentation-standards.md) — Writing style, formatting, and quality guidelines
-- [Constitution: Documentation Principles](memory/constitution.md#documentation-principles) — Governance principles for documentation
+- [Constitution: Documentation Principles](CONSTITUTION.md#documentation-principles) — Governance principles for documentation
 
 ---
 

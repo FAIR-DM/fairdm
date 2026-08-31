@@ -3,7 +3,7 @@
 This guide outlines the workflow for contributing code, documentation, and other improvements to the FairDM framework. By following these steps, you can fork the repository, make changes, run quality checks, and submit a pull request.
 
 ```{important}
-**Read the constitution first**: Before making significant changes, review the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md) to understand the framework's core principles, design constraints, and development workflow. All contributions should align with these principles.
+**Read the constitution first**: Before making significant changes, review the [FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md) to understand the framework's core principles, design constraints, and development workflow. All contributions should align with these principles.
 ```
 
 ## Prerequisites
@@ -315,7 +315,7 @@ git push origin main
 
 ## Resources
 
-- **[FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/memory/constitution.md)**: Core principles and design constraints
+- **[FairDM Constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md)**: Core principles and design constraints
 - **[Code of Conduct](https://github.com/FAIR-DM/fairdm/blob/main/CODE_OF_CONDUCT.md)**: Community standards
 - **[Quality Gates Guide](django_dev.md)**: Tests, type checking, linting, docs
 - **[Frontend Development Guide](frontend_dev.md)**: Templates, CSS, JavaScript

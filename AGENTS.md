@@ -60,4 +60,4 @@ Feature work follows a spec-driven process: spec → plan → tasks → implemen
 `specs/NNN-slug/` directory per feature. `specs/` holds the specs written so far and stays as the
 record of what was built and why.
 
-Project standards and the quality bar live in `memory/constitution.md`.
+Project standards and the quality bar live in `CONSTITUTION.md`.
