@@ -4,7 +4,7 @@ from django.forms import BaseFormSet, BaseInlineFormSet
 from django.utils.module_loading import import_string
 from django_select2.forms import Select2TagWidget
 from extra_views import InlineFormSetFactory
-from martor.fields import MartorFormField
+from markdownx.fields import MarkdownxFormField
 
 from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
 from fairdm.core.sample.models import SampleDescription
@@ -267,7 +267,7 @@ class DescriptionForm(TypeVocabularyFormMixin):
         - The form dynamically sets the label and help text of "value" based on a vocabulary concept.
     """
 
-    value = MartorFormField(
+    value = MarkdownxFormField(
         required=False,
         label=False,
     )

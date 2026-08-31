@@ -5,9 +5,12 @@ from django.db import models
 # import flatattrs
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from literature import utils
 from pint.delegates.formatter.plain import PrettyFormatter
 from quantityfield import settings as qsettings
+
+from fairdm.utils.markdown import markdownify
 
 register = template.Library()
 ureg = qsettings.DJANGO_PINT_UNIT_REGISTER
@@ -173,6 +176,12 @@ def normalize_doi(doi):
     if not doi:
         return None
     return utils.generic.normalize_doi(doi)
+
+
+@register.filter
+def safe_markdown(content):
+    """Render markdown to sanitised HTML, safe to output without further escaping."""
+    return mark_safe(markdownify(content))
 
 
 @register.filter

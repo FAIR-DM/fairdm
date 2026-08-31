@@ -16,8 +16,9 @@ from unittest.mock import MagicMock
 
 import pytest
 from allauth.core.exceptions import ImmediateHttpResponse
+from waffle.testutils import override_switch
 
-from fairdm.contrib.contributors.adapters import SocialAccountAdapter
+from fairdm.contrib.contributors.adapters import AccountAdapter, SocialAccountAdapter
 from fairdm.contrib.contributors.models import ContributorIdentifier, Person
 
 ORCID_UID = "0000-0002-9999-0001"
@@ -26,6 +27,11 @@ ORCID_UID = "0000-0002-9999-0001"
 @pytest.fixture
 def adapter():
     return SocialAccountAdapter()
+
+
+@pytest.fixture
+def account_adapter():
+    return AccountAdapter()
 
 
 @pytest.fixture
@@ -258,3 +264,44 @@ class TestSaveUserORCID:
             ContributorIdentifier.objects.filter(value=ORCID_UID, type="ORCID").count()
             == 1
         )
+
+
+# ── is_open_for_signup ──────────────────────────────────────────────────────
+
+
+class TestIsOpenForSignup:
+    """FAIRDM_INVITATION_ONLY_SIGNUP (issue #266) replaces django-invitations'
+    INVITATIONS_INVITATION_ONLY as the signup gate, alongside the pre-existing
+    allow_signup waffle switch."""
+
+    def test_signup_open_when_switch_active_and_not_invitation_only(
+        self, db, settings, account_adapter, request_mock
+    ):
+        settings.FAIRDM_INVITATION_ONLY_SIGNUP = False
+        with override_switch("allow_signup", active=True):
+            assert account_adapter.is_open_for_signup(request_mock) is True
+
+    def test_signup_closed_when_invitation_only_even_if_switch_active(
+        self, db, settings, account_adapter, request_mock
+    ):
+        settings.FAIRDM_INVITATION_ONLY_SIGNUP = True
+        with override_switch("allow_signup", active=True):
+            assert account_adapter.is_open_for_signup(request_mock) is False
+
+    def test_signup_closed_when_switch_inactive_even_if_not_invitation_only(
+        self, db, settings, account_adapter, request_mock
+    ):
+        settings.FAIRDM_INVITATION_ONLY_SIGNUP = False
+        with override_switch("allow_signup", active=False):
+            assert account_adapter.is_open_for_signup(request_mock) is False
+
+    def test_session_verified_email_bypasses_invitation_only(
+        self, db, settings, account_adapter, request_mock
+    ):
+        """A session already carrying a verified email (e.g. mid social-signup
+        flow) is let through regardless of the invitation-only gate, as long
+        as signup is switched on at all."""
+        settings.FAIRDM_INVITATION_ONLY_SIGNUP = True
+        request_mock.session = {"account_verified_email": "person@example.com"}
+        with override_switch("allow_signup", active=True):
+            assert account_adapter.is_open_for_signup(request_mock) is True

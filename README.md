@@ -207,7 +207,7 @@ For every registered model, FairDM automatically generates:
 - **Object-level permissions** via django-guardian
 - Role-based access (viewer, editor, manager) at Project/Dataset level
 - Public/private dataset visibility controls
-- Team collaboration with user invitations
+- Add contributors to a project or dataset, including unclaimed profiles for people without accounts yet
 
 ### 📊 Data Import/Export
 

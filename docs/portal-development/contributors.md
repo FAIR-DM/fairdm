@@ -66,7 +66,10 @@ each state below has a matching `Person.objects` queryset method:
 person.account_state  # one of AccountState.GHOST/INVITED/CLAIMED/INACTIVE
 ```
 
-**Note**: Invitation and claiming workflows are implemented in Feature 010 (not yet released).
+**Note**: Claiming workflows (ORCID, email confirmation, and admin-generated token) are
+implemented — see `fairdm.contrib.contributors.services.claiming`. Self-service signup can be
+closed entirely via `FAIRDM_INVITATION_ONLY_SIGNUP`; there is no separate invitation-email
+workflow.
 
 ### Unified Manager Approach
 

@@ -9,27 +9,24 @@
       font-weight: 600;
     }
 
-    .main-martor {
-      margin: 0;
-    }
-
-    .section-martor .tab-content {
-      min-height: 400px;
+    .markdownx {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
 
-    .section-martor .tab-pane.active {
-      flex: 1;
-      display: flex;
-      /* override Bootstrap's block */
-      flex-direction: column;
+    .markdownx-editor {
+      flex: 1 1 300px;
+      min-height: 300px;
     }
 
-    .martor-field {
-      flex: 1;
-      min-height: 0;
-      /* critical for Ace */
+    .markdownx-preview {
+      flex: 1 1 300px;
+      min-height: 300px;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      overflow-y: auto;
     }
   </style>
 {% endblock extra_css %}
@@ -75,9 +72,6 @@
 {% endblock page.content %}
 
 {% block extra_js %}
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-          crossorigin="anonymous"></script>
   {{ block.super }}
   {{ formset.media.js }}
 {% endblock extra_js %}

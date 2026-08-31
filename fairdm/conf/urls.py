@@ -21,12 +21,11 @@ urlpatterns = [
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     # path("", include("dac.allauth")),
     path("account-center/", include("dac.urls")),
-    path("invitations/", include("invitations.urls", namespace="invitations")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
-    path("martor/", include("martor.urls")),
+    path("markdownx/", include("markdownx.urls")),
     path("hijack/", include("hijack.urls")),
     path("orbit/", include("orbit.urls")),
     # REST API — Feature 011 (namespaced to prevent URL name collision with portal UI routes)

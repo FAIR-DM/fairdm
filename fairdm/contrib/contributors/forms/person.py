@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
-from martor.fields import MartorFormField
+from markdownx.fields import MarkdownxFormField
 
 from fairdm.forms import ModelForm
 
@@ -44,7 +44,7 @@ class UserProfileForm(ModelForm):
         required=False,
         label=False,
     )
-    profile = MartorFormField(required=False)
+    profile = MarkdownxFormField(required=False)
 
     class Meta:
         model = User

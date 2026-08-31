@@ -2,8 +2,8 @@
 
 Owns: password hashing (Argon2 first), password validators, authentication
 backends (ModelBackend, allauth, guardian, FairDM's own object-level
-backends), django-allauth account/social settings, and django-invitations —
-none of it environment-dependent (FR-002, FR-003). Leaves to a portal:
+backends), django-allauth account/social settings, and the FairDM signup
+gate — none of it environment-dependent (FR-002, FR-003). Leaves to a portal:
 ``SOCIALACCOUNT_PROVIDERS`` beyond ORCID, and its own custom account/signup
 forms via ``ACCOUNT_FORMS``/``SOCIALACCOUNT_FORMS``.
 
@@ -97,15 +97,12 @@ SOCIALACCOUNT_PROVIDERS = {
 SOCIALACCOUNT_ADAPTER = "fairdm.contrib.contributors.adapters.SocialAccountAdapter"
 
 
-# ========== Django Invitations ==========
-# https://django-invitations.readthedocs.io/en/latest/configuration.html
+# ========== FairDM Signup Gate ==========
 
-INVITATIONS_INVITATION_ONLY = False
-INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
-
-# django-organizations backends
-INVITATION_BACKEND = "organizations.backends.defaults.InvitationBackend"
-REGISTRATION_BACKEND = "organizations.backends.defaults.RegistrationBackend"
+# When True, self-service signup is closed and accounts are created by
+# administrators (issue #266 — replaces django-invitations, GPL-3.0 and
+# incompatible with this project's MIT license).
+FAIRDM_INVITATION_ONLY_SIGNUP = False
 
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 ACCOUNT_FORMS = {

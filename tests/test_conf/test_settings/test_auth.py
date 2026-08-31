@@ -61,6 +61,33 @@ class TestAuth:
 
         settings_module()  # must not raise
 
+    def test_signup_is_open_by_default(self, isolated_env, settings_module):
+        """FAIRDM_INVITATION_ONLY_SIGNUP replaces django-invitations' setting
+        of the same purpose (issue #266): self-service signup stays open
+        unless a portal closes it."""
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module()
+
+        assert module.FAIRDM_INVITATION_ONLY_SIGNUP is False
+
+    def test_django_invitations_settings_are_gone(self, isolated_env, settings_module):
+        """django-invitations is removed (issue #266, GPL-3.0 incompatible with
+        the MIT license). Its settings, and the django-organizations backends
+        that were never an installed dependency, must not survive as dead
+        settings."""
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module()
+
+        for name in (
+            "INVITATIONS_INVITATION_ONLY",
+            "INVITATIONS_ADAPTER",
+            "INVITATION_BACKEND",
+            "REGISTRATION_BACKEND",
+        ):
+            assert not hasattr(module, name), f"{name} should have been removed"
+
 
 class TestAccountModel:
     """T003: the person record is the account, and no second account model
