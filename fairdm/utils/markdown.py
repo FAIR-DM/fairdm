@@ -18,5 +18,7 @@ def markdownify(content):
         >>> markdownify("**bold** <script>alert(1)</script>")
         '<p><strong>bold</strong> </p>'
     """
-    html = markdown.markdown(content or "", extensions=settings.FAIRDM_MARKDOWN_EXTENSIONS)
+    html = markdown.markdown(
+        content or "", extensions=settings.FAIRDM_MARKDOWN_EXTENSIONS
+    )
     return nh3.clean(html)

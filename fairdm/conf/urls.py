@@ -30,7 +30,11 @@ urlpatterns = [
     # image upload view, which writes to media storage with no authentication
     # check of any kind; the editor here has no image upload, so that route is
     # deliberately left out rather than included and then guarded.
-    path("markdownx/markdownify/", MarkdownifyView.as_view(), name="markdownx_markdownify"),
+    path(
+        "markdownx/markdownify/",
+        MarkdownifyView.as_view(),
+        name="markdownx_markdownify",
+    ),
     path("hijack/", include("hijack.urls")),
     path("orbit/", include("orbit.urls")),
     # REST API — Feature 011 (namespaced to prevent URL name collision with portal UI routes)
