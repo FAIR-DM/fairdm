@@ -24,7 +24,8 @@ empty listings until an administrator publishes a dataset.
 | S1 SPECIFY | done | `spec.md`: 6 stories, 60 requirements, 10 success criteria, 9 clarifications. `decisions.md`: D1–D8. FR-066 of `014-dataset-crud-views` annotated in place as superseded. |
 | S2 SETUP | done | Epic #315, stories #316–321, draft PR #322. Branch `015-browsing-portal-samples`. |
 | Spec gate | approved | 2026-09-01, in session, no amendments. |
-| S3 PLAN | in progress | |
+| S3 PLAN | done | `plan.md`, `research.md` (13 items), `data-model.md`, `quickstart.md`, `tasks.md` (66 tasks across 6 stories). `feature-state.json` generated, all tasks `todo`. Baseline `tests/test_registry/` (243 tests) confirmed green before any change. |
+| S3R DESIGN_REVIEW | next | |
 
 ## Where the boundaries were drawn
 

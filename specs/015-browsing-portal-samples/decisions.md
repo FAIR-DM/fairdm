@@ -171,3 +171,36 @@ that if the run runs short the thing dropped is the one with no reader-visible c
 R21 specifies export as dataset-scoped and run outside the request, and names in-request execution
 as one of the faults it exists to fix. Keeping a faster wrong version alive until then would make
 R21's job removing a feature people had started to rely on.
+
+---
+
+## D9 — Publication is a queryset method, not a default manager
+
+**Ambiguity**: `Dataset.objects` already excludes private rows by default. `Sample.objects` and
+`Measurement.objects` could get the same treatment for `published`.
+
+**Settled**: `published()` is a queryset method — `Sample.objects.published()`,
+`Measurement.objects.published()` — not a default-manager filter.
+
+**Why**: `Sample.objects` and `Measurement.objects` are read everywhere in the codebase today — the
+API, the admin, the demo app — and FR-006 forbids this feature from changing behaviour outside the
+listings it specifies. Narrowing the default manager would silently change every one of those call
+sites without the audit that would take. A queryset method is opt-in at the one call site that
+needs it and composes with the registry-generated filterset without a manager override fighting it.
+
+---
+
+## D10 — `search_fields` is a plain attribute, not a seventh generated component
+
+**Ambiguity**: `ModelConfiguration` generates six components — form, table, filterset, serializer,
+resource, admin — through one `COMPONENTS` table and one factory pattern each. Search could be
+added the same way.
+
+**Settled**: `search_fields` is a plain declared list, validated the same way `fields` already is,
+consumed directly by the view.
+
+**Why**: the six existing components each produce a class through a factory. Search produces
+nothing to instantiate — it configures the application shell's own `SearchMixin`, which already
+takes a plain `search_fields` list on any view. Forcing it into the `COMPONENTS` shape would build
+a factory that generates nothing, which is the wrong abstraction for what is otherwise a two-line
+pass-through, per Article XIV.
