@@ -150,8 +150,8 @@ already use. A duplicate address is refused at import naming both types.
 
 **Why**: a listing is not a record, so ADR 0010's record-address convention does not reach it, and
 folding listings in beside `samples/<uuid>/` would put a slug and an identifier at the same position
-in the path. The naming change is the part with an argument against it — it is churn with nothing
-visible to show — and it is made anyway because a break with the repository's own convention is
+in the path. The naming change is the part with an argument against it. It is churn with nothing
+visible to show, and it is made anyway because a break with the repository's own convention is
 treated here as a defect rather than a preference, and one reverse lookup is the whole cost.
 
 ---

@@ -23,8 +23,8 @@ registered type is placed in the portal's navigation, and every listing offers a
 other listing in the portal without going back to a landing page.
 
 This feature owns `fairdm/contrib/collections` outright and may rewrite or delete any part of it.
-Much of what is specified here exists in that app already, in an untested and partly broken form;
-none of it is treated as delivered, and where this specification and the current code disagree, this
+Much of what is specified here exists in that app already, in an untested and partly broken form.
+None of it is treated as delivered, and where this specification and the current code disagree, this
 specification decides.
 
 ## Clarifications
@@ -42,7 +42,7 @@ specification decides.
   whatever the framework already generates? → A: No, it takes part of R17. Each type declares the
   fields its search covers, a sensible default applies where the author declares nothing, and the
   fields searched are indexed. What it does not take is ranking, tolerance of partial words, or
-  search across record types; those stay with R17 and will upgrade every listing at once.
+  search across record types. Those stay with R17 and will upgrade every listing at once.
 - Q: A collection could be portal-wide or scoped to a dataset. Which? → A: Portal-wide only, one
   per registered type. A dataset's own samples and measurements are a plugin on the dataset's
   page, which is R18's work. The plugin this app carries for that purpose is registered nowhere
@@ -282,8 +282,8 @@ describes the code as it now stands, and that the test suite and the demo applic
   has been told something true.
 - **A dataset is unpublished after its records have been browsed.** The records leave every listing
   at the next request. Nothing caches membership across the change.
-- **A measurement's own dataset is published but its sample's is not.** The measurement appears;
-  the sample is not named and not linked. The reverse case needs no rule, because a sample's
+- **A measurement's own dataset is published but its sample's is not.** The measurement appears.
+  The sample is not named and not linked. The reverse case needs no rule, because a sample's
   presence in a sample listing says nothing about measurements made on it.
 - **A model author declares a searchable field that spans a relation.** It is honoured. The
   application shell already searches related field paths, and a related path is often the useful
@@ -292,7 +292,7 @@ describes the code as it now stands, and that the test suite and the demo applic
   at import naming the type and the field, rather than the listing silently searching less than
   the author asked for.
 - **A model author declares a searchable field on an unindexed column.** The listing works. The
-  index requirement in this feature binds the fields the framework itself searches by default; what
+  index requirement in this feature binds the fields the framework itself searches by default. What
   an author adds is the author's to index, and the documentation says so.
 - **Two registered types resolve to the same address.** The registration is refused at import with a
   message naming both, rather than one listing shadowing the other.
@@ -479,6 +479,6 @@ Article XIV.
   `014-dataset-crud-views` left them, and are untouched here.
 - The demo application is where registered types are exercised, and it is updated in the same pull
   request, per Article XVIII.
-- Sample and measurement records already have pages of their own to link a row to; where a
+- Sample and measurement records already have pages of their own to link a row to. Where a
   measurement's page is a placeholder, linking to it is still correct and completing it is the
   remainder of R16.
