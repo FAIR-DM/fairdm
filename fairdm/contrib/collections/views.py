@@ -1,5 +1,6 @@
 import contextlib
 
+from django.core.exceptions import ImproperlyConfigured
 from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import RedirectView
@@ -152,30 +153,34 @@ class DataTableView(FairDMTableView):
             # In case there are no samples or measurements registered, return an empty list.
             return [], None
         urls = []
+        seen_addresses: dict[str, type] = {}
+
+        def add_listing_url(prefix: str, model_class: type) -> None:
+            """Register one listing route, refusing a duplicate address (FR-050)."""
+            config = registry.get_for_model(model_class)
+            slug = config.get_slug()
+            address = f"{prefix}/{slug}/"
+            if address in seen_addresses:
+                raise ImproperlyConfigured(
+                    f"{seen_addresses[address].__name__} and {model_class.__name__} "
+                    f"both resolve to the listing address '{address}'."
+                )
+            seen_addresses[address] = model_class
+            urls.append(
+                path(
+                    address,
+                    cls.as_view(model=model_class, model_config=config, **kwargs),
+                    name=f"{slug}-list",
+                )
+            )
 
         # Process sample models
         for model_class in registry.samples:
-            config = registry.get_for_model(model_class)
-            slug = config.get_slug()
-            urls.append(
-                path(
-                    f"samples/{slug}/",
-                    cls.as_view(model=model_class, model_config=config, **kwargs),
-                    name=f"{slug}-list",
-                )
-            )
+            add_listing_url("samples", model_class)
 
         # Process measurement models
         for model_class in registry.measurements:
-            config = registry.get_for_model(model_class)
-            slug = config.get_slug()
-            urls.append(
-                path(
-                    f"measurements/{slug}/",
-                    cls.as_view(model=model_class, model_config=config, **kwargs),
-                    name=f"{slug}-list",
-                )
-            )
+            add_listing_url("measurements", model_class)
 
         # if registry.samples:
         #     first_config = registry.get_for_model(registry.samples[0])
