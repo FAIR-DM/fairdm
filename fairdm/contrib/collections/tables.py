@@ -139,6 +139,7 @@ class SampleTable(BaseTable):
 class MeasurementTable(BaseTable):
     """Table class for Measurement models."""
 
+    name = tables.Column(linkify=True, verbose_name=_("Name"))
     sample = tables.Column()
     latitude = tables.Column(accessor="sample.location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="sample.location.y", verbose_name=_("Longitude"))
