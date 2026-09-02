@@ -1716,6 +1716,27 @@ class TestWithRelatedOptimization:
 
 
 @pytest.mark.django_db
+class TestPublishedQuerySet:
+    """T067: `Dataset.all_objects.published()` returns published datasets only,
+    including one published while its visibility is private - the ordinary
+    state, and the reason the choice list in T040 cannot use the privacy-first
+    default manager (FR-030, D3)."""
+
+    def test_published_returns_only_published_datasets_including_a_private_one(self):
+        published_private = DatasetFactory(
+            published=True, visibility=Visibility.PRIVATE
+        )
+        published_public = DatasetFactory(published=True, visibility=Visibility.PUBLIC)
+        unpublished = DatasetFactory(published=False)
+
+        result = Dataset.all_objects.published()
+
+        assert published_private in result
+        assert published_public in result
+        assert unpublished not in result
+
+
+@pytest.mark.django_db
 class TestWithContributorsOptimization:
     """Test with_contributors() query optimization.
 
