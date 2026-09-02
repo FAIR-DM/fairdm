@@ -60,7 +60,7 @@ class DataTableView(FairDMTableView):
             config = registry.get_for_model(model_class)
             slug = config.get_slug()
             try:
-                url = reverse(f"{slug}-collection")
+                url = reverse(f"{slug}-list")
             except NoReverseMatch:
                 url = None
 
@@ -161,7 +161,7 @@ class DataTableView(FairDMTableView):
                 path(
                     f"samples/{slug}/",
                     cls.as_view(model=model_class, model_config=config, **kwargs),
-                    name=f"{slug}-collection",
+                    name=f"{slug}-list",
                 )
             )
 
@@ -173,7 +173,7 @@ class DataTableView(FairDMTableView):
                 path(
                     f"measurements/{slug}/",
                     cls.as_view(model=model_class, model_config=config, **kwargs),
-                    name=f"{slug}-collection",
+                    name=f"{slug}-list",
                 )
             )
 
