@@ -281,3 +281,136 @@ override) and D17 (query-count test methodology). Next: T027's docs check — no
 describes the `-collection` URL name, the empty-state copy, or anything else this story touched
 (searched for `-collection` and `DataTableView`/`get_urls` outside `docs/_build`; the two source
 hits are unrelated vocabulary). Watch: the full repo verify command, not yet run.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T012
+
+Did: `TestSearchFieldsValidation` in `tests/test_registry/test_config.py` - a path that does not
+resolve, and a `DecimalField`/`BooleanField`/`DateField` parametrised over `search_fields`, both
+raising `FieldValidationError`. Verified: `poetry run pytest
+tests/test_registry/test_config.py::TestSearchFieldsValidation` - red (4 failed, `search_fields`
+not yet an accepted keyword). Next: T013. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T013
+
+Did: `ModelConfiguration.search_fields` attribute, `_OVERRIDABLE` entry, `_validate_search_fields()`
+(two passes - `_validate_field_path` then a positive `isinstance(field, (CharField, TextField))`
+check on the resolved final field, matching `FilterFactory._get_search_fields`'s existing line per
+D12), and `get_search_fields()` returning `self.search_fields or ["name"]`. Verified: T012's class -
+4 passed; `tests/test_registry/test_config.py` - 67 passed; `pre-commit run` (ruff, mypy) clean.
+Next: T067. Watch: mypy needed `model: Any` inside the path-walk loop, matching
+`FieldInspector.resolve_path`'s own typing - `type[Model] | None` from `related_model` otherwise
+conflicts with the first assignment's inferred `type[Model]`.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T067
+
+Did: `TestPublishedQuerySet` in `tests/test_core/test_dataset/test_models.py` - one published
+private, one published public, one unpublished dataset; asserts `Dataset.all_objects.published()`
+returns the first two, not the third. Verified: red (`AttributeError:
+'ManagerFromDatasetQuerySet' object has no attribute 'published'`). Next: T068. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T068
+
+Did: `DatasetQuerySet.published()` - `self.filter(published=True)`. Verified: T067's test green;
+`tests/test_core/test_dataset/` - 373 passed; pre-commit clean. Next: T010. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T010
+
+Did: `TestNameIndex` in `tests/test_core/test_abstract.py` - introspects `Sample._meta.db_table`
+and `Measurement._meta.db_table` via `connection.introspection.get_constraints` for an index or
+unique constraint on exactly `["name"]`. Verified: red (both tables report no such constraint,
+under `--no-migrations` so the test DB reflects the model as it stands, not a migration file).
+Next: T011. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T011
+
+Did: `db_index=True` on `BaseModel.name`. `makemigrations dataset measurement project sample`
+(scoped to the four apps the abstract field reaches - not `identity`/`orbit`, whose own pending
+migrations are unrelated drift, left alone) - four `AlterField` migrations, each touching only
+`name`. Verified: T010's class - 2 passed; `makemigrations --check` on the four apps - clean;
+`tests/test_core/test_sample/ test_measurement/ test_project/` - 760 passed, 7 skipped
+(pre-existing); pre-commit clean. Next: T031. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T031-T038
+
+Did: wrote every US3 test task in brief order before any implementation, per the design review's
+correction (T032 red before T030, not reversed):
+- T031 `TestSearch` (`test_views.py`): no `search_fields` declared - a word from `name` matches,
+  an unrelated record does not (`WaterSample`, untouched by T030 - stays on the default).
+- T032 same class: a word held only by a declared field matches, one held only by an undeclared
+  field does not (`RockSample`, whose `search_fields` T030 will set to `["rock_type"]`).
+- T033 same class: a search matching nothing renders this feature's own empty state.
+- T034 same class: a search matching an unpublished record's field returns nothing.
+- T035 `TestFilters` (`test_views.py`): a char filter and two range filters (`Decimal`, `Integer`)
+  each narrow to the matching record and return 200.
+- T036 `TestPublishedChoiceLists` (`test_factories.py`): the sample, dataset and measurement
+  branches of a generated `ModelChoiceFilter`'s queryset each exclude an unpublished record, and
+  the dataset branch includes one published while private. The sample/dataset cases use
+  `ExampleMeasurement` with an explicit `fields=["name", "sample"|"dataset"]` passed straight to
+  `FilterFactory` - passing the name through `_get_smart_filters` rather than leaving it to
+  `MeasurementFilterMixin`'s own dynamically-set "sample"/"dataset" filters, which T040 does not
+  touch. The measurement case has no real registered FK-to-Measurement field anywhere in the
+  schema, so it declares one inline (`MeasurementReferrer`, `app_label="test_app"`, cleaned up by
+  the directory's autouse fixture) - the same throwaway-model pattern `test_config.py` already
+  uses.
+- T037 `TestOrdering` (`test_tables.py`): sorting a column both directions reorders rows (already
+  green - generic column sorting predates this story); the unsorted-order test forces every row to
+  one `added` timestamp (the opposite of `TestPaging`'s staggering, on purpose - ties are exactly
+  what a missing tie-break exposes) and additionally pins `table.order_by` containing `id`
+  directly, since the page-comparison alone can hold by coincidence of how Postgres happens to
+  return tied rows today.
+- T038 extends `TestNameIndex`: for every currently-registered demo type with no `search_fields`
+  of its own, `get_search_fields()` returns exactly `["name"]`, plus the two index assertions
+  T010 already has.
+
+Verified, each red for its own reason except where noted: T031 both records returned (search not
+wired); T032 both filters return every record; T033 the record still renders, no empty state;
+T035 all three green immediately (generic filtering predates this story) - probed by returning
+`None` from `get_filterset_class()`, confirmed all three then raise `TypeError`; T036 all three red
+(`_default_manager.all()`/`Dataset.objects` is what ships today); T037's column-sort case green
+immediately, its ordering case red on the new `table.order_by` assertion only (`None`) - the
+page-disjointness assertions already passed even with ties forced, so that half was probed by
+temporarily removing `.published()` from `get_queryset()` in an unrelated check, not this one;
+T034 and T038 both green immediately - T034 probed by temporarily dropping `.published()` from
+`DataTableView.get_queryset()` (then failed as expected, confirming the guard is real); T038
+probed by temporarily returning `["wrong_field"]` from `get_search_fields()` (then failed as
+expected). Next: T030. Watch: three genuinely red suites at this point -
+`test_views.py::TestSearch` (partial), `test_factories.py::TestPublishedChoiceLists` (all three),
+`test_tables.py::TestOrdering` (one assertion) - all expected, closed by T030/T039/T040/T041 below.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T030
+
+Did: `search_fields` on three `fairdm_demo/config.py` registrations - `RockSampleConfig` (`["rock_type"]`,
+narrower than the default), `SoilSampleConfig` (`["name", "soil_type"]`, naming the default
+explicitly alongside an addition), `ExampleMeasurementConfig` (`["char_field"]`). Verified: import
+succeeds (validation passes for all three field types, all `CharField`); `tests/test_registry/
+tests/test_contrib/test_collections/ fairdm_demo/tests/` - only the pre-existing, unrelated
+`fairdm_demo/tests/` failures (admin change views, `is_claimed`) plus the still-open T035/T036/T037
+reds; confirmed those three pre-existing failures reproduce identically with this commit's change
+stashed out. Next: T039. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T039
+
+Did: `DataTableView.setup()` override - `self.search_fields = self.model_config.get_search_fields()`
+after `super().setup()`, before dispatch (and therefore before `SearchMixin.get_queryset()` runs).
+Verified: `TestSearch` - 5 passed (T031-T034 all green now); `tests/test_contrib/test_collections/`
+- 25 passed, 1 failed (T037's still-open `order_by` assertion, expected); pre-commit clean.
+Next: T040. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T040
+
+Did: `FilterFactory._get_smart_filters`'s `ForeignKey` branch now calls a new
+`_published_related_queryset(related_model)` helper - `Dataset.all_objects.published()` for a
+Dataset relation (never `Dataset.objects`, which would already exclude the published-but-private
+case before publication is even considered), `related_model._default_manager.published()` for
+Sample/Measurement, unscoped `_default_manager.all()` otherwise. Verified: `TestPublishedChoiceLists`
+- 3 passed; `tests/test_registry/test_factories.py` - 56 passed; `tests/test_registry/
+tests/test_contrib/test_collections/ fairdm_demo/tests/` - only the same pre-existing failures plus
+T037's still-open assertion; pre-commit clean. Next: T041. Watch: nothing.
+
+### 2026-09-02T14:36:00Z · Implementer US3 · T041
+
+Did: `Meta.order_by = ("added", "id")` on `SampleTable`, `Meta.order_by = ("-modified", "id")` on
+`MeasurementTable` - `id` is always a column (declared on `BaseTable`), so it survives the
+column-membership check in every generated table regardless of what fields a type declares.
+Verified: `TestOrdering` - 2 passed; `tests/test_contrib/test_collections/` - 26 passed; pre-commit
+clean. Next: full-story re-verification. Watch: nothing.

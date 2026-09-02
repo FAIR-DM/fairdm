@@ -412,3 +412,65 @@ Both controlled, the test does its job: removing the `select_related` from
 
 **Revisit if:** `orbit` gains a documented test-mode switch — prefer it to disabling the app — or the
 listing grows a genuinely per-page query whose count moves with something other than row volume.
+
+---
+
+## D18 — Testing a related-record filter for a relation the schema doesn't have
+
+**Decision:** `TestPublishedChoiceLists` (T036, `tests/test_registry/test_factories.py`) tests the
+sample and dataset branches of `FilterFactory._get_smart_filters`'s new publication scoping against
+a real model (`ExampleMeasurement`, with `fields=["name", "sample"]` / `["name", "dataset"]` passed
+directly to `FilterFactory`), but declares a throwaway model for the measurement branch:
+
+```python
+class MeasurementReferrer(models.Model):
+    measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
+
+    class Meta:
+        app_label = "test_app"
+```
+
+**Why:** no registered type anywhere in the schema has a foreign key to `Measurement` — samples
+reference datasets and locations, measurements reference samples and datasets, nothing points the
+other way. T040's given/when/then names all three relation targets explicitly, so the branch needs
+a real test rather than an inference from the other two. `tests/test_registry/conftest.py` already
+carries an autouse fixture that clears every `test_app`-labelled model after each test, the same
+mechanism `test_config.py`'s fuzzy-match tests use for their own throwaway models — this reuses it
+rather than inventing a second convention.
+
+The sample/dataset cases deliberately do **not** use `MeasurementFilterMixin`'s own `sample`/
+`dataset` declared filters (visible on `ExampleMeasurement`'s generated filterset when those field
+names are left out of the explicit `fields` list): those are set dynamically in the mixin's own
+`__init__` and are unrelated to `_get_smart_filters`, which T040 is scoped to. Passing `fields=
+["name", "sample"]` / `["name", "dataset"]` explicitly is what makes `_get_smart_filters` generate
+its own override for that name, shadowing the mixin's version — the same pattern
+`TestFilterFactoryMeasurementBranch` (pre-existing, same file) already relies on for `"dataset"`.
+
+**Revisit if:** a future feature gives some type a real foreign key to `Measurement` — the
+throwaway model can then be replaced with that registration, the way `TestPublishedChoiceLists`'s
+sample/dataset cases already use `ExampleMeasurement` directly.
+
+---
+
+## D19 — Pinning `table.order_by` directly, not just page disjointness
+
+**Decision:** T037's `TestOrdering.test_unsorted_order_is_stable_and_repeatable_across_pages`
+forces every created row to one `added` timestamp (rather than staggering them, as `TestPaging`
+does) and asserts both that two pages of the same listing never repeat or skip a row, *and* that
+`response.context["table"].order_by` contains `id`.
+
+**Why:** the page-disjointness half of this test passed before T041 existed. Postgres returns tied
+rows from repeated, unmodified queries in the same session consistently in practice, so the forced
+tie did not reproduce a visible repeat-or-skip in this environment even with no tie-break declared —
+confirmed by running it against the pre-T041 tree. A test that already passes proves nothing was
+just built (`craft-tdd`), so `TestOrdering` also pins the actual mechanism directly: before T041,
+`table.order_by` was `None` (`self.data.ordering` inspects `queryset.query.order_by`, which stays
+empty for a queryset that only ever inherits ordering from `Model.Meta.ordering` — the table library
+never sees it, and applies no explicit order of its own at all). After T041, `Meta.order_by =
+("added", "id")` (`SampleTable`) means `id` reliably survives `order_by`'s column-membership check,
+because `id` is declared on `BaseTable` and inherited by every generated table regardless of which
+fields a type registers, while `"added"` itself is filtered out for any type that does not list it.
+
+**Revisit if:** `django-tables2`'s `TableData.ordering` starts consulting `Model.Meta.ordering`
+directly — the `order_by is None` case would then need re-checking, since a currently-`None`
+`table.order_by` would report the model's own (still non-unique) order instead.
