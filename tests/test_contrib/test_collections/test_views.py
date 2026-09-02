@@ -1,6 +1,8 @@
 """Views tests for fairdm.contrib.collections.views.DataTableView (US2)."""
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from pytest_django.asserts import assertContains
 
@@ -171,3 +173,43 @@ class TestRowLinksToRecord:
         slug = registry.get_for_model(ExampleMeasurement).get_slug()
         response = client.get(reverse(f"{slug}-list"))
         assertContains(response, measurement.get_absolute_url())
+
+
+@pytest.mark.django_db
+class TestQueryCount:
+    """FR-020, SC-006: the number of database queries a listing issues does not grow
+    with the number of rows it shows - for the measurement listing as well as the
+    sample listing."""
+
+    def test_sample_listing_query_count_is_flat(self, client, published_dataset):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+        url = reverse(f"{slug}-list")
+
+        with CaptureQueriesContext(connection) as one_row:
+            client.get(url)
+
+        RockSampleFactory.create_batch(19, dataset=published_dataset)  # a full page
+
+        with CaptureQueriesContext(connection) as full_page:
+            client.get(url)
+
+        assert len(full_page.captured_queries) == len(one_row.captured_queries)
+
+    def test_measurement_listing_query_count_is_flat(self, client, published_dataset):
+        sample = RockSampleFactory(dataset=published_dataset)
+        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+        url = reverse(f"{slug}-list")
+
+        with CaptureQueriesContext(connection) as one_row:
+            client.get(url)
+
+        other_samples = RockSampleFactory.create_batch(19, dataset=published_dataset)
+        for other_sample in other_samples:
+            ExampleMeasurementFactory(sample=other_sample, dataset=published_dataset)
+
+        with CaptureQueriesContext(connection) as full_page:
+            client.get(url)
+
+        assert len(full_page.captured_queries) == len(one_row.captured_queries)
