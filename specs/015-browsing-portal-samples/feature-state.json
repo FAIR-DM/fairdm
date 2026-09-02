@@ -351,33 +351,63 @@
       "tasks": [
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py::TestSampleNavigationEntries"
+            ]
+          }
         },
         {
           "id": "T043",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py::TestMeasurementNavigationEntries"
+            ]
+          }
         },
         {
           "id": "T044",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py::TestNavigationEntryUrls"
+            ]
+          }
         },
         {
           "id": "T045",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py::TestEmptyRegistryHidesItsHeading"
+            ]
+          }
         },
         {
           "id": "T046",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py::TestNavigationSurvivesAMissingMenuNode"
+            ]
+          }
         },
         {
           "id": "T047",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/apps.py:20-63"
+            ]
+          }
         }
       ]
     },

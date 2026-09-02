@@ -474,3 +474,34 @@ fields a type registers, while `"added"` itself is filtered out for any type tha
 **Revisit if:** `django-tables2`'s `TableData.ordering` starts consulting `Model.Meta.ordering`
 directly — the `order_by is None` case would then need re-checking, since a currently-`None`
 `table.order_by` would report the model's own (still non-unique) order instead.
+
+---
+
+## D20 — T045/T046 swap `AppMenu` for an isolated `Menu`, not `override_settings(INSTALLED_APPS=...)`
+
+**Decision:** T045's empty-registry test and T046's missing-node test both monkeypatch
+`fairdm.contrib.collections.apps.AppMenu` to a fresh, detached `flex_menu.Menu` instance for the
+duration of the test, rather than using `override_settings` to remove `fairdm.contrib.collections`
+from `INSTALLED_APPS` as the acceptance criteria's wording suggested.
+
+**Why:** `fairdm.menus.menus` — the module whose import declares the real `Samples`/`Measurements`
+nodes on the real `AppMenu` — is only ever imported as a side effect of
+`fairdm.contrib.collections.apps` importing `fairdm.menus` at module load. By the time any test
+runs, that import has already happened once, for the whole test process; Python's module cache
+means a second, mid-test `apps.set_installed_apps()` call (`override_settings`'s actual mechanism
+for `INSTALLED_APPS` — confirmed in `django/test/utils.py`) does not re-run that side effect for
+whichever apps stay installed, and does not undo it for the one being removed either, because the
+already-created `MenuItem` objects are mutated in place, not rebuilt. The real `AppMenu` singleton
+would carry its already-populated children throughout the override, and a test built on that
+mechanism would pass or fail independently of anything this story built. Swapping in an isolated
+`Menu` gives full control over exactly what nodes exist before `populate_data_collection_menu()`
+runs — pre-created-empty for T045 (FR-040, mirroring `menus.py`'s unconditional declaration),
+entirely absent for T046 (FR-041/R8's "renamed or absent node") — and is provably free of
+cross-test leakage: the swap is a `monkeypatch.setattr`, reverted automatically, and the isolated
+`Menu` is detached (`.parent = None`) from the real `flex_menu` root immediately after construction.
+
+**Revisit if:** a later story needs to prove FR-041's literal claim (the *entire* navigation, not
+only Samples/Measurements, renders with `collections` uninstalled) — that would need the
+`fairdm.menus import` moved off `fairdm.contrib.collections.apps` so it stops depending on that
+app's install status at all, which is a change to `fairdm/menus/menus.py` / `apps.py`'s import
+graph outside this story's scope (prohibited: "Do not edit `fairdm/menus/menus.py`").

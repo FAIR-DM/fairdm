@@ -414,3 +414,64 @@ Did: `Meta.order_by = ("added", "id")` on `SampleTable`, `Meta.order_by = ("-mod
 column-membership check in every generated table regardless of what fields a type declares.
 Verified: `TestOrdering` - 2 passed; `tests/test_contrib/test_collections/` - 26 passed; pre-commit
 clean. Next: full-story re-verification. Watch: nothing.
+
+### 2026-09-02T15:24:18Z · Implementer US4 · T042
+
+Did: `TestSampleNavigationEntries` in a new `tests/test_contrib/test_collections/test_apps.py` -
+every `registry.samples` model has a navigation entry under Samples, named by
+`get_verbose_name_plural()`. Verified: `pytest tests/test_contrib/test_collections/test_apps.py`
+exit 0, 1 passed (pre-existing naming behaviour, not what T047 changes - legitimately green, not
+vacuous). `ruff check`/`ruff format --check`/`mypy` on the file all clean. Next: T043. Watch:
+nothing.
+
+### 2026-09-02T15:24:18Z · Implementer US4 · T043
+
+Did: `TestMeasurementNavigationEntries`, same file - the measurement-side mirror of T042. Verified:
+same command, exit 0, 2 passed; lint/format/mypy clean. Next: T044. Watch: nothing.
+
+### 2026-09-02T15:24:18Z · Implementer US4 · T044
+
+Did: `TestNavigationEntryUrls` - a sample and a measurement entry's URL resolves to its listing.
+Verified: same command, exit 1, 2 failed / 2 passed - both failures are
+`AssertionError: assert False` on `.visible` for a `MenuItem` still carrying
+`view_name='<slug>-collection'`, the address T028 retired; confirmed this is the reported reason
+(flex_menu's `resolve_url()` swallows the `NoReverseMatch` and only logs a warning, so nothing else
+in the suite catches it). Red until T047. Next: T045. Watch: nothing.
+
+### 2026-09-02T15:24:18Z · Implementer US4 · T045
+
+Did: `TestEmptyRegistryHidesItsHeading` - `_isolated_menu()` pre-creates empty `Samples`/
+`Measurements` `MenuCollapse` nodes on a detached `Menu` (mirroring `fairdm/menus/menus.py`'s
+unconditional declaration), swaps it in for `fairdm.contrib.collections.apps.AppMenu` via
+`monkeypatch`, empties one kind's registry property, then asserts the processed node is invisible.
+Verified: same command, exit 1, 4 failed / 2 passed - the two new failures are
+`assert True is False` on `.visible` (default `_check=True`, and flex_menu never runs its
+container-suppression branch for a node whose `_original_children` was empty to begin with, so a
+childless container stays visible). Red until T047 (D20 records why the acceptance criterion's
+literal "isolated settings override" wording doesn't reproduce this on `AppMenu` directly). Next:
+T046. Watch: nothing.
+
+### 2026-09-02T15:24:18Z · Implementer US4 · T046
+
+Did: `TestNavigationSurvivesAMissingMenuNode` - swaps `AppMenu` for a completely empty, unpopulated
+`Menu` and asserts `populate_data_collection_menu()` does not raise, and that it creates both
+missing nodes. Verified: same command, exit 1, 5 failed / 2 passed - the new failure is
+`AttributeError: 'NoneType' object has no attribute 'append'` at `apps.py:34`, `sample_menu` being
+`None` because `AppMenu.get("Samples")` found nothing on the isolated menu - exactly the crash
+research.md R8 names. Red until T047. Next: T047. Watch: nothing.
+
+### 2026-09-02T15:24:18Z · Implementer US4 · T047
+
+Did: rewrote `populate_data_collection_menu()` in `fairdm/contrib/collections/apps.py` - (1) both
+`view_name` call sites changed from `f"{slug}-collection"` to `f"{slug}-list"`; (2) get-or-create on
+the Samples/Measurements nodes, mirroring `fairdm/contrib/plugins/registration.py:148-157`; (3)
+`node._check = lambda request, **kwargs: bool(registry.<samples|measurements>)` on each node -
+`_check`, never `check` (a bound method on `MenuItem`; the per-request copy `process()` builds reads
+`self._check`, confirmed against `flex_menu/menu.py:135,351,449`). Verified:
+`pytest tests/test_contrib/test_collections/test_apps.py` exit 0, 7 passed;
+`pytest tests/test_contrib/test_collections/` exit 0, 33 passed; `ruff check`/`ruff format --check`/
+`mypy` on `apps.py` clean; `manage.py makemigrations --check --dry-run` - no changes detected.
+Next: full-story re-verification (`forge verify`). Watch: nothing - docs/ has no page describing
+`populate_data_collection_menu()` or the `-collection`/`-list` naming this story corrects, so
+nothing there needed updating (checked: `using_the_registry.md`, `model_configuration.md`,
+`getting_started.md`, `adr/0011-one-navigation-entry-per-collection.md` - none assert either name).
