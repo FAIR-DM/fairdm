@@ -1,8 +1,10 @@
-"""Tables tests for fairdm.contrib.collections.tables (US2)."""
+"""Tables tests for fairdm.contrib.collections.tables (US2, US3)."""
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
+from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
@@ -57,3 +59,68 @@ class TestDatasetColumn:
 
         assert "Visible Sample" in content
         assert dataset.get_absolute_url() not in content
+
+
+@pytest.mark.django_db
+class TestOrdering:
+    """FR-032, FR-033, Acceptance Scenarios 8-9: a sortable column reorders
+    rows in each direction, and the unsorted default order is stable and
+    repeatable across pages, with no row repeated or skipped (D5)."""
+
+    def test_sorting_a_column_both_directions_reorders_rows(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(name="Beta", dataset=published_dataset)
+        RockSampleFactory(name="Alpha", dataset=published_dataset)
+
+        slug = registry.get_for_model(RockSample).get_slug()
+        url = reverse(f"{slug}-list")
+
+        ascending = client.get(url, {"sort": "name"})
+        descending = client.get(url, {"sort": "-name"})
+
+        ascending_names = [row.record.name for row in ascending.context["table"].rows]
+        descending_names = [row.record.name for row in descending.context["table"].rows]
+
+        assert ascending_names == sorted(ascending_names)
+        assert descending_names == sorted(descending_names, reverse=True)
+        assert ascending_names != descending_names
+
+    def test_unsorted_order_is_stable_and_repeatable_across_pages(
+        self, client, published_dataset
+    ):
+        # Force every row to the same `added` timestamp - `Sample.Meta.ordering`
+        # is `["added"]` alone, so without a unique tie-break, ties like these
+        # are exactly what lets a page repeat or skip a row (D5, FR-033).
+        samples = RockSampleFactory.create_batch(25, dataset=published_dataset)
+        same_instant = timezone.now()
+        Sample.objects.filter(pk__in=[s.pk for s in samples]).update(added=same_instant)
+
+        slug = registry.get_for_model(RockSample).get_slug()
+        url = reverse(f"{slug}-list")
+
+        first_page = client.get(url)
+        second_page = client.get(url, {"page": 2})
+        first_page_again = client.get(url)
+
+        first_ids = [
+            row.record.pk for row in first_page.context["table"].paginated_rows
+        ]
+        second_ids = [
+            row.record.pk for row in second_page.context["table"].paginated_rows
+        ]
+        first_ids_again = [
+            row.record.pk for row in first_page_again.context["table"].paginated_rows
+        ]
+
+        assert first_ids == first_ids_again
+        assert set(first_ids).isdisjoint(second_ids)
+        assert len(set(first_ids) | set(second_ids)) == 25
+
+        # The behavioural check above can hold by coincidence of how Postgres
+        # happens to break ties today - this pins the actual mechanism: the
+        # table's effective order includes a unique column, so the guarantee
+        # does not depend on physical row layout (D5, FR-033).
+        order_by = first_page.context["table"].order_by
+        assert order_by
+        assert any(str(alias).lstrip("-") == "id" for alias in order_by)
