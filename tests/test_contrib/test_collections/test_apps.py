@@ -119,3 +119,27 @@ class TestEmptyRegistryHidesItsHeading:
         processed = isolated_menu.get("Measurements").process(rf.get("/"))
 
         assert processed.visible is False
+
+
+@pytest.mark.django_db
+class TestNavigationSurvivesAMissingMenuNode:
+    """T046, FR-041, research.md R8: `populate_data_collection_menu()` must not crash
+    when the Samples/Measurements nodes it expects are not already there - the
+    scenario research.md names for a portal that has not installed the collections
+    application. The global `AppMenu` is swapped for an isolated, unpopulated `Menu`
+    so no other test observes the mutation."""
+
+    def test_populate_data_collection_menu_recreates_missing_nodes_without_raising(
+        self, monkeypatch
+    ):
+        from fairdm.contrib.collections import apps as apps_module
+
+        isolated_menu = Menu("IsolatedAppMenu")
+        isolated_menu.parent = None
+        monkeypatch.setattr(apps_module, "AppMenu", isolated_menu)
+
+        config = django_apps.get_app_config("collections")
+        config.populate_data_collection_menu()  # must not raise
+
+        assert isolated_menu.get("Samples") is not None
+        assert isolated_menu.get("Measurements") is not None
