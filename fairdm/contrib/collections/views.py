@@ -3,7 +3,6 @@ import contextlib
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import NoReverseMatch, path, reverse
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import RedirectView
 from django_filters.filterset import FilterSet
 
 from fairdm.contrib.import_export.utils import export_choices
@@ -191,34 +190,6 @@ class DataTableView(FairDMTableView):
         #     return urls, f"{first_config.get_slug()}-collection"
 
         return urls, "collections"
-
-
-class CollectionRedirectView(RedirectView):
-    """
-    Redirects to the first registered collection.
-    This is useful for the default view when no specific collection is requested.
-    """
-
-    permanent = False
-
-    def get_redirect_url(self, *args, **kwargs):
-        """
-        Redirect to the first registered collection.
-        """
-        if not registry.samples and not registry.measurements:
-            return "/"
-
-        if registry.samples:
-            first_model = registry.samples[0]
-            config = registry.get_for_model(first_model)
-            return f"/samples/{config.get_slug()}/"
-
-        if registry.measurements:
-            first_model = registry.measurements[0]
-            config = registry.get_for_model(first_model)
-            return f"/measurements/{config.get_slug()}/"
-
-        return "/"
 
 
 class CollectionsOverview(FairDMTemplateView):
