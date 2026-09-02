@@ -170,11 +170,6 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
         type_of = self.type_of.__name__.lower()
         return reverse(f"{type_of}:overview", kwargs={"uuid": self.uuid})
 
-    def get_collection_url(self):
-        """Returns the URL to the collection of this model."""
-        slug = self._meta.model_name.lower()
-        return reverse(f"{slug}-collection")
-
     class Meta:
         abstract = True
 
