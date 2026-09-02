@@ -24,6 +24,18 @@ class DataTableView(FairDMTableView):
     model_config = None  # To be set dynamically based on the model
     paginate_by = 20
 
+    def setup(self, request, *args, **kwargs):
+        """Assign `search_fields` before `SearchMixin` runs (T039, FR-024).
+
+        Assigning the attribute is the requirement, not overriding
+        `get_search_fields()`: the shell publishes
+        `context["is_searchable"] = bool(self.search_fields)` by reading the
+        attribute directly, so an override alone would hide the search box
+        while search kept working.
+        """
+        super().setup(request, *args, **kwargs)
+        self.search_fields = self.model_config.get_search_fields()
+
     def get_filterset_class(self) -> type[FilterSet] | None:
         return registry.get_for_model(self.model).get_filterset_class()
 
