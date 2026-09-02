@@ -15,6 +15,35 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from fairdm.core.measurement.models import Measurement
+from fairdm.factories import DatasetFactory
+from fairdm_demo.factories import ExampleMeasurementFactory
+
+
+@pytest.mark.django_db
+class TestPublished:
+    """T007/FR-011/FR-012: a measurement's presence is decided by its own dataset,
+    never its sample's."""
+
+    def test_published_excludes_a_measurement_whose_own_dataset_is_unpublished_even_though_its_sample_is_published(
+        self, sample
+    ):
+        sample.dataset.published = True
+        sample.dataset.save()
+        measurement = ExampleMeasurementFactory(
+            sample=sample, dataset=DatasetFactory(published=False)
+        )
+
+        assert measurement not in Measurement.objects.published()
+
+    def test_published_includes_a_measurement_whose_own_dataset_is_published_even_though_its_sample_is_unpublished(
+        self, sample
+    ):
+        # `sample` fixture's dataset is left at the model default, unpublished.
+        measurement = ExampleMeasurementFactory(
+            sample=sample, dataset=DatasetFactory(published=True)
+        )
+
+        assert measurement in Measurement.objects.published()
 
 
 @pytest.mark.django_db
