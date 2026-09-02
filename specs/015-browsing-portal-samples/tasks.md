@@ -441,7 +441,14 @@ stands, the full suite and the demo app still pass.
       every named component exists, every example works (FR-059)
 - [ ] T061 [US6] Test: the full suite passes, and `git log` shows no test deleted without a
       recorded decision — run `poetry run pytest` and `poetry run pytest fairdm_demo/tests/`
-      (Acceptance Scenario 4, Article XVIII)
+      (Acceptance Scenario 4, Article XVIII). **`fairdm_demo/tests/` is red before this branch
+      starts**: `test_admin_views.py::TestICPMSMeasurementAdminViews::test_change_view_loads_without_error`,
+      `test_admin_views.py::TestAllMeasurementAdminViewsWork::test_all_measurement_change_views_load`
+      and `test_contributors.py::TestDemoPersonCreation::test_demo_person_creation` all fail on
+      `8c9290f`, the commit this branch left `main` at, and none of them is this feature's to fix.
+      The bar here is therefore **no new failure** rather than a green run: reproduce the three at
+      the base commit, confirm the set at HEAD is the same three and no larger, and say so. A fourth
+      failure is a real regression and blocks
 
 **Checkpoint**: all six stories independently shippable; the app contains only reachable code.
 
