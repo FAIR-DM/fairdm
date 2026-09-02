@@ -284,3 +284,30 @@ class TestSearch:
         response = self._search(client, slug, "Alpha")
 
         assert list(response.context["object_list"]) == [target]
+
+    def test_a_word_held_only_by_a_declared_search_field_matches(
+        self, client, published_dataset
+    ):
+        target = RockSampleFactory(
+            rock_type="Basalt", mineral_content="Quartz", dataset=published_dataset
+        )
+        RockSampleFactory(
+            rock_type="Granite", mineral_content="Feldspar", dataset=published_dataset
+        )
+
+        slug = registry.get_for_model(RockSample).get_slug()
+        response = self._search(client, slug, "Basalt")
+
+        assert list(response.context["object_list"]) == [target]
+
+    def test_a_word_held_only_by_an_undeclared_field_does_not_match(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(
+            rock_type="Basalt", mineral_content="Quartz", dataset=published_dataset
+        )
+
+        slug = registry.get_for_model(RockSample).get_slug()
+        response = self._search(client, slug, "Quartz")
+
+        assert list(response.context["object_list"]) == []
