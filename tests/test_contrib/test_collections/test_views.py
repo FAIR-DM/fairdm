@@ -311,3 +311,14 @@ class TestSearch:
         response = self._search(client, slug, "Quartz")
 
         assert list(response.context["object_list"]) == []
+
+    def test_a_search_matching_nothing_renders_the_empty_state(
+        self, client, published_sample
+    ):
+        slug = registry.get_for_model(RockSample).get_slug()
+        response = self._search(client, slug, "NoSuchWordAnywhereInThisSuite")
+
+        content = response.content.decode()
+        empty_state = response.context["empty_state"]
+        assert str(empty_state["heading"]) in content
+        assert str(empty_state["message"]) in content
