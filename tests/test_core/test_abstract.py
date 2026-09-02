@@ -1,8 +1,11 @@
 """Tests for GenericModel and its QuerySet ordering functionality (fairdm/core/abstract.py)."""
 
 import pytest
+from django.db import connection
 
 from fairdm.core.dataset.models import DatasetDescription
+from fairdm.core.measurement.models import Measurement
+from fairdm.core.sample.models import Sample
 from fairdm.factories import PersonFactory
 from fairdm.factories.core import (
     DatasetDateFactory,
@@ -257,3 +260,28 @@ class TestAddContributor:
         contribution = dataset.add_contributor(person)
 
         assert {role.name for role in contribution.roles.all()} == {"DataCollector"}
+
+
+@pytest.mark.django_db
+class TestNameIndex:
+    """T010, SC-007: `BaseModel.name` carries a database index after
+    migration.
+
+    Asserted against `Sample`/`Measurement`'s own table - a concrete
+    polymorphic child such as `RockSample` does not hold `name` in its own
+    table at all, so introspecting it would fail for an unrelated reason.
+    """
+
+    def _has_index_on_name(self, table_name: str) -> bool:
+        with connection.cursor() as cursor:
+            constraints = connection.introspection.get_constraints(cursor, table_name)
+        return any(
+            details["columns"] == ["name"] and (details["index"] or details["unique"])
+            for details in constraints.values()
+        )
+
+    def test_sample_table_has_a_name_index(self):
+        assert self._has_index_on_name(Sample._meta.db_table)
+
+    def test_measurement_table_has_a_name_index(self):
+        assert self._has_index_on_name(Measurement._meta.db_table)
