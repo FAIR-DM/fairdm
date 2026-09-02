@@ -1,14 +1,19 @@
 """Views tests for fairdm.contrib.collections.views.DataTableView (US2)."""
 
+import ast
 import datetime
+import importlib
+from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from pytest_django.asserts import assertContains
 
+import fairdm.contrib.collections as collections_pkg
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm_demo.factories import (
@@ -496,3 +501,132 @@ class TestSwitcher:
         ]
         assert response.context["measurement_listings"] == []
         assert 'id="listing-switcher"' not in response.content.decode()
+
+
+@pytest.mark.django_db
+class TestNothingUnreachable:
+    """T074, FR-052, SC-009, Acceptance Scenarios 1-2: deletions alone cannot
+    demonstrate an absence, and the suite T061 runs cannot detect an unreached
+    module. The reachability graph below is walked fresh from the real entry
+    points Django itself uses - `INSTALLED_APPS` for `apps.py`, the resolved
+    root URLconf for `urls.py` - plus any plain Python import, inside the
+    package or from the rest of the repository, so a module nothing reaches
+    any more fails here rather than sitting unused until the next reader
+    notices it."""
+
+    PACKAGE_DIR = Path(collections_pkg.__file__).parent
+    PACKAGE_MODULE = "fairdm.contrib.collections"
+    REPO_ROOT = Path(collections_pkg.__file__).resolve().parents[3]
+
+    def _dotted_name(self, path):
+        rel = path.relative_to(self.PACKAGE_DIR).with_suffix("")
+        return ".".join([self.PACKAGE_MODULE, *rel.parts])
+
+    def _package_modules(self):
+        """Every `.py` file in the package with real content - `__init__.py`
+        excluded, since a package marker has no reachability question of its
+        own."""
+        return {
+            self._dotted_name(path): path
+            for path in sorted(self.PACKAGE_DIR.rglob("*.py"))
+            if path.name != "__init__.py" and "__pycache__" not in path.parts
+        }
+
+    def _own_package(self, path):
+        rel_parent = path.relative_to(self.PACKAGE_DIR).parent.parts
+        return ".".join([self.PACKAGE_MODULE, *rel_parent]).rstrip(".")
+
+    def _package_imports(self, path):
+        """The `fairdm.contrib.collections.*` dotted module names one file
+        imports, resolving both absolute imports and, for a file inside the
+        package, relative ones (`from .views import X`)."""
+        is_internal = self.PACKAGE_DIR in path.parents
+        own_package = self._own_package(path) if is_internal else None
+        found = set()
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.ImportFrom) and node.module:
+                if node.level:
+                    if not is_internal:
+                        continue
+                    target = f"{own_package}.{node.module}"
+                else:
+                    target = node.module
+                if target == self.PACKAGE_MODULE or target.startswith(
+                    f"{self.PACKAGE_MODULE}."
+                ):
+                    found.add(target)
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name == self.PACKAGE_MODULE or alias.name.startswith(
+                        f"{self.PACKAGE_MODULE}."
+                    ):
+                        found.add(alias.name)
+        return found
+
+    def _external_importers(self):
+        """Every module this package exposes that a `.py` file elsewhere in
+        `fairdm/` or `fairdm_demo/` production code imports directly - an
+        import in `registry/factories.py` counts as a real entry point exactly
+        as much as a route does."""
+        found = set()
+        for top in ("fairdm", "fairdm_demo"):
+            for path in (self.REPO_ROOT / top).rglob("*.py"):
+                if self.PACKAGE_DIR in path.parents:
+                    continue
+                if "__pycache__" in path.parts or "migrations" in path.parts:
+                    continue
+                found |= self._package_imports(path)
+        return found
+
+    def test_every_remaining_module_is_reached_from_a_real_entry_point(self):
+        modules = self._package_modules()
+
+        assert self.PACKAGE_MODULE in settings.INSTALLED_APPS, (
+            "apps.py's own entry point, INSTALLED_APPS, no longer names this "
+            "package - the reachability graph below would be built on a false "
+            "premise"
+        )
+        root_urlconf_source = Path(
+            importlib.import_module(settings.ROOT_URLCONF).__file__
+        ).read_text()
+        assert f"{self.PACKAGE_MODULE}.urls" in root_urlconf_source, (
+            "urls.py's own entry point, the resolved ROOT_URLCONF, no longer "
+            "includes it - the reachability graph below would be built on a "
+            "false premise"
+        )
+
+        reachable = {
+            f"{self.PACKAGE_MODULE}.apps",
+            f"{self.PACKAGE_MODULE}.urls",
+        } | self._external_importers()
+        reachable &= modules.keys()
+
+        frontier = set(reachable)
+        while frontier:
+            next_frontier = set()
+            for dotted in frontier:
+                for imported in self._package_imports(modules[dotted]):
+                    if imported in modules and imported not in reachable:
+                        reachable.add(imported)
+                        next_frontier.add(imported)
+            frontier = next_frontier
+
+        unreached = modules.keys() - reachable
+        assert not unreached, (
+            "unreachable modules remain in fairdm/contrib/collections/: "
+            f"{sorted(unreached)}"
+        )
+
+    def test_a_listing_response_offers_no_download_control_in_any_format(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert "export_choices" not in response.context
+        assert not hasattr(response.context["view"], "export_formats")
+        content = response.content.decode()
+        for term in (".csv", ".xlsx", ".json", ".yaml", ".latex", ".ods", ".tsv"):
+            assert term not in content
