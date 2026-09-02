@@ -28,8 +28,15 @@ class TestSampleColumn:
         content = response.content.decode()
 
         assert measurement.name in content
-        assert "Hidden Sample" not in content
-        assert sample.get_absolute_url() not in content
+
+        # Scoped to the row's own "sample" cell, not the whole page: a filter
+        # widget elsewhere on the page legitimately lists every sample by name,
+        # published or not (FR-030's scoping is a later story).
+        table = response.context["table"]
+        row = next(r for r in table.rows if r.record == measurement)
+        sample_cell = row.get_cell("sample")
+        assert "Hidden Sample" not in sample_cell
+        assert sample.get_absolute_url() not in sample_cell
 
 
 @pytest.mark.django_db
