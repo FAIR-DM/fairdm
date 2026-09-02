@@ -3,6 +3,7 @@ builds under Samples and Measurements (US4), and the crash-safety and empty-head
 rules the menu tree needs to honour them."""
 
 import pytest
+from django.urls import reverse
 
 from fairdm.menus import AppMenu
 from fairdm.registry import registry
@@ -41,3 +42,31 @@ class TestMeasurementNavigationEntries:
             for model in registry.measurements
         }
         assert _entry_names("Measurements") == expected
+
+
+@pytest.mark.django_db
+class TestNavigationEntryUrls:
+    """T044, Acceptance Scenario 4: selecting a navigation entry opens that type's
+    listing. Red until T047 replaces the "-collection" view names T028 retired with
+    "-list" - flex_menu's `resolve_url()` swallows the `NoReverseMatch` and logs a
+    warning rather than raising, so nothing else fails loudly without this test."""
+
+    def test_a_sample_entrys_url_resolves_to_its_listing(self, rf):
+        model_class = registry.samples[0]
+        config = registry.get_for_model(model_class)
+        entry = AppMenu.get("Samples").get(config.get_verbose_name_plural())
+
+        processed = entry.process(rf.get("/"))
+
+        assert processed.visible
+        assert processed.url == reverse(f"{config.get_slug()}-list")
+
+    def test_a_measurement_entrys_url_resolves_to_its_listing(self, rf):
+        model_class = registry.measurements[0]
+        config = registry.get_for_model(model_class)
+        entry = AppMenu.get("Measurements").get(config.get_verbose_name_plural())
+
+        processed = entry.process(rf.get("/"))
+
+        assert processed.visible
+        assert processed.url == reverse(f"{config.get_slug()}-list")
