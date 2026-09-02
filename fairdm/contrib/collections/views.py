@@ -5,7 +5,6 @@ from django.urls import NoReverseMatch, path, reverse
 from django.utils.translation import gettext_lazy as _
 from django_filters.filterset import FilterSet
 
-from fairdm.contrib.import_export.utils import export_choices
 from fairdm.registry import registry
 from fairdm.views import FairDMTableView, FairDMTemplateView
 
@@ -15,10 +14,9 @@ class DataTableView(FairDMTableView):
     A view for displaying tabular data for Sample and Measurement sub-types.
 
     This view combines SingleTableMixin from django-tables2 with FairDMListView
-    to provide a rich tabular interface with filtering, export, and pagination.
+    to provide a rich tabular interface with filtering and pagination.
     """
 
-    export_formats = ["csv", "xls", "xlsx", "json", "latex", "ods", "tsv", "yaml"]
     template_name_suffix = "_table"
     template_name = "collections/listing.html"
     model_config = None  # To be set dynamically based on the model
@@ -56,21 +54,14 @@ class DataTableView(FairDMTableView):
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
         # context["collection_menu"] = AppMenu.get("Data Collections")
-        context["export_choices"] = export_choices
 
         context["sample_listings"] = self.get_listing_entries(registry.samples)
         context["measurement_listings"] = self.get_listing_entries(
             registry.measurements
         )
 
-        # Page information for modal
         context["page"] = {
             "title": self.model_config.get_verbose_name_plural(),
-            "description": (
-                f"Browse and filter all {self.model_config.get_verbose_name_plural().lower()} "
-                f"in this portal. Use the search bar to find specific records, apply filters "
-                f"to narrow down results, and export data in various formats."
-            ),
         }
 
         return context
