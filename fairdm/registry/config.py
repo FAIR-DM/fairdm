@@ -213,6 +213,16 @@ class ModelConfiguration:
     exclude: list[str] = []
     """Names to leave out of every component."""
 
+    search_fields: list[str] | None = None
+    """Field paths `SearchMixin` searches with `?q=` (FR-024).
+
+    `None` (the default) resolves to `["name"]` via `get_search_fields()`. Every
+    entry must resolve to a text field - `CharField` or `TextField` - the same test
+    `FilterFactory._get_search_fields` already applies, so a numeric, boolean or
+    date field is refused at import rather than raising on a visitor's first search
+    (FR-026, decisions.md D12).
+    """
+
     form_fields: list[Any] | None = None
     table_fields: list[Any] | None = None
     filterset_fields: list[Any] | None = None
@@ -238,6 +248,7 @@ class ModelConfiguration:
         "metadata",
         "fields",
         "exclude",
+        "search_fields",
         *(c.fields_attr for c in COMPONENTS.values()),
         *(c.class_attr for c in COMPONENTS.values()),
         "display_name",
@@ -276,6 +287,7 @@ class ModelConfiguration:
 
         self._validate_component_conflicts()
         self._validate_fields()
+        self._validate_search_fields()
         self._validate_custom_classes()
         self._validate_admin_inheritance()
 
@@ -342,6 +354,40 @@ class ModelConfiguration:
                 else None
             ),
         )
+
+    def _validate_search_fields(self) -> None:
+        """Every `search_fields` entry must resolve, and resolve to a text field.
+
+        Two passes (data-model.md, decisions.md D12): `_validate_field_path` decides
+        whether the path exists at all, the same test `fields` uses, then a positive
+        type check on the resolved final field - a `DecimalField`, `BooleanField` or
+        `DateField` resolves cleanly and would otherwise only raise on the first
+        search a visitor types. `icontains` is registered on `Field` itself, so
+        asking whether the field *has* the lookup would reject nothing.
+        """
+        from django.db import models as django_models
+
+        for path in self.search_fields or []:
+            self._validate_field_path(path, "search_fields")
+
+            model: Any = self.model
+            field = None
+            for segment in path.split(LOOKUP_SEP):
+                field = model._meta.get_field(segment)
+                model = field.related_model
+
+            if not isinstance(
+                field, (django_models.CharField, django_models.TextField)
+            ):
+                raise FieldValidationError(
+                    field_name=path,
+                    model=self.model,
+                    attribute="search_fields",
+                    reason=(
+                        f"{field.__class__.__name__} is not a text field - "
+                        "search_fields must resolve to a CharField or TextField"
+                    ),
+                )
 
     def _validate_custom_classes(self) -> None:
         """A supplied class must subclass the base its component requires."""
@@ -431,6 +477,11 @@ class ModelConfiguration:
         )
         excluded = set(self.exclude)
         return [name for name in flatten_fields(chosen) if name not in excluded]
+
+    def get_search_fields(self) -> list[str]:
+        """The fields `SearchMixin` searches on `?q=`, defaulting to `["name"]`
+        when this configuration declares none (FR-024, data-model.md)."""
+        return self.search_fields or ["name"]
 
     def _component_class(self, component: str) -> type:
         """Resolve or build one component's class. Never cached."""
