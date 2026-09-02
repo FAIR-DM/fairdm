@@ -153,6 +153,69 @@ class TestDatasetAdminFilters:
 
 
 @pytest.mark.django_db
+class TestDatasetAdminPublished:
+    """T014 / US-1, Acceptance Scenarios 2 and 5, FR-003: the admin exposes
+    `published` as an editable field and a list filter, and marking it
+    persists independently of `visibility`.
+    """
+
+    def test_published_is_an_editable_form_field(self, rf, admin_user):
+        dataset = DatasetFactory()
+        admin_instance = DatasetAdmin(Dataset, AdminSite())
+        request = rf.get("/")
+        request.user = admin_user
+
+        form_class = admin_instance.get_form(request, dataset)
+
+        assert "published" in form_class.base_fields
+
+    def test_published_is_a_list_filter(self, rf, admin_user):
+        admin_instance = DatasetAdmin(Dataset, AdminSite())
+        request = rf.get("/")
+        request.user = admin_user
+
+        filter_fields = admin_instance.get_list_filter(request)
+
+        assert "published" in filter_fields
+
+    def test_marking_published_persists_independently_of_visibility(
+        self, admin_client
+    ):
+        dataset = DatasetFactory(name="Test Dataset", visibility=Visibility.PRIVATE)
+        url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
+
+        form_data = {
+            "name": dataset.name,
+            "project": dataset.project.pk if dataset.project else "",
+            "visibility": Visibility.PRIVATE,
+            "published": "on",
+            "descriptions-TOTAL_FORMS": "0",
+            "descriptions-INITIAL_FORMS": "0",
+            "descriptions-MIN_NUM_FORMS": "0",
+            "descriptions-MAX_NUM_FORMS": "1000",
+            "dates-TOTAL_FORMS": "0",
+            "dates-INITIAL_FORMS": "0",
+            "dates-MIN_NUM_FORMS": "0",
+            "dates-MAX_NUM_FORMS": "1000",
+            "identifiers-TOTAL_FORMS": "0",
+            "identifiers-INITIAL_FORMS": "0",
+            "identifiers-MIN_NUM_FORMS": "0",
+            "identifiers-MAX_NUM_FORMS": "1000",
+            "_continue": "Save and continue editing",
+        }
+
+        response = admin_client.post(url, data=form_data)
+
+        assert response.status_code == 302, (
+            "A 200 here means the form rejected the submission - check the "
+            "change form's error list."
+        )
+        dataset.refresh_from_db()
+        assert dataset.published is True
+        assert dataset.visibility == Visibility.PRIVATE.value
+
+
+@pytest.mark.django_db
 class TestAdminChangelistIncludesPrivateDatasets:
     """T062 / FR-019a: the admin dataset list shows private datasets - the
     interface that repairs a portal must reach the records that need
