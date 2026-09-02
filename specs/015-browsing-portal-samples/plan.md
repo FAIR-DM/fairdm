@@ -21,7 +21,9 @@ unused template, the export machinery and the stale README are deleted as US-6.
 **Language/Version**: Python 3.13
 
 **Primary Dependencies**: Django 5.1/5.2, django-tables2 3.0, django-filter 24.3, django-polymorphic,
-django-flex-menus 0.4.3, django-mvp 0.19.3 (`MVPTableViewMixin`, `SearchMixin`, `FairDMTableView`)
+django-flex-menus 0.4.3, django-mvp bumped to 0.20.0 as part of this feature (`MVPTableViewMixin`,
+`SearchMixin`, `FairDMTableView`) — 0.20.0 removes `MVPInlineCreateView`/`MVPInlineUpdateView` and
+changes the default theme pair, neither of which fairdm uses (T001a)
 
 **Storage**: PostgreSQL (existing `Dataset` table gains one migration-added column; no new tables)
 

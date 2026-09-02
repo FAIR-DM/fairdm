@@ -23,6 +23,12 @@ route; the spec's Independent Test for every story is a test task below, not a m
 ## Phase 1: Setup
 
 - [ ] T001 Confirm `fairdm_demo`'s eight registrations still pass `poetry run pytest tests/test_registry/` before any change (baseline)
+- [ ] T001a [SETUP] Bump `django-mvp` to `>=0.20.0,<0.21.0` in `pyproject.toml`, `poetry lock`,
+      reinstall. django-mvp 0.20.0 removes `MVPInlineCreateView`/`MVPInlineUpdateView` (fairdm uses
+      neither — confirmed by grep) and changes the default theme pair (fairdm sets no
+      `MVP_CONFIG["theme"]` override — confirmed). Neither change touches `MVPTableViewMixin`,
+      `SearchMixin`, `PageMixin`, or any mechanism this plan reads through; `poetry run pytest` must
+      stay green after the bump with no other code change required
 
 ## Phase 2: Foundational (blocks every user story)
 
