@@ -206,6 +206,34 @@ class TestDatasetVisibility:
 
 
 @pytest.mark.django_db
+class TestDatasetPublished:
+    """T002 / FR-001, FR-002: `Dataset.published` defaults to `False`, and
+    every existing row reads back unpublished once the column exists."""
+
+    def test_published_defaults_to_false_when_unset(self):
+        """A dataset created without naming `published` is unpublished."""
+        dataset = Dataset.objects.create(
+            name="Unpublished by default", project=ProjectFactory()
+        )
+
+        dataset.refresh_from_db()
+
+        assert dataset.published is False
+
+    def test_every_existing_dataset_reads_back_unpublished(self):
+        """Datasets already in the table when the column is added all carry
+        the column default, `False` - proven here across several rows
+        created with no `published` value stated, the state the migration's
+        `AddField` leaves every pre-existing row in (FR-002)."""
+        datasets = DatasetFactory.create_batch(3)
+
+        reloaded = Dataset.all_objects.filter(pk__in=[d.pk for d in datasets])
+
+        assert reloaded.count() == 3
+        assert all(d.published is False for d in reloaded)
+
+
+@pytest.mark.django_db
 class TestDatasetVisibilityGuarantees:
     """FR-019a: following a relation to a dataset, deleting a record it
     depends on, and the administrative interface all still see it
