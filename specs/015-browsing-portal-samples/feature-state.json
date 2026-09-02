@@ -476,43 +476,105 @@
       "tasks": [
         {
           "id": "T055",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn CollectionRedirectView . (no matches outside the deleted class)",
+              "poetry run ruff check fairdm/contrib/collections/views.py",
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py tests/test_contrib/test_collections/test_urls.py -q"
+            ]
+          }
         },
         {
           "id": "T056",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn DataTablePlugin . (no matches, file deleted)",
+              "poetry run pytest tests/test_contrib/test_collections/ -q"
+            ]
+          }
         },
         {
           "id": "T057",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestNothingUnreachable::test_a_listing_response_offers_no_download_control_in_any_format"
+            ],
+            "code": [
+              "fairdm/contrib/collections/views.py:50"
+            ]
+          }
         },
         {
           "id": "T058",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rln table.html / collection_tags . (only the deleted files matched)",
+              "poetry run ruff check fairdm/contrib/collections/ fairdm/conf/settings/apps.py",
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py -q"
+            ],
+            "code": [
+              "fairdm/conf/settings/apps.py:246"
+            ]
+          }
         },
         {
           "id": "T059",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rln data-collections samples-overview measurements-overview CollectionsOverview SamplesOverview MeasurementsOverview . (only views.py/urls.py/their own templates)",
+              "poetry run pytest tests/test_contrib/test_collections/ -q"
+            ],
+            "code": [
+              "fairdm/contrib/collections/urls.py:6"
+            ]
+          }
         },
         {
           "id": "T075",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn get_collection_url . (no matches)",
+              "poetry run pytest tests/test_core/test_abstract.py -q"
+            ],
+            "code": [
+              "fairdm/core/abstract.py:169"
+            ]
+          }
         },
         {
           "id": "T060",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/README.md:1"
+            ]
+          }
         },
         {
           "id": "T061",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest fairdm_demo/tests/ -q  (worktree at base commit 8c9290f: 3 failed, 54 passed \u2014 the three named pre-existing failures)",
+              "poetry run pytest fairdm_demo/tests/ -q  (HEAD: same 3 failed, 54 passed \u2014 no new failure)",
+              "poetry run pytest -q  (tests/: 2595 passed, 8 skipped)",
+              "git log --stat 0827789..HEAD -- tests/** fairdm_demo/tests/**  (no test file deleted)"
+            ]
+          }
         },
         {
           "id": "T062",
@@ -546,8 +608,17 @@
         },
         {
           "id": "T074",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestNothingUnreachable::test_every_remaining_module_is_reached_from_a_real_entry_point",
+              "tests/test_contrib/test_collections/test_views.py::TestNothingUnreachable::test_a_listing_response_offers_no_download_control_in_any_format"
+            ],
+            "code": [
+              "tests/test_contrib/test_collections/test_views.py:507"
+            ]
+          }
         }
       ]
     }
