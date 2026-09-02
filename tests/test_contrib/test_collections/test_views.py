@@ -100,3 +100,27 @@ class TestDefaultColumns:
 
         assert response.status_code == 200
         assert list(response.context["table"].columns)
+
+
+@pytest.mark.django_db
+class TestPaging:
+    """FR-017: a listing pages its results, and every page is reachable."""
+
+    def test_a_second_page_returns_the_next_slice_and_carries_paging_controls(
+        self, client, published_dataset
+    ):
+        RockSampleFactory.create_batch(25, dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+        url = reverse(f"{slug}-list")
+
+        first_page = client.get(url)
+        second_page = client.get(url, {"page": 2})
+
+        assert first_page.status_code == 200
+        assert second_page.status_code == 200
+        assert first_page.context["page_obj"].number == 1
+        assert second_page.context["page_obj"].number == 2
+
+        first_ids = {s.pk for s in first_page.context["object_list"]}
+        second_ids = {s.pk for s in second_page.context["object_list"]}
+        assert first_ids.isdisjoint(second_ids)
