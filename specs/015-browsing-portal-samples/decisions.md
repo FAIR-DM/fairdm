@@ -538,3 +538,25 @@ piece of work rather than inside this story.
 **Revisit if:** the test settings gain a `vocabularies` cache alias, or the suite gains a fixture
 that boots a second settings module — either makes the real test cheap, and it should replace the
 source-level assertion at that point.
+
+---
+
+## D22 — T054 landed inside T069's commit, not its own
+
+**Decision:** the switcher's rendering, its count-gate (`{% if %}` only past one combined entry) and
+its two translated group headings all went into `listing.html` at T069, not held back for a
+separate T054 commit.
+
+**Why:** T069 creates one file, and its own acceptance criterion already names the switcher's
+placement ("so the switcher renders under the heading") as part of what makes T069 done. A Django
+`{% block %}` cannot be committed half-written across two commits when the second half is the body
+of an `{% if %}` the first half opens — there is no intermediate state of that template that parses
+without also deciding the gate and the headings. T053 (the same commit boundary as always) is what
+made the block's data real; T069's structure was already complete before T053 landed, verified by
+running the pre-existing (non-switcher) view tests against it while `sample_listings`/
+`measurement_listings` were still absent from context (they render as an empty, ungated switcher via
+`{% with sample_count=sample_listings|length ... %}`, never raising).
+
+**Revisit if:** a future story needs to add a second gate to the same block independent of T069's
+placement — at that point the file has enough independent history that a further change is its own
+commit again, this one just could not be split at the seam the task list drew.

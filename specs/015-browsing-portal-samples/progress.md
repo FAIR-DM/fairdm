@@ -475,3 +475,54 @@ Next: full-story re-verification (`forge verify`). Watch: nothing - docs/ has no
 `populate_data_collection_menu()` or the `-collection`/`-list` naming this story corrects, so
 nothing there needed updating (checked: `using_the_registry.md`, `model_configuration.md`,
 `getting_started.md`, `adr/0011-one-navigation-entry-per-collection.md` - none assert either name).
+
+### 2026-09-02T16:13:29Z · Implementer US5 · T048-T052
+
+Did: wrote `TestSwitcher` in `tests/test_contrib/test_collections/test_views.py`, one method per
+task (T048 every registered type's listing appears; T049 grouped under `sample_listings`/
+`measurement_listings`; T050 the current listing is marked; T051 a measurement listing reached from
+a searched/filtered sample listing carries no query string, D6; T052 with exactly one registered
+type - `registry.samples`/`registry.measurements` monkeypatched the same way US4's
+`TestEmptyRegistryHidesItsHeading` did - no `id="listing-switcher"` element renders). Verified: each
+method run individually, all five `KeyError: 'sample_listings'` / `'measurement_listings'` -
+red for the right reason, since neither key exists in context yet. Committed one at a time (five
+commits, T048 through T052) rather than batched, per the ritual. Next: T069. Watch: nothing.
+
+### 2026-09-02T16:13:29Z · Implementer US5 · T069
+
+Did: created `fairdm/contrib/collections/templates/collections/listing.html`, extending the shell's
+`table_view.html` and overriding `page.header` with `{{ block.super }}` first (never `page.actions`
+- its default body is `<c-page.list.actions />`, the search box and filter buttons US-3 depends on).
+Set `DataTableView.template_name = "collections/listing.html"` explicitly in `views.py`, alongside
+`template_name_suffix` (left in place - harmless, since Django's template-name list tries
+`template_name` first and never reaches the suffix-built name once it resolves). The block computes
+`sample_count`/`measurement_count` via `{% with %}` before comparing them, rather than passing
+`measurement_listings` straight into `|add:` as a filter argument - a missing filter *argument*
+(unlike a missing top-level variable) raises `VariableDoesNotExist` instead of falling back to
+`string_if_invalid`, which is exactly what broke every other test in the file on first attempt, since
+T053 had not landed yet and neither context key existed. Verified:
+`pytest tests/test_contrib/test_collections/test_views.py -k "not TestSwitcher"` exit 0, 20 passed -
+the pre-existing tests render clean through the new template with the switcher context still absent.
+`TestSwitcher` still red (`KeyError`), correctly - T053 owns making it real. `ruff check --fix` on
+`views.py` removed three now-redundant local `NoReverseMatch` imports in `CollectionsOverview`/
+`SamplesOverview`/`MeasurementsOverview` (US6's deletion targets, untouched otherwise) that the new
+module-level import shadowed; committed as a small follow-up since the lint gate requires it and it
+touches nothing outside this file. Next: T053. Watch: no icon on the switcher's trigger - none of
+`BS5_ICONS`'s registered names reads as "switch/exchange listings", and guessing one risked an
+`easy_icons` lookup failure at render time (concerns).
+
+### 2026-09-02T16:13:29Z · Implementer US5 · T053 (T054 folded in, D22)
+
+Did: replaced `get_context_data()`'s ad hoc, same-kind-only `available_collections` block with
+`get_listing_entries(models)`, called once for `registry.samples` and once for
+`registry.measurements`, publishing `sample_listings`/`measurement_listings` - each entry
+`{name, url, is_current}` reversed from `<slug>-list`. Dropped `collection_type`,
+`collection_type_verbose`, `available_collections`, `current_model_verbose_name(_plural)`: grepped
+the tree first (`available_collections`, `collection_type_verbose`, `current_model_verbose_name`) -
+zero references outside the block being replaced, so nothing else in the codebase read them. T054's
+acceptance (switcher renders past one entry, translated group headings) was already true from T069's
+template - see D22. Verified: `pytest tests/test_contrib/test_collections/test_views.py::TestSwitcher`
+exit 0, 5 passed, including T052's no-control assertion. Full module:
+`pytest tests/test_contrib/test_collections/` exit 0, 41 passed. `ruff check`/`ruff format --check`/
+`mypy`/`deptry` on `views.py` clean via `pre-commit run --files`. Next: story-level documentation
+check, then the full verify command. Watch: nothing.
