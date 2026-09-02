@@ -134,6 +134,12 @@ class SampleTable(BaseTable):
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
+        # `Sample.Meta.ordering` (`["added"]`) is a single non-unique field, so
+        # paging can repeat or skip rows without a tie-break (D5, FR-033). `id`
+        # is always a column here - declared on `BaseTable` - so it survives
+        # `order_by`'s column-membership check even for a type whose own
+        # fields never name `added`.
+        order_by = ("added", "id")
 
 
 class MeasurementTable(BaseTable):
@@ -151,6 +157,9 @@ class MeasurementTable(BaseTable):
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
+        # `Measurement.Meta.ordering` (`["-modified"]`) is a single non-unique
+        # field; see `SampleTable.Meta.order_by` (D5, FR-033).
+        order_by = ("-modified", "id")
 
     def render_sample(self, value):
         if value.dataset.published:
