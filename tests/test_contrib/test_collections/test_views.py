@@ -4,7 +4,8 @@ import pytest
 from django.urls import reverse
 
 from fairdm.registry import registry
-from fairdm_demo.models import RockSample
+from fairdm_demo.factories import RockSampleFactory, SoilSampleFactory
+from fairdm_demo.models import RockSample, SoilSample
 
 
 @pytest.mark.django_db
@@ -52,3 +53,29 @@ class TestPublicationFiltering:
         entries = list(response.context["object_list"])
         assert self.published_sample in entries
         assert self.unpublished_sample not in entries
+
+
+@pytest.mark.django_db
+class TestColumnsPerType:
+    """FR-014, SC-003: a listing's columns come from its type's own registration, so
+    two types with different declarations produce different columns."""
+
+    def test_two_types_with_different_field_declarations_produce_different_columns(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        SoilSampleFactory(dataset=published_dataset)
+
+        rock_slug = registry.get_for_model(RockSample).get_slug()
+        soil_slug = registry.get_for_model(SoilSample).get_slug()
+
+        rock_response = client.get(reverse(f"{rock_slug}-list"))
+        soil_response = client.get(reverse(f"{soil_slug}-list"))
+
+        rock_columns = {c.name for c in rock_response.context["table"].columns}
+        soil_columns = {c.name for c in soil_response.context["table"].columns}
+
+        assert "rock_type" in rock_columns
+        assert "rock_type" not in soil_columns
+        assert "soil_type" in soil_columns
+        assert "soil_type" not in rock_columns
