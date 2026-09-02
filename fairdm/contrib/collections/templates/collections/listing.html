@@ -1,0 +1,33 @@
+{% extends "table_view.html" %}
+{% load i18n %}
+{% block page.header %}
+  {{ block.super }}
+  {% with sample_count=sample_listings|length measurement_count=measurement_listings|length %}
+    {% if sample_count|add:measurement_count > 1 %}
+      <div id="listing-switcher">
+        <c-dropdown text="{% trans "Switch listing" %}">
+          <c-menu>
+            {% if sample_listings %}
+              <c-menu.group label="{% trans "Samples" %}">
+                {% for entry in sample_listings %}
+                  <c-menu.item label="{{ entry.name }}"
+                                href="{{ entry.url }}"
+                                :active="entry.is_current" />
+                {% endfor %}
+              </c-menu.group>
+            {% endif %}
+            {% if measurement_listings %}
+              <c-menu.group label="{% trans "Measurements" %}">
+                {% for entry in measurement_listings %}
+                  <c-menu.item label="{{ entry.name }}"
+                                href="{{ entry.url }}"
+                                :active="entry.is_current" />
+                {% endfor %}
+              </c-menu.group>
+            {% endif %}
+          </c-menu>
+        </c-dropdown>
+      </div>
+    {% endif %}
+  {% endwith %}
+{% endblock page.header %}

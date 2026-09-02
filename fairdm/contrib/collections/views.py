@@ -1,7 +1,7 @@
 import contextlib
 
 from django.core.exceptions import ImproperlyConfigured
-from django.urls import path, reverse
+from django.urls import NoReverseMatch, path, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import RedirectView
 from django_filters.filterset import FilterSet
@@ -21,6 +21,7 @@ class DataTableView(FairDMTableView):
 
     export_formats = ["csv", "xls", "xlsx", "json", "latex", "ods", "tsv", "yaml"]
     template_name_suffix = "_table"
+    template_name = "collections/listing.html"
     model_config = None  # To be set dynamically based on the model
     paginate_by = 20
 
