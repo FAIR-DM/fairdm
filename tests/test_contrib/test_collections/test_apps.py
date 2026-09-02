@@ -3,7 +3,10 @@ builds under Samples and Measurements (US4), and the crash-safety and empty-head
 rules the menu tree needs to honour them."""
 
 import pytest
+from django.apps import apps as django_apps
 from django.urls import reverse
+from flex_menu import Menu
+from mvp.menus import MenuCollapse
 
 from fairdm.menus import AppMenu
 from fairdm.registry import registry
@@ -70,3 +73,49 @@ class TestNavigationEntryUrls:
 
         assert processed.visible
         assert processed.url == reverse(f"{config.get_slug()}-list")
+
+
+@pytest.mark.django_db
+class TestEmptyRegistryHidesItsHeading:
+    """T045, FR-040, Acceptance Scenario 5: a portal with no registered types of one
+    kind shows no heading for it. Asserted against an empty registry, not the
+    populated demo, where it would pass without exercising anything.
+
+    The Samples/Measurements node is pre-created empty, mirroring how
+    `fairdm/menus/menus.py` declares it unconditionally, at import, before
+    `populate_data_collection_menu()` ever runs - an isolated `Menu` stands in for the
+    real `AppMenu` so no other test observes the mutation."""
+
+    def _isolated_menu(self, monkeypatch):
+        """Both headings pre-created empty, so whichever kind's registry this test
+        does not empty still finds a node to append its real entries to."""
+        from fairdm.contrib.collections import apps as apps_module
+
+        isolated_menu = Menu("IsolatedAppMenu")
+        isolated_menu.parent = None
+        MenuCollapse(name="Samples", parent=isolated_menu)
+        MenuCollapse(name="Measurements", parent=isolated_menu)
+        monkeypatch.setattr(apps_module, "AppMenu", isolated_menu)
+        return isolated_menu
+
+    def test_samples_heading_is_invisible_when_no_sample_types_are_registered(
+        self, monkeypatch, rf
+    ):
+        isolated_menu = self._isolated_menu(monkeypatch)
+        monkeypatch.setattr(type(registry), "samples", property(lambda self: []))
+
+        django_apps.get_app_config("collections").populate_data_collection_menu()
+        processed = isolated_menu.get("Samples").process(rf.get("/"))
+
+        assert processed.visible is False
+
+    def test_measurements_heading_is_invisible_when_no_measurement_types_are_registered(
+        self, monkeypatch, rf
+    ):
+        isolated_menu = self._isolated_menu(monkeypatch)
+        monkeypatch.setattr(type(registry), "measurements", property(lambda self: []))
+
+        django_apps.get_app_config("collections").populate_data_collection_menu()
+        processed = isolated_menu.get("Measurements").process(rf.get("/"))
+
+        assert processed.visible is False
