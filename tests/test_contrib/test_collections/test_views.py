@@ -2,14 +2,16 @@
 
 import pytest
 from django.urls import reverse
+from pytest_django.asserts import assertContains
 
 from fairdm.registry import registry
 from fairdm_demo.factories import (
     CustomSampleFactory,
+    ExampleMeasurementFactory,
     RockSampleFactory,
     SoilSampleFactory,
 )
-from fairdm_demo.models import CustomSample, RockSample, SoilSample
+from fairdm_demo.models import CustomSample, ExampleMeasurement, RockSample, SoilSample
 
 
 @pytest.mark.django_db
@@ -145,3 +147,27 @@ class TestEmptyState:
         assert empty_state["message"]
         assert str(empty_state["heading"]) in content
         assert str(empty_state["message"]) in content
+
+
+@pytest.mark.django_db
+class TestRowLinksToRecord:
+    """FR-019, Acceptance Scenario 9: selecting a row opens that record's own page -
+    for a measurement listing as well as a sample listing."""
+
+    def test_a_sample_listing_row_links_to_the_samples_own_page(
+        self, client, published_sample
+    ):
+        slug = registry.get_for_model(RockSample).get_slug()
+        response = client.get(reverse(f"{slug}-list"))
+        assertContains(response, published_sample.get_absolute_url())
+
+    def test_a_measurement_listing_row_links_to_the_measurements_own_page(
+        self, client, published_dataset
+    ):
+        sample = RockSampleFactory(dataset=published_dataset)
+        measurement = ExampleMeasurementFactory(
+            sample=sample, dataset=published_dataset
+        )
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+        response = client.get(reverse(f"{slug}-list"))
+        assertContains(response, measurement.get_absolute_url())
