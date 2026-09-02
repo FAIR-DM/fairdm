@@ -25,6 +25,18 @@ class DataTableView(FairDMTableView):
     def get_filterset_class(self) -> type[FilterSet] | None:
         return registry.get_for_model(self.model).get_filterset_class()
 
+    def get_queryset(self):
+        """Narrow the shell's own chain through publication, never build a fresh one.
+
+        Chaining from `super()` keeps `SearchMixin` and `BaseFilterView`'s work intact
+        (research.md R1, R6). The deep `select_related` for a measurement type lands
+        here rather than in `with_related()` or `published()` - see decisions.md D13.
+        """
+        queryset = super().get_queryset().published().with_related()
+        if self.model in registry.measurements:
+            queryset = queryset.select_related("sample__dataset", "sample__location")
+        return queryset
+
     def get_context_data(self, **kwargs):
         from django.urls import NoReverseMatch
 
