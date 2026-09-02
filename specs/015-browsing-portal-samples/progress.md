@@ -110,3 +110,174 @@ the `csrfmiddlewaretoken` value before comparing (see `decisions.md`). Verified:
 `poetry run pytest tests/test_core/test_dataset/test_views.py::TestNonCollectionPagesIgnorePublished`
 — 4 passed; `poetry run pytest tests/test_core/test_dataset/test_views.py` (full file) — 78 passed.
 Next: none — US-1's tasks are complete. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T007
+
+Did: added `TestPublished` to `tests/test_core/test_sample/test_managers.py` (new file, mirroring
+`managers.py`) and to `tests/test_core/test_measurement/test_managers.py` — a sample/measurement is
+present in `.published()` iff its own dataset is published, and the measurement half proves the
+"own dataset, never the sample's" rule in both directions (own dataset unpublished but sample's
+published → absent; own dataset published but sample's unpublished → present). Verified: ran red
+first (`AttributeError: ... object has no attribute 'published'`) on both files. Next: T008.
+Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T008
+
+Did: added `SampleQuerySet.published()` (`fairdm/core/sample/managers.py`) — a bare
+`filter(dataset__published=True)`, no `select_related`. Verified:
+`poetry run pytest tests/test_core/test_sample/test_managers.py` — 2 passed. Next: T009.
+Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T009
+
+Did: added `MeasurementQuerySet.published()` (`fairdm/core/measurement/managers.py`) — deliberately
+`dataset__published`, never `sample__dataset__published`, no `select_related`. Verified:
+`poetry run pytest tests/test_core/test_measurement/test_managers.py` — 5 passed (T007's full
+scope, both files). Next: T016. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T016/T072
+
+Did: created `tests/test_contrib/test_collections/` (`__init__.py`, `conftest.py`, `test_urls.py`)
+— every registered type's listing returns 200 and reverses by `f"{slug}-list"` explicitly
+(`TestListingAddresses`), and two registrations resolving to the same address raise
+`ImproperlyConfigured` naming both models (`TestDuplicateListingAddress`, slugs forced to collide
+via `monkeypatch` on the registered configs' `get_slug`). Verified: ran red first — `NoReverseMatch`
+on `rocksample-list` (the name is still `-collection`) and "DID NOT RAISE" for the duplicate case.
+Next: T017. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T017
+
+Did: added `TestPublicationFiltering` to `test_views.py` — a listing shows only published records,
+identically for a signed-out client, the record's owner (`change_dataset` permission holder), a
+contributor (`add_contributor`, no permission grant) and portal staff (`is_staff=True`). Added the
+supporting fixtures (`published_dataset`, `unpublished_dataset`, `published_sample`,
+`unpublished_sample`, `dataset_owner`, `dataset_contributor`, `staff_user`) to `conftest.py`.
+Verified: ran red first (`NoReverseMatch`, same underlying cause as T016 — the URL doesn't exist by
+this name yet). Next: T018. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T018
+
+Did: added `TestColumnsPerType` — `RockSample` (fields incl. `rock_type`) and `SoilSample`
+(`table_fields` incl. `soil_type`) each show the other's column and not their own. Verified: red
+first (`NoReverseMatch`). Next: T019. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T019
+
+Did: added `TestDefaultColumns` — `CustomSample` (declares no `fields` at all) still renders 200
+with a non-empty column set. Verified: red first (`NoReverseMatch`). Next: T020. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T020
+
+Did: added `TestPaging` — 25 published records, page 1 and page 2 return disjoint slices and both
+report the expected `page_obj.number`. Verified: red first (`NoReverseMatch`). Next: T021.
+Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T021/T070
+
+Did: created `test_tables.py` — `TestSampleColumn`: a measurement whose sample's dataset is
+unpublished shows the measurement's own name but neither the sample's name nor an href to it
+(scoped to the row's own `sample` cell via `table.rows` / `get_cell`, not a full-page substring
+check — a "sample" filter widget elsewhere on the page legitimately lists every sample by name,
+published or not, which a page-wide check first tripped on). `TestDatasetColumn`: a dataset that is
+published while private still shows its records, with no href to the dataset's own page. Verified:
+red first (`NoReverseMatch`) for both. Next: T022. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T022
+
+Did: added `TestEmptyState` to `test_views.py` — a type with no published records shows this
+feature's own heading and message (both present, both rendered), and not the shell's "Click the
+button below to get started". Verified: red first (`NoReverseMatch`). Next: T023. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T023
+
+Did: added `TestRowLinksToRecord` — a sample listing row and a measurement listing row each carry
+an href to the record's own `get_absolute_url()`. Verified: red first (`NoReverseMatch` x2).
+Next: T024. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T024
+
+Did: added `TestQueryCount` — query count for one row equals query count for a full page, for both
+the sample and the measurement listing. First pass used `CaptureQueriesContext` around two
+`client.get()` calls; both failed with a real-looking but spurious per-row scaling (563→640,
+758→1147) traced to `orbit.watchers.record_signal` hooking `template_rendered` and `repr()`-ing the
+render context on every node rendered, which re-evaluates any queryset in scope — see decisions.md
+D17. Rewrote to build `DataTableView` via `RequestFactory` and call `table.as_html(request)`
+directly, excluding `orbit_orbitentry` from the count. Verified: red first (`NoReverseMatch` x2,
+before rewriting for the query-count issue); after the rewrite, a bare
+`RockSample.objects.published().with_related()[:20]` confirmed flat (2 queries, 1 row vs 20) before
+trusting the table-level measurement. Next: T025. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T025
+
+Did: `DataTableView.get_queryset()` (`fairdm/contrib/collections/views.py`) — narrows
+`super().get_queryset()` through `.published().with_related()`, then chains
+`select_related("sample__dataset", "sample__location")` when `self.model in registry.measurements`.
+Verified: `poetry run ruff check fairdm/contrib/collections/views.py` clean; full behavioural
+verification deferred to T029 (URL rename lands first) per the brief's task order. Next: T026.
+Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T026
+
+Did: `MeasurementTable.render_sample` (`fairdm/contrib/collections/tables.py`) rewritten — `sample`
+column loses `linkify=True`; the new body returns a `format_html` anchor to `value.get_absolute_url()`
+when `value.dataset.published`, else `_("Unpublished")`. Removed `__init__`'s now-redundant
+`prefetch_related("sample")` (double-fetch once T025 selects it) — and the whole `__init__` override
+with it, since nothing else was left in it. Verified: ruff clean; behavioural verification deferred
+with T025. Next: T071. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T071
+
+Did: `BaseTable.render_dataset` — loses `linkify=True`; new body returns a `format_html` anchor
+around the dataset icon when `value.visibility != Visibility.PRIVATE`, else the bare icon. Verified:
+ruff clean; behavioural verification deferred with T025. Next: T073. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T073
+
+Did: added `MeasurementTable.name = tables.Column(linkify=True, verbose_name=_("Name"))` — the
+first column declared, mirroring `SampleTable.name`'s purpose (a self-link) with an explicitly
+authored `gettext_lazy` header rather than relying on inheriting the model field's own verbose_name.
+Verified: ruff clean; behavioural verification deferred with T025. Next: T027. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T027
+
+Did: `DataTableView.get_table_kwargs()` now adds `empty_text` (set to
+`self.get_empty_state_heading()`, enabling the shell's empty-state block); added
+`get_empty_state_heading()`/`get_empty_state_message()` overrides, both built per-instance from
+`self.model_config.get_verbose_name_plural()`. `get_empty_state_message()` overrides the hook
+outright rather than the attribute — the base hook only returns it when `show_action("create")` is
+true, which this read-only listing never sets — see decisions.md D16. Verified: ruff clean;
+behavioural verification (T022) deferred with T025. Next: T028. Watch: nothing.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T028
+
+Did: renamed the two `path(..., name=f"{slug}-collection")` calls in `get_urls()` to
+`f"{slug}-list"`, and the one in-scope internal `reverse(f"{slug}-collection")` call in
+`get_context_data()` (the switcher list) to match — the only two `-collection` reverse call sites
+inside this story's scope. `apps.py`'s menu wiring and `abstract.py`'s unused `get_collection_url()`
+also reference the old name but are both outside this story's file scope (menu wiring is a later
+story's deliverable per plan.md; `get_collection_url()` is dead code, called nowhere) — left alone;
+`apps.py`'s menu entries degrade to no-link (caught by `flex_menu`'s own `NoReverseMatch` handling,
+logged not raised) until that story rewires them. Verified:
+`poetry run pytest tests/test_contrib/test_collections/test_urls.py::TestListingAddresses` — now
+green (T016 fully passes). Next: T029. Watch: apps.py's stale menu `view_name`s, noted above —
+Forge's to pick up when that story runs, not a defect introduced here.
+
+### 2026-09-02T10:31:08Z · Implementer US2 · T029
+
+Did: `get_urls()` refactored to a shared `add_listing_url(prefix, model_class)` closure tracking
+`seen_addresses` (keyed by the full `"prefix/slug/"` path, not slug alone — a sample and a
+measurement type sharing a slug do not collide, since they sit under different prefixes); raises
+`ImproperlyConfigured` naming both model classes on a repeat. Verified:
+`poetry run pytest tests/test_contrib/test_collections/test_urls.py` — 2 passed (both T016 and
+T072 now green). Next: full-story re-verification. Watch: nothing.
+
+### 2026-09-02T10:35:00Z · Implementer US2 · full-story re-verification
+
+Did: ran `tests/test_contrib/test_collections/` (16 tests, all new) and
+`tests/test_core/test_sample/ tests/test_core/test_measurement/` (the two managers files T007-T009
+touch) together. Verified: 16 passed in the new package; 512 passed, 7 skipped (pre-existing,
+unrelated) across the three directories combined. Recorded decisions.md D16 (empty-state hook
+override) and D17 (query-count test methodology). Next: T027's docs check — nothing under `docs/`
+describes the `-collection` URL name, the empty-state copy, or anything else this story touched
+(searched for `-collection` and `DataTableView`/`get_urls` outside `docs/_build`; the two source
+hits are unrelated vocabulary). Watch: the full repo verify command, not yet run.

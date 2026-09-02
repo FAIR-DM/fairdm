@@ -361,3 +361,48 @@ the closest available proof.
 **Revisit if:** the project ever drops `--no-migrations` from its test configuration, or this
 migration grows a data-migration step — either would make a direct replay both possible and the
 stronger test.
+
+---
+
+## D16 — The empty-state message overrides the hook, not just the attribute
+
+**Decision:** `DataTableView` (T027) overrides `get_empty_state_message()` itself, returning its
+own string unconditionally, rather than only setting the `empty_state_message` class attribute the
+brief's own wording named.
+
+**Why:** `MVPListViewMixin.get_empty_state_message()` — the base hook — only returns
+`self.empty_state_message` when `self.show_action("create")` is true, since the shell's own copy is
+written to point at a create button. `DataTableView` declares no `show_create_action` (this is a
+read-only listing), so `show_action("create")` is always `False`, and setting the attribute alone
+would leave the message permanently suppressed — `get_empty_state_heading()`/`message()` are also
+built per-instance from `self.model_config`, which a class attribute cannot express either way.
+T022's acceptance criterion requires both the heading and the message to actually render, which only
+overriding the hook satisfies.
+
+**Revisit if:** this view ever gains a create action of its own - re-check whether the show-gate
+should apply once there is a button for the message to point at.
+
+---
+
+## D17 — Query-count tests build the table directly, not through `client.get()`
+
+**Decision:** `TestQueryCount` (T024, `tests/test_contrib/test_collections/test_views.py`) builds
+`DataTableView` and calls `table.as_html(request)` directly via `RequestFactory`, rather than
+comparing `CaptureQueriesContext` counts around two `client.get()` calls, and excludes queries
+against `orbit_orbitentry` from the count either way.
+
+**Why:** this project's test environment fires a query-logging signal on every template render
+(visible as `INSERT INTO "orbit_orbitentry"` and traced to `orbit.watchers.record_signal`, hooked
+onto Django's own `template_rendered` signal, which only fires under
+`django.test.utils.instrumented_test_render`), and that handler's `repr()` of the render context
+forces a fresh, unrelated re-evaluation of any queryset the context carries. `client.get()` renders
+the full page - base template, includes, and all - so the number of nodes rendered (and therefore
+the number of times this fires) scales with the number of rows shown, which swamps a page-wide count
+regardless of whether the feature's own queries are flat. A bare `RockSample.objects.published().
+with_related()[:20]` was already confirmed flat (2 queries, unchanged from 1 row to 20) before this
+was tracked down. Building the table exactly as the view does and rendering only it, with
+`orbit_orbitentry` excluded, measures what FR-020 actually constrains.
+
+**Revisit if:** `orbit`'s signal handler stops evaluating context reprs on every render, or a future
+story needs a query-count assertion around a full `client.get()` response - reach for this pattern
+rather than re-discovering the confound.
