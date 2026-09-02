@@ -322,3 +322,13 @@ class TestSearch:
         empty_state = response.context["empty_state"]
         assert str(empty_state["heading"]) in content
         assert str(empty_state["message"]) in content
+
+    def test_a_search_matching_an_unpublished_records_field_returns_nothing(
+        self, client, unpublished_dataset
+    ):
+        RockSampleFactory(rock_type="Obsidian", dataset=unpublished_dataset)
+
+        slug = registry.get_for_model(RockSample).get_slug()
+        response = self._search(client, slug, "Obsidian")
+
+        assert list(response.context["object_list"]) == []
