@@ -1,100 +1,101 @@
 # Collections App
 
-The `collections` app provides tabular views and data management functionality for FairDM Sample and Measurement sub-types.
+The `collections` app renders one browsable, filterable listing page per registered Sample or
+Measurement type - the framework's own answer to "where do a portal's records live". A type needs
+no view, URL or template of its own to appear here: registering it with `fairdm.registry` is
+enough.
 
 ## Purpose
 
 This app is responsible for:
 
-1. **Tabular Views**: Displaying Sample and Measurement data in rich, interactive tables with filtering, sorting, pagination, and export capabilities
-2. **Table Classes**: Providing base table classes (`BaseTable`, `SampleTable`, `MeasurementTable`) for rendering data using django-tables2
-3. **Data Plugins**: Offering plugins that show tabular views of data related to core objects (Projects, Datasets)
+1. **Listing pages**: one page per registered type, with search, column sorting, django-filter
+   filtering, and pagination
+2. **Table classes**: the base table classes (`BaseTable`, `SampleTable`, `MeasurementTable`) every
+   generated table starts from, unless a registration supplies its own
+3. **Navigation**: the Samples/Measurements entries in the portal's main menu, one per registered
+   type
 
 ## Components
 
 ### Views (`views.py`)
 
-- **`DataTableView`**: Main view class for displaying tabular data with django-tables2 integration
-  - Provides filtering, sorting, pagination
-  - Supports multiple export formats (CSV, XLS, XLSX, JSON, etc.)
-  - Integrates with FairDM's registry system
-
-- **`CollectionRedirectView`**: Redirect view for navigating to the first registered collection
+- **`DataTableView`**: the listing view for one registered Sample or Measurement type
+  - Filters every row through `published()` so only published records ever appear (D9)
+  - Search fields, filters and columns all come from the type's own registration
+  - `get_urls()` builds one route per registered type, under `samples/<slug>/` or
+    `measurements/<slug>/`, and refuses two registrations that would collide on the same address
 
 ### Tables (`tables.py`)
 
-- **`BaseTable`**: Base table class providing common functionality for all FairDM tables
-  - Icon rendering for datasets and locations
-  - Automatic handling of ConceptManyToManyField rendering
-  - UUID column management
+- **`BaseTable`**: shared rendering - the UUID column, dataset/location icons, per-field-type CSS
+  classes, and `ConceptManyToManyField` rendering
+- **`SampleTable`**: adds latitude/longitude and a linkified location column
+- **`MeasurementTable`**: adds a linkified sample column and the same location columns, read
+  through the measurement's own sample
 
-- **`SampleTable`**: Specialized table for Sample models
-  - Includes location-specific columns (latitude, longitude)
-  - Sample name linkification
-
-- **`MeasurementTable`**: Specialized table for Measurement models
-  - Links to associated samples
-  - Prefetches sample data for efficiency
-  - Location data from samples
-
-### Plugins (`plugins.py`)
-
-- **`DataTablePlugin`**: Plugin for displaying data collections in detail views
-  - Automatically generates URLs for all registered Sample and Measurement types
-  - Provides tabular interface within Dataset detail views
-  - Category: EXPLORE
-  - Icon: table
+`TableFactory` (`fairdm/registry/factories.py`) builds each registered type's table from one of
+these two by default; a registration only needs its own `table_class` to replace that outright.
 
 ## Templates
 
-- **`collections/table_view.html`**: Main template for rendering tabular data views
-  - Responsive design with mobile-friendly controls
-  - Toolbar with search, filter, and export actions
-  - Pagination and record count display
+- **`templates/collections/listing.html`**: the page `DataTableView` renders. Extends the
+  application shell's own `table_view.html` and adds the cross-listing switcher - a control
+  offering every other registered type's listing - whenever more than one type is registered.
 
 ## Integration
 
-The collections app is self-contained and integrates with the core FairDM framework through:
+The collections app is self-contained and integrates with the rest of the framework through:
 
-1. **Registry**: Uses `fairdm.registry` to discover registered Sample and Measurement models
-2. **Import/Export**: Integrates with `fairdm.contrib.import_export` for data export functionality
-3. **Menus**: Uses `fairdm.menus.AppMenu` for navigation integration
-4. **Plugins**: Extends the FairDM plugin system to provide tabular views in detail pages
+1. **Registry**: `fairdm.registry` is where every listing's routes, columns, search fields and
+   filters come from
+2. **Menus**: `apps.py`'s `CollectionsConfig.populate_data_collection_menu()` builds the
+   Samples/Measurements navigation entries from the registry when the app starts
 
 ## Usage
 
-### In Core URLs
+Registering a type is enough for its listing to appear, addressed and linked from the navigation,
+with no further configuration:
 
 ```python
-from fairdm.contrib.collections.plugins import DataTablePlugin
-from fairdm.contrib.collections.views import CollectionRedirectView
+import fairdm
+from fairdm.core.sample.config import BaseSampleConfiguration
 
-urlpatterns = [
-    path("data/collections.html", CollectionRedirectView.as_view(), name="data-collections"),
-    path("", include(DataTablePlugin.get_urls()[0])),
-]
+
+@fairdm.register
+class RockSampleConfig(BaseSampleConfiguration):
+    model = RockSample
+    fields = ["name", "location", "rock_type"]
+    search_fields = ["rock_type"]
 ```
 
 ### Custom Table Classes
 
-To use custom table classes for your Sample or Measurement models, specify the `table_class` in your model's `FairDM` configuration:
+To customise a type's listing columns beyond what `fields` can say, subclass the matching base
+table and reference it from the registration:
 
 ```python
-class MySample(Sample):
-    class FairDM:
-        table_class = "myapp.tables.MySampleTable"
-```
+from fairdm.contrib.collections.tables import SampleTable
 
-Or reference the collections base tables:
 
-```python
-class FairDM:
-    table_class = "fairdm.contrib.collections.tables.SampleTable"
+class RockSampleTable(SampleTable):
+    class Meta:
+        model = RockSample
+        fields = ["id", "dataset", "name", "rock_type", "mineral_content"]
+
+    def render_rock_type(self, value):
+        return value.upper()
+
+
+@fairdm.register
+class RockSampleConfig(BaseSampleConfiguration):
+    model = RockSample
+    table_class = RockSampleTable
 ```
 
 ## Dependencies
 
-- `django-tables2`: For table rendering
-- `django-filter`: For filtering (via FairDMListView)
-- `research-vocabs`: For ConceptManyToManyField rendering
-- `easy-icons`: For icon rendering
+- `django-tables2`: table rendering
+- `django-filter`: filtering, via the registry-generated filterset
+- `research-vocabs`: `ConceptManyToManyField` rendering
+- `easy-icons`: icon rendering
