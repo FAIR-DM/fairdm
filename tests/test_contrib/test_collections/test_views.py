@@ -407,3 +407,23 @@ class TestSwitcher:
             + response.context["measurement_listings"]
         }
         assert listed_urls == self._all_listing_urls()
+
+    def test_entries_are_grouped_under_samples_and_measurements(self, client):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        sample_urls = {entry["url"] for entry in response.context["sample_listings"]}
+        measurement_urls = {
+            entry["url"] for entry in response.context["measurement_listings"]
+        }
+        expected_sample_urls = {
+            reverse(f"{registry.get_for_model(model).get_slug()}-list")
+            for model in registry.samples
+        }
+        expected_measurement_urls = {
+            reverse(f"{registry.get_for_model(model).get_slug()}-list")
+            for model in registry.measurements
+        }
+        assert sample_urls == expected_sample_urls
+        assert measurement_urls == expected_measurement_urls
