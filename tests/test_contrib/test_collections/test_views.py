@@ -461,3 +461,25 @@ class TestSwitcher:
         )
         assert measurement_entry["url"] == expected_url
         assert "?" not in measurement_entry["url"]
+
+    def test_with_exactly_one_registered_type_no_switcher_control_is_rendered(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setattr(
+            type(registry), "samples", property(lambda self: [RockSample])
+        )
+        monkeypatch.setattr(type(registry), "measurements", property(lambda self: []))
+        slug = registry.get_for_model(RockSample).get_slug()
+        current_url = reverse(f"{slug}-list")
+
+        response = client.get(current_url)
+
+        assert response.context["sample_listings"] == [
+            {
+                "name": registry.get_for_model(RockSample).get_verbose_name_plural(),
+                "url": current_url,
+                "is_current": True,
+            }
+        ]
+        assert response.context["measurement_listings"] == []
+        assert 'id="listing-switcher"' not in response.content.decode()
