@@ -377,3 +377,33 @@ class TestFilters:
 
         assert response.status_code == 200
         assert list(response.context["object_list"]) == [target]
+
+
+@pytest.mark.django_db
+class TestSwitcher:
+    """T048-T052, FR-042-047, US5 Acceptance Scenarios 1-6: every listing carries a
+    control offering every registered type's listing, grouped under Samples and
+    Measurements, marking the one currently being viewed, opening its destination
+    unnarrowed regardless of the origin's search/filter state (D6), and omitting
+    itself entirely where only one type is registered - a control offering only the
+    page you are on is a no-op (FR-047)."""
+
+    def _all_listing_urls(self):
+        return {
+            reverse(f"{registry.get_for_model(model).get_slug()}-list")
+            for model in registry.samples + registry.measurements
+        }
+
+    def test_the_switcher_lists_every_registered_types_listing(self, client):
+        assert len(registry.samples) > 1
+        assert registry.measurements
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        listed_urls = {
+            entry["url"]
+            for entry in response.context["sample_listings"]
+            + response.context["measurement_listings"]
+        }
+        assert listed_urls == self._all_listing_urls()
