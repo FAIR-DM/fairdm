@@ -25,3 +25,19 @@ class TestSampleNavigationEntries:
             for model in registry.samples
         }
         assert _entry_names("Samples") == expected
+
+
+@pytest.mark.django_db
+class TestMeasurementNavigationEntries:
+    """T043, Acceptance Scenario 2: every `registry.measurements` model has an entry
+    under Measurements, named the same way."""
+
+    def test_every_registered_measurement_type_has_an_entry_under_measurements(self):
+        assert registry.measurements, (
+            "no measurement types registered - nothing to test"
+        )
+        expected = {
+            registry.get_for_model(model).get_verbose_name_plural()
+            for model in registry.measurements
+        }
+        assert _entry_names("Measurements") == expected
