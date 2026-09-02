@@ -393,6 +393,11 @@ a `TestSwitcher` class in `tests/test_contrib/test_collections/test_views.py`.
       one entry. The two group headings (Samples, Measurements) are the switcher's own strings and
       must be wrapped for translation alongside the type labels —
       `fairdm/contrib/collections/templates/collections/listing.html` (FR-047, FR-021)
+- [ ] T076 [US5] Test: on a page with more than one registered type the switcher control is
+      rendered and carries a link to every other listing — same class. T048–T051 read the context
+      the template consumes, and T052 asserts the control's absence, so the rendered positive case
+      is the one thing nothing covers: a wrong comparison in the gate hides the switcher on every
+      page and all five still pass (FR-042, FR-047)
 
 **Checkpoint**: US-5 independently shippable — every listing can reach every other listing in one
 step.

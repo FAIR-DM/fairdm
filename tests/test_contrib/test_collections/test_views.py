@@ -9,7 +9,6 @@ from django.urls import reverse
 from django.utils import timezone
 from pytest_django.asserts import assertContains
 
-from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm_demo.factories import (
@@ -407,6 +406,20 @@ class TestSwitcher:
             + response.context["measurement_listings"]
         }
         assert listed_urls == self._all_listing_urls()
+
+    def test_the_switcher_control_is_rendered_with_a_link_to_every_other_listing(
+        self, client
+    ):
+        slug = registry.get_for_model(RockSample).get_slug()
+        current_url = reverse(f"{slug}-list")
+
+        response = client.get(current_url)
+
+        content = response.content.decode()
+        assert 'id="listing-switcher"' in content
+        switcher = content.split('id="listing-switcher"', 1)[1]
+        for url in self._all_listing_urls() - {current_url}:
+            assert f'href="{url}"' in switcher
 
     def test_entries_are_grouped_under_samples_and_measurements(self, client):
         slug = registry.get_for_model(RockSample).get_slug()
