@@ -22,6 +22,15 @@ class SampleQuerySet(PolymorphicQuerySet):
     operations (filter, exclude, order_by, etc.).
     """
 
+    def published(self):
+        """Samples whose own dataset is published (FR-011).
+
+        A bare filter with no `select_related` of its own - see
+        `fairdm/contrib/collections/views.py`'s `DataTableView.get_queryset()` for the
+        listing's eager loading.
+        """
+        return self.filter(dataset__published=True)
+
     def with_related(self):
         """Prefetch commonly accessed related objects.
 
