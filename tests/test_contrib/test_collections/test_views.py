@@ -17,8 +17,15 @@ from fairdm_demo.factories import (
     ExampleMeasurementFactory,
     RockSampleFactory,
     SoilSampleFactory,
+    WaterSampleFactory,
 )
-from fairdm_demo.models import CustomSample, ExampleMeasurement, RockSample, SoilSample
+from fairdm_demo.models import (
+    CustomSample,
+    ExampleMeasurement,
+    RockSample,
+    SoilSample,
+    WaterSample,
+)
 
 
 @pytest.mark.django_db
@@ -256,3 +263,24 @@ class TestQueryCount:
         full_page_count = self._page_query_count(client, url)
 
         assert full_page_count == one_row_count
+
+
+@pytest.mark.django_db
+class TestSearch:
+    """FR-024, FR-025, FR-031, SC-004: `?q=` searches the fields a type
+    declares, or `name` by default when it declares none - and never widens
+    what publication already excluded."""
+
+    def _search(self, client, slug, term):
+        return client.get(reverse(f"{slug}-list"), {"q": term})
+
+    def test_with_no_search_fields_declared_a_word_from_the_name_matches(
+        self, client, published_dataset
+    ):
+        target = WaterSampleFactory(name="Riverbank Alpha", dataset=published_dataset)
+        WaterSampleFactory(name="Coastal Beta", dataset=published_dataset)
+
+        slug = registry.get_for_model(WaterSample).get_slug()
+        response = self._search(client, slug, "Alpha")
+
+        assert list(response.context["object_list"]) == [target]
