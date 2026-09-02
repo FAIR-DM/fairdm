@@ -79,6 +79,15 @@ easy to miss: without it, a listing that correctly excludes an unpublished sampl
 listing hands out that sample's name and address from the measurement listing instead. Membership of
 a listing must never become a route to a record that is not itself published.
 
+**Extended at design review**: the rule is *no link to a record the visitor cannot read*, which is
+one word wider than "not published". The case that forced the widening is the ordinary one. Dataset
+visibility defaults to private and publication is independent of it (D1, FR-003), so the common
+shape is a **published but private** dataset: its records belong in every listing, and the dataset
+column on those rows would link to a page the same visitor is refused. The rows stay — publication
+alone decides presence, and that is settled — but the dataset link is suppressed on the same test
+the sample link uses. The rows themselves were never the defect, so nothing in the requirement
+changes; only D3's existing link rule reaches one relation further.
+
 ---
 
 ## D4 — Search is declared per type, and the defaults are indexed
@@ -204,3 +213,108 @@ nothing to instantiate — it configures the application shell's own `SearchMixi
 takes a plain `search_fields` list on any view. Forcing it into the `COMPONENTS` shape would build
 a factory that generates nothing, which is the wrong abstraction for what is otherwise a two-line
 pass-through, per Article XIV.
+
+---
+
+## D11 — What the design review changed before any code was written
+
+The plan was reviewed against the approved specification, the existing code and the constitution
+before implementation began. Thirteen findings were raised and every one is settled below, with the
+artefact that now carries it. Two were high severity, and both were verified against the resolved
+package in this project's environment rather than taken on the review's word — which changed the
+remedy twice.
+
+**Applied to the design.**
+
+- *Suppressing a sample's name did not suppress its link.* django-tables2 composes the `linkify`
+  anchor around whatever a render method returns, so a placeholder string still shipped an address
+  for an unpublished record. The column drops `linkify=True` and builds its own anchor only when the
+  sample's dataset is published (research.md R2, tasks.md T026), and the test asserts the absence of
+  the anchor, not just of the name.
+- *The measurement listing kept a per-row query.* Three of its columns read through
+  `sample.location`, which the planned `select_related` did not cover. The queryset now names
+  `sample__location`, the redundant `prefetch_related("sample")` goes with it, and the flat-query
+  proof covers the measurement listing as well as the sample listing (research.md R3, T009, T025).
+- *A queryset method was called but never defined.* Scoping generated filter choice lists to
+  published records touches three querysets, not two, because every registered type has a foreign
+  key to `Dataset`. `DatasetQuerySet.published()` is now specified (data-model.md) and built before
+  any story runs (T067, T068).
+- *The switcher had no template to render into.* Deleting the app's unused table template left the
+  view falling back to the shell's own, which has no seam for the control. The app keeps one page
+  template of its own, `listing.html`, created before the switcher tasks (research.md R12, T069).
+- *The name index reaches four models, not two.* `name` is declared once on the shared abstract
+  base, so indexing it there also indexes `Project` and `Dataset`. Both already search that column
+  from their own listings, so the reach is recorded as intended under Article IX and all four
+  migrations are named deliverables (data-model.md), rather than narrowed to leave two live
+  listings searching an unindexed column.
+- *The index check could never pass.* It introspected a multi-table-inheritance child's table, where
+  an inherited column does not live. It now introspects the parent tables (quickstart.md §7, T010,
+  T038).
+- *The empty state set a hook the reader never sees.* The table attribute gates the block; the words
+  come from two view attributes. Both are now overridden and the test asserts the rendered words
+  (research.md R11, T027).
+- *Declaration validation was narrower than the requirement.* A misspelled path was refused, but a
+  number or a date resolved cleanly and would have failed on the visitor's first search. Validation
+  now also requires the resolved field to be a text field (research.md R4, T013, quickstart.md §3).
+  D12 records why it is a test of the field's type and not of the lookup it supports.
+- *An empty navigation group would still render.* The menu library only evaluates suppression for a
+  node that has children to process, so a portal with no registered types of a kind kept the
+  heading. Each node gets its own check, and the test uses a registry with no such types
+  (research.md R8).
+- *Four stories write the same two modules.* They land in sequence rather than concurrently, and the
+  shared surfaces are listed where the dependency order is stated (tasks.md).
+- *A deferral could be settled now, and removes work.* Nothing outside the app references the three
+  overview routes, so the views, templates and routes are deleted outright rather than deferred
+  (research.md R12, tasks.md).
+- *The research described existing behaviour wrongly.* The sample render method already exists and
+  returns the type's verbose name; it is quoted verbatim now, so its body is replaced rather than
+  duplicated (research.md R2).
+
+**Settled inside the existing requirement.** The one remaining finding held that publishing a
+dataset that is still marked private exposes its records. The requirement is explicit that
+publication is independent of visibility and is the sole test for a record's presence in a listing,
+and that was gated deliberately — so the rows are correct and no filter is added. The real defect
+was the dataset column's link, which is now suppressed under D3's extension above.
+
+---
+
+## D12 — Searchability is a question about a field's type, not about its lookups
+
+The check that decides whether a declared `search_fields` entry is acceptable asks
+`isinstance(field, (models.CharField, models.TextField))`. The obvious alternative — asking whether
+the field supports the case-insensitive substring lookup that search actually performs — reads as
+the more principled test and does not work at all.
+
+Django registers `IContains` on `Field` itself, not on the text field classes. So
+`get_lookup("icontains")` returns a lookup class for a `DecimalField`, a `BooleanField`, a
+`DateField` and an `IntegerField` alike, verified against all of them in this project's own
+environment. A validator written that way accepts every field there is, and the requirement it
+exists to enforce would be silently unenforceable — the failure mode that matters, because the
+declaration is refused at import precisely so nobody discovers the problem on a visitor's first
+search.
+
+The type test also has a precedent in the codebase. `FilterFactory._get_search_fields`
+(`fairdm/registry/factories.py:648-656`) already decides which of a model's fields are searchable,
+and it decides it this way. Two different answers to "is this field searchable" in one framework is
+the more expensive outcome than either answer being imperfect, so the new validator matches the
+existing one. Where the line should sit — whether a `SlugField` or a `UUIDField` belongs on the
+text side — is one decision in one place, and moving it later moves both.
+
+---
+
+## D13 — Where the listing's eager loading lives
+
+`DataTableView.get_queryset()` adds `select_related("sample__dataset", "sample__location")` for a
+measurement type. Not `MeasurementQuerySet.published()`, and not `with_related()`.
+
+There were three candidates and each of the other two costs something. `with_related()` documents
+itself as deliberately *not* prefetching nested relationships, and tells callers needing them to
+chain their own — widening it would break that contract for every existing caller in order to serve
+one page. `published()` is also called to scope the generated filter choice lists, which read none
+of these columns, so putting the joins there pays for them on a query that cannot use them.
+
+The view is the only layer that knows it is about to render three columns off the sample's location
+and read the sample's dataset for the link suppression. Asking for the data where the need is known
+is also what keeps the requirement testable: the flat-query assertion covers the measurement listing
+specifically, and it is asserting a property of that page rather than of a queryset method used in
+several places for different reasons.

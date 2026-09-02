@@ -33,15 +33,32 @@ never `sample__dataset__published` (FR-012, D3).
 **Question**: a measurement's sample may belong to an unpublished dataset. The row stays; the
 sample's name and the link to it must disappear.
 
-**Finding**: `MeasurementTable.sample = tables.Column(linkify=True)` (`fairdm/contrib/collections/tables.py:128`)
-renders the sample's `str()` linked to `get_absolute_url()`. `linkify` calls `get_absolute_url` on
-the accessor's value; there is no built-in conditional form.
+**Finding**: the column already exists in both halves, and neither is what a first reading suggests.
+`MeasurementTable.sample = tables.Column(linkify=True)` (`fairdm/contrib/collections/tables.py:128`),
+and `render_sample` is **already defined** at `tables.py:145-147`:
 
-**Decision**: replace the column with a `render_sample(self, value)` method reading
-`value.dataset.published` (already available without an extra query — see R3) and returning either
-the linkified value (built manually via `django.utils.html.format_html` with `value.get_absolute_url()`)
-or a plain placeholder string for an unpublished sample. No new field or annotation is needed
-beyond the `select_related`/`prefetch_related` already used for `with_related()`.
+```python
+def render_sample(self, value):
+    sample_type = value.get_real_instance_class()
+    return sample_type._meta.verbose_name
+```
+
+So the cell today shows the sample *type's* verbose name rather than the sample's own name, wrapped
+in an anchor. A render method cannot suppress that anchor: django-tables2 composes the link *around*
+whatever the method returns — `.venv/lib/python3.13/site-packages/django_tables2/rows.py:197`,
+`return bound_column.link(content, **render_kwargs) if bound_column.link else content` — and
+`django_tables2/columns/base.py`'s `LinkTransform.compose_url` builds the href from the record via
+`get_absolute_url()`, never from the returned string. Returning a placeholder would remove the name
+and leave `<a href="/samples/<uuid>/">` in the row.
+
+**Decision**: drop `linkify=True` from the column declaration and **replace the body of the existing
+`render_sample`** — not add a second method, and not preserve the verbose-name output. The new body
+reads `value.dataset.published` (a cache hit, not a query — see R3) and returns either an anchor
+built with `django.utils.html.format_html` around `value.get_absolute_url()`, or a `gettext_lazy`
+placeholder string when the sample's dataset is unpublished. The FR-013 test asserts that the
+response body carries no href to the unpublished sample's absolute URL, not merely that its name is
+absent. No new field or annotation is needed. `BaseTable.dataset` is declared `linkify=True` in the
+same way and needs the same treatment — see R14.
 
 ## R3 — Keeping the query count flat (FR-020, SC-006)
 
@@ -50,13 +67,32 @@ beyond the `select_related`/`prefetch_related` already used for `with_related()`
 **Finding**: `MeasurementQuerySet.with_related()` already does `select_related("sample", "dataset")`
 (`fairdm/core/measurement/managers.py`, ~line 68). `SampleQuerySet.with_related()` selects
 `dataset`, `dataset__project`, `location`. Neither currently selects the *sample's* dataset from a
-measurement queryset.
+measurement queryset. Nor the sample's *location*, and that matters more than it first appears:
+`MeasurementTable` declares three columns reading through it — `latitude` (accessor
+`sample.location.x`), `longitude` (`sample.location.y`) and `location` (`sample.location`,
+`linkify=True`) — against a `ForeignKey` at `fairdm/core/sample/models.py:111`. Nothing in the
+plan loads it, so a 20-row page issues 20 extra queries and SC-006's flat-query assertion fails on
+the measurement listing.
 
-**Decision**: `Measurement.objects.published()` chains `.select_related("dataset", "sample__dataset")`
-so `value.dataset.published` in R2's `render_sample` is a cache hit, not a query. `DataTableView`
-calls `.published().with_related()` (or a combined method) rather than the bare default manager.
-This is verified by an explicit `django.test.utils.CaptureQueriesContext` test per FR-020/SC-006 —
-not inferred from code reading alone (Article I; `never-cite-a-count-i-did-not-read`).
+**Decision**: the eager loading lives in `DataTableView.get_queryset()`, which chains
+`.published().with_related()` onto `super().get_queryset()` — never off the bare default manager,
+see R6 for why that difference is not cosmetic — and then adds
+`.select_related("sample__dataset", "sample__location")` for a measurement type, so both
+`value.dataset.published` in R2's `render_sample` and the three location-backed columns are cache
+hits rather than queries.
+
+**Not in `with_related()`, and not in `published()`.** `with_related()`'s docstring
+(`fairdm/core/measurement/managers.py:40-53`) says it deliberately does not prefetch deep nested
+relationships — "Views requiring deep nested data should chain additional select_related calls" —
+so widening it would break a documented contract for every other caller to serve one listing.
+`published()` stays a bare filter because it is also called to scope generated filter choice lists
+(R7), where these joins fetch columns nothing reads. The view is the only place that knows it is
+about to render those three columns, so it is the place that asks for them.
+`MeasurementTable.__init__`'s `data.prefetch_related("sample")` becomes redundant
+once the view selects the sample, and currently double-fetches it — remove it in the same task that
+changes the queryset. This is verified by an explicit `django.test.utils.CaptureQueriesContext` test
+per FR-020/SC-006, covering **the measurement listing as well as the sample listing** — not inferred
+from code reading alone (Article I; `never-cite-a-count-i-did-not-read`).
 
 ## R4 — `search_fields` as a new `ModelConfiguration` attribute
 
@@ -76,7 +112,25 @@ not a registration-time check).
 Add it to `_OVERRIDABLE`. Validate it in `__init__` alongside the existing `_validate_fields` pass,
 reusing `FieldInspector.resolve_path` (already used for `fields`/`exclude`) so a bad path — including
 a relation path — is refused at import with a message naming the type and the field (FR-026),
-consistent with how a bad `fields` entry is already refused today (`config.py:319-344`). Add
+consistent with how a bad `fields` entry is already refused today (`config.py:319-344`).
+
+`resolve_path` alone is not enough for FR-026. It checks that each segment names a field and that
+intermediate segments expose a `related_model` (`fairdm/utils/inspection.py:166-190`), with no type
+check — so a numeric, boolean, date or geometry field resolves cleanly and then raises at
+request time, because `SearchMixin._apply_search` builds `Q(**{f"{field}__icontains": word})` for
+every declared field. A field the framework cannot search must be refused at import, not at the
+first search.
+
+The second pass is a **positive test that the resolved final field is a text field** —
+`isinstance(field, (models.CharField, models.TextField))` — raising `FieldValidationError` naming
+the type and the field. The obvious alternative, asking whether the field supports the lookup, does
+not work: Django registers `IContains` on `Field` itself, so `get_lookup("icontains")` returns a
+lookup class for a `FloatField`, `DecimalField`, `BooleanField` and `DateField` alike (verified in
+this project's environment against all four). A check written that way would reject nothing and
+FR-026's second failure mode would be unenforceable. `FilterFactory._get_search_fields`
+(`fairdm/registry/factories.py:648-656`) already decides which fields are searchable by exactly
+this isinstance test, so reusing it keeps one answer to that question in the codebase rather than
+two. Add
 `get_search_fields()` returning `self.search_fields or ["name"]` (FR-024). `DataTableView` sets
 `self.search_fields = self.model_config.get_search_fields()` in `get_queryset()`/`setup()` before
 calling `super()`, which is how `SearchMixin` (`mvp/views/list.py:57,65`) already expects to receive
@@ -92,9 +146,16 @@ enforced without indexing fields the framework does not touch?
 no explicit index in either model's `Meta`. Django does not index `CharField` by default.
 
 **Decision**: add `db_index=True` to `BaseModel.name` directly (it is the field every default
-`search_fields` falls back to, per R4), via a migration on every concrete model inheriting it —
-scoped to this feature's two apps (Sample, Measurement) since `Dataset`/`Project` names are not in
-scope here (FR-027 binds only the fields *this feature's* listings search by default). Where a
+`search_fields` falls back to, per R4). **`name` is declared once on the abstract base, so this
+indexes every concrete model that inherits it — `Sample` and `Measurement`, and also `Project` and
+`Dataset`.** That reach is intended and recorded here rather than discovered at
+`makemigrations --check`: `Project` and `Dataset` already have their own name-searched listings
+(`ProjectListView.search_fields`, `DatasetListView.search_fields`), so indexing their name column
+serves the same query the index exists for, and the alternative — moving `db_index=True` off the
+base onto two concrete declarations — would duplicate the same decision in two places and leave the
+other two listings searching an unindexed column. Article IX is satisfied by naming the four
+migrations this forces (sample, measurement, project, dataset) as deliverables of the index task,
+not by narrowing the change. Where a
 `ModelConfiguration` declares `search_fields` explicitly, indexing those fields is the model
 author's responsibility (FR-027's boundary, D4) — this feature does not walk declared
 `search_fields` and force indexes onto arbitrary columns, only onto the one field it defaults to.
@@ -112,8 +173,13 @@ default manager — and `BaseFilterView.get()` builds the filterset directly fro
 build a `Meta.fields` list straight off local model fields; they never receive a pre-filtered
 queryset argument other than the one `django_filters.views.BaseFilterView` passes them.
 
-**Decision**: `DataTableView.get_queryset()` is added, returning `self.model.objects.published()`
-composed with `.with_related()` (R3). Because django-filter's `FilterSet(queryset=...)` filters
+**Decision**: `DataTableView.get_queryset()` is added, and it narrows **what `super()` returns** —
+`super().get_queryset().published().with_related()` (R3) — never a queryset built from scratch off
+the manager. That distinction is load-bearing precisely because the view declares no `get_queryset`
+today: `super()` is the shell's own chain, and that chain is where `SearchMixin` and
+`BaseFilterView` do their work. Writing `self.model.objects.published()` instead reads as
+equivalent, silently drops both, and disables search (US-3) and filtering (US-4) while every
+publication test still passes. Because django-filter's `FilterSet(queryset=...)` filters
 *on top of* whatever queryset it is given (`django_filters/filters.py` — a `ModelChoiceFilter`'s
 own `queryset` for building choice lists is separate and must also be scoped, see R7), narrowing
 this base queryset is sufficient for FR-031: nothing downstream can add rows back.
@@ -158,12 +224,22 @@ if menu is None:
 (or its `menus.py` replacement) — `AppMenu.get("Samples") or MenuCollapse(name=_("Samples"), parent=AppMenu)`
 — rather than assuming the node declared in `fairdm/menus/menus.py` always exists. This does not
 change `fairdm/menus/menus.py` itself; it makes the *consumer* defensive, consistent with how the
-plugin system already treats the same class of failure. FR-040 (no empty heading) is handled by
-each `MenuCollapse`'s existing empty-children behaviour once populated conditionally — only append
-the collapse's own `MenuItem` children when `registry.samples`/`registry.measurements` is non-empty,
-and skip creating the collapse-level node at all when there is nothing to put in it, so an empty
-kind produces no heading rather than a heading with zero children (closing the D2/D3 gap found
-during exploration, where an empty `MenuCollapse` renders visible with no content).
+plugin system already treats the same class of failure.
+
+**FR-040 needs more than conditional population.** The `Samples` and `Measurements` collapses are
+declared unconditionally in `fairdm/menus/menus.py`'s `AppMenu.extend([...])`, at import, whether or
+not `fairdm.contrib.collections` is installed, so get-or-create finds them already present and
+"never create one" is not available as a remedy. And the menu library does not hide a childless
+container: `.venv/lib/python3.13/site-packages/flex_menu/menu.py`'s `process()` evaluates
+suppression only inside its `if children_to_process:` branch, so a node with zero children is never
+considered for it and renders as a visible heading with nothing beneath it. A portal with no
+registered sample types would show exactly the empty heading FR-040 forbids.
+
+So each of the two nodes gets a **check** that returns false when its registry list is empty, set
+from the collections app alongside the population. That is the menu library's own mechanism for a
+conditionally-visible node, it needs no change to `fairdm/menus/menus.py`, and it holds whether the
+node was found or created. The FR-040 test asserts against a registry with no types of that kind
+rather than against the populated demo, where it would pass without exercising anything.
 
 ## R9 — The switcher control (FR-042–047)
 
@@ -213,11 +289,23 @@ first.
 **Finding**: confirmed at `mvp/templates/django_tables2/bootstrap5-mvp.html:61-76` and
 `PageMixin.get_page_context()` (`mvp/views/base.py:188-193`, which emits no `icon` key at all).
 
-**Decision**: the generated table class (or `get_table_kwargs()`) must set `Meta.empty_text` (or
-pass `empty_text=` at construction) to the type's own message, e.g. built from
-`model_config.get_verbose_name_plural()` (FR-018, FR-021 — must be translatable, so built with
-`gettext_lazy` and `%(type)s` interpolation, not string formatting on a lazy proxy at class-definition
-time). `create_url` is not needed for a read-only listing with no create action, so that half of the
+**Decision**: two hooks, not one, because in the resolved shell template `empty_text` only *gates*
+the block — the words the reader actually sees come from somewhere else.
+`.venv/lib/python3.13/site-packages/mvp/templates/django_tables2/bootstrap5-mvp.html:61-76` guards
+the block with `{% if table.empty_text %}` and then renders `table.context.empty_state.heading` and
+`table.context.empty_state.message`, published by `MVPListViewMixin` as
+`empty_state_heading = _("There's nothing here yet")` and
+`empty_state_message = _("You haven't added any records yet. Click the button below to get started.")`.
+Setting only `empty_text` therefore turns the block on and shows the shell's authoring copy, which
+is wrong for a public read-only listing and does not satisfy FR-018.
+
+So: set `Meta.empty_text` (or pass `empty_text=` at construction) to enable the block, **and**
+override `empty_state_heading` / `empty_state_message` on `DataTableView` with strings written for a
+public listing, built from `model_config.get_verbose_name_plural()`. Both are translatable per
+FR-021, so `gettext_lazy` with `%(type)s` interpolation, not string formatting on a lazy proxy at
+class-definition time. The FR-018 test asserts the rendered words, not the presence of the block —
+an assertion on the block alone passes while the reader is told to click a button that does not
+exist. `create_url` is not needed for a read-only listing with no create action, so that half of the
 partial's gap is irrelevant here; `page.icon` absence just falls back to the partial's own
 `"search"` default, which is acceptable and needs no `PageMixin` change (Article II — fix only what
 this feature's acceptance criteria require).
@@ -230,12 +318,27 @@ this feature's acceptance criteria require).
 |---|---|
 | `CollectionRedirectView` | delete — unrouted, addresses don't match real routes (FR-056) |
 | `DataTablePlugin` (`plugins.py`) | delete — unregistered, wrong MRO for `get_urls` (FR-057) |
-| `templates/collections/table.html` | delete — unused, `DJANGO_TABLES2_TEMPLATE` never points at it (FR-058) |
-| `CollectionsOverview`, `SamplesOverview`, `MeasurementsOverview` + their templates | not named by any FR or story; superseded by the per-type listing + switcher (US-5). Kept only if a route to them is still needed for FR-041's "navigation renders" story — otherwise delete as unreached, since no story asks for a portal-wide overview page and D7 gives listings their own addresses without one |
-| `templatetags/collection_tags.py` | delete — duplicates `tables.py`'s `field_map`/row-class logic, used only by the deleted `table.html` |
+| `templates/collections/table.html` | delete — unused as a django-tables2 *table* template, `DJANGO_TABLES2_TEMPLATE` never points at it (FR-058) |
+| `templates/collections/listing.html` | **NEW** — the page template `DataTableView` renders, extending the shell's `table_view.html` and adding the switcher block (below) |
+| `CollectionsOverview`, `SamplesOverview`, `MeasurementsOverview` + their templates and routes | delete. Their URL names (`data-collections`, `samples-overview`, `measurements-overview`) are reversed only from `urls.py` and the three templates the same story removes; no other template, view or test in the repository reaches them. No FR or story asks for a portal-wide overview page, and D7 gives listings their own addresses without one, so FR-041's "navigation renders" story does not need a route to them |
+| `templatetags/collection_tags.py` | delete — duplicates `tables.py`'s `field_map`/row-class logic, and its only loader is `table.html:2`, which goes with it. The new `listing.html` loads no custom tag library |
 | `export_formats`, `get_context_data`'s `export_choices` | delete — FR-052 |
 | `README.md` | rewritten from scratch against the surviving code (FR-059) |
-| `tables.py` (`BaseTable`, `SampleTable`, `MeasurementTable`) | kept — depended on by `TableFactory` (`factories.py:322-336`) outside this app; modified per R2 |
+| `tables.py` (`BaseTable`, `SampleTable`, `MeasurementTable`) | kept — depended on by `TableFactory` (`factories.py:322-336`) outside this app; modified per R2 and R14 |
+
+**Why the app keeps a page template of its own.** Deleting `table.html` with nothing in its place
+leaves `DataTableView` with no template it owns, and US-5's switcher then has nowhere to render.
+`views.py` sets `template_name_suffix = "_table"`, which resolves to
+`<app_label>/<model>_table.html` per *registering* app — a path a framework cannot provide for a
+consumer's models — and `BaseTemplateNameMixin.get_template_names()`
+(`.venv/lib/python3.13/site-packages/mvp/views/base.py`) appends `base_template_name` last, which
+`mvp/integrations/django_tables/views.py:28-59` sets to the shell's own `table_view.html`. That
+template belongs to the shell package and this feature cannot edit it.
+
+So the app keeps exactly one template — `templates/collections/listing.html`, extending
+`table_view.html` and overriding the block the switcher goes in — and `DataTableView` sets
+`template_name` to it explicitly rather than relying on suffix resolution. It is created before the
+switcher markup is written into it. This is one template replacing one template, not a new layer.
 
 ## R13 — `Dataset.published` field shape (FR-001–007)
 
@@ -250,3 +353,35 @@ FR-011 tests on every request, unlike a field indexed only for admin convenience
 `fieldsets` (`admin.py:180-219`, a new field near `visibility` at line 188 or its own section),
 `list_display` and `list_filter` (FR-003, and D2's "admin and nothing else" is satisfied by adding
 no form/view surface elsewhere).
+
+## R14 — The dataset column when a published dataset's metadata is private (FR-013, D3)
+
+**Question**: publication and visibility are independent by design (D2), and `visibility` defaults
+to `PRIVATE`, so the ordinary state of a freshly published dataset is published-and-private. Every
+listing row carries a dataset column. What does it render when the dataset's own page will refuse
+the visitor?
+
+**Finding**: the rows are correct and the column is not. `DatasetManager.get_queryset()`
+(`fairdm/core/dataset/models.py:182-183`) excludes `Visibility.PRIVATE`, but a listing filters on
+`dataset__published=True` through a JOIN, which never passes through that manager — which is exactly
+what the spec asks for: publication is independent of visibility and is the sole test for a record's
+presence in a listing (US-1 Acceptance Scenario 5, and Key Entities: "It is the sole test for a
+record's presence in a listing"). The column, though, is
+`dataset = tables.Column(linkify=True, orderable=False, verbose_name=False)` with an existing
+`render_dataset` returning `icon("dataset")` (`fairdm/contrib/collections/tables.py`). It shows no
+name, so nothing is leaked there — but per R2, `linkify` wraps the icon in an anchor regardless of
+what the render method returns, so every row emits the address of a page the visitor is refused.
+
+**Decision**: the same defect R2 fixes on the sample column, one relation over, and settled the same
+way rather than by changing which rows appear. D3's rule already reads "where a row would name or
+link a record whose own dataset is not published, it shows neither the name nor the link"; the
+dataset column extends it by one word — no link to a dataset that is not **readable**, meaning
+`visibility` is `PRIVATE`. So `BaseTable` drops `linkify=True` from the dataset column and
+`render_dataset` builds the anchor itself with `format_html` around `get_absolute_url()` when the
+dataset is readable, returning the bare icon when it is not. The rows are untouched, so the approved
+rule in FR-011/FR-012 stands exactly as Sam gated it. Recorded in `decisions.md` as an extension
+of D3.
+
+`visibility` is already loaded by the `select_related("dataset")` R3 specifies, so this costs no
+query. The test is a published-but-private dataset: its records appear in the listing, and the
+response carries no href to that dataset's page.
