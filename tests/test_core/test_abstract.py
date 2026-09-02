@@ -285,3 +285,20 @@ class TestNameIndex:
 
     def test_measurement_table_has_a_name_index(self):
         assert self._has_index_on_name(Measurement._meta.db_table)
+
+    def test_every_registered_types_default_search_field_is_indexed(self):
+        """T038, SC-007: for every registered type that declares no
+        `search_fields` of its own, `get_search_fields()` falls back to
+        `name` - the one field this feature is responsible for indexing
+        (data-model.md). A type's own declared fields are its author's own
+        field to index."""
+        from fairdm.registry import registry
+
+        for model_class in [*registry.samples, *registry.measurements]:
+            config = registry.get_for_model(model_class)
+            if config.search_fields:
+                continue
+            assert config.get_search_fields() == ["name"]
+
+        assert self._has_index_on_name(Sample._meta.db_table)
+        assert self._has_index_on_name(Measurement._meta.db_table)
