@@ -1250,6 +1250,106 @@ class TestDatasetDeleteView:
 
 
 @pytest.mark.django_db
+class TestNonCollectionPagesIgnorePublished:
+    """T015 / US-1, Acceptance Scenario 3, SC-010, FR-006: every non-collection
+    portal page already served for a dataset renders identically whether
+    `published` is `True` or `False` - the listings this feature builds in
+    later stories are the only readers of the flag.
+
+    Toggled through `.update()`, not `.save()`, so the comparison is not
+    confounded by `modified`'s `auto_now` (the same reason
+    `TestDatasetOrdering.test_default_ordering_is_most_recently_modified_first`
+    bypasses `save()`). CSRF tokens are masked afresh on every response by
+    Django's own middleware regardless of anything this feature touches, so
+    a page carrying a form is compared with its token blanked out first -
+    otherwise every such comparison fails for a reason that has nothing to
+    do with `published`.
+    """
+
+    @staticmethod
+    def _without_csrf_token(response):
+        return re.sub(
+            rb'name="csrfmiddlewaretoken" value="[^"]*"',
+            b'name="csrfmiddlewaretoken" value=""',
+            response.content,
+        )
+
+    def test_dataset_list_page_renders_identically_across_published_states(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        url = reverse("dataset-list")
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
+        unpublished = client.get(url)
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
+        published = client.get(url)
+
+        assert unpublished.status_code == 200
+        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
+            published
+        )
+
+    def test_dataset_overview_page_renders_identically_across_published_states(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
+        unpublished = client.get(url)
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
+        published = client.get(url)
+
+        assert unpublished.status_code == 200
+        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
+            published
+        )
+
+    def test_dataset_update_page_renders_identically_across_published_states(
+        self, client
+    ):
+        user = UserFactory()
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        assign_perm("change_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
+        unpublished = client.get(url)
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
+        published = client.get(url)
+
+        assert unpublished.status_code == 200
+        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
+            published
+        )
+
+    def test_dataset_delete_page_renders_identically_across_published_states(
+        self, client
+    ):
+        user = UserFactory()
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        assign_perm("delete_dataset", user, dataset)
+        client.force_login(user)
+        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
+        unpublished = client.get(url)
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
+        published = client.get(url)
+
+        assert unpublished.status_code == 200
+        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
+            published
+        )
+
+
+@pytest.mark.django_db
 class TestDatasetViews:
     """Tests for Dataset views."""
 
