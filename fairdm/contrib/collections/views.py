@@ -59,38 +59,9 @@ class DataTableView(FairDMTableView):
         # context["collection_menu"] = AppMenu.get("Data Collections")
         context["export_choices"] = export_choices
 
-        # Determine collection type (sample or measurement)
-        is_sample = self.model in registry.samples
-
-        context["collection_type"] = "sample" if is_sample else "measurement"
-        context["collection_type_verbose"] = "Sample" if is_sample else "Measurement"
-
-        # Get all available collections of this type
-        collection_models = registry.samples if is_sample else registry.measurements
-        collection_list = []
-
-        for model_class in collection_models:
-            config = registry.get_for_model(model_class)
-            slug = config.get_slug()
-            try:
-                url = reverse(f"{slug}-list")
-            except NoReverseMatch:
-                url = None
-
-            collection_list.append(
-                {
-                    "name": config.get_verbose_name_plural(),
-                    "verbose_name": config.get_verbose_name(),
-                    "url": url,
-                    "slug": slug,
-                    "is_current": model_class == self.model,
-                }
-            )
-
-        context["available_collections"] = collection_list
-        context["current_model_verbose_name"] = self.model_config.get_verbose_name()
-        context["current_model_verbose_name_plural"] = (
-            self.model_config.get_verbose_name_plural()
+        context["sample_listings"] = self.get_listing_entries(registry.samples)
+        context["measurement_listings"] = self.get_listing_entries(
+            registry.measurements
         )
 
         # Page information for modal
@@ -104,6 +75,27 @@ class DataTableView(FairDMTableView):
         }
 
         return context
+
+    def get_listing_entries(self, models):
+        """The switcher's entries for one kind, samples or measurements - each
+        `{name, url, is_current}`, reversed from the `<slug>-list` URL names (FR-042
+        to FR-045). Built from the registry at render time, so a new registration
+        needs no per-type wiring (plan.md Summary)."""
+        entries = []
+        for model_class in models:
+            config = registry.get_for_model(model_class)
+            try:
+                url = reverse(f"{config.get_slug()}-list")
+            except NoReverseMatch:
+                continue
+            entries.append(
+                {
+                    "name": config.get_verbose_name_plural(),
+                    "url": url,
+                    "is_current": model_class == self.model,
+                }
+            )
+        return entries
 
     def get_table_class(self):
         """
