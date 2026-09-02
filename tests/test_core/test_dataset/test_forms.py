@@ -303,6 +303,25 @@ class TestVisibilityField:
 
 
 @pytest.mark.django_db
+class TestPublishedFieldNotExposed:
+    """T006 / FR-004: `published` is settable in the Django admin only, so
+    no page a researcher can reach exposes it - the update form and the
+    create form both name their fields explicitly and neither names it."""
+
+    def test_update_form_excludes_published(self):
+        assert "published" not in DatasetForm.Meta.fields
+
+        form = DatasetForm()
+        assert "published" not in form.fields
+
+    def test_create_form_excludes_published(self):
+        assert "published" not in DatasetCreateForm.Meta.fields
+
+        form = DatasetCreateForm()
+        assert "published" not in form.fields
+
+
+@pytest.mark.django_db
 class TestDatasetForm:
     """Tests for the DatasetForm."""
 
