@@ -442,3 +442,22 @@ class TestSwitcher:
         other_entries = [entry for entry in all_entries if not entry["is_current"]]
         assert [entry["url"] for entry in current_entries] == [current_url]
         assert all(entry["url"] != current_url for entry in other_entries)
+
+    def test_choosing_a_measurement_listing_from_a_searched_sample_listing_opens_it_unfiltered(
+        self, client
+    ):
+        rock_slug = registry.get_for_model(RockSample).get_slug()
+        measurement_slug = registry.get_for_model(ExampleMeasurement).get_slug()
+        expected_url = reverse(f"{measurement_slug}-list")
+
+        response = client.get(
+            reverse(f"{rock_slug}-list"), {"q": "Basalt", "rock_type": "Granite"}
+        )
+
+        measurement_entry = next(
+            entry
+            for entry in response.context["measurement_listings"]
+            if entry["url"] == expected_url
+        )
+        assert measurement_entry["url"] == expected_url
+        assert "?" not in measurement_entry["url"]
