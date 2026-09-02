@@ -318,3 +318,46 @@ and read the sample's dataset for the link suppression. Asking for the data wher
 is also what keeps the requirement testable: the flat-query assertion covers the measurement listing
 specifically, and it is asserting a property of that page rather than of a queryset method used in
 several places for different reasons.
+
+---
+
+## D14 — Comparing a page across `published` states means blanking the CSRF token first
+
+**Decision:** T015's "renders identically" tests (`TestNonCollectionPagesIgnorePublished`,
+`tests/test_core/test_dataset/test_views.py`) compare two responses to the same page, one fetched
+with the record `published=False` and the other `published=True`, with each response's
+`csrfmiddlewaretoken` value blanked before the comparison.
+
+**Why:** the first run of the update-page test failed on a page that has nothing to do with
+`published`, at the point where `csrfmiddlewaretoken` differs. Django's CSRF middleware masks the
+token afresh per response by design, so two GETs to the same form-carrying page from the same
+session are never byte-identical even with no feature code involved. Comparing raw response bodies
+across any page with a form will trip on this the same way, so every test in the class blanks the
+token rather than only the one that first surfaced it.
+
+**Revisit if:** a later story (US-2 onward) adds its own "renders identically" or snapshot-style
+comparison against a page carrying a form — reach for the same helper rather than re-discovering
+this.
+
+---
+
+## D15 — Proving the migration's effect on existing rows without replaying it
+
+**Decision:** T002's second assertion (`TestDatasetPublished.test_every_existing_dataset_reads_back_unpublished`,
+`tests/test_core/test_dataset/test_models.py`) proves "every existing row reads back unpublished"
+by creating several datasets through the ordinary factory route, none of them naming `published`,
+and reading them back through `Dataset.all_objects`. It does not replay `0012_dataset_published.py`
+against a database that already held rows.
+
+**Why:** the suite runs with `--no-migrations` (plan.md, Technical Context), so the test database's
+schema is built directly from current model state — there is no window in which the migration can
+be applied to a database that already held pre-feature rows. `0012_dataset_published.py` is a bare
+`AddField` with no data-migration callable to invoke directly either, unlike the forward-rewrite
+migration `TestStatusMigration` exercises in `test_sample/test_models.py`. What the acceptance
+criterion is actually asking for — that a row nobody touched ends up `False` — is fully expressed by
+the field's own default, so a batch of untouched rows read back through the unfiltered manager is
+the closest available proof.
+
+**Revisit if:** the project ever drops `--no-migrations` from its test configuration, or this
+migration grows a data-migration step — either would make a direct replay both possible and the
+stronger test.
