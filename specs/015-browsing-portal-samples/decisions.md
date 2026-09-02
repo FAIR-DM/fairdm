@@ -384,25 +384,31 @@ should apply once there is a button for the message to point at.
 
 ---
 
-## D17 — Query-count tests build the table directly, not through `client.get()`
+## D17 — Two things a page-level query count has to control for
 
-**Decision:** `TestQueryCount` (T024, `tests/test_contrib/test_collections/test_views.py`) builds
-`DataTableView` and calls `table.as_html(request)` directly via `RequestFactory`, rather than
-comparing `CaptureQueriesContext` counts around two `client.get()` calls, and excludes queries
-against `orbit_orbitentry` from the count either way.
+**Decision:** `TestQueryCount` (T024, `tests/test_contrib/test_collections/test_views.py`) measures
+`CaptureQueriesContext` around a real `client.get()` of the listing, and controls for two sources of
+noise before it counts: `orbit` is disabled for the class through `settings.ORBIT`, and the page is
+fetched once before either measurement. One row and a full page then both cost 9 queries.
 
-**Why:** this project's test environment fires a query-logging signal on every template render
-(visible as `INSERT INTO "orbit_orbitentry"` and traced to `orbit.watchers.record_signal`, hooked
-onto Django's own `template_rendered` signal, which only fires under
-`django.test.utils.instrumented_test_render`), and that handler's `repr()` of the render context
-forces a fresh, unrelated re-evaluation of any queryset the context carries. `client.get()` renders
-the full page - base template, includes, and all - so the number of nodes rendered (and therefore
-the number of times this fires) scales with the number of rows shown, which swamps a page-wide count
-regardless of whether the feature's own queries are flat. A bare `RockSample.objects.published().
-with_related()[:20]` was already confirmed flat (2 queries, unchanged from 1 row to 20) before this
-was tracked down. Building the table exactly as the view does and rendering only it, with
-`orbit_orbitentry` excluded, measures what FR-020 actually constrains.
+**Why:** FR-020 and SC-006 are claims about the listing *page*, so the count has to be taken around
+the request. Two things obscure it, and neither is the feature's.
 
-**Revisit if:** `orbit`'s signal handler stops evaluating context reprs on every render, or a future
-story needs a query-count assertion around a full `client.get()` response - reach for this pattern
-rather than re-discovering the confound.
+The first is `orbit`. It writes a row per recorded request, and it reaches signals by monkey-patching
+`Signal.send` globally and `repr()`ing every kwarg — which, under Django's
+`instrumented_test_render`, reprs the render context and re-evaluates whatever queryset it still
+carries. Its writes land in the same count as the page's own. Setting `RECORD_SIGNALS: False` is not
+enough, because the request recorder is a separate switch; `ENABLED: False` covers both, and
+`orbit.conf.get_config()` reads `settings.ORBIT` at call time, so the override takes effect without
+touching the dependency.
+
+The second is first-request warmup. The first request in a test process populates the site cache and
+creates the identity records, with their savepoints — around fifteen queries that the second request
+never repeats. Uncontrolled, that makes the *one-row* count the larger of the two, so the assertion
+fails in the direction opposite to the defect it is looking for.
+
+Both controlled, the test does its job: removing the `select_related` from
+`DataTableView.get_queryset()` takes the sample listing from 16 queries to 92 and fails both cases.
+
+**Revisit if:** `orbit` gains a documented test-mode switch — prefer it to disabling the app — or the
+listing grows a genuinely per-page query whose count moves with something other than row volume.

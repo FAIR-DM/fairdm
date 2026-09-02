@@ -326,7 +326,12 @@ Menu population lives in `apps.py`, so its tests are `Test<Subject>` classes in
 ### Implementation for User Story 4
 
 - [ ] T047 [US4] Rewrite `populate_data_collection_menu()` — `fairdm/contrib/collections/apps.py`
-      — with two changes (research.md R8, FR-039, FR-040):
+      — with three changes (research.md R8, FR-039, FR-040):
+      0. `view_name=f"{config.get_slug()}-collection"` becomes `-list`, at both call sites
+         (`apps.py:37` and `:48`). T028 renamed the URLs and this is the only live consumer of the
+         old names, so from T028 landing until this task every navigation entry is a dead link —
+         `flex_menu`'s `resolve_url()` swallows the `NoReverseMatch` and logs a warning rather than
+         raising, so nothing fails loudly and T044 is what catches it
       1. get-or-create for the Samples/Measurements nodes, mirroring
          `fairdm/contrib/plugins/registration.py:148-157`, so a renamed or absent node cannot raise
          in `ready()`.
@@ -428,6 +433,10 @@ stands, the full suite and the demo app still pass.
       `samples-overview`, `measurements-overview`) are reversed only from `urls.py` and the three
       templates deleted here, no other template, view or test in the repository reaches them, and
       no story asks for a portal-wide overview page (research.md R12)
+- [ ] T075 [US6] Delete `BasePolymorphicModel.get_collection_url()` — `fairdm/core/abstract.py:176`.
+      It reverses `f"{slug}-collection"`, a name T028 removed, so it now raises `NoReverseMatch` for
+      every model that inherits it. Nothing in the repository calls it — confirm that by grep before
+      deleting, and take its test with it only if one exists that asserts nothing else (FR-058)
 - [ ] T060 [US6] Rewrite `fairdm/contrib/collections/README.md` against the code as it now stands —
       every named component exists, every example works (FR-059)
 - [ ] T061 [US6] Test: the full suite passes, and `git log` shows no test deleted without a
@@ -472,7 +481,7 @@ stands, the full suite and the demo app still pass.
 - **US5 (T048–T054, T069)** depends on US2's URL renaming (T028) and benefits from US4 existing
   (shares the registry-iteration pattern) but does not require US3. T069 creates `listing.html` and
   runs before T053 and T054, which render the switcher into it.
-- **US6 (T074, T055–T061)** should run last among the stories — it deletes code some earlier tasks might
+- **US6 (T074, T055–T059, T075, T060, T061)** should run last among the stories — it deletes code some earlier tasks might
   still be reading during development, and it is explicitly "the story to drop if the run runs
   short" (decisions.md D8).
 - **Polish (T062–T066)** depends on all six stories.

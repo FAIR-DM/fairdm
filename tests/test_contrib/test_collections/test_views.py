@@ -196,63 +196,63 @@ class TestRowLinksToRecord:
 
 @pytest.mark.django_db
 class TestQueryCount:
-    """FR-020, SC-006: the number of database queries a listing issues does not grow
-    with the number of rows it shows - for the measurement listing as well as the
+    """FR-020, SC-006: the number of database queries a listing page issues does not
+    grow with the number of rows it shows - for the measurement listing as well as the
     sample listing.
 
-    Measured around the table's own rendering rather than a full `client.get()`: this
-    project's test environment fires a query-logging signal on every template render
-    (visible as `orbit_orbitentry` inserts) whose handler `repr()`s the render context,
-    which forces a fresh, unrelated re-evaluation of any queryset the context carries -
-    once per template node rendered, so the noise itself scales with row count and
-    would swamp a page-wide query count either way. Excluded below by table name,
-    alongside building the table the view would and calling its own `as_html()`,
-    which measures the thing FR-020 actually constrains.
+    Two pieces of measurement hygiene make this readable at the page level, and both
+    are load-bearing.
+
+    `orbit` is disabled for the duration. It records requests and signals by writing
+    rows of its own, and it reaches signals by monkey-patching `Signal.send` globally
+    and `repr()`ing every kwarg - which, under Django's `instrumented_test_render`,
+    reprs the render context and re-evaluates whatever queryset it still carries.
+    Either way its writes land in the same count as the page's own.
+    `orbit.conf.get_config()` reads `settings.ORBIT` at call time, so turning it off
+    here removes the noise at source rather than filtering it afterwards.
+
+    The page is also fetched once before either measurement. The first request in a
+    test process does one-time work the second never repeats - the site cache, the
+    identity records, their savepoints - which shows up as the first count being the
+    larger one however flat the feature is.
     """
 
-    def _table_query_count(self, rf, url, model_class):
-        from django.contrib.auth.models import AnonymousUser
+    @pytest.fixture(autouse=True)
+    def without_orbit(self, settings):
+        settings.ORBIT = {"ENABLED": False}
 
-        config = registry.get_for_model(model_class)
-        request = rf.get(url)
-        request.user = AnonymousUser()
-        view = DataTableView(model=model_class, model_config=config, request=request)
-        view.setup(request)
-        view.object_list = view.get_queryset()
-        table = view.get_table()
-
+    def _page_query_count(self, client, url):
+        client.get(url)  # warm up one-time per-process setup
         with CaptureQueriesContext(connection) as ctx:
-            table.as_html(request)
+            response = client.get(url)
+        assert response.status_code == 200
+        return len(ctx.captured_queries)
 
-        return len(
-            [q for q in ctx.captured_queries if "orbit_orbitentry" not in q["sql"]]
-        )
-
-    def test_sample_listing_query_count_is_flat(self, rf, published_dataset):
+    def test_sample_listing_query_count_is_flat(self, client, published_dataset):
         RockSampleFactory(dataset=published_dataset)
         slug = registry.get_for_model(RockSample).get_slug()
         url = reverse(f"{slug}-list")
 
-        one_row_count = self._table_query_count(rf, url, RockSample)
+        one_row_count = self._page_query_count(client, url)
 
         RockSampleFactory.create_batch(19, dataset=published_dataset)  # a full page
 
-        full_page_count = self._table_query_count(rf, url, RockSample)
+        full_page_count = self._page_query_count(client, url)
 
         assert full_page_count == one_row_count
 
-    def test_measurement_listing_query_count_is_flat(self, rf, published_dataset):
+    def test_measurement_listing_query_count_is_flat(self, client, published_dataset):
         sample = RockSampleFactory(dataset=published_dataset)
         ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
         slug = registry.get_for_model(ExampleMeasurement).get_slug()
         url = reverse(f"{slug}-list")
 
-        one_row_count = self._table_query_count(rf, url, ExampleMeasurement)
+        one_row_count = self._page_query_count(client, url)
 
         other_samples = RockSampleFactory.create_batch(19, dataset=published_dataset)
         for other_sample in other_samples:
             ExampleMeasurementFactory(sample=other_sample, dataset=published_dataset)
 
-        full_page_count = self._table_query_count(rf, url, ExampleMeasurement)
+        full_page_count = self._page_query_count(client, url)
 
         assert full_page_count == one_row_count
