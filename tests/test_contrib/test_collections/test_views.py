@@ -427,3 +427,18 @@ class TestSwitcher:
         }
         assert sample_urls == expected_sample_urls
         assert measurement_urls == expected_measurement_urls
+
+    def test_the_currently_viewed_listing_is_marked_current(self, client):
+        slug = registry.get_for_model(RockSample).get_slug()
+        current_url = reverse(f"{slug}-list")
+
+        response = client.get(current_url)
+
+        all_entries = (
+            response.context["sample_listings"]
+            + response.context["measurement_listings"]
+        )
+        current_entries = [entry for entry in all_entries if entry["is_current"]]
+        other_entries = [entry for entry in all_entries if not entry["is_current"]]
+        assert [entry["url"] for entry in current_entries] == [current_url]
+        assert all(entry["url"] != current_url for entry in other_entries)
