@@ -1,11 +1,6 @@
 from django.apps import AppConfig
 from django.utils.module_loading import autodiscover_modules
 
-# Registered at module import, not inside ready()'s guarded body, so the
-# full check set still participates in `manage.py check --deploy`
-# independently of the FR-014 environment guard below (FR-015, FR-016).
-from fairdm.conf import checks as conf_checks  # noqa: F401
-
 # The site navigation is declared as an import side effect of `fairdm.menus.menus`,
 # and until now the only module importing it was `fairdm.contrib.collections.apps`.
 # That made the whole menu tree - Home, Projects, Datasets, Literature and the rest,
@@ -15,6 +10,11 @@ from fairdm.conf import checks as conf_checks  # noqa: F401
 # Module level rather than `ready()`, because `fairdm.menus.menus` imports no models:
 # only translation, `flex_menu` and `mvp.menus`.
 from fairdm import menus as _menus  # noqa: F401
+
+# Registered at module import, not inside ready()'s guarded body, so the
+# full check set still participates in `manage.py check --deploy`
+# independently of the FR-014 environment guard below (FR-015, FR-016).
+from fairdm.conf import checks as conf_checks  # noqa: F401
 
 #: The environments FairDM ships a non-production override module for, and so
 #: the only ones the boot refusal below stands down for. Every other resolved
