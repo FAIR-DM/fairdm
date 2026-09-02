@@ -28,7 +28,7 @@ class BaseModel(models.Model):
         upload_to=default_image_path,
         resize_source={"size": (2400, 1600), "crop": False},
     )
-    name = models.CharField(_("name"), max_length=300)
+    name = models.CharField(_("name"), max_length=300, db_index=True)
 
     keywords: models.ManyToManyField = models.ManyToManyField(
         "research_vocabs.Concept",
