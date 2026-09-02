@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from easy_icons import icon
 from research_vocabs.fields import ConceptManyToManyField
 
+from fairdm.utils.choices import Visibility
+
 
 def render_concept_many_to_many(value):
     """
@@ -40,9 +42,20 @@ class BaseTable(tables.Table):
     """Base table class for all FairDM tables."""
 
     id = tables.Column(verbose_name="UUID", visible=False)
-    dataset = tables.Column(linkify=True, orderable=False, verbose_name=False)
+    dataset = tables.Column(orderable=False, verbose_name=False)
 
     def render_dataset(self, value):
+        """Link the dataset icon only where its own page would not refuse the visitor.
+
+        Publication and visibility are independent (D1, FR-003), so a published-but-
+        private dataset is the ordinary state, not an edge case - its records still
+        belong in the listing, but this column carries no link to a page it cannot
+        read (D3, extended at design review).
+        """
+        if value.visibility != Visibility.PRIVATE:
+            return format_html(
+                '<a href="{}">{}</a>', value.get_absolute_url(), icon("dataset")
+            )
         return icon("dataset")
 
     def render_location(self, record):
