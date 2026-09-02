@@ -1,5 +1,6 @@
 import django_tables2 as tables
 from django.core.exceptions import FieldDoesNotExist
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from easy_icons import icon
@@ -125,7 +126,7 @@ class SampleTable(BaseTable):
 class MeasurementTable(BaseTable):
     """Table class for Measurement models."""
 
-    sample = tables.Column(linkify=True)
+    sample = tables.Column()
     latitude = tables.Column(accessor="sample.location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="sample.location.y", verbose_name=_("Longitude"))
     location = tables.Column(
@@ -137,11 +138,7 @@ class MeasurementTable(BaseTable):
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
 
-    def __init__(self, data=None, *args, **kwargs):
-        # modify the queryset (data) here if required
-        data = data.prefetch_related("sample")
-        super().__init__(*args, data=data, **kwargs)
-
     def render_sample(self, value):
-        sample_type = value.get_real_instance_class()
-        return sample_type._meta.verbose_name
+        if value.dataset.published:
+            return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
+        return _("Unpublished")
