@@ -346,7 +346,7 @@
       "priority": "P2",
       "issue": 319,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -355,7 +355,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "tests/test_contrib/test_collections/test_apps.py::TestSampleNavigationEntries"
+              "tests/test_contrib/test_collections/test_apps.py:26"
             ]
           }
         },
@@ -365,7 +365,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "tests/test_contrib/test_collections/test_apps.py::TestMeasurementNavigationEntries"
+              "tests/test_contrib/test_collections/test_apps.py:40"
             ]
           }
         },
@@ -375,7 +375,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "tests/test_contrib/test_collections/test_apps.py::TestNavigationEntryUrls"
+              "tests/test_contrib/test_collections/test_apps.py:56"
             ]
           }
         },
@@ -385,7 +385,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "tests/test_contrib/test_collections/test_apps.py::TestEmptyRegistryHidesItsHeading"
+              "tests/test_contrib/test_collections/test_apps.py:84"
             ]
           }
         },
@@ -395,7 +395,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "tests/test_contrib/test_collections/test_apps.py::TestNavigationSurvivesAMissingMenuNode"
+              "tests/test_contrib/test_collections/test_apps.py:130"
             ]
           }
         },
@@ -405,7 +405,7 @@
           "attempts": 1,
           "evidence": {
             "code": [
-              "fairdm/contrib/collections/apps.py:20-63"
+              "fairdm/contrib/collections/apps.py:20"
             ]
           }
         }
