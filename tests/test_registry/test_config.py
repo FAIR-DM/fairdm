@@ -1247,4 +1247,57 @@ class TestFieldValidationWithFuzzyMatching:
 
         # Error message should not suggest anything
         assert "xyz123" in str(exc_info.value)
+
+
+class TestSearchFieldsValidation:
+    """T012: `search_fields` is validated the same way `fields` is - a path
+
+    that does not resolve, or resolves to a field that is not text, is
+    refused at import (FR-026, decisions.md D12).
+    """
+
+    def test_a_path_that_does_not_resolve_is_refused(self):
+        class SearchFieldsUnresolvedSample(Sample):
+            class Meta:
+                app_label = "test_app"
+
+        with pytest.raises(FieldValidationError) as exc_info:
+            ModelConfiguration(
+                model=SearchFieldsUnresolvedSample,
+                search_fields=["no_such_field"],
+            )
+
+        message = str(exc_info.value)
+        assert "no_such_field" in message
+        assert "search_fields" in message
+
+    @pytest.mark.parametrize(
+        "field_factory",
+        [
+            lambda: models.DecimalField(max_digits=5, decimal_places=2),
+            lambda: models.BooleanField(),
+            lambda: models.DateField(),
+        ],
+        ids=["DecimalField", "BooleanField", "DateField"],
+    )
+    def test_a_non_text_field_is_refused_naming_the_type_and_field(
+        self, field_factory
+    ):
+        field = field_factory()
+        model = type(
+            f"SearchFieldsNonText{field.__class__.__name__}",
+            (Sample,),
+            {
+                "value": field,
+                "__module__": __name__,
+                "Meta": type("Meta", (), {"app_label": "test_app"}),
+            },
+        )
+
+        with pytest.raises(FieldValidationError) as exc_info:
+            ModelConfiguration(model=model, search_fields=["value"])
+
+        message = str(exc_info.value)
+        assert "value" in message
+        assert model.__name__ in message
         assert "Did you mean" not in str(exc_info.value)
