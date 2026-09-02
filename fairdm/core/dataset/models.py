@@ -244,6 +244,17 @@ class Dataset(BaseModel):
         help_text=_("Visibility within the application."),
     )
 
+    published = models.BooleanField(
+        _("published"),
+        default=False,
+        db_index=True,
+        help_text=_(
+            "Whether the data beneath this dataset may be shown publicly. "
+            "Independent of visibility, which governs metadata only. Set in "
+            "the Django admin."
+        ),
+    )
+
     # GENERIC RELATIONS
     contributors = GenericRelation(
         "contributors.Contribution", related_query_name="dataset"
