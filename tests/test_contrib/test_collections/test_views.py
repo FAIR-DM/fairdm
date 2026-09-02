@@ -4,8 +4,12 @@ import pytest
 from django.urls import reverse
 
 from fairdm.registry import registry
-from fairdm_demo.factories import RockSampleFactory, SoilSampleFactory
-from fairdm_demo.models import RockSample, SoilSample
+from fairdm_demo.factories import (
+    CustomSampleFactory,
+    RockSampleFactory,
+    SoilSampleFactory,
+)
+from fairdm_demo.models import CustomSample, RockSample, SoilSample
 
 
 @pytest.mark.django_db
@@ -79,3 +83,20 @@ class TestColumnsPerType:
         assert "rock_type" not in soil_columns
         assert "soil_type" in soil_columns
         assert "soil_type" not in rock_columns
+
+
+@pytest.mark.django_db
+class TestDefaultColumns:
+    """FR-015: a type registered with no field declarations still produces a working
+    listing from the framework's own defaults, rather than failing."""
+
+    def test_a_type_with_no_field_declarations_renders_with_framework_defaults(
+        self, client, published_dataset
+    ):
+        CustomSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(CustomSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert response.status_code == 200
+        assert list(response.context["table"].columns)
