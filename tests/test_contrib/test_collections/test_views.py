@@ -124,3 +124,24 @@ class TestPaging:
         first_ids = {s.pk for s in first_page.context["object_list"]}
         second_ids = {s.pk for s in second_page.context["object_list"]}
         assert first_ids.isdisjoint(second_ids)
+
+
+@pytest.mark.django_db
+class TestEmptyState:
+    """FR-018: a listing with no published records to show says so - in this
+    feature's own words, not the application shell's authoring copy."""
+
+    def test_a_type_with_no_published_records_shows_this_features_own_empty_state(
+        self, client
+    ):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        content = response.content.decode()
+        assert "Click the button below to get started" not in content
+        empty_state = response.context["empty_state"]
+        assert empty_state["heading"]
+        assert empty_state["message"]
+        assert str(empty_state["heading"]) in content
+        assert str(empty_state["message"]) in content
