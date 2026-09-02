@@ -1,6 +1,7 @@
 import contextlib
 
 from django.urls import path, reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import RedirectView
 from django_filters.filterset import FilterSet
 
@@ -107,7 +108,7 @@ class DataTableView(FairDMTableView):
             def get_table_kwargs(self):
                 return {"exclude": ("buttons",)}
         """
-        return {
+        kwargs = {
             "exclude": [
                 "polymorphic_ctype",
                 "measurement_ptr",
@@ -118,6 +119,29 @@ class DataTableView(FairDMTableView):
                 "modified",
             ],
         }
+        kwargs["empty_text"] = self.get_empty_state_heading()
+        return kwargs
+
+    def get_empty_state_heading(self):
+        """This listing's own empty-state heading (FR-018), not the shell's.
+
+        Built per-instance from `model_config`, so it names the type on screen -
+        `empty_state_heading` cannot be a plain class attribute for that reason.
+        """
+        return _("No published %(type)s yet") % {
+            "type": self.model_config.get_verbose_name_plural()
+        }
+
+    def get_empty_state_message(self):
+        """This listing's own empty-state message (FR-018), not the shell's.
+
+        Overrides the hook outright rather than the `empty_state_message` attribute:
+        the shell's own implementation only returns it when `show_action("create")` is
+        true, which gates a create button this read-only listing never offers.
+        """
+        return _(
+            "There are no published %(type)s to show in this listing yet."
+        ) % {"type": self.model_config.get_verbose_name_plural()}
 
     @classmethod
     def get_urls(cls, **kwargs):
