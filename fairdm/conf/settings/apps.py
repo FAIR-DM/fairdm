@@ -243,7 +243,6 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
 # django-tables2: Table rendering template
-# DJANGO_TABLES2_TEMPLATE = "collections/table.html"
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-mvp.html"
 # django-accounts-center: Avatar URL retrieval
 ACCOUNT_MANAGEMENT_GET_AVATAR_URL = (
