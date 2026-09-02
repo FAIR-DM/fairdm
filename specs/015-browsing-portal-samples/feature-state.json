@@ -131,7 +131,7 @@
       "priority": "P1",
       "issue": 317,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -461,6 +461,11 @@
         },
         {
           "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T075",
           "status": "todo",
           "attempts": 0
         },
