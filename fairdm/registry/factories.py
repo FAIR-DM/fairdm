@@ -462,10 +462,12 @@ class FilterFactory(ComponentFactory):
                         choices=field.choices
                     )
 
-                # ForeignKey fields get ModelChoiceFilter
+                # ForeignKey fields get ModelChoiceFilter, scoped to published
+                # records when the relation is to Sample, Measurement or
+                # Dataset (T040, FR-030, D3)
                 elif isinstance(field, models.ForeignKey):
                     filter_overrides[field_name] = filters.ModelChoiceFilter(
-                        queryset=field.related_model._default_manager.all()
+                        queryset=self._published_related_queryset(field.related_model)
                     )
 
                 # Numeric fields get RangeFilter
@@ -485,6 +487,27 @@ class FilterFactory(ComponentFactory):
                 pass
 
         return filter_overrides
+
+    def _published_related_queryset(self, related_model: type[models.Model]) -> Any:
+        """A related-record filter's choice list, scoped to published records
+        (T040, FR-030, D3).
+
+        The dataset branch goes through `Dataset.all_objects`, never
+        `Dataset.objects`: the default manager excludes PRIVATE datasets, and
+        a published-but-private dataset is the ordinary state (D1, FR-003) -
+        `Dataset.objects.published()` would leave the filter offering nothing
+        while the table shows that dataset's rows. Publication is the only
+        test a listing applies.
+        """
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
+
+        if issubclass(related_model, Dataset):
+            return Dataset.all_objects.published()
+        if issubclass(related_model, (Sample, Measurement)):
+            return related_model._default_manager.published()
+        return related_model._default_manager.all()
 
     def get_base_filterset_class(self) -> type[FilterSet]:
         """The base FilterSet class to build a specimen or measurement
