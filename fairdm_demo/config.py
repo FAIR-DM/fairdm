@@ -206,6 +206,9 @@ class ExampleMeasurementConfig(BaseMeasurementConfiguration):
         "decimal_field",
         "float_field",
     ]
+    # An explicit measurement declaration, narrower than the default: only
+    # `char_field` is searched, not `name` (FR-025).
+    search_fields = ["char_field"]
 
 
 # ========================================================================
@@ -255,6 +258,9 @@ class RockSampleConfig(BaseSampleConfiguration):
         "hardness_mohs",
         "mineral_content",
     ]
+    # An explicit declaration, narrower than the default: only `rock_type` is
+    # searched, not `name` (FR-025).
+    search_fields = ["rock_type"]
 
 
 # ========================================================================
@@ -336,6 +342,10 @@ class SoilSampleConfig(BaseSampleConfiguration):
         "ph_level",
         "depth_cm",
     ]
+
+    # An explicit declaration that also names the default: `name` alongside
+    # `soil_type` (FR-025).
+    search_fields = ["name", "soil_type"]
 
 
 # ========================================================================
