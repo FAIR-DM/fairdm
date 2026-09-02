@@ -332,3 +332,48 @@ class TestSearch:
         response = self._search(client, slug, "Obsidian")
 
         assert list(response.context["object_list"]) == []
+
+
+@pytest.mark.django_db
+class TestFilters:
+    """FR-029, Acceptance Scenario 6: every filter the registry generates for
+    a type narrows the listing to matching records and raises nothing."""
+
+    def test_a_char_filter_narrows_to_matching_records(self, client, published_dataset):
+        target = SoilSampleFactory(soil_type="Clay", dataset=published_dataset)
+        SoilSampleFactory(soil_type="Sand", dataset=published_dataset)
+
+        slug = registry.get_for_model(SoilSample).get_slug()
+        response = client.get(reverse(f"{slug}-list"), {"soil_type": "Clay"})
+
+        assert response.status_code == 200
+        assert list(response.context["object_list"]) == [target]
+
+    def test_a_range_filter_on_a_decimal_field_narrows_to_matching_records(
+        self, client, published_dataset
+    ):
+        target = SoilSampleFactory(ph_level="6.50", dataset=published_dataset)
+        SoilSampleFactory(ph_level="8.00", dataset=published_dataset)
+
+        slug = registry.get_for_model(SoilSample).get_slug()
+        response = client.get(
+            reverse(f"{slug}-list"),
+            {"ph_level_min": "6.00", "ph_level_max": "7.00"},
+        )
+
+        assert response.status_code == 200
+        assert list(response.context["object_list"]) == [target]
+
+    def test_a_range_filter_on_an_integer_field_narrows_to_matching_records(
+        self, client, published_dataset
+    ):
+        target = SoilSampleFactory(depth_cm=10, dataset=published_dataset)
+        SoilSampleFactory(depth_cm=100, dataset=published_dataset)
+
+        slug = registry.get_for_model(SoilSample).get_slug()
+        response = client.get(
+            reverse(f"{slug}-list"), {"depth_cm_min": "0", "depth_cm_max": "20"}
+        )
+
+        assert response.status_code == 200
+        assert list(response.context["object_list"]) == [target]
