@@ -140,9 +140,9 @@ class DataTableView(FairDMTableView):
         the shell's own implementation only returns it when `show_action("create")` is
         true, which gates a create button this read-only listing never offers.
         """
-        return _(
-            "There are no published %(type)s to show in this listing yet."
-        ) % {"type": self.model_config.get_verbose_name_plural()}
+        return _("There are no published %(type)s to show in this listing yet.") % {
+            "type": self.model_config.get_verbose_name_plural()
+        }
 
     @classmethod
     def get_urls(cls, **kwargs):
