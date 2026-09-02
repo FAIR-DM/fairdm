@@ -53,7 +53,6 @@ class DataTableView(FairDMTableView):
         return queryset
 
     def get_context_data(self, **kwargs):
-        from django.urls import NoReverseMatch
 
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
@@ -251,7 +250,6 @@ class CollectionsOverview(FairDMTemplateView):
 
     def get_context_data(self, **kwargs):
         """Add collection statistics and type information to the context."""
-        from django.urls import NoReverseMatch
 
         context = super().get_context_data(**kwargs)
 
@@ -372,7 +370,6 @@ class SamplesOverview(FairDMTemplateView):
 
     def get_context_data(self, **kwargs):
         """Add sample collection statistics and type information to the context."""
-        from django.urls import NoReverseMatch
 
         context = super().get_context_data(**kwargs)
 
@@ -446,7 +443,6 @@ class MeasurementsOverview(FairDMTemplateView):
 
     def get_context_data(self, **kwargs):
         """Add measurement collection statistics and type information to the context."""
-        from django.urls import NoReverseMatch
 
         context = super().get_context_data(**kwargs)
 
