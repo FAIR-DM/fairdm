@@ -2,12 +2,17 @@
 builds under Samples and Measurements (US4), and the crash-safety and empty-heading
 rules the menu tree needs to honour them."""
 
+import importlib
+import sys
+from pathlib import Path
+
 import pytest
 from django.apps import apps as django_apps
 from django.urls import reverse
 from flex_menu import Menu
 from mvp.menus import MenuCollapse
 
+import fairdm.apps
 from fairdm.menus import AppMenu
 from fairdm.registry import registry
 
@@ -143,3 +148,37 @@ class TestNavigationSurvivesAMissingMenuNode:
 
         assert isolated_menu.get("Samples") is not None
         assert isolated_menu.get("Measurements") is not None
+
+
+class TestNavigationDoesNotDependOnThisApp:
+    """FR-041: loading the portal's navigation does not depend on this application's
+    start-up.
+
+    The navigation is declared as an import side effect of `fairdm.menus.menus`, and
+    the only module that used to import it was this app's own `apps.py` - which made
+    the whole tree, Home and Projects and Datasets included, conditional on an
+    optional application being installed. The framework's own app config imports it
+    now.
+
+    Asserted against the import graph rather than a boot without the app. Removing it
+    from `INSTALLED_APPS` in-process proves nothing (`set_installed_apps()` re-runs no
+    module imports, so the already-declared menu would stand and the test would pass
+    either way), and a subprocess boot on a trimmed settings module does not get far
+    enough to answer the question - see the note in progress.md.
+    """
+
+    def test_the_framework_app_config_is_what_imports_the_menu(self):
+        source = Path(fairdm.apps.__file__).read_text()
+        assert "from fairdm import menus" in source, (
+            "fairdm/apps.py no longer imports the menu module, so the navigation is "
+            "back to depending on whichever optional app happens to import it"
+        )
+
+    def test_the_menu_module_is_loaded_once_the_framework_config_is(self):
+        importlib.import_module("fairdm.apps")
+        assert "fairdm.menus.menus" in sys.modules
+
+    def test_the_core_headings_are_present(self):
+        names = {str(child.name) for child in AppMenu.children}
+        for expected in ("Home", "Projects", "Datasets"):
+            assert expected in names

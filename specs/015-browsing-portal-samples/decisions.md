@@ -505,3 +505,36 @@ only Samples/Measurements, renders with `collections` uninstalled) — that woul
 `fairdm.menus import` moved off `fairdm.contrib.collections.apps` so it stops depending on that
 app's install status at all, which is a change to `fairdm/menus/menus.py` / `apps.py`'s import
 graph outside this story's scope (prohibited: "Do not edit `fairdm/menus/menus.py`").
+
+---
+
+## D21 — FR-041, what was fixed and what is only asserted statically
+
+**Decision:** `fairdm/apps.py` now imports `fairdm.menus` at module level, so the site navigation is
+declared by the framework's own app config rather than as a side effect of
+`fairdm.contrib.collections.apps`. `TestNavigationDoesNotDependOnThisApp`
+(`tests/test_contrib/test_collections/test_apps.py`) asserts that import is present, that the menu
+module is loaded once the framework config is, and that the core headings exist. It does **not**
+boot a portal with the collections app uninstalled.
+
+**Why the fix:** `fairdm.menus.menus` declares Home, Projects, Datasets, Literature, Community and
+Documentation as well as the two headings this feature populates, and until now the single module
+importing it anywhere in the codebase was the collections app's own `apps.py`. A portal that dropped
+that optional app would have got no navigation at all — not a crash, simply an empty tree. FR-041
+names exactly this: loading the navigation must not depend on that application's start-up. The
+import is at module level rather than in `ready()` because `fairdm.menus.menus` imports no models,
+only translation, `flex_menu` and `mvp.menus`.
+
+**Why the assertion is static:** the honest test is a boot that never loads the app, and neither
+route to one works here. `override_settings(INSTALLED_APPS=...)` calls `apps.set_installed_apps()`,
+which re-runs no module imports and undoes no import side effects, so the already-declared menu
+would still be standing and the test would pass with or without the fix. A subprocess boot on a
+settings module with the app filtered out does not get far enough to answer the question: it fails
+in `research_vocabs`, which reads a cache alias (`vocabularies`) that `tests/settings.py` does not
+define, at a point in app loading it apparently does not reach in the ordinary configuration. That
+is a property of the test settings, unrelated to the navigation, and chasing it belongs in its own
+piece of work rather than inside this story.
+
+**Revisit if:** the test settings gain a `vocabularies` cache alias, or the suite gains a fixture
+that boots a second settings module — either makes the real test cheap, and it should replace the
+source-level assertion at that point.
