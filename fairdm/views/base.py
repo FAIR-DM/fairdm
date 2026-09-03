@@ -291,6 +291,11 @@ class FairDMTableView(MetadataMixin, MVPTableViewMixin, FilterView):
         template_name (str): The template responsible for rendering the
             ``{{ table }}`` object. The template must explicitly render the
             table — no automatic table rendering is provided.
+        paginate_by (int): Number of rows per page. Default: ``100``.
+            ``paginate_by`` is the only page-size control a table view has —
+            ``MVPTableViewMixin`` switches pagination off entirely when it is
+            unset, and passes it explicitly when it is set, which takes
+            precedence over ``Table.Meta.per_page``.
 
     Context:
         meta: SEO metadata object (see :class:`meta.views.MetadataMixin`).
@@ -319,4 +324,4 @@ class FairDMTableView(MetadataMixin, MVPTableViewMixin, FilterView):
             template_name = "measurements/measurement_table.html"
     """
 
-    pass
+    paginate_by = 100

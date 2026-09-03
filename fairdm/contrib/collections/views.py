@@ -19,7 +19,6 @@ class DataTableView(FairDMTableView):
     template_name_suffix = "_table"
     template_name = "collections/listing.html"
     model_config = None  # To be set dynamically based on the model
-    paginate_by = 20
 
     def setup(self, request, *args, **kwargs):
         """Assign `search_fields` before `SearchMixin` runs (T039, FR-024).

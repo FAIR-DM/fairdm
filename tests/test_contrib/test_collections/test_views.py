@@ -16,6 +16,7 @@ from django.utils import timezone
 from pytest_django.asserts import assertContains
 
 import fairdm.contrib.collections as collections_pkg
+from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
@@ -130,10 +131,29 @@ class TestDefaultColumns:
 class TestPaging:
     """FR-017: a listing pages its results, and every page is reachable."""
 
+    def test_a_listing_takes_its_page_size_from_the_base_table_view(
+        self, client, published_dataset
+    ):
+        """T086: the listing declares no page size of its own, so the base
+        class's 100 is what reaches it. A base class with no default at all
+        would leave it unpaginated."""
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert "paginate_by" not in DataTableView.__dict__
+        assert response.context["table"].paginator.per_page == 100
+
     def test_a_second_page_returns_the_next_slice_and_carries_paging_controls(
         self, client, published_dataset
     ):
-        samples = RockSampleFactory.create_batch(25, dataset=published_dataset)
+        # Enough rows to spill onto a second page at whatever page size the view
+        # is configured for, rather than a literal that silently stops producing
+        # one when that size changes (T086 raised it from 20 to 100).
+        samples = RockSampleFactory.create_batch(
+            DataTableView.paginate_by + 5, dataset=published_dataset
+        )
         # `Sample`'s default ordering is `added` (auto_now_add), and a tight creation
         # loop can leave several rows with the same timestamp - a stable default order
         # with a tie-break is T041's deliverable (US-3, D5), not this story's. Space

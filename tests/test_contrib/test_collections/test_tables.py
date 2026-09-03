@@ -4,6 +4,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
+from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory, PointFactory
 from fairdm.registry import registry
@@ -275,7 +276,11 @@ class TestOrdering:
         # Force every row to the same `added` timestamp - `Sample.Meta.ordering`
         # is `["added"]` alone, so without a unique tie-break, ties like these
         # are exactly what lets a page repeat or skip a row (D5, FR-033).
-        samples = RockSampleFactory.create_batch(25, dataset=published_dataset)
+        # Enough rows to spill onto a second page at whatever page size the view
+        # is configured for, rather than a literal that silently stops producing
+        # one when that size changes (T086 raised it from 20 to 100).
+        row_count = DataTableView.paginate_by + 5
+        samples = RockSampleFactory.create_batch(row_count, dataset=published_dataset)
         same_instant = timezone.now()
         Sample.objects.filter(pk__in=[s.pk for s in samples]).update(added=same_instant)
 
@@ -298,7 +303,7 @@ class TestOrdering:
 
         assert first_ids == first_ids_again
         assert set(first_ids).isdisjoint(second_ids)
-        assert len(set(first_ids) | set(second_ids)) == 25
+        assert len(set(first_ids) | set(second_ids)) == row_count
 
         # The behavioural check above can hold by coincidence of how Postgres
         # happens to break ties today - this pins the actual mechanism: the
