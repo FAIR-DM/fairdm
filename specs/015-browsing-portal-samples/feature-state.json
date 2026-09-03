@@ -3,7 +3,7 @@
   "feature": "015-browsing-portal-samples",
   "branch": "015-browsing-portal-samples",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -44,6 +44,11 @@
       "state": "REVIEW",
       "at": "2026-09-03T09:44:13Z",
       "note": "two reviewers returned; one verified critical (filter choice lists leaked unpublished record names), fixed with tests, plus three lower findings and one citation slip"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-03T10:02:22Z",
+      "note": "review fixes landed and verified; PR body rewritten, review posted, PR out of draft; all five named checks green at d5eb56d"
     }
   ],
   "gates": {
