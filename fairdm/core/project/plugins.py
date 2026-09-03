@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
 from mvp.views import MVPFormView
 from mvp.views.detail import CRUDDirectoryMixin
-from mvp.views.inline import InlinesMixin
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
@@ -102,7 +101,7 @@ class ProjectDatesInline(ProjectDateInline):
     )
 
 
-class Update(PrivateRecordNotFoundMixin, Plugin, InlinesMixin, FairDMUpdateView):
+class Update(PrivateRecordNotFoundMixin, Plugin, FairDMUpdateView):
     """The project's own attributes: name, status, visibility, owner, plus its identifiers and
     dates. Titled and addressed for what a researcher does here rather than for how the record is
     built — "Attributes" had no counterpart anywhere else in the portal, while the deletion page is

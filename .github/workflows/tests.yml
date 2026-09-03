@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   call-tests:
-    uses: django-mvp/shared/.github/workflows/tests.yml@v0.4.0
+    uses: django-mvp/shared/.github/workflows/tests.yml@v0.4.1
     with:
       coverage-package: fairdm
       # Django 6.0 is outside this package's supported range (see the django
