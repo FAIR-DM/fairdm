@@ -49,6 +49,11 @@
       "state": "PR_READY",
       "at": "2026-09-03T10:02:22Z",
       "note": "review fixes landed and verified; PR body rewritten, review posted, PR out of draft; all five named checks green at d5eb56d"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-03T14:20:00Z",
+      "note": "merge-gate feedback round: T081-T085 by one implementer, T086 (table pagination default) direct. Six tasks, six commits, no story issue - a feedback round, not a story. Receipts green, verify green, tamper flags benign."
     }
   ],
   "gates": {
@@ -734,6 +739,125 @@
           }
         }
       ]
+    },
+    {
+      "id": "US7",
+      "priority": "P1",
+      "issue": null,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T081",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestColumnClassNamespacing"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:109",
+              "fairdm/contrib/collections/tables.py:110"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_tables.py::TestColumnClassNamespacing -q",
+              "grepped templates, CSS, JS and tests for a selector on the bare field-name class before namespacing it; none found"
+            ]
+          }
+        },
+        {
+          "id": "T082",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestFalseyHeadersRenderEmpty"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:45",
+              "fairdm/contrib/collections/tables.py:147",
+              "fairdm/contrib/collections/tables.py:173"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_tables.py::TestFalseyHeadersRenderEmpty -q"
+            ]
+          }
+        },
+        {
+          "id": "T083",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestSampleListingLeadsWithIconColumns",
+              "tests/test_contrib/test_collections/test_tables.py::TestLocationColumnRendering"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:156",
+              "fairdm/contrib/collections/tables.py:61",
+              "fairdm/contrib/collections/tables.py:147"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T084",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestSwitcherIsInlineWithTheTitle"
+            ],
+            "code": [
+              "fairdm/contrib/collections/templates/collections/listing.html:4",
+              "fairdm/contrib/collections/templates/collections/listing.html:9"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T085",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestColumnHeaderTitleFromHelpText"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:124"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_tables.py::TestColumnHeaderTitleFromHelpText -q"
+            ]
+          }
+        },
+        {
+          "id": "T086",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_base.py::TestFairDMTableViewPagination",
+              "tests/test_contrib/test_collections/test_views.py::TestPaging",
+              "tests/test_contrib/test_collections/test_tables.py::TestOrdering::test_unsorted_order_is_stable_and_repeatable_across_pages"
+            ],
+            "code": [
+              "fairdm/views/base.py:327",
+              "fairdm/views/base.py:294",
+              "fairdm/contrib/collections/views.py:11"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_base.py tests/test_contrib/test_collections/ -q (86 passed)",
+              "removed paginate_by from FairDMTableView to prove the gate: the new test went red on a table with no paginator at all, then restored"
+            ]
+          }
+        }
+      ]
     }
   ],
   "budgets": {
@@ -756,6 +880,6 @@
   },
   "pr": {
     "number": 322,
-    "draft": true
+    "draft": false
   }
 }

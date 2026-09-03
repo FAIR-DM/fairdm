@@ -687,3 +687,76 @@ this branch created. No test that existed before the branch was changed or remov
 which is what D23 records.
 
 **ADR:** none - a note about one comment in this feature's own tests, spent when the branch merges.
+
+---
+
+## D26 — The merge-gate feedback round, and the two calls inside it that were not obvious
+
+**Decision:** The maintainer opened the pages himself at the merge gate and sent five pieces of
+feedback on the listing tables. They landed as T081–T085, one commit each, and they are a feedback
+round rather than a seventh user story: no issue, no spec change, and every one of them corrects
+something this feature's own tasks already delivered.
+
+- **T081** — a column's CSS class was the field's own name, unnamespaced. A model field called
+  `status`, `badge` or `link` therefore emitted a class the DaisyUI stylesheet already owns, and the
+  header rendered as that component. The class is now `col-<name>`; the field-type class is
+  untouched.
+- **T082** — `verbose_name=False` on the three headerless columns printed the literal word "False".
+  `BoundColumn.verbose_name` tests `is not None`, so `False` passes straight through.
+  `verbose_name=""` is the idiom that renders empty.
+- **T083** — sample listings lead with the dataset and location icons, via `SampleTable.Meta.sequence`.
+  `MeasurementTable` is deliberately not reordered.
+- **T084** — the switcher sits inline with the page title as a small button labelled "Switch".
+- **T085** — a column header carries its field's `help_text` as a `title` attribute.
+
+**The location column was not the defect it looked like.** The report was that a sample without a
+location still showed a linked icon. Reproducing it first showed django-tables2 never calls a
+column's render method at all when the accessor resolves to `None` — it substitutes the column's
+`default`, which was the table-wide `—`. So the cell was already unlinked, and the actual defect
+was the placeholder. `default=""` fixes that. Two consequences follow rather than being separate
+choices: `linkify=True` had to come off, because `render_location` now returns its own anchor and
+would otherwise be double-wrapped; and `render_location` takes `value` instead of `record`, because
+the two subclasses reach the location through different accessors (`location` and `sample.location`)
+and `value` is the resolved object either way.
+
+**`better_row_classes` is now `configure_column_attrs`.** The method sets the header tooltip as well
+as the row classes once T085 lands, and the old name no longer described it.
+
+**ADR:** none - five corrections to this feature's own surface, each with its own test, spent when
+the branch merges. The one general rule among them - a falsey column header should be omitted rather
+than printed - belongs to the shared template's own package and is filed there as django-mvp#319.
+
+---
+
+## D27 — Table views page at 100 rows, and the default belongs on the base class
+
+**Decision:** `FairDMTableView` declares `paginate_by = 100`, and `DataTableView` no longer declares
+a page size of its own (T086).
+
+**Why the base class and not the listing.** `FairDMTableView` declared no `paginate_by` at all, so
+it resolved to `None` from Django's `MultipleObjectMixin` — and `MVPTableViewMixin` reads an unset
+`paginate_by` as "do not paginate", not as "use a sensible default". Every table view in the
+framework was therefore unpaginated unless it named a size itself, and the only reason a listing
+paged today was `DataTableView.paginate_by = 20`. Raising that 20 to 100 would have satisfied the
+request and left the hole open for the next table view. Setting the base default closes both.
+
+**Why not `Table.Meta.per_page`.** It exists and would be the obvious place, but it is unreachable
+in this stack. `MVPTableViewMixin.get_table_pagination` switches pagination off entirely when
+`paginate_by` is unset, and passes `paginate_by` explicitly when it is set, which beats the `Meta`
+fallback either way. That mixin documents `paginate_by` as the single control, for the same reason
+it refuses a view-level `order_by`.
+
+**Why this was implemented directly rather than dispatched.** One attribute on one class, one
+removal, and three tests. The dispatch overhead exceeds the work.
+
+**Two existing paging tests moved with it.** Both built a second page out of 25 rows, which only
+produced one at a page size of 20. They now take their row count from the view's configured page
+size, so the assertion they were written to make — every page is reachable, and no row repeats or is
+skipped across a page boundary — still holds at whatever size is set. Neither assertion was
+weakened; the gate was re-proved by removing `paginate_by` and watching the new test go red against
+a table with no paginator at all.
+
+**ADR:** none - a default value, not an architecture. The constraint behind it (that `paginate_by`
+is the only page-size control a table view has, and that leaving it unset means no pagination) is
+recorded in `FairDMTableView`'s own `Config` docstring, which is where a developer setting a page
+size will meet it.

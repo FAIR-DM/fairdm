@@ -494,6 +494,28 @@ stands, the full suite and the demo app still pass.
       README's "linkified sample column", and ADR 0015's "goes blank" for a cell whose record the
       visitor cannot read (FR-059)
 
+## Phase 10: Merge-gate feedback (complete)
+
+Appended after the maintainer opened the pages at the merge gate. Not a seventh user story: no
+issue, no spec change, and each task corrects something an earlier task in this feature delivered.
+Evidence for all six is in `feature-state.json` under `US7`; the reasoning is decisions.md D26–D27.
+
+- [x] T081 Namespace a column's field-name CSS class as `col-<name>` on both header and data cells,
+      so a field called `status`, `badge` or `link` stops rendering as the DaisyUI component of that
+      name — `fairdm/contrib/collections/tables.py`
+- [x] T082 Use `verbose_name=""` rather than `verbose_name=False` on the three headerless columns,
+      which were printing the literal word "False" — `fairdm/contrib/collections/tables.py`
+- [x] T083 Lead a sample listing with the dataset and location icon columns via
+      `SampleTable.Meta.sequence`, and render the location cell as nothing where the record has no
+      location — `fairdm/contrib/collections/tables.py` (D26)
+- [x] T084 Move the listing switcher inline with the page title, as a small button labelled "Switch"
+      — `fairdm/contrib/collections/templates/collections/listing.html`
+- [x] T085 Carry a column's underlying field `help_text` as the `title` attribute on its `th`, for a
+      plain browser tooltip — `fairdm/contrib/collections/tables.py`
+- [x] T086 Give `FairDMTableView` a `paginate_by` of 100 and drop `DataTableView`'s own 20, so the
+      framework's table views have a page size rather than none — `fairdm/views/base.py`,
+      `fairdm/contrib/collections/views.py` (D27)
+
 ## Dependencies & execution order
 
 - **Setup (T001)** — no dependencies.
