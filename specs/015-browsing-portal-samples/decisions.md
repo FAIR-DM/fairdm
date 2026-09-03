@@ -604,3 +604,24 @@ placement — at that point the file has enough independent history that a furth
 commit again, this one just could not be split at the seam the task list drew.
 
 **ADR:** none - a commit-boundary note, spent on the commit it describes.
+
+## D23 — The eight test files flagged across the feature diff were appended to, never edited
+
+**Decision:** the guardrail that flags changes to tests which existed before this branch reports
+eight files at convergence — `tests/test_core/test_abstract.py`, four under
+`tests/test_core/test_dataset/`, `tests/test_core/test_measurement/test_managers.py`,
+`tests/test_registry/test_config.py` and `tests/test_registry/test_factories.py`. All eight are
+approved.
+
+**Why:** the flag is raised per file, and every one of these files gained lines and lost none. The
+whole feature diff deletes zero lines anywhere under `tests/`, checked directly rather than read
+off the report: `git diff 8c9290f..HEAD -- 'tests/**'` has no removed line at all. What the eight
+have in common is that this feature adds a `Test*` class to an existing module, which is what the
+testing structure standard asks for — a cross-cutting test belongs in the module of its subject,
+not in a new file named after the concern.
+
+**What would not be approvable:** a changed assertion, a narrowed parametrisation, a deleted case.
+None of those appear. Re-run the check against the merge base rather than trusting this entry if
+the branch is rebased.
+
+**ADR:** none - a triage record for one run's guardrail output, spent when the branch merges.
