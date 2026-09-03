@@ -76,11 +76,13 @@ class BaseTable(tables.Table):
         super().__init__(*args, **kwargs)
         self.base_columns["id"].visible = False
 
-        self.better_row_classes()
+        self.configure_column_attrs()
 
         self.update_concept_field_render_methods()
 
-    def better_row_classes(self):
+    def configure_column_attrs(self):
+        """Resolve each column's underlying model field, once, and use it to set
+        both the type/name CSS classes and the header tooltip."""
         model = getattr(self._meta, "model", None)
 
         # Iterate over bound columns (safer) and update/ensure the nested 'td' dict exists.
@@ -94,6 +96,7 @@ class BaseTable(tables.Table):
             fname = getattr(col, "accessor", None) or getattr(col, "name", "")
             field_name_for_lookup = fname.split(".")[0] if fname else ""
 
+            db_field = None
             field_type = "CharField"
             if model and field_name_for_lookup:
                 try:
@@ -115,6 +118,10 @@ class BaseTable(tables.Table):
             th = col.attrs.setdefault("th", {})
             current_th = th.get("class", "")
             th["class"] = f"{classes} {current_th if current_th else ''}".strip()
+
+            help_text = getattr(db_field, "help_text", "") if db_field else ""
+            if help_text:
+                th["title"] = str(help_text)
 
     def update_concept_field_render_methods(self):
         """

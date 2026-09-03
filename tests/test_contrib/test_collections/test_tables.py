@@ -160,6 +160,41 @@ class TestLocationColumnRendering:
 
 
 @pytest.mark.django_db
+class TestColumnHeaderTitleFromHelpText:
+    """T085: a column mapped to a real database field with `help_text` carries
+    that text as the `title` attribute on the `th`, for a plain browser
+    tooltip. A field with no help text, or no underlying field at all, gets
+    no `title` attribute."""
+
+    def test_a_column_mapped_to_a_field_with_help_text_gets_a_matching_title(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        bound_column = response.context["table"].columns["dataset"]
+        field = Sample._meta.get_field("dataset")
+        assert field.help_text
+        assert bound_column.attrs["th"]["title"] == str(field.help_text)
+
+    def test_a_column_mapped_to_a_field_with_no_help_text_gets_no_title(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        table = response.context["table"]
+        bound_column = table.columns.columns["id"]
+        field = Sample._meta.get_field("id")
+        assert not field.help_text
+        assert "title" not in bound_column.attrs["th"]
+
+
+@pytest.mark.django_db
 class TestSampleColumn:
     """FR-013, D3: where a measurement's sample belongs to an unpublished dataset, the
     row shows neither the sample's name nor a link to it."""
