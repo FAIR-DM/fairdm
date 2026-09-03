@@ -1,0 +1,885 @@
+{
+  "$schema": "aeo/feature-state.schema.json",
+  "feature": "015-browsing-portal-samples",
+  "branch": "015-browsing-portal-samples",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-01T00:00:00Z",
+      "note": "spec.md: 6 stories, 60 requirements, 10 success criteria, 9 clarifications. decisions.md D1-D8. FS-014 FR-066 annotated in place as superseded."
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-01T00:00:00Z",
+      "note": "epic #315, stories #316-321, draft PR #322"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-01T00:00:00Z",
+      "note": "approved in session, no amendments"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-01T00:00:00Z",
+      "note": "plan, research (13 items), data-model, quickstart, 66-task graph across 6 stories"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-02T08:54:05Z",
+      "note": "one reviewer, three lenses, one round; then two cross-artefact consistency passes. 13 findings applied in round one, 14 in round two. Task graph 66 -> 74, append-only, no renumbering. Two test-first violations and two design defects fixed before any code was written."
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-02T08:54:31Z",
+      "note": "foundational block first, then one implementer per story"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-03T08:46:17Z",
+      "note": "all six stories done; polish landed: docs page, six ADRs, migrations squashed to one per app, deletion residue removed. Full verify green (lint, types, 2595 tests, build, conformance, docs)."
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-03T09:44:13Z",
+      "note": "two reviewers returned; one verified critical (filter choice lists leaked unpublished record names), fixed with tests, plus three lower findings and one citation slip"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-03T10:02:22Z",
+      "note": "review fixes landed and verified; PR body rewritten, review posted, PR out of draft; all five named checks green at d5eb56d"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-03T14:20:00Z",
+      "note": "merge-gate feedback round: T081-T085 by one implementer, T086 (table pagination default) direct. Six tasks, six commits, no story issue - a feedback round, not a story. Receipts green, verify green, tamper flags benign."
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-01T00:00:00Z",
+      "self_resolved": [
+        "listing shows published data only, identically for every viewer (D1)",
+        "record's own dataset decides presence; unpublished referent loses name and link (D3)",
+        "listing URL names move to <name>-list, away from <slug>-collection (D7)",
+        "retiring fairdm/contrib/collections dead code is US-6, not an implicit tidy (D8)"
+      ]
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-02T08:53:24Z",
+      "self_resolved": [
+        "measurement rows never linked to their own record; a linkified own-record column added (T073, FR-019)",
+        "filter choice list built from the privacy-first manager would be empty for a published-but-private dataset; routed through the unfiltered manager (T040, D3)",
+        "admin change was ordered before its own test; moved behind it into US-1 (T014 then T005, Article I)",
+        "duplicate-slug refusal had no test at all; one added (T072, FR-050)",
+        "demo search declaration was ordered before the test that fails without it; moved into US-3 (T030 behind T032, Article I)",
+        "declaration validation asked whether a field supports a substring lookup, which every Django field does; replaced with a text-type test matching the one the registry already uses (T013, D12)",
+        "eager loading was assigned to a queryset method that documents itself as not doing deep nesting, and to one also used for filter choice lists; moved to the view (T025, D13)",
+        "menu suppression assigned to a method name rather than the attribute the library reads (T047)",
+        "switcher block left unnamed; naming it avoids an override that would silently delete the search box (T069)",
+        "research described the listing queryset as built from scratch, which would disable search and filtering (R3, R6)",
+        "dead context keys and a settings comment naming a deleted template folded into the deletion story (T057, T058)",
+        "an index task touching an inherited field would have pulled help text into four models' forms; exclusion recorded rather than done (data-model.md)",
+        "six requirements and four success criteria covered in substance but uncited; traceability added"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 316,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 317,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T070",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T071",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T072",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T073",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 318,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T033",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T067",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T068",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 319,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T042",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py:26"
+            ]
+          }
+        },
+        {
+          "id": "T043",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py:40"
+            ]
+          }
+        },
+        {
+          "id": "T044",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py:56"
+            ]
+          }
+        },
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py:84"
+            ]
+          }
+        },
+        {
+          "id": "T046",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "tests/test_contrib/test_collections/test_apps.py:130"
+            ]
+          }
+        },
+        {
+          "id": "T047",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/apps.py:20"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 320,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T049",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T069",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T076",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P3",
+      "issue": 321,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T055",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn CollectionRedirectView . (no matches outside the deleted class)",
+              "poetry run ruff check fairdm/contrib/collections/views.py",
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py tests/test_contrib/test_collections/test_urls.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T056",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn DataTablePlugin . (no matches, file deleted)",
+              "poetry run pytest tests/test_contrib/test_collections/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestNothingUnreachable::test_a_listing_response_offers_no_download_control_in_any_format"
+            ],
+            "code": [
+              "fairdm/contrib/collections/views.py:50"
+            ]
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rln table.html / collection_tags . (only the deleted files matched)",
+              "poetry run ruff check fairdm/contrib/collections/ fairdm/conf/settings/apps.py",
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py -q"
+            ],
+            "code": [
+              "fairdm/conf/settings/apps.py:246"
+            ]
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rln data-collections samples-overview measurements-overview CollectionsOverview SamplesOverview MeasurementsOverview . (only views.py/urls.py/their own templates)",
+              "poetry run pytest tests/test_contrib/test_collections/ -q"
+            ],
+            "code": [
+              "fairdm/contrib/collections/urls.py:6"
+            ]
+          }
+        },
+        {
+          "id": "T075",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn get_collection_url . (no matches)",
+              "poetry run pytest tests/test_core/test_abstract.py -q"
+            ],
+            "code": [
+              "fairdm/core/abstract.py:169"
+            ]
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/README.md:1"
+            ]
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest fairdm_demo/tests/ -q  (worktree at base commit 8c9290f: 3 failed, 54 passed \u2014 the three named pre-existing failures)",
+              "poetry run pytest fairdm_demo/tests/ -q  (HEAD: same 3 failed, 54 passed \u2014 no new failure)",
+              "poetry run pytest -q  (tests/: 2595 passed, 8 skipped)",
+              "git log --stat 0827789..HEAD -- tests/** fairdm_demo/tests/**  (no test file deleted)"
+            ]
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/listing-a-registered-type.md:1",
+              "docs/portal-development/index.md:78"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestTableFactory::test_a_declared_long_text_field_is_left_out_of_the_generated_table"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_registry/test_factories.py::TestTableFactory -q (8 passed)",
+              "reverted _filter_table_fields to prove the new test goes red, then restored"
+            ]
+          }
+        },
+        {
+          "id": "T063",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "specs/014-dataset-crud-views/spec.md:452"
+            ]
+          }
+        },
+        {
+          "id": "T064",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "ran quickstart.md sections 1-7 as a temporary walkthrough module against the demo app (10 passed), then deleted it",
+              "section 2 corrected the docs rather than the code: a declared TextField is dropped from the generated table on purpose"
+            ]
+          }
+        },
+        {
+          "id": "T065",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/ tests/test_registry/ --cov=fairdm/contrib/collections (91.5% total, floor is 90%)"
+            ]
+          }
+        },
+        {
+          "id": "T066",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/migrations/0012_dataset_published_alter_dataset_name.py:1"
+            ],
+            "commands": [
+              "deleted dataset 0012 and 0013, regenerated as one file",
+              "poetry run python manage.py makemigrations --check --dry-run (only the two pre-existing dirty apps remain: identity, orbit)",
+              "full suite green"
+            ]
+          }
+        },
+        {
+          "id": "T074",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestNothingUnreachable::test_every_remaining_module_is_reached_from_a_real_entry_point",
+              "tests/test_contrib/test_collections/test_views.py::TestNothingUnreachable::test_a_listing_response_offers_no_download_control_in_any_format"
+            ],
+            "code": [
+              "tests/test_contrib/test_collections/test_views.py:507"
+            ]
+          }
+        },
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/views.py:176"
+            ],
+            "commands": [
+              "git rm -r fairdm/contrib/collections/templatetags/",
+              "poetry run ruff check fairdm/contrib/collections/views.py",
+              "full suite green"
+            ]
+          }
+        },
+        {
+          "id": "T078",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestFilterChoicesOnTheRenderedPage"
+            ],
+            "code": [
+              "fairdm/registry/factories.py:363",
+              "fairdm/contrib/collections/views.py:37"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py::TestFilterChoicesOnTheRenderedPage -q (5 passed)",
+              "removed the wrap in get_filterset_class to prove the gate: 4 of 5 red, the negative control green, then restored"
+            ]
+          }
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_apps.py::TestEmptyRegistryHidesItsHeading"
+            ],
+            "code": [
+              "fairdm/menus/menus.py:9",
+              "fairdm/contrib/collections/apps.py:39"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_apps.py -q (12 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T080",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/README.md:33",
+              "docs/adr/0015-a-records-own-dataset-decides-and-a-row-never-links-past-it.md:10"
+            ],
+            "commands": [
+              "both claims re-read against fairdm/contrib/collections/tables.py:47-59 and :164-167"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US7",
+      "priority": "P1",
+      "issue": null,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T081",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestColumnClassNamespacing"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:109",
+              "fairdm/contrib/collections/tables.py:110"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_tables.py::TestColumnClassNamespacing -q",
+              "grepped templates, CSS, JS and tests for a selector on the bare field-name class before namespacing it; none found"
+            ]
+          }
+        },
+        {
+          "id": "T082",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestFalseyHeadersRenderEmpty"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:45",
+              "fairdm/contrib/collections/tables.py:147",
+              "fairdm/contrib/collections/tables.py:173"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_tables.py::TestFalseyHeadersRenderEmpty -q"
+            ]
+          }
+        },
+        {
+          "id": "T083",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestSampleListingLeadsWithIconColumns",
+              "tests/test_contrib/test_collections/test_tables.py::TestLocationColumnRendering"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:156",
+              "fairdm/contrib/collections/tables.py:61",
+              "fairdm/contrib/collections/tables.py:147"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/ -q"
+            ]
+          }
+        },
+        {
+          "id": "T084",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestSwitcherIsInlineWithTheTitle"
+            ],
+            "code": [
+              "fairdm/contrib/collections/templates/collections/listing.html:4",
+              "fairdm/contrib/collections/templates/collections/listing.html:9"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T085",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestColumnHeaderTitleFromHelpText"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:124"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_tables.py::TestColumnHeaderTitleFromHelpText -q"
+            ]
+          }
+        },
+        {
+          "id": "T086",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_base.py::TestFairDMTableViewPagination",
+              "tests/test_contrib/test_collections/test_views.py::TestPaging",
+              "tests/test_contrib/test_collections/test_tables.py::TestOrdering::test_unsorted_order_is_stable_and_repeatable_across_pages"
+            ],
+            "code": [
+              "fairdm/views/base.py:327",
+              "fairdm/views/base.py:294",
+              "fairdm/contrib/collections/views.py:11"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_base.py tests/test_contrib/test_collections/ -q (86 passed)",
+              "removed paginate_by from FairDMTableView to prove the gate: the new test went red on a table with no paginator at all, then restored"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  },
+  "pr": {
+    "number": 322,
+    "draft": false
+  }
+}

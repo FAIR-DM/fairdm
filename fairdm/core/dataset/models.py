@@ -131,6 +131,16 @@ class DatasetQuerySet(QuerySet):
     unfiltered route FR-019 requires.
     """
 
+    def published(self) -> "DatasetQuerySet":
+        """Datasets whose own `published` flag is set (FR-030, D3).
+
+        Called on `all_objects`, never `objects`: the default manager already
+        excludes PRIVATE datasets, and a published-but-private dataset is the
+        ordinary state a related-record filter's choice list must still offer
+        (T040).
+        """
+        return self.filter(published=True)
+
     def with_related(self) -> "DatasetQuerySet":
         """Prefetch project and contributors (bounded, regardless of result count)."""
         return self.prefetch_related(
@@ -242,6 +252,17 @@ class Dataset(BaseModel):
         default=VISIBILITY_CHOICES.PRIVATE,
         db_index=True,
         help_text=_("Visibility within the application."),
+    )
+
+    published = models.BooleanField(
+        _("published"),
+        default=False,
+        db_index=True,
+        help_text=_(
+            "Whether the data beneath this dataset may be shown publicly. "
+            "Independent of visibility, which governs metadata only. Set in "
+            "the Django admin."
+        ),
     )
 
     # GENERIC RELATIONS

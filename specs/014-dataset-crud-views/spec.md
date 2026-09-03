@@ -449,8 +449,13 @@ rather than inventing a second one.
 - **FR-064**: Tags MUST NOT be editable through this feature, for the same reason.
 - **FR-065**: Contributors MUST NOT be managed through this feature. It records the creator on
   creation and does nothing else with contributions.
-- **FR-066**: Nothing in this feature MUST publish a dataset's data, gate access to it, or introduce
-  a published state. A dataset's visibility governs its metadata alone.
+- **FR-066**: ~~Nothing in this feature MUST publish a dataset's data, gate access to it, or
+  introduce a published state. A dataset's visibility governs its metadata alone.~~
+  **Superseded on 2026-09-01 by `015-browsing-portal-samples` FR-001, which adds a published flag
+  to a dataset.** The half of this requirement that still holds is unchanged and now lives there: a
+  dataset's visibility governs its metadata alone, the published flag is a separate and independent
+  thing, and the checked process that decides when a dataset may be published remains R22's work.
+  Nothing in *this* feature publishes a dataset's data or reads that flag.
 - **FR-067**: This feature MUST NOT change how a project's deletion is refused, even though that
   refusal is keyed on a dataset's visibility.
 

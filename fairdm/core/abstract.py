@@ -28,7 +28,7 @@ class BaseModel(models.Model):
         upload_to=default_image_path,
         resize_source={"size": (2400, 1600), "crop": False},
     )
-    name = models.CharField(_("name"), max_length=300)
+    name = models.CharField(_("name"), max_length=300, db_index=True)
 
     keywords: models.ManyToManyField = models.ManyToManyField(
         "research_vocabs.Concept",
@@ -169,11 +169,6 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
     def get_absolute_url(self):
         type_of = self.type_of.__name__.lower()
         return reverse(f"{type_of}:overview", kwargs={"uuid": self.uuid})
-
-    def get_collection_url(self):
-        """Returns the URL to the collection of this model."""
-        slug = self._meta.model_name.lower()
-        return reverse(f"{slug}-collection")
 
     class Meta:
         abstract = True

@@ -172,8 +172,9 @@ class DatasetAdmin(admin.ModelAdmin):
         "has_data",
         "has_abstract",
         "has_doi",
+        "published",
     )
-    list_filter = ("project", "license", "visibility")
+    list_filter = ("project", "license", "visibility", "published")
     readonly_fields = ("uuid", "added", "modified")
     autocomplete_fields = ("project", "reference")
 
@@ -186,6 +187,7 @@ class DatasetAdmin(admin.ModelAdmin):
                     "uuid",
                     "project",
                     "visibility",
+                    "published",
                 )
             },
         ),

@@ -206,6 +206,34 @@ class TestDatasetVisibility:
 
 
 @pytest.mark.django_db
+class TestDatasetPublished:
+    """T002 / FR-001, FR-002: `Dataset.published` defaults to `False`, and
+    every existing row reads back unpublished once the column exists."""
+
+    def test_published_defaults_to_false_when_unset(self):
+        """A dataset created without naming `published` is unpublished."""
+        dataset = Dataset.objects.create(
+            name="Unpublished by default", project=ProjectFactory()
+        )
+
+        dataset.refresh_from_db()
+
+        assert dataset.published is False
+
+    def test_every_existing_dataset_reads_back_unpublished(self):
+        """Datasets already in the table when the column is added all carry
+        the column default, `False` - proven here across several rows
+        created with no `published` value stated, the state the migration's
+        `AddField` leaves every pre-existing row in (FR-002)."""
+        datasets = DatasetFactory.create_batch(3)
+
+        reloaded = Dataset.all_objects.filter(pk__in=[d.pk for d in datasets])
+
+        assert reloaded.count() == 3
+        assert all(d.published is False for d in reloaded)
+
+
+@pytest.mark.django_db
 class TestDatasetVisibilityGuarantees:
     """FR-019a: following a relation to a dataset, deleting a record it
     depends on, and the administrative interface all still see it
@@ -1685,6 +1713,27 @@ class TestWithRelatedOptimization:
 
         # Assert
         assert isinstance(result, type(Dataset.objects.all()))
+
+
+@pytest.mark.django_db
+class TestPublishedQuerySet:
+    """T067: `Dataset.all_objects.published()` returns published datasets only,
+    including one published while its visibility is private - the ordinary
+    state, and the reason the choice list in T040 cannot use the privacy-first
+    default manager (FR-030, D3)."""
+
+    def test_published_returns_only_published_datasets_including_a_private_one(self):
+        published_private = DatasetFactory(
+            published=True, visibility=Visibility.PRIVATE
+        )
+        published_public = DatasetFactory(published=True, visibility=Visibility.PUBLIC)
+        unpublished = DatasetFactory(published=False)
+
+        result = Dataset.all_objects.published()
+
+        assert published_private in result
+        assert published_public in result
+        assert unpublished not in result
 
 
 @pytest.mark.django_db

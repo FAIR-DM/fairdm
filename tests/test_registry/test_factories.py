@@ -11,13 +11,18 @@ from django.forms import ModelForm
 from django_filters import FilterSet
 from django_tables2 import Table
 
+from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
+from fairdm.factories import DatasetFactory
 from fairdm.registry.factories import (
     AdminFactory,
     FilterFactory,
     FormFactory,
     TableFactory,
 )
+from fairdm.utils.choices import Visibility
+from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from fairdm_demo.models import ExampleMeasurement
 
 
 @pytest.fixture
@@ -418,6 +423,19 @@ class TestTableFactory:
         assert "status" in fields
         assert "description" not in fields
 
+    def test_a_declared_long_text_field_is_left_out_of_the_generated_table(self):
+        """A TextField named in `fields` reaches every other component but not the
+        table: one long value would push the other columns off the page. Stated in
+        docs/portal-development/listing-a-registered-type.md, so it is guarded here
+        rather than left as an undeclared property of the factory."""
+        factory = TableFactory(SampleModel, fields=["name", "description", "status"])
+
+        table_class = factory.generate()
+
+        assert "description" in factory.get_fields()
+        assert "description" not in table_class.base_columns
+        assert {"name", "status"} <= set(table_class.base_columns)
+
     def test_table_with_parent_fields(self):
         """Test table using explicitly provided fields."""
         parent_fields = ["name", "status"]
@@ -664,3 +682,68 @@ class TestFilterFactoryMeasurementBranch:
 
         assert "search" in filterset_class.base_filters
         assert "sample" in filterset_class.base_filters
+
+
+@pytest.mark.django_db
+class TestPublishedChoiceLists:
+    """T036, FR-030, D3: a related-record filter's generated choice list
+    excludes values that exist only on an unpublished record, for the
+    sample, measurement and dataset filters - and includes a dataset that
+    is published while private, the ordinary state. Mirrors the module
+    T040 changes."""
+
+    def test_a_sample_filters_choice_list_excludes_unpublished_samples(self):
+        published = RockSampleFactory(dataset=DatasetFactory(published=True))
+        unpublished = RockSampleFactory(dataset=DatasetFactory(published=False))
+
+        filterset_class = FilterFactory(
+            ExampleMeasurement, fields=["name", "sample"]
+        ).generate()
+        queryset = filterset_class.base_filters["sample"].extra["queryset"]
+
+        assert published in queryset
+        assert unpublished not in queryset
+
+    def test_a_dataset_filters_choice_list_excludes_unpublished_and_includes_published_private(
+        self,
+    ):
+        published_private = DatasetFactory(
+            published=True, visibility=Visibility.PRIVATE
+        )
+        published_public = DatasetFactory(published=True, visibility=Visibility.PUBLIC)
+        unpublished = DatasetFactory(published=False)
+
+        filterset_class = FilterFactory(
+            ExampleMeasurement, fields=["name", "dataset"]
+        ).generate()
+        queryset = filterset_class.base_filters["dataset"].extra["queryset"]
+
+        assert published_private in queryset
+        assert published_public in queryset
+        assert unpublished not in queryset
+
+    def test_a_measurement_filters_choice_list_excludes_unpublished_measurements(self):
+        class MeasurementReferrer(models.Model):
+            measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
+
+            class Meta:
+                app_label = "test_app"
+
+        published_dataset = DatasetFactory(published=True)
+        unpublished_dataset = DatasetFactory(published=False)
+        published = ExampleMeasurementFactory(
+            dataset=published_dataset,
+            sample=RockSampleFactory(dataset=published_dataset),
+        )
+        unpublished = ExampleMeasurementFactory(
+            dataset=unpublished_dataset,
+            sample=RockSampleFactory(dataset=unpublished_dataset),
+        )
+
+        filterset_class = FilterFactory(
+            MeasurementReferrer, fields=["measurement"]
+        ).generate()
+        queryset = filterset_class.base_filters["measurement"].extra["queryset"]
+
+        assert published in queryset
+        assert unpublished not in queryset

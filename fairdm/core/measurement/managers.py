@@ -30,6 +30,18 @@ class MeasurementQuerySet(PolymorphicQuerySet):
         views when needed.
     """
 
+    def published(self):
+        """Measurements whose own dataset is published (FR-011).
+
+        Deliberately `dataset__published`, never `sample__dataset__published`: a
+        measurement's presence is decided by the dataset that owns it, never by the
+        dataset that owns its sample (FR-012, D3). A bare filter with no
+        `select_related` - this method is also called to build filter choice lists,
+        where those joins fetch nothing anyone reads. The listing's eager loading is
+        `DataTableView.get_queryset()`'s deliverable (data-model.md, research.md R3).
+        """
+        return self.filter(dataset__published=True)
+
     def with_related(self):
         """Prefetch commonly accessed related objects.
 

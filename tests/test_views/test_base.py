@@ -317,3 +317,25 @@ class TestFairDMTableView:
         request.user = AnonymousUser()
         response = ConcreteTableView.as_view()(request)
         assert "meta" in response.context_data
+
+
+@pytest.mark.django_db
+class TestFairDMTableViewPagination:
+    """T086: a table view pages at 100 rows without declaring anything.
+
+    `MVPTableViewMixin` treats an unset `paginate_by` as "do not paginate", so
+    a base class that names no page size leaves every subclass unpaginated
+    unless it names one itself. `paginate_by` is also the only control that
+    reaches the table: the mixin passes it explicitly, ahead of
+    `Table.Meta.per_page`.
+    """
+
+    def test_a_subclass_that_declares_no_page_size_pages_at_100(self, rf):
+        request = rf.get("/")
+        request.user = AnonymousUser()
+
+        response = ConcreteTableView.as_view()(request)
+
+        table = response.context_data["table"]
+        assert table.paginator is not None
+        assert table.paginator.per_page == 100

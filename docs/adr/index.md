@@ -19,4 +19,10 @@ do not restate earlier ones, only build past them.
 0010-record-addresses-name-the-record-type-in-the-plural
 0011-one-navigation-entry-per-collection
 0012-every-page-states-its-own-access-rules
+0013-a-listing-shows-published-records-only-for-everyone
+0014-publication-is-a-separate-flag-from-visibility
+0015-a-records-own-dataset-decides-and-a-row-never-links-past-it
+0016-the-framework-indexes-the-fields-it-searches-by-default
+0017-listings-are-addressed-and-named-apart-from-records
+0018-publication-is-a-queryset-method-not-a-default-manager
 ```

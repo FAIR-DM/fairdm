@@ -1,9 +1,12 @@
 import django_tables2 as tables
 from django.core.exceptions import FieldDoesNotExist
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from easy_icons import icon
 from research_vocabs.fields import ConceptManyToManyField
+
+from fairdm.utils.choices import Visibility
 
 
 def render_concept_many_to_many(value):
@@ -39,13 +42,32 @@ class BaseTable(tables.Table):
     """Base table class for all FairDM tables."""
 
     id = tables.Column(verbose_name="UUID", visible=False)
-    dataset = tables.Column(linkify=True, orderable=False, verbose_name=False)
+    dataset = tables.Column(orderable=False, verbose_name="")
 
     def render_dataset(self, value):
+        """Link the dataset icon only where its own page would not refuse the visitor.
+
+        Publication and visibility are independent (D1, FR-003), so a published-but-
+        private dataset is the ordinary state, not an edge case - its records still
+        belong in the listing, but this column carries no link to a page it cannot
+        read (D3, extended at design review).
+        """
+        if value.visibility != Visibility.PRIVATE:
+            return format_html(
+                '<a href="{}">{}</a>', value.get_absolute_url(), icon("dataset")
+            )
         return icon("dataset")
 
-    def render_location(self, record):
-        return icon("location")
+    def render_location(self, value):
+        """Link the location icon to the location's own page.
+
+        django-tables2 never calls this at all when the accessor resolves to
+        `None` (`Column.empty_values`) - it substitutes the column's `default`
+        instead - so this only runs where a location genuinely exists.
+        """
+        return format_html(
+            '<a href="{}">{}</a>', value.get_absolute_url(), icon("location")
+        )
 
     def value_dataset(self, value):
         return value.uuid
@@ -54,11 +76,13 @@ class BaseTable(tables.Table):
         super().__init__(*args, **kwargs)
         self.base_columns["id"].visible = False
 
-        self.better_row_classes()
+        self.configure_column_attrs()
 
         self.update_concept_field_render_methods()
 
-    def better_row_classes(self):
+    def configure_column_attrs(self):
+        """Resolve each column's underlying model field, once, and use it to set
+        both the type/name CSS classes and the header tooltip."""
         model = getattr(self._meta, "model", None)
 
         # Iterate over bound columns (safer) and update/ensure the nested 'td' dict exists.
@@ -72,6 +96,7 @@ class BaseTable(tables.Table):
             fname = getattr(col, "accessor", None) or getattr(col, "name", "")
             field_name_for_lookup = fname.split(".")[0] if fname else ""
 
+            db_field = None
             field_type = "CharField"
             if model and field_name_for_lookup:
                 try:
@@ -80,7 +105,9 @@ class BaseTable(tables.Table):
                 except Exception:
                     field_type = "CharField"
 
-            classes = f"{field_map.get(field_type, 'char')} {fname.replace('_', '-') if fname else ''}".strip()
+            field_type_class = field_map.get(field_type, "char")
+            field_name_class = f"col-{fname.replace('_', '-')}" if fname else ""
+            classes = f"{field_type_class} {field_name_class}".strip()
 
             td = col.attrs.setdefault("td", {})
             current = td.get("class", "")
@@ -91,6 +118,10 @@ class BaseTable(tables.Table):
             th = col.attrs.setdefault("th", {})
             current_th = th.get("class", "")
             th["class"] = f"{classes} {current_th if current_th else ''}".strip()
+
+            help_text = getattr(db_field, "help_text", "") if db_field else ""
+            if help_text:
+                th["title"] = str(help_text)
 
     def update_concept_field_render_methods(self):
         """
@@ -113,35 +144,44 @@ class SampleTable(BaseTable):
     latitude = tables.Column(accessor="location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="location.y", verbose_name=_("Longitude"))
     location = tables.Column(
-        accessor="location", linkify=True, verbose_name=False, orderable=False
+        accessor="location", verbose_name="", orderable=False, default=""
     )
 
     class Meta:
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
+        # The dataset and location icons lead every sample listing, ahead of
+        # whatever fields the registered type declares.
+        sequence = ("dataset", "location", "...")
+        # `Sample.Meta.ordering` (`["added"]`) is a single non-unique field, so
+        # paging can repeat or skip rows without a tie-break (D5, FR-033). `id`
+        # is always a column here - declared on `BaseTable` - so it survives
+        # `order_by`'s column-membership check even for a type whose own
+        # fields never name `added`.
+        order_by = ("added", "id")
 
 
 class MeasurementTable(BaseTable):
     """Table class for Measurement models."""
 
-    sample = tables.Column(linkify=True)
+    name = tables.Column(linkify=True, verbose_name=_("Name"))
+    sample = tables.Column()
     latitude = tables.Column(accessor="sample.location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="sample.location.y", verbose_name=_("Longitude"))
     location = tables.Column(
-        accessor="sample.location", linkify=True, verbose_name=False, orderable=False
+        accessor="sample.location", verbose_name="", orderable=False, default=""
     )
 
     class Meta:
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
-
-    def __init__(self, data=None, *args, **kwargs):
-        # modify the queryset (data) here if required
-        data = data.prefetch_related("sample")
-        super().__init__(*args, data=data, **kwargs)
+        # `Measurement.Meta.ordering` (`["-modified"]`) is a single non-unique
+        # field; see `SampleTable.Meta.order_by` (D5, FR-033).
+        order_by = ("-modified", "id")
 
     def render_sample(self, value):
-        sample_type = value.get_real_instance_class()
-        return sample_type._meta.verbose_name
+        if value.dataset.published:
+            return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
+        return _("Unpublished")
