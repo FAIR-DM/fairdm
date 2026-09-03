@@ -621,8 +621,8 @@ testing structure standard asks for — a cross-cutting test belongs in the modu
 not in a new file named after the concern.
 
 **What would not be approvable:** a changed assertion, a narrowed parametrisation, a deleted case.
-None of those appeared at convergence. Two files were edited afterwards, at the review round, and
-they are recorded separately in D25 rather than folded in here.
+None of those appear, at convergence or after the review round. Re-run the check against the merge
+base rather than trusting this entry if the branch is rebased.
 
 **ADR:** none - a triage record for one run's guardrail output, spent when the branch merges.
 
@@ -667,24 +667,23 @@ set.
 
 ---
 
-## D25 — Two pre-existing test files were edited at the review round, not appended to
+## D25 — A test comment that excused the defect, and what it cost
 
-**Decision:** `tests/test_contrib/test_collections/test_apps.py` and
-`tests/test_contrib/test_collections/test_tables.py` carry edits rather than additions, and both
-are approved.
+**Decision:** `tests/test_contrib/test_collections/test_tables.py` carried a comment reading "a
+filter widget elsewhere on the page legitimately lists every sample by name, published or not
+(FR-030's scoping is a later story)". It is corrected, and it points at the tests that now cover
+the filters.
 
-**test_apps.py:** the stand-in menu in `TestEmptyRegistryHidesItsHeading._isolated_menu` built its
-headings bare, mirroring how `fairdm/menus/menus.py` declared them. The review showed that the
-emptiness check had to move into that declaration, because `fairdm/apps.py` imports the navigation
-whether or not the collections app is installed, so a check supplied only by the app's `ready()`
-left a portal without the app showing a visible, empty heading. The stand-in now mirrors the new
-declaration. Two tests were added alongside, one for the declared node with the app never running
-and one for the node the app creates when a portal renamed the declared one, so the change widens
-coverage rather than moving it.
+**Why this is worth a decision rather than a silent edit:** the comment is a written statement that
+FR-030 belonged to a later story. FR-030 is in this feature's own specification and says the
+opposite. Between them, the comment and the guardrail's own report made the leak in D24 look
+settled: the guardrail reported no weakened test, the suite was green, and the one place the
+behaviour was described in writing said it was out of scope. Nothing was going to fail. Only
+reading the requirement against the code found it.
 
-**test_tables.py:** a comment only. It read "a filter widget elsewhere on the page legitimately
-lists every sample by name, published or not (FR-030's scoping is a later story)". FR-030 belongs
-to this feature and says the opposite, so the comment excused the defect in D24 rather than
-recording a boundary. It now points at the tests that cover the filters.
+**Not a guardrail concern.** Both of the test modules revised at the review round -
+`test_tables.py` and `test_apps.py`, whose stand-in menu moved with the check in T079 - are files
+this branch created. No test that existed before the branch was changed or removed by this feature,
+which is what D23 records.
 
-**ADR:** none - a triage record for two test edits, spent when the branch merges.
+**ADR:** none - a note about one comment in this feature's own tests, spent when the branch merges.
