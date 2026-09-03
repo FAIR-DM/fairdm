@@ -3,7 +3,7 @@
   "feature": "015-browsing-portal-samples",
   "branch": "015-browsing-portal-samples",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -34,6 +34,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-02T08:54:31Z",
       "note": "foundational block first, then one implementer per story"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-03T08:46:17Z",
+      "note": "all six stories done; polish landed: docs page, six ADRs, migrations squashed to one per app, deletion residue removed. Full verify green (lint, types, 2595 tests, build, conformance, docs)."
     }
   ],
   "gates": {
@@ -471,7 +476,7 @@
       "priority": "P3",
       "issue": 321,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -579,7 +584,20 @@
         {
           "id": "T062",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-development/listing-a-registered-type.md:1",
+              "docs/portal-development/index.md:78"
+            ],
+            "tests": [
+              "tests/test_registry/test_factories.py::TestTableFactory::test_a_declared_long_text_field_is_left_out_of_the_generated_table"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_registry/test_factories.py::TestTableFactory -q (8 passed)",
+              "reverted _filter_table_fields to prove the new test goes red, then restored"
+            ]
+          }
         },
         {
           "id": "T063",
@@ -594,17 +612,38 @@
         {
           "id": "T064",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "ran quickstart.md sections 1-7 as a temporary walkthrough module against the demo app (10 passed), then deleted it",
+              "section 2 corrected the docs rather than the code: a declared TextField is dropped from the generated table on purpose"
+            ]
+          }
         },
         {
           "id": "T065",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/ tests/test_registry/ --cov=fairdm/contrib/collections (91.5% total, floor is 90%)"
+            ]
+          }
         },
         {
           "id": "T066",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/core/dataset/migrations/0012_dataset_published_alter_dataset_name.py:1"
+            ],
+            "commands": [
+              "deleted dataset 0012 and 0013, regenerated as one file",
+              "poetry run python manage.py makemigrations --check --dry-run (only the two pre-existing dirty apps remain: identity, orbit)",
+              "full suite green"
+            ]
+          }
         },
         {
           "id": "T074",
@@ -623,14 +662,24 @@
         {
           "id": "T077",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/views.py:176"
+            ],
+            "commands": [
+              "git rm -r fairdm/contrib/collections/templatetags/",
+              "poetry run ruff check fairdm/contrib/collections/views.py",
+              "full suite green"
+            ]
+          }
         }
       ]
     }
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
