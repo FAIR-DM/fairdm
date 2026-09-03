@@ -454,6 +454,11 @@ stands, the full suite and the demo app still pass.
       The bar here is therefore **no new failure** rather than a green run: reproduce the three at
       the base commit, confirm the set at HEAD is the same three and no larger, and say so. A fourth
       failure is a real regression and blocks
+- [ ] T077 [US6] Delete the residue the deletions left behind, which the reachability test in T074
+      cannot see: the now-empty `templatetags/` package (its only module went with T058, and
+      `__init__.py` is excluded from the reachability walk by design), and the commented-out block
+      in `DataTableView.get_urls()` that returns `f"{slug}-collection"` — a URL name T028 removed,
+      so the comment describes an address that no longer exists (FR-058)
 
 **Checkpoint**: all six stories independently shippable; the app contains only reachable code.
 

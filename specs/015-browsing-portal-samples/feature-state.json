@@ -578,8 +578,8 @@
         },
         {
           "id": "T062",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T063",
@@ -593,18 +593,18 @@
         },
         {
           "id": "T064",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T065",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T066",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T074",
@@ -619,6 +619,11 @@
               "tests/test_contrib/test_collections/test_views.py:507"
             ]
           }
+        },
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 1
         }
       ]
     }

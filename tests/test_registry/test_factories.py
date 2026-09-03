@@ -423,6 +423,19 @@ class TestTableFactory:
         assert "status" in fields
         assert "description" not in fields
 
+    def test_a_declared_long_text_field_is_left_out_of_the_generated_table(self):
+        """A TextField named in `fields` reaches every other component but not the
+        table: one long value would push the other columns off the page. Stated in
+        docs/portal-development/listing-a-registered-type.md, so it is guarded here
+        rather than left as an undeclared property of the factory."""
+        factory = TableFactory(SampleModel, fields=["name", "description", "status"])
+
+        table_class = factory.generate()
+
+        assert "description" in factory.get_fields()
+        assert "description" not in table_class.base_columns
+        assert {"name", "status"} <= set(table_class.base_columns)
+
     def test_table_with_parent_fields(self):
         """Test table using explicitly provided fields."""
         parent_fields = ["name", "status"]

@@ -31,6 +31,8 @@ turns a leak into a test: one assertion, made once, covers every viewer.
 **What it does not settle**: whether a dataset-scoped listing showing a researcher their own
 records should exist. It should, and it is R18's plugin work.
 
+**ADR:** docs/adr/0013-a-listing-shows-published-records-only-for-everyone.md
+
 ---
 
 ## D2 — The published flag, and why it is not a workflow
@@ -60,6 +62,8 @@ administrator publishes something. That is correct — the alternative is defaul
 datasets to published, which publishes data nobody chose to publish. The migration leaves every
 dataset unpublished.
 
+**ADR:** docs/adr/0014-publication-is-a-separate-flag-from-visibility.md
+
 ---
 
 ## D3 — A record's own dataset decides, and a link is not a loophole
@@ -88,6 +92,8 @@ alone decides presence, and that is settled — but the dataset link is suppress
 the sample link uses. The rows themselves were never the defect, so nothing in the requirement
 changes; only D3's existing link rule reaches one relation further.
 
+**ADR:** docs/adr/0015-a-records-own-dataset-decides-and-a-row-never-links-past-it.md
+
 ---
 
 ## D4 — Search is declared per type, and the defaults are indexed
@@ -115,6 +121,8 @@ field a model author adds is the author's to index, and the documentation says s
 would mean the framework rejecting a registration over a performance property, which is a rule that
 fires on correct code.
 
+**ADR:** docs/adr/0016-the-framework-indexes-the-fields-it-searches-by-default.md
+
 ---
 
 ## D5 — Ordering lives on the table, not the view
@@ -130,6 +138,8 @@ ordering mechanism, and a second competing surface for the same thing is what th
 prevent. So ordering is declared on the table class. This is recorded because it is the kind of
 constraint an implementer discovers by hitting it.
 
+**ADR:** none - records a constraint the application shell imposes rather than a choice made here; the shell refuses a view that declares its own ordering, and says so on import.
+
 ---
 
 ## D6 — The switching control does not carry terms across
@@ -144,6 +154,8 @@ depth means nothing on a heat-flow measurement, and a search term that matched a
 usually match no measurement at all. Carrying them across produces an empty listing that looks
 broken. Carrying only the ones that happen to exist on both types produces a listing narrowed by a
 rule the reader cannot see, which is worse.
+
+**ADR:** none - the behaviour of one control, with nothing downstream inheriting it.
 
 ---
 
@@ -163,6 +175,8 @@ in the path. The naming change is the part with an argument against it. It is ch
 visible to show, and it is made anyway because a break with the repository's own convention is
 treated here as a defect rather than a preference, and one reverse lookup is the whole cost.
 
+**ADR:** docs/adr/0017-listings-are-addressed-and-named-apart-from-records.md
+
 ---
 
 ## D8 — What is deleted, and why it is specified rather than assumed
@@ -181,6 +195,8 @@ R21 specifies export as dataset-scoped and run outside the request, and names in
 as one of the faults it exists to fix. Keeping a faster wrong version alive until then would make
 R21's job removing a feature people had started to rely on.
 
+**ADR:** none - a scope decision about this feature's own deletions, spent once they landed.
+
 ---
 
 ## D9 — Publication is a queryset method, not a default manager
@@ -196,6 +212,8 @@ API, the admin, the demo app — and FR-006 forbids this feature from changing b
 listings it specifies. Narrowing the default manager would silently change every one of those call
 sites without the audit that would take. A queryset method is opt-in at the one call site that
 needs it and composes with the registry-generated filterset without a manager override fighting it.
+
+**ADR:** docs/adr/0018-publication-is-a-queryset-method-not-a-default-manager.md
 
 ---
 
@@ -213,6 +231,8 @@ nothing to instantiate — it configures the application shell's own `SearchMixi
 takes a plain `search_fields` list on any view. Forcing it into the `COMPONENTS` shape would build
 a factory that generates nothing, which is the wrong abstraction for what is otherwise a two-line
 pass-through, per Article XIV.
+
+**ADR:** none - an application of the existing rule to configure the shell rather than rebuild it; the registry gains no new pattern from it.
 
 ---
 
@@ -276,6 +296,8 @@ publication is independent of visibility and is the sole test for a record's pre
 and that was gated deliberately — so the rows are correct and no filter is added. The real defect
 was the dataset column's link, which is now suppressed under D3's extension above.
 
+**ADR:** none - a record of what the design review changed, not a decision with a life beyond this run. The four findings that were architectural are carried by ADRs 0015, 0016 and 0018.
+
 ---
 
 ## D12 — Searchability is a question about a field's type, not about its lookups
@@ -300,6 +322,8 @@ the more expensive outcome than either answer being imperfect, so the new valida
 existing one. Where the line should sit — whether a `SlugField` or a `UUIDField` belongs on the
 text side — is one decision in one place, and moving it later moves both.
 
+**ADR:** none - folded into docs/adr/0016-the-framework-indexes-the-fields-it-searches-by-default.md, which states the type test and why a lookup test cannot work.
+
 ---
 
 ## D13 — Where the listing's eager loading lives
@@ -318,6 +342,8 @@ and read the sample's dataset for the link suppression. Asking for the data wher
 is also what keeps the requirement testable: the flat-query assertion covers the measurement listing
 specifically, and it is asserting a property of that page rather than of a queryset method used in
 several places for different reasons.
+
+**ADR:** none - folded into docs/adr/0018-publication-is-a-queryset-method-not-a-default-manager.md, under consequences.
 
 ---
 
@@ -338,6 +364,8 @@ token rather than only the one that first surfaced it.
 **Revisit if:** a later story (US-2 onward) adds its own "renders identically" or snapshot-style
 comparison against a page carrying a form — reach for the same helper rather than re-discovering
 this.
+
+**ADR:** none - test construction, local to the test that carries it.
 
 ---
 
@@ -362,6 +390,8 @@ the closest available proof.
 migration grows a data-migration step — either would make a direct replay both possible and the
 stronger test.
 
+**ADR:** none - test construction, local to the test that carries it.
+
 ---
 
 ## D16 — The empty-state message overrides the hook, not just the attribute
@@ -381,6 +411,8 @@ overriding the hook satisfies.
 
 **Revisit if:** this view ever gains a create action of its own - re-check whether the show-gate
 should apply once there is a button for the message to point at.
+
+**ADR:** none - an override site inside one view, discoverable from the base hook it overrides.
 
 ---
 
@@ -412,6 +444,8 @@ Both controlled, the test does its job: removing the `select_related` from
 
 **Revisit if:** `orbit` gains a documented test-mode switch — prefer it to disabling the app — or the
 listing grows a genuinely per-page query whose count moves with something other than row volume.
+
+**ADR:** none - measurement hygiene for one test, recorded in that test's own docstring.
 
 ---
 
@@ -450,6 +484,8 @@ its own override for that name, shadowing the mixin's version — the same patte
 throwaway model can then be replaced with that registration, the way `TestPublishedChoiceLists`'s
 sample/dataset cases already use `ExampleMeasurement` directly.
 
+**ADR:** none - test construction, local to the test that carries it.
+
 ---
 
 ## D19 — Pinning `table.order_by` directly, not just page disjointness
@@ -474,6 +510,8 @@ fields a type registers, while `"added"` itself is filtered out for any type tha
 **Revisit if:** `django-tables2`'s `TableData.ordering` starts consulting `Model.Meta.ordering`
 directly — the `order_by is None` case would then need re-checking, since a currently-`None`
 `table.order_by` would report the model's own (still non-unique) order instead.
+
+**ADR:** none - test construction, local to the test that carries it.
 
 ---
 
@@ -505,6 +543,8 @@ only Samples/Measurements, renders with `collections` uninstalled) — that woul
 `fairdm.menus import` moved off `fairdm.contrib.collections.apps` so it stops depending on that
 app's install status at all, which is a change to `fairdm/menus/menus.py` / `apps.py`'s import
 graph outside this story's scope (prohibited: "Do not edit `fairdm/menus/menus.py`").
+
+**ADR:** none - test construction, local to the tests that carry it.
 
 ---
 
@@ -539,6 +579,8 @@ piece of work rather than inside this story.
 that boots a second settings module — either makes the real test cheap, and it should replace the
 source-level assertion at that point.
 
+**ADR:** none - a defect with one correct answer, not a choice between options; the import is guarded by its own test.
+
 ---
 
 ## D22 — T054 landed inside T069's commit, not its own
@@ -560,3 +602,5 @@ running the pre-existing (non-switcher) view tests against it while `sample_list
 **Revisit if:** a future story needs to add a second gate to the same block independent of T069's
 placement — at that point the file has enough independent history that a further change is its own
 commit again, this one just could not be split at the seam the task list drew.
+
+**ADR:** none - a commit-boundary note, spent on the commit it describes.

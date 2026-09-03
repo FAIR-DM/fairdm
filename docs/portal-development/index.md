@@ -76,6 +76,7 @@ measurements
 forms-and-filters/sample-mixins
 contributors
 using_the_registry
+listing-a-registered-type
 ```
 
 ```{toctree}

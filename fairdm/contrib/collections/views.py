@@ -51,8 +51,6 @@ class DataTableView(FairDMTableView):
 
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
-        # context["collection_menu"] = AppMenu.get("Data Collections")
-
         context["sample_listings"] = self.get_listing_entries(registry.samples)
         context["measurement_listings"] = self.get_listing_entries(
             registry.measurements
@@ -173,10 +171,6 @@ class DataTableView(FairDMTableView):
         # Process measurement models
         for model_class in registry.measurements:
             add_listing_url("measurements", model_class)
-
-        # if registry.samples:
-        #     first_config = registry.get_for_model(registry.samples[0])
-        #     return urls, f"{first_config.get_slug()}-collection"
 
         return urls, "collections"
 

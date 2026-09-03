@@ -1,9 +1,8 @@
 # Collections App
 
 The `collections` app renders one browsable, filterable listing page per registered Sample or
-Measurement type - the framework's own answer to "where do a portal's records live". A type needs
-no view, URL or template of its own to appear here: registering it with `fairdm.registry` is
-enough.
+Measurement type. A type needs no view, URL or template of its own to appear here: registering it
+with `fairdm.registry` is enough.
 
 ## Purpose
 
@@ -21,7 +20,7 @@ This app is responsible for:
 ### Views (`views.py`)
 
 - **`DataTableView`**: the listing view for one registered Sample or Measurement type
-  - Filters every row through `published()` so only published records ever appear (D9)
+  - Filters every row through `published()` so only published records ever appear
   - Search fields, filters and columns all come from the type's own registration
   - `get_urls()` builds one route per registered type, under `samples/<slug>/` or
     `measurements/<slug>/`, and refuses two registrations that would collide on the same address
