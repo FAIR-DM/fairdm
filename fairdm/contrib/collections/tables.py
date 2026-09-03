@@ -58,8 +58,16 @@ class BaseTable(tables.Table):
             )
         return icon("dataset")
 
-    def render_location(self, record):
-        return icon("location")
+    def render_location(self, value):
+        """Link the location icon to the location's own page.
+
+        django-tables2 never calls this at all when the accessor resolves to
+        `None` (`Column.empty_values`) - it substitutes the column's `default`
+        instead - so this only runs where a location genuinely exists.
+        """
+        return format_html(
+            '<a href="{}">{}</a>', value.get_absolute_url(), icon("location")
+        )
 
     def value_dataset(self, value):
         return value.uuid
@@ -129,13 +137,16 @@ class SampleTable(BaseTable):
     latitude = tables.Column(accessor="location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="location.y", verbose_name=_("Longitude"))
     location = tables.Column(
-        accessor="location", linkify=True, verbose_name="", orderable=False
+        accessor="location", verbose_name="", orderable=False, default=""
     )
 
     class Meta:
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
+        # The dataset and location icons lead every sample listing, ahead of
+        # whatever fields the registered type declares.
+        sequence = ("dataset", "location", "...")
         # `Sample.Meta.ordering` (`["added"]`) is a single non-unique field, so
         # paging can repeat or skip rows without a tie-break (D5, FR-033). `id`
         # is always a column here - declared on `BaseTable` - so it survives
@@ -152,7 +163,7 @@ class MeasurementTable(BaseTable):
     latitude = tables.Column(accessor="sample.location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="sample.location.y", verbose_name=_("Longitude"))
     location = tables.Column(
-        accessor="sample.location", linkify=True, verbose_name="", orderable=False
+        accessor="sample.location", verbose_name="", orderable=False, default=""
     )
 
     class Meta:
