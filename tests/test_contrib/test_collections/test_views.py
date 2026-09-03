@@ -6,6 +6,7 @@ import importlib
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
@@ -594,6 +595,48 @@ class TestSwitcher:
         ]
         assert response.context["measurement_listings"] == []
         assert 'id="listing-switcher"' not in response.content.decode()
+
+
+@pytest.mark.django_db
+class TestSwitcherIsInlineWithTheTitle:
+    """T084: the switcher control sits in the page title bar, directly next to
+    and inline with the page title, as a small button labelled "Switch" - not
+    "Switch listing", and not appended in a row of its own below the title.
+    The switcher's own render gate (FR-047) is untouched and covered by
+    `TestSwitcher`."""
+
+    def test_the_switcher_and_the_breadcrumb_trail_share_one_flex_row(self, client):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        soup = BeautifulSoup(response.content, "html.parser")
+        switcher = soup.find(id="listing-switcher")
+        breadcrumbs = soup.find("nav", class_="breadcrumbs")
+        assert switcher is not None
+        assert breadcrumbs is not None
+        assert switcher.parent is breadcrumbs.parent
+        # The shell's own title wrapper is itself a flex container (stacked
+        # column, for the subtitle beneath it) - a bare "flex" check would
+        # pass against that ancestor by coincidence. Row alignment is what
+        # this task actually asks for, so pin the direction too.
+        classes = switcher.parent.get("class", [])
+        assert "flex" in classes
+        assert "flex-col" not in classes
+        assert "items-center" in classes
+
+    def test_the_switcher_button_is_small_and_labelled_switch(self, client):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        soup = BeautifulSoup(response.content, "html.parser")
+        switcher = soup.find(id="listing-switcher")
+        trigger = switcher.find("button")
+        assert trigger is not None
+        assert trigger.get_text(strip=True) == "Switch"
+        assert "btn-sm" in trigger.get("class", [])
+        assert "Switch listing" not in soup.get_text()
 
 
 @pytest.mark.django_db
