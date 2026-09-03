@@ -51,6 +51,49 @@ class TestColumnClassNamespacing:
 
 
 @pytest.mark.django_db
+class TestFalseyHeadersRenderEmpty:
+    """T082: `BoundColumn.verbose_name` tests `is not None`, so a column declared
+    `verbose_name=False` returns `False` as-is and the header renders the literal
+    word "False". `verbose_name=""` short-circuits the same fallback and renders
+    empty, which is the correct idiom."""
+
+    def test_the_dataset_columns_header_is_empty_not_the_word_false(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        header = str(response.context["table"].columns["dataset"].header)
+        assert header == ""
+        assert "False" not in response.content.decode()
+
+    def test_the_sample_tables_location_columns_header_is_empty_not_the_word_false(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        header = str(response.context["table"].columns["location"].header)
+        assert header == ""
+
+    def test_the_measurement_tables_location_columns_header_is_empty_not_the_word_false(
+        self, client, published_dataset
+    ):
+        sample = RockSampleFactory(dataset=published_dataset)
+        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        header = str(response.context["table"].columns["location"].header)
+        assert header == ""
+
+
+@pytest.mark.django_db
 class TestSampleColumn:
     """FR-013, D3: where a measurement's sample belongs to an unpublished dataset, the
     row shows neither the sample's name nor a link to it."""

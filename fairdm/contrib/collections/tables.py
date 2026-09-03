@@ -42,7 +42,7 @@ class BaseTable(tables.Table):
     """Base table class for all FairDM tables."""
 
     id = tables.Column(verbose_name="UUID", visible=False)
-    dataset = tables.Column(orderable=False, verbose_name=False)
+    dataset = tables.Column(orderable=False, verbose_name="")
 
     def render_dataset(self, value):
         """Link the dataset icon only where its own page would not refuse the visitor.
@@ -129,7 +129,7 @@ class SampleTable(BaseTable):
     latitude = tables.Column(accessor="location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="location.y", verbose_name=_("Longitude"))
     location = tables.Column(
-        accessor="location", linkify=True, verbose_name=False, orderable=False
+        accessor="location", linkify=True, verbose_name="", orderable=False
     )
 
     class Meta:
@@ -152,7 +152,7 @@ class MeasurementTable(BaseTable):
     latitude = tables.Column(accessor="sample.location.x", verbose_name=_("Latitude"))
     longitude = tables.Column(accessor="sample.location.y", verbose_name=_("Longitude"))
     location = tables.Column(
-        accessor="sample.location", linkify=True, verbose_name=False, orderable=False
+        accessor="sample.location", linkify=True, verbose_name="", orderable=False
     )
 
     class Meta:
