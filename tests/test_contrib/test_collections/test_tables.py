@@ -13,6 +13,44 @@ from fairdm_demo.models import ExampleMeasurement, RockSample
 
 
 @pytest.mark.django_db
+class TestColumnClassNamespacing:
+    """T081: a field's own name is namespaced before it becomes a header/cell CSS
+    class, so no field name can ever collide with a DaisyUI component class
+    (`.status`, `.badge`, `.link`, ... - all plausible model field names). The
+    field-type class (`char`, `num`, `date`, ...) is unaffected."""
+
+    def test_the_field_name_class_is_namespaced_on_both_header_and_data_cells(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        bound_column = response.context["table"].columns["name"]
+        th_classes = bound_column.attrs["th"]["class"].split()
+        td_classes = bound_column.attrs["td"]["class"].split()
+
+        assert "col-name" in th_classes
+        assert "col-name" in td_classes
+        assert "name" not in th_classes
+        assert "name" not in td_classes
+
+    def test_the_field_type_class_is_unaffected_by_namespacing(
+        self, client, published_dataset
+    ):
+        RockSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        bound_column = response.context["table"].columns["name"]
+        td_classes = bound_column.attrs["td"]["class"].split()
+
+        assert "char" in td_classes
+
+
+@pytest.mark.django_db
 class TestSampleColumn:
     """FR-013, D3: where a measurement's sample belongs to an unpublished dataset, the
     row shows neither the sample's name nor a link to it."""

@@ -94,7 +94,9 @@ class BaseTable(tables.Table):
                 except Exception:
                     field_type = "CharField"
 
-            classes = f"{field_map.get(field_type, 'char')} {fname.replace('_', '-') if fname else ''}".strip()
+            field_type_class = field_map.get(field_type, "char")
+            field_name_class = f"col-{fname.replace('_', '-')}" if fname else ""
+            classes = f"{field_type_class} {field_name_class}".strip()
 
             td = col.attrs.setdefault("td", {})
             current = td.get("class", "")
