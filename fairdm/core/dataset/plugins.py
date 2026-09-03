@@ -6,7 +6,6 @@ from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
 from mvp.views import MVPFormView
 from mvp.views.detail import CRUDDirectoryMixin
-from mvp.views.inline import InlinesMixin
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
@@ -104,7 +103,7 @@ class DatasetDatesInline(DatasetDateInline):
     )
 
 
-class Update(PrivateRecordNotFoundMixin, Plugin, InlinesMixin, FairDMUpdateView):
+class Update(PrivateRecordNotFoundMixin, Plugin, FairDMUpdateView):
     """The dataset's own attributes: image, name, project, licence, visibility and the
     publication that describes it, plus its identifiers and its collection dates (014 plan P3).
     An additional view belonging to :class:`Overview` rather than a registration of its own, so

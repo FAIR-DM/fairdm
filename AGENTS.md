@@ -50,7 +50,7 @@ Required status checks (exact names, as they report on a pull request):
 - `call-tests / Test Python 3.13, Django 5.1`
 - `call-tests / Test Python 3.13, Django 5.2`
 
-CI calls the shared family workflows in `django-mvp/shared`, pinned to `v0.2.0`, from
+CI calls the shared family workflows in `django-mvp/shared`, pinned to `v0.4.1`, from
 `.github/workflows/build.yml` and `.github/workflows/tests.yml`. Releases run through
 `prepare-release.yml` → `tag-release.yml` → `publish.yml`.
 

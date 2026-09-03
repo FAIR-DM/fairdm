@@ -87,7 +87,7 @@ dependencies = [
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
-    "django-mvp (>=0.19.1,<0.20.0)",
+    "django-mvp (>=0.20.0,<0.21.0)",
     "django-accounts-center (>=0.7.1,<0.8.0)",
     # Imported directly (fairdm/contrib/collections/tables.py,
     # fairdm/contrib/contributors/models.py) and registered as a template
@@ -140,7 +140,7 @@ django = ">=5.1,<6.0"
 # Family toolchain bundle; the pin tag is the family-standard version. Ships
 # ruff, mypy, deptry, pre-commit, pytest, pytest-django, coverage, django-stubs.
 # Replaces the former fairdm-dev-tools git dependency (family ADR 0002).
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.2.0", extras = ["dev", "test"], python = ">=3.12" }
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.4.1", extras = ["dev", "test"], python = ">=3.12" }
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
 pytest-mock = "^3.15.1"
 

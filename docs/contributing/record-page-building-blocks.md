@@ -35,10 +35,12 @@ class ProjectDateInline(RelatedRecordInline):
 
 `fairdm.core.related_records` declares one such subclass per related model on Project and Dataset:
 `ProjectDateInline`, `ProjectIdentifierInline`, `DatasetDateInline`, `DatasetIdentifierInline`. A
-record's page lists the ones it wants through django-mvp's `InlinesMixin`:
+record's page lists the ones it wants by setting `inlines` directly — django-mvp's `InlinesMixin`
+is mixed into `MVPUpdateView` (and so into `FairDMUpdateView`) by default, rather than being added
+to each page's own base classes:
 
 ```python
-class Update(Plugin, InlinesMixin, FairDMUpdateView):
+class Update(Plugin, FairDMUpdateView):
     model = Project
     inlines = [ProjectIdentifierInline, ProjectDatesInline]
 ```
