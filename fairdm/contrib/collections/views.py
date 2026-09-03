@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django_filters.filterset import FilterSet
 
 from fairdm.registry import registry
+from fairdm.registry.factories import PublishedChoicesMixin
 from fairdm.views import FairDMTableView
 
 
@@ -33,7 +34,19 @@ class DataTableView(FairDMTableView):
         self.search_fields = self.model_config.get_search_fields()
 
     def get_filterset_class(self) -> type[FilterSet] | None:
-        return registry.get_for_model(self.model).get_filterset_class()
+        """The type's own filter set, with publication scoping applied last.
+
+        The scoping is applied here rather than in the factory because a
+        registration may supply its own `filterset_class` or override
+        `get_filterset_class()`, in which case the factory never runs - and
+        because the two core filter mixins assign their `dataset` and `sample`
+        choice lists at instantiation, after any class-level scoping. This is
+        the one place every listing's filter set passes through, whichever tier
+        of the configuration API produced it (FR-030, SC-002).
+        """
+        return PublishedChoicesMixin.applied_to(
+            registry.get_for_model(self.model).get_filterset_class()
+        )
 
     def get_queryset(self):
         """Narrow the shell's own chain through publication, never build a fresh one.

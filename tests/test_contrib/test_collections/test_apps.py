@@ -86,20 +86,33 @@ class TestEmptyRegistryHidesItsHeading:
     kind shows no heading for it. Asserted against an empty registry, not the
     populated demo, where it would pass without exercising anything.
 
-    The Samples/Measurements node is pre-created empty, mirroring how
-    `fairdm/menus/menus.py` declares it unconditionally, at import, before
-    `populate_data_collection_menu()` ever runs - an isolated `Menu` stands in for the
-    real `AppMenu` so no other test observes the mutation."""
+    The heading is declared in `fairdm/menus/menus.py`, unconditionally and at
+    import, and it carries its own emptiness check there. That is where the guarantee
+    has to live: `fairdm/apps.py` imports that module so the navigation exists whether
+    or not this app is installed (FR-041), so a heading whose check came only from
+    this app's `ready()` would render visible and empty in a portal that dropped the
+    app. So the stand-in below builds each heading exactly as that module does, and
+    an isolated `Menu` replaces the real `AppMenu` so no other test observes the
+    mutation.
+    """
 
     def _isolated_menu(self, monkeypatch):
-        """Both headings pre-created empty, so whichever kind's registry this test
-        does not empty still finds a node to append its real entries to."""
+        """Both headings pre-created the way `fairdm/menus/menus.py` creates them,
+        so whichever kind's registry this test does not empty still finds a node to
+        append its real entries to."""
         from fairdm.contrib.collections import apps as apps_module
+        from fairdm.menus.menus import _has_registered
 
         isolated_menu = Menu("IsolatedAppMenu")
         isolated_menu.parent = None
-        MenuCollapse(name="Samples", parent=isolated_menu)
-        MenuCollapse(name="Measurements", parent=isolated_menu)
+        MenuCollapse(
+            name="Samples", check=_has_registered("samples"), parent=isolated_menu
+        )
+        MenuCollapse(
+            name="Measurements",
+            check=_has_registered("measurements"),
+            parent=isolated_menu,
+        )
         monkeypatch.setattr(apps_module, "AppMenu", isolated_menu)
         return isolated_menu
 
@@ -122,6 +135,34 @@ class TestEmptyRegistryHidesItsHeading:
 
         django_apps.get_app_config("collections").populate_data_collection_menu()
         processed = isolated_menu.get("Measurements").process(rf.get("/"))
+
+        assert processed.visible is False
+
+    def test_the_declared_heading_hides_without_this_app_ever_running(
+        self, monkeypatch, rf
+    ):
+        """The case the check moved for: the heading exists because
+        `fairdm/menus/menus.py` declared it, and `populate_data_collection_menu()`
+        never runs because the app is not installed."""
+        from fairdm.menus.menus import _has_registered
+
+        monkeypatch.setattr(type(registry), "samples", property(lambda self: []))
+        heading = MenuCollapse(name="Samples", check=_has_registered("samples"))
+
+        assert heading.process(rf.get("/")).visible is False
+
+    def test_a_heading_this_app_has_to_create_itself_also_hides(self, monkeypatch, rf):
+        """A portal that renamed or removed the declared node leaves this app to
+        create one, and that branch supplies the check itself."""
+        from fairdm.contrib.collections import apps as apps_module
+
+        isolated_menu = Menu("IsolatedAppMenu")
+        isolated_menu.parent = None
+        monkeypatch.setattr(apps_module, "AppMenu", isolated_menu)
+        monkeypatch.setattr(type(registry), "samples", property(lambda self: []))
+
+        django_apps.get_app_config("collections").populate_data_collection_menu()
+        processed = isolated_menu.get("Samples").process(rf.get("/"))
 
         assert processed.visible is False
 

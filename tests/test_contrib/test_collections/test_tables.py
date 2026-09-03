@@ -31,9 +31,10 @@ class TestSampleColumn:
 
         assert measurement.name in content
 
-        # Scoped to the row's own "sample" cell, not the whole page: a filter
-        # widget elsewhere on the page legitimately lists every sample by name,
-        # published or not (FR-030's scoping is a later story).
+        # Scoped to the row's own "sample" cell, because that is what this test is
+        # about. The page's filter widgets are covered separately, by
+        # `TestFilterChoicesOnTheRenderedPage` in test_views.py - FR-030 requires
+        # them to withhold the same names, and it belongs to this feature.
         table = response.context["table"]
         row = next(r for r in table.rows if r.record == measurement)
         sample_cell = row.get_cell("sample")

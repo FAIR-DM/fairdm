@@ -29,17 +29,22 @@ class CollectionsConfig(AppConfig):
 
         # Get-or-create, mirroring fairdm/contrib/plugins/registration.py:148-157 - a
         # renamed or absent node must not raise here (research.md R8).
-        sample_menu = AppMenu.get("Samples")
-        if sample_menu is None:
-            sample_menu = MenuCollapse(name=_("Samples"))
-            AppMenu.append(sample_menu)
+        # A node declared in `fairdm/menus/menus.py` already carries its own
+        # emptiness check, which is where the guarantee has to live because that
+        # module loads whether or not this app is installed (FR-040, FR-041). A
+        # node created here is one this portal renamed or removed, so it needs
+        # the check supplying.
+        #
         # `_check`, not `check`: `check` is a bound method on MenuItem, and the
         # per-request copy flex_menu builds reads `_check`, not `check` - assigning to
         # `check` would shadow the method rather than feed the copy. A childless
         # container is not auto-hidden by flex_menu (it only suppresses a parent that
-        # HAD children which all resolved invisible), so this is the only thing
-        # standing between an empty registry and a visible, empty heading (FR-040).
-        sample_menu._check = lambda request, **kwargs: bool(registry.samples)
+        # HAD children which all resolved invisible).
+        sample_menu = AppMenu.get("Samples")
+        if sample_menu is None:
+            sample_menu = MenuCollapse(name=_("Samples"))
+            sample_menu._check = lambda request, **kwargs: bool(registry.samples)
+            AppMenu.append(sample_menu)
 
         for model_class in registry.samples:
             config = registry.get_for_model(model_class)
@@ -53,8 +58,10 @@ class CollectionsConfig(AppConfig):
         measurement_menu = AppMenu.get("Measurements")
         if measurement_menu is None:
             measurement_menu = MenuCollapse(name=_("Measurements"))
+            measurement_menu._check = lambda request, **kwargs: bool(
+                registry.measurements
+            )
             AppMenu.append(measurement_menu)
-        measurement_menu._check = lambda request, **kwargs: bool(registry.measurements)
 
         for model_class in registry.measurements:
             config = registry.get_for_model(model_class)

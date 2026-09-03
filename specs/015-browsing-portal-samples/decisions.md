@@ -621,7 +621,70 @@ testing structure standard asks for — a cross-cutting test belongs in the modu
 not in a new file named after the concern.
 
 **What would not be approvable:** a changed assertion, a narrowed parametrisation, a deleted case.
-None of those appear. Re-run the check against the merge base rather than trusting this entry if
-the branch is rebased.
+None of those appeared at convergence. Two files were edited afterwards, at the review round, and
+they are recorded separately in D25 rather than folded in here.
 
 **ADR:** none - a triage record for one run's guardrail output, spent when the branch merges.
+
+## D24 — The review found a publication leak in the filter dropdowns, and the fix belongs to the view
+
+**Found:** every listing's related-record filters offered the names of unpublished records to
+anonymous readers. `SampleFilterMixin.__init__` assigns its `dataset` choice list from
+`Dataset.all_objects.all()`, and `MeasurementFilterMixin.__init__` assigns `dataset` from
+`Dataset.objects.all()` and `sample` from `Sample.objects.all()` - none of which applies
+publication. Those assignments run at instantiation, after the class-level scoping T040 added, so
+they overwrote it. Four of the demo's eight registered types were affected. This is FR-030 and
+SC-002 stated plainly, and the leak was live.
+
+**A second hole, wider than the one reported:** `CustomSample` supplies its own `filterset_class`,
+which is a documented tier of the configuration API, and a registration may also override
+`get_filterset_class()` outright. In either case the factory never runs, so a fix inside the
+factory reaches neither. Scoping the generated filters at build time is not enough on its own.
+
+**Settled:** `PublishedChoicesMixin` (`fairdm/registry/factories.py`) narrows every filter whose
+own queryset is over `Sample`, `Measurement` or `Dataset`, and `DataTableView.get_filterset_class`
+applies it to whatever it is handed. That is the one place every listing's filter set passes
+through, whichever tier produced it.
+
+**Why it reads each filter's queryset rather than the model field:** the same pass then covers a
+many-to-many field or a reverse relation that django-filter generated a choice list for itself,
+which the review's second finding raised as a gap that would open the moment a portal registered
+such a relation. Reading the queryset also leaves alone a relation publication says nothing about:
+the measurement mixin's `polymorphic_ctype` filter is already scoped to the registered types and
+comes through untouched, which is asserted.
+
+**Why the view and not the two core mixins:** those mixins are inherited by pages outside this
+feature, and FR-006 forbids changing behaviour outside the listings specified here.
+
+**Proof:** five tests in `TestFilterChoicesOnTheRenderedPage` measure the filter set on the
+rendered page, not the generated class - the existing class-level test never runs the `__init__`
+that caused this, and passed throughout. Removing the fix turns four of the five red. The fifth is
+the negative control.
+
+**ADR:** none - the rule it enforces is already ADR 0015, which gained a paragraph saying the
+choice lists are covered by it and that the scoping belongs where the listing resolves its filter
+set.
+
+---
+
+## D25 — Two pre-existing test files were edited at the review round, not appended to
+
+**Decision:** `tests/test_contrib/test_collections/test_apps.py` and
+`tests/test_contrib/test_collections/test_tables.py` carry edits rather than additions, and both
+are approved.
+
+**test_apps.py:** the stand-in menu in `TestEmptyRegistryHidesItsHeading._isolated_menu` built its
+headings bare, mirroring how `fairdm/menus/menus.py` declared them. The review showed that the
+emptiness check had to move into that declaration, because `fairdm/apps.py` imports the navigation
+whether or not the collections app is installed, so a check supplied only by the app's `ready()`
+left a portal without the app showing a visible, empty heading. The stand-in now mirrors the new
+declaration. Two tests were added alongside, one for the declared node with the app never running
+and one for the node the app creates when a portal renamed the declared one, so the change widens
+coverage rather than moving it.
+
+**test_tables.py:** a comment only. It read "a filter widget elsewhere on the page legitimately
+lists every sample by name, published or not (FR-030's scoping is a later story)". FR-030 belongs
+to this feature and says the opposite, so the comment excused the defect in D24 rather than
+recording a boundary. It now points at the tests that cover the filters.
+
+**ADR:** none - a triage record for two test edits, spent when the branch merges.

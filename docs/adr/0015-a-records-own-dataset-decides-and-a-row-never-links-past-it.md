@@ -8,7 +8,12 @@ A record appears in a listing if and only if the dataset it belongs to is publis
 reaches through a relation to decide presence.
 
 Separately, where a row would name or link a record the visitor cannot read, it shows neither the
-name nor the link. The cell keeps its place and goes blank.
+name nor the link. The cell keeps its place and carries a placeholder that names nothing: the
+sample column reads `Unpublished`, and the dataset column keeps its icon without the anchor around
+it. What must not survive is the record's own name and its address.
+
+The same test governs every choice list a filter offers. A filter is a second way to read a
+listing, so a name withheld from a cell must not be available from a dropdown beside it.
 
 ## Why
 
@@ -33,5 +38,9 @@ refused. The rows stay, because publication alone decides presence. The link doe
 Every column that renders a related record applies the same test the sample and dataset columns
 apply. A new linked column added later without it is a leak, not a cosmetic omission.
 
-A blank cell in a listing is a meaningful state, not missing data, and is worth reading as
-"there is a record here you may not read".
+A placeholder in a listing is a meaningful state, not missing data, and is worth reading as "there
+is a record here you may not read".
+
+Filter choice lists are scoped where the listing resolves its filter set, not where the framework
+generates one. A registration may supply its own filter set or build it in a method of its own,
+and a rule enforced only inside the generator does not reach either.

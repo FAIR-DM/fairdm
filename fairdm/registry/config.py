@@ -218,9 +218,9 @@ class ModelConfiguration:
 
     `None` (the default) resolves to `["name"]` via `get_search_fields()`. Every
     entry must resolve to a text field - `CharField` or `TextField` - the same test
-    `FilterFactory._get_search_fields` already applies, so a numeric, boolean or
-    date field is refused at import rather than raising on a visitor's first search
-    (FR-026, decisions.md D12).
+    `AdminFactory._get_search_fields` applies when it picks the admin's own search
+    fields, so a numeric, boolean or date field is refused at import rather than
+    raising on a visitor's first search (FR-026, decisions.md D12).
     """
 
     form_fields: list[Any] | None = None

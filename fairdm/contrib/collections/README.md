@@ -30,8 +30,9 @@ This app is responsible for:
 - **`BaseTable`**: shared rendering - the UUID column, dataset/location icons, per-field-type CSS
   classes, and `ConceptManyToManyField` rendering
 - **`SampleTable`**: adds latitude/longitude and a linkified location column
-- **`MeasurementTable`**: adds a linkified sample column and the same location columns, read
-  through the measurement's own sample
+- **`MeasurementTable`**: adds the same location columns, read through the measurement's own
+  sample, and a sample column that links to the sample's page when the sample's own dataset is
+  published and reads `Unpublished` when it is not
 
 `TableFactory` (`fairdm/registry/factories.py`) builds each registered type's table from one of
 these two by default; a registration only needs its own `table_class` to replace that outright.

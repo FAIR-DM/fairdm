@@ -480,6 +480,19 @@ stands, the full suite and the demo app still pass.
       (`codecov.yml`: project ≥ 90%, patch ≥ 85%, each with a 1% threshold) — the app had zero tests
       before this feature (SC-008)
 - [ ] T066 [POLISH] Consolidate this branch's migrations per Article IX before merge
+- [ ] T078 [POLISH] Close the review's publication leak in the filter choice lists: a
+      `PublishedChoicesMixin` in `fairdm/registry/factories.py` narrowing every filter whose own
+      queryset is over `Sample`, `Measurement` or `Dataset`, applied by
+      `DataTableView.get_filterset_class()` to whatever filter set it is handed, so the three tiers
+      of the configuration API are all covered. Five tests on the rendered page's own filter set,
+      not on the generated class (FR-030, SC-002, decisions.md D24)
+- [ ] T079 [POLISH] Move the Samples/Measurements emptiness check onto the headings' own
+      declaration in `fairdm/menus/menus.py`, where it holds for a portal that does not install
+      `fairdm.contrib.collections` — the app's `ready()` now supplies it only for a heading it has
+      to create itself (FR-040, FR-041)
+- [ ] T080 [POLISH] Correct the two documentation claims the review checked against the code: the
+      README's "linkified sample column", and ADR 0015's "goes blank" for a cell whose record the
+      visitor cannot read (FR-059)
 
 ## Dependencies & execution order
 

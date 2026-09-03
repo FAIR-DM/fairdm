@@ -3,7 +3,7 @@
   "feature": "015-browsing-portal-samples",
   "branch": "015-browsing-portal-samples",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -39,6 +39,11 @@
       "state": "CONVERGE",
       "at": "2026-09-03T08:46:17Z",
       "note": "all six stories done; polish landed: docs page, six ADRs, migrations squashed to one per app, deletion residue removed. Full verify green (lint, types, 2595 tests, build, conformance, docs)."
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-03T09:44:13Z",
+      "note": "two reviewers returned; one verified critical (filter choice lists leaked unpublished record names), fixed with tests, plus three lower findings and one citation slip"
     }
   ],
   "gates": {
@@ -673,6 +678,55 @@
               "full suite green"
             ]
           }
+        },
+        {
+          "id": "T078",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_views.py::TestFilterChoicesOnTheRenderedPage"
+            ],
+            "code": [
+              "fairdm/registry/factories.py:363",
+              "fairdm/contrib/collections/views.py:37"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_views.py::TestFilterChoicesOnTheRenderedPage -q (5 passed)",
+              "removed the wrap in get_filterset_class to prove the gate: 4 of 5 red, the negative control green, then restored"
+            ]
+          }
+        },
+        {
+          "id": "T079",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_apps.py::TestEmptyRegistryHidesItsHeading"
+            ],
+            "code": [
+              "fairdm/menus/menus.py:9",
+              "fairdm/contrib/collections/apps.py:39"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_collections/test_apps.py -q (12 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T080",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "fairdm/contrib/collections/README.md:33",
+              "docs/adr/0015-a-records-own-dataset-decides-and-a-row-never-links-past-it.md:10"
+            ],
+            "commands": [
+              "both claims re-read against fairdm/contrib/collections/tables.py:47-59 and :164-167"
+            ]
+          }
         }
       ]
     }
@@ -683,7 +737,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -15,7 +16,9 @@ from pytest_django.asserts import assertContains
 
 import fairdm.contrib.collections as collections_pkg
 from fairdm.core.sample.models import Sample
+from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
+from fairdm.utils.choices import Visibility
 from fairdm_demo.factories import (
     CustomSampleFactory,
     ExampleMeasurementFactory,
@@ -153,7 +156,9 @@ class TestPaging:
         # `context["object_list"]` is the view's own, unpaginated queryset - the table
         # is the only paginator here (`MVPTableViewMixin.paginate_queryset`) - so the
         # slice actually shown on each page is read from the table instead.
-        first_ids = {row.record.pk for row in first_page.context["table"].paginated_rows}
+        first_ids = {
+            row.record.pk for row in first_page.context["table"].paginated_rows
+        }
         second_ids = {
             row.record.pk for row in second_page.context["table"].paginated_rows
         }
@@ -381,6 +386,94 @@ class TestFilters:
 
         assert response.status_code == 200
         assert list(response.context["object_list"]) == [target]
+
+
+@pytest.mark.django_db
+class TestFilterChoicesOnTheRenderedPage:
+    """T078, FR-030, SC-002: no filter on a listing offers the name of a record
+    whose own dataset is unpublished, to any viewer.
+
+    Measured on the page's own filter set rather than on the generated class,
+    because the two are not the same object and the difference is where the leak
+    lived. `SampleFilterMixin.__init__` and `MeasurementFilterMixin.__init__`
+    assign their hand-declared `dataset` and `sample` choice lists at
+    instantiation, after any class-level scoping, from managers that apply no
+    publication test. A test that reads `base_filters` off the class never runs
+    that code and passes either way.
+    """
+
+    def _page_filters(self, client, model):
+        slug = registry.get_for_model(model).get_slug()
+        response = client.get(reverse(f"{slug}-list"))
+        assert response.status_code == 200
+        return response.context["filter"].filters
+
+    def test_a_measurement_listings_sample_filter_offers_no_unpublished_sample(
+        self, client, published_dataset, unpublished_dataset
+    ):
+        offered = RockSampleFactory(dataset=published_dataset)
+        withheld = RockSampleFactory(dataset=unpublished_dataset)
+        ExampleMeasurementFactory(sample=offered, dataset=published_dataset)
+
+        choices = self._page_filters(client, ExampleMeasurement)["sample"].queryset
+
+        assert offered in choices
+        assert withheld not in choices
+
+    def test_a_measurement_listings_dataset_filter_offers_no_unpublished_dataset(
+        self, client, published_dataset, unpublished_dataset
+    ):
+        sample = RockSampleFactory(dataset=published_dataset)
+        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
+
+        choices = self._page_filters(client, ExampleMeasurement)["dataset"].queryset
+
+        assert published_dataset in choices
+        assert unpublished_dataset not in choices
+
+    def test_a_sample_listings_dataset_filter_offers_no_unpublished_dataset(
+        self, client, published_dataset, unpublished_dataset
+    ):
+        """`CustomSample` specifically, and not one of the generated types: it
+        supplies its own `filterset_class`, which is the documented tier of the
+        configuration API where the factory never runs at all. Swapping it for a
+        type whose filter set the factory builds would still pass and would stop
+        covering the case this test exists for."""
+        assert registry.get_for_model(CustomSample).filterset_class is not None
+        CustomSampleFactory(dataset=published_dataset)
+
+        choices = self._page_filters(client, CustomSample)["dataset"].queryset
+
+        assert published_dataset in choices
+        assert unpublished_dataset not in choices
+
+    def test_a_published_but_private_dataset_is_still_offered(
+        self, client, unpublished_dataset
+    ):
+        """The scoping tests publication and nothing else. A private dataset
+        whose data is published contributes rows, so it stays in the choice list
+        beside them (D3, FR-003)."""
+        private = DatasetFactory(published=True, visibility=Visibility.PRIVATE)
+        CustomSampleFactory(dataset=private)
+
+        choices = self._page_filters(client, CustomSample)["dataset"].queryset
+
+        assert private in choices
+        assert unpublished_dataset not in choices
+
+    def test_the_record_type_filter_is_left_alone(self, client, published_dataset):
+        """The measurement mixin scopes `polymorphic_ctype` to the registered
+        types. The publication pass reads each filter's own queryset, so a
+        relation publication says nothing about comes through untouched."""
+        sample = RockSampleFactory(dataset=published_dataset)
+        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
+
+        choices = self._page_filters(client, ExampleMeasurement)[
+            "polymorphic_ctype"
+        ].queryset
+
+        expected = ContentType.objects.get_for_models(*registry.measurements).values()
+        assert set(choices) == set(expected)
 
 
 @pytest.mark.django_db

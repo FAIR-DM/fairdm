@@ -336,6 +336,85 @@ class TableFactory(ComponentFactory):
         return cast(type[Table], Table)
 
 
+def published_related_queryset(related_model: type[models.Model]) -> Any:
+    """The published records of `related_model`, or `None` where publication has
+    nothing to say about that model (FR-030, SC-002, D3).
+
+    The dataset branch goes through `Dataset.all_objects`, never
+    `Dataset.objects`: the default manager excludes PRIVATE datasets, and a
+    published-but-private dataset is the ordinary state (D1, FR-003), so
+    `Dataset.objects.published()` would leave a filter offering nothing while
+    the table shows that dataset's rows. Publication is the only test a listing
+    applies.
+
+    `None` rather than an unscoped queryset, so a caller can tell "every
+    published one" from "not this model's question" - a content-type filter
+    already scoped to the registered types must not be widened back out.
+    """
+    from fairdm.core.dataset.models import Dataset
+    from fairdm.core.measurement.models import Measurement
+    from fairdm.core.sample.models import Sample
+
+    if issubclass(related_model, Dataset):
+        return Dataset.all_objects.published()
+    if issubclass(related_model, (Sample, Measurement)):
+        return related_model._default_manager.published()
+    return None
+
+
+class PublishedChoicesMixin:
+    """Narrow every related-record filter to published records, last.
+
+    Scoping filters as the factory builds them is not enough, in two ways that
+    both leaked (FR-030, SC-002).
+
+    A generated filter set inherits `SampleFilterMixin` or
+    `MeasurementFilterMixin`, and both assign their own hand-declared `dataset`
+    (and, for measurements, `sample`) choice lists in `__init__` - from
+    `Dataset.all_objects` and `Sample.objects` respectively, neither of which
+    applies publication. Those assignments happen at instantiation, after any
+    class-level override, so a class-level fix does not survive them.
+
+    And a registration may supply its own `filterset_class`, or override
+    `get_filterset_class()` outright, in which case the factory never runs at
+    all. That is a documented tier of the configuration API, not an edge case.
+
+    So this is applied by the listing view to whatever filter set it is handed,
+    and it is placed first in the bases, so its `__init__` runs the rest of the
+    chain and then re-scopes what that chain assigned. It reads each filter's
+    own queryset rather than the model field, so a many-to-many or reverse
+    relation django-filter generated for itself is covered by the same pass,
+    and a relation publication says nothing about is left alone.
+
+    It applies to the listings and to nothing else. Every other page that
+    builds a filter on those two core mixins keeps their behaviour, which is
+    what FR-006 requires.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for filter_ in self.filters.values():
+            queryset = getattr(filter_, "queryset", None)
+            if queryset is None or not hasattr(queryset, "model"):
+                continue
+            scoped = published_related_queryset(queryset.model)
+            if scoped is not None:
+                filter_.queryset = scoped
+
+    @classmethod
+    def applied_to(cls, filterset_class: type) -> type:
+        """`filterset_class` with this mixin in front, or unchanged if it is
+        already there. Idempotent, because a listing resolves its filter set on
+        every request and a fresh subclass per request would leak classes."""
+        if issubclass(filterset_class, cls):
+            return filterset_class
+        return type(
+            f"Published{filterset_class.__name__}",
+            (cls, filterset_class),
+            {},
+        )
+
+
 class FilterFactory(ComponentFactory):
     """Factory for generating FilterSet classes with smart filter types and crispy-forms styling.
 
@@ -492,22 +571,13 @@ class FilterFactory(ComponentFactory):
         """A related-record filter's choice list, scoped to published records
         (T040, FR-030, D3).
 
-        The dataset branch goes through `Dataset.all_objects`, never
-        `Dataset.objects`: the default manager excludes PRIVATE datasets, and
-        a published-but-private dataset is the ordinary state (D1, FR-003) -
-        `Dataset.objects.published()` would leave the filter offering nothing
-        while the table shows that dataset's rows. Publication is the only
-        test a listing applies.
+        Falls back to the model's own default manager for a relation
+        publication says nothing about, such as a content type.
         """
-        from fairdm.core.dataset.models import Dataset
-        from fairdm.core.measurement.models import Measurement
-        from fairdm.core.sample.models import Sample
-
-        if issubclass(related_model, Dataset):
-            return Dataset.all_objects.published()
-        if issubclass(related_model, (Sample, Measurement)):
-            return related_model._default_manager.published()
-        return related_model._default_manager.all()
+        scoped = published_related_queryset(related_model)
+        if scoped is None:
+            return related_model._default_manager.all()
+        return scoped
 
     def get_base_filterset_class(self) -> type[FilterSet]:
         """The base FilterSet class to build a specimen or measurement
