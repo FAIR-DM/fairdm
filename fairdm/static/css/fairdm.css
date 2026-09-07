@@ -63,9 +63,9 @@
   outline-offset: 2px;
 }
 
-/* Media — 2:1 stacked on a narrow card, 3:2 beside the body once there is
- * room. `aspect-ratio` rather than a fixed height, so the banner keeps its
- * shape at every card width. */
+/* Media — a 2:1 banner while the card is stacked. `aspect-ratio` rather than a
+ * fixed height, so the banner keeps its shape at every card width. Once the
+ * image moves beside the body it fills the card's height instead. */
 .project-card__media {
   flex: none;
   aspect-ratio: 2 / 1;
@@ -96,6 +96,9 @@
 }
 
 .project-card__datasets {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-base-content);
@@ -216,12 +219,13 @@
 
   .project-card__media {
     width: 11.5rem;
-    aspect-ratio: 3 / 2;
-    /* Without this the media block stretches to the card's full height, which
-     * beats `aspect-ratio` and crops a 3:2 source to a portrait sliver. The
-     * portal enforces a 3:2 ratio on project images, so the card shows that
-     * ratio rather than whatever the neighbouring text happens to be tall. */
-    align-self: flex-start;
+    /* Beside the body the image fills the card's full height: a fixed column
+     * whose height is whatever the body next to it comes to. `aspect-ratio`
+     * has to be cleared for that — left at 2:1 it sets the height itself and
+     * leaves a gap under the image. The `object-fit: cover` on the `img`
+     * crops to fill rather than distorting. */
+    aspect-ratio: auto;
+    align-self: stretch;
   }
 
   .project-card__body {

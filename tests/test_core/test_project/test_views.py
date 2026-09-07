@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 from django import forms
+from django.conf import settings
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import resolve, reverse
@@ -1673,6 +1674,43 @@ class TestProjectCardRendering:
         ProjectFactory(visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
         assert html.count("project-card__media") == 1
+
+    def test_the_image_fills_the_card_height_once_it_sits_beside_the_body(self):
+        """Stacked, the image is a 2:1 banner. Beside the body it is a column
+        as tall as the card, so `aspect-ratio` has to be cleared — left at 2:1
+        it sets the height itself and leaves a gap below the image."""
+        stylesheet = FAIRDM_STYLESHEET.read_text()
+        side_by_side = re.search(
+            r"@container \(min-width: 30rem\)\s*\{(.*?)\n\}",
+            stylesheet,
+            re.DOTALL,
+        )
+        assert side_by_side, "the reflow breakpoint is expected to exist"
+        media = re.search(
+            r"\.project-card__media\s*\{([^}]*)\}", side_by_side.group(1)
+        )
+        assert media, "the breakpoint is expected to size the media block"
+        declarations = re.sub(r"/\*.*?\*/", "", media.group(1), flags=re.DOTALL)
+        assert "aspect-ratio: auto" in declarations
+        assert "align-self: stretch" in declarations
+        assert "flex-start" not in declarations
+
+    def test_the_dataset_count_carries_the_dataset_icon(self, client):
+        """The count reads as a bare number without it. The icon is asked for
+        by name, so it follows whatever the project has configured for
+        `dataset` rather than pinning a glyph here.
+
+        Scoped to the card's own span: the sidebar's Datasets entry draws the
+        same icon, so a page-wide search would pass with nothing on the card.
+        """
+        ProjectFactory(visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        span = re.search(
+            r'<span class="project-card__datasets">(.*?)</span>', html, re.DOTALL
+        )
+        assert span, "the card is expected to render a dataset count"
+        configured = settings.EASY_ICONS["default"]["icons"]["dataset"]
+        assert configured in span.group(1)
 
     def test_card_stylesheet_hard_codes_no_colour(self, client):
         """A card whose title is invisible in dark mode is a failed card, so

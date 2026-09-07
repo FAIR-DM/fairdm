@@ -51,6 +51,7 @@
           {{ object.get_status_display }}
         </span>
         <span class="project-card__datasets">
+          <c-icon name="dataset" />
           {% if object.dataset_count %}
             {% blocktrans count counter=object.dataset_count %}
               {{ counter }} dataset
