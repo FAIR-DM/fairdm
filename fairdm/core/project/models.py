@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
+from django.db.models import Count, Q
 
 # from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
@@ -33,8 +34,14 @@ class ProjectQuerySet(QuerySet):
         return self.filter(visibility=Visibility.PUBLIC)
 
     def with_contributors(self) -> "ProjectQuerySet":
-        """Prefetch related contributors for optimized access."""
-        return self.prefetch_related("contributors")
+        """Prefetch related contributors for optimized access.
+
+        Reaches through to the contributor itself, not just the contribution
+        row: every caller that prefetches contributions goes on to name the
+        person or organisation behind each one, and `Contributor` is
+        polymorphic, so resolving them lazily costs two queries per credit.
+        """
+        return self.prefetch_related("contributors__contributor")
 
     def with_metadata(self) -> "ProjectQuerySet":
         """Prefetch all related metadata for detail views.
@@ -53,10 +60,28 @@ class ProjectQuerySet(QuerySet):
     def with_list_data(self) -> "ProjectQuerySet":
         """Optimized queryset for list views.
 
-        Only prefetches owner and keywords, avoiding expensive related data
-        not needed in list displays.
+        Loads everything a project card draws — the owning organization, the
+        keyword badges, and the descriptions the plain-text abstract is taken
+        from — and annotates ``dataset_count``, the number of datasets the card
+        reports.
+
+        That count names **public datasets only**. ``Dataset.objects`` excludes
+        private records, but an annotation aggregates over a join to the dataset
+        table and never consults a manager, so the exclusion has to be written
+        into the aggregate itself. Without it the listing would publish a number
+        that only a private dataset explains.
         """
-        return self.select_related("owner").prefetch_related("keywords")
+        return (
+            self.select_related("owner")
+            .prefetch_related("keywords", "descriptions")
+            .annotate(
+                dataset_count=Count(
+                    "datasets",
+                    filter=~Q(datasets__visibility=Visibility.PRIVATE),
+                    distinct=True,
+                )
+            )
+        )
 
 
 class Project(BaseModel):
@@ -140,6 +165,26 @@ class Project(BaseModel):
         "image": "get_meta_image",
         "type": "research.project",
     }
+
+    #: The theme colour each lifecycle stage carries on a project card. Only
+    #: `SEARCHING_FOR_COLLABORATORS` is a call to action, so it is the only one
+    #: given an attention colour; the rest report state and stay quiet.
+    STATUS_BADGE_VARIANTS = {
+        STATUS_CHOICES.CONCEPT: "neutral",
+        STATUS_CHOICES.PLANNING: "info",
+        STATUS_CHOICES.IN_PROGRESS: "success",
+        STATUS_CHOICES.COMPLETE: "neutral",
+        STATUS_CHOICES.SEARCHING_FOR_COLLABORATORS: "accent",
+    }
+
+    @property
+    def status_badge_variant(self):
+        """The theme colour name for this project's status badge.
+
+        Falls back to `neutral` so a status added to the vocabulary without an
+        entry above still renders a legible badge rather than an unstyled one.
+        """
+        return self.STATUS_BADGE_VARIANTS.get(self.status, "neutral")
 
     def get_absolute_url(self):
         """The project's own page: its registered overview (013 plan P1).

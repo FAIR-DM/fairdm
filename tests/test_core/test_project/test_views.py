@@ -7,14 +7,18 @@ request/response cycles for project CRUD operations.
 
 import re
 import time
+from pathlib import Path
 
 import pytest
 from django import forms
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import resolve, reverse
 from django.views.generic import CreateView
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains, assertNotContains
 
+import fairdm.core.project
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
@@ -25,6 +29,7 @@ from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
     ProjectDateFactory,
+    ProjectDescriptionFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
     UserFactory,
@@ -1429,3 +1434,328 @@ class TestDeletionPageBackControl:
         back_href = match.group(1)
         assert back_href != ""
         resolve(back_href)
+
+
+@pytest.mark.django_db
+class TestProjectCardRendering:
+    """The project card on the public listing (issue #330).
+
+    Every assertion is made against the rendered template HTML. The card was
+    previously Bootstrap markup delegating to the shared object-card component,
+    and none of those classes resolve against the stylesheet the portal loads.
+    """
+
+    def _card_html(self, client):
+        response = client.get(reverse("project-list"))
+        assert response.status_code == 200
+        return response, response.content.decode()
+
+    def test_card_carries_no_bootstrap_era_classes(self):
+        """The classes the old card relied on resolve to nothing in
+        `django-mvp.css`, so their presence is the defect itself."""
+        template = (
+            Path(fairdm.core.project.__file__).parent
+            / "templates"
+            / "project"
+            / "project_card.html"
+        ).read_text()
+        for orphan in (
+            "col-md-4",
+            "card-img",
+            "text-truncate-6",
+            "bg-info",
+            "justify-content-between",
+            "align-items-start",
+        ):
+            assert orphan not in template, f"{orphan} does not resolve in the portal"
+
+    def test_card_no_longer_delegates_to_the_shared_object_card(self):
+        """The dataset card still renders that component, so it stays; the
+        project card stops reaching for it."""
+        template = (
+            Path(fairdm.core.project.__file__).parent
+            / "templates"
+            / "project"
+            / "project_card.html"
+        ).read_text()
+        assert "<c-components.object-card" not in template
+        assert "<c-project.card" not in template
+
+    def test_card_shows_the_status_label_and_its_theme_colour(self, client):
+        ProjectFactory(
+            name="Rift Basin Survey",
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+        )
+        response, html = self._card_html(client)
+        assertContains(response, "In progress")
+        assert "badge-success" in html
+
+    def test_searching_for_collaborators_carries_the_accent_colour(self, client):
+        ProjectFactory(
+            status=ProjectStatus.SEARCHING_FOR_COLLABORATORS,
+            visibility=Visibility.PUBLIC,
+        )
+        response, html = self._card_html(client)
+        assertContains(response, "Searching for collaborators")
+        assert "badge-accent" in html
+
+    def test_card_reports_the_public_dataset_count(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        response, _ = self._card_html(client)
+        assertContains(response, "2 datasets")
+
+    def test_card_counts_one_dataset_in_the_singular(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        response, _ = self._card_html(client)
+        assertContains(response, "1 dataset")
+
+    def test_card_says_so_rather_than_showing_a_zero(self, client):
+        ProjectFactory(visibility=Visibility.PUBLIC)
+        response, html = self._card_html(client)
+        assertContains(response, "No datasets")
+        assert "0 datasets" not in html
+
+    def test_private_datasets_are_not_counted_on_the_card(self, client):
+        """The count on a public page must not be a number only a private
+        dataset explains."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        response, html = self._card_html(client)
+        assertContains(response, "1 dataset")
+        assert "3 datasets" not in html
+
+    def test_the_whole_card_is_the_link_and_there_is_no_view_details_button(
+        self, client, public_project
+    ):
+        response, html = self._card_html(client)
+        assertContains(response, f'href="{public_project.get_absolute_url()}"')
+        assertNotContains(response, "View Details")
+        assertNotContains(response, "View details")
+
+    def test_card_renders_the_abstract_as_plain_text(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        ProjectDescriptionFactory(
+            related=project,
+            type="Abstract",
+            value="## Objectives\n\nWe measure **heat flow** across the rift.",
+        )
+        response, html = self._card_html(client)
+        assertContains(response, "Objectives")
+        assertContains(response, "heat flow")
+        assert "## Objectives" not in html
+        assert "**heat flow**" not in html
+
+    def test_card_caps_a_long_abstract_at_400_characters(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="borehole " * 200
+        )
+        response, html = self._card_html(client)
+        assert len(project.get_abstract_summary()) <= 400
+        assertContains(response, project.get_abstract_summary()[:120])
+
+    def test_card_renders_keywords_as_badges_and_not_as_links(self, client):
+        """`ProjectFilter` names its keyword filters dynamically, so there is
+        no stable query parameter to link a keyword to."""
+        from research_vocabs.models import Concept
+
+        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        project.keywords.add(keyword)
+        response, html = self._card_html(client)
+        assertContains(response, keyword.label)
+        assert f'href="?keywords={keyword.pk}"' not in html
+        assert f">{keyword.label}</a>" not in html
+
+    def test_card_shows_the_project_uuid_in_monospace_with_a_copy_control(
+        self, client, public_project
+    ):
+        response, html = self._card_html(client)
+        assertContains(response, public_project.uuid)
+        assert "font-mono" in html
+        assert "clipboard" in html
+
+    def test_card_shows_the_last_modified_date(self, client, public_project):
+        response, _ = self._card_html(client)
+        assertContains(response, public_project.modified.strftime("%b"))
+
+    def test_card_shows_contributor_names_and_the_owning_organization(self, client):
+        person = PersonFactory(name="Ada Lovelace")
+        organization = OrganizationFactory(name="Institute of Deep Time")
+        project = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        project.add_contributor(person)
+        response, _ = self._card_html(client)
+        assertContains(response, "Ada Lovelace")
+        assertContains(response, "Institute of Deep Time")
+
+    def test_card_reflows_on_its_own_width_with_a_container_query(self, client):
+        """Breakpoints keyed to the viewport would be wrong the moment the
+        listing moves to two columns, which it does at xl."""
+        template = (
+            Path(fairdm.core.project.__file__).parent
+            / "templates"
+            / "project"
+            / "project_card.html"
+        ).read_text()
+        assert "project-card" in template
+
+        stylesheet = (
+            Path(fairdm.core.project.__file__).parent
+            / "static"
+            / "project"
+            / "css"
+            / "project-card.css"
+        ).read_text()
+        assert "container-type: inline-size" in stylesheet
+        assert "@container (min-width: 30rem)" in stylesheet
+        assert "@container (min-width: 46rem)" in stylesheet
+
+    def test_card_stylesheet_hard_codes_no_colour(self, client):
+        """A card whose title is invisible in dark mode is a failed card, so
+        every colour is read from the active theme's custom properties."""
+        stylesheet = (
+            Path(fairdm.core.project.__file__).parent
+            / "static"
+            / "project"
+            / "css"
+            / "project-card.css"
+        ).read_text()
+        # Comments carry an issue number and prose; only the declarations are
+        # in question here.
+        declarations = re.sub(r"/\*.*?\*/", "", stylesheet, flags=re.DOTALL)
+        assert not re.search(r"#[0-9a-fA-F]{3,8}\b", declarations)
+        assert not re.search(r"\brgba?\(", declarations)
+        assert not re.search(r"\bhsla?\(", declarations)
+        assert "--color-base-content" in declarations
+
+    def test_stylesheet_is_linked_once_per_page_not_once_per_card(self, client):
+        """A per-card `<link>` would be emitted 25 times on a full page."""
+        for _ in range(3):
+            ProjectFactory(visibility=Visibility.PUBLIC)
+        response, html = self._card_html(client)
+        assert html.count("project/css/project-card.css") == 1
+        assert len(response.context["object_list"]) == 3
+
+    def test_list_view_renders_the_projects_own_list_template(self, client):
+        response = client.get(reverse("project-list"))
+        assert "project/project_list.html" in [t.name for t in response.templates]
+
+    def test_list_grid_is_one_column_and_two_at_xl(self):
+        assert ProjectListView.grid == {"cols": 1, "xl": 2, "gap": 4}
+
+    def test_card_marks_its_user_facing_strings_for_translation(self):
+        """Article VIII: a hard-coded user-visible string is a blocking
+        defect, and the card's fixed prose is the empty-count line."""
+        template = (
+            Path(fairdm.core.project.__file__).parent
+            / "templates"
+            / "project"
+            / "project_card.html"
+        ).read_text()
+        assert "{% load i18n %}" in template or "load i18n" in template
+        assert "No datasets" not in template.replace(
+            "{% trans \"No datasets\" %}", ""
+        ).replace("{% translate \"No datasets\" %}", "")
+
+
+@pytest.mark.django_db
+class TestProjectListingQueryCount:
+    """Rendering the listing costs a constant number of queries regardless of
+    how many projects it returns (issue #330, "Done when").
+
+    Constitution Article X requires a `django_assert_num_queries` guard rather
+    than wall-clock timing. The count is measured twice — once for a single
+    project and once for twenty, each carrying the full set of related records
+    a card draws — so the test fails if any of the prefetching is removed,
+    rather than merely recording today's number.
+
+    Two pieces of measurement hygiene, both copied from `TestQueryCount` in
+    `tests/test_contrib/test_collections/test_views.py`, which established them
+    for the sample and measurement listings:
+
+    `orbit` is disabled for the duration. It records requests and queries by
+    writing rows of its own, which land in the same count as the page's.
+
+    The page is fetched once before either measurement. The first request does
+    one-time work the second never repeats — the site cache, and easy-thumbnails
+    writing each card image's `Source` and `Thumbnail` rows the first time that
+    image is rendered at a given size.
+    """
+
+    @pytest.fixture(autouse=True)
+    def without_orbit(self, settings):
+        settings.ORBIT = {"ENABLED": False}
+
+    @staticmethod
+    def _build_projects(count):
+        from research_vocabs.models import Concept
+
+        keywords = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:3])
+        for index in range(count):
+            project = ProjectFactory(
+                name=f"Survey {index}", visibility=Visibility.PUBLIC
+            )
+            ProjectDescriptionFactory(
+                related=project,
+                type="Abstract",
+                value=f"## Survey {index}\n\nWe measured **heat flow** here.",
+            )
+            project.keywords.add(*keywords)
+            project.add_contributor(PersonFactory())
+            project.add_contributor(OrganizationFactory())
+            DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+            DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+
+    def test_listing_query_count_does_not_grow_with_the_number_of_projects(
+        self, client, django_assert_num_queries
+    ):
+        url = reverse("project-list")
+
+        self._build_projects(1)
+        client.get(url)  # warm up one-time per-process and per-image setup
+        with CaptureQueriesContext(connection) as one_project:
+            response = client.get(url)
+            assert response.status_code == 200
+        baseline = len(one_project.captured_queries)
+
+        self._build_projects(19)  # a full page
+        client.get(url)
+        with django_assert_num_queries(baseline):
+            response = client.get(url)
+            assert response.status_code == 200
+            assert len(response.context["object_list"]) == 20
+
+
+@pytest.mark.django_db
+class TestProjectCardEmitsNoTemplateComments:
+    """No template comment reaches the page (issue #330).
+
+    Django's `{# ... #}` is single-line only. Spread over several lines it is
+    not a comment at all — the text is emitted verbatim into the response, and
+    a comment inside the keyword loop is emitted once per keyword on every
+    card. `{% comment %}` is the multi-line form.
+    """
+
+    def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
+        from research_vocabs.models import Concept
+
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        project.keywords.add(
+            *Concept.objects.filter(vocabulary__name="fairdm-roles")[:3]
+        )
+        project.add_contributor(PersonFactory())
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="An abstract."
+        )
+
+        html = client.get(reverse("project-list")).content.decode()
+
+        assert "{#" not in html
+        assert "#}" not in html
+        assert "{%" not in html

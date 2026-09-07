@@ -23,7 +23,14 @@ class ProjectListView(FairDMListView):
 
     model = Project
     filterset_class = ProjectFilter
+    # The listing's own template exists solely to link the card's stylesheet
+    # once per page rather than once per card.
+    template_name = "project/project_list.html"
     list_item_template = "project/project_card.html"
+    # One column, two at xl. The page container caps at 96rem, so a single card
+    # on a wide screen reaches about 1500px and gives the abstract a line
+    # length no one can read.
+    grid = {"cols": 1, "xl": 2, "gap": 4}
     search_fields = ["uuid", "name", "identifiers__value"]
     order_by = [
         ("name", _("Name (A-Z)"), "name"),
@@ -42,13 +49,19 @@ class ProjectListView(FairDMListView):
         return user.is_authenticated
 
     def get_queryset(self) -> QuerySet[Project]:
-        """Return the queryset of visible projects with prefetched contributors.
+        """Return the public projects, loaded with everything a card draws.
+
+        `with_list_data()` carries the owner, the keyword badges, the
+        descriptions the abstract summary is taken from, and the public dataset
+        count; `with_contributors()` carries the contributor stack. Both are
+        needed, so both are composed - the card renders in a constant number of
+        queries whether the page holds one project or twenty.
 
         Returns:
             QuerySet: Filtered and optimized Project queryset.
         """
         qs: ProjectQuerySet = super().get_queryset()
-        return qs.get_visible().with_contributors()
+        return qs.get_visible().with_list_data().with_contributors()
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):

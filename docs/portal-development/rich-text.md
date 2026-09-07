@@ -35,6 +35,34 @@ Links come back carrying `rel="noopener noreferrer"`. Ordinary markdown — head
 emphasis, lists, links, images, tables, fenced code, footnotes and strikethrough — passes
 through untouched.
 
+## Showing a description as plain text
+
+Cards, listings and search results need the prose without the markup: a card that prints a
+description directly shows the reader `##` and `**`, and an abstract of any length sets the
+height of the card it sits in.
+
+Every project, dataset, sample and measurement therefore carries
+`get_abstract_summary()`, which renders its Abstract description through the same
+sanitising function, drops the tags, collapses the whitespace the block elements leave
+behind, and caps the result at 400 characters:
+
+```python
+project.get_abstract_summary()
+# 'Objectives We measure heat flow across the rift…'
+```
+
+It returns `""` when the record has no Abstract, so a template can test it directly:
+
+```html
+{% with summary=project.get_abstract_summary %}
+  {% if summary %}<p class="card-abstract">{{ summary }}</p>{% endif %}
+{% endwith %}
+```
+
+The result is plain text, not markup. It is escaped by the template layer like any other
+string, so **do not** add `|safe` or `safe_markdown` after it — use `safe_markdown` when
+you want the formatting, and this when you want the words.
+
 ## Adding a markdown field to your own form
 
 Use `MarkdownxFormField`, which renders a side-by-side editor and live preview:
