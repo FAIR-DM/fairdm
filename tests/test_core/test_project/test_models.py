@@ -1643,6 +1643,22 @@ class TestProjectAbstractSummary:
         assert "bold" in summary
         assert "italic" in summary
 
+    def test_a_heading_does_not_run_into_the_prose_below_it(self):
+        """A heading carries no terminal punctuation, so stripping the tags
+        joined it to the paragraph below and the card showed one broken
+        sentence: "Background Borehole temperature logs were collected."."""
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project,
+            type="Abstract",
+            value="## Background\n\nBorehole temperature logs were collected.",
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert "Background Borehole" not in summary
+        assert summary == "Background — Borehole temperature logs were collected."
+
     def test_summary_carries_no_html_tags(self):
         project = ProjectFactory()
         ProjectDescriptionFactory(

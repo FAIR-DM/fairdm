@@ -19,10 +19,14 @@
  * would get both wrong.
  */
 
+/* The card establishes the container; `.project-card__layout` does the
+ * reflowing. The two cannot be the same element: a container query is answered
+ * by an ANCESTOR container, never by the element's own `container-type`, so a
+ * `flex-direction` written here would be matched by nothing and the card would
+ * stay stacked while its media block shrank to the side-by-side width. */
 .project-card {
   container-type: inline-size;
-  display: flex;
-  flex-direction: column;
+  display: block;
   overflow: hidden;
   border-radius: var(--radius-box, 1rem);
   background-color: var(--color-base-100);
@@ -32,6 +36,12 @@
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease;
+}
+
+.project-card__layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .project-card:hover,
@@ -188,13 +198,18 @@
 
 /* Image moves beside the body. */
 @container (min-width: 30rem) {
-  .project-card {
+  .project-card__layout {
     flex-direction: row;
   }
 
   .project-card__media {
     width: 11.5rem;
     aspect-ratio: 3 / 2;
+    /* Without this the media block stretches to the card's full height, which
+     * beats `aspect-ratio` and crops a 3:2 source to a portrait sliver. The
+     * portal enforces a 3:2 ratio on project images, so the card shows that
+     * ratio rather than whatever the neighbouring text happens to be tall. */
+    align-self: flex-start;
   }
 
   .project-card__body {

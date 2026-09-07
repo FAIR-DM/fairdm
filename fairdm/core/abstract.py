@@ -1,3 +1,4 @@
+import re
 from html import unescape
 
 from django.core.exceptions import ValidationError
@@ -167,9 +168,15 @@ class BaseModel(models.Model):
         abstract = self.get_abstract()
         if not abstract or not abstract.value:
             return ""
+        html = markdownify(abstract.value)
+        # A heading carries no terminal punctuation, so stripping the tags runs
+        # it straight into the paragraph below it: "## Background" followed by
+        # "Borehole temperature logs ..." reads as one broken sentence on the
+        # card. Paragraphs need no separator - they already end in a full stop.
+        html = re.sub(r"</h[1-6]>", " — ", html, flags=re.IGNORECASE)
         # `strip_tags` leaves entities behind, and `&amp;` printed to a card is
         # as wrong as `**` was - the summary is escaped again on output.
-        text = unescape(strip_tags(markdownify(abstract.value)))
+        text = unescape(strip_tags(html))
         return Truncator(" ".join(text.split())).chars(400, truncate="…")
 
     def get_meta_description(self):

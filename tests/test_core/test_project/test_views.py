@@ -1616,6 +1616,69 @@ class TestProjectCardRendering:
         assert "@container (min-width: 30rem)" in stylesheet
         assert "@container (min-width: 46rem)" in stylesheet
 
+    def test_no_container_query_targets_the_container_element_itself(self):
+        """A container query is answered by an ANCESTOR container, so a rule
+        inside `@container` that selects the element carrying `container-type`
+        matches nothing.
+
+        This shipped once: `.project-card` declared the container and the
+        30rem rule set `flex-direction: row` on `.project-card`. The card's
+        descendants reflowed and the card itself did not, so a wide card drew a
+        side-sized image stacked above a full-width body. Nothing in the HTML
+        was wrong, which is why only a rule about the stylesheet catches it.
+        """
+        stylesheet = (
+            Path(fairdm.core.project.__file__).parent
+            / "static"
+            / "project"
+            / "css"
+            / "project-card.css"
+        ).read_text()
+        declarations = re.sub(r"/\*.*?\*/", "", stylesheet, flags=re.DOTALL)
+
+        containers = re.findall(
+            r"container-type\s*:\s*[^;]+;", declarations
+        )
+        assert containers, "the card is expected to establish a container"
+
+        # Every selector that declares `container-type`, by the rule it opens.
+        declaring = set()
+        for match in re.finditer(r"([^{}]+)\{([^{}]*)\}", declarations):
+            if "container-type" in match.group(2):
+                declaring.update(s.strip() for s in match.group(1).split(","))
+        assert ".project-card" in declaring
+
+        for block in re.finditer(r"@container[^{]*\{(.*?)\n\}", declarations, re.DOTALL):
+            for rule in re.finditer(r"([^{}]+)\{[^{}]*\}", block.group(1)):
+                selectors = {s.strip() for s in rule.group(1).split(",")}
+                overlap = selectors & declaring
+                assert not overlap, (
+                    f"{overlap} declares container-type and cannot answer its "
+                    "own container query; move the rule to a descendant"
+                )
+
+    def test_card_renders_the_wrapper_the_reflow_rules_target(self, client):
+        """The container queries reflow `.project-card__layout`. Drop the
+        wrapper from the template and the card silently stops reflowing."""
+        ProjectFactory(visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert "project-card__layout" in html
+
+    def test_a_project_without_an_image_gets_no_media_block(self, client):
+        """Not a placeholder image, and not an empty one either: a blank 2:1
+        band spends half a phone screen carrying nothing. The old card pointed
+        at `fairdm/img/placeholder-3x2.png`, which is not in the repository, so
+        every imageless card there requested a file that 404s."""
+        ProjectFactory(image=None, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert "project-card__layout" in html
+        assert "project-card__media" not in html
+
+    def test_a_project_with_an_image_gets_a_media_block(self, client):
+        ProjectFactory(visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert html.count("project-card__media") == 1
+
     def test_card_stylesheet_hard_codes_no_colour(self, client):
         """A card whose title is invisible in dark mode is a failed card, so
         every colour is read from the active theme's custom properties."""
