@@ -18,6 +18,7 @@ from django.views.generic import CreateView
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains, assertNotContains
 
+import fairdm
 import fairdm.core.project
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
@@ -36,6 +37,11 @@ from fairdm.factories import (
 )
 from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMCreateView, FairDMListView
+
+# FairDM's framework-wide stylesheet, linked from `fairdm/templates/base.html`.
+# The card's styles live here rather than in a per-page stylesheet so that
+# plugin views, which cannot add a `<link>` of their own, get them too.
+FAIRDM_STYLESHEET = Path(fairdm.__file__).parent / "static" / "css" / "fairdm.css"
 
 
 @pytest.mark.django_db
@@ -1595,8 +1601,9 @@ class TestProjectCardRendering:
         assertContains(response, "Institute of Deep Time")
 
     def test_card_reflows_on_its_own_width_with_a_container_query(self, client):
-        """Breakpoints keyed to the viewport would be wrong the moment the
-        listing moves to two columns, which it does at xl."""
+        """Breakpoints keyed to the viewport would be wrong the moment the card
+        is drawn anywhere but a full-width listing row — a plugin panel, or a
+        multi-column grid."""
         template = (
             Path(fairdm.core.project.__file__).parent
             / "templates"
@@ -1605,13 +1612,7 @@ class TestProjectCardRendering:
         ).read_text()
         assert "project-card" in template
 
-        stylesheet = (
-            Path(fairdm.core.project.__file__).parent
-            / "static"
-            / "project"
-            / "css"
-            / "project-card.css"
-        ).read_text()
+        stylesheet = FAIRDM_STYLESHEET.read_text()
         assert "container-type: inline-size" in stylesheet
         assert "@container (min-width: 30rem)" in stylesheet
         assert "@container (min-width: 46rem)" in stylesheet
@@ -1627,13 +1628,7 @@ class TestProjectCardRendering:
         side-sized image stacked above a full-width body. Nothing in the HTML
         was wrong, which is why only a rule about the stylesheet catches it.
         """
-        stylesheet = (
-            Path(fairdm.core.project.__file__).parent
-            / "static"
-            / "project"
-            / "css"
-            / "project-card.css"
-        ).read_text()
+        stylesheet = FAIRDM_STYLESHEET.read_text()
         declarations = re.sub(r"/\*.*?\*/", "", stylesheet, flags=re.DOTALL)
 
         containers = re.findall(
@@ -1682,13 +1677,7 @@ class TestProjectCardRendering:
     def test_card_stylesheet_hard_codes_no_colour(self, client):
         """A card whose title is invisible in dark mode is a failed card, so
         every colour is read from the active theme's custom properties."""
-        stylesheet = (
-            Path(fairdm.core.project.__file__).parent
-            / "static"
-            / "project"
-            / "css"
-            / "project-card.css"
-        ).read_text()
+        stylesheet = FAIRDM_STYLESHEET.read_text()
         # Comments carry an issue number and prose; only the declarations are
         # in question here.
         declarations = re.sub(r"/\*.*?\*/", "", stylesheet, flags=re.DOTALL)
@@ -1702,15 +1691,31 @@ class TestProjectCardRendering:
         for _ in range(3):
             ProjectFactory(visibility=Visibility.PUBLIC)
         response, html = self._card_html(client)
-        assert html.count("project/css/project-card.css") == 1
+        assert html.count("css/fairdm.css") == 1
         assert len(response.context["object_list"]) == 3
 
-    def test_list_view_renders_the_projects_own_list_template(self, client):
-        response = client.get(reverse("project-list"))
-        assert "project/project_list.html" in [t.name for t in response.templates]
+    def test_stylesheet_is_linked_from_the_base_template_not_a_page_template(
+        self, client
+    ):
+        """A page-level `<link>` reaches only that page. Plugin views render
+        inside the base template and cannot add one, so a card drawn in a
+        plugin panel would arrive unstyled. Linking from the base template is
+        what makes the styles available everywhere.
+        """
+        base = (
+            Path(fairdm.__file__).parent / "templates" / "base.html"
+        ).read_text()
+        assert "css/fairdm.css" in base
 
-    def test_list_grid_is_one_column_and_two_at_xl(self):
-        assert ProjectListView.grid == {"cols": 1, "xl": 2, "gap": 4}
+        # A page that draws no project card still carries the stylesheet.
+        response = client.get(reverse("dataset-list"))
+        assert response.status_code == 200
+        assert "css/fairdm.css" in response.content.decode()
+
+    def test_the_listing_shows_one_project_per_row_at_every_width(self):
+        """No breakpoint key: a second column at any width is what the grid is
+        being kept out of. The card fills the row and reflows internally."""
+        assert ProjectListView.grid == {"cols": 1, "gap": 4}
 
     def test_card_marks_its_user_facing_strings_for_translation(self):
         """Article VIII: a hard-coded user-visible string is a blocking

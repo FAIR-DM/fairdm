@@ -23,14 +23,10 @@ class ProjectListView(FairDMListView):
 
     model = Project
     filterset_class = ProjectFilter
-    # The listing's own template exists solely to link the card's stylesheet
-    # once per page rather than once per card.
-    template_name = "project/project_list.html"
     list_item_template = "project/project_card.html"
-    # One column, two at xl. The page container caps at 96rem, so a single card
-    # on a wide screen reaches about 1500px and gives the abstract a line
-    # length no one can read.
-    grid = {"cols": 1, "xl": 2, "gap": 4}
+    # One project per row at every width. The card reflows on its own width, so
+    # a wide row gets the side-by-side layout rather than a second column.
+    grid = {"cols": 1, "gap": 4}
     search_fields = ["uuid", "name", "identifiers__value"]
     order_by = [
         ("name", _("Name (A-Z)"), "name"),

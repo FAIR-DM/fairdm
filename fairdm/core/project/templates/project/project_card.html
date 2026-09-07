@@ -8,11 +8,11 @@
   loads. The dataset card still uses it, so it stays where it is.
 
   The card reflows on its OWN width, not the viewport's — `project-card` sets
-  `container-type: inline-size` and the breakpoints in
-  `project/css/project-card.css` are `@container` queries. Viewport
-  breakpoints would be wrong the moment the listing goes to two columns, which
-  it does at xl. That stylesheet is linked once per page by
-  `project/project_list.html`, never from here.
+  `container-type: inline-size` and the breakpoints in `css/fairdm.css` are
+  `@container` queries. Viewport breakpoints would be wrong the moment the card
+  is drawn anywhere narrower than a full listing row, such as a plugin panel.
+  That stylesheet is linked once per page from `fairdm/templates/base.html`,
+  never from here: a `<link>` in this template would be emitted once per card.
 
   Everything the card draws is loaded by `ProjectQuerySet.with_list_data()`
   and `with_contributors()`; adding a field here that neither prefetches puts

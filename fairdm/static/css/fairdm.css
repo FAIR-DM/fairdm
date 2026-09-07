@@ -1,23 +1,31 @@
-/* Project card — issue #330.
+/* FairDM's own stylesheet.
  *
- * Three things this card needs are absent from the stylesheet the portal
- * loads (`mvp/static/css/django-mvp.css`, django-mvp 0.20): every
- * `line-clamp-*` utility, every `aspect-*` utility, and container queries.
- * FairDM has no Tailwind build of its own — no package.json, no config, no
- * input stylesheet — so there is nothing to regenerate and the card ships its
- * own component stylesheet, the way
- * `contributors/css/contributor-filter.css` already does.
+ * Linked once from `fairdm/templates/base.html`, after django-mvp's build, so
+ * every page gets it — including plugin views, which render inside the same
+ * base template and have no way to add a `<link>` of their own.
+ *
+ * What belongs here: styles FairDM needs that django-mvp's build does not
+ * carry. FairDM has no Tailwind build of its own — no package.json, no config,
+ * no input stylesheet — so a utility class absent from
+ * `mvp/static/css/django-mvp.css` cannot be generated, only written out.
  *
  * Every colour is read from the active DaisyUI theme's custom properties.
- * Nothing here is hard-coded, so the card follows the theme and dark mode with
- * no build step. A literal colour would be a card whose title goes invisible
- * the first time someone switches themes.
+ * Nothing here is hard-coded, so the styles follow the theme and dark mode with
+ * no build step. A literal colour would be a component whose text goes
+ * invisible the first time someone switches themes.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Project card (issue #330)
+ *
+ * Three things this card needs are absent from django-mvp 0.20's build: every
+ * `line-clamp-*` utility, every `aspect-*` utility, and container queries.
  *
  * The breakpoints are `@container`, not `@media`: the card reflows on its own
- * width. The listing is one column below xl and two above it, so the same card
- * is ~1500px wide on one page and ~700px on another, and a viewport query
- * would get both wrong.
- */
+ * width rather than the viewport's, so it stays correct wherever it is placed —
+ * a full-width listing row, a narrower plugin panel, or a future two-column
+ * grid.
+ * ------------------------------------------------------------------------- */
 
 /* The card establishes the container; `.project-card__layout` does the
  * reflowing. The two cannot be the same element: a container query is answered
@@ -146,6 +154,10 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  /* One card per row reaches ~1500px on a wide screen. Prose set that wide is
+   * unreadable, so the abstract stops at a normal measure and leaves the rest
+   * of the row to whitespace. */
+  max-width: 90ch;
 }
 
 .project-card__keywords {
