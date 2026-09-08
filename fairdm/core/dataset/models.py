@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
+from django.db.models import Count
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -151,6 +152,39 @@ class DatasetQuerySet(QuerySet):
     def with_contributors(self) -> "DatasetQuerySet":
         """Prefetch only contributors - lighter than `with_related()`."""
         return self.prefetch_related("contributors")
+
+    def with_list_data(self) -> "DatasetQuerySet":
+        """Optimized queryset for list views.
+
+        Loads everything a dataset card draws — the parent project, the licence,
+        the keyword badges and the descriptions the plain-text abstract is taken
+        from — and annotates `sample_count` and `measurement_count`, the two
+        numbers the card reports.
+
+        Neither count is filtered, unlike `ProjectQuerySet.with_list_data()`'s
+        `dataset_count`. A sample or a measurement carries no visibility of its
+        own: it is as visible as the dataset it hangs beneath, and this queryset
+        has already been narrowed to datasets the visitor may see. A filter here
+        would name a rule that does not exist.
+
+        `distinct=True` is load-bearing on both. Two counts in one query become
+        two joins, and each multiplies the other's rows: without it a dataset
+        with three samples and four measurements reports twelve of each.
+
+        The contributor stack is reached through to the contributor itself, not
+        just the contribution row. `with_contributors()` stops at the row - its
+        own test pins it to two queries, deliberately, for the callers that only
+        need the credit and not the person behind it - and a card names every
+        contributor it draws, so stopping there costs two queries per card.
+        """
+        return (
+            self.select_related("project", "license")
+            .prefetch_related("keywords", "descriptions", "contributors__contributor")
+            .annotate(
+                sample_count=Count("samples", distinct=True),
+                measurement_count=Count("measurements", distinct=True),
+            )
+        )
 
     def with_metadata(self) -> "DatasetQuerySet":
         """Prefetch descriptions, dates, identifiers, contributions and

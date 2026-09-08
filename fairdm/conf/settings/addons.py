@@ -74,7 +74,19 @@ MVP_CONFIG = {
             # Text shown beside the brand icon in the sidebar header.
             "title": "FairDM",
             "collapse": "icons",
-            "footer": ["user.sidebar-menu"],
+            # The theme toggle and the log-in button are listed here, not only
+            # in the navbar. django-mvp 0.21 spends the header row below the
+            # sidebar breakpoint on the trail and ships an empty mobile action
+            # list, so anything reachable only from the navbar is reachable
+            # only on a wide screen. The drawer opens at every width, and
+            # `user.sidebar-menu` renders nothing for a visitor who is not
+            # signed in, so without `actions.login` a phone visitor has no way
+            # to log in at all.
+            "footer": [
+                "actions.theme-controller",
+                "actions.login",
+                "user.sidebar-menu",
+            ],
         },
     },
 }
@@ -105,6 +117,12 @@ EASY_ICONS = {
         },
         "packs": [
             "mvp.utils.BS5_ICONS",
+            # django-accounts-center draws the account menu, and every portal
+            # gets it: FairDM depends on the package and routes `account-center`.
+            # Its icon names live in its own pack, so without this line the
+            # account menu raises `IconNotFoundError` on `account_center` the
+            # moment a signed-in visitor loads any page.
+            "dac.icons.DAC_ICONS",
         ],
         "icons": {
             # Core Actions
@@ -180,6 +198,7 @@ EASY_ICONS = {
             "date": "bi bi-calendar3",
             "time": "bi bi-clock",
             "identifier": "bi bi-fingerprint",
+            "license": "bi bi-c-circle",
             "link": "bi bi-link-45deg",
             "relationships": "bi bi-diagram-3",
             # Settings & Configuration

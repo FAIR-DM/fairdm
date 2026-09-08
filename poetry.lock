@@ -1990,14 +1990,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-mvp"
-version = "0.20.1"
+version = "0.21.0"
 description = "MVP framework for Django - scaffold production-ready applications with sophisticated layouts and UI patterns designed for data-centric applications."
 optional = false
 python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "django_mvp-0.20.1-py3-none-any.whl", hash = "sha256:5a44cc362028fac8384c2a4d57434b6c6275d7045ada34ba6a12b9fb4480a548"},
-    {file = "django_mvp-0.20.1.tar.gz", hash = "sha256:bb8a4d1b67af546ca1ce9e6440a1ab328396cdd4f9c9cc3843144ed7e04c2a5a"},
+    {file = "django_mvp-0.21.0-py3-none-any.whl", hash = "sha256:f5663184679e109ee42853c70f97d5c67fa55b7ca73978896ad99533db86e264"},
+    {file = "django_mvp-0.21.0.tar.gz", hash = "sha256:147af8d6101121b4172efa789be3feaf0333cbbee865801565347e7ee8d57f53"},
 ]
 
 [package.dependencies]
@@ -2776,7 +2776,7 @@ sphinx-book-theme = ["sphinx-book-theme (>1.1)"]
 type = "git"
 url = "https://github.com/FAIR-DM/fairdm-docs"
 reference = "HEAD"
-resolved_reference = "26ae898a9f2d7ebe7883f6cc10d654aa804bd82b"
+resolved_reference = "282a5fd15104e839355e37a59694a32ca7c087c9"
 
 [[package]]
 name = "faker"
@@ -7492,4 +7492,4 @@ gis = ["djangorestframework-gis"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "8da3052c9c67ed76bde941cd0ee174c7cd8c7db08622e6884a3e94d43746693c"
+content-hash = "f39f484832b15ed58e46c5167227e873b09c162dfdbaedf31b4d3a7dd2ccb37f"
