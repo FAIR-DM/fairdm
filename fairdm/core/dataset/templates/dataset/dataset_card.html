@@ -65,6 +65,9 @@
           `published` is a boolean on this model — the data beneath the dataset
           is either shown publicly or it is not. There is no lifecycle
           vocabulary here of the kind the project card reads a status from.
+          Only the positive case is stated: an unpublished dataset is the
+          ordinary case on a working portal, and a badge on every one of them
+          is noise that says nothing about the record.
         {% endcomment %}
         <span class="record-card__badges">
           <span class="badge badge-sm record-card__type">
@@ -73,51 +76,45 @@
           </span>
           {% if object.published %}
             <span class="badge badge-success badge-sm">{% translate "Published" %}</span>
-          {% else %}
-            <span class="badge badge-ghost badge-sm">{% translate "Not published" %}</span>
           {% endif %}
         </span>
-        <span class="record-card__counts">
-          <span class="record-card__count">
-            <c-icon name="sample" />
-            {% if object.sample_count %}
-              {% blocktrans count counter=object.sample_count %}
-                {{ counter }} sample
-              {% plural %}
-                {{ counter }} samples
-              {% endblocktrans %}
-            {% else %}
-              {% translate "No samples" %}
-            {% endif %}
+        {% if object.published %}
+          {% comment %}
+            The counts describe data that has not been released yet unless the
+            dataset is published, and a number is data: "116 samples" on an
+            unpublished dataset tells a visitor the size of a collection they
+            have no right to see. Published datasets alone report them.
+          {% endcomment %}
+          <span class="record-card__counts">
+            <span class="record-card__count">
+              <c-icon name="sample" />
+              {% if object.sample_count %}
+                {% blocktrans count counter=object.sample_count %}
+                  {{ counter }} sample
+                {% plural %}
+                  {{ counter }} samples
+                {% endblocktrans %}
+              {% else %}
+                {% translate "No samples" %}
+              {% endif %}
+            </span>
+            <span class="record-card__count">
+              <c-icon name="measurement" />
+              {% if object.measurement_count %}
+                {% blocktrans count counter=object.measurement_count %}
+                  {{ counter }} measurement
+                {% plural %}
+                  {{ counter }} measurements
+                {% endblocktrans %}
+              {% else %}
+                {% translate "No measurements" %}
+              {% endif %}
+            </span>
           </span>
-          <span class="record-card__count">
-            <c-icon name="measurement" />
-            {% if object.measurement_count %}
-              {% blocktrans count counter=object.measurement_count %}
-                {{ counter }} measurement
-              {% plural %}
-                {{ counter }} measurements
-              {% endblocktrans %}
-            {% else %}
-              {% translate "No measurements" %}
-            {% endif %}
-          </span>
-        </span>
+        {% endif %}
       </div>
 
       <h3 class="record-card__title">{{ object.name }}</h3>
-
-      {% if object.project_id %}
-        {% comment %}
-          A span, not a nested `<a>`: the whole card is already a link, and an
-          anchor inside an anchor is invalid markup the browser un-nests,
-          which would split the card into two overlapping click targets.
-        {% endcomment %}
-        <span class="record-card__parent">
-          <c-icon name="project" />
-          <span>{{ object.project.name }}</span>
-        </span>
-      {% endif %}
 
       <div class="record-card__people">
         {% if object.contributors.all %}
@@ -138,6 +135,22 @@
             {% for contribution in object.contributors.all|slice:":3" %}
               {{ contribution.contributor }}{% if not forloop.last %}, {% endif %}
             {% endfor %}
+          </span>
+        {% endif %}
+        {% if object.project_id %}
+          {% comment %}
+            The project a dataset sits beneath, in the slot the project card
+            gives its owning organization: both answer "who does this belong
+            to", so a reader looking down a mixed listing finds that answer in
+            one place rather than two.
+
+            A span, not a nested `<a>`: the whole card is already a link, and
+            an anchor inside an anchor is invalid markup the browser un-nests,
+            which would split the card into two overlapping click targets.
+          {% endcomment %}
+          <span class="record-card__parent">
+            <c-icon name="project" />
+            <span>{{ object.project.name }}</span>
           </span>
         {% endif %}
       </div>

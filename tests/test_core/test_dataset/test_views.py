@@ -1624,15 +1624,37 @@ class TestDatasetCardRendering:
         response, _ = self._card_html(client)
         assertContains(response, "Published")
 
-    def test_card_reports_an_unpublished_dataset_as_not_published(self, client):
+    def test_card_states_nothing_at_all_about_an_unpublished_dataset(self, client):
+        """Unpublished is the ordinary state of a dataset on a working portal.
+        A badge on every one of them says nothing about the record and takes
+        the eye away from the one badge that does."""
         DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-        response, html = self._card_html(client)
-        assertContains(response, "Not published")
+        _, html = self._card_html(client)
+        assert "Not published" not in html
+        assert "Published" not in html
+
+    def test_an_unpublished_dataset_reports_no_counts(self, client):
+        """A count is data about data that has not been released. "116 samples"
+        on an unpublished dataset tells a visitor the size of a collection they
+        have no right to see."""
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        sample = RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+
+        _, html = self._card_html(client)
+
+        assert "1 sample" not in html
+        assert "1 measurement" not in html
+        assert "No samples" not in html
+        assert "No measurements" not in html
+        assert "record-card__counts" not in html
 
     def test_card_counts_samples_and_measurements(self, client):
         from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         first = RockSampleFactory(dataset=dataset)
         RockSampleFactory(dataset=dataset)
         ExampleMeasurementFactory(dataset=dataset, sample=first)
@@ -1643,14 +1665,14 @@ class TestDatasetCardRendering:
     def test_card_counts_one_sample_in_the_singular(self, client):
         from fairdm_demo.factories import RockSampleFactory
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         RockSampleFactory(dataset=dataset)
         response, html = self._card_html(client)
         assertContains(response, "1 sample")
         assert "1 samples" not in html
 
     def test_card_says_so_rather_than_showing_a_zero(self, client):
-        DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         response, html = self._card_html(client)
         assertContains(response, "No samples")
         assertContains(response, "No measurements")
@@ -1665,7 +1687,7 @@ class TestDatasetCardRendering:
         Scoped to the card's own spans: the sidebar draws the same icons, so a
         page-wide search would pass with nothing on the card.
         """
-        DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         _, html = self._card_html(client)
         counts = re.findall(
             r'<span class="record-card__count">(.*?)</span>', html, re.DOTALL
@@ -1680,6 +1702,18 @@ class TestDatasetCardRendering:
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         response, _ = self._card_html(client)
         assertContains(response, "Deep Time Survey")
+
+    def test_the_parent_project_sits_where_a_project_names_its_owner(self, client):
+        """Both answer "who does this belong to", so a reader running down a
+        mixed listing finds that answer in one place rather than two."""
+        project = ProjectFactory(name="Deep Time Survey")
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        people = re.search(
+            r'<div class="record-card__people">(.*?)\n      </div>', html, re.DOTALL
+        )
+        assert people, "the card is expected to group its people row"
+        assert "record-card__parent" in people.group(1)
 
     def test_a_dataset_with_no_project_draws_no_parent_row(self, client):
         DatasetFactory(project=None, visibility=Visibility.PUBLIC)
@@ -1800,7 +1834,7 @@ class TestDatasetCardRendering:
             / "dataset_card.html"
         ).read_text()
         assert "load i18n" in template
-        for phrase in ("Dataset", "Published", "Not published", "No samples"):
+        for phrase in ("Dataset", "Published", "No samples", "No measurements"):
             marked = f'{{% translate "{phrase}" %}}'
             assert marked in template, f"{phrase!r} is not marked for translation"
 

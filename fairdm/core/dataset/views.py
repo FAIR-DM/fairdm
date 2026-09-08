@@ -98,7 +98,7 @@ class DatasetListView(FairDMListView):
 
     model = Dataset
     filterset_class = DatasetFilter
-    page_title = _("All Datasets")
+    page_title = _("Datasets")
     page_icon = "dataset"
     list_item_template = "dataset/dataset_card.html"
     # One dataset per row at every width. The card reflows on its own width, so

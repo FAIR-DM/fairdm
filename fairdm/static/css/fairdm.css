@@ -197,17 +197,17 @@
   overflow: hidden;
 }
 
-/* The project a dataset sits beneath, under the dataset's own name. Coloured
- * like a link and drawn on a span rather than an anchor: the whole card is
- * already a link, and an anchor inside an anchor is invalid markup the browser
- * un-nests, which would split the card into two overlapping click targets. */
+/* The project a dataset sits beneath, in the slot the project card gives its
+ * owning organization. Body text colour, not the project accent: a second
+ * coloured mark competes with the type stripe and badge, which are what colour
+ * is reserved to say on this card. Drawn on a span rather than an anchor,
+ * because the whole card is already a link and an anchor inside an anchor is
+ * invalid markup the browser un-nests, which would split the card into two
+ * overlapping click targets. */
 .record-card__parent {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--color-info);
   min-width: 0;
   text-decoration: none;
 }
@@ -216,6 +216,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The rule divides the project from the contributors beside it, so it is drawn
+ * only when there are contributors to divide it from. */
+.record-card__names + .record-card__parent {
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--color-base-300);
 }
 
 .record-card__people {
@@ -326,7 +333,7 @@
   }
 
   .record-card__media {
-    width: 11.5rem;
+    width: 14rem;
     /* Beside the body the image fills the card's full height: a fixed column
      * whose height is whatever the body next to it comes to. `aspect-ratio`
      * has to be cleared for that — left at 2:1 it sets the height itself and
@@ -355,7 +362,7 @@
 /* More room for the image and the body, and a third line of abstract. */
 @container (min-width: 46rem) {
   .record-card__media {
-    width: 14.5rem;
+    width: 18rem;
   }
 
   .record-card__body {
