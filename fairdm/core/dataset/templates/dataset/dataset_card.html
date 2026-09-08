@@ -1,8 +1,199 @@
-{% load i18n contributor_tags %}
+{% load i18n static thumbnail %}
+{% comment %}
+  The dataset card on the public listing (issue #333).
 
-<c-components.object-card :object="object"
-                          object_type="dataset"
-                          :image="object.image"
-                          :date="object.added"
-                          description="{{ object.get_abstract.value|default:'' }}"
-                          subtitle="{% for c in object.contributors.all %}{{ c.contributor }}{% if not forloop.last %}, {% endif %}{% endfor %}" />
+  Mirrors `project/project_card.html` element for element and draws the same
+  `record-card` classes from `css/fairdm.css`, so the two listings show one
+  card. Only the accent colour differs, through `record-card--dataset`. A
+  change to the shape of either card belongs in both, or the two drift apart.
+
+  Rendered directly rather than through `cotton/components/object_card.html`:
+  that component is Bootstrap-era markup and none of its classes resolve
+  against `mvp/static/css/django-mvp.css`, the only stylesheet the portal
+  loads.
+
+  The card reflows on its OWN width, not the viewport's — `record-card` sets
+  `container-type: inline-size` and the breakpoints in `css/fairdm.css` are
+  `@container` queries. Viewport breakpoints would be wrong the moment the card
+  is drawn anywhere narrower than a full listing row, such as a plugin panel.
+  That stylesheet is linked once per page from `fairdm/templates/base.html`,
+  never from here: a `<link>` in this template would be emitted once per card.
+
+  Everything the card draws is loaded by `DatasetQuerySet.with_list_data()`
+  and `with_contributors()`; adding a field here that neither prefetches puts
+  one query per card back on the page.
+{% endcomment %}
+<a href="{{ object.get_absolute_url }}"
+   class="record-card record-card--dataset"
+   aria-label="{% blocktrans with name=object.name %}Open dataset {{ name }}{% endblocktrans %}">
+
+  {% comment %}
+    The reflow lives on this wrapper, not on `.record-card` itself. A
+    container query is answered by an ancestor container, so the element
+    carrying `container-type` can never respond to its own width.
+  {% endcomment %}
+  <div class="record-card__layout">
+
+    {% comment %}
+      Every card carries a media block, image or not, so a listing keeps one
+      alignment the whole way down. A dataset without an image gets a tinted
+      panel holding the dataset icon, NOT a placeholder file:
+      `object_card.html` points at `fairdm/img/placeholder-3x2.png`, which is
+      not in the repository, so every imageless card there requests a file
+      that 404s.
+    {% endcomment %}
+    <div class="record-card__media">
+      {% if object.image %}
+        <img src="{{ object.image|thumbnail_url:'core_small' }}"
+             alt=""
+             loading="lazy" />
+      {% else %}
+        <span class="record-card__placeholder" aria-hidden="true">
+          <c-icon name="dataset" />
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="record-card__body">
+
+      <div class="record-card__meta">
+        {% comment %}
+          The record type, then whether its data is published. The type badge
+          repeats the colour of the stripe down the left of the body, so the
+          two read as one signal rather than two.
+
+          `published` is a boolean on this model — the data beneath the dataset
+          is either shown publicly or it is not. There is no lifecycle
+          vocabulary here of the kind the project card reads a status from.
+        {% endcomment %}
+        <span class="record-card__badges">
+          <span class="badge badge-sm record-card__type">
+            <c-icon name="dataset" />
+            {% translate "Dataset" %}
+          </span>
+          {% if object.published %}
+            <span class="badge badge-success badge-sm">{% translate "Published" %}</span>
+          {% else %}
+            <span class="badge badge-ghost badge-sm">{% translate "Not published" %}</span>
+          {% endif %}
+        </span>
+        <span class="record-card__counts">
+          <span class="record-card__count">
+            <c-icon name="sample" />
+            {% if object.sample_count %}
+              {% blocktrans count counter=object.sample_count %}
+                {{ counter }} sample
+              {% plural %}
+                {{ counter }} samples
+              {% endblocktrans %}
+            {% else %}
+              {% translate "No samples" %}
+            {% endif %}
+          </span>
+          <span class="record-card__count">
+            <c-icon name="measurement" />
+            {% if object.measurement_count %}
+              {% blocktrans count counter=object.measurement_count %}
+                {{ counter }} measurement
+              {% plural %}
+                {{ counter }} measurements
+              {% endblocktrans %}
+            {% else %}
+              {% translate "No measurements" %}
+            {% endif %}
+          </span>
+        </span>
+      </div>
+
+      <h3 class="record-card__title">{{ object.name }}</h3>
+
+      {% if object.project_id %}
+        {% comment %}
+          A span, not a nested `<a>`: the whole card is already a link, and an
+          anchor inside an anchor is invalid markup the browser un-nests,
+          which would split the card into two overlapping click targets.
+        {% endcomment %}
+        <span class="record-card__parent">
+          <c-icon name="project" />
+          <span>{{ object.project.name }}</span>
+        </span>
+      {% endif %}
+
+      <div class="record-card__people">
+        {% if object.contributors.all %}
+          <div class="avatar-group -space-x-4">
+            {% comment %}
+              `for` is passed explicitly as well as `src`: the component
+              otherwise falls back to `request.user`, which would draw the
+              visitor's own avatar in a contributor's place.
+            {% endcomment %}
+            {% for contribution in object.contributors.all|slice:":4" %}
+              <c-avatar :for="contribution.contributor"
+                        src="{% if contribution.contributor.image %}{{ contribution.contributor.image|thumbnail_url:'thumb' }}{% endif %}"
+                        alt="{{ contribution.contributor }}"
+                        size="xs" />
+            {% endfor %}
+          </div>
+          <span class="record-card__names">
+            {% for contribution in object.contributors.all|slice:":3" %}
+              {{ contribution.contributor }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </span>
+        {% endif %}
+      </div>
+
+      {% with summary=object.get_abstract_summary %}
+        {% if summary %}
+          {% comment %}
+            Plain text from `BaseModel.get_abstract_summary()`, escaped here like
+            any other string. Never `|safe`: the markdown it came from is
+            user-authored.
+          {% endcomment %}
+          <p class="record-card__abstract">{{ summary }}</p>
+        {% endif %}
+      {% endwith %}
+
+      {% if object.keywords.all %}
+        <div class="record-card__keywords">
+          {% comment %}
+            Badges, not links: `DatasetFilter` names its keyword filters
+            `keywords_<VocabularyClassName>` from a setting, so there is no
+            stable query parameter to build a href from.
+          {% endcomment %}
+          {% for keyword in object.keywords.all %}
+            <span class="badge badge-ghost badge-sm">{{ keyword.label }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="record-card__footer">
+        <span class="record-card__uuid font-mono">
+          {{ object.uuid }}
+          {% comment %}
+            The link wraps the whole card, so the copy control has to stop the
+            click reaching it, or copying the identifier would navigate away.
+          {% endcomment %}
+          <button type="button"
+                  class="record-card__copy"
+                  title="{% translate 'Copy dataset identifier' %}"
+                  aria-label="{% translate 'Copy dataset identifier' %}"
+                  onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText(this.dataset.uuid);"
+                  data-uuid="{{ object.uuid }}">
+            <c-icon name="copy" />
+          </button>
+        </span>
+        {% if object.license %}
+          <span class="record-card__license">
+            <c-icon name="license" />
+            {{ object.license }}
+          </span>
+        {% endif %}
+        <span class="record-card__modified">
+          {% blocktrans with modified=object.modified|date:"M j, Y" %}Updated {{ modified }}{% endblocktrans %}
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+</a>

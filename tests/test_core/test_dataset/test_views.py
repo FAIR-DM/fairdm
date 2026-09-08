@@ -1269,6 +1269,12 @@ class TestNonCollectionPagesIgnorePublished:
     `published` is `True` or `False` - the listings this feature builds in
     later stories are the only readers of the flag.
 
+    The dataset listing is now one of those readers and is no longer covered
+    here: its card states whether the data beneath the dataset is published,
+    which is the whole point of the badge (issue #333). What that page draws for
+    each state is asserted in `TestDatasetCardRendering` instead. Every other
+    page below still ignores the flag.
+
     Toggled through `.update()`, not `.save()`, so the comparison is not
     confounded by `modified`'s `auto_now` (the same reason
     `TestDatasetOrdering.test_default_ordering_is_most_recently_modified_first`
@@ -1285,23 +1291,6 @@ class TestNonCollectionPagesIgnorePublished:
             rb'name="csrfmiddlewaretoken" value="[^"]*"',
             b'name="csrfmiddlewaretoken" value=""',
             response.content,
-        )
-
-    def test_dataset_list_page_renders_identically_across_published_states(
-        self, client
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        url = reverse("dataset-list")
-
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
-        unpublished = client.get(url)
-
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
-        published = client.get(url)
-
-        assert unpublished.status_code == 200
-        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
-            published
         )
 
     def test_dataset_overview_page_renders_identically_across_published_states(
@@ -1550,3 +1539,264 @@ class TestDatasetListingCounts:
         entry = client.get(reverse("dataset-list")).context["object_list"][0]
         assert entry.sample_count == 0
         assert entry.measurement_count == 0
+
+
+@pytest.mark.django_db
+class TestDatasetCardRendering:
+    """The dataset card on the public listing (issue #333).
+
+    Every assertion is made against the rendered template HTML. The card
+    previously delegated to the shared Bootstrap-era object-card component, and
+    none of those classes resolve against the stylesheet the portal loads.
+
+    These tests describe what the card says and where it points, never how it
+    looks: the layout is the project card's, shared rather than copied, and the
+    project listing's own tests already hold the two rules about the stylesheet
+    that a rendering test cannot reach.
+    """
+
+    def _card_html(self, client):
+        response = client.get(reverse("dataset-list"))
+        assert response.status_code == 200
+        return response, response.content.decode()
+
+    def test_card_no_longer_delegates_to_the_shared_object_card(self):
+        """That component is Bootstrap markup: its classes resolve to nothing
+        in the stylesheet the portal loads, which is the defect itself."""
+        template = (
+            Path(fairdm.core.dataset.__file__).parent
+            / "templates"
+            / "dataset"
+            / "dataset_card.html"
+        ).read_text()
+        assert "<c-components.object-card" not in template
+
+    def test_card_draws_the_shared_record_card_with_the_dataset_accent(self):
+        """The two listings draw one card. A second block of near-identical
+        rules is how they would drift apart, so the dataset card carries the
+        shared class and a modifier, not a set of classes of its own."""
+        template = (
+            Path(fairdm.core.dataset.__file__).parent
+            / "templates"
+            / "dataset"
+            / "dataset_card.html"
+        ).read_text()
+        assert "record-card record-card--dataset" in template
+        assert "dataset-card" not in template
+
+    def test_the_whole_card_is_the_link(self, client, public_dataset):
+        response, html = self._card_html(client)
+        assertContains(response, f'href="{public_dataset.get_absolute_url()}"')
+        assertNotContains(response, "View Details")
+        assertNotContains(response, "View details")
+
+    def test_card_shows_the_dataset_name(self, client):
+        DatasetFactory(name="Rift Basin Heat Flow", visibility=Visibility.PUBLIC)
+        response, _ = self._card_html(client)
+        assertContains(response, "Rift Basin Heat Flow")
+
+    def test_card_reports_a_published_dataset_as_published(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        response, _ = self._card_html(client)
+        assertContains(response, "Published")
+
+    def test_card_reports_an_unpublished_dataset_as_not_published(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        response, html = self._card_html(client)
+        assertContains(response, "Not published")
+
+    def test_card_counts_samples_and_measurements(self, client):
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        first = RockSampleFactory(dataset=dataset)
+        RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=first)
+        response, _ = self._card_html(client)
+        assertContains(response, "2 samples")
+        assertContains(response, "1 measurement")
+
+    def test_card_counts_one_sample_in_the_singular(self, client):
+        from fairdm_demo.factories import RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        RockSampleFactory(dataset=dataset)
+        response, html = self._card_html(client)
+        assertContains(response, "1 sample")
+        assert "1 samples" not in html
+
+    def test_card_says_so_rather_than_showing_a_zero(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC)
+        response, html = self._card_html(client)
+        assertContains(response, "No samples")
+        assertContains(response, "No measurements")
+        assert "0 samples" not in html
+        assert "0 measurements" not in html
+
+    def test_the_counts_carry_the_sample_and_measurement_icons(self, client):
+        """A count reads as a bare number without its icon. Both are asked for
+        by name, so they follow whatever the portal has configured rather than
+        pinning a glyph in the template.
+
+        Scoped to the card's own spans: the sidebar draws the same icons, so a
+        page-wide search would pass with nothing on the card.
+        """
+        DatasetFactory(visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        counts = re.findall(
+            r'<span class="record-card__count">(.*?)</span>', html, re.DOTALL
+        )
+        assert len(counts) == 2, "the card is expected to render two counts"
+        icons = settings.EASY_ICONS["default"]["icons"]
+        assert icons["sample"] in counts[0]
+        assert icons["measurement"] in counts[1]
+
+    def test_card_names_the_parent_project(self, client):
+        project = ProjectFactory(name="Deep Time Survey")
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        response, _ = self._card_html(client)
+        assertContains(response, "Deep Time Survey")
+
+    def test_a_dataset_with_no_project_draws_no_parent_row(self, client):
+        DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert "record-card__parent" not in html
+
+    def test_the_parent_project_is_not_a_nested_link(self, client):
+        """The whole card is already an anchor, and an anchor inside an anchor
+        is invalid markup the browser un-nests, splitting the card into two
+        overlapping click targets."""
+        project = ProjectFactory(name="Deep Time Survey")
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert '<span class="record-card__parent"' in html
+        assert '<a class="record-card__parent"' not in html
+        assert project.get_absolute_url() not in html
+
+    def test_card_names_its_record_type_before_its_publication_state(self, client):
+        """A listing of datasets is unambiguous; a mixed listing is not, and
+        the card is the same card in both. The type is stated, then the state —
+        that order, so the reader gets the noun first."""
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        _, html = self._card_html(client)
+        badges = re.search(
+            r'<span class="record-card__badges">(.*?)\n        </span>',
+            html,
+            re.DOTALL,
+        )
+        assert badges, "the card is expected to group its badges"
+        row = badges.group(1)
+        assert "record-card__type" in row
+        assert settings.EASY_ICONS["default"]["icons"]["dataset"] in row
+        assert row.index("record-card__type") < row.index("Published")
+
+    def test_card_renders_the_abstract_as_plain_text(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetDescriptionFactory(
+            related=dataset,
+            type="Abstract",
+            value="## Objectives\n\nWe measure **heat flow** across the rift.",
+        )
+        response, html = self._card_html(client)
+        assertContains(response, "Objectives")
+        assertContains(response, "heat flow")
+        assert "## Objectives" not in html
+        assert "**heat flow**" not in html
+
+    def test_card_renders_keywords_as_badges_and_not_as_links(self, client):
+        from research_vocabs.models import Concept
+
+        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset.keywords.add(keyword)
+        response, html = self._card_html(client)
+        assertContains(response, keyword.label)
+        assert f'href="?keywords={keyword.pk}"' not in html
+        assert f">{keyword.label}</a>" not in html
+
+    def test_card_shows_the_dataset_uuid_with_a_copy_control(
+        self, client, public_dataset
+    ):
+        response, html = self._card_html(client)
+        assertContains(response, public_dataset.uuid)
+        assert "clipboard" in html
+
+    def test_card_names_the_licence(self, client):
+        licence, _created = License.objects.get_or_create(
+            name="CC BY-SA 4.0",
+            defaults={
+                "canonical_url": "https://example.org/cc-by-sa-4.0",
+                "text": "…",
+            },
+        )
+        DatasetFactory(visibility=Visibility.PUBLIC, license=licence)
+        response, _ = self._card_html(client)
+        assertContains(response, "CC BY-SA 4.0")
+
+    def test_an_unlicensed_dataset_draws_no_licence_row(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC, license=None)
+        _, html = self._card_html(client)
+        assert "record-card__license" not in html
+
+    def test_card_shows_the_last_modified_date(self, client, public_dataset):
+        response, _ = self._card_html(client)
+        assertContains(response, public_dataset.modified.strftime("%b"))
+
+    def test_card_shows_contributor_names(self, client):
+        person = PersonFactory(name="Ada Lovelace")
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset.add_contributor(person)
+        response, _ = self._card_html(client)
+        assertContains(response, "Ada Lovelace")
+
+    def test_a_dataset_without_an_image_gets_a_placeholder_not_a_gap(self, client):
+        """The media block is always drawn, so a listing keeps one alignment
+        down the page. Without an image it holds the dataset icon."""
+        DatasetFactory(image=None, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert "record-card__media" in html
+        assert "record-card__placeholder" in html
+        assert "placeholder-3x2" not in html
+        assert "<img" not in html.split("record-card__media")[1].split("</div>")[0]
+
+    def test_a_dataset_with_an_image_gets_a_media_block(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert html.count("record-card__media") == 1
+        assert "record-card__placeholder" not in html
+
+    def test_card_marks_its_user_facing_strings_for_translation(self):
+        """Article VIII: a hard-coded user-visible string is a blocking
+        defect, and the card's fixed prose is its type, its state and its two
+        empty-count lines."""
+        template = (
+            Path(fairdm.core.dataset.__file__).parent
+            / "templates"
+            / "dataset"
+            / "dataset_card.html"
+        ).read_text()
+        assert "load i18n" in template
+        for phrase in ("Dataset", "Published", "Not published", "No samples"):
+            marked = f'{{% translate "{phrase}" %}}'
+            assert marked in template, f"{phrase!r} is not marked for translation"
+
+    def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
+        """Django's `{# ... #}` is single-line only. Spread over several lines
+        it is not a comment at all — the text is emitted verbatim into the
+        response. `{% comment %}` is the multi-line form."""
+        from research_vocabs.models import Concept
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset.keywords.add(
+            *Concept.objects.filter(vocabulary__name="fairdm-roles")[:3]
+        )
+        dataset.add_contributor(PersonFactory())
+        DatasetDescriptionFactory(
+            related=dataset, type="Abstract", value="An abstract."
+        )
+
+        _, html = self._card_html(client)
+
+        assert "{#" not in html
+        assert "#}" not in html
+        assert "{%" not in html

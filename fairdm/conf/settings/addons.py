@@ -198,6 +198,7 @@ EASY_ICONS = {
             "date": "bi bi-calendar3",
             "time": "bi bi-clock",
             "identifier": "bi bi-fingerprint",
+            "license": "bi bi-c-circle",
             "link": "bi bi-link-45deg",
             "relationships": "bi bi-diagram-3",
             # Settings & Configuration
