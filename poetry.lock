@@ -2406,21 +2406,21 @@ django = ">=4.2"
 
 [[package]]
 name = "djangorestframework-gis"
-version = "1.2.1"
+version = "1.3.0"
 description = "Geographic add-ons for Django Rest Framework"
 optional = true
 python-versions = "*"
 groups = ["main"]
 markers = "extra == \"gis\""
 files = [
-    {file = "djangorestframework_gis-1.2.1-py2.py3-none-any.whl", hash = "sha256:73acb51918b18e484407c0fff61aca11a1f5a216fa694bc4c0c734b7097ecc77"},
-    {file = "djangorestframework_gis-1.2.1.tar.gz", hash = "sha256:649ad0cb361dd85f2113b1796248eb2b198a01fa3d64c5e486106224c0ad51fd"},
+    {file = "djangorestframework_gis-1.3.0-py2.py3-none-any.whl", hash = "sha256:6e39a16f17c62cb4f4e2a6e5c0821fe257a6bf458c48933e07dbc442262ee500"},
+    {file = "djangorestframework_gis-1.3.0.tar.gz", hash = "sha256:f9ab54cf2f737f798fccd1f3b0501377f1053699ca421154cc3fb3edc4856366"},
 ]
 
 [package.dependencies]
 django = ">=4.2"
-django-filter = ">=23.5,<26.0"
-djangorestframework = ">=3.12,<3.18"
+django-filter = ">=23.5,<27.0"
+djangorestframework = ">=3.12,<3.19"
 
 [[package]]
 name = "djangorestframework-guardian"
@@ -6580,14 +6580,14 @@ test = ["flake8", "mypy", "pytest"]
 
 [[package]]
 name = "sphinxcontrib-mermaid"
-version = "2.1.0"
+version = "2.1.1"
 description = "Mermaid diagrams in your Sphinx-powered docs"
 optional = false
 python-versions = ">=3.10"
 groups = ["docs"]
 files = [
-    {file = "sphinxcontrib_mermaid-2.1.0-py3-none-any.whl", hash = "sha256:417cd144ec4b28852f46ba653f02ce8e538881c812111671a4c30344e87f2112"},
-    {file = "sphinxcontrib_mermaid-2.1.0.tar.gz", hash = "sha256:13c5f9ac395cb6abf403eca34e228dc9fb3a30c9d960dbf3e40e9a8cef969549"},
+    {file = "sphinxcontrib_mermaid-2.1.1-py3-none-any.whl", hash = "sha256:3b9ac1a8e0b5154dec3c0acf9b5c54dd9ba58540e416f20858c300814c25648f"},
+    {file = "sphinxcontrib_mermaid-2.1.1.tar.gz", hash = "sha256:f8d7f1b2f0ad69b7ebdd5cbf532fb4ee107893b5373bc2d0e9634089c0b2cfee"},
 ]
 
 [package.dependencies]
@@ -7492,4 +7492,4 @@ gis = ["djangorestframework-gis"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "f39f484832b15ed58e46c5167227e873b09c162dfdbaedf31b4d3a7dd2ccb37f"
+content-hash = "0db637b4995e815027af368239281e2c27b6705cd2f8bdc9d6ebe974f8503abc"
