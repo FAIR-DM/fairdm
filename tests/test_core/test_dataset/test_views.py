@@ -12,23 +12,30 @@ test_integration.py.
 
 import re
 import time
+from pathlib import Path
 
 import pytest
 from bs4 import BeautifulSoup
 from django import forms
+from django.conf import settings
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from licensing.models import License
 from pytest_django.asserts import assertContains, assertNotContains
 
+import fairdm.core.dataset
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.views import DatasetCreateView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
+    DatasetDescriptionFactory,
     DatasetFactory,
     DatasetIdentifierFactory,
+    PersonFactory,
     ProjectFactory,
     UserFactory,
 )
@@ -1445,3 +1452,101 @@ class TestDatasetPermissions:
         if dataset:
             # Check that the dataset has contributors
             assert dataset.contributors.count() > 0
+
+
+@pytest.mark.django_db
+class TestDatasetListingQueryCount:
+    """Rendering the listing costs a constant number of queries regardless of
+    how many datasets it returns (issue #333).
+
+    Constitution Article X requires a `django_assert_num_queries` guard rather
+    than wall-clock timing. The count is measured twice — once for a single
+    dataset and once for twenty, each carrying the full set of related records
+    a card draws — so the test fails if any of the prefetching is removed,
+    rather than merely recording today's number.
+
+    Two pieces of measurement hygiene, both taken from the project listing's
+    equivalent test:
+
+    `orbit` is disabled for the duration. It records requests and queries by
+    writing rows of its own, which land in the same count as the page's.
+
+    The page is fetched once before either measurement. The first request does
+    one-time work the second never repeats — the site cache, and easy-thumbnails
+    writing each card image's `Source` and `Thumbnail` rows the first time that
+    image is rendered at a given size.
+    """
+
+    @pytest.fixture(autouse=True)
+    def without_orbit(self, settings):
+        settings.ORBIT = {"ENABLED": False}
+
+    @staticmethod
+    def _build_datasets(count):
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from research_vocabs.models import Concept
+
+        keywords = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:3])
+        for index in range(count):
+            dataset = DatasetFactory(
+                name=f"Survey {index}", visibility=Visibility.PUBLIC
+            )
+            DatasetDescriptionFactory(
+                related=dataset,
+                type="Abstract",
+                value=f"## Survey {index}\n\nWe measured **heat flow** here.",
+            )
+            dataset.keywords.add(*keywords)
+            dataset.add_contributor(PersonFactory())
+            sample = RockSampleFactory(dataset=dataset)
+            RockSampleFactory(dataset=dataset)
+            ExampleMeasurementFactory(dataset=dataset, sample=sample)
+
+    def test_listing_query_count_does_not_grow_with_the_number_of_datasets(
+        self, client, django_assert_num_queries
+    ):
+        url = reverse("dataset-list")
+
+        self._build_datasets(1)
+        client.get(url)  # warm up one-time per-process and per-image setup
+        with CaptureQueriesContext(connection) as one_dataset:
+            response = client.get(url)
+            assert response.status_code == 200
+        baseline = len(one_dataset.captured_queries)
+
+        self._build_datasets(19)  # a full page
+        client.get(url)
+        with django_assert_num_queries(baseline):
+            response = client.get(url)
+            assert response.status_code == 200
+            assert len(response.context["object_list"]) == 20
+
+
+@pytest.mark.django_db
+class TestDatasetListingCounts:
+    """The two counts a card reports come from annotations, not from a query
+    per card, and each counts only its own relation (issue #333)."""
+
+    def test_the_counts_are_annotated_onto_the_listing(self, client):
+        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        sample = RockSampleFactory(dataset=dataset)
+        RockSampleFactory(dataset=dataset)
+        RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+
+        entry = client.get(reverse("dataset-list")).context["object_list"][0]
+
+        # Three samples and two measurements, not six of each: two counts in one
+        # query are two joins, and each multiplies the other's rows unless both
+        # are counted `distinct`.
+        assert entry.sample_count == 3
+        assert entry.measurement_count == 2
+
+    def test_a_dataset_with_neither_counts_zero_of_each(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC)
+        entry = client.get(reverse("dataset-list")).context["object_list"][0]
+        assert entry.sample_count == 0
+        assert entry.measurement_count == 0

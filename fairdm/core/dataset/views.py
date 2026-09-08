@@ -101,6 +101,9 @@ class DatasetListView(FairDMListView):
     page_title = _("All Datasets")
     page_icon = "dataset"
     list_item_template = "dataset/dataset_card.html"
+    # One dataset per row at every width. The card reflows on its own width, so
+    # a wide row gets the side-by-side layout rather than a second column.
+    grid = {"cols": 1, "gap": 4}
     order_by = [
         ("-added", _("Date created (newest first)"), "-added"),
         ("added", _("Date created (oldest first)"), "added"),
@@ -117,14 +120,21 @@ class DatasetListView(FairDMListView):
     ]
 
     def get_queryset(self) -> QuerySet[Dataset]:
-        """Return the queryset of visible datasets with prefetched contributors.
+        """Return the visible datasets, loaded with everything a card draws.
 
         `Dataset.objects` (the base this view's `super().get_queryset()`
         reads through) is privacy-first by default, so no separate
         visibility filter is needed here any more (R1).
 
+        `with_list_data()` carries the parent project, the licence, the keyword
+        badges, the descriptions the plain-text abstract is taken from, and the
+        sample and measurement counts; `with_contributors()` carries the
+        contributor stack. Both are needed, so both are composed - the card
+        renders in a constant number of queries whether the page holds one
+        dataset or twenty.
+
         Returns:
             QuerySet: Filtered and optimized Dataset queryset.
         """
         qs: DatasetQuerySet = super().get_queryset()
-        return qs.with_contributors()
+        return qs.with_list_data().with_contributors()
