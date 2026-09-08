@@ -5,9 +5,14 @@
   Rendered directly rather than through `cotton/components/object_card.html`:
   that component is Bootstrap-era markup and none of its classes resolve
   against `mvp/static/css/django-mvp.css`, the only stylesheet the portal
-  loads. The dataset card still uses it, so it stays where it is.
+  loads.
 
-  The card reflows on its OWN width, not the viewport's — `project-card` sets
+  The `record-card` classes are shared with the dataset card, which mirrors
+  this template element for element. A change here changes both, which is the
+  point: the two listings are meant to draw the same card. Only the accent
+  colour differs, through the `record-card--<type>` modifier.
+
+  The card reflows on its OWN width, not the viewport's — `record-card` sets
   `container-type: inline-size` and the breakpoints in `css/fairdm.css` are
   `@container` queries. Viewport breakpoints would be wrong the moment the card
   is drawn anywhere narrower than a full listing row, such as a plugin panel.
@@ -19,15 +24,15 @@
   one query per card back on the page.
 {% endcomment %}
 <a href="{{ object.get_absolute_url }}"
-   class="project-card"
+   class="record-card"
    aria-label="{% blocktrans with name=object.title %}Open project {{ name }}{% endblocktrans %}">
 
   {% comment %}
-    The reflow lives on this wrapper, not on `.project-card` itself. A
+    The reflow lives on this wrapper, not on `.record-card` itself. A
     container query is answered by an ancestor container, so the element
     carrying `container-type` can never respond to its own width.
   {% endcomment %}
-  <div class="project-card__layout">
+  <div class="record-card__layout">
 
     {% comment %}
       Every card carries a media block, image or not, so a listing keeps one
@@ -37,28 +42,28 @@
       not in the repository, so every imageless card there requests a file
       that 404s.
     {% endcomment %}
-    <div class="project-card__media">
+    <div class="record-card__media">
       {% if object.image %}
         <img src="{{ object.image|thumbnail_url:'core_small' }}"
              alt=""
              loading="lazy" />
       {% else %}
-        <span class="project-card__placeholder" aria-hidden="true">
+        <span class="record-card__placeholder" aria-hidden="true">
           <c-icon name="project" />
         </span>
       {% endif %}
     </div>
 
-    <div class="project-card__body">
+    <div class="record-card__body">
 
-      <div class="project-card__meta">
+      <div class="record-card__meta">
         {% comment %}
           The record type, then its lifecycle status. The type badge repeats
           the colour of the stripe down the left of the body, so the two read
           as one signal rather than two.
         {% endcomment %}
-        <span class="project-card__badges">
-          <span class="badge badge-sm project-card__type">
+        <span class="record-card__badges">
+          <span class="badge badge-sm record-card__type">
             <c-icon name="project" />
             {% translate "Project" %}
           </span>
@@ -66,23 +71,25 @@
             {{ object.get_status_display }}
           </span>
         </span>
-        <span class="project-card__datasets">
-          <c-icon name="dataset" />
-          {% if object.dataset_count %}
-            {% blocktrans count counter=object.dataset_count %}
-              {{ counter }} dataset
-            {% plural %}
-              {{ counter }} datasets
-            {% endblocktrans %}
-          {% else %}
-            {% translate "No datasets" %}
-          {% endif %}
+        <span class="record-card__counts">
+          <span class="record-card__count">
+            <c-icon name="dataset" />
+            {% if object.dataset_count %}
+              {% blocktrans count counter=object.dataset_count %}
+                {{ counter }} dataset
+              {% plural %}
+                {{ counter }} datasets
+              {% endblocktrans %}
+            {% else %}
+              {% translate "No datasets" %}
+            {% endif %}
+          </span>
         </span>
       </div>
 
-      <h3 class="project-card__title">{{ object.title }}</h3>
+      <h3 class="record-card__title">{{ object.title }}</h3>
 
-      <div class="project-card__people">
+      <div class="record-card__people">
         {% if object.contributors.all %}
           <div class="avatar-group -space-x-4">
             {% comment %}
@@ -97,14 +104,14 @@
                         size="xs" />
             {% endfor %}
           </div>
-          <span class="project-card__names">
+          <span class="record-card__names">
             {% for contribution in object.contributors.all|slice:":3" %}
               {{ contribution.contributor }}{% if not forloop.last %}, {% endif %}
             {% endfor %}
           </span>
         {% endif %}
         {% if object.owner %}
-          <span class="project-card__owner">{{ object.owner }}</span>
+          <span class="record-card__owner">{{ object.owner }}</span>
         {% endif %}
       </div>
 
@@ -115,12 +122,12 @@
             any other string. Never `|safe`: the markdown it came from is
             user-authored.
           {% endcomment %}
-          <p class="project-card__abstract">{{ summary }}</p>
+          <p class="record-card__abstract">{{ summary }}</p>
         {% endif %}
       {% endwith %}
 
       {% if object.keywords.all %}
-        <div class="project-card__keywords">
+        <div class="record-card__keywords">
           {% comment %}
             Badges, not links: `ProjectFilter` names its keyword filters
             `keywords_<VocabularyClassName>` from a setting, so there is no
@@ -132,15 +139,15 @@
         </div>
       {% endif %}
 
-      <div class="project-card__footer">
-        <span class="project-card__uuid font-mono">
+      <div class="record-card__footer">
+        <span class="record-card__uuid font-mono">
           {{ object.uuid }}
           {% comment %}
             The link wraps the whole card, so the copy control has to stop the
             click reaching it, or copying the identifier would navigate away.
           {% endcomment %}
           <button type="button"
-                  class="project-card__copy"
+                  class="record-card__copy"
                   title="{% translate 'Copy project identifier' %}"
                   aria-label="{% translate 'Copy project identifier' %}"
                   onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText(this.dataset.uuid);"
@@ -148,7 +155,7 @@
             <c-icon name="copy" />
           </button>
         </span>
-        <span class="project-card__modified">
+        <span class="record-card__modified">
           {% blocktrans with modified=object.modified|date:"M j, Y" %}Updated {{ modified }}{% endblocktrans %}
         </span>
       </div>

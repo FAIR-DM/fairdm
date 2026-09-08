@@ -1603,8 +1603,8 @@ class TestProjectCardRendering:
         inside `@container` that selects the element carrying `container-type`
         matches nothing.
 
-        This shipped once: `.project-card` declared the container and the
-        30rem rule set `flex-direction: row` on `.project-card`. The card's
+        This shipped once: `.record-card` declared the container and the
+        30rem rule set `flex-direction: row` on `.record-card`. The card's
         descendants reflowed and the card itself did not, so a wide card drew a
         side-sized image stacked above a full-width body. Nothing in the HTML
         was wrong, which is why only a rule about the stylesheet catches it.
@@ -1622,7 +1622,7 @@ class TestProjectCardRendering:
         for match in re.finditer(r"([^{}]+)\{([^{}]*)\}", declarations):
             if "container-type" in match.group(2):
                 declaring.update(s.strip() for s in match.group(1).split(","))
-        assert ".project-card" in declaring
+        assert ".record-card" in declaring
 
         for block in re.finditer(r"@container[^{]*\{(.*?)\n\}", declarations, re.DOTALL):
             for rule in re.finditer(r"([^{}]+)\{[^{}]*\}", block.group(1)):
@@ -1641,10 +1641,10 @@ class TestProjectCardRendering:
         every imageless card there requested a file that 404s."""
         ProjectFactory(image=None, visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
-        assert "project-card__media" in html
-        assert "project-card__placeholder" in html
+        assert "record-card__media" in html
+        assert "record-card__placeholder" in html
         assert "placeholder-3x2" not in html
-        assert "<img" not in html.split("project-card__media")[1].split("</div>")[0]
+        assert "<img" not in html.split("record-card__media")[1].split("</div>")[0]
 
     def test_the_placeholder_is_hidden_from_assistive_technology(self, client):
         """It stands in for an absent image and carries no information a
@@ -1652,7 +1652,7 @@ class TestProjectCardRendering:
         ProjectFactory(image=None, visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
         placeholder = re.search(
-            r'<span class="project-card__placeholder"([^>]*)>', html
+            r'<span class="record-card__placeholder"([^>]*)>', html
         )
         assert placeholder
         assert 'aria-hidden="true"' in placeholder.group(1)
@@ -1660,7 +1660,7 @@ class TestProjectCardRendering:
     def test_a_project_with_an_image_gets_a_media_block(self, client):
         ProjectFactory(visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
-        assert html.count("project-card__media") == 1
+        assert html.count("record-card__media") == 1
 
     def test_the_card_names_its_record_type_before_the_status(self, client):
         """A listing of projects is unambiguous; a mixed listing is not, and
@@ -1671,15 +1671,15 @@ class TestProjectCardRendering:
         )
         _, html = self._card_html(client)
         badges = re.search(
-            r'<span class="project-card__badges">(.*?)\n        </span>',
+            r'<span class="record-card__badges">(.*?)\n        </span>',
             html,
             re.DOTALL,
         )
         assert badges, "the card is expected to group its badges"
         row = badges.group(1)
-        assert "project-card__type" in row
+        assert "record-card__type" in row
         assert settings.EASY_ICONS["default"]["icons"]["project"] in row
-        assert row.index("project-card__type") < row.index(
+        assert row.index("record-card__type") < row.index(
             project.get_status_display()
         )
 
@@ -1694,7 +1694,7 @@ class TestProjectCardRendering:
         ProjectFactory(visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
         span = re.search(
-            r'<span class="project-card__datasets">(.*?)</span>', html, re.DOTALL
+            r'<span class="record-card__count">(.*?)</span>', html, re.DOTALL
         )
         assert span, "the card is expected to render a dataset count"
         configured = settings.EASY_ICONS["default"]["icons"]["dataset"]
