@@ -1,5 +1,16 @@
 {% extends "mvp/base.html" %}
-{% load flex_menu %}
+{% load flex_menu static %}
+
+{% comment %}
+  FairDM's own stylesheet is linked here rather than from any one page's
+  template, so it reaches every page — plugin views included, since they render
+  inside this base template and cannot add a `<link>` of their own. It loads
+  after django-mvp's build, so what it declares wins.
+{% endcomment %}
+{% block styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/fairdm.css' %}" />
+{% endblock styles %}
 
 {% block head %}
   {{ block.super }}

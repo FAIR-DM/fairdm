@@ -29,6 +29,7 @@ from fairdm.core.project.models import (
     ProjectIdentifier,
 )
 from fairdm.factories import (
+    DatasetFactory,
     PersonFactory,
     ProjectDescriptionFactory,
     ProjectFactory,
@@ -1546,3 +1547,268 @@ class TestProjectWithMetadataQueryCount:
                     pk__in=[project.pk for project in large]
                 )
             )
+
+
+@pytest.mark.django_db
+class TestProjectListDataAnnotation:
+    """`with_list_data()` carries the card's dataset count, and that count
+    names public datasets only (issue #330).
+
+    The count is an ORM annotation, which joins the dataset table directly and
+    so never consults `Dataset.objects` — the default manager that excludes
+    private records. Without an explicit exclusion in the annotation itself the
+    listing would report a number that only a private dataset explains, which
+    is the existence of that dataset leaked onto a public page.
+    """
+
+    def test_dataset_count_excludes_private_datasets(self):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+
+        annotated = Project.objects.with_list_data().get(pk=project.pk)
+
+        assert annotated.dataset_count == 2
+
+    def test_dataset_count_is_zero_for_a_project_with_no_datasets(self):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        annotated = Project.objects.with_list_data().get(pk=project.pk)
+
+        assert annotated.dataset_count == 0
+
+    def test_dataset_count_is_zero_when_every_dataset_is_private(self):
+        """Distinct from the no-datasets case: a project whose datasets are all
+        private must be indistinguishable from one that has none."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+
+        annotated = Project.objects.with_list_data().get(pk=project.pk)
+
+        assert annotated.dataset_count == 0
+
+    def test_dataset_count_is_not_multiplied_by_other_joined_rows(self):
+        """`distinct=True` on the aggregate: the same queryset also prefetches
+        keywords and descriptions, and a future join in the same query would
+        otherwise multiply the count."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        ProjectDescriptionFactory(related=project, type="Abstract")
+
+        annotated = Project.objects.with_list_data().get(pk=project.pk)
+
+        assert annotated.dataset_count == 1
+
+
+@pytest.mark.django_db
+class TestProjectAbstractSummary:
+    """`get_abstract_summary()` renders the Abstract description down to plain
+    text for the project card (issue #330).
+
+    `ProjectDescription.value` is markdown authored through `MarkdownxFormField`,
+    so printing it raw puts `##` and `**` in front of the reader. The summary
+    renders it through the portal's own sanitising renderer, strips the markup,
+    and caps the result so one long abstract cannot set the height of a card.
+    """
+
+    def test_summary_is_empty_when_the_project_has_no_abstract(self):
+        project = ProjectFactory()
+
+        assert project.get_abstract_summary() == ""
+
+    def test_summary_is_empty_when_the_only_description_is_another_type(self):
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project, type="Objectives", value="Not the abstract."
+        )
+
+        assert project.get_abstract_summary() == ""
+
+    def test_summary_strips_markdown_headings_and_emphasis(self):
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project,
+            type="Abstract",
+            value="## Heading\n\nSome **bold** and _italic_ prose.",
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert "#" not in summary
+        assert "*" not in summary
+        assert "_" not in summary
+        assert "Heading" in summary
+        assert "bold" in summary
+        assert "italic" in summary
+
+    def test_a_heading_does_not_run_into_the_prose_below_it(self):
+        """A heading carries no terminal punctuation, so stripping the tags
+        joined it to the paragraph below and the card showed one broken
+        sentence: "Background Borehole temperature logs were collected."."""
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project,
+            type="Abstract",
+            value="## Background\n\nBorehole temperature logs were collected.",
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert "Background Borehole" not in summary
+        assert summary == "Background — Borehole temperature logs were collected."
+
+    def test_summary_carries_no_html_tags(self):
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project,
+            type="Abstract",
+            value="A [link](https://example.org) and a list:\n\n- one\n- two",
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert "<" not in summary
+        assert ">" not in summary
+        assert "link" in summary
+        assert "one" in summary
+
+    def test_summary_resolves_html_entities_to_their_characters(self):
+        """Markdown escapes `&` on the way to HTML. Left as an entity the card
+        would print the literal text `&amp;`, since the summary is plain text
+        that the template layer escapes again on output."""
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="Rock & roll geochemistry"
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert "&amp;" not in summary
+        assert "Rock & roll geochemistry" in summary
+
+    def test_summary_collapses_whitespace_left_by_block_markup(self):
+        """Paragraphs and list items become separate blocks, and stripping the
+        tags leaves the newlines between them behind."""
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project,
+            type="Abstract",
+            value="First paragraph.\n\nSecond paragraph.\n\n- item one\n- item two",
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert "\n" not in summary
+        assert "  " not in summary
+        assert summary.startswith("First paragraph.")
+
+    def test_summary_is_capped_at_400_characters(self):
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="word " * 300
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert len(summary) <= 400
+
+    def test_a_long_summary_ends_with_an_ellipsis(self):
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="word " * 300
+        )
+
+        assert project.get_abstract_summary().endswith("…")
+
+    def test_a_short_summary_is_returned_whole_and_untruncated(self):
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="A short abstract."
+        )
+
+        assert project.get_abstract_summary() == "A short abstract."
+
+    def test_summary_does_not_execute_or_retain_embedded_script(self):
+        """The renderer sanitises before the tags are stripped, so a script
+        body never reaches the card as text either."""
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project,
+            type="Abstract",
+            value="Safe prose. <script>alert(1)</script>",
+        )
+
+        summary = project.get_abstract_summary()
+
+        assert "alert(1)" not in summary
+        assert "script" not in summary
+        assert "Safe prose." in summary
+
+
+@pytest.mark.django_db
+class TestProjectStatusBadgeVariant:
+    """`status_badge_variant` names the theme colour the card's status badge
+    carries (issue #330).
+
+    A property rather than a chain of integer comparisons in the template:
+    the mapping is behaviour, and comparing `object.status` to a bare `4` in
+    markup is both untestable and unreadable.
+    """
+
+    def test_in_progress_is_success(self):
+        project = ProjectFactory(status=ProjectStatus.IN_PROGRESS)
+        assert project.status_badge_variant == "success"
+
+    def test_planning_is_info(self):
+        project = ProjectFactory(status=ProjectStatus.PLANNING)
+        assert project.status_badge_variant == "info"
+
+    def test_complete_is_neutral(self):
+        project = ProjectFactory(status=ProjectStatus.COMPLETE)
+        assert project.status_badge_variant == "neutral"
+
+    def test_concept_is_neutral(self):
+        project = ProjectFactory(status=ProjectStatus.CONCEPT)
+        assert project.status_badge_variant == "neutral"
+
+    def test_searching_for_collaborators_is_accent(self):
+        """The one status that is a call to action, so the one that is not a
+        neutral or an informational colour."""
+        project = ProjectFactory(status=ProjectStatus.SEARCHING_FOR_COLLABORATORS)
+        assert project.status_badge_variant == "accent"
+
+    def test_every_status_in_the_vocabulary_has_a_variant(self):
+        """A status added to `ProjectStatus` without a colour would otherwise
+        reach the card as an empty class and render as an unstyled badge."""
+        for status in ProjectStatus:
+            project = ProjectFactory(status=status)
+            assert project.status_badge_variant, (
+                f"{status.label} has no badge variant"
+            )
+
+
+@pytest.mark.django_db
+class TestProjectMetaDescription:
+    """`get_meta_description()` feeds the page's `<meta description>` tag via
+    `_metadata` (issue #331).
+
+    It read `abstract.description`, an attribute `AbstractDescription` does
+    not declare — the model has `type` and `value` only — so it raised
+    `AttributeError` for any record that actually had an Abstract, and the
+    failing branch was the only one meant to do anything.
+    """
+
+    def test_returns_the_abstracts_text_when_one_exists(self):
+        project = ProjectFactory()
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="A concise summary."
+        )
+
+        assert project.get_meta_description() == "A concise summary."
+
+    def test_returns_none_when_there_is_no_abstract(self):
+        project = ProjectFactory()
+
+        assert project.get_meta_description() is None

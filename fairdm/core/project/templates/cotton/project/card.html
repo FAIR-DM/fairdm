@@ -1,7 +1,0 @@
-{% load i18n %}
-
-<c-components.object-card :object="object"
-                          object_type="project"
-                          badge_text='{% trans "Project" %}'
-                          :contributor="object.contributors.first.contributor"
-                          :organization="object.owner" />

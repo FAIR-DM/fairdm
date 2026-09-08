@@ -1,3 +1,6 @@
+import re
+from html import unescape
+
 from django.core.exceptions import ValidationError
 from django.db.models import Manager, Model, QuerySet
 from django.urls import reverse
@@ -5,6 +8,8 @@ from django.utils.decorators import classonlymethod
 
 # from rest_framework.authtoken.models import Token
 from django.utils.functional import cached_property
+from django.utils.html import strip_tags
+from django.utils.text import Truncator
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
@@ -18,6 +23,7 @@ from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
 from fairdm.utils import default_image_path, get_inheritance_chain
+from fairdm.utils.markdown import markdownify
 
 
 class BaseModel(models.Model):
@@ -132,16 +138,61 @@ class BaseModel(models.Model):
         return Contributor.objects.filter(pk__in=all_ids).distinct()
 
     def get_abstract(self):
-        """Returns the abstract description of the project."""
-        try:
-            return self.descriptions.filter(type="Abstract").first()
-        except self.DoesNotExist:
-            return None
+        """Returns the abstract description of the project, or ``None``.
+
+        Scans ``descriptions.all()`` rather than filtering in the database.
+        Filtering a related manager always issues a fresh query, prefetched or
+        not, so the previous ``descriptions.filter(type="Abstract")`` cost one
+        query per record on any page that shows several - the project listing
+        shows twenty-five. Reading from ``all()`` is served out of the prefetch
+        cache when the caller has one, and costs the same single query when it
+        does not.
+        """
+        for description in self.descriptions.all():
+            if description.type == "Abstract":
+                return description
+        return None
+
+    def get_abstract_summary(self):
+        """Return the abstract as a bounded run of plain text, or ``""``.
+
+        ``AbstractDescription.value`` is markdown, so a template that prints it
+        directly shows the reader ``##`` and ``**``. This renders it through the
+        portal's own sanitising renderer, drops the tags, collapses the
+        whitespace those block elements leave behind, and caps the result at 400
+        characters so one long abstract cannot set the height of a card.
+
+        The return value is plain text, not markup: it carries no tags and is
+        escaped by the template layer like any other string. Never mark it safe.
+        """
+        abstract = self.get_abstract()
+        if not abstract or not abstract.value:
+            return ""
+        html = markdownify(abstract.value)
+        # A heading carries no terminal punctuation, so stripping the tags runs
+        # it straight into the paragraph below it: "## Background" followed by
+        # "Borehole temperature logs ..." reads as one broken sentence on the
+        # card. Paragraphs need no separator - they already end in a full stop.
+        html = re.sub(r"</h[1-6]>", " — ", html, flags=re.IGNORECASE)
+        # `strip_tags` leaves entities behind, and `&amp;` printed to a card is
+        # as wrong as `**` was - the summary is escaped again on output.
+        text = unescape(strip_tags(html))
+        return Truncator(" ".join(text.split())).chars(400, truncate="…")
 
     def get_meta_description(self):
+        """Return the Abstract description's full text for `_metadata`'s page
+        description, or `None`.
+
+        `AbstractDescription` declares `type` and `value`, not `description`;
+        reading `.description` raised `AttributeError` for every record that
+        actually had an Abstract (issue #331). This is the full text, unlike
+        `get_abstract_summary()`, which truncates to 400 characters for the
+        card - the two serve different pages and neither should be collapsed
+        into the other.
+        """
         abstract = self.get_abstract()
         if abstract:
-            return abstract.description
+            return abstract.value
         else:
             return None
 
